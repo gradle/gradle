@@ -58,6 +58,7 @@ body {
 	--quoteblock-color: #7a2518;
 	--menu-burger-color: #fff;
 	--various-border-color: #e7e7e9;
+	--right-menu-gray: hsl(224, 6%, 56%);
 }
 
 body.dark-theme {
@@ -4234,11 +4235,13 @@ body.dark-theme {
 	}
 
     #header #toc .sectlevel1 a {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        color: var(--right-menu-gray);
     }
 
     #header #toc .sectlevel2 a {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+        color: var(--right-menu-gray);
     }
 
 	.site-footer__navigation {

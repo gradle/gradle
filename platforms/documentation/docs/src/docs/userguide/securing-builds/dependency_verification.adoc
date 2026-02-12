@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[verifying-dependencies]]
-= Verifying and Validating Dependencies
+= Verifying Dependencies
 
 Working with external dependencies and plugins from third-party repositories exposes your build to significant supply chain risks.
 Dependencies are the most commonly attacked part of the software supply chain, and every artifact you consume, including transitively pulled-in binaries, needs to be both legitimate and unchanged.
@@ -25,7 +25,7 @@ image::trusty-lib-attack.png[]
 
 To mitigate these risks and avoid integrating compromised artifacts, Gradle provides *dependency verification*.
 
-Dependency verification adds overhead: *So why keep it on?*
+But dependency verification adds overhead: *So why keep it on?*
 
 Because dependency verification is about *trust*: trust that what you download is what you think it is, and that what you ship is what you intended.
 
@@ -89,11 +89,11 @@ For example, the checksum entry for `trusty-lib-1.0.jar` might look like this:
 
 A signature is a cryptographic *stamp* that proves authenticity.
 
-To produce a signature, the author uses their *private key* to create a digital signature over the library or plugin (typically over its checksum).
+To produce a signature, the author uses their *private key* to create a digital signature over the library or plugin.
 
 With *signatures*, you verify *who* produced the artifact, not just that it hasn't changed:
 
-* The author signs the artifact's checksum using their private key.
+* The author signs the checksum of the artifact's file contents along with additional metadata using their private key.
 * You verify and add trusted public keys to your verification metadata.
 * When the artifact is downloaded, the build verifies the signature against the trusted public key.
 * If the signature is missing, invalid, or signed by an untrusted key, the build fails.
@@ -313,8 +313,22 @@ Or in a `gradle.properties` file:
 org.gradle.dependency.verification=lenient
 ----
 
+[[sec:verification-console-output]]
+== Configuring the Console Output
+
+By default, if dependency verification fails, Gradle generates a small summary about the verification failure as well as an HTML report containing the full information about the failures.
+
+If your environment prevents you from reading this HTML report file (for example, if you run a build on CI, and it's not easy to fetch the remote artifacts), Gradle provides a way to opt in to a verbose console report.
+
+Add this Gradle property to your `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.dependency.verification.console=verbose
+----
+
 [[sec:bootstrapping-verification]]
-== Bootstrapping and Generating Verification Metadata
+== Generating and Bootstrapping Verification Metadata
 
 Gradle can automatically generate a dependency verification file by downloading all your dependencies and recording their checksums or signatures.
 This is called *bootstrapping*.
@@ -448,7 +462,7 @@ When you add a new library or update a version, the build will fail because the 
 You have two options for updating the verification metadata: auto-update or manual update.
 
 [[sec:verification-update]]
-=== Auto-update Verification Metadata
+=== Updating Verification Metadata Automatically
 
 Run the `--write-verification-metadata` command again to append the new hashes:
 
@@ -501,7 +515,7 @@ IMPORTANT: Gradle cannot automatically determine that an entry is outdated. Remo
 WARNING: There are dependencies that Gradle _cannot_ discover automatically. In particular, dependencies that are only resolved during task execution or in custom dependency resolution logic may not be included in the generated file. You may need to add these manually.
 
 [[sec:manual-update-metadata]]
-=== Manually Update Verification Metadata
+=== Updating Verification Metadata Manually
 
 Add the new `<component>` entry to the XML file manually with the checksum provided by the library author.
 
@@ -814,7 +828,7 @@ NOTE: If Gradle cannot download a key while bootstrapping, it will automatically
 Once you've set up dependency verification, you'll need to maintain the verification metadata file and keyring files over time.
 This includes cleaning up old entries, refreshing keys, and managing your local keyring for better performance.
 
-=== Cleaning Up the Verification File
+=== Cleaning up the Verification File
 
 If you do nothing, the dependency verification metadata will grow over time as you add new dependencies or change versions: Gradle will not automatically remove _unused_ entries from this file.
 The reason is that there's no way for Gradle to know upfront if a dependency will effectively be used during the build or not.
@@ -836,6 +850,49 @@ If you want to retry immediately, you can run with the `--refresh-keys` CLI flag
 ----
 ./gradlew build --refresh-keys
 ----
+
+[[sec:add-manual-keyring]]
+=== Adding Keys to the Keyring
+
+If you have a public key that Gradle cannot download from key servers, you can manually add it to the keyring file. This is useful when a key is not published to public key servers or when you want to avoid downloading keys repeatedly.
+
+[[sec:add-ascii-keyring]]
+==== For ASCII-Armored Format (.keys)
+
+If you're using the ASCII-armored keyring format, you can add keys directly by appending them to the `gradle/verification-keyring.keys` file.
+
+First, export the public key to a file:
+
+[source,bash]
+----
+gpg --export --armor 8756C4F765C9AC3CB6B85D62379CE192D401AB61 > key.asc
+----
+
+Then append the key to your keyring file:
+
+[source,bash]
+----
+cat key.asc >> gradle/verification-keyring.keys
+----
+
+[[sec:add-binary-keyring]]
+==== For Binary Format (.gpg)
+
+If you're using the binary keyring format, use GPG to import the key:
+
+[source,bash]
+----
+gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --import key.asc
+----
+
+Or import directly from a key server to the keyring:
+
+[source,bash]
+----
+gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 8756C4F765C9AC3CB6B85D62379CE192D401AB61
+----
+
+NOTE: Remember to use full 40-character fingerprint IDs when working with keys, not short or long IDs.
 
 [[sec:local-keyring]]
 === Exporting Keys for Faster Verification
@@ -902,53 +959,12 @@ If you use the binary format with Git, add this to your `.gitattributes` file to
 
 NOTE: Only public key packets and a single userId per key are stored. All other information (user attributes, signatures, etc.) is stripped from exported keys.
 
-[[sec:add-manual-keyring]]
-=== Adding Keys to the Keyring
-
-If you have a public key that Gradle cannot download from key servers, you can manually add it to the keyring file. This is useful when a key is not published to public key servers or when you want to avoid downloading keys repeatedly.
-
-[[sec:add-ascii-keyring]]
-==== For ASCII-Armored Format (.keys)
-
-If you're using the ASCII-armored keyring format, you can add keys directly by appending them to the `gradle/verification-keyring.keys` file.
-
-First, export the public key to a file:
-
-[source,bash]
-----
-gpg --export --armor 8756C4F765C9AC3CB6B85D62379CE192D401AB61 > key.asc
-----
-
-Then append the key to your keyring file:
-
-[source,bash]
-----
-cat key.asc >> gradle/verification-keyring.keys
-----
-
-[[sec:add-binary-keyring]]
-==== For Binary Format (.gpg)
-
-If you're using the binary keyring format, use GPG to import the key:
-
-[source,bash]
-----
-gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --import key.asc
-----
-
-Or import directly from a key server to the keyring:
-
-[source,bash]
-----
-gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 8756C4F765C9AC3CB6B85D62379CE192D401AB61
-----
-
-NOTE: Remember to use full 40-character fingerprint IDs when working with keys, not short or long IDs.
-
 [[sec:understanding-signature-verification]]
 == Understanding Signature Verification
 
 Once signature verification is enabled, Gradle follows this workflow for each artifact:
+
+// Really gradle uses gpg to try to recreated the hash and verify that the two hasshes match
 
 1. Attempts to download the corresponding `.asc` signature file
 2. If the signature file exists:
@@ -979,20 +995,6 @@ Gradle performs optimistic verification during bootstrapping and automatically:
 WARNING: Bootstrapping takes an optimistic point of view that signature verification is enough. If you also care about integrity, you should first bootstrap using checksum verification, then re-bootstrap with signature verification. This ensures you have checksums for all artifacts before adding signatures.
 
 If signature verification fails during bootstrapping, Gradle will automatically generate an ignored key entry but will warn you to investigate. This commonly happens when POM files differ between repositories in non-meaningful ways.
-
-[[sec:verification-console-output]]
-== Configuring the Console Output
-
-By default, if dependency verification fails, Gradle generates a small summary about the verification failure as well as an HTML report containing the full information about the failures.
-
-If your environment prevents you from reading this HTML report file (for example, if you run a build on CI, and it's not easy to fetch the remote artifacts), Gradle provides a way to opt in to a verbose console report.
-
-Add this Gradle property to your `gradle.properties` file:
-
-[source,properties]
-----
-org.gradle.dependency.verification.console=verbose
-----
 
 [[sec:dealing-verification-failure]]
 == Troubleshooting Verification Failures
@@ -1082,111 +1084,6 @@ Options:
 Go to the official site to verify if they publish signatures. If they do, verify that Gradle's downloaded signature matches the published one.
 
 If you've verified the dependency is not compromised and only the signature is wrong, declare an artifact-level key exclusion and provide a checksum.
-
-[[sec:manual-checking-dependency]]
-=== Manual Verification of a Dependency
-
-You will likely face a dependency verification failure (either checksum verification or signature verification) and will need to figure out if the dependency has been compromised or not.
-
-In this section we give _an example_ of how you can manually check if a dependency was compromised.
-
-For this we will take this example failure:
-
-[source, text]
-----
-> Dependency verification failed for configuration ':compileClasspath':
-- On artifact j2objc-annotations-1.1.jar (com.google.j2objc:j2objc-annotations:1.1) in repository 'MyCompany Mirror': Artifact was signed with key '29579f18fa8fd93b' but signature didn't match
-----
-
-This error message gives us the GAV coordinates of the problematic dependency, as well as an indication of where the dependency was fetched from.
-Here, the dependency comes from `MyCompany Mirror`, which is a repository declared in our build.
-
-The first thing to do is therefore to download the artifact and its signature manually from the mirror:
-
-[source, bash]
-----
-$ curl https://my-company-mirror.com/repo/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar --output j2objc-annotations-1.1.jar
-$ curl https://my-company-mirror.com/repo/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar.asc --output j2objc-annotations-1.1.jar.asc
-----
-
-Then we can use the key information provided in the error message to import the key locally:
-
-[source, bash]
-----
-$ gpg --recv-keys B801E2F8EF035068EC1139CC29579F18FA8FD93B
-----
-
-And perform verification:
-
-[source, bash]
-----
-$ gpg --verify j2objc-annotations-1.1.jar.asc
-gpg: assuming signed data in 'j2objc-annotations-1.1.jar'
-gpg: Signature made Thu 19 Jan 2017 12:06:51 AM CET
-gpg:                using RSA key 29579F18FA8FD93B
-gpg: BAD signature from "Tom Ball <****>" [unknown]
-----
-
-What this tells us is that the problem is _not_ on the local machine: the repository _already contains a bad signature_.
-
-The next step is to do the same by downloading what is actually on Maven Central:
-
-[source, bash]
-----
-$ curl https://repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar  --output central-j2objc-annotations-1.1.jar
-$ curl https://repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar.asc  --output central-j2objc-annotations-1.1.jar.asc
-----
-
-And we can now check the signature again:
-
-[source, bash]
-----
-$ gpg --verify central-j2objc-annotations-1.1.jar.asc
-
-gpg: assuming signed data in 'central-j2objc-annotations-1.1.jar'
-gpg: Signature made Thu 19 Jan 2017 12:06:51 AM CET
-gpg:                using RSA key 29579F18FA8FD93B
-gpg: Good signature from "Tom Ball <****>" [unknown]
-gpg: WARNING: This key is not certified with a trusted signature!
-gpg:          There is no indication that the signature belongs to the owner.
-Primary key fingerprint: B801 E2F8 EF03 5068 EC11  39CC 2957 9F18 FA8F D93B
-----
-
-This indicates that the dependency is _valid_ on Maven Central.
-At this stage, we already know that the problem lives in the mirror—it _may_ have been compromised, but we need to verify.
-
-A good idea is to compare the 2 artifacts, which you can do with a tool like https://try.diffoscope.org/[`diffoscope`].
-
-We then figure out that the intent wasn't malicious but that somehow a build has been overwritten with a newer version (the version in Central is newer than the one in our repository).
-
-In this case, you can decide to:
-
-- Ignore the signature for this artifact and trust the different possible checksums (both for the old artifact and the new version)
-- Or cleanup your mirror so that it contains the same version as in Maven Central
-
-It's worth noting that if you choose to delete the version from your repository, you will _also_ need to remove it from the local Gradle cache.
-
-This is facilitated by the fact the error message tells you where the file is located:
-
-[source, text]
-----
-> Dependency verification failed for configuration ':compileClasspath':
-    - On artifact j2objc-annotations-1.1.jar (com.google.j2objc:j2objc-annotations:1.1) in repository 'MyCompany Mirror': Artifact was signed with key '29579f18fa8fd93b' but signature didn't match
-
-  This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums.
-
-  For your information here are the path to the files which failed verification:
-    - $GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/976d8d30bebc251db406f2bdb3eb01962b5685b3/j2objc-annotations-1.1.jar (signature: GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/82e922e14f57d522de465fd144ec26eb7da44501/j2objc-annotations-1.1.jar.asc)
-
-  GRADLE_USER_HOME = /home/user/.gradle
-----
-
-You can safely delete the artifact file as Gradle would automatically re-download it:
-
-[source, bash]
-----
-rm -rf ~/.gradle/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1
-----
 
 === Handling Wrong Signatures
 
