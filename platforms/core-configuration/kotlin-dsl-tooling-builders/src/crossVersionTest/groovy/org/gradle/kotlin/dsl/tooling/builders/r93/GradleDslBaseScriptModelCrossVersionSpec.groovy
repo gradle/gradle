@@ -23,6 +23,9 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.dsl.GradleDslBaseScriptModel
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+import org.gradle.util.GradleVersion
+
+import static org.junit.Assume.assumeTrue
 
 @TargetGradleVersion(">=9.3")
 class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
@@ -97,13 +100,15 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
     }
 
-    def "GradleDslBaseScriptModel can be obtained even after a settings #typeOfFailure failure"() {
+    def "GradleDslBaseScriptModel can be obtained even after a settings #typeOfFailure failure with #apiType"() {
+        assumeApiSupportedOnVersion(apiType)
+
         given:
         settingsFileKts << error
 
         when:
         def result = succeeds {
-            action(new FetchBaseModelAfterSettingsEvaluationAction())
+            action(new FetchBaseModelAfterSettingsEvaluationAction(apiType))
                 .run()
         }
 
@@ -116,18 +121,22 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         result.baseModel.kotlinDslBaseScriptModel != null
 
         where:
-        typeOfFailure | error                                    | expectedReportedError
-        "compilation" | "broken !!!"                             | /Script compilation error:\s+Line 1: broken !!!/
-        "runtime"     | "throw RuntimeException(\"broken !!!\")" | /Settings file '.*?' line: 1\s+broken !!!/
+        typeOfFailure | error                                    | expectedReportedError                            | apiType
+        "compilation" | "broken !!!"                             | /Script compilation error:\s+Line 1: broken !!!/ | ApiType.FETCH
+        "runtime"     | "throw RuntimeException(\"broken !!!\")" | /Settings file '.*?' line: 1\s+broken !!!/       | ApiType.FETCH
+        "compilation" | "broken !!!"                             | /Script compilation error:\s+Line 1: broken !!!/ | ApiType.GET_MODEL
+        "runtime"     | "throw RuntimeException(\"broken !!!\")" | /Settings file '.*?' line: 1\s+broken !!!/       | ApiType.GET_MODEL
     }
 
-    def "GradleDslBaseScriptModel can be obtained even after a project #typeOfFailure failure"() {
+    def "GradleDslBaseScriptModel can be obtained even after a project #typeOfFailure failure with #apiType"() {
+        assumeApiSupportedOnVersion(apiType)
+
         given:
         buildFileKts << error
 
         when:
         def result = succeeds {
-            action(new FetchBaseModelAfterProjectConfigurationAction())
+            action(new FetchBaseModelAfterProjectConfigurationAction(apiType))
                 .run()
         }
 
@@ -139,33 +148,57 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         result.baseModel.kotlinDslBaseScriptModel != null
 
         where:
-        typeOfFailure | error                                    | expectedReportedError
-        "compilation" | "broken !!!"                             | "A problem occurred configuring root project"
-        "runtime"     | "throw RuntimeException(\"broken !!!\")" | "A problem occurred configuring root project"
+        typeOfFailure | error                                    | expectedReportedError                         | apiType
+        "compilation" | "broken !!!"                             | "A problem occurred configuring root project" | ApiType.FETCH
+        "runtime"     | "throw RuntimeException(\"broken !!!\")" | "A problem occurred configuring root project" | ApiType.FETCH
+        "compilation" | "broken !!!"                             | "A problem occurred configuring root project" | ApiType.GET_MODEL
+        "runtime"     | "throw RuntimeException(\"broken !!!\")" | "A problem occurred configuring root project" | ApiType.GET_MODEL
     }
 
     static class FetchBaseModelAfterSettingsEvaluationAction implements BuildAction<FetchBaseModelLastActionResult>, Serializable {
+
+        final ApiType apiType
+
+        FetchBaseModelAfterSettingsEvaluationAction(ApiType apiType) {
+            this.apiType = apiType;
+        }
+
         @Override
         FetchBaseModelLastActionResult execute(BuildController controller) {
-            def result = controller.fetch(GradleBuild)
-            def settingsEvaulationFailures = result.failures.collect {
-                it.message
-            }
-            result = controller.fetch(GradleDslBaseScriptModel)
-            return new FetchBaseModelLastActionResult(settingsEvaulationFailures, result.model)
+            return fetchBaseModelAfter(controller, GradleBuild, apiType)
         }
     }
 
     static class FetchBaseModelAfterProjectConfigurationAction implements BuildAction<FetchBaseModelLastActionResult>, Serializable {
+
+        final ApiType apiType
+
+        FetchBaseModelAfterProjectConfigurationAction(ApiType apiType) {
+            this.apiType = apiType;
+        }
+
         @Override
         FetchBaseModelLastActionResult execute(BuildController controller) {
-            def result = controller.fetch(KotlinDslScriptsModel)
-            def configurationFailures = result.failures.collect {
-                it.message
-            }
-            result = controller.fetch(GradleDslBaseScriptModel)
-            return new FetchBaseModelLastActionResult(configurationFailures, result.model)
+            return fetchBaseModelAfter(controller, KotlinDslScriptsModel, apiType)
         }
+    }
+
+    private static FetchBaseModelLastActionResult fetchBaseModelAfter(BuildController controller, Class<?> modelType, ApiType apiType) {
+        def model
+        List<String> failures = []
+        if (apiType == ApiType.FETCH) {
+            def result = controller.fetch(modelType)
+            failures = result.failures.collect { it.message }
+            model = controller.fetch(GradleDslBaseScriptModel).model
+        } else {
+            try {
+                controller.getModel(modelType)
+            } catch (Exception e) {
+                failures.add(e.message)
+            }
+            model = controller.getModel(GradleDslBaseScriptModel)
+        }
+        return new FetchBaseModelLastActionResult(failures, model)
     }
 
     static class FetchBaseModelLastActionResult implements Serializable {
@@ -176,6 +209,11 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
             this.errorsBeforeBaseModel = errorsBeforeBaseModel
             this.baseModel = baseModel
         }
+    }
+
+    enum ApiType {
+        FETCH,
+        GET_MODEL
     }
 
     private static void loadClassesFrom(List<File> classPath, List<String> classNames) {
@@ -191,5 +229,10 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
                 classPath.collect { it.toURI().toURL() } as URL[],
                 (ClassLoader) null // we don't want the classloader to have a fallback
         )
+    }
+
+    private assumeApiSupportedOnVersion(ApiType apiType) {
+        assumeTrue("Fetch requires Tooling API >= 9.3.0", apiType == ApiType.GET_MODEL
+            || apiType == ApiType.FETCH && toolingApi.toolingApiVersion >= GradleVersion.version("9.3.0"))
     }
 }
