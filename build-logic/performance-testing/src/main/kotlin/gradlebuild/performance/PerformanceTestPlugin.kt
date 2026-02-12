@@ -245,6 +245,11 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
     }
 
+    /**
+     * Uses the Test task infrastructure to process all available tests without executing them.
+     *
+     * @see org.gradle.performance.annotations.RunForExtension
+     */
     private
     fun Project.createGeneratePerformanceDefinitionJsonTask(name: String, performanceSourceSet: SourceSet, outputJson: File) =
         tasks.register<Test>(name) {
