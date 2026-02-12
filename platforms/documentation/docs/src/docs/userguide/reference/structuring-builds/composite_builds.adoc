@@ -263,31 +263,16 @@ Gradle uses the metadata from the included build to "discover" which coordinates
 As long as the coordinates match, Gradle replaces the external dependency with a project dependency at execution time.
 
 [[included_plugin_builds]]
-== Composite builds for dependencies versus Composite Builds for plugins
+== Including Builds that Define Gradle Plugins
 
-When using composite builds, there is a significant distinction between including a build for dependencies versus including a build for plugins.
+When including builds that provide Gradle plugins, there are different approaches depending on how and where the plugin will be applied.
 
-Passing `--include-build <path>` via the command line (or using `includeBuild("<path>")` in `settings.gradle(.kts)`) only makes the subproject's software components (libraries) available to the main build.
-It does not search the included build for Gradle plugins.
+[[including_plugin_builds_in_settings]]
+=== For Plugins Applied in Build Scripts
 
-If your included build contains precompiled script plugins or custom plugin logic, the main build will fail with a `Plugin [id: '...'] was not found` error, even if the path is correctly included.
+Plugins that will be applied in project build scripts (e.g., `build.gradle.kts`) can be included using `includeBuild` in your `settings.gradle(.kts)` file.
 
-If you run a command like:
-
-[source,bash]
-----
-$ ./gradlew build --include-build my-plugin
-----
-
-You will receive an error similar to:
-
-[source,bash]
-----
-What went wrong: Plugin [id: 'my-plugin'] was not found in any of the following sources...
-----
-
-To successfully include a build that provides plugins, you must declare it explicitly in your `settings.gradle(.kts)` file inside the `pluginManagement {}` block.
-*Command-line flags cannot currently satisfy plugin requirements:*:
+This approach is recommended over using the `--include-build` CLI flag, as it provides more reliable plugin resolution, especially when using the modern `plugins {}` block:
 
 ++++
 <div style="text-align: right;">
@@ -308,6 +293,28 @@ Then the plugin is used as follows:
 include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="my-app/app/build.gradle.kts[tags=plugin_dependencies]"]
 include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/app/build.gradle[tags=plugin_dependencies]"]
 ====
+
+[[including_settings_plugin_builds]]
+=== For Settings Plugins
+
+A special case of included builds are builds that define Gradle plugins that need to be applied in the *settings file itself*.
+These builds should be included using the `includeBuild` statement inside the `pluginManagement {}` block of the settings file.
+
+Using this mechanism, the included build may contribute a settings plugin that can be applied in the settings file:
+
+.settings.gradle.kts
+[source,kotlin]
+----
+pluginManagement {
+    includeBuild("../my-settings-plugin")
+}
+
+plugins {
+    id("my-settings-plugin")
+}
+----
+
+NOTE: While the `--include-build` CLI flag can work for plugins applied via the `buildscript {}` block, it may not work reliably for plugins applied using the modern `plugins {}` block, especially for unpublished plugins. For consistent behavior, use `includeBuild` in your settings file. For settings plugins specifically (plugins applied in the settings file itself), use `includeBuild` within the `pluginManagement {}` block.
 
 [[included_builds]]
 == Restrictions on Composite Builds
