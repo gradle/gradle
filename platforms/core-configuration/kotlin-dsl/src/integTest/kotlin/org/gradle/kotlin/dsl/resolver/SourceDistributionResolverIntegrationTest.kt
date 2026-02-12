@@ -4,22 +4,22 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptorLocator
 import org.gradle.test.fixtures.dsl.GradleDsl
-import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.junit.After
-import org.junit.Rule
 
 import org.junit.Test
 
 class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest() {
 
-    private fun withCustomGradleProperties(distributionUrl: String) {
-        withFile("fake-root/gradle/wrapper/gradle-wrapper.properties", """
+    private fun withCustomGradleProperties(distributionUrl: String, pathPrefix: String = "fake-root/") {
+        withFile("${pathPrefix}gradle/wrapper/gradle-wrapper.properties", """
         distributionUrl=${distributionUrl}
         """)
     }
 
     private fun queryGradleDistRepository() =
         "${GradleDistRepoDescriptorLocator::class.qualifiedName}(project, explicitRootProjectDir = file(\"fake-root\")).gradleDistRepository"
+
+    private fun queryGradleDistRepositoryWithDefaultRoot() =
+        "${GradleDistRepoDescriptorLocator::class.qualifiedName}(project).gradleDistRepository"
 
     private fun verifyPasswordCredentials(expectedUser: String, expectedPassword: String): String {
         return $$"""
@@ -107,6 +107,28 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
         )
 
         build()
+    }
+
+    @Test
+    fun `test parent dir wrapper properties`() {
+        withCustomGradleProperties("https://my-host.org/my-path/distributions/gradle-9.4.0-bin.zip", "")
+
+        val actualProjectRoot = projectRoot.resolve("child").resolve("grand-child")
+        withProjectRoot(actualProjectRoot) {
+            withSettings("rootProject.name = \"test-project\"")
+            withBuildScript(
+                $$"""
+                val gradleDistRepository = $${queryGradleDistRepositoryWithDefaultRoot()}
+                require(gradleDistRepository.repoBaseUrl == uri("https://my-host.org/my-path/distributions")) {
+                    "Unexpected repoBaseUrl in: ${gradleDistRepository}"
+                }
+                require(gradleDistRepository.artifactPattern == "[module]-[revision](-[classifier])(.[ext])") {
+                    "Unexpected artifactPattern in: ${gradleDistRepository}"
+                }
+                """.trimIndent()
+            )
+        }
+        build(actualProjectRoot)
     }
 
     @Test

@@ -64,10 +64,24 @@ class GradleDistRepoDescriptorLocator(
         WrapperCredentials.findCredentials(baseUrl) { System.getProperty(it) }
 
     private
-    fun findStandardWrapperUri(): URI? {
-        val wrapperProperties = WrapperExecutor.wrapperPropertiesForProjectDirectory(rootProjectDir)
-        if (wrapperProperties.exists()) {
+    fun findWrapperProperties(): File? {
+        var rootCandidate: File? = rootProjectDir
+        while (rootCandidate != null) {
+            val resultCandidate = WrapperExecutor.wrapperPropertiesForProjectDirectory(rootCandidate)
+            if (resultCandidate.exists()) {
+                return resultCandidate.takeIf {
+                    resultCandidate.isFile && resultCandidate.canRead()
+                }
+            }
+            rootCandidate = rootCandidate.parentFile
+        }
+        return null
+    }
 
+    private
+    fun findStandardWrapperUri(): URI? {
+        val wrapperProperties = findWrapperProperties()
+        if (wrapperProperties != null) {
             val currentWrapperUri = Properties()
                 .apply { wrapperProperties.inputStream().use { load(it) } }
                 .getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY)
