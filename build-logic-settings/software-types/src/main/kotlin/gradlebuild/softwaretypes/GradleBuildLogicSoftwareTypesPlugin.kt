@@ -24,16 +24,18 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.ProjectTypeBinding
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
+import javax.inject.Inject
 
 @RegistersProjectFeatures(KotlinBuildLogicProjectTypePlugin::class)
 open class GradleBuildLogicSoftwareTypesPlugin : Plugin<Settings> {
@@ -46,7 +48,7 @@ open class KotlinBuildLogicProjectTypePlugin : Plugin<Project> {
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
             builder.bindProjectType("kotlinBuildLogic", KotlinBuildLogicDefinition::class.java) { context, definition, model ->
-                context.project.run {
+                context.objectFactory.newInstance<Services>().project.run {
                     plugins.apply("org.gradle.kotlin.kotlin-dsl")
                     group = "gradlebuild"
                     afterEvaluate {
@@ -62,11 +64,16 @@ open class KotlinBuildLogicProjectTypePlugin : Plugin<Project> {
                         definition.dependencies.api.dependencies
                     )
                 }
-            }.withUnsafeDefinition()
+            }.withUnsafeDefinition().withUnsafeApplyAction()
         }
     }
 
     override fun apply(target: Project) = Unit
+
+    interface Services {
+        @get:Inject
+        val project: Project
+    }
 }
 
 interface KotlinBuildLogicDefinition : Definition<BuildModel.None> {
