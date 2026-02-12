@@ -18,7 +18,10 @@ package org.gradle.kotlin.dsl.tooling.builders.r93
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.dsl.GradleDslBaseScriptModel
+import org.gradle.tooling.model.gradle.GradleBuild
 
 @TargetGradleVersion(">=9.3")
 class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
@@ -91,6 +94,46 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
 
         and: "no configuration"
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
+    }
+
+    def "GradleDslBaseScriptModel can be obtained even after a failure"() {
+        given:
+        settingsFileKts << "broken !!!"
+
+        when:
+        def result = succeeds {
+            action(new FetchBaseModelLastAction())
+                .run()
+        }
+
+        then:
+        result.gradleBuildFailures.size() == 1
+        result.gradleBuildFailures[0] =~ /Script compilation error:\s+Line 1: broken !!!/
+        result.baseModel != null
+        result.baseModel.groovyDslBaseScriptModel != null
+        result.baseModel.kotlinDslBaseScriptModel != null
+    }
+
+    static class FetchBaseModelLastAction implements BuildAction<FetchBaseModelLastActionResult>, Serializable {
+        @Override
+        FetchBaseModelLastActionResult execute(BuildController controller) {
+            def gradleBuildResult = controller.fetch(GradleBuild)
+            def gradleBuildFailures = gradleBuildResult.failures.collect {
+                it.message
+            }
+            def result = controller.fetch(GradleDslBaseScriptModel)
+            return new FetchBaseModelLastActionResult(gradleBuildFailures, result.model)
+        }
+    }
+
+    static class FetchBaseModelLastActionResult implements Serializable {
+        final List<String> gradleBuildFailures
+        final GradleDslBaseScriptModel baseModel
+
+        FetchBaseModelLastActionResult(List<String> gradleBuildFailures, GradleDslBaseScriptModel baseModel) {
+            this.gradleBuildFailures = gradleBuildFailures
+            this.baseModel = baseModel
+        }
     }
 
     private static void loadClassesFrom(List<File> classPath, List<String> classNames) {
