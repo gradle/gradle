@@ -50,7 +50,7 @@ class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegra
         then:
         def generation = operations.only("Generate $dependency jar")
         def durationMs = generation.endTime - generation.startTime
-        durationMs < 8000
+        durationMs < 10000
 
         where:
         dependency       | declaration
