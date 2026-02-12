@@ -34,6 +34,7 @@ dependencies {
 
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.concurrent)
+    implementation(projects.dependencyManagement)
     implementation(projects.baseServices)
     implementation(projects.modelCore)
     implementation(projects.messaging)

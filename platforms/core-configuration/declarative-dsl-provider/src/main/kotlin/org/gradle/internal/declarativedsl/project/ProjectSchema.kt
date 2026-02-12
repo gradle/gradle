@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.dependencycollectors.dependencyCollectors
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
@@ -29,12 +30,14 @@ import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 
 internal
 fun projectInterpretationSequence(
-    projectFeatureDeclarations: ProjectFeatureDeclarations
-) = DefaultInterpretationSequence(listOf(projectInterpretationSequenceStep(projectFeatureDeclarations)))
+    projectFeatureDeclarations: ProjectFeatureDeclarations,
+    settings: SettingsInternal
+) = DefaultInterpretationSequence(listOf(projectInterpretationSequenceStep(projectFeatureDeclarations, settings)))
 
 
 fun projectEvaluationSchema(
     projectFeatureDeclarations: ProjectFeatureDeclarations,
+    settings: SettingsInternal,
 ): EvaluationAndConversionSchema {
     return buildEvaluationAndConversionSchema(ProjectTopLevelReceiver::class, analyzeEverything) {
         gradleDslGeneralSchema()
@@ -42,5 +45,6 @@ fun projectEvaluationSchema(
         ifConversionSupported {
             projectFeaturesComponent(ProjectTopLevelReceiver::class, projectFeatureDeclarations, withDefaultsApplication = true)
         }
+        versionCatalogs(settings)
     }
 }

@@ -61,6 +61,7 @@ import kotlin.reflect.typeOf
 
 interface SchemaBuildingHost {
     val topLevelReceiverClass: KClass<*>
+    val syntheticTypeRegistrar: SyntheticTypeRegistrar
 
     val typeFailures: Iterable<SchemaResult.Failure>
     fun recordTypeFailure(failure: SchemaResult.Failure)
@@ -174,7 +175,19 @@ inline fun <R> SchemaBuildingHost.inContextOf(contextElement: SchemaBuildingCont
         leaveSchemaBuildingContext(contextElement)
     }
 
+class DefaultSyntheticTypeRegistrar : SyntheticTypeRegistrar {
+    override fun registerSyntheticType(id: String, dataClass: () -> DataClass): DataTypeRef =
+        mutableSyntheticTypes.getOrPut(id, dataClass).ref
+
+    private val mutableSyntheticTypes = mutableMapOf<String, DataClass>()
+
+    override val syntheticTypes: List<DataClass>
+        get() = mutableSyntheticTypes.values.toList()
+}
+
 class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) : SchemaBuildingHost {
+
+    override val syntheticTypeRegistrar = DefaultSyntheticTypeRegistrar()
 
     val typeSignatures = mutableMapOf<FqName, ParameterizedTypeSignature>()
     val typeInstances = mutableMapOf<FqName, MutableMap<List<TypeArgument>, ParameterizedTypeInstance>>()
@@ -418,7 +431,7 @@ class DataSchemaBuilder(
 
         val schema = DefaultAnalysisSchema(
             dataTypes.filterIsInstance<DataClass>().single { it.name == topLevelReceiverName },
-            dataTypes.associateBy { it.name } + preIndex.syntheticTypes.associateBy { it.name },
+            dataTypes.associateBy { it.name } + host.syntheticTypeRegistrar.syntheticTypes.associateBy { it.name },
             host.typeSignatures,
             host.typeInstances,
             extFunctions,
@@ -577,9 +590,6 @@ class DataSchemaBuilder(
 
         private val mutableSyntheticTypes = mutableMapOf<String, DataClass>()
 
-        fun getOrRegisterSyntheticType(id: String, produceType: () -> DataClass): DataClass =
-            mutableSyntheticTypes.getOrPut(id, produceType)
-
         fun addType(kClass: KClass<*>) {
             properties.getOrPut(kClass) { mutableMapOf() }
         }
@@ -587,9 +597,6 @@ class DataSchemaBuilder(
         fun addProperty(kClass: KClass<*>, property: DataProperty) {
             properties.getOrPut(kClass) { mutableMapOf() }[property.name] = property
         }
-
-        val syntheticTypes: List<DataClass>
-            get() = mutableSyntheticTypes.values.toList()
 
         val types: Iterable<KClass<*>>
             get() = properties.keys

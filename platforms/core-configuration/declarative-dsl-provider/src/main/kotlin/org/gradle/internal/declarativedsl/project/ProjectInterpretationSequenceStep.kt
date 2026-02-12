@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.internal.declarativedsl.common.RunsBeforeClassScopeIsReady
 import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
@@ -31,6 +32,7 @@ import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 internal
 fun projectInterpretationSequenceStep(
     projectFeatureDeclarations: ProjectFeatureDeclarations,
+    settings: SettingsInternal,
 ) = SimpleInterpretationSequenceStepWithConversion(
     PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY,
     features = setOf(
@@ -40,7 +42,7 @@ fun projectInterpretationSequenceStep(
         RunsBeforeClassScopeIsReady()
     ),
 ) {
-    projectEvaluationSchema(projectFeatureDeclarations)
+    projectEvaluationSchema(projectFeatureDeclarations, settings)
 }
 
 internal const val PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY = "project"

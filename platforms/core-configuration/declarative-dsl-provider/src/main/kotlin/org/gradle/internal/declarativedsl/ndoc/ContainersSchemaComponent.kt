@@ -133,7 +133,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
                             val typeId = ndocTypeId(host, containerProperty.elementType)
                             val syntheticContainerType = containerProperty.generateSyntheticContainerType(host)
                                 .orFailWith { return@withTag it }
-                            preIndex.getOrRegisterSyntheticType(typeId) { syntheticContainerType }.ref
+                            host.syntheticTypeRegistrar.registerSyntheticType(typeId, { syntheticContainerType })
                         } else host.inContextOfModelMember(containerProperty.originDeclaration.kCallable) {
                             host.modelTypeRef(containerType.toKType())
                                 .orFailWith { return@withTag it }

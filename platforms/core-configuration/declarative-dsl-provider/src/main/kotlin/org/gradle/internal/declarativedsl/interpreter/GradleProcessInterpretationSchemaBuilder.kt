@@ -38,6 +38,6 @@ class GradleProcessInterpretationSchemaBuilder(
 
             DeclarativeScriptContext.SettingsScript -> InterpretationSequenceAvailable(settingsInterpretationSequence(getSettings(), projectFeatureDeclarations))
 
-            DeclarativeScriptContext.ProjectScript -> InterpretationSequenceAvailable(projectInterpretationSequence(projectFeatureDeclarations))
+            DeclarativeScriptContext.ProjectScript -> InterpretationSequenceAvailable(projectInterpretationSequence(projectFeatureDeclarations, getSettings()))
         }
 }

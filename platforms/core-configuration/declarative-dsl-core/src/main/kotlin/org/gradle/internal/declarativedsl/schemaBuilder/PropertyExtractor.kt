@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
+import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
@@ -28,9 +29,18 @@ import kotlin.reflect.KClassifier
 import kotlin.reflect.KType
 import kotlin.reflect.full.allSuperclasses
 
+interface SyntheticTypeRegistrar {
+    fun registerSyntheticType(id: String, dataClass: () -> DataClass): DataTypeRef
+
+    val syntheticTypes: List<DataClass>
+}
 
 interface PropertyExtractor {
-    fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean = { true }): Iterable<PropertyExtractionResult>
+    fun extractProperties(
+        host: SchemaBuildingHost,
+        kClass: KClass<*>,
+        propertyNamePredicate: (String) -> Boolean = { true }
+    ): Iterable<PropertyExtractionResult>
 
     companion object {
         val none = object : PropertyExtractor {
