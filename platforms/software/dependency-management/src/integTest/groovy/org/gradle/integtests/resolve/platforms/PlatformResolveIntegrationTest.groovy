@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.platforms
 import org.gradle.api.JavaVersion
 import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -634,7 +633,6 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20684")
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "multiple platform deselection - reselection does not leave pending constraints in graph - different issue"() {
         given:
         def depJackDb20 = mavenHttpRepo.module('jack', 'db', '2.0').withModuleMetadata()
@@ -704,10 +702,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             }
 
             tasks.register('resolve') {
-                def conf = configurations.conf
+                def component = configurations.conf.incoming.resolutionResult.rootComponent
                 doLast {
-                    // Need a specific path for restoring serialized version, other paths work
-                    println conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies
+                    println component.get().getDependencies()
                 }
             }
 """
