@@ -93,7 +93,7 @@ interface BuildLogicDependencies : Dependencies {
     fun catalog(notation: String): ExternalModuleDependency =
         notation.split('.').let { parts ->
             check(parts.size == 2) { "$notation must be a dot separated name" }
-            project.extensions.getByType<VersionCatalogsExtension>()
+            targetProject.extensions.getByType<VersionCatalogsExtension>()
                 .find(parts[0])
                 .flatMap { it.findLibrary(parts[1]) }
                 .orElseThrow()
@@ -101,9 +101,12 @@ interface BuildLogicDependencies : Dependencies {
         }
 
     fun platformProject(projectPath: String): Dependency =
-        project.dependencies.platform(project(projectPath))
+        targetProject.dependencies.platform(project(projectPath))
 
     fun kotlinDlsGradlePlugin(): String =
         "org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersion"
-}
 
+    @get:Inject
+    @get:HiddenInDefinition
+    val targetProject: Project
+}
