@@ -40,7 +40,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -97,9 +96,7 @@ public final class SerializableTestResultStore {
         private final Set<Object> flatteningIds;
         private final List<TestDescriptorInternal> extraFlattenedDescriptors;
         private final List<TestResult> extraFlattenedResults;
-        private final Path serializedResultsFile;
         private final int diskSkipLevels;
-        private final Path temporaryResultsFile;
         /**
          * Encoder storing the serialized test results.
          */
@@ -111,15 +108,13 @@ public final class SerializableTestResultStore {
         private final Multimap<TestDescriptorInternal, TestMetadataEvent> metadatas = LinkedHashMultimap.create();
 
         private Writer(Path serializedResultsFile, Path outputEventsFile, int diskSkipLevels) throws IOException {
-            this.serializedResultsFile = serializedResultsFile;
             this.diskSkipLevels = diskSkipLevels;
             // Use constants to avoid allocating empty collections if flattening is not enabled
             flatteningIds = isDiskSkipEnabled() ? new HashSet<>() : Collections.emptySet();
             extraFlattenedDescriptors = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
             extraFlattenedResults = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
             Files.createDirectories(serializedResultsFile.getParent());
-            temporaryResultsFile = Files.createTempFile(serializedResultsFile.getParent(), "in-progress-results-generic", ".bin");
-            resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(temporaryResultsFile));
+            resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(serializedResultsFile));
             Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
             try {
                 resultsEncoder.writeSmallInt(STORE_VERSION);
@@ -296,8 +291,6 @@ public final class SerializableTestResultStore {
             } finally {
                 CompositeStoppable.stoppable(resultsEncoder, outputWriter).stop();
             }
-            // Move the temporary results file to the final location, if successful
-            Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
