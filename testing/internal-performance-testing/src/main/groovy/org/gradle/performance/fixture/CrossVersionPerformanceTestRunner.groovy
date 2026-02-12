@@ -77,6 +77,7 @@ class CrossVersionPerformanceTestRunner implements PerformanceTestRunner {
     List<String> gradleOpts = []
     List<String> previousTestIds = []
     List<String> targetVersions = []
+    List<String> measuredBuildOperations = []
 
     /**
      * Minimum base version to be used. For example, a 6.0-nightly target version is OK if minimumBaseVersion is 6.0.
@@ -87,7 +88,6 @@ class CrossVersionPerformanceTestRunner implements PerformanceTestRunner {
     private final List<ExecutionInterceptor> interceptors = []
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
 
-    private final List<String> measuredBuildOperations = []
     private BuildAction buildAction
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
@@ -106,10 +106,6 @@ class CrossVersionPerformanceTestRunner implements PerformanceTestRunner {
     @Override
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
         buildMutators.add(buildMutator)
-    }
-
-    List<String> getMeasuredBuildOperations() {
-        return measuredBuildOperations
     }
 
     CrossVersionPerformanceResults run() {
