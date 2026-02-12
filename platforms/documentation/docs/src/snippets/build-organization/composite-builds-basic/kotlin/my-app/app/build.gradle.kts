@@ -2,7 +2,7 @@
 // tag::plugin_dependencies[]
 plugins {
     id("application")
-    id("com.example.hello") // from the included build in pluginManagement
+    id("com.example.hello") // from the Included Build in pluginManagement
 }
 // end::plugin_dependencies[]
 
