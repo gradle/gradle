@@ -131,7 +131,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
     @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def "can declare and configure a custom project feature in Kotlin"() {
-        PluginBuilder pluginBuilder = withKotlinProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withKotlinProjectFeaturePlugin()
         pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatestStableOrRC())
         pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
         pluginBuilder.prepareToExecute()
@@ -513,32 +513,49 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    private String getPluginBuildScriptForJava() {
-        return """
+    def 'can declare and configure a custom project feature using an action class'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeatureThatBindsWithClass()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
 
-            tasks.withType(JavaCompile).configureEach {
-                sourceCompatibility = "1.8"
-                targetCompatibility = "1.8"
-            }
-        """
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printProjectTypeDefinitionConfiguration",":printFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
     }
 
-    private String getPluginBuildScriptForKotlin() {
-        return """
-            import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+    @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
+    def "can declare and configure a custom project feature in Kotlin using an action class"() {
+        PluginBuilder pluginBuilder = withKotlinProjectFeaturePluginThatBindsWithClass()
+        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatestStableOrRC())
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
+        pluginBuilder.prepareToExecute()
 
-            repositories {
-                mavenCentral()
-            }
+        settingsFile() << pluginsFromIncludedBuild
 
-            kotlin {
-                compilerOptions {
-                    jvmTarget = JvmTarget.JVM_1_8
-                }
-            }
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
-            ${pluginBuildScriptForJava}
-        """
+        when:
+        run(":printProjectTypeDefinitionConfiguration",":printFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectFeature() {

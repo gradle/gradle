@@ -21,13 +21,13 @@ import org.gradle.api.Incubating;
 /**
  * A transformation action for configuring a build model from a definition and executing any necessary build logic.
  *
- * @param <T> the type of the definition
- * @param <U> the type of the build model
+ * @param <OwnDefinition> the type of the definition
+ * @param <OwnBuildModel> the type of the build model
  *
  * @since 9.5.0
  */
 @Incubating
-public interface ProjectTypeApplyAction<T, U> {
+public interface ProjectTypeApplyAction<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
     /**
      * Apply configuration from the definition to the build model and execute any necessary build logic.
      *
@@ -37,5 +37,5 @@ public interface ProjectTypeApplyAction<T, U> {
      *
      * @since 9.5.0
      */
-    void transform(ProjectFeatureApplicationContext context, T definition, U buildModel);
+    void apply(ProjectFeatureApplicationContext context, OwnDefinition definition, OwnBuildModel buildModel);
 }

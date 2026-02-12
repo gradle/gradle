@@ -36,7 +36,6 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.Nested;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.properties.annotations.TypeMetadata;
@@ -168,7 +167,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 pluginClass,
                 registeringPlugin.pluginClass,
                 registeringPlugin.pluginId,
-                Cast.uncheckedCast(binding.getTransform())
+                binding.getApplyActionFactory()
             )
         );
     }

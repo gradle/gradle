@@ -30,6 +30,7 @@ import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.features.internal.binding.ModelDefault
+import org.gradle.features.internal.binding.ProjectFeatureApplyActionFactory
 import org.gradle.features.internal.binding.ProjectFeatureImplementation
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import org.junit.Assert
@@ -56,8 +57,8 @@ class ProjectTypesTest {
                             override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
                             override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
                             override fun getRegisteringPluginId(): String = "com.example.test"
-                            override fun getBindingTransform(): ProjectFeatureApplyAction<Subtype, ModelType, Project> =
-                                ProjectFeatureApplyAction { _, _, _, _ -> }
+                            override fun getApplyActionFactory(): ProjectFeatureApplyActionFactory<Subtype, ModelType, Project> =
+                                ProjectFeatureApplyActionFactory { _ -> ProjectFeatureApplyAction { _, _, _, _ -> } }
 
                             override fun addModelDefault(rule: ModelDefault<*>) = Unit
                             override fun <V : ModelDefault.Visitor<*>> visitModelDefaults(type: Class<out ModelDefault<V>>, visitor: V) = Unit
