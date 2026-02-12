@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -306,7 +306,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         where:
         option       | configure                                       | appendPath
         "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
-        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
+        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystemFileResolver.current().getExecutableName('/bin/javac')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21367")

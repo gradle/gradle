@@ -16,7 +16,8 @@
 
 package org.gradle.nativeplatform.test.googletest
 
-import org.gradle.internal.os.OperatingSystem
+
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -104,7 +105,7 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
     }
 
     private def getGoogleTestLib() {
-        return OperatingSystem.current().getStaticLibraryName("gtest")
+        return OperatingSystemFileResolver.current().getStaticLibraryName("gtest")
     }
 
     private useConventionalSourceLocations() {
