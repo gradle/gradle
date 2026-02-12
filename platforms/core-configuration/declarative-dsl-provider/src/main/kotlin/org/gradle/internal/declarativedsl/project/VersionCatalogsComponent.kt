@@ -16,8 +16,13 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
@@ -25,6 +30,11 @@ import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.ExtractionResult
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractionResult
@@ -37,14 +47,20 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelClass
 import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import org.gradle.internal.management.VersionCatalogBuilderInternal
+import java.util.Optional
 import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.typeOf
 
 internal fun EvaluationSchemaBuilder.versionCatalogs(settings: SettingsInternal) {
-    registerAnalysisSchemaComponent(VersionCatalogsComponent(settings))
+    val versionCatalogsComponent = VersionCatalogsComponent(settings)
+    registerAnalysisSchemaComponent(versionCatalogsComponent)
+    ifConversionSupported {
+        registerObjectConversionComponent(versionCatalogsComponent)
+    }
 }
 
-class VersionCatalogsComponent(private val settings: SettingsInternal) : AnalysisSchemaComponent {
+class VersionCatalogsComponent(private val settings: SettingsInternal) : ObjectConversionComponent, AnalysisSchemaComponent {
     override fun propertyExtractors(): List<PropertyExtractor> = listOf(object : PropertyExtractor {
         override fun extractProperties(
             host: SchemaBuildingHost,
@@ -99,7 +115,91 @@ class VersionCatalogsComponent(private val settings: SettingsInternal) : Analysi
         ): Iterable<FunctionExtractionResult> = emptyList()
     })
 
+    override fun runtimePropertyResolvers(): List<RuntimePropertyResolver> =
+        listOf(VersionCatalogsRuntimePropertyResolver())
 
+    override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> =
+        listOf(VersionCatalogsRuntimeFunctionResolver())
 }
+
+/**
+ * Resolves [top-level references to the version catalogs container][ProjectTopLevelReceiver.catalogs], i.e. `project.catalogs`,
+ * and subsequent `catalogs.<version catalog name>` property references.
+ *
+ * @see VersionCatalogsRuntimeFunction
+ */
+private class VersionCatalogsRuntimePropertyResolver : RuntimePropertyResolver {
+
+    override fun resolvePropertyRead(receiverClass: KClass<*>, name: String): RuntimePropertyResolver.ReadResolution {
+        return when {
+            receiverClass.isSubclassOf(Project::class) && name == "catalogs" -> {
+                RuntimePropertyResolver.ReadResolution.ResolvedRead { receiver ->
+                    val catalogs: VersionCatalogsExtension? = (receiver as Project).extensions.findByName("versionCatalogs") as? VersionCatalogsExtension
+                    catalogs?.let {
+                        InstanceAndPublicType.of(RuntimeVersionCatalogsContainer(it), VersionCatalogsContainer::class)
+                    } ?: InstanceAndPublicType.NULL
+                }
+            }
+
+            receiverClass.isSubclassOf(VersionCatalogsContainer::class) -> {
+                RuntimePropertyResolver.ReadResolution.ResolvedRead { receiver ->
+                    require(receiver is RuntimeVersionCatalogsContainer)
+                    receiver.catalogs
+                        .find(name)
+                        .map { InstanceAndPublicType.of(RuntimeVersionCatalog(it), VersionCatalog::class) }
+                        .orElse(InstanceAndPublicType.NULL)
+                }
+            }
+
+            else -> RuntimePropertyResolver.ReadResolution.UnresolvedRead
+        }
+    }
+
+    override fun resolvePropertyWrite(receiverClass: KClass<*>, name: String) =
+        RuntimePropertyResolver.WriteResolution.UnresolvedWrite
+}
+
+/**
+ * Resolves version catalog function invocations, i.e., `catalog.libName()`, to a [runtime function][VersionCatalogsRuntimeFunction]
+ * that returns the [dependency associated with the library named after the function][org.gradle.api.artifacts.VersionCatalog.findLibrary].
+ */
+private class VersionCatalogsRuntimeFunctionResolver : RuntimeFunctionResolver {
+
+    override fun resolve(
+        receiverClass: KClass<*>,
+        schemaFunction: SchemaFunction,
+        scopeClassLoader: ClassLoader
+    ): RuntimeFunctionResolver.Resolution {
+        return when {
+            receiverClass.isSubclassOf(VersionCatalog::class) -> {
+                RuntimeFunctionResolver.Resolution.Resolved(
+                    VersionCatalogsRuntimeFunction(schemaFunction.simpleName)
+                )
+            }
+
+            else -> RuntimeFunctionResolver.Resolution.Unresolved
+        }
+    }
+}
+
+private class VersionCatalogsRuntimeFunction(val libName: String) : DeclarativeRuntimeFunction {
+
+    override fun callBy(
+        receiver: Any?,
+        binding: Map<DataParameter, Any?>,
+        hasLambda: Boolean
+    ): DeclarativeRuntimeFunction.InvocationResult {
+        require(receiver is RuntimeVersionCatalog)
+        val result = receiver.catalog.findLibrary(libName)
+            .flatMap { Optional.ofNullable(it.orNull) }
+            .map { InstanceAndPublicType.of(it, Dependency::class) }
+            .orElse(InstanceAndPublicType.NULL)
+        return DeclarativeRuntimeFunction.InvocationResult(result, InstanceAndPublicType.NULL)
+    }
+}
+
+private class RuntimeVersionCatalogsContainer(val catalogs: VersionCatalogsExtension) : VersionCatalogsContainer
+
+private class RuntimeVersionCatalog(val catalog: org.gradle.api.artifacts.VersionCatalog) : VersionCatalog
 
 private fun String.sanitizeCatalogEntry(): String = this
