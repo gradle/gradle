@@ -107,28 +107,36 @@ public class ProgressBar {
     static ProgressBar createProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
         // Use Unicode progress bars if terminal supports it, otherwise use ASCII
         if (consoleMetaData.supportsUnicode()) {
-            // Unicode mode: smooth progress with block characters
-            return new ProgressBar(consoleMetaData,
-                UNICODE_PROGRESS_BAR_PREFIX,
-                PROGRESS_BAR_WIDTH,
-                UNICODE_PROGRESS_BAR_SUFFIX,
-                ' ', // Not used in Unicode mode
-                ' ', // Not used in Unicode mode
-                initialSuffix,
-                0,
-                totalProgress);
+            return getUnicodeProgressBar(consoleMetaData, initialSuffix, totalProgress);
         } else {
-            // ASCII mode: hash-based progress for compatibility
-            return new ProgressBar(consoleMetaData,
-                ASCII_PROGRESS_BAR_PREFIX,
-                PROGRESS_BAR_WIDTH,
-                ASCII_PROGRESS_BAR_SUFFIX,
-                ASCII_PROGRESS_BAR_COMPLETE_CHAR,
-                ASCII_PROGRESS_BAR_INCOMPLETE_CHAR,
-                initialSuffix,
-                0,
-                totalProgress);
+            return getAsciiProgressBar(consoleMetaData, initialSuffix, totalProgress);
         }
+    }
+
+    // Unicode mode: smooth progress with block characters
+    static ProgressBar getUnicodeProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
+        return new ProgressBar(consoleMetaData,
+            UNICODE_PROGRESS_BAR_PREFIX,
+            PROGRESS_BAR_WIDTH,
+            UNICODE_PROGRESS_BAR_SUFFIX,
+            ' ', // Not used in Unicode mode
+            ' ', // Not used in Unicode mode
+            initialSuffix,
+            0,
+            totalProgress);
+    }
+
+    // ASCII mode: hash-based progress for compatibility
+    static ProgressBar getAsciiProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
+        return new ProgressBar(consoleMetaData,
+            ASCII_PROGRESS_BAR_PREFIX,
+            PROGRESS_BAR_WIDTH,
+            ASCII_PROGRESS_BAR_SUFFIX,
+            ASCII_PROGRESS_BAR_COMPLETE_CHAR,
+            ASCII_PROGRESS_BAR_INCOMPLETE_CHAR,
+            initialSuffix,
+            0,
+            totalProgress);
     }
 
     public void moreProgress(int totalProgress) {
