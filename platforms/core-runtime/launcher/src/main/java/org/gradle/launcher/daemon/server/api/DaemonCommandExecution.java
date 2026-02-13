@@ -19,7 +19,7 @@ import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.List;
 
 /**
@@ -37,7 +37,7 @@ public class DaemonCommandExecution {
     final private Command command;
     final private DaemonContext daemonContext;
     final private DaemonStateControl daemonStateControl;
-    final private LinkedList<DaemonCommandAction> actions;
+    final private ArrayDeque<DaemonCommandAction> actions;
 
     private Object result;
 
@@ -48,7 +48,7 @@ public class DaemonCommandExecution {
         this.daemonContext = daemonContext;
         this.daemonStateControl = daemonStateControl;
 
-        this.actions = new LinkedList<DaemonCommandAction>(actions);
+        this.actions = new ArrayDeque<DaemonCommandAction>(actions);
     }
 
     public DaemonConnection getConnection() {

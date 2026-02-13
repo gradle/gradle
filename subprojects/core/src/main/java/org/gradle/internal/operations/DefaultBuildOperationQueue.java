@@ -20,8 +20,9 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -45,8 +46,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private QueueState queueState = QueueState.Working;
     private int workerCount;
     private int pendingOperations;
-    private final Deque<T> workQueue = new LinkedList<>();
-    private final LinkedList<Throwable> failures = new LinkedList<>();
+    private final Deque<T> workQueue = new ArrayDeque<>();
+    private final ArrayList<Throwable> failures = new ArrayList<>();
 
     DefaultBuildOperationQueue(
         boolean allowAccessToProjectState,

@@ -32,7 +32,7 @@ public class AntlrSpecFactory {
 
     public AntlrSpec create(AntlrTask antlrTask, Set<File> grammarFiles, FileCollection sourceSetDirectories) {
         File outputDirectory = antlrTask.getOutputDirectory();
-        List<String> arguments = Lists.newLinkedList(antlrTask.getArguments());
+        List<String> arguments = Lists.newArrayList(antlrTask.getArguments());
 
         if (antlrTask.isTrace() && !arguments.contains("-trace")) {
             arguments.add("-trace");

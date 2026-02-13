@@ -20,13 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MultipleParametersAction implements BuildAction<List<CustomModel>> {
     @Override
     public List<CustomModel> execute(BuildController controller) {
-        List<CustomModel> result = new LinkedList<CustomModel>();
+        List<CustomModel> result = new ArrayList<CustomModel>();
         final CustomModel model0 = controller.getModel(CustomModel.class);
         final CustomModel model1 = controller.getModel(CustomModel.class, CustomParameter.class, new Action<CustomParameter>() {
             @Override

@@ -1,12 +1,12 @@
 package org.gradle.sample.utilities;
 
-import org.gradle.sample.list.LinkedList;
+import org.gradle.sample.list.ArrayList;
 
 class SplitUtils {
-    public static LinkedList split(String source) {
+    public static ArrayList split(String source) {
         int lastFind = 0;
         int currentFind = 0;
-        LinkedList result = new LinkedList();
+        ArrayList result = new ArrayList();
 
         while ((currentFind = source.indexOf(" ", lastFind)) != -1) {
             String token = source.substring(lastFind);
@@ -24,7 +24,7 @@ class SplitUtils {
         return result;
     }
 
-    private static void addIfValid(String token, LinkedList list) {
+    private static void addIfValid(String token, ArrayList list) {
         if (isTokenValid(token)) {
             list.add(token);
         }

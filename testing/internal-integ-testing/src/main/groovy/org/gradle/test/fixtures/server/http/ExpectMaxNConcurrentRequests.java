@@ -24,9 +24,9 @@ import org.gradle.internal.time.Time;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -39,7 +39,7 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
     private final Condition condition;
     private final List<ResourceHandlerWrapper> received = new ArrayList<>();
     private final List<ResourceHandlerWrapper> released = new ArrayList<>();
-    private final LinkedList<ResourceHandlerWrapper> notReleased = new LinkedList<>();
+    private final ArrayDeque<ResourceHandlerWrapper> notReleased = new ArrayDeque<>();
     private final List<ResourceHandlerWrapper> notReceived = new ArrayList<>();
     private final int testId;
     private final long timeoutMs;
@@ -371,7 +371,7 @@ class ExpectMaxNConcurrentRequests implements TrackingHttpHandler, WaitPrecondit
     }
 
     @Nullable
-    private static <T extends ResourceHandler> T selectPending(List<T> handlers, String path) {
+    private static <T extends ResourceHandler> T selectPending(Collection<T> handlers, String path) {
         for (T handler : handlers) {
             if (handler.getPath().equals(path)) {
                 return handler;

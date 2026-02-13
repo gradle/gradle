@@ -30,7 +30,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -175,7 +175,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
     private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
 
-        private final List<StoredCollection<T>> store = new LinkedList<>();
+        private final List<StoredCollection<T>> store = new ArrayList<>();
 
         interface StoredCollection<T> {
             /**

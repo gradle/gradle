@@ -1,11 +1,11 @@
 ${fileComment.multilineComment}${packageDecl.statement}
-import ${basePackagePrefix.raw}list.LinkedList
+import ${basePackagePrefix.raw}list.ArrayList
 
 class SplitUtils {
     companion object {
-        fun split(source: String): LinkedList {
+        fun split(source: String): ArrayList {
             var lastFind = 0
-            val result = LinkedList()
+            val result = ArrayList()
 
             var currentFind = source.indexOf(" ", lastFind)
             while (currentFind != -1) {
@@ -25,7 +25,7 @@ class SplitUtils {
             return result
         }
 
-        private fun addIfValid(token: String, list: LinkedList) {
+        private fun addIfValid(token: String, list: ArrayList) {
             if (isTokenValid(token)) {
                 list.add(token)
             }

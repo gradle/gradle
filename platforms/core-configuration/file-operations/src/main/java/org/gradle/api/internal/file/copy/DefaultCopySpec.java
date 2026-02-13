@@ -61,7 +61,6 @@ import java.io.FilterReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,9 +76,9 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final PropertyFactory propertyFactory;
     private final ConfigurableFileCollection sourcePaths;
     private final PatternSet patternSet;
-    private final List<CopySpecInternal> childSpecs = new LinkedList<>();
-    private final List<CopySpecInternal> childSpecsInAdditionOrder = new LinkedList<>();
-    private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<>();
+    private final List<CopySpecInternal> childSpecs = new ArrayList<>();
+    private final List<CopySpecInternal> childSpecsInAdditionOrder = new ArrayList<>();
+    private final List<Action<? super FileCopyDetails>> copyActions = new ArrayList<>();
     private final Property<ConfigurableFilePermissions> dirPermissions;
     private final Property<ConfigurableFilePermissions> filePermissions;
     private Object destDir;
@@ -88,7 +87,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
-    private final List<CopySpecListener> listeners = new LinkedList<>();
+    private final List<CopySpecListener> listeners = new ArrayList<>();
     private PatternFilterable preserve = new PatternSet();
 
     @Inject

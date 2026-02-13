@@ -20,12 +20,12 @@ import org.gradle.tooling.ProgressEvent;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.List;
 
 class ProgressListenerAdapter implements ProgressListenerVersion1 {
     private final ListenerBroadcast<ProgressListener> listeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
-    private final LinkedList<String> stack = new LinkedList<String>();
+    private final ArrayDeque<String> stack = new ArrayDeque<String>();
 
     ProgressListenerAdapter(List<ProgressListener> listeners) {
         this.listeners.addAll(listeners);

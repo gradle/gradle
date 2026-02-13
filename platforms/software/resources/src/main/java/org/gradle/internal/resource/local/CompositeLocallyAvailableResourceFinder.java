@@ -18,7 +18,7 @@ package org.gradle.internal.resource.local;
 
 import org.gradle.internal.hash.HashCode;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CompositeLocallyAvailableResourceFinder<C> implements LocallyAvailableResourceFinder<C> {
@@ -31,7 +31,7 @@ public class CompositeLocallyAvailableResourceFinder<C> implements LocallyAvaila
 
     @Override
     public LocallyAvailableResourceCandidates findCandidates(C criterion) {
-        List<LocallyAvailableResourceCandidates> allCandidates = new LinkedList<LocallyAvailableResourceCandidates>();
+        List<LocallyAvailableResourceCandidates> allCandidates = new ArrayList<LocallyAvailableResourceCandidates>();
         for (LocallyAvailableResourceFinder<C> finder : composites) {
             allCandidates.add(finder.findCandidates(criterion));
         }

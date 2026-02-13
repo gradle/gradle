@@ -51,11 +51,12 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -150,9 +151,9 @@ public class DynamicVersionResolver {
 
     @Nullable
     private RepositoryChainModuleResolution findLatestModule(List<RepositoryResolveState> resolveStates, RepositoryFailureCollector failures) {
-        LinkedList<RepositoryResolveState> queue = new LinkedList<>(resolveStates);
+        ArrayDeque<RepositoryResolveState> queue = new ArrayDeque<>(resolveStates);
 
-        LinkedList<RepositoryResolveState> missing = new LinkedList<>();
+        ArrayList<RepositoryResolveState> missing = new ArrayList<>();
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findLatestModule(queue, failures, missing);
@@ -171,7 +172,7 @@ public class DynamicVersionResolver {
 
     @Nullable
     @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private RepositoryChainModuleResolution findLatestModule(LinkedList<RepositoryResolveState> queue, RepositoryFailureCollector failures, Collection<RepositoryResolveState> missing) {
+    private RepositoryChainModuleResolution findLatestModule(Deque<RepositoryResolveState> queue, RepositoryFailureCollector failures, Collection<RepositoryResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             RepositoryResolveState request = queue.removeFirst();
@@ -208,7 +209,7 @@ public class DynamicVersionResolver {
         return best;
     }
 
-    private static void handleFailure(List<RepositoryResolveState> queue, RepositoryResolveState request, RepositoryFailureCollector failures, Exception t) {
+    private static void handleFailure(Deque<RepositoryResolveState> queue, RepositoryResolveState request, RepositoryFailureCollector failures, Exception t) {
         failures.addFailure(t);
         if (request.isRepositoryDisabled() && !request.isContinueOnConnectionFailure()) {
             // Clear the queue only if repo is now disabled, and we can't continue with it disabled

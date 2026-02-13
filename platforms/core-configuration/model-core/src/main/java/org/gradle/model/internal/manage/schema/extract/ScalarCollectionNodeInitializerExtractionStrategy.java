@@ -36,7 +36,7 @@ import org.gradle.model.internal.type.ModelTypes;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
@@ -120,7 +120,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
         @Override
         protected List<T> initialValue() {
-            return new LinkedList<T>();
+            return new ArrayList<T>();
         }
 
         @Override

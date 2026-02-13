@@ -25,7 +25,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -43,7 +42,7 @@ public class CommandLineTaskParser {
 
     public List<TaskSelection> parseTasks(TaskExecutionRequest taskExecutionRequest) {
         List<TaskSelection> out = new ArrayList<>();
-        List<String> remainingPaths = new LinkedList<String>(taskExecutionRequest.getArgs());
+        List<String> remainingPaths = new ArrayList<String>(taskExecutionRequest.getArgs());
         while (!remainingPaths.isEmpty()) {
             String path = remainingPaths.remove(0);
             TaskSelection selection = taskSelector.resolveTaskName(taskExecutionRequest.getRootDir(), taskExecutionRequest.getProjectPath(), targetBuild, path);

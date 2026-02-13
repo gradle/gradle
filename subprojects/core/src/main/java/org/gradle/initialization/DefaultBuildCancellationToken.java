@@ -19,14 +19,13 @@ package org.gradle.initialization;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class DefaultBuildCancellationToken implements BuildCancellationToken {
 
     private final Object lock = new Object();
     private boolean cancelled;
-    private List<Runnable> callbacks = new LinkedList<Runnable>();
+    private List<Runnable> callbacks = new ArrayList<Runnable>();
 
     @Override
     public boolean isCancellationRequested() {

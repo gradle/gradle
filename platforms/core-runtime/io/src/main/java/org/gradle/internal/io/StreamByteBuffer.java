@@ -29,8 +29,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 
@@ -46,7 +46,7 @@ import java.util.List;
 public class StreamByteBuffer {
     private static final int DEFAULT_CHUNK_SIZE = 4096;
     private static final int MAX_CHUNK_SIZE = 1024 * 1024;
-    private final LinkedList<StreamByteBufferChunk> chunks = new LinkedList<StreamByteBufferChunk>();
+    private final ArrayDeque<StreamByteBufferChunk> chunks = new ArrayDeque<>();
     private StreamByteBufferChunk currentWriteChunk;
     private @Nullable StreamByteBufferChunk currentReadChunk;
     private int nextChunkSize;

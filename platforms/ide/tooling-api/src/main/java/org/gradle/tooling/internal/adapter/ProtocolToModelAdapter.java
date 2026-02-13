@@ -48,7 +48,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -733,7 +732,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
             lock.writeLock().lock();
             try {
-                for (MethodInvocationKey key : new LinkedList<MethodInvocationKey>(store.keySet())) {
+                for (MethodInvocationKey key : new ArrayList<MethodInvocationKey>(store.keySet())) {
                     if (key.isDirty()) {
                         evict++;
                         store.remove(key);
@@ -753,7 +752,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return Optional.absent();
             }
 
-            LinkedList<Class<?>> queue = new LinkedList<>();
+            ArrayDeque<Class<?>> queue = new ArrayDeque<>();
             queue.add(sourceClass);
             while (!queue.isEmpty()) {
                 Class<?> c = queue.removeFirst();

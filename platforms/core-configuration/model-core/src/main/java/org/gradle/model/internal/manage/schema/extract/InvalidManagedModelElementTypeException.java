@@ -19,8 +19,8 @@ package org.gradle.model.internal.manage.schema.extract;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 
 @Contextual
 public class InvalidManagedModelElementTypeException extends RuntimeException {
@@ -28,7 +28,7 @@ public class InvalidManagedModelElementTypeException extends RuntimeException {
     private static void createPathString(DefaultModelSchemaExtractionContext<?> extractionContext, StringBuilder out) {
         StringBuilder prefix = new StringBuilder("  ");
 
-        Deque<String> descriptions = new LinkedList<>();
+        Deque<String> descriptions = new ArrayDeque<>();
         DefaultModelSchemaExtractionContext<?> current = extractionContext;
         while (current != null) {
             descriptions.push(current.getDescription());

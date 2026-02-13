@@ -20,7 +20,7 @@ import java.util.*;
 
 public class SomeClass {
 
-    List<Integer> field = new LinkedList<Integer>();
+    List<Integer> field = new ArrayList<Integer>();
 
     private AccessedFromPrivateField accessedFromPrivateField;
 

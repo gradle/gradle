@@ -1004,7 +1004,7 @@ public class AsmBackedClassGeneratorTest {
         assertThat(bean.getProp(), equalTo("<1>"));
 
         // failing, seems to be that set method override doesn't work for iterables - GRADLE-2097
-        //assertThat(call("{ bean, list -> bean.things(list) }", bean, new LinkedList<Object>()), nullValue());
+        //assertThat(call("{ bean, list -> bean.things(list) }", bean, new ArrayList<Object>()), nullValue());
         //assertThat(bean.getThings().size(), equalTo(0));
 
         //assertThat(call("{ bean -> bean.things([1,2,3]) }", bean), nullValue());

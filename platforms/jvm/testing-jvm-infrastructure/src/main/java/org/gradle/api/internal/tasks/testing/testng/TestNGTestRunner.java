@@ -36,7 +36,7 @@ import org.testng.ITestListener;
 import org.testng.TestNG;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -215,7 +215,7 @@ public class TestNGTestRunner {
         @Override
         public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
             ISuite suite = context.getSuite();
-            List<IMethodInstance> filtered = new LinkedList<IMethodInstance>();
+            List<IMethodInstance> filtered = new ArrayList<IMethodInstance>();
             for (IMethodInstance candidate : methods) {
                 if (matcher.matchesTest(candidate.getMethod().getTestClass().getName(), candidate.getMethod().getMethodName())
                     || matcher.matchesTest(suite.getName(), null)) {

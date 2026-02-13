@@ -4,14 +4,14 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class LinkedListTest {
+public class ArrayListTest {
     @Test public void testConstructor() {
-        LinkedList list = new LinkedList();
+        ArrayList list = new ArrayList();
         assertEquals(0, list.size());
     }
 
     @Test public void testAdd() {
-        LinkedList list = new LinkedList();
+        ArrayList list = new ArrayList();
 
         list.add("one");
         assertEquals(1, list.size());
@@ -23,7 +23,7 @@ public class LinkedListTest {
     }
 
     @Test public void testRemove() {
-        LinkedList list = new LinkedList();
+        ArrayList list = new ArrayList();
 
         list.add("one");
         list.add("two");
@@ -37,7 +37,7 @@ public class LinkedListTest {
     }
 
     @Test public void testRemoveMissing() {
-        LinkedList list = new LinkedList();
+        ArrayList list = new ArrayList();
 
         list.add("one");
         list.add("two");

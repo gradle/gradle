@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -78,7 +77,7 @@ public class TaskOptionsGenerator {
      */
     private static Map<String, OptionDescriptor> generateOppositeOptions(Object target, Map<String, OptionDescriptor> options, TaskOptions taskOptions) {
         Map<String, OptionDescriptor> oppositeOptions = new HashMap<>();
-        List<Pair<OptionDescriptor, OptionDescriptor>> mutuallyExclusiveOptions = new LinkedList<>();
+        List<Pair<OptionDescriptor, OptionDescriptor>> mutuallyExclusiveOptions = new ArrayList<>();
 
         for (OptionDescriptor option : options.values()) {
             if (option instanceof InstanceOptionDescriptor) {

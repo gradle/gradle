@@ -21,7 +21,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -152,7 +151,7 @@ public abstract class OperatingSystem {
     }
 
     public List<File> findAllInPath(String name) {
-        List<File> all = new LinkedList<File>();
+        List<File> all = new ArrayList<File>();
 
         for (File dir : getPath()) {
             File candidate = new File(dir, name);

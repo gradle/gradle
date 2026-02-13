@@ -81,7 +81,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -324,7 +323,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     }
 
     private static void populateEclipseProject(DefaultEclipseProject eclipseProject, org.gradle.plugins.ide.eclipse.model.Project xmlProject) {
-        List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<>();
+        List<DefaultEclipseLinkedResource> linkedResources = new ArrayList<>();
         for (Link r : xmlProject.getLinkedResources()) {
             linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
         }

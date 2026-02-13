@@ -73,7 +73,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -422,7 +421,7 @@ public class BuildOperationTrace implements Stoppable {
                     if (map.containsKey("startTime")) {
                         SerializedOperationStart serialized = new SerializedOperationStart(map);
                         pendings.put(serialized.id, new PendingOperation(serialized));
-                        childrens.put(serialized.id, new LinkedList<>());
+                        childrens.put(serialized.id, new ArrayList<>());
                     } else if (map.containsKey("time")) {
                         SerializedOperationProgress serialized = new SerializedOperationProgress(map);
                         PendingOperation pending = pendings.get(serialized.id);

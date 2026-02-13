@@ -30,7 +30,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 
 public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
@@ -104,7 +103,7 @@ public class RuleSourceBackedRuleAction<R, T> implements RuleAction<T> {
         public List<V> get(Object key) {
             if (!containsKey(key)) {
                 @SuppressWarnings("unchecked") K keyCast = (K) key;
-                put(keyCast, new LinkedList<>());
+                put(keyCast, new ArrayList<>());
             }
 
             return super.get(key);

@@ -1,6 +1,6 @@
 package org.gradle.sample.list;
 
-public class LinkedList {
+public class ArrayList {
     private Node head;
 
     public void add(String element) {

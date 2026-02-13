@@ -24,10 +24,10 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.resolution.failure.ReportableAsProblem;
 import org.gradle.internal.exceptions.MultiCauseException;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -106,7 +106,7 @@ public interface ResolutionHost {
     @SuppressWarnings("ThrowableNotThrown")
     default void reportProblems(Collection<Throwable> failures) {
         Set<Throwable> seen = new HashSet<>(failures.size() * 2); // Assume every failure has a cause
-        Queue<Throwable> exceptionQueue = new LinkedList<>(failures);
+        Queue<Throwable> exceptionQueue = new ArrayDeque<>(failures);
 
         while (!exceptionQueue.isEmpty()) {
             Throwable current = exceptionQueue.poll();

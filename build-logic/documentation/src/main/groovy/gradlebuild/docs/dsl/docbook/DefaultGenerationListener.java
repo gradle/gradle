@@ -18,11 +18,11 @@ package gradlebuild.docs.dsl.docbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 
 public class DefaultGenerationListener implements GenerationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGenerationListener.class);
-    private final LinkedList<String> contextStack = new LinkedList<String>();
+    private final ArrayDeque<String> contextStack = new ArrayDeque<String>();
 
     @Override
     public void warning(String message) {

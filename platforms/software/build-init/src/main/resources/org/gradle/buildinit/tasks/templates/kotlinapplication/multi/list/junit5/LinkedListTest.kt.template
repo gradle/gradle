@@ -3,14 +3,14 @@ import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 
-class LinkedListTest {
+class ArrayListTest {
     @Test fun testConstructor() {
-        val list = LinkedList()
+        val list = ArrayList()
         assertEquals(0, list.size())
     }
 
     @Test fun testAdd() {
-        val list = LinkedList()
+        val list = ArrayList()
 
         list.add("one")
         assertEquals(1, list.size())
@@ -22,7 +22,7 @@ class LinkedListTest {
     }
 
     @Test fun testRemove() {
-        val list = LinkedList()
+        val list = ArrayList()
 
         list.add("one")
         list.add("two")
@@ -36,7 +36,7 @@ class LinkedListTest {
     }
 
     @Test fun testRemoveMissing() {
-        val list = LinkedList()
+        val list = ArrayList()
 
         list.add("one")
         list.add("two")

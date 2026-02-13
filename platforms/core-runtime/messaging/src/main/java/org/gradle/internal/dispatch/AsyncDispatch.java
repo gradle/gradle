@@ -20,8 +20,8 @@ import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.InterruptibleRunnable;
 import org.gradle.internal.operations.CurrentBuildOperationPreservingRunnable;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
@@ -41,7 +41,7 @@ public class AsyncDispatch<T> implements Dispatch<T>, AsyncStoppable {
     private static final int MAX_QUEUE_SIZE = 200;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private final LinkedList<T> queue = new LinkedList<T>();
+    private final ArrayDeque<T> queue = new ArrayDeque<T>();
     private final Executor executor;
     private final int maxQueueSize;
     private final Map<Dispatch<?>, InterruptibleRunnable> dispatchers = new HashMap<Dispatch<?>, InterruptibleRunnable>();

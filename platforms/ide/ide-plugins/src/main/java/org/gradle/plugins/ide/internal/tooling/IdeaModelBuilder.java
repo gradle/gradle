@@ -41,7 +41,6 @@ import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -112,7 +111,7 @@ public class IdeaModelBuilder implements IdeaModelBuilderInternal {
         for (IdeaModule module : projectModel.getModules()) {
             ideaModules.add(createModule(module, out, rootGradleProject, offlineDependencyResolution));
         }
-        out.setChildren(new LinkedList<>(ideaModules));
+        out.setChildren(new ArrayList<>(ideaModules));
         return out;
     }
 

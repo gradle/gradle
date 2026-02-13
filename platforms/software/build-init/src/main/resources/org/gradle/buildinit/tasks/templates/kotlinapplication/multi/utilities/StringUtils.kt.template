@@ -1,13 +1,13 @@
 ${fileComment.multilineComment}${packageDecl.statement}
-import ${basePackagePrefix.raw}list.LinkedList
+import ${basePackagePrefix.raw}list.ArrayList
 
 class StringUtils {
     companion object {
-        fun join(source: LinkedList): String {
+        fun join(source: ArrayList): String {
             return JoinUtils.join(source)
         }
 
-        fun split(source: String): LinkedList {
+        fun split(source: String): ArrayList {
             return SplitUtils.split(source)
         }
     }

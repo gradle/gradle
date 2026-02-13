@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.platform.base.*;
 
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +28,7 @@ import static java.util.Collections.emptySet;
 
 public class DefaultDependencySpecContainer implements DependencySpecContainer {
 
-    private final List<DependencySpecBuilder> builders = new LinkedList<DependencySpecBuilder>();
+    private final List<DependencySpecBuilder> builders = new ArrayList<DependencySpecBuilder>();
 
     @Override
     public ProjectDependencySpecBuilder project(String path) {

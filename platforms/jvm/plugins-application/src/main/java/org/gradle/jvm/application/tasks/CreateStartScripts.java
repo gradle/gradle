@@ -51,7 +51,7 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -131,7 +131,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     private String executableDir = "bin";
     private final Property<String> mainModule;
     private final Property<String> mainClass;
-    private Iterable<String> defaultJvmOpts = new LinkedList<>();
+    private Iterable<String> defaultJvmOpts = new ArrayList<>();
     private String applicationName;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;

@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 @ServiceScope(Scope.Project.class)
@@ -31,7 +31,7 @@ public class DeferredProjectConfiguration {
     private final static String TRACE = "org.gradle.trace.deferred.project.configuration";
 
     private final Project project;
-    private final List<Runnable> configuration = new LinkedList<>();
+    private final List<Runnable> configuration = new ArrayList<>();
     private boolean fired;
 
     private Throwable firedSentinel;

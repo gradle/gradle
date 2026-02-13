@@ -16,7 +16,7 @@
 
 package org.gradle.platform.base.internal.dependents;
 
-import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.ArrayListMultimap;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -62,7 +62,7 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
         }
         boolean hasNotBuildables = false;
         boolean hasTestSuites = false;
-        LinkedListMultimap<LibraryBinaryIdentifier, DependentBinariesResolvedResult> index = LinkedListMultimap.create();
+        ArrayListMultimap<LibraryBinaryIdentifier, DependentBinariesResolvedResult> index = ArrayListMultimap.create();
         for (DependentBinariesResolvedResult result : results) {
             if (!result.isBuildable()) {
                 hasNotBuildables = true;

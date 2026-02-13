@@ -15,17 +15,23 @@
  */
 package gradlebuild.docs.dsl.docbook;
 
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.GradleException;
 import gradlebuild.docs.dsl.source.model.ClassMetaData;
 import gradlebuild.docs.dsl.source.model.MethodMetaData;
 import gradlebuild.docs.dsl.source.model.PropertyMetaData;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.GradleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

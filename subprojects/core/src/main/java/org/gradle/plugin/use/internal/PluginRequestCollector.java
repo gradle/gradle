@@ -33,7 +33,7 @@ import org.gradle.plugin.use.PluginId;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,7 +55,7 @@ public class PluginRequestCollector {
         this.scriptSource = scriptSource;
     }
 
-    private final List<PluginDependencySpecImpl> specs = new LinkedList<PluginDependencySpecImpl>();
+    private final List<PluginDependencySpecImpl> specs = new ArrayList<PluginDependencySpecImpl>();
 
     public PluginDependenciesSpec createSpec(final int pluginsBlockLineNumber) {
         return new PluginDependenciesSpecImpl(pluginsBlockLineNumber);

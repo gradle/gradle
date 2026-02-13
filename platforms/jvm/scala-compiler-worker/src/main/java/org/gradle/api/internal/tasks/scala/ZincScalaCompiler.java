@@ -59,7 +59,7 @@ import xsbti.compile.TransactionalManagerType;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -96,11 +96,11 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
         List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
 
-        List<VirtualFile> classpath = new LinkedList<>();
+        List<VirtualFile> classpath = new ArrayList<>();
         for (File classpathEntry : spec.getCompileClasspath()){
             classpath.add(CONVERTER.toVirtualFile(classpathEntry.toPath()));
         }
-        List<VirtualFile> sourceFiles = new LinkedList<>();
+        List<VirtualFile> sourceFiles = new ArrayList<>();
         for(File f: spec.getSourceFiles()){
             sourceFiles.add(CONVERTER.toVirtualFile(f.toPath()));
         }
