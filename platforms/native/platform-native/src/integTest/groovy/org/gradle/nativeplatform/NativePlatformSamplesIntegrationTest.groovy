@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform
 
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -47,7 +46,6 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
     }
 
-    @ToBeFixedForConfigurationCache
     def "exe"() {
         given:
         // Need to PATH to be set to find the 'strip' executable
@@ -57,7 +55,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample cppExe
 
         when:
-        run "installMain"
+        fails "installMain"
 
         then:
         executedAndNotSkipped ":compileMainExecutableMainCpp", ":linkMainExecutable", ":stripMainExecutable", ":mainExecutable"
