@@ -103,6 +103,8 @@ Daemon:
   --stop                             Stops the Gradle daemon if it is running.
 
 Develocity:
+  --develocity-plugin-version        Specify the version of the Develocity plugin to auto-apply.
+  --develocity-url                   Specify the URL of the Develocity server to use for Build Scans.
   --scan                             Generates a Build Scan (powered by Develocity).
   --no-scan                          Disables the creation of a Build Scan.
 

@@ -65,6 +65,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
 
+    @Nullable
     private transient GradleEnterprisePluginService pluginService;
 
     public DefaultGradleEnterprisePluginAdapter(
