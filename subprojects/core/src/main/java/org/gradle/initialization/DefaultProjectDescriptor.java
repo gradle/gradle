@@ -16,7 +16,6 @@
 package org.gradle.initialization;
 
 import com.google.common.base.Objects;
-import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -41,6 +40,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     public static final String INVALID_NAME_IN_INCLUDE_HINT = "Set the 'rootProject.name' or adjust the 'include' statement (see "
         + new DocumentationRegistry().getDslRefForProperty(Settings.class, "include(java.lang.String[])") + " for more details).";
 
+    @Deprecated // Do not immediately remove, since it's an old API that could have been used despite being internal
     public static final String BUILD_SCRIPT_BASENAME = BuildLogicFiles.BUILD_FILE_BASENAME;
 
     private String name;
@@ -197,7 +197,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         if (selectedCandidate != null) {
             return selectedCandidate;
         } else {
-            return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
+            return new File(getProjectDir(), BuildLogicFiles.DEFAULT_BUILD_FILE);
         }
     }
 
