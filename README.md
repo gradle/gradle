@@ -1,6 +1,6 @@
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/gradle-white-primary.png" width="700px">
+    <source media="(prefers-color-scheme: dark)" srcset="images/gradle-white-primary.png" width="600px">
     <img alt="Gradle Logo" src="images/gradle-dark-green-primary.png" width="600px">
   </picture>
 </div>
