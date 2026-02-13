@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.TestBuildCache
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
@@ -28,7 +27,6 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.util.internal.TextUtil.escapeString
 
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
@@ -150,15 +148,16 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         executedAndNotSkipped ":customTask"
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "cacheable task with multiple outputs declared via runtime API with matching cardinality get cached"() {
         buildFile << """
             task customTask {
+                def output1 = file("build/output1.txt")
+                def output2 = file("build/output2.txt")
                 outputs.cacheIf { true }
-                outputs.files files("build/output1.txt", "build/output2.txt") withPropertyName("out")
+                outputs.files files(output1, output2) withPropertyName("out")
                 doLast {
-                    file("build/output1.txt") << "data"
-                    file("build/output2.txt") << "data"
+                    output1 << "data"
+                    output2 << "data"
                 }
             }
         """
@@ -455,20 +454,24 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build").listFiles().sort() as List == [file("build/output-a.txt"), file("build/output-b.txt")]
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "missing #type output from runtime API is not cached"() {
         given:
         file("input.txt") << "data"
-        buildFile << """
+        buildFile """
+            ${FsOpsFixture.injectFsOps()}
             task customTask {
-                inputs.file "input.txt"
-                outputs.file "build/output.txt" withPropertyName "output"
-                outputs.$type "build/output/missing" withPropertyName "missing"
+                def outputDir = file("build")
+                def outputFile = file("build/output.txt")
+                def inputFile = file("input.txt")
+                def missing = file("build/output/missing")
+                inputs.file inputFile
+                outputs.file outputFile withPropertyName "output"
+                outputs.$type missing withPropertyName "missing"
                 outputs.cacheIf { true }
                 doLast {
-                    file("build").mkdirs()
-                    file("build/output.txt").text = file("input.txt").text
-                    delete("build/output/missing")
+                    outputDir.mkdirs()
+                    outputFile.text = inputFile.text
+                    fsOps.delete { delete(missing) }
                 }
             }
         """
@@ -572,22 +575,23 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build/empty").assertIsEmptyDir()
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "reports useful error when output #expected is expected but #actual is produced"() {
         given:
         file("input.txt") << "data"
-        buildFile << """
+        buildFile """
+            ${FsOpsFixture.injectFsOps()}
             task customTask {
-                inputs.file "input.txt"
-                outputs.$expected "build/output" withPropertyName "output"
+                def inputFile = file("input.txt")
+                def output = file("build/output")
+                def outputDir = ${actual == "file" ? 'file("build")' : 'output'}
+                def outputFile = ${actual == "file" ? 'output' : 'file("build/output/output.txt")'}
+                inputs.file inputFile
+                outputs.$expected output withPropertyName "output"
                 outputs.cacheIf { true }
                 doLast {
-                    delete('build')
-                    ${
-            actual == "file"
-                ? "mkdir('build'); file('build/output').text = file('input.txt').text"
-                : "mkdir('build/output'); file('build/output/output.txt').text = file('input.txt').text"
-        }
+                    fsOps.delete { delete(outputDir) }
+                    outputDir.mkdirs()
+                    outputFile.text = inputFile.text
                 }
             }
         """
