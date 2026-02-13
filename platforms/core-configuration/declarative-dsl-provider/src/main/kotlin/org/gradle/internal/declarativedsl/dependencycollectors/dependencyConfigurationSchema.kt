@@ -17,8 +17,11 @@
 package org.gradle.internal.declarativedsl.dependencycollectors
 
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ExternalDependency
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.FileCollectionDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
@@ -44,6 +47,13 @@ fun EvaluationSchemaBuilder.dependencyCollectors() {
 }
 
 
+internal
+class DependencyFunctionSignature(
+    val parameter: DefaultDataParameter,
+    val lambdaReceiverType: DataTypeRef
+)
+
+
 /**
  * Introduces functions for registering dependencies, such as `implementation(...)`, as member functions of
  * types with getters returning [org.gradle.api.artifacts.dsl.DependencyCollector] in the schema.
@@ -53,8 +63,24 @@ private
 class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionComponent {
     @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
     private val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(
-        gavDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown) },
-        dependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<Dependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown) },
+        gavDependencyParam = { host ->
+            DependencyFunctionSignature(
+                DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
+                host.modelTypeRef(typeOf<ExternalModuleDependency>()).orError()
+            )
+        },
+        dependencyParam = { host ->
+            DependencyFunctionSignature(
+                DefaultDataParameter("dependency", host.modelTypeRef(typeOf<Dependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
+                host.modelTypeRef(typeOf<Dependency>()).orError()
+            )
+        },
+        projectDependencyParam = { host ->
+            DependencyFunctionSignature(
+                DefaultDataParameter("dependency", host.modelTypeRef(typeOf<ProjectDependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
+                host.modelTypeRef(typeOf<ProjectDependency>()).orError()
+            )
+        }
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
@@ -71,7 +97,9 @@ class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionC
             FixedTypeDiscovery(
                 PlatformDependencyModifiers::class,
                 listOf(
-                    TypeDiscovery.DiscoveredClass(ExternalDependency::class, TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL"))
+                    TypeDiscovery.DiscoveredClass(ExternalModuleDependency::class, listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL"))),
+                    TypeDiscovery.DiscoveredClass(FileCollectionDependency::class, listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL"))),
+                    TypeDiscovery.DiscoveredClass(ProjectDependency::class, listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL")))
                 )
             )
         )
