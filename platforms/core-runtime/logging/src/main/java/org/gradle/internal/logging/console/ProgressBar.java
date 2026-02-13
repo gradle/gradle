@@ -41,8 +41,8 @@ public class ProgressBar {
     public static final String UNICODE_PROGRESS_BAR_SUFFIX = "│";
     // ASCII progress bar style (fallback/compatibility) - simple hash-based progress for non-Unicode terminals
     public static final String ASCII_PROGRESS_BAR_PREFIX = "[";
-    public static final char ASCII_PROGRESS_BAR_COMPLETE_CHAR = '=';
-    public static final char ASCII_PROGRESS_BAR_INCOMPLETE_CHAR = '-';
+    public static final char ASCII_PROGRESS_BAR_COMPLETE_CHAR = '#';
+    public static final char ASCII_PROGRESS_BAR_INCOMPLETE_CHAR = '.';
     public static final String ASCII_PROGRESS_BAR_SUFFIX = "]";
     private static final Logger LOGGER = LoggerFactory.getLogger(ProgressBar.class);
 
