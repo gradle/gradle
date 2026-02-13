@@ -83,25 +83,27 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
 
     public MethodMetaData getOverriddenMethod() {
         ArrayDeque<ClassMetaData> queue = new ArrayDeque<ClassMetaData>();
-        queue.add(ownerClass.getSuperClass());
-        queue.addAll(ownerClass.getInterfaces());
+        addToQueue(ownerClass, queue);
 
         String overrideSignature = getOverrideSignature();
 
         while (!queue.isEmpty()) {
             ClassMetaData cl = queue.removeFirst();
-            if (cl == null) {
-                continue;
-            }
             MethodMetaData overriddenMethod = cl.findDeclaredMethod(overrideSignature);
             if (overriddenMethod != null) {
                 return overriddenMethod;
             }
-            queue.add(cl.getSuperClass());
-            queue.addAll(cl.getInterfaces());
+            addToQueue(cl, queue);
         }
 
         return null;
+    }
+
+    private static void addToQueue(ClassMetaData cl, ArrayDeque<ClassMetaData> queue) {
+        if (cl.getSuperClass() != null) {
+            queue.add(cl.getSuperClass());
+        }
+        queue.addAll(cl.getInterfaces());
     }
 
     public List<ParameterMetaData> getParameters() {

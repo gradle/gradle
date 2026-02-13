@@ -25,10 +25,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -162,8 +162,8 @@ public class JavadocConverter {
         final DocBookBuilder nodes;
         final List<HtmlElementHandler> elementHandlers = new ArrayList<HtmlElementHandler>();
         final List<JavadocTagHandler> tagHandlers = new ArrayList<JavadocTagHandler>();
-        final LinkedList<HtmlElementHandler> handlerStack = new LinkedList<HtmlElementHandler>();
-        final LinkedList<String> tagStack = new LinkedList<String>();
+        final ArrayDeque<HtmlElementHandler> handlerStack = new ArrayDeque<HtmlElementHandler>();
+        final ArrayDeque<String> tagStack = new ArrayDeque<String>();
         final Map<String, String> attributes = new HashMap<String, String>();
         StringBuilder tagValue;
         final Document document;
