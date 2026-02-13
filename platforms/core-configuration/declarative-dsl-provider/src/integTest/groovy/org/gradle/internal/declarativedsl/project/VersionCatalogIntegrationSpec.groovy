@@ -19,9 +19,11 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.hamcrest.CoreMatchers.containsString
+
 class VersionCatalogIntegrationSpec extends AbstractIntegrationSpec implements ProjectTypeFixture {
-    def 'version catalogs appear in the DSL'() {
-        when:
+
+    def 'setup'() {
         file("gradle/libs.versions.toml") << """
             [libraries]
             bar = { module = "foo:bar", version = "1.0" }
@@ -29,7 +31,10 @@ class VersionCatalogIntegrationSpec extends AbstractIntegrationSpec implements P
 
         withProjectTypeDefinitionWithDependencies().prepareToExecute()
         file("settings.gradle.dcl") << pluginsFromIncludedBuild
+    }
 
+    def 'version catalogs appear in the DSL'() {
+        when:
         file("build.gradle.dcl") << """
             testProjectType {
                 dependencies {
@@ -40,5 +45,33 @@ class VersionCatalogIntegrationSpec extends AbstractIntegrationSpec implements P
 
         then:
         succeeds()
+    }
+
+    def 'non-existent version catalog reference gives meaningful error'() {
+        when:
+        file("build.gradle.dcl") << """
+            testProjectType {
+                dependencies {
+                    implementation(catalogs.nonExistent.lib())
+                }
+            }
+        """
+
+        then:
+        fails().assertThatCause(containsString("4:45: unresolved reference 'nonExistent'"))
+    }
+
+    def 'non-existent library reference gives meaningful error'() {
+        when:
+        file("build.gradle.dcl") << """
+            testProjectType {
+                dependencies {
+                    implementation(catalogs.libs.nonExistent())
+                }
+            }
+        """
+
+        then:
+        fails().assertThatCause(containsString("4:50: unresolved function call signature for 'nonExistent'"))
     }
 }

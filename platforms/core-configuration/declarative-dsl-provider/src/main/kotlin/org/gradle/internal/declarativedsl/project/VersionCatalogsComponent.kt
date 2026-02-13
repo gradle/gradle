@@ -47,7 +47,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelClass
 import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import org.gradle.internal.management.VersionCatalogBuilderInternal
-import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.typeOf
@@ -134,20 +134,29 @@ private class VersionCatalogsRuntimePropertyResolver : RuntimePropertyResolver {
         return when {
             receiverClass.isSubclassOf(Project::class) && name == "catalogs" -> {
                 RuntimePropertyResolver.ReadResolution.ResolvedRead { receiver ->
-                    val catalogs: VersionCatalogsExtension? = (receiver as Project).extensions.findByName("versionCatalogs") as? VersionCatalogsExtension
-                    catalogs?.let {
-                        InstanceAndPublicType.of(RuntimeVersionCatalogsContainer(it), VersionCatalogsContainer::class)
-                    } ?: InstanceAndPublicType.NULL
+                    require(receiver is Project)
+                    val catalogs = receiver.extensions.findByName("versionCatalogs") as? VersionCatalogsExtension
+                    check(catalogs != null) {
+                        "'versionCatalogs' extension not found in project ${receiver.path}"
+                    }
+                    InstanceAndPublicType.of(
+                        RuntimeVersionCatalogsContainer(catalogs),
+                        VersionCatalogsContainer::class
+                    )
                 }
             }
 
             receiverClass.isSubclassOf(VersionCatalogsContainer::class) -> {
                 RuntimePropertyResolver.ReadResolution.ResolvedRead { receiver ->
                     require(receiver is RuntimeVersionCatalogsContainer)
-                    receiver.catalogs
-                        .find(name)
-                        .map { InstanceAndPublicType.of(RuntimeVersionCatalog(it), VersionCatalog::class) }
-                        .orElse(InstanceAndPublicType.NULL)
+                    val catalog = receiver.catalogs.find(name).getOrNull()
+                    check(catalog != null) {
+                        "'$name' version catalog was not found"
+                    }
+                    InstanceAndPublicType.of(
+                        RuntimeVersionCatalog(catalog),
+                        VersionCatalog::class
+                    )
                 }
             }
 
@@ -190,11 +199,15 @@ private class VersionCatalogsRuntimeFunction(val libName: String) : DeclarativeR
         hasLambda: Boolean
     ): DeclarativeRuntimeFunction.InvocationResult {
         require(receiver is RuntimeVersionCatalog)
-        val result = receiver.catalog.findLibrary(libName)
-            .flatMap { Optional.ofNullable(it.orNull) }
-            .map { InstanceAndPublicType.of(it, Dependency::class) }
-            .orElse(InstanceAndPublicType.NULL)
-        return DeclarativeRuntimeFunction.InvocationResult(result, InstanceAndPublicType.NULL)
+        val catalog = receiver.catalog
+        val dependency = catalog.findLibrary(libName).getOrNull()?.orNull
+        check(dependency != null) {
+            "'$libName' dependency was not found in catalog '${catalog.name}'"
+        }
+        return DeclarativeRuntimeFunction.InvocationResult(
+            InstanceAndPublicType.of(dependency, Dependency::class),
+            InstanceAndPublicType.NULL
+        )
     }
 }
 
