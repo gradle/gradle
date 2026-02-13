@@ -487,11 +487,10 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             package com.example.restricted;
 
             import org.gradle.api.artifacts.dsl.DependencyCollector;
-            import org.gradle.api.artifacts.dsl.Dependencies;
             import org.gradle.api.artifacts.dsl.GradleDependencies;
             import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
 
-            public interface DependenciesExtension extends Dependencies, GradleDependencies, PlatformDependencyModifiers {
+            public interface DependenciesExtension extends GradleDependencies, PlatformDependencyModifiers {
                 DependencyCollector getApi();
                 DependencyCollector getImplementation();
             }
