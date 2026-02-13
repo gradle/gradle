@@ -54,15 +54,9 @@ open class KotlinBuildLogicProjectTypePlugin : Plugin<Project> {
                     afterEvaluate {
                         description = definition.description.get()
                     }
-                    configurations.getByName("compileOnly").dependencies.addAllLater(
-                        definition.dependencies.compileOnly.dependencies
-                    )
-                    configurations.getByName("implementation").dependencies.addAllLater(
-                        definition.dependencies.implementation.dependencies
-                    )
-                    configurations.getByName("api").dependencies.addAllLater(
-                        definition.dependencies.api.dependencies
-                    )
+                    for ((scope, collector) in definition.dependencies.scopeToCollector()) {
+                        configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
+                    }
                 }
             }.withUnsafeDefinition().withUnsafeApplyAction()
         }
@@ -86,9 +80,17 @@ interface KotlinBuildLogicDefinition : Definition<BuildModel.None> {
 
 interface BuildLogicDependencies : Dependencies, PlatformDependencyModifiers {
 
-    val compileOnly: DependencyCollector
     val implementation: DependencyCollector
     val api: DependencyCollector
+    val compileOnly: DependencyCollector
+
+    @HiddenInDefinition
+    fun scopeToCollector(): Map<String, DependencyCollector> =
+        mapOf(
+            "api" to api,
+            "implementation" to implementation,
+            "compileOnly" to compileOnly
+        )
 
     fun catalog(notation: String): ExternalModuleDependency =
         notation.split('.').let { parts ->
