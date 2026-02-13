@@ -17,31 +17,50 @@
 package org.gradle.internal.cc.impl
 
 import com.google.common.collect.ImmutableMap
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.HoldsProjectState
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
+import org.gradle.internal.InternalBuildListener
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.vcs.internal.VcsMappingsStore
 import java.util.concurrent.ConcurrentHashMap
 
 @ServiceScope(BuildTree::class)
+@ListenerService
 internal class DefaultConfigurationCacheDegradationController(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val vcsMappingsStore: VcsMappingsStore,
     private val buildModelParameters: BuildModelParameters
-) : ConfigurationCacheDegradationController, HoldsProjectState {
+) : ConfigurationCacheDegradationController, InternalBuildListener, HoldsProjectState {
 
     private val logger = Logging.getLogger(DefaultConfigurationCacheDegradationController::class.java)
+    private val projectScopedReasons = ConcurrentHashMap<Project, List<Provider<String>>>()
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
 
     val degradationDecision by lazy { collectDegradationReasons() }
+
+    override fun projectsLoaded(gradle: Gradle) {
+        gradle.allprojects {
+            (this as ProjectInternal).addRuleBasedPluginListener { project ->
+                projectScopedReasons.compute(project) { _, reasons ->
+                    val reason = Providers.of("Rule-based plugin applied")
+                    reasons?.plus(reason) ?: listOf(reason)
+                }
+            }
+        }
+    }
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         if (!configurationTimeBarrier.isAtConfigurationTime) {
@@ -81,13 +100,21 @@ internal class DefaultConfigurationCacheDegradationController(
             builder.build()
         } else ImmutableMap.of()
 
-    private fun collectFeatureDegradationReasons(): Map<String, List<String>> =
-        if (isSourceDependenciesUsed()) {
-            ImmutableMap.of(
-                "source dependencies",
-                listOf("Source dependencies are not compatible yet")
-            )
-        } else ImmutableMap.of()
+    private fun collectFeatureDegradationReasons(): Map<String, List<String>> {
+        return buildMap {
+            if (isSourceDependenciesUsed()) {
+                put("source dependencies", listOf("Source dependencies are not compatible yet"))
+            }
+            if (projectScopedReasons.isNotEmpty()) {
+                projectScopedReasons.forEach { project, reasons ->
+                    val reasonsInEffect = reasons.mapNotNull { it.orNull }.sorted()
+                    if (reasonsInEffect.isNotEmpty()) {
+                        put("incompatible plugins in project ${project.path}", reasonsInEffect)
+                    }
+                }
+            }
+        }
+    }
 
     private fun workGraphContains(task: Task): Boolean =
         task.project.gradle.taskGraph.hasTask(task)
