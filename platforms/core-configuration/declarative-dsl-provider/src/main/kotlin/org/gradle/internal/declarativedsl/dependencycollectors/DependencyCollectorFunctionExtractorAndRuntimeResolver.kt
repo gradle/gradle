@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.dependencycollectors
 
 import com.google.common.graph.Traverser
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.Dependencies
@@ -177,7 +178,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
         override fun callBy(receiver: Any?, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
             val dependencyCollector = collectorAccessor.kCallable.call(checkNotNull(receiver)) as DependencyCollector
             when (val dependencyNotation = binding.values.single()) {
-                is ProjectDependency -> dependencyCollector.add(dependencyNotation)
+                is Dependency -> dependencyCollector.add(dependencyNotation)
                 else -> dependencyCollector.add(dependencyNotation.toString())
             }
             return DeclarativeRuntimeFunction.InvocationResult(InstanceAndPublicType.Companion.UNIT, InstanceAndPublicType.Companion.NULL)

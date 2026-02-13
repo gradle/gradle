@@ -19,18 +19,18 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.features.annotations.BindsProjectType
-import org.gradle.features.annotations.RegistersProjectFeatures
-import org.gradle.features.binding.Definition
-import org.gradle.features.binding.BuildModel
-import org.gradle.features.binding.ProjectTypeBinding
-import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.features.registration.ConfigurationRegistrar
-import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
+import org.gradle.features.registration.ConfigurationRegistrar
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.precondition.Requires
@@ -446,6 +446,28 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         invalidType << ["layout", "1", "true", "null"]
     }
 
+    def "can configure a built-in dependency using DependencyCollector in declarative DSL"() {
+        given:
+        file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtensionWithPlatformModifiers()
+        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTasks()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild()
+        file("build.gradle.dcl") << """
+                library {
+                    dependencies {
+                        implementation(localGroovy())
+                    }
+                }
+            """
+        file("settings.gradle") << defineSettings()
+
+        expect:
+        succeeds(":resolveImplementation")
+        outputContains("groovy-")
+    }
+
     private String defineDependenciesExtension(boolean extendDependencies = true) {
         return """
             package com.example.restricted;
@@ -466,9 +488,10 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             import org.gradle.api.artifacts.dsl.DependencyCollector;
             import org.gradle.api.artifacts.dsl.Dependencies;
+            import org.gradle.api.artifacts.dsl.GradleDependencies;
             import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
 
-            public interface DependenciesExtension extends Dependencies, PlatformDependencyModifiers {
+            public interface DependenciesExtension extends Dependencies, GradleDependencies, PlatformDependencyModifiers {
                 DependencyCollector getApi();
                 DependencyCollector getImplementation();
             }
