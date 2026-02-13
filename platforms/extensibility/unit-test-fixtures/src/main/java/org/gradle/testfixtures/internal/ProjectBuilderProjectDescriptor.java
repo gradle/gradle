@@ -14,36 +14,47 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.project;
+package org.gradle.testfixtures.internal;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
-public class DefaultImmutableProjectDescriptor implements ImmutableProjectDescriptor {
+import static java.util.Collections.unmodifiableList;
+
+public class ProjectBuilderProjectDescriptor implements ImmutableProjectDescriptor {
 
     private final ProjectIdentity identity;
     private final File projectDir;
-    private final Supplier<File> buildFile;
+    private final File buildFile;
     private final @Nullable ProjectIdentity parent;
-    private final List<ProjectIdentity> children;
+    private final List<ProjectIdentity> children = new ArrayList<>();
 
-    public DefaultImmutableProjectDescriptor(
+    public ProjectBuilderProjectDescriptor(
         ProjectIdentity identity,
         File projectDir,
-        Supplier<File> buildFile,
-        @Nullable ProjectIdentity parent,
-        List<ProjectIdentity> children
+        File buildFile,
+        @Nullable ProjectIdentity parent
     ) {
         this.identity = identity;
         this.projectDir = projectDir;
         this.buildFile = buildFile;
         this.parent = parent;
-        this.children = ImmutableList.copyOf(children);
+    }
+
+    /**
+     * Allows late mutation of the children list.
+     * <p>
+     * This is only required for {@code ProjectBuilder}, because it allows
+     * creating children after the parent project has been created.
+     * In a normal build, all project descriptors are created at the same time.
+     */
+    public void addChild(ProjectIdentity child) {
+        children.add(child);
     }
 
     @Override
@@ -58,7 +69,7 @@ public class DefaultImmutableProjectDescriptor implements ImmutableProjectDescri
 
     @Override
     public File getBuildFile() {
-        return buildFile.get();
+        return buildFile;
     }
 
     @Override
@@ -69,11 +80,11 @@ public class DefaultImmutableProjectDescriptor implements ImmutableProjectDescri
 
     @Override
     public List<ProjectIdentity> getChildren() {
-        return children;
+        return unmodifiableList(children);
     }
 
     @Override
     public String toString() {
-        return identity.toString();
+        return identity.getProjectPath().toString();
     }
 }
