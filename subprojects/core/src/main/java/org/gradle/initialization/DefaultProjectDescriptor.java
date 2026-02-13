@@ -147,6 +147,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     }
 
     @Override
+    @Nullable
     public ProjectDescriptorInternal getParent() {
         return parent;
     }
