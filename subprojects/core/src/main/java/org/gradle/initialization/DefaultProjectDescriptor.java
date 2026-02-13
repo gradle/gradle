@@ -53,7 +53,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     @Nullable
     private final ProjectDescriptorInternal parent;
     private final Set<ProjectDescriptorInternal> children = new LinkedHashSet<>();
-    private ProjectDescriptorRegistry projectDescriptorRegistry;
+    private final ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     @Nullable
     private String buildFileName;
@@ -199,14 +199,6 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         } else {
             return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
         }
-    }
-
-    public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
-        return projectDescriptorRegistry;
-    }
-
-    public void setProjectDescriptorRegistry(ProjectDescriptorRegistry projectDescriptorRegistry) {
-        this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
 
     @Override
