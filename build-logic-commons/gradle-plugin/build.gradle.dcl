@@ -4,7 +4,7 @@ kotlinBuildLogic {
     dependencies {
         compileOnly(catalog("buildLibs.develocityPlugin"))
 
-        api(platformProject(":build-platform"))
+        api(platform(project(":build-platform")))
 
         implementation(project(":basics"))
         implementation(project(":module-identity"))
