@@ -26,7 +26,7 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
-import org.gradle.internal.scripts.ScriptResolutionResult;
+import org.gradle.internal.scripts.ScriptFileUtil;
 import org.gradle.internal.scripts.ScriptResolutionResultReporter;
 import org.gradle.util.Path;
 import org.gradle.util.internal.NameValidator;
@@ -191,15 +191,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         if (buildFileName != null) {
             return new File(getProjectDir(), buildFileName);
         }
-        ScriptResolutionResult buildScriptFileResolution = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
-        scriptResolutionResultReporter.reportResolutionProblemsOf(buildScriptFileResolution);
 
-        File selectedCandidate = buildScriptFileResolution.getSelectedCandidate();
-        if (selectedCandidate != null) {
-            return selectedCandidate;
-        } else {
-            return new File(getProjectDir(), BuildLogicFiles.DEFAULT_BUILD_FILE);
-        }
+        return ScriptFileUtil.resolveBuildFile(getProjectDir(), scriptFileResolver, scriptResolutionResultReporter::reportResolutionProblemsOf);
     }
 
     @Override

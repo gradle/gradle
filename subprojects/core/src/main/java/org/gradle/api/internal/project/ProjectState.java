@@ -22,6 +22,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -93,6 +94,11 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      * Returns the project directory.
      */
     File getProjectDir();
+
+    /**
+     * Returns the descriptor for this project.
+     */
+    ImmutableProjectDescriptor getDescriptor();
 
     /**
      * Returns the nesting level of a project in a multi-project hierarchy.

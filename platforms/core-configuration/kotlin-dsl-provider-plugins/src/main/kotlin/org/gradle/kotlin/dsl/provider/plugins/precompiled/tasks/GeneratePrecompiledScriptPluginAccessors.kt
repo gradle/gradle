@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.invocation.Gradle
@@ -63,6 +64,8 @@ import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.project.DefaultImmutableProjectDescriptor
+import org.gradle.internal.project.ImmutableProjectDescriptor
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
@@ -433,7 +436,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     }
                     val rootProjectScope = baseScope.createChild("accessors-root-project", null)
                     settings.rootProject.name = "gradle-kotlin-dsl-accessors"
-                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as ProjectDescriptorInternal)
+                    val projectDescriptor = descriptorForRoot(settings)
+                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, projectDescriptor)
                     projectState.createMutableModel(rootProjectScope, baseScope)
                     val rootProject = projectState.mutableModel
                     gradle.rootProject = rootProject
@@ -469,6 +473,14 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                 }
             }
         }
+    }
+
+    private fun descriptorForRoot(settings: SettingsInternal): ImmutableProjectDescriptor {
+        val descriptor = settings.rootProject as ProjectDescriptorInternal
+        val identity = ProjectIdentity.forRootProject(settings.gradle.owner.identityPath, descriptor.name)
+        return DefaultImmutableProjectDescriptor(
+            identity, descriptor.projectDir, descriptor.projectDir, null, emptyList()
+        )
     }
 
     private

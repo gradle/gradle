@@ -16,6 +16,7 @@
 package org.gradle.api.internal.project;
 
 import com.google.common.collect.Iterables;
+import com.google.errorprone.annotations.concurrent.GuardedBy;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -44,11 +45,11 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -57,7 +58,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closeable {
     private final WorkerLeaseService workerLeaseService;
@@ -72,16 +72,43 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Override
     public void registerProjects(BuildState owner, ProjectDescriptorRegistry projectRegistry) {
-        Set<ProjectDescriptorInternal> allProjects = projectRegistry.getAllProjects();
         synchronized (lock) {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
             if (!buildProjectRegistry.projectsByPath.isEmpty()) {
                 throw new IllegalStateException("Projects for " + owner.getDisplayName() + " have already been registered.");
             }
-            for (ProjectDescriptorInternal descriptor : allProjects) {
-                addProject(owner, buildProjectRegistry, descriptor);
-            }
+
+            registerAllProjectsRecursively(owner, buildProjectRegistry, null, projectRegistry.getRootProject());
         }
+    }
+
+    @GuardedBy("lock")
+    private ProjectIdentity registerAllProjectsRecursively(
+        BuildState buildState,
+        DefaultBuildProjectRegistry projectRegistry,
+        @Nullable ProjectIdentity parentIdentity,
+        ProjectDescriptorInternal descriptor
+    ) {
+        Path buildPath = buildState.getIdentityPath();
+        ProjectIdentity identity = projectIdentityFor(buildPath, descriptor);
+
+        ArrayList<ProjectIdentity> children = new ArrayList<>();
+        for (ProjectDescriptorInternal childDescriptor : descriptor.children()) {
+            ProjectIdentity childIdentity = registerAllProjectsRecursively(buildState, projectRegistry, identity, childDescriptor);
+            children.add(childIdentity);
+        }
+
+        children.sort(Comparator.comparing(ProjectIdentity::getBuildTreePath));
+
+        // TODO: Call to descriptor.getBuildFile() results in eager ScriptFileResolver call, which ends up notifying CC and registering it as an input
+        // This is not ideal, because this makes all project scripts part of the build-scoped fingerprint
+        ImmutableProjectDescriptor immutableDescriptor = new DefaultImmutableProjectDescriptor(
+            identity, descriptor.getProjectDir(), descriptor.getBuildFile(), parentIdentity, children
+        );
+
+        addProject(buildState, projectRegistry, immutableDescriptor);
+
+        return identity;
     }
 
     private DefaultBuildProjectRegistry getBuildProjectRegistry(BuildState owner) {
@@ -94,7 +121,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     @Override
-    public ProjectState registerProject(BuildState owner, ProjectDescriptorInternal projectDescriptor) {
+    public ProjectState registerProject(BuildState owner, ImmutableProjectDescriptor projectDescriptor) {
         synchronized (lock) {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
             return addProject(owner, buildProjectRegistry, projectDescriptor);
@@ -114,24 +141,26 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
     }
 
-    private ProjectState addProject(BuildState owner, DefaultBuildProjectRegistry projectRegistry, ProjectDescriptorInternal descriptor) {
-        Path projectPath = descriptor.path();
-
-        ProjectIdentity identity;
-        if (projectPath.equals(Path.ROOT)) {
-            identity = ProjectIdentity.forRootProject(owner.getIdentityPath(), descriptor.getName());
-        } else {
-            identity = ProjectIdentity.forSubproject(owner.getIdentityPath(), projectPath);
-        }
-
-        ServiceRegistry buildServices = owner.getMutableModel().getServices();
+    @GuardedBy("lock")
+    private ProjectState addProject(BuildState buildState, DefaultBuildProjectRegistry projectRegistry, ImmutableProjectDescriptor descriptor) {
+        ServiceRegistry buildServices = buildState.getMutableModel().getServices();
         IProjectFactory projectFactory = buildServices.get(IProjectFactory.class);
         StateTransitionControllerFactory stateTransitionControllerFactory = buildServices.get(StateTransitionControllerFactory.class);
-        ProjectStateImpl projectState = new ProjectStateImpl(owner, identity, descriptor, projectFactory, stateTransitionControllerFactory, buildServices);
-        projectsByPath.put(identity.getBuildTreePath(), projectState);
+        ProjectStateImpl projectState = new ProjectStateImpl(buildState, descriptor, projectFactory, stateTransitionControllerFactory, buildServices);
+        projectsByPath.put(descriptor.getIdentity().getBuildTreePath(), projectState);
         projectsById.put(projectState.getComponentIdentifier(), projectState);
-        projectRegistry.add(projectPath, projectState);
+        projectRegistry.add(descriptor.getIdentity().getProjectPath(), projectState);
         return projectState;
+    }
+
+    private static ProjectIdentity projectIdentityFor(Path buildPath, ProjectDescriptorInternal descriptor) {
+        ProjectIdentity identity;
+        if (descriptor.path().equals(Path.ROOT)) {
+            identity = ProjectIdentity.forRootProject(buildPath, descriptor.getName());
+        } else {
+            identity = ProjectIdentity.forSubproject(buildPath, descriptor.path());
+        }
+        return identity;
     }
 
     @Override
@@ -261,7 +290,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     private class ProjectStateImpl implements ProjectState, Closeable {
 
-        private final ProjectDescriptorInternal descriptor;
+        private final ImmutableProjectDescriptor descriptor;
         private final IProjectFactory projectFactory;
         private final BuildState owner;
         private final ProjectIdentity identity;
@@ -273,8 +302,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         ProjectStateImpl(
             BuildState owner,
-            ProjectIdentity identity,
-            ProjectDescriptorInternal descriptor,
+            ImmutableProjectDescriptor descriptor,
             IProjectFactory projectFactory,
             StateTransitionControllerFactory stateTransitionControllerFactory,
             ServiceRegistry buildServices
@@ -282,7 +310,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             this.owner = owner;
             this.descriptor = descriptor;
             this.projectFactory = projectFactory;
-            this.identity = identity;
+            this.identity = descriptor.getIdentity();
             this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
             this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identity.getBuildTreePath());
             this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identity.getBuildTreePath());
@@ -309,28 +337,24 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             return owner;
         }
 
-        @Nullable
         @Override
-        public ProjectState getParent() {
-            if (descriptor.getParent() != null) {
-                // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
-                // Ideally they would be exactly the same, always
-                Path parentProjectPath = descriptor.getParent().path();
-                Path parentIdentityPath = ProjectIdentity.computeProjectIdentityPath(owner.getIdentityPath(), parentProjectPath);
-                ProjectStateImpl parentState = projectsByPath.get(parentIdentityPath);
-                if (parentState == null) {
-                    throw new IllegalStateException("Parent project " + parentIdentityPath + " is not registered for " + identity);
-                }
-                return parentState;
-            } else {
+        public @Nullable ProjectState getParent() {
+            ProjectIdentity parentIdentity = descriptor.getParent();
+            if (parentIdentity == null) {
                 return null;
             }
+
+            ProjectStateImpl parentState = projectsByPath.get(parentIdentity.getBuildTreePath());
+            if (parentState == null) {
+                throw new IllegalStateException("Parent project " + parentIdentity.getBuildTreePath() + " is not registered for " + identity);
+            }
+            return parentState;
         }
 
         @Override
         public Set<ProjectState> getChildProjects() {
             Set<ProjectState> children = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
-            for (ProjectDescriptorInternal child : descriptor.children()) {
+            for (ProjectIdentity child : descriptor.getChildren()) {
                 children.add(getStateForChild(child));
             }
             return children;
@@ -338,18 +362,21 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public Iterable<ProjectState> getUnorderedChildProjects() {
-            return Iterables.transform(descriptor.children(), this::getStateForChild);
+            return Iterables.transform(descriptor.getChildren(), this::getStateForChild);
         }
 
         @Override
         public boolean hasChildren() {
-            return !descriptor.children().isEmpty();
+            return !descriptor.getChildren().isEmpty();
         }
 
-        private ProjectStateImpl getStateForChild(ProjectDescriptorInternal child) {
-            Path childProjectPath = child.path();
-            Path childIdentityPath = ProjectIdentity.computeProjectIdentityPath(owner.getIdentityPath(), childProjectPath);
-            return projectsByPath.get(childIdentityPath);
+        @Override
+        public ImmutableProjectDescriptor getDescriptor() {
+            return descriptor;
+        }
+
+        private ProjectStateImpl getStateForChild(ProjectIdentity childIdentity) {
+            return projectsByPath.get(childIdentity.getBuildTreePath());
         }
 
         @Override
@@ -389,13 +416,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public void createMutableModel(ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
-            ProjectState parent = getParent();
-            ProjectIdentity parentIdentity = parent == null ? null : parent.getIdentity();
-            List<ProjectIdentity> children = getChildProjects().stream().map(ProjectState::getIdentity).collect(Collectors.toList());
-            ImmutableProjectDescriptor immutableDescriptor = new DefaultImmutableProjectDescriptor(
-                identity, descriptor.getProjectDir(), descriptor.getBuildFile(), parentIdentity, children
-            );
-            controller.createMutableModel(immutableDescriptor, owner, this, selfClassLoaderScope, baseClassLoaderScope, projectFactory);
+            controller.createMutableModel(descriptor, owner, this, selfClassLoaderScope, baseClassLoaderScope, projectFactory);
         }
 
         @Override
