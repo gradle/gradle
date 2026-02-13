@@ -64,7 +64,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -109,10 +108,8 @@ public class NodeState implements DependencyGraphNode {
     private @Nullable List<EdgeState> cachedFilteredEdges;
 
     // exclusions optimizations
+    boolean staleExcludes = true;
     private @Nullable ExcludeSpec cachedNodeExclusions;
-    private int previousIncomingEdgeCount;
-    private long previousIncomingHash;
-    private long incomingHash;
     private @Nullable ExcludeSpec cachedModuleResolutionFilter;
 
     /**
@@ -675,7 +672,7 @@ public class NodeState implements DependencyGraphNode {
         if (!incomingEdges.contains(dependencyEdge)) {
             cachedModuleResolutionFilter = null;
             incomingEdges.add(dependencyEdge);
-            incomingHash += dependencyEdge.hashCode();
+            staleExcludes = true;
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount++;
             }
@@ -694,7 +691,7 @@ public class NodeState implements DependencyGraphNode {
     void removeIncomingEdge(EdgeState dependencyEdge) {
         if (incomingEdges.remove(dependencyEdge)) {
             cachedModuleResolutionFilter = null;
-            incomingHash -= dependencyEdge.hashCode();
+            staleExcludes = true;
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount--;
             }
@@ -718,7 +715,7 @@ public class NodeState implements DependencyGraphNode {
         List<EdgeState> removedEdges = ImmutableList.copyOf(incomingEdges);
         incomingEdges.clear();
         cachedModuleResolutionFilter = null;
-        incomingHash = 0;
+        staleExcludes = true;
         transitiveEdgeCount = 0;
 
         for (EdgeState incomingEdge : removedEdges) {
@@ -751,6 +748,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     void clearTransitiveExclusionsAndEnqueue() {
+        staleExcludes = true;
         cachedModuleResolutionFilter = null;
         // TODO: We can eagerly compute the exclusions and enqueue only on change
         resolveState.onMoreSelected(this);
@@ -788,12 +786,14 @@ public class NodeState implements DependencyGraphNode {
         if (metadata.isExternalVariant()) {
             // If the current node represents an external variant, we must not consider its excludes
             // because it's some form of "delegation"
-            return moduleExclusions.excludeAny(
-                incomingEdges.stream()
-                    .map(EdgeState::getTransitiveExclusions)
-                    .filter(Objects::nonNull)
-                    .collect(PersistentSet.toPersistentSet())
-            );
+            PersistentSet<ExcludeSpec> allTransitiveExcludes = PersistentSet.of();
+            for (EdgeState incomingEdge : incomingEdges) {
+                ExcludeSpec transitiveExclusions = incomingEdge.getTransitiveExclusions();
+                if (transitiveExclusions != null) {
+                    allTransitiveExcludes = allTransitiveExcludes.plus(transitiveExclusions);
+                }
+            }
+            return moduleExclusions.excludeAny(allTransitiveExcludes);
         }
         if (incomingEdges.size() == 1) {
             // At the same time if the current node _comes from_ a delegated variant (available-at)
@@ -808,7 +808,7 @@ public class NodeState implements DependencyGraphNode {
             return nodeExclusions;
         }
 
-        return computeExclusionFilter(incomingEdges, nodeExclusions);
+        return getExclusionFilter(incomingEdges, nodeExclusions);
     }
 
     private ExcludeSpec computeNodeExclusions() {
@@ -818,21 +818,29 @@ public class NodeState implements DependencyGraphNode {
         return cachedNodeExclusions;
     }
 
-    private ExcludeSpec computeExclusionFilter(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions) {
-        int incomingEdgeCount = incomingEdges.size();
-        if (sameIncomingEdgesAsPreviousPass(incomingEdgeCount)) {
+    private ExcludeSpec getExclusionFilter(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions) {
+        if (!staleExcludes) {
             // if we reach this point it means the node selection was restarted, but
-            // effectively it has the same incoming edges as before, so we can return
+            // it has the same incoming edges as before, so we can return
             // the result we computed last time
             return cachedModuleResolutionFilter;
         }
-        if (incomingEdgeCount == 1) {
-            return computeExclusionFilterSingleIncomingEdge(incomingEdges.get(0), nodeExclusions);
-        }
-        return computeModuleExclusionsManyEdges(incomingEdges, nodeExclusions, incomingEdgeCount);
+
+        ExcludeSpec result = computeModuleExclusions(incomingEdges, nodeExclusions);
+        this.staleExcludes = false;
+        this.cachedModuleResolutionFilter = result;
+        return result;
     }
 
-    private ExcludeSpec computeModuleExclusionsManyEdges(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions, int incomingEdgeCount) {
+    private ExcludeSpec computeModuleExclusions(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions) {
+        if (incomingEdges.size() == 1) {
+            return computeExclusionFilterSingleIncomingEdge(incomingEdges.get(0), nodeExclusions);
+        } else {
+            return computeModuleExclusionsManyEdges(incomingEdges, nodeExclusions);
+        }
+    }
+
+    private ExcludeSpec computeModuleExclusionsManyEdges(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions) {
         ExcludeSpec nothing = moduleExclusions.nothing();
         ExcludeSpec edgeExclusions = null;
         PersistentSet<ExcludeSpec> excludedByBoth = PersistentSet.of();
@@ -858,7 +866,7 @@ public class NodeState implements DependencyGraphNode {
         }
         edgeExclusions = intersectEdgeExclusions(edgeExclusions, excludedByBoth);
         nodeExclusions = joinNodeExclusions(nodeExclusions, excludedByEither);
-        return joinEdgeAndNodeExclusionsThenCacheResult(nodeExclusions, edgeExclusions, incomingEdgeCount);
+        return moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
     }
 
     private ExcludeSpec computeExclusionFilterSingleIncomingEdge(EdgeState dependencyEdge, ExcludeSpec nodeExclusions) {
@@ -871,17 +879,7 @@ public class NodeState implements DependencyGraphNode {
         if (exclusions == null) {
             exclusions = moduleExclusions.nothing();
         }
-        return joinEdgeAndNodeExclusionsThenCacheResult(nodeExclusions, exclusions, 1);
-    }
-
-    private ExcludeSpec joinEdgeAndNodeExclusionsThenCacheResult(ExcludeSpec nodeExclusions, ExcludeSpec edgeExclusions, int incomingEdgeCount) {
-        ExcludeSpec result = moduleExclusions.excludeAny(edgeExclusions, nodeExclusions);
-        // We use a set here because for excludes, order of edges is irrelevant
-        // so we hit the cache more by using a set
-        previousIncomingEdgeCount = incomingEdgeCount;
-        previousIncomingHash = incomingHash;
-        cachedModuleResolutionFilter = result;
-        return result;
+        return moduleExclusions.excludeAny(exclusions, nodeExclusions);
     }
 
     private static PersistentSet<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, PersistentSet<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing) {
@@ -1119,15 +1117,6 @@ public class NodeState implements DependencyGraphNode {
             }
         }
         return endorsedStrictVersions;
-    }
-
-    private boolean sameIncomingEdgesAsPreviousPass(int incomingEdgeCount) {
-        // This is a heuristic, more than truth: it is possible that the 2 long hashs
-        // are identical AND that the sizes of collections are identical, but it's
-        // extremely unlikely (never happened on test cases even on large dependency graph)
-        return cachedModuleResolutionFilter != null
-            && previousIncomingHash == incomingHash
-            && previousIncomingEdgeCount == incomingEdgeCount;
     }
 
     /**
