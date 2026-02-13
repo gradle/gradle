@@ -35,9 +35,9 @@ dependencies {
     api(projects.time)
     api(projects.toolingApi)
 
-    api(testLibs.gradleProfiler) {
-        because("Consumers need to instantiate BuildMutators")
-    }
+    api(testLibs.gradleProfiler) { because("Consumers need to instantiate BuildMutators") }
+    api(testLibs.gradleProfilerBuildAction)
+    api(testLibs.gradleProfilerBuildOperationsMeasuring)
     api(libs.guava)
     api(libs.groovy)
     api(libs.jacksonAnnotations)
