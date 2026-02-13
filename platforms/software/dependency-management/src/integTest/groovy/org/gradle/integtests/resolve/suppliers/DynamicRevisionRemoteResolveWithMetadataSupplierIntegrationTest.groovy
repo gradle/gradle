@@ -18,8 +18,9 @@ package org.gradle.integtests.resolve.suppliers
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
@@ -106,7 +107,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         !output.contains('Metadata rule call count: 2')
     }
 
-    @ToBeFixedForConfigurationCache
     def "re-executing in subsequent build requires no GET request"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -140,9 +140,10 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
 
         and: "re-execute the same build"
         resetExpectations()
-        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
+        if (!GradleContextualExecuter.isConfigCache()) {
+            supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
+        }
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
-
     }
 
     def "publishing new integration version incurs get status file of new integration version only"() {
@@ -263,7 +264,7 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": "group:projectB:2.3"
     }
 
-    @ToBeFixedForConfigurationCache
+    @UnsupportedWithConfigurationCache(because = "This test is structured to expect repeated resolutions")
     def "can use --offline to use cached result after remote failure"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier(buildFile, false)
@@ -649,7 +650,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
             "group:projectB:latest.release": "group:projectB:3.3"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can use a single remote request to get status of multiple components"() {
         given:
         buildFile << """import org.gradle.api.artifacts.CacheableRule
@@ -722,7 +722,9 @@ group:projectB:2.2;integration
         outputDoesNotContain('Parsing status file call count: 2')
 
         when: "resolving the same dependencies"
-        server.expectHead("/repo/status.txt", statusFile)
+        if (!GradleContextualExecuter.isConfigCache()) {
+            server.expectHead("/repo/status.txt", statusFile)
+        }
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         then: "should get the result from cache"
@@ -1068,7 +1070,6 @@ group:projectB:2.2;release
         outputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:1.1"
     }
 
-    @ToBeFixedForConfigurationCache
     def "changing the implementation of a rule invalidates the cache"() {
         def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
 
@@ -1107,7 +1108,9 @@ group:projectB:2.2;release
         outputContains("Providing metadata for group:projectB:1.1")
 
         when:
-        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
+        if (!GradleContextualExecuter.isConfigCache()) {
+            supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
+        }
         run 'checkDeps'
 
         then: "processing of the rule is cached"
@@ -1127,7 +1130,6 @@ group:projectB:2.2;release
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "caching is repository aware"() {
         def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
         executer.requireIsolatedDaemons() // because we're going to --stop
@@ -1170,7 +1172,9 @@ group:projectB:2.2;release
         // stop the daemon to make sure that when we run the build again
         // it's fetched from the persistent cache
         run '--stop'
-        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
+        if (!GradleContextualExecuter.isConfigCache()) {
+            supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
+        }
         run 'checkDeps'
 
         then: "processing of the rule is cached"
@@ -1209,6 +1213,9 @@ group:projectB:2.2;release
             }
         }
 
+        if (GradleContextualExecuter.isConfigCache()) {
+            executer.withArgument("--refresh-dependencies")
+        }
         run 'checkDeps'
         then:
         outputContains("Providing metadata for group:projectB:2.2")
