@@ -1,4 +1,4 @@
-<meta property="og:image" content="https://gradle.org/images/releases/gradle-default.png" />
+<meta property="og:image" content="https://gradle.org/assets/images/releases/gradle-default.png" />
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
@@ -8,20 +8,20 @@
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
-<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
+<meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
 This release features [1](), [2](), ... [n](), and more.
 
+We would like to thank the following community members for their contributions to this release of Gradle:
+
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
-
-We would like to thank the following community members for their contributions to this release of Gradle:
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -39,46 +39,64 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+<!-- ================== TEMPLATE =============================
 
-<!--
+Do not add breaking changes or deprecations here! Add them to the upgrade guide instead.
 
-================== TEMPLATE ==============================
+Find the best fitting section for your feature below, then, fill it in.
 
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
+### SECTION TITLE
 
 #### FILL-IN-FEATURE
-> HIGHLIGHT the use case or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
+> HIGHLIGHT the use case or existing problem the feature solves.
+> EXPLAIN how the new release addresses that problem or use case.
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable.
+> LINK to the full documentation for more details.
+
+To embed images, add the image to the `release-notes-assets` folder, then add the line below.
+![image.png](release-notes-assets/image.png)
 
 To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button. 
-For Wistia, contact Gradle's Video Team.
+You can extract the URL from YouTube by clicking the "Share" button.
 @youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
-@wistia(Summary,a5izazvgit)@
 
-================== END TEMPLATE ==========================
+================== END TEMPLATE ========================== -->
 
 
-==========================================================
+<!-- =========================================================
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Configuration Cache improvements
+Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+### Test reporting and execution
+Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+### CLI, logging, and problem reporting
+Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
+
+### Build authoring improvements
+Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
+
+### Platform and toolchain management
+Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
+
+### Core plugin and plugin authoring enhancements
+Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
+
+### Security and infrastructure
+Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
+
+### Tooling and IDE integration
+Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
+
+### General improvements
+Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
+========================================================== -->
 
 ## Promoted features
 
@@ -89,6 +107,12 @@ The following are the features that have been promoted in this Gradle release.
 
 <!--
 ### Example promoted
+-->
+
+## Documentation and training
+
+<!--
+Add new docs, training, and best practices here
 -->
 
 ## Fixed issues
