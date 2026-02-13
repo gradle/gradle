@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 
 public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInternal> {
 
-    private static List<BuildOption<StartParameterInternal>> options = Arrays.asList(
+    private static final List<BuildOption<StartParameterInternal>> OPTIONS = Arrays.asList(
         new ProjectCacheDirOption(),
         new RerunTasksOption(),
         new ProfileOption(),
@@ -65,6 +65,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new WatchFileSystemOption(),
         new VfsVerboseLoggingOption(),
         new BuildScanOption(),
+        new DevelocityUrlOption(),
+        new DevelocityPluginVersionOption(),
         new DependencyLockingWriteOption(),
         new DependencyVerificationWriteOption(),
         new DependencyVerificationModeOption(),
@@ -95,7 +97,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     @Override
     public List<? extends BuildOption<? super StartParameterInternal>> getAllOptions() {
-        return options;
+        return OPTIONS;
     }
 
     public static class ProjectCacheDirOption extends StringBuildOption<StartParameterInternal> {
@@ -359,6 +361,54 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 settings.setBuildScan(true);
             } else {
                 settings.setNoBuildScan(true);
+            }
+        }
+    }
+
+    public static class DevelocityUrlOption extends StringBuildOption<StartParameterInternal> {
+        public static final String LONG_OPTION = "develocity-url";
+        public static final String GRADLE_PROPERTY = "com.gradle.develocity.url";
+        public static final String ENVIRONMENT_VARIABLE = "COM_GRADLE_DEVELOCITY_URL";
+
+        public DevelocityUrlOption() {
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION,
+                "Specify the URL of the Develocity server to use for Build Scans."));
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            settings.setDevelocityUrl(value);
+        }
+
+        @Override
+        public void applyFromEnvVar(Map<String, String> envVars, StartParameterInternal settings) {
+            String develocityUrlEnvVar = envVars.get(ENVIRONMENT_VARIABLE);
+            if (develocityUrlEnvVar != null) {
+                settings.setDevelocityUrl(develocityUrlEnvVar);
+            }
+        }
+    }
+
+    public static class DevelocityPluginVersionOption extends StringBuildOption<StartParameterInternal> {
+        public static final String LONG_OPTION = "develocity-plugin-version";
+        public static final String GRADLE_PROPERTY = "com.gradle.develocity.plugin.version";
+        public static final String ENVIRONMENT_VARIABLE = "COM_GRADLE_DEVELOCITY_PLUGIN_VERSION";
+
+        public DevelocityPluginVersionOption() {
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION,
+                "Specify the version of the Develocity plugin to auto-apply."));
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            settings.setDevelocityPluginVersion(value);
+        }
+
+        @Override
+        public void applyFromEnvVar(Map<String, String> envVars, StartParameterInternal settings) {
+            String develocityPluginVersionEnvVar = envVars.get(ENVIRONMENT_VARIABLE);
+            if (develocityPluginVersionEnvVar != null) {
+                settings.setDevelocityPluginVersion(develocityPluginVersionEnvVar);
             }
         }
     }

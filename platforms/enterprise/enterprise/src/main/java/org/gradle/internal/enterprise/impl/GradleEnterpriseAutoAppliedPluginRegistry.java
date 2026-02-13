@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.StartParameter;
+import com.google.common.base.Strings;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -33,6 +33,7 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
+import org.jspecify.annotations.Nullable;
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
 import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
@@ -47,38 +48,40 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Settings target) {
-        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings() || !shouldApplyDevelocityPlugin(target)) {
+        StartParameterInternal startParameter = (StartParameterInternal) target.getStartParameter();
+        if (startParameter.isUseEmptySettings() || !shouldApplyDevelocityPlugin(target)) {
             return PluginRequests.EMPTY;
         } else {
-            return PluginRequests.of(createDevelocityPluginRequest());
+            return PluginRequests.of(createDevelocityPluginRequest(startParameter.getDevelocityPluginVersion()));
         }
     }
 
     private static boolean shouldApplyDevelocityPlugin(Settings settings) {
         Gradle gradle = settings.getGradle();
-        StartParameter startParameter = gradle.getStartParameter();
-        return startParameter.isBuildScan() && gradle.getParent() == null;
+        StartParameterInternal startParameter = (StartParameterInternal) gradle.getStartParameter();
+        return (startParameter.isBuildScan() || !Strings.isNullOrEmpty(startParameter.getDevelocityUrl())) && gradle.getParent() == null;
     }
 
-    private static PluginRequestInternal createDevelocityPluginRequest() {
+    private static PluginRequestInternal createDevelocityPluginRequest(@Nullable String pluginVersion) {
+        String versionToApply = pluginVersion == null ? AutoAppliedDevelocityPlugin.VERSION : pluginVersion;
         ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.NAME);
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(moduleIdentifier, versionToApply);
         return new DefaultPluginRequest(
             AutoAppliedDevelocityPlugin.ID,
             true,
             AUTO_APPLIED,
             getScriptDisplayName(),
             null,
-            AutoAppliedDevelocityPlugin.VERSION,
+            versionToApply,
             selector,
             null,
-            gradleEnterprisePluginCoordinates()
+            gradleEnterprisePluginCoordinates(versionToApply)
         );
     }
 
-    private static PluginCoordinates gradleEnterprisePluginCoordinates() {
+    private static PluginCoordinates gradleEnterprisePluginCoordinates(String versionToApply) {
         ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME);
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(moduleIdentifier, versionToApply);
         return new PluginCoordinates(AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ID, selector);
     }
 
