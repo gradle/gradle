@@ -18,12 +18,12 @@ package gradlebuild.softwaretypes
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.initialization.Settings
+import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
@@ -84,7 +84,7 @@ interface KotlinBuildLogicDefinition : Definition<BuildModel.None> {
     val dependencies: BuildLogicDependencies
 }
 
-interface BuildLogicDependencies : Dependencies {
+interface BuildLogicDependencies : Dependencies, PlatformDependencyModifiers {
 
     val compileOnly: DependencyCollector
     val implementation: DependencyCollector
@@ -99,9 +99,6 @@ interface BuildLogicDependencies : Dependencies {
                 .orElseThrow()
                 .get()
         }
-
-    fun platformProject(projectPath: String): Dependency =
-        targetProject.dependencies.platform(project(projectPath))
 
     fun kotlinDlsGradlePlugin(): String =
         "org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersion"
