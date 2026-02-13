@@ -77,12 +77,19 @@ If your build configuration uses `System.getenv().values()` or `System.getProper
 
 ==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
 
-The `java-gradle-plugin` now attaches the `gradleApi()` dependency to the `compileOnlyApi` scope instead of the `api` scope.
+The `gradleApi()` dependency is now added to the `compileOnlyApi` scope instead of the `api` scope.
+This prevents the `gradleApi()` from leaking into the runtime classpath of other dependents of the plugin project.
 
-For most plugin projects, this change should be transparent and without any side effects:
+This might break projects that were implicitly relying on the `gradleApi()` being on the compilation or runtime classpath.
+If this is the case, add a `gradleApi()` dependency to the appropriate scope to restore the previous behavior.
 
-- Your plugin still has full access to Gradle types (like `Project`, `Task`, etc.) during build time.
-- Gradle will no longer leak its own API as a transitive runtime dependency of your plugin.
+For most plugin projects, this change should be transparent as:
+
+- at compilation time, the plugin project will get the `gradleApi()`
+- the default test source set will also automatically get the `gradleApi()` dependency on the compilation and runtime classpaths
+
+If any additional test source set is used (e.g., integration tests), the `plugin` extension offers the `plugins.testSourceSet` method to register the source set for automatic management.
+If this cannot be done, a regular declaration of the `gradleApi()` dependency on the test source can be used as well.
 
 ==== Stricter validation for published plugins
 
@@ -909,4 +916,3 @@ Instead, you should specify these settings as <<build_environment.adoc#sec:gradl
 ----
 -Dorg.gradle.java.installations.auto-detect=false
 ----
-

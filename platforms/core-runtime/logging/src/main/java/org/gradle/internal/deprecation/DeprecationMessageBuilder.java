@@ -162,6 +162,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             setProblemIdDisplayName(createDefaultDeprecationIdDisplayName());
         }
 
+        if (problemId == null) {
+            setProblemId(DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
+        }
+
         return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId);
     }
 
