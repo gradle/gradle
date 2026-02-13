@@ -44,7 +44,7 @@ public abstract class ValueState<S> {
      * Creates a new non-finalized state.
      */
     public static <S> ValueState<S> newState(PropertyHost host) {
-        return new ValueState.NonFinalizedValue<>(host, Function.identity());
+        return new ValueState.NonFinalizedValue<>(host);
     }
 
     /**
@@ -54,7 +54,7 @@ public abstract class ValueState<S> {
      * sharing of mutable state between effective values and convention values
      */
     public static <S> ValueState<S> newState(PropertyHost host, Function<S, S> copier) {
-        return new ValueState.NonFinalizedValue<>(host, copier);
+        return new ValueState.NonFinalizedValueWithCopier<>(host, copier);
     }
 
     public abstract boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer);
@@ -176,7 +176,6 @@ public abstract class ValueState<S> {
 
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
-        private final Function<S, S> copier;
         private boolean explicitValue;
         private boolean finalizeOnNextGet;
         private boolean disallowChanges;
@@ -185,9 +184,8 @@ public abstract class ValueState<S> {
         private boolean warnOnUpgradedPropertyChanges;
         private S convention;
 
-        public NonFinalizedValue(PropertyHost host, Function<S, S> copier) {
+        public NonFinalizedValue(PropertyHost host) {
             this.host = host;
-            this.copier = copier;
         }
 
         @Override
@@ -284,8 +282,8 @@ public abstract class ValueState<S> {
             return shallowCopy(convention);
         }
 
-        private S shallowCopy(S toCopy) {
-            return copier.apply(toCopy);
+        protected S shallowCopy(S toCopy) {
+            return toCopy;
         }
 
         @Override
@@ -368,6 +366,20 @@ public abstract class ValueState<S> {
             formatter.append(reason);
             formatter.append(".");
             return formatter.toString();
+        }
+    }
+
+    private static class NonFinalizedValueWithCopier<S> extends NonFinalizedValue<S> {
+        private final Function<S, S> copier;
+
+        public NonFinalizedValueWithCopier(PropertyHost host, Function<S, S> copier) {
+            super(host);
+            this.copier = copier;
+        }
+
+        @Override
+        protected S shallowCopy(S toCopy) {
+            return copier.apply(toCopy);
         }
     }
 
