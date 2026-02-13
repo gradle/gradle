@@ -25,4 +25,7 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Inherited
 public @interface NonCrossVersion {
+
+    String reason() default "";
+
 }

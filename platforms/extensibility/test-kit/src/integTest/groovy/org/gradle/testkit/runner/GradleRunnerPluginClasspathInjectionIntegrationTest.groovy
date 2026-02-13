@@ -20,9 +20,6 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
-import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
-import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
@@ -31,8 +28,6 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.hamcrest.CoreMatchers.anyOf
 import static org.hamcrest.CoreMatchers.containsString
 
-@InjectsPluginClasspath
-@InspectsBuildOutput
 @UsesNativeServices
 @SuppressWarnings('IntegrationTestFixtures')
 // result.output.contains does mean something different here
@@ -182,7 +177,6 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
         runner("compare").withPluginClasspath(plugin.implClasspath).build()
     }
 
-    @InspectsExecutedTasks
     def "plugin applied via injection can apply another plugin from its implementation classpath"() {
         given:
         plugin.file('src/main/groovy/org/gradle/test/CompositePlugin.groovy') << """
@@ -224,7 +218,6 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
         'identifier' | "'com.company.helloworld1'"
     }
 
-    @InspectsExecutedTasks
     def "injected classpath does not persist across builds"() {
         given:
         def counter = 0
@@ -269,7 +262,6 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
     }
 
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "classloader isolation does not work here in embedded mode")
-    @InspectsExecutedTasks
     def "buildSrc classes are not visible to injected classes"() {
         plugin.build()
         def buildSrcSrcDir = file("buildSrc/src/main/groovy/org/gradle/test")
@@ -326,7 +318,6 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
         }
     }
 
-    @InspectsExecutedTasks
     def "injected classpath may contain File subclasses"() {
         given:
         buildFile << plugin.build().useDeclaration

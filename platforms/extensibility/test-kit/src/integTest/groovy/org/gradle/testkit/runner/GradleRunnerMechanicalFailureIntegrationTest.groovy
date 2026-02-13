@@ -21,8 +21,6 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.testkit.runner.fixtures.HideEnvVariableValuesInDaemonLog
-import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
-import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
@@ -52,8 +50,6 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         noExceptionThrown()
     }
 
-    @InspectsBuildOutput
-    @InspectsExecutedTasks
     def "invalid argument build failure includes diagnostic output when not expected"() {
         given:
         buildFile << helloWorldTask()
@@ -72,8 +68,6 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         result.tasks.empty
     }
 
-    @InspectsBuildOutput
-    @InspectsExecutedTasks
     def "invalid argument build failure includes diagnostic output when expected"() {
         given:
         buildFile << helloWorldTask()
@@ -100,8 +94,6 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         thrown UnexpectedBuildFailure
     }
 
-    @InspectsBuildOutput
-    @InspectsExecutedTasks
     def "build fails if project directory does not exist and provides diagnostic information"() {
         given:
         buildFile helloWorldTask()
