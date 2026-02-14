@@ -39,6 +39,7 @@ import org.gradle.profiler.gradle.GradleInvoker
 import org.gradle.profiler.gradle.GradleInvokerBuildAction
 import org.gradle.profiler.gradle.ToolingApiGradleClient
 import org.gradle.profiler.studio.AndroidStudioSyncAction
+import org.gradle.profiler.studio.tools.AndroidStudioFinder
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
@@ -268,7 +269,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     def setupAndroidStudioSync() {
         useAndroidStudio = true
         buildAction = new AndroidStudioSyncAction()
-        studioInstallDir = StudioFinder.findStudioHome()
+        studioInstallDir = AndroidStudioFinder.findStudioHome()
         studioJvmArgs = System.getProperty("studioJvmArgs") != null
             ? System.getProperty("studioJvmArgs").split(",").collect()
             : []
