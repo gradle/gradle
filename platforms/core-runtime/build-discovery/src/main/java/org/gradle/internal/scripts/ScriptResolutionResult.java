@@ -32,7 +32,7 @@ public class ScriptResolutionResult {
 
     /**
      * The base name of the script.
-     * E.g. `build`, `script`, or `init`
+     * E.g. `build`, `settings`, or `init`
      */
     private final String basename;
 
