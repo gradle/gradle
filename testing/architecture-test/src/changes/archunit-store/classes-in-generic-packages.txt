@@ -171,7 +171,6 @@ Class <org.gradle.initialization.DefaultProjectDescriptor> is in a generic packa
 Class <org.gradle.initialization.DefaultProjectDescriptorRegistry> is in a generic package in (DefaultProjectDescriptorRegistry.java:0)
 Class <org.gradle.initialization.DefaultSettings> is in a generic package in (DefaultSettings.java:0)
 Class <org.gradle.initialization.DefaultSettingsLoader> is in a generic package in (DefaultSettingsLoader.java:0)
-Class <org.gradle.initialization.DefaultSettingsLoaderFactory> is in a generic package in (DefaultSettingsLoaderFactory.java:0)
 Class <org.gradle.initialization.DefaultSettingsPreparer> is in a generic package in (DefaultSettingsPreparer.java:0)
 Class <org.gradle.initialization.DefaultTaskExecutionPreparer> is in a generic package in (DefaultTaskExecutionPreparer.java:0)
 Class <org.gradle.initialization.DefaultToolchainManagement> is in a generic package in (DefaultToolchainManagement.java:0)
