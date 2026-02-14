@@ -30,7 +30,6 @@ import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.PublicBuildPath;
-import org.gradle.internal.composite.CompositeBuildSettingsLoader;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -142,10 +141,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
             new DaemonJvmToolchainsValidatingSettingsLoader(
                 new CacheConfigurationsHandlingSettingsLoader(
                     new InitScriptHandlingSettingsLoader(
-                        new CompositeBuildSettingsLoader(
-                            this::findAndLoadSettings,
-                            buildRegistry
-                        ),
+                        this::findAndLoadSettings,
                         initScriptHandler
                     ),
                     cacheConfigurations
@@ -183,6 +179,11 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
         // Add included builds defined in settings
         gradle.setIncludedBuilds(loadIncludedBuildsRecursively(settings));
+
+        if (gradle.isRootBuild()) {
+            // Lock-in explicitly included builds
+            buildRegistry.finalizeIncludedBuilds();
+        }
 
         return state;
     }
