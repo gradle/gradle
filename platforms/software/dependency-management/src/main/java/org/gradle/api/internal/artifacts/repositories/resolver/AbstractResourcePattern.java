@@ -31,16 +31,16 @@ import java.util.Map;
 abstract class AbstractResourcePattern implements ResourcePattern {
     public static final String CLASSIFIER_KEY = "classifier";
     private final ExternalResourceName pattern;
-    private final boolean revisionIsOptional;
-    private final boolean organisationIsOptional;
-    private final boolean artifactIsOptional;
+    protected final boolean revisionIsOptional;
+    protected final boolean organisationIsOptional;
+    protected final boolean artifactIsOptional;
+    protected final boolean moduleIsOptional;
     private final boolean classifierIsOptional;
     private final boolean extensionIsOptional;
     private final boolean typeIsOptional;
 
     public AbstractResourcePattern(String pattern) {
         this(new ExternalResourceName(pattern));
-
     }
 
     public AbstractResourcePattern(URI baseUri, String pattern) {
@@ -55,6 +55,7 @@ abstract class AbstractResourcePattern implements ResourcePattern {
         this.classifierIsOptional = isOptionalToken(CLASSIFIER_KEY);
         this.extensionIsOptional = isOptionalToken(PatternHelper.EXT_KEY);
         this.typeIsOptional = isOptionalToken(PatternHelper.TYPE_KEY);
+        this.moduleIsOptional = isOptionalToken(PatternHelper.MODULE_KEY);
     }
 
     @Override
