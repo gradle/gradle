@@ -28,9 +28,10 @@ import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.PublicBuildPath;
-import org.gradle.internal.composite.ChildBuildRegisteringSettingsLoader;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
+import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -39,7 +40,10 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultSettingsPreparer implements SettingsPreparer {
 
@@ -139,10 +143,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
                 new CacheConfigurationsHandlingSettingsLoader(
                     new InitScriptHandlingSettingsLoader(
                         new CompositeBuildSettingsLoader(
-                            new ChildBuildRegisteringSettingsLoader(
-                                this::findAndLoadSettings,
-                                buildIncluder
-                            ),
+                            this::findAndLoadSettings,
                             buildRegistry
                         ),
                         initScriptHandler
@@ -159,9 +160,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     public SettingsLoader forNestedBuild() {
         return new GradlePropertiesHandlingSettingsLoader(
             new InitScriptHandlingSettingsLoader(
-                new ChildBuildRegisteringSettingsLoader(
-                    this::findAndLoadSettings,
-                    buildIncluder),
+                this::findAndLoadSettings,
                 initScriptHandler),
             buildLayoutFactory,
             gradlePropertiesController
@@ -182,6 +181,23 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
             }
         }
 
+        // Add included builds defined in settings
+        gradle.setIncludedBuilds(loadIncludedBuildsRecursively(settings));
+
         return state;
+    }
+
+    @SuppressWarnings("MixedMutabilityReturnType")
+    private Set<IncludedBuildInternal> loadIncludedBuildsRecursively(SettingsInternal settings) {
+        List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
+        if (includedBuilds.isEmpty()) {
+            return Collections.emptySet();
+        }
+        Set<IncludedBuildInternal> children = new LinkedHashSet<>(includedBuilds.size());
+        for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
+            CompositeBuildParticipantBuildState includedBuild = buildIncluder.includeBuild(includedBuildSpec);
+            children.add(includedBuild.getModel());
+        }
+        return children;
     }
 }
