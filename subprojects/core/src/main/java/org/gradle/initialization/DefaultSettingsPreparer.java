@@ -46,17 +46,15 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     private final BuildOperationProgressEventEmitter emitter;
     @Nullable
     private final PublicBuildPath fromBuild;
-    private final SettingsProcessor settingsProcessor;
     private final BuildStateRegistry buildRegistry;
     private final ProjectStateRegistry projectRegistry;
     private final BuildLayoutFactory buildLayoutFactory;
     private final GradlePropertiesController gradlePropertiesController;
     private final BuildIncluder buildIncluder;
     private final InitScriptHandler initScriptHandler;
-    private final List<BuiltInCommand> builtInCommands;
     private final CacheConfigurationsInternal cacheConfigurations;
-    private final InternalProblems problems;
     private final JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator;
+    private final SettingsLoader settingsLoader;
 
     public DefaultSettingsPreparer(
         BuildOperationRunner buildOperationRunner,
@@ -77,17 +75,21 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         this.buildOperationRunner = buildOperationRunner;
         this.emitter = emitter;
         this.fromBuild = buildDefinition.getFromBuild();
-        this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
         this.projectRegistry = projectRegistry;
         this.buildLayoutFactory = buildLayoutFactory;
         this.gradlePropertiesController = gradlePropertiesController;
         this.buildIncluder = buildIncluder;
         this.initScriptHandler = initScriptHandler;
-        this.builtInCommands = builtInCommands;
         this.cacheConfigurations = cacheConfigurations;
-        this.problems = problems;
         this.jvmToolchainsConfigurationValidator = jvmToolchainsConfigurationValidator;
+
+        this.settingsLoader = new DefaultSettingsLoader(
+            settingsProcessor,
+            buildLayoutFactory,
+            builtInCommands,
+            problems
+        );
     }
 
     @Override
@@ -126,8 +128,8 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     }
 
     private void loadBuild(GradleInternal gradle) {
-        SettingsLoader settingsLoader = gradle.isRootBuild() ? forTopLevelBuild() : forNestedBuild();
-        settingsLoader.findAndLoadSettings(gradle);
+        SettingsLoader buildSettingsLoader = gradle.isRootBuild() ? forTopLevelBuild() : forNestedBuild();
+        buildSettingsLoader.findAndLoadSettings(gradle);
     }
 
     public SettingsLoader forTopLevelBuild() {
@@ -138,7 +140,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
                         new CompositeBuildSettingsLoader(
                             new ChildBuildRegisteringSettingsLoader(
                                 new CommandLineIncludedBuildSettingsLoader(
-                                    defaultSettingsLoader()
+                                    this::findAndLoadSettings
                                 ),
                                 buildIncluder
                             ),
@@ -159,7 +161,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         return new GradlePropertiesHandlingSettingsLoader(
             new InitScriptHandlingSettingsLoader(
                 new ChildBuildRegisteringSettingsLoader(
-                    defaultSettingsLoader(),
+                    this::findAndLoadSettings,
                     buildIncluder),
                 initScriptHandler),
             buildLayoutFactory,
@@ -167,15 +169,10 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         );
     }
 
-    private SettingsLoader defaultSettingsLoader() {
-        return new SettingsAttachingSettingsLoader(
-            new DefaultSettingsLoader(
-                settingsProcessor,
-                buildLayoutFactory,
-                builtInCommands,
-                problems
-            ),
-            projectRegistry
-        );
+    private SettingsState findAndLoadSettings(GradleInternal gradle) {
+        SettingsState state = settingsLoader.findAndLoadSettings(gradle);
+        gradle.attachSettings(state);
+        projectRegistry.registerProjects(gradle.getOwner(), state.getSettings().getProjectRegistry());
+        return state;
     }
 }
