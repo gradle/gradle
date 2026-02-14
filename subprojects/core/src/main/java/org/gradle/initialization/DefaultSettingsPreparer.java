@@ -140,10 +140,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         return new GradlePropertiesHandlingSettingsLoader(
             new DaemonJvmToolchainsValidatingSettingsLoader(
                 new CacheConfigurationsHandlingSettingsLoader(
-                    new InitScriptHandlingSettingsLoader(
-                        this::findAndLoadSettings,
-                        initScriptHandler
-                    ),
+                    this::findAndLoadSettings,
                     cacheConfigurations
                 ),
                 jvmToolchainsConfigurationValidator
@@ -155,15 +152,15 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
     public SettingsLoader forNestedBuild() {
         return new GradlePropertiesHandlingSettingsLoader(
-            new InitScriptHandlingSettingsLoader(
-                this::findAndLoadSettings,
-                initScriptHandler),
+            this::findAndLoadSettings,
             buildLayoutFactory,
             gradlePropertiesController
         );
     }
 
     private SettingsState findAndLoadSettings(GradleInternal gradle) {
+        initScriptHandler.executeScripts(gradle);
+
         SettingsState state = settingsLoader.findAndLoadSettings(gradle);
         gradle.attachSettings(state);
 
