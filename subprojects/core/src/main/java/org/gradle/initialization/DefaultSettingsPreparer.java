@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.initialization.CacheConfigurationsHandlingSettingsLoader;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -29,7 +30,6 @@ import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.ChildBuildRegisteringSettingsLoader;
-import org.gradle.internal.composite.CommandLineIncludedBuildSettingsLoader;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -38,6 +38,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.util.List;
 
 public class DefaultSettingsPreparer implements SettingsPreparer {
@@ -139,9 +140,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
                     new InitScriptHandlingSettingsLoader(
                         new CompositeBuildSettingsLoader(
                             new ChildBuildRegisteringSettingsLoader(
-                                new CommandLineIncludedBuildSettingsLoader(
-                                    this::findAndLoadSettings
-                                ),
+                                this::findAndLoadSettings,
                                 buildIncluder
                             ),
                             buildRegistry
@@ -172,7 +171,17 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     private SettingsState findAndLoadSettings(GradleInternal gradle) {
         SettingsState state = settingsLoader.findAndLoadSettings(gradle);
         gradle.attachSettings(state);
-        projectRegistry.registerProjects(gradle.getOwner(), state.getSettings().getProjectRegistry());
+
+        SettingsInternal settings = state.getSettings();
+        projectRegistry.registerProjects(gradle.getOwner(), settings.getProjectRegistry());
+
+        if (gradle.isRootBuild()) {
+            // Add all included builds from the command-line
+            for (File includedBuildRootDir : gradle.getStartParameter().getIncludedBuilds()) {
+                settings.includeBuild(includedBuildRootDir);
+            }
+        }
+
         return state;
     }
 }
