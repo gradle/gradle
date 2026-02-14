@@ -20,7 +20,6 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.api.internal.initialization.CacheConfigurationsHandlingSettingsLoader;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -139,10 +138,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     public SettingsLoader forTopLevelBuild() {
         return new GradlePropertiesHandlingSettingsLoader(
             new DaemonJvmToolchainsValidatingSettingsLoader(
-                new CacheConfigurationsHandlingSettingsLoader(
-                    this::findAndLoadSettings,
-                    cacheConfigurations
-                ),
+                this::findAndLoadSettings,
                 jvmToolchainsConfigurationValidator
             ),
             buildLayoutFactory,
@@ -159,6 +155,10 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     }
 
     private SettingsState findAndLoadSettings(GradleInternal gradle) {
+        if (gradle.isRootBuild()) {
+            cacheConfigurations.setCleanupHasBeenConfigured(false);
+        }
+
         initScriptHandler.executeScripts(gradle);
 
         SettingsState state = settingsLoader.findAndLoadSettings(gradle);
@@ -180,6 +180,8 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         if (gradle.isRootBuild()) {
             // Lock-in explicitly included builds
             buildRegistry.finalizeIncludedBuilds();
+
+            cacheConfigurations.setCleanupHasBeenConfigured(true);
         }
 
         return state;
