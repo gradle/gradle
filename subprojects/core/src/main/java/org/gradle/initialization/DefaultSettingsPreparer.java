@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -131,27 +132,8 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     }
 
     private void loadBuild(GradleInternal gradle) {
-        SettingsLoader buildSettingsLoader = gradle.isRootBuild() ? forTopLevelBuild() : forNestedBuild();
-        buildSettingsLoader.findAndLoadSettings(gradle);
-    }
+        loadGradlePropertiesForBuild(gradle);
 
-    public SettingsLoader forTopLevelBuild() {
-        return new GradlePropertiesHandlingSettingsLoader(
-            this::findAndLoadSettings,
-            buildLayoutFactory,
-            gradlePropertiesController
-        );
-    }
-
-    public SettingsLoader forNestedBuild() {
-        return new GradlePropertiesHandlingSettingsLoader(
-            this::findAndLoadSettings,
-            buildLayoutFactory,
-            gradlePropertiesController
-        );
-    }
-
-    private SettingsState findAndLoadSettings(GradleInternal gradle) {
         if (gradle.isRootBuild()) {
             jvmToolchainsConfigurationValidator.validateAllPropertiesConfigurationsForDaemonJvmToolchains();
 
@@ -182,8 +164,12 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
             cacheConfigurations.setCleanupHasBeenConfigured(true);
         }
+    }
 
-        return state;
+    private void loadGradlePropertiesForBuild(GradleInternal gradle) {
+        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(gradle.getStartParameter().toBuildLayoutConfiguration());
+        BuildIdentifier buildId = gradle.getOwner().getBuildIdentifier();
+        gradlePropertiesController.loadGradleProperties(buildId, settingsLocation.getSettingsDir(), true);
     }
 
     @SuppressWarnings("MixedMutabilityReturnType")
