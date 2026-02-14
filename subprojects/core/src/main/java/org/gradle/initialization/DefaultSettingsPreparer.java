@@ -63,7 +63,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
     private static final String BUILD_SRC_PROJECT_PATH = ":" + BuildLogicFiles.BUILD_SOURCE_DIRECTORY;
 
-    private static final Logger logger = Logging.getLogger(DefaultSettingsPreparer.class);
+    private final Logger logger = Logging.getLogger(DefaultSettingsPreparer.class);
 
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationProgressEventEmitter emitter;
