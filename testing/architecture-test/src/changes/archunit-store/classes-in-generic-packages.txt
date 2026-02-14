@@ -142,7 +142,6 @@ Class <org.gradle.initialization.BuildIdentifiedProgressDetails> is in a generic
 Class <org.gradle.initialization.BuildLayoutParameters> is in a generic package in (BuildLayoutParameters.java:0)
 Class <org.gradle.initialization.BuildLayoutParametersBuildOptions> is in a generic package in (BuildLayoutParametersBuildOptions.java:0)
 Class <org.gradle.initialization.BuildLoader> is in a generic package in (BuildLoader.java:0)
-Class <org.gradle.initialization.BuildOperationFiringSettingsPreparer> is in a generic package in (BuildOperationFiringSettingsPreparer.java:0)
 Class <org.gradle.initialization.BuildOperationSettingsProcessor> is in a generic package in (BuildOperationSettingsProcessor.java:0)
 Class <org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter> is in a generic package in (BuildOptionBuildOperationProgressEventsEmitter.java:0)
 Class <org.gradle.initialization.BuildRequestContext> is in a generic package in (BuildRequestContext.java:0)

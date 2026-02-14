@@ -16,17 +16,73 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultSettingsPreparer implements SettingsPreparer {
+
     private final SettingsLoaderFactory settingsLoaderFactory;
 
-    public DefaultSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory) {
+    private final BuildOperationRunner buildOperationRunner;
+    private final BuildOperationProgressEventEmitter emitter;
+    @Nullable
+    private final PublicBuildPath fromBuild;
+
+    public DefaultSettingsPreparer(
+        SettingsLoaderFactory settingsLoaderFactory,
+        BuildOperationRunner buildOperationRunner,
+        BuildOperationProgressEventEmitter emitter,
+        BuildDefinition buildDefinition
+    ) {
         this.settingsLoaderFactory = settingsLoaderFactory;
+        this.buildOperationRunner = buildOperationRunner;
+        this.emitter = emitter;
+        this.fromBuild = buildDefinition.getFromBuild();
     }
 
     @Override
     public void prepareSettings(GradleInternal gradle) {
+        //noinspection Convert2Lambda
+        emitter.emitNowForCurrent(new BuildIdentifiedProgressDetails() {
+            @Override
+            public String getBuildPath() {
+                return gradle.getIdentityPath().toString();
+            }
+        });
+
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                loadBuild(gradle);
+                context.setResult(new LoadBuildBuildOperationType.Result() {});
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(gradle.contextualize("Load build"))
+                    .details(new LoadBuildBuildOperationType.Details() {
+                        @Override
+                        public String getBuildPath() {
+                            return gradle.getIdentityPath().toString();
+                        }
+
+                        @Override
+                        public String getIncludedBy() {
+                            return fromBuild == null ? null : fromBuild.getBuildPath().toString();
+                        }
+                    });
+            }
+        });
+    }
+
+    private void loadBuild(GradleInternal gradle) {
         SettingsLoader settingsLoader = gradle.isRootBuild() ? settingsLoaderFactory.forTopLevelBuild() : settingsLoaderFactory.forNestedBuild();
         settingsLoader.findAndLoadSettings(gradle);
     }
