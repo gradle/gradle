@@ -137,10 +137,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
     public SettingsLoader forTopLevelBuild() {
         return new GradlePropertiesHandlingSettingsLoader(
-            new DaemonJvmToolchainsValidatingSettingsLoader(
-                this::findAndLoadSettings,
-                jvmToolchainsConfigurationValidator
-            ),
+            this::findAndLoadSettings,
             buildLayoutFactory,
             gradlePropertiesController
         );
@@ -156,6 +153,8 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
     private SettingsState findAndLoadSettings(GradleInternal gradle) {
         if (gradle.isRootBuild()) {
+            jvmToolchainsConfigurationValidator.validateAllPropertiesConfigurationsForDaemonJvmToolchains();
+
             cacheConfigurations.setCleanupHasBeenConfigured(false);
         }
 
