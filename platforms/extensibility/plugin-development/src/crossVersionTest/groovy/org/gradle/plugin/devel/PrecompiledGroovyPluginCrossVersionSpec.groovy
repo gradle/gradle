@@ -83,7 +83,11 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
 
         then:
         result.assertHasDescription("An exception occurred applying plugin request [id: '$PLUGIN_ID', version: '1.0']")
-        result.assertHasCause("Failed to apply plugin [id '$PLUGIN_ID']")
+        if (previous.version < GradleVersion.version('6.6')) {
+            result.assertHasCause("Failed to apply plugin [id '$PLUGIN_ID']")
+        } else {
+            result.assertHasCause("Failed to apply plugin '$PLUGIN_ID'")
+        }
         result.assertHasCause("Precompiled Groovy script plugins built by ${getCurrent().version} require Gradle 7.0 or higher")
         result.assertNotOutput("$PLUGIN_ID applied")
         result.assertNotOutput("$PLUGIN_TASK executed")
@@ -110,6 +114,9 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
             }
             group = 'com.example'
             version = '1.0'
+            java {
+                sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8
+            }
             publishing {
                 repositories {
                     maven {
