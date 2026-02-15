@@ -22,31 +22,28 @@ import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestException;
 import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.api.provider.Provider;
 
 import java.io.OutputStream;
 import java.util.Map;
 
+/**
+ * A wrapper around a {@link Manifest} that also implements {@link ManifestInternal}, delegating all Manifest methods to the wrapped Manifest
+ * and implementing the {@link ManifestInternal#writeTo} method using the supplied content charset.  This should only be used to wrap a Manifest
+ * that does not already implement {@link ManifestInternal}.
+ */
 public class CustomManifestInternalWrapper implements ManifestInternal {
     private final Manifest delegate;
-    private String contentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
+    private final Provider<String> contentCharset;
 
-    public CustomManifestInternalWrapper(Manifest delegate) {
+    public CustomManifestInternalWrapper(Manifest delegate, Provider<String> contentCharset) {
         this.delegate = delegate;
-    }
-
-    @Override
-    public String getContentCharset() {
-        return contentCharset;
-    }
-
-    @Override
-    public void setContentCharset(String contentCharset) {
         this.contentCharset = contentCharset;
     }
 
     @Override
     public Manifest writeTo(OutputStream outputStream) {
-        DefaultManifest.writeTo(this, outputStream, contentCharset);
+        ManifestWriter.writeTo(this, outputStream, contentCharset.get());
         return this;
     }
 
@@ -100,4 +97,6 @@ public class CustomManifestInternalWrapper implements ManifestInternal {
         delegate.from(mergePath, action);
         return this;
     }
+
+
 }
