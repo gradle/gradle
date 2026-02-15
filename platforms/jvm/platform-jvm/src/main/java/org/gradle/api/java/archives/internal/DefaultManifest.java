@@ -19,10 +19,10 @@ package org.gradle.api.java.archives.internal;
 import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
@@ -35,66 +35,36 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Manifest;
 
-import static org.gradle.internal.Cast.uncheckedCast;
-
 public class DefaultManifest implements ManifestInternal {
-    public static final String DEFAULT_CONTENT_CHARSET = "UTF-8";
 
-    private List<ManifestMergeSpec> manifestMergeSpecs = new ArrayList<ManifestMergeSpec>();
+    private final List<ManifestMergeSpec> manifestMergeSpecs = new ArrayList<ManifestMergeSpec>();
+    private final DefaultAttributes attributes = new DefaultAttributes();
+    private final Map<String, Attributes> sections = new LinkedHashMap<String, Attributes>();
+    private final PathToFileResolver fileResolver;
+    private final ProviderFactory providerFactory;
+    private final ManifestFactory manifestFactory;
+    private final Provider<String> contentCharset;
 
-    private DefaultAttributes attributes = new DefaultAttributes();
-
-    private Map<String, Attributes> sections = new LinkedHashMap<String, Attributes>();
-
-    private PathToFileResolver fileResolver;
-
-    private String contentCharset;
-
-    public DefaultManifest(PathToFileResolver fileResolver) {
-        this(fileResolver, DEFAULT_CONTENT_CHARSET);
-    }
-
-    public DefaultManifest(PathToFileResolver fileResolver, String contentCharset) {
+    public DefaultManifest(PathToFileResolver fileResolver, ProviderFactory providerFactory, ManifestFactory manifestFactory, Provider<String> contentCharset) {
         this.fileResolver = fileResolver;
-        this.contentCharset = contentCharset;
-        init();
+        this.providerFactory = providerFactory;
+        this.manifestFactory = manifestFactory;
+        this.contentCharset = contentCharset.orElse(DEFAULT_CONTENT_CHARSET);
     }
 
-    public DefaultManifest(Object manifestPath, PathToFileResolver fileResolver) {
-        this(manifestPath, fileResolver, DEFAULT_CONTENT_CHARSET);
-    }
-
-    public DefaultManifest(Object manifestPath, PathToFileResolver fileResolver, String contentCharset) {
-        this.fileResolver = fileResolver;
-        this.contentCharset = contentCharset;
-        read(manifestPath);
-    }
-
-    private void init() {
+    public DefaultManifest init() {
         getAttributes().put("Manifest-Version", "1.0");
+        return this;
     }
 
-    @Override
-    public String getContentCharset() {
+    public Provider<String> getContentCharset() {
         return contentCharset;
-    }
-
-    @Override
-    public void setContentCharset(String contentCharset) {
-        if (contentCharset == null) {
-            throw new InvalidUserDataException("contentCharset must not be null");
-        }
-        if (!Charset.isSupported(contentCharset)) {
-            throw new InvalidUserDataException(String.format("Charset for contentCharset '%s' is not supported by your JVM", contentCharset));
-        }
-        this.contentCharset = contentCharset;
     }
 
     public DefaultManifest mainAttributes(Map<String, ?> attributes) {
@@ -134,48 +104,6 @@ public class DefaultManifest implements ManifestInternal {
         return this;
     }
 
-    static Manifest generateJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest) {
-        Manifest javaManifest = new Manifest();
-        addMainAttributesToJavaManifest(gradleManifest, javaManifest);
-        addSectionAttributesToJavaManifest(gradleManifest, javaManifest);
-        return javaManifest;
-    }
-
-    private static void addMainAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
-        fillAttributes(gradleManifest.getAttributes(), javaManifest.getMainAttributes());
-    }
-
-    private static void addSectionAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
-        for (Map.Entry<String, Attributes> entry : gradleManifest.getSections().entrySet()) {
-            String sectionName = entry.getKey();
-            java.util.jar.Attributes targetAttributes = new java.util.jar.Attributes();
-            fillAttributes(entry.getValue(), targetAttributes);
-            javaManifest.getEntries().put(sectionName, targetAttributes);
-        }
-    }
-
-    private static void fillAttributes(Attributes attributes, java.util.jar.Attributes targetAttributes) {
-        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-            String mainAttributeName = entry.getKey();
-            String mainAttributeValue = resolveValueToString(entry.getValue());
-            if (mainAttributeValue != null) {
-                targetAttributes.putValue(mainAttributeName, mainAttributeValue);
-            }
-        }
-    }
-
-    private static String resolveValueToString(Object value) {
-        Object underlyingValue = value;
-        if (value instanceof Provider) {
-            Provider<?> provider = uncheckedCast(value);
-            if (!provider.isPresent()) {
-                return null;
-            }
-            underlyingValue = provider.get();
-        }
-        return underlyingValue.toString();
-    }
-
     @Override
     public DefaultManifest from(Object... mergePaths) {
         return from(mergePaths, Actions.<ManifestMergeSpec>doNothing());
@@ -188,7 +116,7 @@ public class DefaultManifest implements ManifestInternal {
 
     @Override
     public DefaultManifest from(Object mergePath, Action<ManifestMergeSpec> action) {
-        DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec();
+        DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec(manifestFactory, providerFactory);
         mergeSpec.from(mergePath);
         manifestMergeSpecs.add(mergeSpec);
         action.execute(mergeSpec);
@@ -203,33 +131,15 @@ public class DefaultManifest implements ManifestInternal {
     protected DefaultManifest getEffectiveManifestInternal(DefaultManifest baseManifest) {
         DefaultManifest resultManifest = baseManifest;
         for (ManifestMergeSpec manifestMergeSpec : manifestMergeSpecs) {
-            resultManifest = ((DefaultManifestMergeSpec) manifestMergeSpec).merge(resultManifest, fileResolver);
+            resultManifest = ((DefaultManifestMergeSpec) manifestMergeSpec).merge(resultManifest);
         }
         return resultManifest;
     }
 
     @Override
     public org.gradle.api.java.archives.Manifest writeTo(OutputStream outputStream) {
-        writeTo(this, outputStream, contentCharset);
+        ManifestWriter.writeTo(this, outputStream, contentCharset.get());
         return this;
-    }
-
-    static void writeTo(org.gradle.api.java.archives.Manifest manifest, OutputStream outputStream, String contentCharset) {
-        try {
-            Manifest javaManifest = generateJavaManifest(manifest.getEffectiveManifest());
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            javaManifest.write(buffer);
-            byte[] manifestBytes;
-            if (DEFAULT_CONTENT_CHARSET.equals(contentCharset)) {
-                manifestBytes = buffer.toByteArray();
-            } else {
-                // Convert the UTF-8 manifest bytes to the requested content charset
-                manifestBytes = buffer.toString(DEFAULT_CONTENT_CHARSET).getBytes(contentCharset);
-            }
-            outputStream.write(manifestBytes);
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     @Override
@@ -243,7 +153,7 @@ public class DefaultManifest implements ManifestInternal {
             IoActions.withResource(new FileOutputStream(manifestFile), new Action<FileOutputStream>() {
                 @Override
                 public void execute(FileOutputStream fileOutputStream) {
-                    writeTo(fileOutputStream);
+                    ManifestWriter.writeTo(DefaultManifest.this, fileOutputStream, contentCharset.get());
                 }
             });
             return this;
@@ -256,36 +166,15 @@ public class DefaultManifest implements ManifestInternal {
         return manifestMergeSpecs;
     }
 
-    public boolean isEqualsTo(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || !(o instanceof DefaultManifest)) {
-            return false;
-        }
-
-        DefaultManifest effectiveThis = getEffectiveManifest();
-        DefaultManifest effectiveThat = ((DefaultManifest) o).getEffectiveManifest();
-
-        if (!effectiveThis.attributes.equals(effectiveThat.attributes)) {
-            return false;
-        }
-        if (!effectiveThis.sections.equals(effectiveThat.sections)) {
-            return false;
-        }
-
-        return true;
-    }
-
     @SuppressWarnings("StringCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private void read(Object manifestPath) {
+    public DefaultManifest read(Object manifestPath) {
         File manifestFile = fileResolver.resolve(manifestPath);
         try {
             byte[] manifestBytes = FileUtils.readFileToByteArray(manifestFile);
             manifestBytes = prepareManifestBytesForInteroperability(manifestBytes);
             // Eventually convert manifest content to UTF-8 before handing it to java.util.jar.Manifest
-            if (!DEFAULT_CONTENT_CHARSET.equals(contentCharset)) {
-                manifestBytes = new String(manifestBytes, contentCharset).getBytes(DEFAULT_CONTENT_CHARSET);
+            if (!DEFAULT_CONTENT_CHARSET.equals(contentCharset.get())) {
+                manifestBytes = new String(manifestBytes, contentCharset.get()).getBytes(DEFAULT_CONTENT_CHARSET);
             }
             // Effectively read the manifest
             Manifest javaManifest = new Manifest(new ByteArrayInputStream(manifestBytes));
@@ -294,6 +183,7 @@ public class DefaultManifest implements ManifestInternal {
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+        return this;
     }
 
     /**

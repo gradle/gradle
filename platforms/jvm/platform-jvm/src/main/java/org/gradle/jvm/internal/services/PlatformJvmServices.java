@@ -16,6 +16,10 @@
 
 package org.gradle.jvm.internal.services;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.java.archives.internal.DefaultManifestFactory;
+import org.gradle.api.java.archives.internal.ManifestFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.jvm.inspection.ConditionalInvalidation;
 import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
@@ -46,6 +50,16 @@ public class PlatformJvmServices extends AbstractGradleModuleServices {
                         new InvalidJvmInstallationCacheInvalidator(checkedInvalidationFromDetector)
                     );
                 }
+            }
+        });
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            ManifestFactory createManifestFactory(ProviderFactory providerFactory, FileResolver fileResolver) {
+                return new DefaultManifestFactory(providerFactory, fileResolver);
             }
         });
     }
