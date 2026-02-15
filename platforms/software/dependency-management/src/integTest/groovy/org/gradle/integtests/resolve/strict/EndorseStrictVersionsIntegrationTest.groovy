@@ -124,6 +124,9 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                 expectGetMetadata()
                 expectGetArtifact()
             }
+            'org:foo:1.0' {
+                expectGetMetadata()
+            }
             'org:foo:2.0' {
                 expectGetMetadata()
                 expectGetArtifact()
@@ -246,6 +249,9 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
             'org:foo:1.0' {
                 expectGetMetadata()
                 expectGetArtifact()
+            }
+            'org:foo:2.0' {
+                expectGetMetadata()
             }
         }
         run ':checkDeps', ':dependencies'
