@@ -387,6 +387,20 @@ systemProp.gradle.your_example_com.wrapperToken=some-api-token
 NOTE: If a `wrapperToken` is specified, it will take precedence over `wrapperUser` and `wrapperPassword` system properties (and also over user & password values embedded in the URL).
 It is strongly recommended to include the hostname in the property to prevent the token from being sent to an unintended server by accident.
 
+[[sec:configuring_wrapper_retries]]
+=== Configuring Wrapper Retries
+
+The Gradle Wrapper can be configured to automatically retry downloading the Gradle distribution.
+This is useful in environments with unstable network connections.
+
+You can configure the number of retries and the timeout between attempts in the `gradle-wrapper.properties` file:
+
+[source,properties]
+----
+retries=3
+retryTimeoutMs=5000
+----
+
 [[sec:verification]]
 === Verification of downloaded Gradle distributions
 

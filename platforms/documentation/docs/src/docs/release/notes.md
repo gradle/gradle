@@ -73,6 +73,14 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Wrapper task retries downloading distribution
+
+The Gradle Wrapper now automatically retries downloading the distribution if the initial attempt fails.
+The improves the resilience of the wrapper against transient network issues. The number of retries and
+the timeout between attempts can be configured via new properties in the gradle-wrapper.properties file.
+
+More details can be found in the dedicated section of the Gradle Wrapper user manual chapter.
+
 ## Tooling integration improvements
 
 Tooling API clients can now directly access Gradle help and version information the same way as the Gradle CLI.
