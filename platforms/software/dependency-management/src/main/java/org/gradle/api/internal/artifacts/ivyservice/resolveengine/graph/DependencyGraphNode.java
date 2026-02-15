@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
@@ -27,6 +28,7 @@ import java.util.Set;
  * A node in the dependency graph. Represents a variant.
  */
 public interface DependencyGraphNode extends ResolvedGraphVariant {
+
     boolean isRoot();
 
     DependencyGraphComponent getOwner();
@@ -45,4 +47,7 @@ public interface DependencyGraphNode extends ResolvedGraphVariant {
     boolean isSelected();
 
     ComponentResolutionState getComponent();
+
+    ExcludeSpec getExclusions();
+
 }

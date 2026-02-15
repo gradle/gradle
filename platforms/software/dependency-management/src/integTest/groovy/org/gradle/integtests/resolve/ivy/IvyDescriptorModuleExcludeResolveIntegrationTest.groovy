@@ -50,7 +50,7 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         'non-matching artifact'  | [artifact: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
         'matching all artifacts' | [artifact: '*']     | ['a-1.0.jar']
         'matching artifact'      | [artifact: 'b']     | ['a-1.0.jar', 'c-1.0.jar']
-        'matching self artifact' | [artifact: 'a']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar'] // Current behaviour, likely a bug
+        'matching self artifact' | [artifact: 'a']     | ['b-1.0.jar', 'c-1.0.jar']
     }
 
     /**
