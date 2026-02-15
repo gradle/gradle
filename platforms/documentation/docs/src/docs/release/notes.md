@@ -97,6 +97,36 @@ Tooling API clients can now directly access Gradle help and version information 
 This allows IDEs and other tools to provide a more consistent user experience when interacting with Gradle.
 For example, In IntelliJ IDEA users will be able to run `--help` and `--version` via the `Execute Gradle task` toolbar action.
 
+### CodeNarc plugin improvements
+
+#### Additional report formats
+
+The [CodeNarc plugin](userguide/codenarc_plugin.html) now supports `baseline`, `sortable`, `json`, and `gitlab` report formats, in addition to the existing `xml`, `html`, `text`, and `console` formats.
+
+The `baseline` format generates a [baseline XML report](https://codenarc.org/codenarc-baseline-xml-report-writer.html) that can be used to suppress existing violations.
+The `sortable` format generates a [sortable HTML report](https://codenarc.org/codenarc-sortable-html-report-writer.html) with sortable columns.
+The `json` format generates a [JSON report](https://codenarc.org/codenarc-json-report-writer.html) with structured violation data.
+The `gitlab` format generates a [GitLab Code Quality JSON report](https://codenarc.org/codenarc-gitlab-report-writer.html) suitable for consumption by GitLab CI/CD.
+
+These can be enabled via the extension:
+
+```groovy
+codenarc {
+    reportFormat = "json"
+}
+```
+
+Or configured directly on tasks:
+
+```groovy
+codenarcMain.reports {
+    baseline.required = true
+    sortable.required = true
+    json.required = true
+    gitlab.required = true
+}
+```
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

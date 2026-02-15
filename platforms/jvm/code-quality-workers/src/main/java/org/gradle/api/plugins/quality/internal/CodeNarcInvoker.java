@@ -106,6 +106,11 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
                         .findFirst()
                         .orElse(null);
                     if (humanReadableReport == null) {
+                        humanReadableReport = reportsWithFiles.stream().filter(it -> it.getName().get().equals("sortable"))
+                            .findFirst()
+                            .orElse(null);
+                    }
+                    if (humanReadableReport == null) {
                         humanReadableReport = reportsWithFiles.stream().filter(it -> it.getName().get().equals("text"))
                             .findFirst()
                             .orElse(null);
@@ -115,7 +120,7 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
                             .findFirst()
                             .orElse(null);
                     }
-                    // Prefer HTML > text > XML and don't include a link if we don't recognize the report format
+                    // Prefer HTML > sortable > text > XML and don't include a link if we don't recognize the report format
                     if (humanReadableReport != null) {
                         String reportUrl = new ConsoleRenderer().asClickableFileUrl(humanReadableReport.getOutputLocation().getAsFile().get());
                         message += " See the report at: " + reportUrl;

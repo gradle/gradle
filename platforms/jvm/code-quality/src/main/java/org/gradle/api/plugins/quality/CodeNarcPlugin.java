@@ -83,6 +83,9 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     @Override
     protected void configureConfiguration(Configuration configuration) {
         configureDefaultDependencies(configuration);
+        configuration.getDependencyConstraints().add(
+            project.getDependencies().getConstraints().create("org.apache.groovy:groovy-json:4.0.30")
+        );
     }
 
     @Override
@@ -123,7 +126,19 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         task.getReports().all(action(report -> {
             report.getRequired().convention(providers.provider(() -> report.getName().equals(reportFormat.get())));
             report.getOutputLocation().convention(layout.getProjectDirectory().file(providers.provider(() -> {
-                String fileSuffix = report.getName().equals("text") ? "txt" : report.getName();
+                String reportName = report.getName();
+                String fileSuffix;
+                if (reportName.equals("text")) {
+                    fileSuffix = "txt";
+                } else if (reportName.equals("sortable")) {
+                    fileSuffix = "sortable.html";
+                } else if (reportName.equals("baseline")) {
+                    fileSuffix = "baseline.xml";
+                } else if (reportName.equals("gitlab")) {
+                    fileSuffix = "gitlab.json";
+                } else {
+                    fileSuffix = reportName;
+                }
                 return new File(reportsDir.get().getAsFile(), baseName + "." + fileSuffix).getAbsolutePath();
             })));
         }));
