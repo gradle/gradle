@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -29,13 +28,12 @@ import java.util.function.Consumer;
  * Additional fields in this interface are not required to reconstitute the serialized graph, but are using during construction of the graph.
  */
 public interface DependencyGraphEdge extends ResolvedGraphDependency {
+
     DependencyGraphNode getFrom();
 
     boolean isTransitive();
 
     boolean isFromLock();
-
-    ExcludeSpec getExclusions();
 
     boolean contributesArtifacts();
 
