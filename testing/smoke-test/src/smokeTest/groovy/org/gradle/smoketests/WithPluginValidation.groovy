@@ -72,12 +72,6 @@ trait WithPluginValidation {
             spec()
         }
 
-        void onPlugins(List<String> someIds, @DelegatesTo(value = PluginValidation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-            someIds.each {
-                onPlugin(it, spec)
-            }
-        }
-
         protected void performValidation(List<String> extraParameters = []) {
             owner.file("validate-external-gradle-plugin.gradle.kts") << getClass().getResource("validate-external-gradle-plugin.gradle.kts").text
 
@@ -104,7 +98,7 @@ trait WithPluginValidation {
                     !(it.outcome in [
                         TaskOutcome.NO_SOURCE,
                         TaskOutcome.SKIPPED
-                    ]) && it.path.contains(taskPattern) && !it.path.startsWith(':plugins:') // ignore plugins project from previous version, it doesn't exist anymore (TODO: remove this check)
+                    ]) && it.path.contains(taskPattern)
                 }
                 .collect {
                     def idx = it.path.indexOf(taskPattern)
@@ -185,10 +179,6 @@ trait WithPluginValidation {
 
         void failsWith(Map<String, Severity> messages) {
             this.messages = messages
-        }
-
-        void failsWith(String singleMessage, Severity severity) {
-            failsWith([(singleMessage): severity])
         }
     }
 

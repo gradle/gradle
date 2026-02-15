@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -34,7 +33,6 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
     def distribution = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE)
     def executer = new GradleContextualExecuter(distribution, temporaryFolder, IntegrationTestBuildContext.INSTANCE)
 
-    @ToBeFixedForConfigurationCache
     def "can write to System.out and System.err around build invocation with #console console when errors are redirected to stdout"() {
         given:
         temporaryFolder.file("settings.gradle") << '''
@@ -90,7 +88,6 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
         console << [ConsoleOutput.Plain, ConsoleOutput.Colored, ConsoleOutput.Rich, ConsoleOutput.Verbose]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can write to System.out and System.err around build invocation with #console console when errors are written to stderr"() {
         given:
         temporaryFolder.file("settings.gradle") << '''

@@ -84,12 +84,6 @@ include::declaring_repositories.adoc[leveloffset=+2]
 include::centralizing_dependencies.adoc[leveloffset=+2]
 include::dependency_constraints_conflicts.adoc[leveloffset=+2]
 
-// Advanced Concepts
-include::dependency_resolution.adoc[leveloffset=+2]
-include::graph_resolution.adoc[leveloffset=+2]
-include::variant_aware_resolution.adoc[leveloffset=+2]
-include::artifact_resolution.adoc[leveloffset=+2]
-
 // Declaring Dependencies (detailed)
 include::declaring_dependencies_basics.adoc[leveloffset=+2]
 include::viewing_debugging_dependencies.adoc[leveloffset=+2]
@@ -112,12 +106,6 @@ include::platforms.adoc[leveloffset=+2]
 include::version_catalogs.adoc[leveloffset=+2]
 include::centralizing_catalog_platform.adoc[leveloffset=+2]
 
-// Managing Dependencies
-include::dependency_locking.adoc[leveloffset=+2]
-include::resolution_rules.adoc[leveloffset=+2]
-include::component_metadata_rules.adoc[leveloffset=+2]
-include::dependency_caching.adoc[leveloffset=+2]
-
 // Controlling Dependency Resolution
 include::dependency_resolution_consistency.adoc[leveloffset=+2]
 include::resolving_specific_artifacts.adoc[leveloffset=+2]
@@ -125,6 +113,18 @@ include::component_capabilities.adoc[leveloffset=+2]
 include::variant_attributes.adoc[leveloffset=+2]
 include::artifact_views.adoc[leveloffset=+2]
 include::artifact_transforms.adoc[leveloffset=+2]
+
+// Managing Dependencies
+include::dependency_locking.adoc[leveloffset=+2]
+include::resolution_rules.adoc[leveloffset=+2]
+include::component_metadata_rules.adoc[leveloffset=+2]
+include::dependency_caching.adoc[leveloffset=+2]
+
+// Advanced Concepts
+include::dependency_resolution.adoc[leveloffset=+2]
+include::graph_resolution.adoc[leveloffset=+2]
+include::variant_aware_resolution.adoc[leveloffset=+2]
+include::artifact_resolution.adoc[leveloffset=+2]
 
 // Publishing Libraries
 include::publishing_setup.adoc[leveloffset=+2]

@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
-import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
@@ -41,6 +40,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginHandler;
@@ -51,13 +51,13 @@ import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
-import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
-import org.gradle.plugin.software.internal.DefaultProjectFeatureApplicator;
-import org.gradle.plugin.software.internal.DefaultProjectFeatureDeclarations;
-import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
-import org.gradle.plugin.software.internal.ModelDefaultsHandler;
-import org.gradle.plugin.software.internal.ProjectFeatureApplicator;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.DefaultModelDefaultsApplicator;
+import org.gradle.features.internal.binding.DefaultProjectFeatureApplicator;
+import org.gradle.features.internal.binding.DefaultProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ModelDefaultsApplicator;
+import org.gradle.features.internal.binding.ModelDefaultsHandler;
+import org.gradle.features.internal.binding.ProjectFeatureApplicator;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
@@ -190,17 +190,16 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         ProjectFeatureApplicator createProjectFeatureApplicator(
-            ProjectFeatureDeclarations projectFeatureDeclarations,
-            ModelDefaultsApplicator modelDefaultsApplicator,
-            PluginManagerInternal pluginManager,
-            ProjectInternal project
+            InstantiatorFactory instantiatorFactory,
+            ProjectInternal project,
+            InternalProblems problems,
+            ServiceRegistry services
         ) {
-            return new DefaultProjectFeatureApplicator(
-                projectFeatureDeclarations,
-                modelDefaultsApplicator,
-                pluginManager,
+            return instantiatorFactory.inject(services).newInstance(DefaultProjectFeatureApplicator.class,
                 project.getClassLoaderScope(),
-                project.getObjects()
+                project.getObjects(),
+                problems.getInternalReporter(),
+                services
             );
         }
 

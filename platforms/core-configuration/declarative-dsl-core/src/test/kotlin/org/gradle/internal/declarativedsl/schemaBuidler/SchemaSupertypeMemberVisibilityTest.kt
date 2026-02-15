@@ -53,12 +53,19 @@ class SchemaSupertypeMemberVisibilityTest {
 
     @Test
     fun `annotating a type as both visible and hidden leads to an error`() {
-        val error = Assert.assertThrows(IllegalStateException::class.java) { schemaFromTypes(VisibleHidden::class, listOf(VisibleHidden::class)) }
+        val error = Assert.assertThrows(DeclarativeDslSchemaBuildingException::class.java) { schemaFromTypes(VisibleHiddenSub::class) }
 
-        Assert.assertTrue(
-            error.message!!.contains(VisibleInDefinition::class.simpleName!!)
-                && error.message!!.contains(HiddenInDefinition::class.simpleName!!)
-                && error.message!!.contains(VisibleHidden::class.qualifiedName!!)
+        Assert.assertEquals(
+            """
+            |Multiple failures in building the declarative schema:
+            |
+            |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
+            |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.VisibleHidden'
+            |
+            |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
+            |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.AnotherVisibleHiddenSub'
+            """.trimMargin(),
+            error.message
         )
     }
 
@@ -171,7 +178,15 @@ class SubWithVisibleOtherSup : HiddenSupWithVisibleOtherSup
 
 @HiddenInDefinition
 @VisibleInDefinition
-class VisibleHidden
+interface VisibleHidden
+
+interface VisibleHiddenSub : VisibleHidden {
+    fun another(): AnotherVisibleHiddenSub
+}
+
+@HiddenInDefinition
+@VisibleInDefinition
+interface AnotherVisibleHiddenSub : VisibleHidden
 
 class VisibleHiddenMember {
     @HiddenInDefinition

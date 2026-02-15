@@ -18,10 +18,10 @@ package org.gradle.internal.declarativedsl.software
 
 import org.gradle.api.Project
 import org.gradle.api.internal.DynamicObjectAware
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation
-import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.TargetTypeInformation.BuildModelTargetTypeInformation
+import org.gradle.features.binding.TargetTypeInformation.DefinitionTargetTypeInformation
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
@@ -41,15 +41,21 @@ import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionCompo
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
+import org.gradle.internal.declarativedsl.schemaBuilder.ExtractionResult
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractionMetadata
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractionResult
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.orFailWith
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
-import org.gradle.plugin.software.internal.ProjectFeatureApplicator
-import org.gradle.plugin.software.internal.ProjectFeatureImplementation
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
-import org.gradle.plugin.software.internal.TargetTypeInformationChecks
+import org.gradle.features.internal.binding.ProjectFeatureApplicator
+import org.gradle.features.internal.binding.ProjectFeatureImplementation
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.TargetTypeInformationChecks
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.allSupertypes
@@ -194,9 +200,11 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
         else -> error("binding target type information does not represent a BuildModel or a Definition type: ${delegate.targetDefinitionType}")
     }
 
-    fun schemaFunction(host: SchemaBuildingHost, schemaTypeToExtend: KClass<*>) = host.withTag(softwareConfiguringFunctionTag(delegate.featureName)) {
+    fun schemaFunction(host: SchemaBuildingHost, schemaTypeToExtend: KClass<*>): SchemaResult<SchemaMemberFunction> = host.withTag(softwareConfiguringFunctionTag(delegate.featureName)) {
         val receiverTypeRef = host.containerTypeRef(schemaTypeToExtend)
+            .orFailWith { return it }
         val definitionType = host.containerTypeRef(definitionPublicType.kotlin)
+            .orFailWith { return it }
         DefaultDataMemberFunction(
             receiverTypeRef,
             delegate.featureName,
@@ -216,7 +224,7 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
                 (delegate.targetDefinitionType as? DefinitionTargetTypeInformation)?.definitionType?.name,
                 (delegate.targetDefinitionType as? BuildModelTargetTypeInformation<*>)?.buildModelType?.name,
             ))
-        )
+        ).let(::schemaResult)
     }
 
     private fun softwareConfiguringFunctionTag(name: String) = SchemaBuildingContextElement.TagContextElement("configuring function for '$name' project feature")
@@ -225,7 +233,7 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
 
 private
 fun projectFeatureConfiguringFunctions(projectFeatureImplementations: ProjectFeatureSchemaBindingIndex): FunctionExtractor = object : FunctionExtractor {
-    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> {
+    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): List<FunctionExtractionResult> {
         val classWithSupertypes = listOf(kClass.starProjectedType) + kClass.allSupertypes
 
         val featureImplementations = buildSet {
@@ -240,10 +248,10 @@ fun projectFeatureConfiguringFunctions(projectFeatureImplementations: ProjectFea
             }
         }
 
-        return featureImplementations.map { it.schemaFunction(host, kClass) }
+        return featureImplementations.map { ExtractionResult.of(it.schemaFunction(host, kClass), FunctionExtractionMetadata(emptyList())) }
     }
 
-    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
+    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): SchemaResult<DataTopLevelFunction>? = null
 }
 
 

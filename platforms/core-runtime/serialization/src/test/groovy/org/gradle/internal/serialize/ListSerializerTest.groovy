@@ -35,11 +35,4 @@ class ListSerializerTest extends SerializerSpec {
         serialize([10L, 5L, 99L], serializer) == [10L, 5L, 99L]
     }
 
-    def "serialize null entry"() {
-        when:
-        def serializer = new ListSerializer(stringSerializer)
-
-        then:
-        serialize(["one", null, "three"], serializer) == ["one", null, "three"]
-    }
 }

@@ -33,7 +33,7 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         gradle()
 
         when:
-        ideaSync(IDEA_COMMUNITY_VERSION)
+        ideaSync(IDEA_VERSION)
 
         then:
         report.htmlReport().assertHasNoProblems()
@@ -45,7 +45,7 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
         expect:
         ideaSync(
-            IDEA_COMMUNITY_VERSION,
+            IDEA_VERSION,
             IdeScenarioBuilder
                 .initialImportProject()
                 .appendTextToFile("subprojects/core-api/build.gradle.kts", "dependencies {}")

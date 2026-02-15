@@ -16,13 +16,16 @@
 
 package org.gradle.internal.declarativedsl
 
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionClassBuilder
+import org.gradle.features.internal.builders.settings.SettingsPluginClassBuilder
+import org.gradle.features.internal.builders.types.ProjectTypePluginClassBuilder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
-import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
+import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
@@ -63,12 +66,18 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         buildFileForProject("a") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
         buildFileForProject("b") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
+        def expectedNamePrefix = setValues ? "some" : "default"
+
         when:
-        run("printTestProjectTypeDefinitionConfiguration")
+        run("a:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        def expectedNamePrefix = setValues ? "some" : "default"
         assertThatDeclaredValuesAreSetProperly("a", expectedNamePrefix)
+
+        when:
+        run("b:printTestProjectTypeDefinitionConfiguration")
+
+        then:
         assertThatDeclaredValuesAreSetProperly("b", expectedNamePrefix)
 
         where:
@@ -114,12 +123,18 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         buildFileForProject("a") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
         buildFileForProject("b") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
+        def expectedNamePrefix = setValues ? "some" : "default"
+
         when:
-        run("printTestProjectTypeDefinitionConfiguration")
+        run("a:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        def expectedNamePrefix = setValues ? "some" : "default"
         assertThatDeclaredListValuesAreSetProperly("a", expectedNamePrefix)
+
+        when:
+        run("b:printTestProjectTypeDefinitionConfiguration")
+
+        then:
         assertThatDeclaredListValuesAreSetProperly("b", expectedNamePrefix)
 
         where:
@@ -579,14 +594,14 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
     private void assertThatDeclaredValuesAreSetProperly(String project, String namePrefix) {
         def dirPrefix = testDirectory.file("$project/${namePrefix}").path
         def filePrefix = testDirectory.file("${namePrefix}").path
-        outputContains("$project: definition dir = ${dirPrefix}Dir")
-        outputContains("$project: definition file = ${filePrefix}File")
+        outputContains("definition dir = ${dirPrefix}Dir")
+        outputContains("definition file = ${filePrefix}File")
     }
 
     private void assertThatDeclaredListValuesAreSetProperly(String project, String namePrefix) {
         def dirPrefix = testDirectory.file("$project/${namePrefix}").path
         def filePrefix = testDirectory.file("${namePrefix}").path
-        outputContains("$project: definition dirs = [${dirPrefix}Dir1, ${dirPrefix}Dir2]")
-        outputContains("$project: definition files = [${filePrefix}File1, ${filePrefix}File2]")
+        outputContains("definition dirs = [${dirPrefix}Dir1, ${dirPrefix}Dir2]")
+        outputContains("definition files = [${filePrefix}File1, ${filePrefix}File2]")
     }
 }

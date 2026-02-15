@@ -22,6 +22,8 @@ import kotlin.reflect.KClass
 
 
 interface TypeDiscovery {
+    fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>>
+
     interface TypeDiscoveryServices {
         val host: SchemaBuildingHost
         val propertyExtractor: PropertyExtractor
@@ -73,26 +75,43 @@ interface TypeDiscovery {
         }
     }
 
-    fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass>
-
     companion object {
         val none = object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass> = emptyList()
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> = emptyList()
         }
     }
 }
 
 
 class CompositeTypeDiscovery(internal val implementations: Iterable<TypeDiscovery>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass> =
-        implementations.flatMap { it.getClassesToVisitFrom(typeDiscoveryServices, kClass) }
-            .groupBy({ it.kClass })
-            .entries.map { (kClass, discovered) -> DiscoveredClass(kClass, discovered.flatMap(DiscoveredClass::discoveryTags)) }
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> =
+        mergeResults(implementations.flatMap { it.getClassesToVisitFrom(typeDiscoveryServices, kClass) })
+
+    private fun mergeResults(results: Iterable<SchemaResult<DiscoveredClass>>): Iterable<SchemaResult<DiscoveredClass>> =
+        results.groupBy {
+            when (it) {
+                is SchemaResult.Result -> schemaResult(DiscoveredClass(it.result.kClass, emptyList()))
+                is SchemaResult.Failure -> it
+            }
+        }.run {
+            keys.map { resultGroupKey ->
+                when (resultGroupKey) {
+                    is SchemaResult.Result -> schemaResult(
+                        DiscoveredClass(
+                            resultGroupKey.result.kClass,
+                            getValue(resultGroupKey).filterIsInstance<SchemaResult.Result<DiscoveredClass>>().flatMap { it.result.discoveryTags }
+                        )
+                    )
+
+                    is SchemaResult.Failure -> resultGroupKey
+                }
+            }
+        }
 }
 
 class FilteringTypeDiscovery(private val delegate: TypeDiscovery, val typeFilter: (KClass<*>) -> Boolean) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass> =
-        if (typeFilter(kClass)) delegate.getClassesToVisitFrom(typeDiscoveryServices, kClass).filter { typeFilter(it.kClass) } else emptyList()
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> =
+        if (typeFilter(kClass)) delegate.getClassesToVisitFrom(typeDiscoveryServices, kClass).filter { it !is SchemaResult.Result || typeFilter(it.result.kClass) } else emptyList()
 }
 
 

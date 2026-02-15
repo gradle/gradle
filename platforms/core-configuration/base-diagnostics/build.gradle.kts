@@ -21,7 +21,6 @@ dependencies {
     api(projects.logging)
     api(projects.modelCore)
     api(projects.reportRendering)
-    api(projects.projectFeatures)
     api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
@@ -31,6 +30,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.functional)
     implementation(projects.loggingApi)
+    implementation(projects.projectFeatures)
 
     implementation(libs.commonsLang)
 

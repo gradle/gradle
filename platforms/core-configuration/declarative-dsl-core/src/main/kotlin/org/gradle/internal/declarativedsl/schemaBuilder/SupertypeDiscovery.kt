@@ -25,24 +25,23 @@ import kotlin.reflect.KClass
 class SupertypeDiscovery(
     val isBuildModelType: (KClass<*>) -> Boolean = { false }
 ) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> =
         withAllPotentiallyDeclarativeSupertypes(typeDiscoveryServices.host, kClass)
-            .filter { !isBuildModelType(it.kClass) }
+            .filter { it !is SchemaResult.Result || !isBuildModelType(it.result.kClass) }
 }
 
-internal
-fun withAllPotentiallyDeclarativeSupertypes(host: SchemaBuildingHost, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
-    host.declarativeSupertypesHierarchy(kClass)
-        // Include visible as well as hidden types, as we might still need explicitly exposed members of the hidden types. Just exclude incompatible types.
-        .filter { it !is MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy }
-        .flatMap {
-            val tag = TypeDiscovery.DiscoveredClass.DiscoveryTag.Supertype(
-                kClass,
-                isHidden = it is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy
-            )
+internal fun withAllPotentiallyDeclarativeSupertypes(host: SchemaBuildingHost, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> =
+    host.declarativeSupertypesHierarchy(kClass).flatMap { result ->
+        when (result) {
+            is MaybeDeclarativeClassInHierarchy.VisibleSuperclassInHierarchy, is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy -> {
+                val isHidden = result is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy
+                val tag = TypeDiscovery.DiscoveredClass.DiscoveryTag.Supertype(kClass, isHidden = isHidden)
 
-            listOf(TypeDiscovery.DiscoveredClass(it.superClass, listOf(tag))) +
-                if (it is MaybeDeclarativeClassInHierarchy.VisibleSuperclassInHierarchy)
-                    it.typeVariableAssignments.values.flatMap { TypeDiscovery.DiscoveredClass.classesOf(it, tag) }
-                else emptyList()
+                listOf(schemaResult(TypeDiscovery.DiscoveredClass(result.superClass, listOf(tag)))) +
+                    if (!isHidden) result.typeVariableAssignments.values.flatMap { TypeDiscovery.DiscoveredClass.classesOf(it, tag).map(::schemaResult) }
+                    else emptyList()
+            }
+
+            is MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy -> listOf(result.reason)
         }
+    }

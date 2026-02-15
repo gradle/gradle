@@ -14,7 +14,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -73,6 +73,8 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+## New features and usability improvements
+
 ### Wrapper task retries downloading distribution
 
 The Gradle Wrapper now automatically retries downloading the distribution if the initial attempt fails.
@@ -80,6 +82,21 @@ The improves the resilience of the wrapper against transient network issues. The
 the timeout between attempts can be configured via new properties in the gradle-wrapper.properties file.
 
 More details can be found in the dedicated section of the Gradle Wrapper user manual chapter.
+
+### Type-safe Accessors for Precompiled Kotlin Settings Plugins
+
+Gradle now generates type-safe Kotlin accessors for [precompiled convention Settings plugins](userguide/pre_compiled_script_plugin_advanced.html) (`*.settings.gradle.kts`).
+Previously, when writing a convention plugin for `settings.gradle.kts`, you often had to use string-based APIs to configure extensions or plugins.
+Now, as long as the `kotlin-dsl` plugin is applied, Gradle generates accessors that provide IDE autocompletion and compile-time checking for your settings scripts, matching the experience already available for Project-level convention plugins.
+
+To enable these accessors, ensure your convention plugin build includes the `kotlin-dsl` plugin:
+
+```kotlin
+// build-logic/build.gradle.kts
+plugins {
+    `kotlin-dsl`
+}
+```
 
 ## Tooling integration improvements
 

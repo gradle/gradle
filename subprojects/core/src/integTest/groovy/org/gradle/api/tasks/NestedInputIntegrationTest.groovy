@@ -20,13 +20,11 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
@@ -417,7 +415,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             def secondString = providers.gradleProperty('secondInput').orNull
             def secondBean = new OtherNestedBean(secondInput: secondString, secondOutputFile: file("${secondOutputFile}"), secondInputFile: file("${secondInputFile}"))
 
-            task taskWithNestedProperty(type: TaskWithNestedProperty) {
+            def taskWithNestedProperty = tasks.create("taskWithNestedProperty", TaskWithNestedProperty) {
                 bean = firstBean
                 outputFile.set(project.layout.buildDirectory.file('output.txt'))
             }
@@ -1019,7 +1017,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         succeeds("customTask")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "task with nested bean loaded with custom classloader disables execution optimizations"() {
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
@@ -1033,6 +1030,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             nestedProperty('bean')
             unknownClassloader('NestedBean')
         })
+        if (GradleContextualExecuter.isConfigCache()) {
+            failureDescriptionStartsWith("Configuration cache problems found in this build")
+            failureDescriptionContains("Task `:customTask` of type `TaskWithNestedProperty`: Class 'NestedBean' cannot be encoded because class loader")
+            failureDescriptionContains("of type 'groovy.lang.GroovyClassLoader\$InnerLoader' could not be encoded and the class is not available through the default class loader.\nThese are the known class loaders:")
+        }
     }
 
     def "changes to nested domain object container are tracked"() {

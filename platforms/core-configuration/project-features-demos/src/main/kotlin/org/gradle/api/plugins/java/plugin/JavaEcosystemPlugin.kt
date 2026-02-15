@@ -18,9 +18,9 @@ package org.gradle.api.plugins.java.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.features.annotations.RegistersProjectFeatures
 
-@RegistersSoftwareTypes(JavaProjectTypePlugin::class)
+@RegistersProjectFeatures(JavaProjectTypePlugin::class)
 class JavaEcosystemPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
 }

@@ -27,7 +27,7 @@ import org.gradle.internal.declarativedsl.interpreter.GradleProcessInterpretatio
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.Serializable
 
