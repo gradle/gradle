@@ -71,7 +71,6 @@ run {
             "CppMultiProjectGeneratorTask",
             "BuildBuilderGenerator",
             "PerformanceTest",
-            "BuildCommitDistribution",
             "DetermineBaselines",
         ) -> true
 
