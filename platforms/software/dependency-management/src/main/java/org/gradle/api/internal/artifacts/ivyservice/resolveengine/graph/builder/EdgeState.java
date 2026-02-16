@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
@@ -35,7 +34,6 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -73,12 +71,7 @@ class EdgeState implements DependencyGraphEdge {
     private @Nullable SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
 
-    /**
-     * The accumulated exclusions that apply to this edge based on the paths from the root
-     */
-    private @Nullable ExcludeSpec transitiveExclusions;
     private ExcludeSpec cachedEdgeExclusions;
-    private ExcludeSpec cachedExclusions;
 
     private boolean unattached;
 
@@ -357,37 +350,9 @@ class EdgeState implements DependencyGraphEdge {
 
     }
 
-    @Override
-    public ExcludeSpec getExclusions() {
-        if (cachedExclusions == null) {
-            computeExclusions();
-        }
-        return cachedExclusions;
-    }
-
-    private void computeExclusions() {
-        List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
-        if (excludes.isEmpty()) {
-            cachedExclusions = transitiveExclusions;
-        } else {
-            computeExclusionsWhenExcludesPresent(excludes);
-        }
-    }
-
-    private void computeExclusionsWhenExcludesPresent(List<ExcludeMetadata> excludes) {
-        ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
-        ExcludeSpec edgeExclusions = moduleExclusions.excludeAny(excludes);
-        cachedExclusions = moduleExclusions.excludeAny(edgeExclusions, transitiveExclusions);
-    }
-
     ExcludeSpec getEdgeExclusions() {
         if (cachedEdgeExclusions == null) {
-            List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
-            ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
-            if (excludes.isEmpty()) {
-                return moduleExclusions.nothing();
-            }
-            cachedEdgeExclusions = moduleExclusions.excludeAny(excludes);
+            cachedEdgeExclusions = resolveState.getModuleExclusions().excludeAny(dependencyMetadata.getExcludes());
         }
         return cachedEdgeExclusions;
     }
@@ -521,22 +486,6 @@ class EdgeState implements DependencyGraphEdge {
         return dependencyState;
     }
 
-    public void updateTransitiveExcludes(ExcludeSpec newResolutionFilter) {
-        if (isConstraint) {
-            // Constraint do not carry excludes on a path
-            return;
-        }
-        transitiveExclusions = newResolutionFilter;
-        cachedExclusions = null;
-    }
-
-    public void updateTransitiveExcludesAndRequeueTargetNodes(ExcludeSpec newResolutionFilter) {
-        updateTransitiveExcludes(newResolutionFilter);
-        for (NodeState targetNode : targetNodes) {
-            targetNode.clearTransitiveExclusionsAndEnqueue();
-        }
-    }
-
     void recomputeSelectorAndRequeueTargetNodes(StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
         if (computeSelector(ancestorsStrictVersions, false)) {
             discoveredEdges.add(this);
@@ -546,11 +495,6 @@ class EdgeState implements DependencyGraphEdge {
         for (NodeState targetNode : targetNodes) {
             resolveState.onMoreSelected(targetNode);
         }
-    }
-
-    @Nullable
-    ExcludeSpec getTransitiveExclusions() {
-        return transitiveExclusions;
     }
 
     public void markUnattached() {

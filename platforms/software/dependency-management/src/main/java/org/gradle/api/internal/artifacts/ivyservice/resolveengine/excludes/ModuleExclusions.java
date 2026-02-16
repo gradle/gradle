@@ -50,9 +50,11 @@ public class ModuleExclusions {
     );
     private final Map<ExcludeMetadata, ExcludeSpec> metadataToExcludeCache = new ConcurrentHashMap<>();
     private final ExcludeSpec nothing;
+    private final ExcludeSpec everything;
 
     public ModuleExclusions() {
         nothing = factory.nothing();
+        everything = factory.everything();
     }
 
     public ExcludeSpec excludeAny(Collection<? extends ExcludeMetadata> excludes) {
@@ -71,6 +73,10 @@ public class ModuleExclusions {
 
     public ExcludeSpec nothing() {
         return nothing;
+    }
+
+    public ExcludeSpec everything() {
+        return everything;
     }
 
     private ExcludeSpec forExclude(ExcludeMetadata r) {
