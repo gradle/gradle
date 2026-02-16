@@ -19,18 +19,18 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.features.annotations.BindsProjectType
-import org.gradle.features.annotations.RegistersProjectFeatures
-import org.gradle.features.binding.Definition
-import org.gradle.features.binding.BuildModel
-import org.gradle.features.binding.ProjectTypeBinding
-import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.features.registration.ConfigurationRegistrar
-import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
+import org.gradle.features.registration.ConfigurationRegistrar
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.precondition.Requires
@@ -444,6 +444,30 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
         where:
         invalidType << ["layout", "1", "true", "null"]
+    }
+
+    def "can define dependencies with configuration closure in declarative DSL"() {
+        given:
+        file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtensionWithPlatformModifiers()
+        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTasks()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild()
+        file("build.gradle.dcl") << """
+                library {
+                    dependencies {
+                        implementation("commons-beanutils:commons-beanutils:1.9.4") {
+                            exclude(mapOf("group" to "commons-collections"))
+                        }
+                    }
+                }
+            """
+        file("settings.gradle") << defineSettings()
+
+        expect:
+        succeeds(":resolveImplementation")
+        outputDoesNotContain("commons-collections")
     }
 
     private String defineDependenciesExtension(boolean extendDependencies = true) {
