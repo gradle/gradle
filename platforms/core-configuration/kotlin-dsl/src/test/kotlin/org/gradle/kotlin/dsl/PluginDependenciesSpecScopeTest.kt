@@ -47,7 +47,7 @@ class PluginDependenciesSpecScopeTest {
     @Test
     @Suppress("DEPRECATION")
     fun `given gradle-enterprise plugin accessor, it should create a single request matching the auto-applied plugin version`() {
-        expecting(plugin(id = "com.gradle.enterprise", version = AutoAppliedDevelocityPlugin.VERSION)) {
+        expecting(plugin(id = "com.gradle.enterprise", version = AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_LATEST_VERSION)) {
             `gradle-enterprise`
         }
     }

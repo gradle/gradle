@@ -36,5 +36,6 @@ public final class AutoAppliedDevelocityPlugin {
 
     public static final PluginId GRADLE_ENTERPRISE_PLUGIN_ID = new DefaultPluginId("com.gradle.enterprise");
     public static final String GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME = "gradle-enterprise-gradle-plugin";
+    public static final String GRADLE_ENTERPRISE_PLUGIN_LATEST_VERSION = "3.19.2";
 
 }
