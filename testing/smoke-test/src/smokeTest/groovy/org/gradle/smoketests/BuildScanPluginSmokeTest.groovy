@@ -33,10 +33,6 @@ import java.util.concurrent.ConcurrentHashMap
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     enum CI {
-        TEAM_CITY(
-            AbstractSmokeTest.TestedVersions.teamCityGradlePluginRef,
-            "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/build-scan-init.gradle"
-        ),
         JENKINS(
             AbstractSmokeTest.TestedVersions.jenkinsGradlePluginRef,
             "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle"
@@ -362,20 +358,12 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         file(initScript) << getCiInjectionScriptContent(ci)
 
         // URL is not relevant as long as it's valid due to the `-Dscan.dump` parameter
-        if (ci == CI.TEAM_CITY) { // TeamCity does not support the new style yet
-            file("gradle.properties") << """
-                systemProp.teamCityBuildScanPlugin.gradle-enterprise.plugin.version=$pluginVersion
-                systemProp.teamCityBuildScanPlugin.init-script.name=$initScript
-                systemProp.teamCityBuildScanPlugin.gradle-enterprise.url=http://localhost:5086
-            """.stripIndent()
-        } else {
-            file("gradle.properties") << """
-                systemProp.develocity.plugin.version=$pluginVersion
-                systemProp.develocity.injection.init-script-name=$initScript
-                systemProp.develocity.url=http://localhost:5086
-                systemProp.develocity.injection-enabled=true
-            """.stripIndent()
-        }
+        file("gradle.properties") << """
+            systemProp.develocity.plugin.version=$pluginVersion
+            systemProp.develocity.injection.init-script-name=$initScript
+            systemProp.develocity.url=http://localhost:5086
+            systemProp.develocity.injection-enabled=true
+        """.stripIndent()
 
         setupLocalBuildCache()
         setupJavaProject()
@@ -408,8 +396,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                 "- The deprecated \"gradleEnterprise.buildScan.uploadInBackground\" API has been replaced by \"develocity.buildScan.uploadInBackground\"")
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "- The deprecated \"gradleEnterprise.buildScan.value\" API has been replaced by \"develocity.buildScan.value\"")
-            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber && ci == CI.TEAM_CITY,
-                "- The deprecated \"gradleEnterprise.buildScan.buildScanPublished\" API has been replaced by \"develocity.buildScan.buildScanPublished\"")
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "Gradle Enterprise plugin $pluginVersion has been deprecated. " +
                     "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
@@ -425,7 +411,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                 "This is scheduled to be removed in Gradle 10.0. " +
                 "Use assignment ('url = <value>') instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
-            )
+        )
             .build()
 
         then:
