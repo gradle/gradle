@@ -41,5 +41,5 @@ val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "gradle_enterprise_extension_deprecated")
             .nagUser()
-        return this.id(AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedDevelocityPlugin.VERSION)
+        return this.id(AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ID.id).version(AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_LATEST_VERSION)
     }
