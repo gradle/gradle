@@ -96,7 +96,7 @@ public class WrapperGenerator {
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase.toString());
         wrapperProperties.put(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
-        if (networkTimeout != null) {
+        if (networkTimeout != null && !networkTimeout.equals(WrapperDefaults.NETWORK_TIMEOUT)) {
             wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, String.valueOf(networkTimeout));
         }
         wrapperProperties.put(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, String.valueOf(validateDistributionUrl));
