@@ -120,7 +120,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     @Suppress("SpreadOperator")
     private
     fun runDistributionBuild(checkoutDir: File, os: OutputStream) {
-        val cmdArgs = getBuildCommands()
+        val cmdArgs = getBuildCommands(checkoutDir).toTypedArray()
         println("Building commit distribution with command: ${cmdArgs.joinToString(" ")}")
         execOps.exec {
             commandLine(*cmdArgs)
@@ -187,25 +187,21 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     }
 
     private
-    fun getBuildCommands(): Array<String> {
+    fun getBuildCommands(checkoutDir: File): List<String> {
         val mirrorInitScript = temporaryDir.resolve("mirroring-init-script.gradle")
         BuildCommitDistribution::class.java.getResource("/mirroring-init-script.gradle")?.let { mirrorInitScript.writeText(it.readText()) }
 
-        val buildCommands = mutableListOf(
+        val gradleModeCompatibility = checkoutDir.resolve("gradle.properties")
+            .readAsProperties()["buildCommitDistribution.gradleModeCompatibility"]?.toString()
+
+        return listOfNotNull(
             "./gradlew" + (if (OperatingSystem.current().isWindows) ".bat" else ""),
-            // TODO:configuration-cache https://github.com/gradle/gradle/issues/36770
-            "--no-configuration-cache",
+            if (gradleModeCompatibility == null) "--no-configuration-cache" else null,
             // TODO:isolated https://github.com/gradle/gradle/issues/36771
             "-Dorg.gradle.unsafe.isolated-projects=false",
             "--init-script",
             mirrorInitScript.absolutePath,
-        )
-
-        System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY)?.let {
-            buildCommands.add("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=$it")
-        }
-
-        buildCommands += listOf(
+            PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY.let { name -> System.getProperty(name)?.let { "-D$name=$it" } },
             "clean",
             "-Dscan.tag.BuildCommitDistribution",
             ":distributions-full:binDistributionZip",
@@ -216,8 +212,6 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             "-PbuildCommitDistribution=true",
             "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
         )
-
-        return buildCommands.toTypedArray()
     }
 
     private
