@@ -17,11 +17,11 @@
 package gradlebuild.performance.tasks
 
 import com.google.gson.Gson
-import gradlebuild.basics.repoRoot
 import gradlebuild.identity.model.ReleasedVersions
 import gradlebuild.performance.generator.tasks.RemoteProject
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
@@ -65,8 +65,12 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     private val execOps: ExecOperations,
     private val javaToolchainService: JavaToolchainService
 ) : DefaultTask() {
+
     @get:Internal
     abstract val releasedVersionsFile: RegularFileProperty
+
+    @get:Internal
+    abstract val repoRoot: DirectoryProperty
 
     @get:Input
     @get:Optional
@@ -84,7 +88,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
 
     @TaskAction
     fun buildCommitDistribution() {
-        val rootProjectDir = project.repoRoot().asFile.absolutePath
+        val rootProjectDir = repoRoot.get().asFile.absolutePath
         val commit = commitBaseline.map { it.substring(it.lastIndexOf('-') + 1) }
         val checkoutDir = RemoteProject.checkout(fsOps, execOps, rootProjectDir, commit.get(), temporaryDir)
 
@@ -212,10 +216,6 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             "-PbuildCommitDistribution=true",
             "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
         )
-
-        if (project.gradle.startParameter.isBuildCacheEnabled) {
-            buildCommands.add("--build-cache")
-        }
 
         return buildCommands.toTypedArray()
     }
