@@ -18,14 +18,7 @@ package org.gradle.ide.sync
 
 import org.gradle.ide.starter.IdeScenarioBuilder
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Issue
 
-// `intellij-ide-starter` can't kill the AS process properly on Linux,
-// what is leading to failing these tests by a timeout
-@Issue("https://youtrack.jetbrains.com/issue/AT-3405/Starter-com.intellij.ide.starter.process.ProcessUtilsKtgetJavaProcessId-fails-to-find-Ide-process-for-Android-Studio")
-@Requires(UnitTestPreconditions.MacOs)
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
     // https://developer.android.com/build/releases/gradle-plugin
