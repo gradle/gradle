@@ -318,6 +318,69 @@ configurations {
 
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### Improved hit rate for changes of project properties
+
+Previously, changing any [project property](userguide/build_environment.html#sec:project_properties) defined in `gradle.properties` files or in other places except `-P` command-line arguments resulted in invalidating the [Configuration Cache](userguide/configuration_cache.html), even if the changed property wasn't used during the configuration phase.
+
+Consider the following Kotlin DSL example:
+
+```kotlin
+tasks.register("echo") {
+    val value = providers.gradleProperty("value").orElse("N/A")
+    doLast {
+        println("value: ${value.get()}")
+    }
+}
+```
+
+With previous versions of Gradle, executing the `echo` task after changing the value of `value` in `gradle.properties` was unable to reuse the Configuration Cache:
+```
+$ ./gradlew --configuration-cache echo
+Calculating task graph as no cached configuration is available for tasks: echo
+
+> Task :echo
+value: N/A
+
+BUILD SUCCESSFUL in 319ms
+1 actionable task: 1 executed
+Configuration cache entry stored.
+```
+```
+$ echo "value=1" >> gradle.properties; ./gradlew --configuration-cache echo
+Calculating task graph as configuration cache cannot be reused because file 'gradle.properties' has changed.
+
+> Task :echo
+value: 1
+
+BUILD SUCCESSFUL in 306ms
+1 actionable task: 1 executed
+Configuration cache entry stored.
+```
+By detecting that the `value` property is never realized during the configuration phase, this release can reuse the configuration cache and make more scenarios run faster.
+```
+$ ./gradlew --configuration-cache echo
+Calculating task graph as no cached configuration is available for tasks: echo
+
+> Task :echo
+value: N/A
+
+BUILD SUCCESSFUL in 319ms
+1 actionable task: 1 executed
+Configuration cache entry stored.
+```
+
+```
+$ echo "value=1" >> gradle.properties; ./gradlew --configuration-cache echo
+Reusing configuration cache.
+
+> Task :echo
+value: 1
+
+BUILD SUCCESSFUL in 290ms
+1 actionable task: 1 executed
+Configuration cache entry reused.
+```
+
 #### Clearer attribution for closures and lambdas
 
 Identifying the source of [Configuration Cache violations](userguide/configuration_cache_debugging.html) can be challenging when a task contains multiple lambdas or closures.
