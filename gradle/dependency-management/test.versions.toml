@@ -14,7 +14,7 @@ dockerJavaApi = "3.4.0!!"
 equalsverifier = "2.1.6!!"
 flot = "0.8.1" # performance test reports
 gradleIdeStarter = "0.8.4!!"
-gradleProfiler = "0.24.0-alpha-1!!"
+gradleProfiler = "0.24.0-alpha-3!!"
 guice = "5.1.0!!"
 hamcrest = "3.0!!"
 hikariCP = "4.0.3!!" # 5.x requires Java 11+
@@ -63,6 +63,8 @@ flot = { group = "flot", name = "flot", version.ref = "flot" }
 gradleIdeStarter = { group = "org.gradle.buildtool.internal", name = "gradle-ide-starter", version.ref = "gradleIdeStarter" }
 gradleIdeStarterScenarios = { group = "org.gradle.buildtool.internal", name = "gradle-ide-starter-scenarios", version.ref = "gradleIdeStarter" }
 gradleProfiler = { group = "org.gradle.profiler", name = "gradle-profiler", version.ref = "gradleProfiler" }
+gradleProfilerBuildAction = { group = "org.gradle.profiler", name = "build-action", version.ref = "gradleProfiler" }
+gradleProfilerBuildOperationsMeasuring = { group = "org.gradle.profiler", name = "build-operations-measuring", version.ref = "gradleProfiler" }
 groovyTest = { group = "org.apache.groovy", name = "groovy-test", version.ref = "groovy" }
 guice = { group = "com.google.inject", name = "guice", version.ref = "guice" }
 hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
