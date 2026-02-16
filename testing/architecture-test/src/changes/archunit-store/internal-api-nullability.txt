@@ -3339,7 +3339,7 @@ Class <org.gradle.plugins.ide.internal.tooling.model.TaskNameComparator> is not 
 Class <org.gradle.plugins.signing.internal.SignOperationInternal> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (SignOperationInternal.java:0)
 Class <org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ConfigurableSignatoryProvider.java:0)
 Class <org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (GnupgSignatoryProvider.java:0)
-Class <org.gradle.plugins.signing.signatory.internal.pgp.InMemoryPgpSignatoryProvider> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (InMemoryPgpSignatoryProvider.java:0)
+Class <org.gradle.plugins.signing.signatory.internal.pgp.InMemoryPgpSignatoryProvider> is annotated with @NullUnmarked in (InMemoryPgpSignatoryProvider.java:0)
 Class <org.gradle.process.internal.AbstractExecHandleBuilder> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (AbstractExecHandleBuilder.java:0)
 Class <org.gradle.process.internal.BadExitCodeException> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (BadExitCodeException.java:0)
 Class <org.gradle.process.internal.CurrentProcess> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (CurrentProcess.java:0)

@@ -19,9 +19,11 @@ import org.gradle.api.Project;
 import org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider;
 import org.gradle.security.internal.pgp.BaseInMemoryPgpSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
+import org.jspecify.annotations.NullUnmarked;
 
 import java.util.Arrays;
 
+@NullUnmarked
 public class InMemoryPgpSignatoryProvider extends BaseInMemoryPgpSignatoryProvider implements ConfigurableSignatoryProvider<PgpSignatory> {
     public InMemoryPgpSignatoryProvider(String defaultSecretKey, String defaultPassword) {
         super(defaultSecretKey, defaultPassword);
