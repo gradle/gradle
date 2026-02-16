@@ -318,9 +318,9 @@ configurations {
 
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
-#### Improved hit rate for changes of project properties
+#### Improved hit rates for changes of project properties in `gradle.properties` files
 
-Previously, changing any [project property](userguide/build_environment.html#sec:project_properties) defined in `gradle.properties` files or in other places except `-P` command-line arguments resulted in invalidating the [Configuration Cache](userguide/configuration_cache.html), even if the changed property wasn't used during the configuration phase.
+Previously, changing any [project property](userguide/build_environment.html#sec:project_properties) defined in `gradle.properties` files resulted in invalidating the [Configuration Cache](userguide/configuration_cache.html), even if the changed property wasn't used during the configuration phase.
 
 Consider the following Kotlin DSL example:
 
@@ -341,8 +341,7 @@ Calculating task graph as no cached configuration is available for tasks: echo
 > Task :echo
 value: N/A
 
-BUILD SUCCESSFUL in 319ms
-1 actionable task: 1 executed
+...
 Configuration cache entry stored.
 ```
 ```
@@ -352,8 +351,7 @@ Calculating task graph as configuration cache cannot be reused because file 'gra
 > Task :echo
 value: 1
 
-BUILD SUCCESSFUL in 306ms
-1 actionable task: 1 executed
+...
 Configuration cache entry stored.
 ```
 By detecting that the `value` property is never realized during the configuration phase, this release can reuse the configuration cache and make more scenarios run faster.
@@ -364,8 +362,7 @@ Calculating task graph as no cached configuration is available for tasks: echo
 > Task :echo
 value: N/A
 
-BUILD SUCCESSFUL in 319ms
-1 actionable task: 1 executed
+...
 Configuration cache entry stored.
 ```
 
@@ -376,8 +373,7 @@ Reusing configuration cache.
 > Task :echo
 value: 1
 
-BUILD SUCCESSFUL in 290ms
-1 actionable task: 1 executed
+...
 Configuration cache entry reused.
 ```
 
