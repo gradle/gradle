@@ -124,16 +124,15 @@ fun addShadedJarTask(): TaskProvider<ShadedJar> {
 
 fun addInstallShadedJarTask(shadedJarTask: TaskProvider<ShadedJar>) {
     val installPathProperty = "${project.name.kebabToCamel()}ShadedJarInstallPath"
-    fun targetFile(): File {
-        val file = findProperty(installPathProperty)?.let { File(findProperty(installPathProperty) as String) }
-
-        require(true == file?.isAbsolute) { "Property $installPathProperty is required and must be absolute!" }
-        return file!!
+    val installPath: Provider<File> = providers.gradleProperty(installPathProperty).orElse("").map {
+        val file = if (it.isEmpty()) null else File(it)
+        require(file?.isAbsolute == true) { "Property $installPathProperty is required and must be absolute!" }
+        file
     }
     tasks.register<Copy>("install${project.name.kebabToPascal()}ShadedJar") {
         from(shadedJarTask.map { it.jarFile })
-        into(provider { targetFile().parentFile })
-        rename { targetFile().name }
+        into(installPath.map { it.parentFile })
+        rename { installPath.map { it.name }.get() }
     }
 }
 

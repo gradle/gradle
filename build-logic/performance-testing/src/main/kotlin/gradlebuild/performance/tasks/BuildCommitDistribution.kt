@@ -17,11 +17,12 @@
 package gradlebuild.performance.tasks
 
 import com.google.gson.Gson
-import gradlebuild.basics.repoRoot
 import gradlebuild.identity.model.ReleasedVersions
 import gradlebuild.performance.generator.tasks.RemoteProject
+import org.gradle.StartParameter
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
@@ -63,10 +64,15 @@ val oldWrapperMissingErrorRegex = """\Qjava.io.FileNotFoundException:\E.*/distri
 abstract class BuildCommitDistribution @Inject internal constructor(
     private val fsOps: FileSystemOperations,
     private val execOps: ExecOperations,
-    private val javaToolchainService: JavaToolchainService
+    private val javaToolchainService: JavaToolchainService,
+    private val startParameter: StartParameter
 ) : DefaultTask() {
+
     @get:Internal
     abstract val releasedVersionsFile: RegularFileProperty
+
+    @get:Internal
+    abstract val repoRoot: DirectoryProperty
 
     @get:Input
     @get:Optional
@@ -84,7 +90,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
 
     @TaskAction
     fun buildCommitDistribution() {
-        val rootProjectDir = project.repoRoot().asFile.absolutePath
+        val rootProjectDir = repoRoot.get().asFile.absolutePath
         val commit = commitBaseline.map { it.substring(it.lastIndexOf('-') + 1) }
         val checkoutDir = RemoteProject.checkout(fsOps, execOps, rootProjectDir, commit.get(), temporaryDir)
 
@@ -191,7 +197,6 @@ abstract class BuildCommitDistribution @Inject internal constructor(
 
         val buildCommands = mutableListOf(
             "./gradlew" + (if (OperatingSystem.current().isWindows) ".bat" else ""),
-            "--no-configuration-cache",
             "--init-script",
             mirrorInitScript.absolutePath,
         )
@@ -212,7 +217,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
         )
 
-        if (project.gradle.startParameter.isBuildCacheEnabled) {
+        if (startParameter.isBuildCacheEnabled) {
             buildCommands.add("--build-cache")
         }
 
