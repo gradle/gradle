@@ -318,9 +318,10 @@ configurations {
 
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
-#### Improved hit rates for changes of project properties in `gradle.properties` files
+#### Improved hit rates for changes in `gradle.properties` files
 
-Previously, changing any [project property](userguide/build_environment.html#sec:project_properties) defined in `gradle.properties` files resulted in invalidating the [Configuration Cache](userguide/configuration_cache.html), even if the changed property wasn't used during the configuration phase.
+Previously, changing any `gradle.properties` file resulted in invalidating the [Configuration Cache](userguide/configuration_cache.html),
+even if the [project properties](userguide/build_environment.html#sec:project_properties) weren't changed or if the changed property wasn't used during the configuration phase.
 
 Consider the following Kotlin DSL example:
 
@@ -354,6 +355,7 @@ value: 1
 ...
 Configuration cache entry stored.
 ```
+
 By detecting that the `value` property is never realized during the configuration phase, this release can reuse the configuration cache and make more scenarios run faster.
 ```
 $ ./gradlew --configuration-cache echo
