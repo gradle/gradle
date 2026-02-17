@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.TestUtil
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 
@@ -270,11 +269,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "can call from client code"() {
         server.start()
-        def script = TestUtil.createScript """
+        def script = new GroovyShell().parse("""
             def prefix = "a"
             ${server.callFromBuild("a1")}
             ${server.callFromBuildUsingExpression("prefix + '2'")}
-        """
+        """)
 
         given:
         server.expect("a1")
@@ -290,11 +289,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
     def "client code fails when making unexpected request"() {
         server.start()
-        def script = TestUtil.createScript """
+        def script = new GroovyShell().parse("""
             def prefix = "a"
             ${server.callFromBuild("a1")}
             ${server.callFromBuildUsingExpression("prefix + '2'")}
-        """
+        """)
 
         given:
         server.expect("a1")
