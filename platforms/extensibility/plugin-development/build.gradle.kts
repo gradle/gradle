@@ -62,6 +62,10 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 
+    testRuntimeOnly(projects.distributionsJvm) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+
     integTestImplementation(projects.baseServicesGroovy)
 
     integTestImplementation(testFixtures(projects.modelReflect))
@@ -74,10 +78,10 @@ dependencies {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
     }
 
-    testRuntimeOnly(projects.distributionsJvm) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
-    }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    crossVersionTestImplementation(projects.internalIntegTesting)
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     testFixturesImplementation(projects.modelCore)

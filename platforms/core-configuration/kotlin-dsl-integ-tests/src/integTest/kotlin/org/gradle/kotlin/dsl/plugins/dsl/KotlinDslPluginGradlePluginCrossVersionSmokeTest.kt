@@ -56,7 +56,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin`() {
 
-        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedByJunit4(kotlinVersion)
         if (kotlinVersion < VersionNumber.parse(KotlinGradlePluginVersions().latestStable)) {
             executer.noDeprecationChecks()
         }

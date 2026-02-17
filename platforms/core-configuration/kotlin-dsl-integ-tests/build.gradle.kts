@@ -33,8 +33,10 @@ dependencies {
 
     crossVersionTestImplementation(projects.coreApi)
     crossVersionTestImplementation(projects.logging)
+    crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
+
     crossVersionTestLocalRepository(projects.kotlinDslPlugins)
 }
 

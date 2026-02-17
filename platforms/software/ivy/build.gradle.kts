@@ -32,6 +32,10 @@ dependencies {
     testImplementation(projects.processServices)
     testImplementation(projects.snapshots)
 
+    testRuntimeOnly(projects.distributionsCore) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.platformBase))
@@ -42,6 +46,10 @@ dependencies {
     integTestRuntimeOnly(projects.resourcesS3)
     integTestRuntimeOnly(projects.resourcesSftp)
     integTestRuntimeOnly(projects.apiMetadata)
+
+    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
+        because("SamplesIvyPublishIntegrationTest test applies the java-library plugin.")
+    }
 
     testFixturesApi(projects.baseServices) {
         because("Test fixtures export the Action class")
@@ -57,12 +65,8 @@ dependencies {
     testFixturesImplementation(libs.sshdScp)
     testFixturesImplementation(libs.sshdSftp)
 
-    testRuntimeOnly(projects.distributionsCore) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
-    }
-    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
-        because("SamplesIvyPublishIntegrationTest test applies the java-library plugin.")
-    }
+    crossVersionTestImplementation(projects.internalIntegTesting)
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("IvyPublishCrossVersionIntegrationTest test applies the war plugin.")
     }

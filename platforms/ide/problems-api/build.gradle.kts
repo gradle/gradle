@@ -33,6 +33,15 @@ gradleModule {
     }
 }
 
+jvmCompile {
+    compilations {
+        named("testFixtures") {
+            // The TAPI cross version tests depend on these test fixtures
+            targetJvmVersion = 8
+        }
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
