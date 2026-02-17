@@ -26,7 +26,6 @@ import org.eclipse.jetty.http.MimeTypes
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.handler.AbstractHandler
-import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.server.ExpectOne
 import org.gradle.test.fixtures.server.ForbidOne
@@ -34,7 +33,6 @@ import org.gradle.test.fixtures.server.OneRequestServerExpectation
 import org.gradle.test.fixtures.server.ServerExpectation
 import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
-import org.gradle.util.TestCredentialUtil
 import org.gradle.util.internal.GFileUtils
 import org.hamcrest.Matcher
 import org.slf4j.Logger
@@ -392,7 +390,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      * Allows one HEAD request for the given URL with http authentication.
      */
     void expectHead(String path, String username, String password, File srcFile, Long lastModified = null, Long contentLength = null) {
-        expect(path, false, ['HEAD'], fileHandler(path, srcFile), TestCredentialUtil.defaultPasswordCredentials(username, password))
+        expect(path, false, ['HEAD'], fileHandler(path, srcFile), new PasswordCredentials(username, password))
     }
 
     /**
@@ -445,7 +443,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      * Expects one GET request for the given URL, with the given credentials. Reads the request content from the given file.
      */
     HttpResourceInteraction expectGet(String path, String username, String password, File srcFile) {
-        return expect(path, false, ['GET'], fileHandler(path, srcFile), TestCredentialUtil.defaultPasswordCredentials(username, password))
+        return expect(path, false, ['GET'], fileHandler(path, srcFile), new PasswordCredentials(username, password))
     }
 
     /**
@@ -558,7 +556,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      * Expects one GET request for the given URL, returning an apache-compatible directory listing with the given File names.
      */
     void expectGetDirectoryListing(String path, String username, String password, File directory) {
-        expect(path, false, ['GET'], listDirectory(directory), TestCredentialUtil.defaultPasswordCredentials(username, password))
+        expect(path, false, ['GET'], listDirectory(directory), new PasswordCredentials(username, password))
     }
 
     private HttpServer.Action listDirectory(File directory) {
@@ -658,7 +656,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      * Expects one PUT request for the given URL, with the given credentials. Writes the request content to the given file.
      */
     void expectPut(String path, String username, String password, File destFile) {
-        expect(path, false, ['PUT'], fileWriter(destFile), TestCredentialUtil.defaultPasswordCredentials(username, password))
+        expect(path, false, ['PUT'], fileWriter(destFile), new PasswordCredentials(username, password))
     }
 
     private Action fileWriter(File destFile) {
@@ -918,6 +916,16 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
             response.outputStream.withStream {
                 it << sb.toString().getBytes("utf8")
             }
+        }
+    }
+
+    static class PasswordCredentials {
+        String username
+        String password
+
+        PasswordCredentials(String username, String password) {
+            this.username = username
+            this.password = password
         }
     }
 }

@@ -78,7 +78,7 @@ abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
         }
     }
 
-    void expectPublish(boolean extraChecksums = true, PasswordCredentials credentials = null) {
+    void expectPublish(boolean extraChecksums = true, HttpServer.PasswordCredentials credentials = null) {
         expectPut(credentials)
         if (server.supportsHash(HttpServer.SupportedHash.SHA1)) {
             sha1.expectPut(credentials)
