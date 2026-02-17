@@ -62,7 +62,11 @@ class DeclarativeSchemaModelBuilder(
     fun InterpretationSequence.analysisOnly(): InterpretationSequence = DefaultInterpretationSequence(
         steps.map { step ->
             val evaluationSchema = step.evaluationSchemaForStep
-            val analysisOnlySchema = DefaultEvaluationSchema(evaluationSchema.analysisSchema, evaluationSchema.analysisStatementFilter)
+            val analysisOnlySchema = DefaultEvaluationSchema(
+                evaluationSchema.analysisSchema,
+                evaluationSchema.analysisSchemaBuildingFailures,
+                evaluationSchema.analysisStatementFilter
+            )
             SimpleInterpretationSequenceStep(step.stepIdentifier, step.features) { analysisOnlySchema }
         }
     )

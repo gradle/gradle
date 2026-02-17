@@ -110,7 +110,7 @@ interface SchemaBuildingHost {
 
     fun <T> inIsolatedContext(action: () -> T): T
 
-    val context: List<SchemaBuildingContextElement>
+    fun context(): List<SchemaBuildingContextElement>
 }
 
 inline fun <R> SchemaBuildingHost.inContextOfModelClass(kClass: KClass<*>, doBuildSchema: () -> R): R =
@@ -123,22 +123,9 @@ inline fun <R> SchemaBuildingHost.withTag(tagContextElement: TagContextElement, 
     inContextOf(tagContextElement, doBuildSchema)
 
 sealed interface SchemaBuildingContextElement {
-    val userRepresentation: String
-
-    data class ModelClassContextElement(val kClass: KClass<*>) : SchemaBuildingContextElement {
-        override val userRepresentation: String
-            get() = "class '${kClass.qualifiedName}'"
-    }
-
-    data class ModelMemberContextElement(val kCallable: KCallable<*>) : SchemaBuildingContextElement {
-        override val userRepresentation: String
-            get() = "member '$kCallable'"
-    }
-
-    data class TagContextElement(val userVisibleTag: String) : SchemaBuildingContextElement {
-        override val userRepresentation: String
-            get() = userVisibleTag
-    }
+    data class ModelClassContextElement(val kClass: KClass<*>) : SchemaBuildingContextElement
+    data class ModelMemberContextElement(val kCallable: KCallable<*>) : SchemaBuildingContextElement
+    data class TagContextElement(val userVisibleTag: String) : SchemaBuildingContextElement
 }
 
 object SchemaBuildingTags {
@@ -184,8 +171,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
 
     private val currentContextStack = mutableListOf<SchemaBuildingContextElement>()
 
-    override val context: List<SchemaBuildingContextElement>
-        get() = currentContextStack
+    override fun context(): List<SchemaBuildingContextElement> = currentContextStack.toList()
 
     private val classMembersCache = mutableMapOf<KClass<*>, ClassMembersForSchema>()
     private val declarativeSupertypesCache = mutableMapOf<KClass<*>, Iterable<MaybeDeclarativeClassInHierarchy>>()
@@ -334,7 +320,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
             else {
                 inContextOf(SchemaBuildingTags.typeArgument(arg)) {
                     if (arg.variance != KVariance.INVARIANT) {
-                        return schemaBuildingFailure(SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(kClass, arg.variance!!))
+                        return schemaBuildingFailure(SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(arg.variance!!))
                     }
                     val argumentTypeRef = modelTypeRef(
                         arg.type ?: schemaBuildingError("Type argument has no proper type")
@@ -352,7 +338,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
                 kClass.typeParameters.map {
                     if (it.variance == KVariance.IN)
                         return schemaBuildingFailure(
-                            SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(kClass, it.variance)
+                            SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(it.variance)
                         )
                     DataTypeInternal.DefaultParameterizedTypeSignature.TypeParameter(it.name, it.variance == KVariance.OUT)
                 },
@@ -430,8 +416,10 @@ class DataSchemaBuilder(
 
         validateSchemaInvariants(host, schema)
 
-        val allFailures = collectSchemaBuildingFailures(host, preIndex, schema)
-        schemaBuildingFailureReporter.report(schema, allFailures)
+        schemaBuildingFailureReporter.report(
+            schema,
+            collectSchemaBuildingFailures(host, preIndex, schema).map { it.asReportableFailure() }
+        )
 
         return schema
     }
@@ -462,7 +450,7 @@ class DataSchemaBuilder(
                     if (host.isUnusedMember(type, potentiallyDeclarative)) {
                         host.inContextOfModelClass(type) {
                             host.inContextOfModelMember(potentiallyDeclarative.kCallable) {
-                                add(host.schemaBuildingFailure(SchemaBuildingIssue.UnrecognizedMember))
+                                add(host.schemaBuildingFailure(SchemaBuildingIssue.UnrecognizedMember()))
                             }
                         }
                     }

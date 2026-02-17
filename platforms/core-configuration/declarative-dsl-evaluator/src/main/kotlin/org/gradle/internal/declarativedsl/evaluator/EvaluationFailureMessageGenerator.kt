@@ -27,6 +27,7 @@ import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureR
 import org.gradle.internal.declarativedsl.language.ParsingError
 import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaFailureMessageFormatter
 
 
 object EvaluationFailureMessageGenerator {
@@ -37,6 +38,13 @@ object EvaluationFailureMessageGenerator {
         appendLine("Failed to interpret the declarative DSL file '$scriptSourceIdentifier':")
         stageFailures.forEach { stageFailure ->
             when (stageFailure) {
+                is StageFailure.SchemaBuildingFailures -> {
+                    appendLine("Failures in building the schema:".indent(1))
+                    stageFailure.failures.forEach {
+                        appendLine(SchemaFailureMessageFormatter.failureMessage(it).lines().joinToString("\n") { it.indent(2) })
+                    }
+                }
+
                 is StageFailure.FailuresInLanguageTree -> {
                     appendLine("Failures in building the language tree:".indent(1))
                     if (stageFailure.failures.isNotEmpty()) {

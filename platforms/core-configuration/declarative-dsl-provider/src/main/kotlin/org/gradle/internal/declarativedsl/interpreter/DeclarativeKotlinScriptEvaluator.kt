@@ -43,6 +43,7 @@ import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiv
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionEvaluationResult
 
 
 @ServiceScope(Scope.Build::class)
@@ -51,7 +52,7 @@ interface DeclarativeKotlinScriptEvaluator {
         target: Any,
         scriptSource: ScriptSource,
         targetScope: ClassLoaderScope,
-    ): EvaluationResult<*>
+    ): EvaluationResult<*, *>
 }
 
 
@@ -86,7 +87,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         target: Any,
         scriptSource: ScriptSource,
         targetScope: ClassLoaderScope
-    ): EvaluationResult<ConversionStepResult> {
+    ): ConversionEvaluationResult {
         val scriptContext = scriptContextFor(target)
         return when (val built = schemaBuilder.getEvaluationSchemaForScript(scriptContext)) {
             InterpretationSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(scriptContext)), ConversionStepResult.CannotRunStep)
@@ -100,7 +101,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         sequence: InterpretationSequence,
         target: Any,
         classLoaderScope: ClassLoaderScope
-    ): EvaluationResult<ConversionStepResult> =
+    ): ConversionEvaluationResult =
         sequence.steps.map { step ->
             stepRunner.runInterpretationSequenceStep(
                 scriptSource.fileName,

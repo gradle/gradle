@@ -30,14 +30,14 @@ class UnexpectedSchemaBuildingException(message: String, cause: Throwable? = nul
  * Produces a failure result of a schema building operation.
  * The failure carries the [SchemaBuildingHost.context].
  */
-fun SchemaBuildingHost.schemaBuildingFailure(issue: SchemaBuildingIssue): SchemaResult.Failure = SchemaResult.Failure(issue, context.toList())
+fun SchemaBuildingHost.schemaBuildingFailure(issue: SchemaBuildingIssue): SchemaResult.Failure = SchemaResult.Failure(issue, context())
 
 /**
  * Throws an error due to a failing expectation of the schema builder (for example, if an assumption about a Kotlin reflection contract does not hold, or the implementation failed to find the type
  * legally referenced somewhere in the schema)
  */
 fun SchemaBuildingHost.schemaBuildingError(message: String): Nothing = throw UnexpectedSchemaBuildingException(
-    "Schema building error: $message" + (context.takeIf { it.isNotEmpty()} ?.let { "\n" + SchemaFailureMessageFormatter.contextRepresentation(context) } ?: "")
+    "Schema building error: $message" + (context().takeIf { it.isNotEmpty()} ?.let { "\n" + SchemaFailureMessageFormatter.contextRepresentation(context().map { it.asFailureContext() }) } ?: "")
 )
 
 

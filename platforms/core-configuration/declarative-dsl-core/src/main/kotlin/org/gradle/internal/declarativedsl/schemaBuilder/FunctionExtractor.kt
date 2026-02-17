@@ -308,7 +308,7 @@ class DefaultFunctionExtractor(
                 val lastParamOrNull = function.parameters.lastOrNull()
                 check(function.returnType.classifier != Unit::class || lastParamOrNull == null || configureLambdas.getTypeConfiguredByLambda(lastParamOrNull.type.toKType()) == null) {
                     return host.schemaBuildingFailure(
-                        SchemaBuildingIssue.UnitAddingFunctionWithLambda
+                        SchemaBuildingIssue.UnitAddingFunctionWithLambda()
                     )
                 }
 
