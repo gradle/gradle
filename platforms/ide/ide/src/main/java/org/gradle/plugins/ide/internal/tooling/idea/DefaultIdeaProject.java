@@ -20,12 +20,12 @@ import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 public class DefaultIdeaProject implements Serializable {
     private String name;
     private String description;
-    private Collection<DefaultIdeaModule> children = new LinkedList<DefaultIdeaModule>();
+    private Collection<DefaultIdeaModule> children = new ArrayList<DefaultIdeaModule>();
     private IdeaLanguageLevel languageLevel;
     private String jdkName;
     private DefaultIdeaJavaLanguageSettings javaLanguageSettings;

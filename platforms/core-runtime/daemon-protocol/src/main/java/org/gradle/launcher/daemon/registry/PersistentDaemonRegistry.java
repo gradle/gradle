@@ -32,7 +32,7 @@ import org.gradle.launcher.daemon.server.api.DaemonState;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -71,7 +71,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
             DaemonRegistryContent content = cache.get();
             if (content == null) {
                 //when no daemon process has started yet
-                return new LinkedList<DaemonInfo>();
+                return new ArrayList<DaemonInfo>();
             }
             return content.getInfos();
         } finally {
@@ -112,7 +112,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     private List<DaemonInfo> getDaemonsMatching(Spec<DaemonInfo> spec) {
         lock.lock();
         try {
-            List<DaemonInfo> out = new LinkedList<DaemonInfo>();
+            List<DaemonInfo> out = new ArrayList<DaemonInfo>();
             List<DaemonInfo> all = getAll();
             for (DaemonInfo d : all) {
                 if (spec.isSatisfiedBy(d)) {
@@ -192,7 +192,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
             LOGGER.debug("Getting daemon stop events");
             DaemonRegistryContent content = cache.get();
             if (content == null) { // no daemon process has started yet
-                return new LinkedList<DaemonStopEvent>();
+                return new ArrayList<DaemonStopEvent>();
             }
             return content.getStopEvents();
         } finally {

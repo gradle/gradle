@@ -20,12 +20,12 @@ import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SortingAnnotationVisitor extends AnnotationVisitor {
 
-    private final List<AnnotationValue<?>> annotationValues = new LinkedList<>();
+    private final List<AnnotationValue<?>> annotationValues = new ArrayList<>();
     private final AnnotationMember annotation;
 
     private SortingAnnotationVisitor parentVisitor;

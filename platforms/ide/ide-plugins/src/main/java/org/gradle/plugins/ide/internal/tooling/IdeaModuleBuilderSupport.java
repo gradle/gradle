@@ -35,7 +35,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -84,7 +84,7 @@ public class IdeaModuleBuilderSupport {
     }
 
     public static List<DefaultIdeaDependency> buildDependencies(Set<Dependency> resolvedDependencies) {
-        List<DefaultIdeaDependency> dependencies = new LinkedList<>();
+        List<DefaultIdeaDependency> dependencies = new ArrayList<>();
         for (Dependency dependency : resolvedDependencies) {
             if (dependency instanceof SingleEntryModuleLibrary) {
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;

@@ -36,9 +36,10 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -134,9 +135,9 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
 
     @Nullable
     private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates, RepositoryFailureCollector failures) {
-        LinkedList<ComponentMetaDataResolveState> queue = new LinkedList<>(resolveStates);
+        ArrayDeque<ComponentMetaDataResolveState> queue = new ArrayDeque<>(resolveStates);
 
-        LinkedList<ComponentMetaDataResolveState> missing = new LinkedList<>();
+        ArrayList<ComponentMetaDataResolveState> missing = new ArrayList<>();
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findBestMatch(queue, failures, missing);
@@ -155,7 +156,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
 
     @Nullable
     @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, RepositoryFailureCollector failures, Collection<ComponentMetaDataResolveState> missing) {
+    private RepositoryChainModuleResolution findBestMatch(Deque<ComponentMetaDataResolveState> queue, RepositoryFailureCollector failures, Collection<ComponentMetaDataResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             ComponentMetaDataResolveState request = queue.removeFirst();

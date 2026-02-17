@@ -21,12 +21,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 class DocBookBuilder {
-    final LinkedList<Element> stack = new LinkedList<Element>();
+    final ArrayDeque<Element> stack = new ArrayDeque<Element>();
     final Document document;
 
     DocBookBuilder(Document document) {

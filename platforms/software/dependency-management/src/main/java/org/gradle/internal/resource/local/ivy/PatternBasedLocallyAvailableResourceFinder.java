@@ -26,7 +26,7 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resource.local.AbstractLocallyAvailableResourceFinder;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -41,7 +41,7 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
             @Override
             public Factory<List<File>> apply(final ModuleComponentArtifactMetadata artifact) {
                 return () -> {
-                    final List<File> files = new LinkedList<>();
+                    final List<File> files = new ArrayList<>();
                     if (artifact != null) {
                         getMatchingFiles(artifact).visit(new EmptyFileVisitor() {
                             @Override

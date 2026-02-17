@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import org.gradle.api.Action;
@@ -95,7 +95,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
 
     private static Map<Long, ClassNode> createClasses(TestTreeModel root) {
         Map<org.gradle.util.Path, TestTreeModel> parentOfPath = buildParentOfPathMap(root);
-        ListMultimap<TestTreeModel, PerRootInfo> leavesByGroupingNode = LinkedListMultimap.create();
+        ListMultimap<TestTreeModel, PerRootInfo> leavesByGroupingNode = ArrayListMultimap.create();
         walkLeaves(parentOfPath, root, leaf -> {
             for (PerRootInfo perRootInfo : leaf.getPerRootInfo().get(0)) {
                 if (perRootInfo.getResults().size() > 1) {

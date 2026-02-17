@@ -21,7 +21,7 @@ import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 
 @NullMarked
 public class JUnitTestDryRunner extends Runner {
@@ -38,7 +38,7 @@ public class JUnitTestDryRunner extends Runner {
 
     @Override
     public void run(RunNotifier notifier) {
-        LinkedList<Description> queue = new LinkedList<Description>();
+        ArrayDeque<Description> queue = new ArrayDeque<Description>();
         queue.add(runner.getDescription());
         while (!queue.isEmpty()) {
             Description description = queue.removeFirst();

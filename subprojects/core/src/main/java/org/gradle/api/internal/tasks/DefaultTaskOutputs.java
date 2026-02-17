@@ -43,7 +43,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -56,8 +56,8 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     private final FileCollectionFactory fileCollectionFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private boolean storeInCache = true;
-    private final List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
-    private final List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
+    private final List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new ArrayList<>();
+    private final List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new ArrayList<>();
     private FileCollection previousOutputFiles;
     private final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInternal task;

@@ -40,8 +40,8 @@ import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 @NullMarked
@@ -233,7 +233,7 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
     }
 
     private boolean allTestsFiltered(Runner runner, List<Filter> filters) {
-        LinkedList<Description> queue = new LinkedList<Description>();
+        ArrayDeque<Description> queue = new ArrayDeque<Description>();
         queue.add(runner.getDescription());
         while (!queue.isEmpty()) {
             Description description = queue.removeFirst();

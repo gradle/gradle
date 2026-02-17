@@ -36,7 +36,7 @@ import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -127,7 +127,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         ResolutionFailureHandler resolutionFailureHandler
     ) {
         // TODO - all this matching stuff is constant for a given DependencyMetadata instance
-        List<ConfigurationGraphResolveState> targets = new LinkedList<>();
+        List<ConfigurationGraphResolveState> targets = new ArrayList<>();
         boolean matched = false;
         String fromConfigName = fromConfiguration.getName();
         for (String config : fromConfiguration.getHierarchy()) {

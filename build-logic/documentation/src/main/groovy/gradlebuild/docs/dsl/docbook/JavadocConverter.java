@@ -15,17 +15,23 @@
  */
 package gradlebuild.docs.dsl.docbook;
 
-import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.GradleException;
 import gradlebuild.docs.dsl.source.model.ClassMetaData;
 import gradlebuild.docs.dsl.source.model.MethodMetaData;
 import gradlebuild.docs.dsl.source.model.PropertyMetaData;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.GradleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -156,8 +162,8 @@ public class JavadocConverter {
         final DocBookBuilder nodes;
         final List<HtmlElementHandler> elementHandlers = new ArrayList<HtmlElementHandler>();
         final List<JavadocTagHandler> tagHandlers = new ArrayList<JavadocTagHandler>();
-        final LinkedList<HtmlElementHandler> handlerStack = new LinkedList<HtmlElementHandler>();
-        final LinkedList<String> tagStack = new LinkedList<String>();
+        final ArrayDeque<HtmlElementHandler> handlerStack = new ArrayDeque<HtmlElementHandler>();
+        final ArrayDeque<String> tagStack = new ArrayDeque<String>();
         final Map<String, String> attributes = new HashMap<String, String>();
         StringBuilder tagValue;
         final Document document;

@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +56,7 @@ public class DaemonRegistryContent implements Serializable {
      * returns all statuses. May be empty.
      */
     public List<DaemonInfo> getInfos() {
-        return new LinkedList<DaemonInfo>(infosMap.values());
+        return new ArrayList<DaemonInfo>(infosMap.values());
     }
 
     /**

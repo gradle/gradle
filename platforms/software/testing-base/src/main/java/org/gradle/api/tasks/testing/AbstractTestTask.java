@@ -97,7 +97,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -122,7 +121,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     private class BroadcastSubscriptions<T> {
         private final Class<T> listenerClass;
-        private final List<Object> subscribedListeners = new LinkedList<Object>();
+        private final List<Object> subscribedListeners = new ArrayList<Object>();
         private transient ListenerBroadcast<T> broadcaster;
 
         private BroadcastSubscriptions(Class<T> listenerClass) {

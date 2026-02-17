@@ -103,7 +103,7 @@ class DetermineExecutionPlanAction {
         }
 
         // Collect the finalizers and their dependencies so that each node is ordered before all of its dependencies
-        LinkedList<Node> nodes = new LinkedList<>();
+        ArrayDeque<Node> nodes = new ArrayDeque<>();
         Set<Node> visiting = new HashSet<>();
         Set<Node> visited = new HashSet<>();
         Deque<Node> queue = new ArrayDeque<>(finalizers);

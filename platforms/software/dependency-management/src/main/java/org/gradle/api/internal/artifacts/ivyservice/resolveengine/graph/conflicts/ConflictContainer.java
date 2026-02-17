@@ -21,10 +21,10 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -36,7 +36,7 @@ import static java.util.Collections.singletonList;
  */
 class ConflictContainer<K, T> {
 
-    final LinkedList<Conflict> conflicts = new LinkedList<>();
+    final ArrayDeque<Conflict> conflicts = new ArrayDeque<>();
     private final Map<K, Conflict> conflictsByParticipant = new HashMap<>();
 
     private final Map<K, Collection<? extends T>> elements = new HashMap<>();

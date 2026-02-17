@@ -19,7 +19,7 @@ package org.gradle.internal.typeconversion;
 import org.gradle.api.Describable;
 import org.gradle.internal.Cast;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +30,7 @@ public class NotationParserBuilder<N, T> {
     private Object typeDisplayName;
     private boolean implicitConverters = true;
     private boolean allowNullInput;
-    private final List<NotationConverter<? super N, ? extends T>> notationParsers = new LinkedList<>();
+    private final List<NotationConverter<? super N, ? extends T>> notationParsers = new ArrayList<>();
 
     public static <T> NotationParserBuilder<Object, T> toType(Class<T> resultingType) {
         return new NotationParserBuilder<>(Object.class, new TypeInfo<>(resultingType));

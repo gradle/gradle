@@ -1,9 +1,9 @@
 ${fileComment.multilineComment}${packageDecl.statement}
-import ${basePackagePrefix.raw}list.LinkedList
+import ${basePackagePrefix.raw}list.ArrayList
 
 class JoinUtils {
     companion object {
-        fun join(source: LinkedList): String {
+        fun join(source: ArrayList): String {
             val result = StringBuilder()
             for (i in 0 until source.size()) {
                 if (result.isNotEmpty()) {

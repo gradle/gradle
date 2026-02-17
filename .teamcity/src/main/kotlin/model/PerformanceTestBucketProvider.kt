@@ -25,7 +25,7 @@ import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import java.io.File
-import java.util.LinkedList
+import java.util.ArrayList
 import java.util.Locale
 
 interface PerformanceTestBucketProvider {
@@ -145,7 +145,7 @@ private fun splitBucketsByScenarios(
             .map { TestProjectDuration(it.key, it.value) }
             .sortedBy { -it.totalTime }
     return splitIntoBuckets(
-        LinkedList(testProjectDurations),
+        ArrayList(testProjectDurations),
         TestProjectDuration::totalTime,
         { largeElement: TestProjectDuration, size: Int -> largeElement.split(size) },
         { list: List<TestProjectDuration> -> MultipleTestProjectBucket(list) },
@@ -214,7 +214,7 @@ data class TestProjectDuration(
         if (expectedBucketNumber == 1 || scenarioDurations.size == 1) {
             listOf(SingleTestProjectBucket(testProject, scenarioDurations.map { it.scenario }))
         } else {
-            val list = LinkedList(scenarioDurations.sortedBy { -it.durationInMs })
+            val list = ArrayList(scenarioDurations.sortedBy { -it.durationInMs })
             val toIntFunction = PerformanceTestDuration::durationInMs
             val largeElementSplitFunction: (
                 PerformanceTestDuration,

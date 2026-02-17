@@ -2,7 +2,7 @@ import model.splitIntoBuckets
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.util.LinkedList
+import java.util.ArrayList
 
 /*
  * Copyright 2024 the original author or authors.
@@ -40,7 +40,7 @@ class SplitBucketTest {
     @Test
     fun testUnbalancedBuckets() {
         val subprojects =
-            LinkedList(
+            ArrayList(
                 listOf(
                     Subproject("a", 20),
                     Subproject("b", 19),

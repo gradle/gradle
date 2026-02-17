@@ -1,13 +1,13 @@
 package org.gradle.sample.utilities;
 
-import org.gradle.sample.list.LinkedList;
+import org.gradle.sample.list.ArrayList;
 
 public class StringUtils {
-    public static String join(LinkedList source) {
+    public static String join(ArrayList source) {
         return JoinUtils.join(source);
     }
 
-    public static LinkedList split(String source) {
+    public static ArrayList split(String source) {
         return SplitUtils.split(source);
     }
 }

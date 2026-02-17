@@ -66,10 +66,10 @@ import javax.inject.Inject;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -482,7 +482,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
         // A.B.C.D.E.F and accessing E from F we test A$E=failed,
         // A$B$E=failed, A$B$C$E=fail, A$B$C$D$E=success
 
-        LinkedList<ClassNode> outerClasses = new LinkedList<ClassNode>();
+        ArrayDeque<ClassNode> outerClasses = new ArrayDeque<ClassNode>();
         ClassNode outer = currentClass.getOuterClass();
         while (outer != null) {
             outerClasses.addFirst(outer);
@@ -960,7 +960,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
     // a PropertyExpression with the ClassExpression of Integer as objectExpression
     // and class as property
     private Expression correctClassClassChain(PropertyExpression pe) {
-        LinkedList<Expression> stack = new LinkedList<Expression>();
+        ArrayDeque<Expression> stack = new ArrayDeque<Expression>();
         ClassExpression found = null;
         for (Expression it = pe; it != null; it = ((PropertyExpression) it).getObjectExpression()) {
             if (it instanceof ClassExpression) {

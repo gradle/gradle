@@ -39,7 +39,7 @@ public class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
     public Object addToAntBuilder(final Object node, final String childNodeName) {
         final DynamicObject dynamicObject = new BeanDynamicObject(node);
 
-        final Iterable<DirectoryTree> existing = Lists.newLinkedList(
+        final Iterable<DirectoryTree> existing = Lists.newArrayList(
             FluentIterable
                 .from(fileTrees)
                 .filter(new Predicate<DirectoryTree>() {

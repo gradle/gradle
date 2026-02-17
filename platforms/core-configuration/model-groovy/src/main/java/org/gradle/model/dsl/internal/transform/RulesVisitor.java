@@ -42,7 +42,7 @@ import org.gradle.internal.Pair;
 import org.gradle.model.internal.core.ModelPath;
 import org.jspecify.annotations.Nullable;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class RulesVisitor extends RestrictiveCodeVisitor {
@@ -104,7 +104,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         if (classArg != null) {
             // path(Type)
             String displayName = RuleVisitor.displayName(call);
-            List<Statement> statements = new LinkedList<>();
+            List<Statement> statements = new ArrayList<>();
             statements.add(new EmptyStatement());
             BlockStatement block = new BlockStatement(statements, new VariableScope());
             closureExpression = new ClosureExpression(Parameter.EMPTY_ARRAY, block);
@@ -148,7 +148,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     @Nullable // if the target was invalid
     private String extractModelPathFromMethodTarget(MethodCallExpression call) {
         Expression target = call.getMethod();
-        List<String> names = new LinkedList<>();
+        List<String> names = new ArrayList<>();
         while (true) {
             if (target instanceof ConstantExpression) {
                 if (target.getType().equals(ClassHelper.STRING_TYPE)) {

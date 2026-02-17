@@ -8,7 +8,7 @@ import common.Os
 import common.VersionedSettingsBranch
 import configurations.ParallelizationMethod
 import java.io.File
-import java.util.LinkedList
+import java.util.ArrayList
 
 const val MASTER_CHECK_CONFIGURATION = "Gradle_Master_Check"
 const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
@@ -119,7 +119,7 @@ class FunctionalTestBucketGenerator(
         // As a workaround, we repeat the bucket N times, and deduplicate the result at the end
         val resultIncludingDuplicates =
             splitIntoBuckets(
-                LinkedList(subProjectTestClassTimes),
+                ArrayList(subProjectTestClassTimes),
                 SubprojectTestClassTime::totalTime,
                 { largeElement, factor ->
                     List(factor) { SmallSubprojectBucket(largeElement.subProject, parallelization(factor)) }

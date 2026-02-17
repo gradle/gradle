@@ -1,5 +1,5 @@
 ${fileComment.multilineComment}${packageDecl.statement}
-class LinkedList {
+class ArrayList {
     private var head: Node? = null
 
     fun add(element: String) {

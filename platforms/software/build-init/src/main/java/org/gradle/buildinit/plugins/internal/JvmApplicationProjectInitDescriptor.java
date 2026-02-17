@@ -86,7 +86,7 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
             case "app":
                 return ImmutableList.of("multi/app/App", "multi/app/MessageUtils");
             case "list":
-                return ImmutableList.of("multi/list/LinkedList");
+                return ImmutableList.of("multi/list/ArrayList");
             case "utilities":
                 return ImmutableList.of("multi/utilities/JoinUtils", "multi/utilities/SplitUtils", "multi/utilities/StringUtils");
             default:
@@ -104,7 +104,7 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
             case "app":
                 return ImmutableList.of("multi/app/junit5/MessageUtilsTest");
             case "list":
-                return ImmutableList.of("multi/list/junit5/LinkedListTest");
+                return ImmutableList.of("multi/list/junit5/ArrayListTest");
             default:
                 return ImmutableList.of();
         }

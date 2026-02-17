@@ -44,9 +44,9 @@ import gradlebuild.docs.dsl.source.model.PropertyMetaData;
 import gradlebuild.docs.dsl.source.model.TypeMetaData;
 import gradlebuild.docs.model.ClassMetaDataRepository;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -56,7 +56,7 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
     private static final Pattern GETTER_METHOD_NAME = Pattern.compile("(get|is)(.+)");
     private static final Pattern SETTER_METHOD_NAME = Pattern.compile("set(.+)");
     private final List<ClassMetaData> allClasses = new ArrayList<ClassMetaData>();
-    private final Deque<ClassMetaData> classStack = new LinkedList<ClassMetaData>();
+    private final Deque<ClassMetaData> classStack = new ArrayDeque<>();
     private String packageName;
 
     @Override

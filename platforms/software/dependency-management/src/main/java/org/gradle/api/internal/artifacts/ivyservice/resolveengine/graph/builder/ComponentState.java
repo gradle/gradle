@@ -46,7 +46,6 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -60,7 +59,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
-    private final List<NodeState> nodes = new LinkedList<>();
+    private final List<NodeState> nodes = new ArrayList<>();
     private final Long resultId;
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = new ArrayList<>();

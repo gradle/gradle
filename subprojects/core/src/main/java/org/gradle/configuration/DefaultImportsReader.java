@@ -27,7 +27,7 @@ import org.gradle.internal.UncheckedException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -61,7 +61,7 @@ public class DefaultImportsReader implements ImportsReader {
      */
     private static String[] generateImportPackages(URL url) throws IOException {
         return Resources.asCharSource(url, StandardCharsets.UTF_8).readLines(new LineProcessor<String[]>() {
-            private final List<String> packages = new LinkedList<>();
+            private final List<String> packages = new ArrayList<>();
 
             @Override
             public boolean processLine(@SuppressWarnings("NullableProblems") String line) throws IOException {

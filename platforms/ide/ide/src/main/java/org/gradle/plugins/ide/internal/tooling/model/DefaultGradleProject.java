@@ -23,7 +23,7 @@ import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,12 +33,12 @@ public class DefaultGradleProject implements Serializable, GradleProjectIdentity
     private final DefaultGradleScript buildScript = new DefaultGradleScript();
     private File buildDirectory;
     private File projectDirectory;
-    private List<LaunchableGradleProjectTask> tasks = new LinkedList<>();
+    private List<LaunchableGradleProjectTask> tasks = new ArrayList<>();
     private String name;
     private String description;
     private DefaultProjectIdentifier projectIdentifier;
     private DefaultGradleProject parent;
-    private List<? extends DefaultGradleProject> children = new LinkedList<>();
+    private List<? extends DefaultGradleProject> children = new ArrayList<>();
     private String buildTreePath;
 
     public String getName() {

@@ -18,8 +18,8 @@ package gradlebuild.docs.dsl.source.model;
 import org.gradle.api.Action;
 
 import java.io.Serializable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -82,26 +82,28 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
     }
 
     public MethodMetaData getOverriddenMethod() {
-        LinkedList<ClassMetaData> queue = new LinkedList<ClassMetaData>();
-        queue.add(ownerClass.getSuperClass());
-        queue.addAll(ownerClass.getInterfaces());
+        ArrayDeque<ClassMetaData> queue = new ArrayDeque<ClassMetaData>();
+        addToQueue(ownerClass, queue);
 
         String overrideSignature = getOverrideSignature();
 
         while (!queue.isEmpty()) {
             ClassMetaData cl = queue.removeFirst();
-            if (cl == null) {
-                continue;
-            }
             MethodMetaData overriddenMethod = cl.findDeclaredMethod(overrideSignature);
             if (overriddenMethod != null) {
                 return overriddenMethod;
             }
-            queue.add(cl.getSuperClass());
-            queue.addAll(cl.getInterfaces());
+            addToQueue(cl, queue);
         }
 
         return null;
+    }
+
+    private static void addToQueue(ClassMetaData cl, ArrayDeque<ClassMetaData> queue) {
+        if (cl.getSuperClass() != null) {
+            queue.add(cl.getSuperClass());
+        }
+        queue.addAll(cl.getInterfaces());
     }
 
     public List<ParameterMetaData> getParameters() {

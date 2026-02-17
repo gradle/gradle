@@ -33,7 +33,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -182,8 +181,12 @@ public abstract class CollectionUtils {
             Collection<? extends I> collection = uncheckedNonnullCast(source);
             return collect(source, new ArrayList<R>(collection.size()), transformer);
         } else {
-            return collect(source, new LinkedList<R>(), transformer);
+            return collect(source, new ArrayList<R>(), transformer);
         }
+    }
+
+    public static <R, I> List<R> collect(Collection<? extends I> source, Function<? super I, ? extends R> transformer) {
+        return collect(source, new ArrayList<R>(source.size()), transformer);
     }
 
     public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Function<? super I, ? extends R> transformer) {
@@ -194,7 +197,7 @@ public abstract class CollectionUtils {
     }
 
     public static List<String> toStringList(Iterable<?> iterable) {
-        return stringize(iterable, new LinkedList<>());
+        return stringize(iterable, new ArrayList<>());
     }
 
     /**
@@ -603,8 +606,8 @@ public abstract class CollectionUtils {
             throw new NullPointerException("Cannot apply null Spec when partitioning");
         }
 
-        Collection<T> left = new LinkedList<T>();
-        Collection<T> right = new LinkedList<T>();
+        Collection<T> left = new ArrayList<>();
+        Collection<T> right = new ArrayList<T>();
 
         for (T item : items) {
             if (predicate.isSatisfiedBy(item)) {

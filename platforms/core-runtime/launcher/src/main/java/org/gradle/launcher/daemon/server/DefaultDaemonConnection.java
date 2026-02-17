@@ -21,6 +21,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.daemon.clientinput.StdinHandler;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.launcher.daemon.protocol.BuildEvent;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
@@ -34,11 +35,10 @@ import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.UserResponse;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
-import org.gradle.internal.daemon.clientinput.StdinHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -170,7 +170,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
     private static abstract class CommandQueue<C extends Message, H> implements Stoppable {
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();
-        protected final LinkedList<C> queue = new LinkedList<C>();
+        protected final ArrayDeque<C> queue = new ArrayDeque<C>();
         private final String name;
         private ManagedExecutor executor;
         private boolean removed;

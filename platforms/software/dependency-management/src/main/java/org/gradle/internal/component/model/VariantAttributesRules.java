@@ -22,7 +22,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class VariantAttributesRules {
     private final AttributesFactory attributesFactory;
-    private final List<VariantMetadataRules.VariantAction<? super AttributeContainer>> actions = new LinkedList<>();
+    private final List<VariantMetadataRules.VariantAction<? super AttributeContainer>> actions = new ArrayList<>();
 
     public VariantAttributesRules(AttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;

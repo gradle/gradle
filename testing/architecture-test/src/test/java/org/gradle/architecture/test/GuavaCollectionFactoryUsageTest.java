@@ -49,7 +49,7 @@ public class GuavaCollectionFactoryUsageTest {
             .orShould()
             .callMethod(com.google.common.collect.Lists.class, "newCopyOnWriteArrayList")
             .orShould()
-            .callMethod(com.google.common.collect.Lists.class, "newLinkedList")
+            .callMethod(com.google.common.collect.Lists.class, "newArrayList")
             .because("The no-argument versions of these List creation factory methods are deprecated, see the notes on their Javadoc");
 
     @ArchTest

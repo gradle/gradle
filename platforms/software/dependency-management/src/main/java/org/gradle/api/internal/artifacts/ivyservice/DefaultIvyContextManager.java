@@ -25,7 +25,7 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.Transformers;
 
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -33,7 +33,7 @@ public class DefaultIvyContextManager implements IvyContextManager {
     private static final int MAX_CACHED_IVY_INSTANCES = 4;
     private final Lock lock = new ReentrantLock();
     private boolean messageAdapterAttached;
-    private final LinkedList<Ivy> cached = new LinkedList<>();
+    private final ArrayDeque<Ivy> cached = new ArrayDeque<>();
     private final ThreadLocal<Integer> depth = new ThreadLocal<>();
 
     @Override

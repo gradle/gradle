@@ -42,7 +42,6 @@ import java.util.EnumSet;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -76,7 +75,7 @@ public class GUtil {
 
     @SuppressWarnings("TypeParameterUnusedInFormals")
     public static <T extends Collection<?>> T flattenElements(Object... elements) {
-        Collection<T> out = new LinkedList<T>();
+        Collection<T> out = new ArrayList<T>();
         flatten(elements, out, true);
         return Cast.uncheckedNonnullCast(out);
     }
@@ -113,11 +112,11 @@ public class GUtil {
         if (input == null) {
             return emptyList();
         } else if (input instanceof Collection) {
-            Collection<?> out = new LinkedList<Object>();
+            Collection<?> out = new ArrayList<Object>();
             flatten((Collection<?>) input, out, false, true);
             return out;
         } else if (input.getClass().isArray()) {
-            Collection<?> out = new LinkedList<Object>();
+            Collection<?> out = new ArrayList<Object>();
             flatten(asList((Object[]) input), out, false, true);
             return out;
         } else {

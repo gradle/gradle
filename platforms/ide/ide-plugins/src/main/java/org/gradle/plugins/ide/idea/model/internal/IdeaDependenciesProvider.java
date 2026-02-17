@@ -42,7 +42,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -141,9 +141,9 @@ public class IdeaDependenciesProvider {
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
         private final String scope;
 
-        private final List<Dependency> projectDependencies = new LinkedList<>();
-        private final List<Dependency> moduleDependencies = new LinkedList<>();
-        private final List<Dependency> fileDependencies = new LinkedList<>();
+        private final List<Dependency> projectDependencies = new ArrayList<>();
+        private final List<Dependency> moduleDependencies = new ArrayList<>();
+        private final List<Dependency> fileDependencies = new ArrayList<>();
         private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = new LinkedHashMap<>();
 
         private IdeaDependenciesVisitor(IdeaModule ideaModule, String scope) {

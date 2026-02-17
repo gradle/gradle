@@ -22,8 +22,8 @@ import org.gradle.internal.concurrent.ManagedExecutor;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -44,7 +44,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private final WorkerLimits workerLimits;
     private final WorkerLeaseService workerLeaseService;
     private final ManagedExecutor executor;
-    private final Deque<ConditionalExecution<T>> queue = new LinkedList<ConditionalExecution<T>>();
+    private final Deque<ConditionalExecution<T>> queue = new ArrayDeque<ConditionalExecution<T>>();
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
     private QueueState queueState = QueueState.Working;

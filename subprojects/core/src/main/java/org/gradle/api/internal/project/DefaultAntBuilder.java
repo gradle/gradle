@@ -43,7 +43,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -164,7 +164,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
     private static List<String> getTaskDependencyNames(Target target, Transformer<? extends String, ? super String> taskNamer) {
         Enumeration<String> dependencies = target.getDependencies();
-        List<String> taskDependencyNames = new LinkedList<>();
+        List<String> taskDependencyNames = new ArrayList<>();
         while (dependencies.hasMoreElements()) {
             String targetName = dependencies.nextElement();
             String taskName = taskNamer.transform(targetName);

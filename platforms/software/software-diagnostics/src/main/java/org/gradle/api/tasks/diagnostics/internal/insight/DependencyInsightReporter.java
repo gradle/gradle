@@ -49,7 +49,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -67,7 +66,7 @@ public class DependencyInsightReporter {
     }
 
     public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies, boolean singlePathToDependency) {
-        LinkedList<RenderableDependency> out = new LinkedList<>();
+        ArrayList<RenderableDependency> out = new ArrayList<>();
         Collection<DependencyEdge> sortedEdges = toDependencyEdges(dependencies);
 
         //remember if module id was annotated
@@ -112,7 +111,7 @@ public class DependencyInsightReporter {
     }
 
     @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private RequestedVersion newRequestedVersion(LinkedList<RenderableDependency> out, DependencyEdge dependency) {
+    private RequestedVersion newRequestedVersion(ArrayList<RenderableDependency> out, DependencyEdge dependency) {
         RequestedVersion current;
         current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable());
         out.add(current);

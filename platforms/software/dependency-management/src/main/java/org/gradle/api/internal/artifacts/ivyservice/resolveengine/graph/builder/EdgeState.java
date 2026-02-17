@@ -44,7 +44,6 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -66,7 +65,7 @@ class EdgeState implements DependencyGraphEdge {
     private final DependencyMetadata dependencyMetadata;
     private final NodeState from;
     private final ResolveState resolveState;
-    private final List<NodeState> targetNodes = new LinkedList<>();
+    private final List<NodeState> targetNodes = new ArrayList<>();
     private final boolean isTransitive;
     private final boolean isConstraint;
 

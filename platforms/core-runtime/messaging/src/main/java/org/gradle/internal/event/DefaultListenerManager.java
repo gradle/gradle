@@ -34,7 +34,6 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -425,7 +424,7 @@ public class DefaultListenerManager implements ScopedListenerManager {
     private class ExclusiveEventBroadcast<T> extends EventBroadcast<T> {
 
         private final ReentrantLock broadcasterLock = new ReentrantLock();
-        private final List<Runnable> queuedOperations = new LinkedList<>();
+        private final List<Runnable> queuedOperations = new ArrayList<>();
 
         public ExclusiveEventBroadcast(Class<T> type) {
             super(type);

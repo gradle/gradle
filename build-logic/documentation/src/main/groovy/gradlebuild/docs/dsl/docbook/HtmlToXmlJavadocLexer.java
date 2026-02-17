@@ -15,7 +15,13 @@
  */
 package gradlebuild.docs.dsl.docbook;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Normalises and cleans up HTML to convert it to XML semantics.
@@ -62,7 +68,7 @@ public class HtmlToXmlJavadocLexer implements JavadocLexer {
 
     private class VisitorImpl extends TokenVisitor {
         private final TokenVisitor visitor;
-        private final LinkedList<String> elementStack = new LinkedList<String>();
+        private final ArrayDeque<String> elementStack = new ArrayDeque<String>();
         private final Map<String, String> attributes = new HashMap<String, String>();
 
         public VisitorImpl(TokenVisitor visitor) {
@@ -80,13 +86,15 @@ public class HtmlToXmlJavadocLexer implements JavadocLexer {
         }
 
         private void unwindTo(Collection<String> ancestors, TokenVisitor visitor) {
-            for (int i = 0; i < elementStack.size(); i++) {
-                if (ancestors.contains(elementStack.get(i))) {
-                    for (; i > 0; i--) {
+            int depth = 0;
+            for (String element : elementStack) {
+                if (ancestors.contains(element)) {
+                    for (; depth > 0; depth--) {
                         visitor.onEndHtmlElement(elementStack.removeFirst());
                     }
                     break;
                 }
+                depth++;
             }
         }
 

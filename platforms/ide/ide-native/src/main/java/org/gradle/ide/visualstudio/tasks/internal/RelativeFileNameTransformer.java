@@ -21,8 +21,8 @@ import org.gradle.api.Transformer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class RelativeFileNameTransformer implements Transformer<String, File> {
@@ -72,15 +72,15 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
         }
 
         String relativePath = findRelativePath(from, to);
-        return relativePath.length() == 0 ? "." : relativePath;
+        return relativePath.isEmpty() ? "." : relativePath;
     }
 
     private String findRelativePath(String from, String to) {
-        LinkedList<String> fromPath = splitPath(from);
-        LinkedList<String> toPath = splitPath(to);
+        ArrayDeque<String> fromPath = splitPath(from);
+        ArrayDeque<String> toPath = splitPath(to);
         List<String> relativePath = new ArrayList<String>();
 
-        while (!fromPath.isEmpty() && !toPath.isEmpty() && fromPath.get(0).equals(toPath.get(0))) {
+        while (!fromPath.isEmpty() && !toPath.isEmpty() && fromPath.getFirst().equals(toPath.getFirst())) {
             fromPath.removeFirst();
             toPath.removeFirst();
         }
@@ -91,11 +91,11 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
         return Joiner.on(File.separatorChar).join(relativePath);
     }
 
-    private LinkedList<String> splitPath(String path) {
+    private ArrayDeque<String> splitPath(String path) {
         File pathFile = new File(path);
-        LinkedList<String> split = new LinkedList<String>();
+        ArrayDeque<String> split = new ArrayDeque<String>();
         while (pathFile != null) {
-            split.add(0, pathFile.getName());
+            split.addFirst(pathFile.getName());
             pathFile = pathFile.getParentFile();
         }
         return split;

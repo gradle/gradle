@@ -46,7 +46,7 @@ import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Thread.sleep;
@@ -184,7 +184,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     private List<DaemonInfo> getCompatibleDaemons(Iterable<DaemonInfo> daemons, ExplainingSpec<DaemonContext> constraint) {
-        List<DaemonInfo> compatibleDaemons = new LinkedList<DaemonInfo>();
+        List<DaemonInfo> compatibleDaemons = new ArrayList<DaemonInfo>();
         for (DaemonInfo daemon : daemons) {
             if (constraint.isSatisfiedBy(daemon.getContext())) {
                 compatibleDaemons.add(daemon);

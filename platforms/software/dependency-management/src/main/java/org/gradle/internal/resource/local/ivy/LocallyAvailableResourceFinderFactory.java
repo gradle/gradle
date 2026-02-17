@@ -38,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> {
@@ -69,7 +69,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
 
     @Override
     public LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> create() {
-        List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders = new LinkedList<>();
+        List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders = new ArrayList<>();
 
         // Order is important here, because they will be searched in that order
 

@@ -16,7 +16,7 @@
 
 package model
 
-import java.util.LinkedList
+import java.util.ArrayList
 
 /**
  * Split a list of elements into nearly even sublist. If an element is too large, largeElementSplitFunction will be used to split the large element into several smaller pieces;
@@ -29,7 +29,7 @@ import java.util.LinkedList
  * @param expectedBucketNumber the return value's size should be expectedBucketNumber
  */
 fun <T, R> splitIntoBuckets(
-    list: LinkedList<T>,
+    list: ArrayList<T>,
     toIntFunction: (T) -> Int,
     largeElementSplitFunction: (T, Int) -> List<R>,
     smallElementAggregateFunction: (List<T>) -> R,
@@ -115,7 +115,7 @@ private fun <T> determineBucketNumberForLargeElment(
     largestElementSize: Int,
     roughSizeOfEachBucket: Int,
     expectedBucketNumber: Int,
-    list: LinkedList<T>,
+    list: ArrayList<T>,
     toIntFunction: (T) -> Int,
 ): Int {
     var bucketNumberOfFirstElement =
