@@ -321,12 +321,12 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 #### Improved hit rates for changes in `gradle.properties` files
 
 Previously, changing any `gradle.properties` file resulted in invalidating the [Configuration Cache](userguide/configuration_cache.html),
-even if the [project properties](userguide/build_environment.html#sec:project_properties) weren't changed or if the changed property wasn't used during the configuration phase.
+even if no [project properties](userguide/build_environment.html#sec:project_properties) were changed, or any changed properties weren't used during the configuration phase.
 
 Consider the following Kotlin DSL example:
 
 ```kotlin
-tasks.register("echo") {
+tasks.register("print") {
     val value = providers.gradleProperty("value").orElse("N/A")
     doLast {
         println("value: ${value.get()}")
@@ -334,45 +334,40 @@ tasks.register("echo") {
 }
 ```
 
-With previous versions of Gradle, executing the `echo` task after changing the value of `value` in `gradle.properties` was unable to reuse the Configuration Cache:
+When running the `print` task with the Configuration Cache enabled, Gradle caches the work graph:
 ```
-$ ./gradlew --configuration-cache echo
-Calculating task graph as no cached configuration is available for tasks: echo
+$ ./gradlew --configuration-cache print
+Calculating task graph as no cached configuration is available for tasks: print
 
-> Task :echo
+> Task :print
 value: N/A
 
 ...
 Configuration cache entry stored.
 ```
+
+Previous versions of Gradle were unable to reuse this cache entry when re-executing the `print` task after changing anything in `gradle.properties`:
 ```
-$ echo "value=1" >> gradle.properties; ./gradlew --configuration-cache echo
+$ echo "value=1" >> gradle.properties
+$ ./gradlew --configuration-cache print
 Calculating task graph as configuration cache cannot be reused because file 'gradle.properties' has changed.
 
-> Task :echo
+> Task :print
 value: 1
 
 ...
 Configuration cache entry stored.
 ```
 
-By detecting that the `value` property is never realized during the configuration phase, this release can reuse the configuration cache and make more scenarios run faster.
-```
-$ ./gradlew --configuration-cache echo
-Calculating task graph as no cached configuration is available for tasks: echo
-
-> Task :echo
-value: N/A
-
-...
-Configuration cache entry stored.
-```
+In this release, Gradle now detects that only the `value` property was changed, and that this property was never used during the configuration phase.
+This allows Gradle to reuse the configuration cache entry and start executing tasks faster
 
 ```
-$ echo "value=1" >> gradle.properties; ./gradlew --configuration-cache echo
+$ echo "value=1" >> gradle.properties
+$ ./gradlew --configuration-cache print
 Reusing configuration cache.
 
-> Task :echo
+> Task :print
 value: 1
 
 ...
