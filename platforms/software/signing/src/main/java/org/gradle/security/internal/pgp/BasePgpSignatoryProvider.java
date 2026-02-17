@@ -19,6 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.security.internal.BaseSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -44,7 +45,15 @@ public class BasePgpSignatoryProvider implements BaseSignatoryProvider<PgpSignat
     }
 
     public PgpSignatory createSignatory(String name, String keyId, File keyRing, String password) {
+        // TODO(mlopatkin) Deprecate this method?
+        //  The API shape forces you to share the signatory across many tasks, so it isn't as bad as the default.
+        //  However, this is going to happen once per project and it may still be somewhat expensive.
         return signatories.put(name, factory.createSignatory(name, keyId, keyRing, password));
+    }
+
+    protected @Nullable PgpSignatory createSignatory(Project project, String name, String keyId, File keyRing, String password) {
+        // We need project to access the signatory-caching build service.
+        return signatories.put(name, factory.createSignatory(project, name, keyId, keyRing, password));
     }
 
     public PgpSignatory createSignatory(Project project, String name, boolean required) {

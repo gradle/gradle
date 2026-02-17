@@ -17,6 +17,7 @@ package org.gradle.plugins.signing.signatory.pgp;
 
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.provider.Providers;
@@ -65,6 +66,23 @@ public class PgpSignatoryFactory {
 
     public PgpSignatory createSignatory(String name, String keyId, File keyRing, String password) {
         return createSignatory(name, readSecretKey(keyId, keyRing), password);
+    }
+
+    /**
+     * Creates a {@link PgpSignatory} named {@code name} based on the private key with id {@code keyId} stored in the key ring file {@code keyRing} with {@code password} password.
+     *
+     * @param project the project to which the signing plugin has been applied
+     * @param name the name for the signatory
+     * @param keyId the key id to look it up in the keyring
+     * @param keyRing the keyring file
+     * @param password the password for the private key
+     * @return the signatory instance
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    public PgpSignatory createSignatory(Project project, String name, String keyId, File keyRing, String password) {
+        return createLazySignatory(project, name, keyId, keyRing, password);
     }
 
     public PgpSignatory createSignatory(String name, PGPSecretKey secretKey, String password) {
