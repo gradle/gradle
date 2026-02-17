@@ -191,7 +191,10 @@ abstract class BuildCommitDistribution @Inject internal constructor(
 
         val buildCommands = mutableListOf(
             "./gradlew" + (if (OperatingSystem.current().isWindows) ".bat" else ""),
+            // TODO:configuration-cache https://github.com/gradle/gradle/issues/36770
             "--no-configuration-cache",
+            // TODO:isolated https://github.com/gradle/gradle/issues/36771
+            "-Dorg.gradle.unsafe.isolated-projects=false",
             "--init-script",
             mirrorInitScript.absolutePath,
         )
