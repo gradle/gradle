@@ -174,6 +174,22 @@ public abstract class ValueState<S> {
 
     public abstract void warnOnUpgradedPropertyValueChanges();
 
+    /**
+     * We create one ValueState for every Property in the build. To lower the overall cost of
+     * each Property, this implementation uses bitset flags instead of separate booleans.
+     *
+     * This also splits out ValueStates with copiers into {@link NonFinalizedValueWithCopier}.
+     * This saves memory by making the class smaller and removing padding for alignment.
+     *
+     * NOTE: Care must be taken to not increase the size of this structure.
+     *
+     * In a build like Gradle's, we have greater than 1 million instances of ValueState.
+     * Adding a single reference can greatly effect the size of this structure and increase
+     * memory consumption in a hard to see way.
+     *
+     * ValueState currently uses 21 bytes plus 3 bytes of padding to maintain a 8-byte alignment (24 bytes overall).
+     * One reference is 4 bytes, which would force this structure to use 7 bytes of padding (32 bytes overall).
+     */
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private static final byte EXPLICIT_VALUE = 1;
         private static final byte FINALIZE_ON_NEXT_GET = 1 << 1;
