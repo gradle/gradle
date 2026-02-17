@@ -310,6 +310,7 @@
             <option value="$PROJECT_DIR$/testing/distributions-integ-tests" />
             <option value="$PROJECT_DIR$/testing/integ-test" />
             <option value="$PROJECT_DIR$/testing/internal-architecture-testing" />
+            <option value="$PROJECT_DIR$/testing/internal-distribution-testing" />
             <option value="$PROJECT_DIR$/testing/internal-integ-testing" />
             <option value="$PROJECT_DIR$/testing/internal-performance-testing" />
             <option value="$PROJECT_DIR$/testing/internal-testing" />

@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 @ToolingApiVersion('>=8.13')
 @TargetGradleVersion('>=8.13')
@@ -145,7 +144,7 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
         event.problem.getAdditionalData().get(SomeData).getName() == 'someData'
 
         where:
-        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+        isolationMode << ["noIsolation", "classLoaderIsolation", "processIsolation"]
     }
 
 
