@@ -90,13 +90,12 @@ public abstract class CUnitPlugin implements Plugin<Project> {
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
 
                 String taskName = suite.getName() + "CUnitLauncher";
-                @SuppressWarnings("deprecation")
-                GenerateCUnitLauncher skeletonTask = tasks.create(taskName, GenerateCUnitLauncher.class);
-
-                CSourceSet launcherSources = findLauncherSources(suite);
-                skeletonTask.setSourceDir(launcherSources.getSource().getSrcDirs().iterator().next());
-                skeletonTask.setHeaderDir(launcherSources.getExportedHeaders().getSrcDirs().iterator().next());
-                launcherSources.builtBy(skeletonTask);
+                tasks.register(taskName, GenerateCUnitLauncher.class, task -> {
+                    CSourceSet launcherSources = findLauncherSources(suite);
+                    task.setSourceDir(launcherSources.getSource().getSrcDirs().iterator().next());
+                    task.setHeaderDir(launcherSources.getExportedHeaders().getSrcDirs().iterator().next());
+                    launcherSources.builtBy(task);
+                });
             }
         }
 
