@@ -168,7 +168,7 @@ fun log(message: String) {
 }
 
 
-private
+internal
 fun Project.findProjectWithBuildFile(file: File) =
     allprojects.find { it.buildFile == file }
 

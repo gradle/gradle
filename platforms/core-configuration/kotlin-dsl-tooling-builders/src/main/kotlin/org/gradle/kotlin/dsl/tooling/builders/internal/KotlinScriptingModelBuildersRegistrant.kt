@@ -18,6 +18,8 @@ package org.gradle.kotlin.dsl.tooling.builders.internal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.project.ProjectConfigureAction
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.kotlin.dsl.tooling.builders.ComponentSourcesModelBuilder
+import org.gradle.kotlin.dsl.tooling.builders.GradleScriptsModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelBuilder
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
@@ -44,6 +46,8 @@ class KotlinScriptingModelBuildersRegistrant(
                 else -> KotlinDslScriptsModelBuilder
             }
             registry.register(builder)
+            registry.register(GradleScriptsModelBuilder)
+            registry.register(ComponentSourcesModelBuilder)
         }
     }
 

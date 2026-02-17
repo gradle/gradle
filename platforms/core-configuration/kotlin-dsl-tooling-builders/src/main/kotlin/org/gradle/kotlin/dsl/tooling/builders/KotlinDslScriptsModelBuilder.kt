@@ -237,7 +237,7 @@ fun Project.resolveExplicitScriptsParameter(): List<File>? =
 
 
 // TODO:kotlin-dsl naive implementation for now, refine
-private
+internal
 fun Project.collectKotlinDslScripts(): List<File> = buildList {
 
     addAll(discoverInitScripts())
