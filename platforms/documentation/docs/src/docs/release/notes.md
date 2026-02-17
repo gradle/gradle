@@ -318,6 +318,65 @@ configurations {
 
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### Improved hit rates for changes in `gradle.properties` files
+
+Previously, changing any `gradle.properties` file resulted in invalidating the [Configuration Cache](userguide/configuration_cache.html),
+even if no [project properties](userguide/build_environment.html#sec:project_properties) were changed, or any changed properties weren't used during the configuration phase.
+
+Consider the following Kotlin DSL example:
+
+```kotlin
+tasks.register("printValue") {
+    val value = providers.gradleProperty("value").orElse("N/A")
+    doLast {
+        println("value: ${value.get()}")
+    }
+}
+```
+
+When running the `printValue` task with the Configuration Cache enabled, Gradle caches the work graph:
+```shell
+$ ./gradlew --configuration-cache printValue
+
+Calculating task graph as no cached configuration is available for tasks: printValue
+
+> Task :printValue
+value: N/A
+
+...
+Configuration cache entry stored.
+```
+
+Previous versions of Gradle were unable to reuse this cache entry when re-executing the `printValue` task after changing anything in `gradle.properties`:
+```shell
+$ echo "value=1" >> gradle.properties
+$ ./gradlew --configuration-cache printValue
+
+Calculating task graph as configuration cache cannot be reused because file 'gradle.properties' has changed.
+
+> Task :printValue
+value: 1
+
+...
+Configuration cache entry stored.
+```
+
+In this release, Gradle now detects that only the `value` property was changed, and that this property was never used during the configuration phase.
+This allows Gradle to reuse the configuration cache entry and start executing tasks faster
+
+```shell
+$ echo "value=1" >> gradle.properties
+$ ./gradlew --configuration-cache printValue
+
+Reusing configuration cache.
+
+> Task :printValue
+value: 1
+
+...
+Configuration cache entry reused.
+```
+
 #### Clearer attribution for closures and lambdas
 
 Identifying the source of [Configuration Cache violations](userguide/configuration_cache_debugging.html) can be challenging when a task contains multiple lambdas or closures.
