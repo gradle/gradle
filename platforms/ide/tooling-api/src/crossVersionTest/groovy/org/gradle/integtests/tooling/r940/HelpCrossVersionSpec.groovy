@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r940
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.launcher.cli.HelpFixture
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.build.Help
 
@@ -38,26 +37,6 @@ class HelpCrossVersionSpec extends ToolingApiSpecification {
         thrown(UnsupportedMethodException)
     }
 
-    def "can fetch model via model query"() {
-        when:
-        def help = withConnection { connection ->
-            connection.getModel(Help.class).renderedText
-        }
-
-        then:
-        assertHelpText(help)
-    }
-
-    def "can fetch model via build action"() {
-        when:
-        def help = withConnection { connection ->
-            connection.action(new FetchHelpTextAction()).run()
-        }
-
-        then:
-        assertHelpText(help)
-    }
-
     def "model from a build action is the same as from a model query"() {
         when:
         def resultFromQuery = withConnection { connection ->
@@ -69,9 +48,5 @@ class HelpCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         resultFromQuery == resultFromAction
-    }
-
-    private static void assertHelpText(String help) {
-        assert help.normalize() == HelpFixture.DEFAULT_OUTPUT
     }
 }

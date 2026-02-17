@@ -75,8 +75,6 @@ dependencies {
     testFixturesImplementation(projects.logging)
     testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
-    testFixturesImplementation(testFixtures(projects.enterpriseLogging))
-    testFixturesImplementation(testFixtures(projects.launcher))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
@@ -84,11 +82,11 @@ dependencies {
     integTestImplementation(projects.persistentCache)
     integTestImplementation(projects.kotlinDslToolingModels)
     integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.launcher))
 
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
-    crossVersionTestImplementation(testFixtures(projects.launcher))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(testLibs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)

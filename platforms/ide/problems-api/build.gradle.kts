@@ -55,7 +55,7 @@ dependencies {
 
     testFixturesImplementation(projects.enterpriseOperations)
     testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalDistributionTesting)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false
