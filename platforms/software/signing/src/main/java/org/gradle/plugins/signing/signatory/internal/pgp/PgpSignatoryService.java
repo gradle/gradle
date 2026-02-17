@@ -23,6 +23,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.lazy.Lazy;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Objects;
@@ -36,18 +37,24 @@ public abstract class PgpSignatoryService implements BuildService<BuildServicePa
         return project.getGradle().getSharedServices().registerIfAbsent(SERVICE_NAME, PgpSignatoryService.class);
     }
 
-    private final ConcurrentMap<PgpKeyLocation, ParsedPgpKey> cachedKeys = new ConcurrentHashMap<>();
+    private final ConcurrentMap<PgpKeyHandle, ParsedPgpKey> cachedKeys = new ConcurrentHashMap<>();
 
-    public ParsedPgpKey readSecretKey(String keyId, File file, String password) {
-        return cachedKeys.computeIfAbsent(new PgpKeyLocation(keyId, file, password), location -> new ParsedPgpKey(PgpSignatoryUtil.readSecretKey(keyId, file), password));
+    public ParsedPgpKey readSecretKeyFromKeyRingFile(String keyId, File file, String password) {
+        return cachedKeys.computeIfAbsent(new PgpKeyInKeyringFile(keyId, file, password), handle -> new ParsedPgpKey(PgpSignatoryUtil.readSecretKey(keyId, file), password));
     }
 
-    private static class PgpKeyLocation {
+    public ParsedPgpKey readSecretKeyFromArmoredString(@Nullable String keyId, String keyData, String password) {
+        return cachedKeys.computeIfAbsent(new PgpKeyData(keyId, keyData, password), handle -> new ParsedPgpKey(PgpSignatoryUtil.parseSecretKey(keyId, keyData), password));
+    }
+
+    private interface PgpKeyHandle {}
+
+    private static class PgpKeyInKeyringFile implements PgpKeyHandle {
         final String keyId;
         final File file;
         final String password;
 
-        private PgpKeyLocation(String keyId, File file, String password) {
+        PgpKeyInKeyringFile(String keyId, File file, String password) {
             this.keyId = keyId;
             this.file = file;
             this.password = password;
@@ -55,16 +62,42 @@ public abstract class PgpSignatoryService implements BuildService<BuildServicePa
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof PgpKeyLocation)) {
+            if (!(o instanceof PgpKeyInKeyringFile)) {
                 return false;
             }
-            PgpKeyLocation that = (PgpKeyLocation) o;
+            PgpKeyInKeyringFile that = (PgpKeyInKeyringFile) o;
             return Objects.equals(keyId, that.keyId) && Objects.equals(file, that.file) && Objects.equals(password, that.password);
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(keyId, file, password);
+        }
+    }
+
+    private static class PgpKeyData implements PgpKeyHandle {
+        final @Nullable String keyId;
+        final String armoredKey;
+        final String password;
+
+        PgpKeyData(@Nullable String keyId, String armoredKey, String password) {
+            this.keyId = keyId;
+            this.armoredKey = armoredKey;
+            this.password = password;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof PgpKeyData)) {
+                return false;
+            }
+            PgpKeyData that = (PgpKeyData) o;
+            return Objects.equals(keyId, that.keyId) && Objects.equals(armoredKey, that.armoredKey) && Objects.equals(password, that.password);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(keyId, armoredKey, password);
         }
     }
 

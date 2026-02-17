@@ -17,20 +17,20 @@ package org.gradle.plugins.signing.signatory.internal.pgp;
 
 import org.gradle.api.Project;
 import org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider;
-import org.gradle.security.internal.pgp.BaseInMemoryPgpSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
+import org.gradle.security.internal.pgp.BaseInMemoryPgpSignatoryProvider;
 import org.jspecify.annotations.NullUnmarked;
 
 import java.util.Arrays;
 
 @NullUnmarked
 public class InMemoryPgpSignatoryProvider extends BaseInMemoryPgpSignatoryProvider implements ConfigurableSignatoryProvider<PgpSignatory> {
-    public InMemoryPgpSignatoryProvider(String defaultSecretKey, String defaultPassword) {
-        super(defaultSecretKey, defaultPassword);
+    public InMemoryPgpSignatoryProvider(Project project, String defaultSecretKey, String defaultPassword) {
+        this(project, null, defaultSecretKey, defaultPassword);
     }
 
-    public InMemoryPgpSignatoryProvider(String defaultKeyId, String defaultSecretKey, String defaultPassword) {
-        super(defaultKeyId, defaultSecretKey, defaultPassword);
+    public InMemoryPgpSignatoryProvider(Project project, String defaultKeyId, String defaultSecretKey, String defaultPassword) {
+        super(project, defaultKeyId, defaultSecretKey, defaultPassword);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class InMemoryPgpSignatoryProvider extends BaseInMemoryPgpSignatoryProvid
             default:
                 throw new IllegalArgumentException("Invalid args (" + name + ": " + Arrays.toString(args) + ")");
         }
-        addSignatory(name, keyId, secretKey, password);
+        addSignatory(project, name, keyId, secretKey, password);
     }
 
     @SuppressWarnings("unused") // invoked by Groovy

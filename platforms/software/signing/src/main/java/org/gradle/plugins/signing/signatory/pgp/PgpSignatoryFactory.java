@@ -20,10 +20,13 @@ import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableTransformer;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
+import org.gradle.plugins.signing.SigningExtension;
 import org.gradle.plugins.signing.signatory.internal.pgp.PgpSignatoryService;
 import org.gradle.plugins.signing.signatory.internal.pgp.PgpSignatoryUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
@@ -68,8 +71,14 @@ public class PgpSignatoryFactory {
         return createSignatory(name, readSecretKey(keyId, keyRing), password);
     }
 
+    public PgpSignatory createSignatory(String name, PGPSecretKey secretKey, String password) {
+        return new PgpSignatory(name, secretKey, password);
+    }
+
     /**
      * Creates a {@link PgpSignatory} named {@code name} based on the private key with id {@code keyId} stored in the key ring file {@code keyRing} with {@code password} password.
+     * <p>
+     * In most cases, you want to use {@link SigningExtension} to create signatories instead of this method.
      *
      * @param project the project to which the signing plugin has been applied
      * @param name the name for the signatory
@@ -85,8 +94,23 @@ public class PgpSignatoryFactory {
         return createLazySignatory(project, name, keyId, keyRing, password);
     }
 
-    public PgpSignatory createSignatory(String name, PGPSecretKey secretKey, String password) {
-        return new PgpSignatory(name, secretKey, password);
+    /**
+     * Creates a {@link PgpSignatory} named {@code name} based on the private key with id {@code keyId} stored in the ASCII-armored {@code key} with {@code password} password.
+     * <p>
+     * In most cases, you want to use {@link SigningExtension} to create signatories instead of this method.
+     *
+     * @param project the project to which the signing plugin has been applied
+     * @param name the name for the signatory
+     * @param keyId the key id to look it up in the keyring (optional if keyring contains only one master key, and it should be used)
+     * @param key the ASCII-armored key
+     * @param password the password for the private key
+     * @return the signatory instance
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    public PgpSignatory createSignatory(Project project, String name, @Nullable String keyId, String key, String password) {
+        return createLazySignatory(project, name, keyId, key, password);
     }
 
     protected PgpSignatory readProperties(Project project, String prefix, String name) {
@@ -112,15 +136,17 @@ public class PgpSignatoryFactory {
     private PgpSignatory createLazySignatory(Project project, String name, String keyId, File keyRing, String password) {
         // The returned signatory instance doesn't track changes to originating properties (and never did).
         // In order to account for property mutability, the calling code recreates signatories over and over.
+        return createLazySignatory(project, name, service -> service.readSecretKeyFromKeyRingFile(keyId, keyRing, password));
+    }
+
+    private PgpSignatory createLazySignatory(Project project, String name, String keyId, String keyData, String password) {
+        return createLazySignatory(project, name, service -> service.readSecretKeyFromArmoredString(keyId, keyData, password));
+    }
+
+    private PgpSignatory createLazySignatory(Project project, String name, SerializableTransformer<PgpSignatoryService.ParsedPgpKey, PgpSignatoryService> keyBuilder) {
         Provider<PgpSignatoryService> signatoryService = PgpSignatoryService.obtain(project);
         // Trying to read the key has a cost.
-        Provider<PgpSignatoryService.ParsedPgpKey> keyData = Providers.memoizing(
-            Providers.internal(
-                signatoryService.map(
-                    transformer(service -> service.readSecretKey(keyId, keyRing, password))
-                )
-            )
-        );
+        Provider<PgpSignatoryService.ParsedPgpKey> keyData = Providers.memoizing(Providers.internal(signatoryService.map(keyBuilder)));
 
         return new PgpSignatoryInternal(
             signatoryService,

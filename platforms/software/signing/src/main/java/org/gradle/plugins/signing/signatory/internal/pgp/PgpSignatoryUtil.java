@@ -21,7 +21,10 @@ import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
+import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
+import org.bouncycastle.openpgp.jcajce.JcaPGPSecretKeyRing;
+import org.bouncycastle.openpgp.jcajce.JcaPGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.bc.BcPBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
@@ -32,12 +35,15 @@ import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.IoActions.uncheckedClose;
 
@@ -146,6 +152,33 @@ public class PgpSignatoryUtil {
             return secretKey.extractPrivateKey(decryptor);
         } catch (PGPException e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * Parses the secret key in ASCII-armored format.
+     * The {@code keyData} may contain one or more master keys with subkeys.
+     * If there is more than one master key or a subkey is needed, the {@code keyId} must be provided.
+     * If omitted, the keyData is treated as a single master key (with subkeys) and the master secret key is returned.
+     *
+     * @param keyId the id of the key, can be null to return the only master secret key
+     * @param keyData the ASCII-armored representation of the key
+     * @return the parsed secret key
+     */
+    public static PGPSecretKey parseSecretKey(@Nullable String keyId, String keyData) {
+        try (InputStream in = PGPUtil.getDecoderStream(new ByteArrayInputStream(keyData.getBytes(UTF_8)))) {
+            if (keyId == null) {
+                return new JcaPGPSecretKeyRing(in).getSecretKey();
+            } else {
+                PgpKeyId expectedKeyId = new PgpKeyId(keyId);
+                PGPSecretKey key = findSecretKey(new JcaPGPSecretKeyRingCollection(in), expectedKeyId);
+                if (key != null) {
+                    return key;
+                }
+                throw new InvalidUserDataException(String.format("Cannot find key with id '%s' in key data",  keyId));
+            }
+        } catch (IOException | PGPException e) {
+            throw new InvalidUserDataException("Could not read PGP secret key", e);
         }
     }
 }
