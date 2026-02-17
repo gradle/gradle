@@ -63,6 +63,10 @@ abstract class AbstractSignatureVerificationIntegrationTest extends AbstractDepe
         createSimpleKeyRing(temporaryFolder.createDir("keys-${UUID.randomUUID()}"))
     }
 
+    protected SimpleKeyRing newKeyRingWithUserId(String userId) {
+        createSimpleKeyRing(temporaryFolder.createDir("keys-${UUID.randomUUID()}"), "gradle", userId)
+    }
+
     protected SimpleKeyRing newKeyRingFromResource(String publicKeyResource, String secretKeyResource) {
         createSimpleKeyRingFromResource(publicKeyResource, secretKeyResource)
     }
