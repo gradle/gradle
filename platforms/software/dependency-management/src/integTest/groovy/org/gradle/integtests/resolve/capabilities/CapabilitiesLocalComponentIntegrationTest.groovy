@@ -264,4 +264,53 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         expect:
         succeeds("resolve")
     }
+
+    def "useful error message when target component has matching capability but incorrect attributes"() {
+        settingsFile << """
+            include(":other")
+        """
+        file("other/build.gradle") << """
+            configurations.consumable("elements") {
+                outgoing {
+                    ${requested.collect { "capability('$it:1.0')" }.join("\n")}
+                }
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
+                }
+            }
+        """
+
+        buildFile << """
+            def conf = configurations.create("res") {
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "bar"))
+                }
+            }
+
+            dependencies {
+                res(project(":other")) {
+                    capabilities {
+                        ${ requested.collect { "requireCapability('$it')" }.join("\n") }
+                    }
+                }
+            }
+
+            tasks.register("resolve") {
+                dependsOn(conf)
+            }
+        """
+
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("No matching variant of project :other $description was found")
+        failure.assertHasErrorOutput("Incompatible because this component declares attribute 'org.gradle.category' with value 'foo' and the consumer needed attribute 'org.gradle.category' with value 'bar'")
+
+        where:
+        requested               | description
+        ["org:foo"]             | "with capability coordinates 'org:foo'"
+        ["org:foo", "org:bar"]  | "with capabilities [coordinates 'org:bar', coordinates 'org:foo']"
+    }
+
 }
