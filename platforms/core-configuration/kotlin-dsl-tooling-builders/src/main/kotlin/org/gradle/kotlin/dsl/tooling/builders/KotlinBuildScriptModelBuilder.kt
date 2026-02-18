@@ -387,7 +387,7 @@ fun compilationClassPathForScriptPluginOf(
 }
 
 
-private
+internal
 fun kotlinScriptFactoryOf(gradle: GradleInternal) =
     gradle.serviceOf<KotlinScriptEvaluator>()
 
@@ -402,7 +402,7 @@ fun scriptHandlerFactoryOf(gradle: Gradle) =
     gradle.serviceOf<ScriptHandlerFactory>()
 
 
-private
+internal
 fun textResourceScriptSource(description: String, scriptFile: File, resourceLoader: TextFileResourceLoader) =
     TextResourceScriptSource(resourceLoader.loadFile(description, scriptFile))
 
@@ -503,7 +503,7 @@ val Project.scriptCompilationClassPath
     get() = gradle.compilationClassPathOf((this as ProjectInternal).classLoaderScope)
 
 
-private
+internal
 fun Gradle.compilationClassPathOf(classLoaderScope: ClassLoaderScope) =
     serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope, true) {
         (this as ProjectInternal).gradle

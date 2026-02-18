@@ -23,19 +23,17 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 import org.gradle.kotlin.dsl.get
 import org.gradle.tooling.model.buildscript.GradleScriptModel
-import org.gradle.tooling.model.buildscript.ProjectScriptModel
+import org.gradle.tooling.model.buildscript.ProjectScriptsModel
 import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.provider.model.ToolingModelBuilder
-import org.jetbrains.kotlin.resolve.deprecatedParentTargetMap
 import java.io.File
 
 object ProjectScriptsModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
-        ProjectScriptModel::class.java.name == modelName
+        ProjectScriptsModel::class.java.name == modelName
 
-    override fun buildAll(modelName: String, project: Project): ProjectScriptModel {
-
-        return StandardProjectScriptModel(
+    override fun buildAll(modelName: String, project: Project): ProjectScriptsModel {
+        return StandardProjectScriptsModel(
             buildScriptModel = StandardGradleScriptModel(
                 scriptFile = project.buildFile,
                 implicitImports = project.gradle.scriptImplicitImports,
@@ -52,7 +50,7 @@ object ProjectScriptsModelBuilder : ToolingModelBuilder {
 
             val resolvedClassPath: MutableSet<ResolvedArtifactResult> = hashSetOf()
             for (buildscript in sourceLookupScriptHandlersFor(project).asReversed()) {
-                resolvedClassPath += classpathDependenciesOf(buildscript)
+                resolvedClassPath += classpathDependencyArtifactsOf(buildscript)
                     .filter { dep -> dep.id !in resolvedClassPath.map { it.id } }
             }
 
@@ -74,20 +72,20 @@ object ProjectScriptsModelBuilder : ToolingModelBuilder {
                 )
             }
         }
-
-    private
-    fun classpathDependenciesOf(buildscript: ScriptHandler): ArtifactCollection =
-        buildscript
-            .configurations[CLASSPATH_CONFIGURATION]
-            .incoming
-            .artifactView { it.lenient(true) }
-            .artifacts
 }
 
-class StandardProjectScriptModel(
+internal
+fun classpathDependencyArtifactsOf(buildscript: ScriptHandler): ArtifactCollection =
+    buildscript
+        .configurations[CLASSPATH_CONFIGURATION]
+        .incoming
+        .artifactView { it.lenient(true) }
+        .artifacts
+
+class StandardProjectScriptsModel(
     private val buildScriptModel: GradleScriptModel,
     private val precompiledScriptModels: Map<File, GradleScriptModel>
-) : ProjectScriptModel {
+) : ProjectScriptsModel {
     override fun getBuildScriptModel(): GradleScriptModel = buildScriptModel
     override fun getPrecompiledScriptModels(): Map<File, GradleScriptModel> = precompiledScriptModels
 }

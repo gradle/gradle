@@ -16,9 +16,13 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.build.BuildState
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.tooling.model.buildscript.GradleScriptModel
 import org.gradle.tooling.model.buildscript.InitScriptsModel
+import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
 
@@ -34,32 +38,42 @@ object InitScriptsModelBuilder : BuildScopeModelBuilder {
             .filter { it.isKotlinDslFile }
         return StandardInitScriptsModel(
             initScripts.map { scriptFile ->
-
-                val (scriptHandler, scriptClassPath) = compilationClassPathForScriptPluginOf(
-                    target = gradle,
-                    scriptFile = scriptFile,
-                    baseScope = gradle.classLoaderScope,
-                    scriptHandlerFactory = scriptHandlerFactoryOf(gradle),
-                    gradle = gradle,
-                    resourceDescription = "initialization script"
-                )
-
-                val ktsModel = KotlinScriptTargetModelBuilder(
-                    scriptFile = scriptFile,
-                    project = null,
-                    gradle = gradle,
-                    scriptClassPath = scriptClassPath,
-                    sourceLookupScriptHandlers = listOf(scriptHandler)
-                ).buildModel()
-
                 StandardGradleScriptModel(
                     scriptFile = scriptFile,
-                    implicitImports = ktsModel.implicitImports,
-                    contextPath = emptyList()
+                    implicitImports = gradle.scriptImplicitImports,
+                    contextPath = buildContextPathFor(scriptFile, gradle),
                 )
             }.associateBy { it.scriptFile }
         )
     }
+
+    private fun buildContextPathFor(scriptFile: File, gradle: GradleInternal): List<ScriptContextPathElement> =
+        buildList {
+            val baseScope = gradle.classLoaderScope
+            val compilationClassPath = gradle.compilationClassPathOf(baseScope).asFiles
+            val scriptSource = textResourceScriptSource("initialization script", scriptFile, gradle.serviceOf())
+            val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
+            val scriptHandler = scriptHandlerFactoryOf(gradle).create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
+            val resolvedClassPath = classpathDependencyArtifactsOf(scriptHandler)
+
+            compilationClassPath.forEach { file ->
+                add(
+                    StandardScriptContextPathElement(
+                        file,
+                        resolvedClassPath.firstOrNull { it.file == file }
+                            ?.id?.componentIdentifier
+                            ?.let { componentId ->
+                                listOf(
+                                    StandardSourceComponentIdentifier(
+                                        displayName = componentId.displayName,
+                                        bytes = serialize(componentId)
+                                    )
+                                )
+                            } ?: emptyList()
+                    )
+                )
+            }
+        }
 }
 
 class StandardInitScriptsModel(

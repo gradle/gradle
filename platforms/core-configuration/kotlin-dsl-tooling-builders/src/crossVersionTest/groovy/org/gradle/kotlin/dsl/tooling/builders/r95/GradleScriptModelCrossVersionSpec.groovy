@@ -18,25 +18,66 @@ package org.gradle.kotlin.dsl.tooling.builders.r95
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
+import org.gradle.kotlin.dsl.tooling.builders.StandardGradleScriptsModel
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.buildscript.ComponentSources
 import org.gradle.tooling.model.buildscript.ComponentSourcesRequest
 import org.gradle.tooling.model.buildscript.GradleScriptModel
 import org.gradle.tooling.model.buildscript.GradleScriptsModel
-import org.gradle.tooling.model.buildscript.ScriptContextPathElement
+import org.gradle.tooling.model.buildscript.InitScriptsModel
+import org.gradle.tooling.model.buildscript.ProjectScriptsModel
+import org.gradle.tooling.model.buildscript.SettingsScriptModel
 import org.gradle.tooling.model.buildscript.SourceComponentIdentifier
-import org.gradle.tooling.model.dsl.GradleDslBaseScriptModel
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
-import org.gradle.util.GradleVersion
-
-import static org.junit.Assume.assumeTrue
 
 @TargetGradleVersion(">=9.5")
 class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
-    def "query script with mapper classpath and sources with sources downloaded in a subsequent call"() {
+    def "new model"() {
+        given:
+        withMultipleSubprojects()
+        def scriptDependency = """
+            buildscript {
+                repositories { gradlePluginPortal() }
+                dependencies {
+                    classpath("org.nosphere.apache.rat:org.nosphere.apache.rat.gradle.plugin:0.8.1")
+                    classpath("net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin:5.0.0")
+                }
+            }
+        """
+        file("build.gradle.kts") << scriptDependency
+        file("a/build.gradle.kts") << scriptDependency
+        file("b/build.gradle.kts") << scriptDependency
+
+        when:
+        def result = withConnection {
+            it.action(new AllScriptModelsAndSourcesBuildAction())
+//                .withArguments("-Dorg.gradle.debug=true")
+                .run()
+        }
+
+        then:
+        result != null
+        println result
+        def sourcePath = result.modelsByScripts.values().collectMany {
+            it.contextPath.collectMany { it.sourcePath }
+        }.unique()
+
+        when:
+        def sourcesModel = withConnection {
+            it.action(new ComponentSourcesBuildAction(sourcePath))
+//                .withArguments("-Dorg.gradle.debug=true")
+                .run()
+        }
+
+        then:
+        println sourcesModel
+        sourcesModel != null
+    }
+
+
+    def "query script with mapped classpath and sources with sources downloaded in a subsequent call"() {
         given:
         withMultipleSubprojects()
         settingsFileKts << """
@@ -81,6 +122,26 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
         sourcesModel.sourcesByComponents.size() == 2
         def sourceArtifacts = sourcesModel.sourcesByComponents.values().collectMany { it }
         println sourceArtifacts
+    }
+}
+
+class AllScriptModelsAndSourcesBuildAction implements BuildAction<GradleScriptsModel> {
+    @Override
+    GradleScriptsModel execute(BuildController controller) {
+        def init = controller.getModel(InitScriptsModel)
+        def build = controller.getModel(GradleBuild)
+        def settings = controller.getModel(build.rootProject, SettingsScriptModel)
+        def projects = build.projects.collect { project ->
+            controller.getModel(project, ProjectScriptsModel)
+        }
+        Map<File, GradleScriptModel> all = [:]
+        all << init.initScriptModels
+        all[settings.settingsScriptModel.scriptFile] = settings.settingsScriptModel
+        projects.each { project ->
+            all[project.buildScriptModel.scriptFile] = project.buildScriptModel
+            all << project.precompiledScriptModels
+        }
+        return new StandardGradleScriptsModel(all)
     }
 }
 

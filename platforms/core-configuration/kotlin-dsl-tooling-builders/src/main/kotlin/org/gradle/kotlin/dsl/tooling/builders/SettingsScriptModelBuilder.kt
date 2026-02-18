@@ -16,9 +16,13 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.build.BuildState
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.tooling.model.buildscript.GradleScriptModel
-import org.gradle.tooling.model.buildscript.InitScriptsModel
+import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.model.buildscript.SettingsScriptModel
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
@@ -29,14 +33,50 @@ object SettingsScriptModelBuilder : BuildScopeModelBuilder {
         SettingsScriptModel::class.java.name == modelName
 
     override fun create(target: BuildState): SettingsScriptModel {
+        val gradle = target.mutableModel
+        val settings = gradle.settings
+        val scriptFile = File(settings.settingsScript.fileName)
+
         return StandardSettingsScriptModel(
             StandardGradleScriptModel(
-                scriptFile = File(target.mutableModel.settings.settingsScript.fileName),
-                implicitImports = emptyList(),
-                contextPath = emptyList()
+                scriptFile = scriptFile,
+                implicitImports = gradle.scriptImplicitImports,
+                contextPath = buildContextPathFor(scriptFile, gradle, settings),
             )
         )
     }
+
+    private fun buildContextPathFor(
+        scriptFile: File,
+        gradle: GradleInternal,
+        settings: SettingsInternal
+    ): List<ScriptContextPathElement> =
+        buildList {
+            val baseScope = settings.classLoaderScope
+            val compilationClassPath = gradle.compilationClassPathOf(baseScope).asFiles
+            val scriptSource = textResourceScriptSource("settings script", scriptFile, gradle.serviceOf())
+            val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
+            val scriptHandler = scriptHandlerFactoryOf(gradle).create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
+            val resolvedClassPath = classpathDependencyArtifactsOf(scriptHandler)
+
+            compilationClassPath.forEach { file ->
+                add(
+                    StandardScriptContextPathElement(
+                        file,
+                        resolvedClassPath.firstOrNull { it.file == file }
+                            ?.id?.componentIdentifier
+                            ?.let { componentId ->
+                                listOf(
+                                    StandardSourceComponentIdentifier(
+                                        displayName = componentId.displayName,
+                                        bytes = serialize(componentId)
+                                    )
+                                )
+                            } ?: emptyList()
+                    )
+                )
+            }
+        }
 }
 
 class StandardSettingsScriptModel(
