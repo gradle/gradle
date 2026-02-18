@@ -4,8 +4,7 @@ plugins {
 
 dependencies {
     api(projects.baseServices)
-    api(projects.core)
-    api(projects.coreApi)
+    api(projects.clientServices)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
     api(libs.jspecify)

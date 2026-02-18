@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.Strings;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -66,7 +67,9 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProjectNatu
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirectory;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
+import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.EclipseRuntime;
@@ -282,11 +285,16 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
                 final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
                 final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
                 DefaultEclipseExternalDependency dependency;
+                ModuleVersionIdentifier moduleVersionId = library.getModuleVersion();
+                GradleModuleVersion moduleVersion = null;
+                if (moduleVersionId != null) {
+                    moduleVersion = new DefaultGradleModuleVersion(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion());
+                }
                 if (entry instanceof UnresolvedLibrary) {
                     UnresolvedLibrary unresolvedLibrary = (UnresolvedLibrary) entry;
-                    dependency = DefaultEclipseExternalDependency.createUnresolved(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library), createAccessRules(library), unresolvedLibrary.getAttemptedSelector().getDisplayName());
+                    dependency = DefaultEclipseExternalDependency.createUnresolved(file, javadoc, source, moduleVersion, library.isExported(), createAttributes(library), createAccessRules(library), unresolvedLibrary.getAttemptedSelector().getDisplayName());
                 } else {
-                    dependency = DefaultEclipseExternalDependency.createResolved(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library), createAccessRules(library));
+                    dependency = DefaultEclipseExternalDependency.createResolved(file, javadoc, source, moduleVersion, library.isExported(), createAttributes(library), createAccessRules(library));
                 }
                 classpathElements.getExternalDependencies().add(dependency);
             } else if (entry instanceof ProjectDependency) {
