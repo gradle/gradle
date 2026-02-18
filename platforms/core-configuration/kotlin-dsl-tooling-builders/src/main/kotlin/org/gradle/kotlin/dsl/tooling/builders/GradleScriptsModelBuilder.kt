@@ -68,24 +68,24 @@ object GradleScriptsModelBuilder : ToolingModelBuilder {
                     .filter { dep -> dep.id !in resolvedClassPath.map { it.id } }
             }
 
-            val classPathFromLoadersTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-classpath-classloader-files.txt")
-            classPathFromLoadersTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
-                compilationClassPath.forEach { writer.appendLine(it.absolutePath) }
-            }
-            val classPathFromResolutionFilesTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-classpath-resolved-files.txt")
-            classPathFromResolutionFilesTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
-                resolvedClassPath.forEach { writer.appendLine(it.file.absolutePath) }
-            }
-            val classPathFromResolutionIdsTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-classpath-resolved-ids.txt")
-            classPathFromResolutionIdsTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
-                resolvedClassPath.forEach { writer.appendLine(it.id.componentIdentifier.displayName) }
-            }
-            val sourcePathFromResolutionTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-sourcepath-resolved.txt")
-            val sourcePathIdentifiers: List<ComponentIdentifier> =
-                resolvedClassPath.map { it.id.componentIdentifier }
-            sourcePathFromResolutionTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
-                sourcePathIdentifiers.forEach { writer.appendLine(it.displayName) }
-            }
+//            val classPathFromLoadersTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-classpath-classloader-files.txt")
+//            classPathFromLoadersTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
+//                compilationClassPath.forEach { writer.appendLine(it.absolutePath) }
+//            }
+//            val classPathFromResolutionFilesTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-classpath-resolved-files.txt")
+//            classPathFromResolutionFilesTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
+//                resolvedClassPath.forEach { writer.appendLine(it.file.absolutePath) }
+//            }
+//            val classPathFromResolutionIdsTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-classpath-resolved-ids.txt")
+//            classPathFromResolutionIdsTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
+//                resolvedClassPath.forEach { writer.appendLine(it.id.componentIdentifier.displayName) }
+//            }
+//            val sourcePathFromResolutionTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-sourcepath-resolved.txt")
+//            val sourcePathIdentifiers: List<ComponentIdentifier> =
+//                resolvedClassPath.map { it.id.componentIdentifier }
+//            sourcePathFromResolutionTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
+//                sourcePathIdentifiers.forEach { writer.appendLine(it.displayName) }
+//            }
 
             compilationClassPath.forEach { file ->
                 add(
