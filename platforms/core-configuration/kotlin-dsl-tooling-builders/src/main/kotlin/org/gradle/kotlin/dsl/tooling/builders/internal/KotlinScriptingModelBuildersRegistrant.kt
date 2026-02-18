@@ -48,8 +48,8 @@ class KotlinScriptingModelBuildersRegistrant(
             }
             registry.register(builder)
             registry.register(GradleScriptsModelBuilder)
-            registry.register(ComponentSourcesModelBuilder)
         }
+        registry.register(ComponentSourcesModelBuilder)
         registry.register(ProjectScriptsModelBuilder)
     }
 

@@ -128,7 +128,7 @@ class StandardGradleScriptsModel(
     }
 }
 
-class StandardGradleScriptModel(
+data class StandardGradleScriptModel(
     private val scriptFile: File,
     private val implicitImports: List<String>,
     private val contextPath: List<ScriptContextPathElement>,
@@ -137,13 +137,9 @@ class StandardGradleScriptModel(
     override fun getScriptFile(): File = scriptFile
     override fun getImplicitImports(): List<String> = implicitImports
     override fun getContextPath(): List<ScriptContextPathElement> = contextPath
-
-    override fun toString(): String {
-        return "StandardGradleScriptModel(implicitImports=${implicitImports.size}, contextPath=$contextPath)"
-    }
 }
 
-class StandardScriptContextPathElement(
+data class StandardScriptContextPathElement(
     private val classPath: File,
     private val sourcePath: List<SourceComponentIdentifier>
 ) : ScriptContextPathElement, Serializable {
@@ -152,13 +148,9 @@ class StandardScriptContextPathElement(
 
     override fun getSourcePath(): List<SourceComponentIdentifier> =
         sourcePath
-
-    override fun toString(): String {
-        return "StandardScriptContextPathElement(classPath=${classPath.name}, sourcePath=$sourcePath)"
-    }
 }
 
-class StandardSourceComponentIdentifier(
+data class StandardSourceComponentIdentifier(
     private val displayName: String,
     val bytes: ByteArray,
 ) : SourceComponentIdentifierInternal, Serializable {
@@ -177,10 +169,6 @@ class StandardSourceComponentIdentifier(
 
     override fun hashCode(): Int {
         return bytes.contentHashCode()
-    }
-
-    override fun toString(): String {
-        return "StandardSourceComponentIdentifier(displayName='$displayName', bytes=${Hashing.hashBytes(bytes).toCompactString()})"
     }
 }
 

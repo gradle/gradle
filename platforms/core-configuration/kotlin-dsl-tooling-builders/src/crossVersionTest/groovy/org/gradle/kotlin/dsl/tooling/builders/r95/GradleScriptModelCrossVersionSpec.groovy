@@ -16,19 +16,19 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r95
 
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
-import org.gradle.kotlin.dsl.tooling.builders.StandardGradleScriptsModel
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.buildscript.ComponentSources
 import org.gradle.tooling.model.buildscript.ComponentSourcesRequest
-import org.gradle.tooling.model.buildscript.GradleScriptModel
 import org.gradle.tooling.model.buildscript.GradleScriptsModel
 import org.gradle.tooling.model.buildscript.InitScriptsModel
 import org.gradle.tooling.model.buildscript.ProjectScriptsModel
 import org.gradle.tooling.model.buildscript.SettingsScriptModel
 import org.gradle.tooling.model.buildscript.SourceComponentIdentifier
+import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @TargetGradleVersion(">=9.5")
@@ -60,13 +60,10 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
         then:
         result != null
         println result
-        def sourcePath = result.modelsByScripts.values().collectMany {
-            it.contextPath.collectMany { it.sourcePath }
-        }.unique()
 
         when:
         def sourcesModel = withConnection {
-            it.action(new ComponentSourcesBuildAction(sourcePath))
+            it.action(new AllComponentSourcesBuildAction(result))
 //                .withArguments("-Dorg.gradle.debug=true")
                 .run()
         }
@@ -125,27 +122,78 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
     }
 }
 
-class AllScriptModelsAndSourcesBuildAction implements BuildAction<GradleScriptsModel> {
+class AllScriptsModel implements Serializable {
+    final InitScriptsModel initScriptsModel
+    final SettingsScriptModel settingsScriptModel
+    final Map<BasicGradleProject, ProjectScriptsModel> projectScriptsModels
+
+    AllScriptsModel(InitScriptsModel initScriptsModel, SettingsScriptModel settingsScriptModel, Map<BasicGradleProject, ProjectScriptsModel> projectScriptsModels) {
+        this.initScriptsModel = initScriptsModel
+        this.settingsScriptModel = settingsScriptModel
+        this.projectScriptsModels = projectScriptsModels
+    }
+
+
     @Override
-    GradleScriptsModel execute(BuildController controller) {
+    String toString() {
+        return "AllScriptsModel{" +
+            "initScriptsModel=" + initScriptsModel +
+            ", settingsScriptModel=" + settingsScriptModel +
+            ", projectScriptsModels=" + projectScriptsModels +
+            '}';
+    }
+}
+
+class AllScriptModelsAndSourcesBuildAction implements BuildAction<AllScriptsModel> {
+    @Override
+    AllScriptsModel execute(BuildController controller) {
         def init = controller.getModel(InitScriptsModel)
         def settings = controller.getModel(SettingsScriptModel)
         def build = controller.getModel(GradleBuild)
-        def projects = build.projects.collect { project ->
-            controller.getModel(project, ProjectScriptsModel)
+        def projects = build.projects.collectEntries { project ->
+            [project, controller.getModel(project, ProjectScriptsModel)]
         }
 
-        Map<File, GradleScriptModel> all = [:]
-        all << init.initScriptModels.collectEntries { [it.scriptFile, it] }
-        all[settings.settingsScriptModel.scriptFile] = settings.settingsScriptModel
-        projects.each { project ->
-            all[project.buildScriptModel.scriptFile] = project.buildScriptModel
-            all << project.precompiledScriptModels.collectEntries { [it.scriptFile, it] }
-        }
-
-        return new StandardGradleScriptsModel(all)
+        return new AllScriptsModel(init, settings, projects)
     }
 }
+
+
+class AllComponentSourcesBuildAction implements BuildAction<Map<SourceComponentIdentifier, List<File>>> {
+
+    AllScriptsModel allScriptsModel
+
+    AllComponentSourcesBuildAction(AllScriptsModel allScriptsModel) {
+        this.allScriptsModel = allScriptsModel
+    }
+
+    @Override
+    Map<SourceComponentIdentifier, List<File>> execute(BuildController controller) {
+        def initSources = controller.getModel(ComponentSources, ComponentSourcesRequest) {
+            it.sourceComponentIdentifiers = allScriptsModel.initScriptsModel.initScriptModels.collectMany {
+                it.contextPath.collectMany { it.sourcePath }
+            }
+        }.sourcesByComponents
+        def settingsSource = controller.getModel(ComponentSources, ComponentSourcesRequest) {
+            it.sourceComponentIdentifiers = allScriptsModel.settingsScriptModel.settingsScriptModel.contextPath.collectMany {
+                it.sourcePath
+            }
+        }.sourcesByComponents
+        Map<SourceComponentIdentifier, List<File>> projectSources = allScriptsModel.projectScriptsModels.entrySet().collectEntries { entry ->
+            def project = entry.key
+            def scriptsModel = entry.value
+            controller.getModel(project, ComponentSources, ComponentSourcesRequest) {
+                it.sourceComponentIdentifiers = scriptsModel.buildScriptModel.contextPath
+                    .collectMany { it.sourcePath } +
+                    scriptsModel.precompiledScriptModels.collectMany {
+                        it.contextPath.collectMany { it.sourcePath }
+                    }
+            }.sourcesByComponents
+        }
+        return initSources + settingsSource + projectSources
+    }
+}
+
 
 class ComponentSourcesBuildAction implements BuildAction<ComponentSources> {
 

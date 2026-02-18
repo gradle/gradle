@@ -26,6 +26,7 @@ import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.model.buildscript.SettingsScriptModel
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
+import java.io.Serializable
 
 object SettingsScriptModelBuilder : BuildScopeModelBuilder {
 
@@ -80,8 +81,8 @@ object SettingsScriptModelBuilder : BuildScopeModelBuilder {
         }
 }
 
-class StandardSettingsScriptModel(
+data class StandardSettingsScriptModel(
     private val settingsScriptModel: GradleScriptModel
-) : SettingsScriptModel {
+) : SettingsScriptModel, Serializable {
     override fun getSettingsScriptModel(): GradleScriptModel = settingsScriptModel
 }

@@ -26,6 +26,7 @@ import org.gradle.tooling.model.buildscript.GradleScriptModel
 import org.gradle.tooling.model.buildscript.ProjectScriptsModel
 import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import java.io.Serializable
 
 object ProjectScriptsModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
@@ -81,10 +82,10 @@ fun classpathDependencyArtifactsOf(buildscript: ScriptHandler): ArtifactCollecti
         .artifactView { it.lenient(true) }
         .artifacts
 
-class StandardProjectScriptsModel(
+data class StandardProjectScriptsModel(
     private val buildScriptModel: GradleScriptModel,
     private val precompiledScriptModels: List<GradleScriptModel>
-) : ProjectScriptsModel {
+) : ProjectScriptsModel, Serializable {
     override fun getBuildScriptModel(): GradleScriptModel = buildScriptModel
     override fun getPrecompiledScriptModels(): List<GradleScriptModel> = precompiledScriptModels
 }

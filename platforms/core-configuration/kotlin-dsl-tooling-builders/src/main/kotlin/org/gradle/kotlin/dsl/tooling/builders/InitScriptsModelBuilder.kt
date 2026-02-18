@@ -25,6 +25,7 @@ import org.gradle.tooling.model.buildscript.InitScriptsModel
 import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
+import java.io.Serializable
 
 object InitScriptsModelBuilder : BuildScopeModelBuilder {
 
@@ -76,8 +77,8 @@ object InitScriptsModelBuilder : BuildScopeModelBuilder {
         }
 }
 
-class StandardInitScriptsModel(
+data class StandardInitScriptsModel(
     private val initScriptModels: List<GradleScriptModel>
-) : InitScriptsModel {
+) : InitScriptsModel, Serializable {
     override fun getInitScriptModels(): List<GradleScriptModel>  = initScriptModels
 }
