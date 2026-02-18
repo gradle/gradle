@@ -18,8 +18,9 @@ package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.util.internal.ToBeImplemented
 
 abstract class AbstractLockingIntegrationTest extends AbstractDependencyResolutionTest {
     def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
@@ -178,42 +179,46 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
     }
 
-    @ToBeFixedForConfigurationCache(because = "Does actually write the lock file when CC is enabled (which is fine, because all dependency resolution has completed successfully by the time the task fails)")
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/36733")
     def 'does not write lock file when task execution fails'() {
         mavenRepo.module('org', 'bar', '1.1').publish()
 
         buildFile << """
-dependencyLocking {
-    lockAllConfigurations()
-}
-
-repositories {
-    maven {
-        url = "${mavenRepo.uri}"
-    }
-}
-configurations {
-    conf
-}
-
-dependencies {
-    conf 'org:bar:1.+'
-}
-
-task copyDeps(type: Copy) {
-    from configurations.conf
-    into "\$buildDir/output"
-    doLast {
-        throw new RuntimeException("Build failed")
-    }
-}
-"""
+            dependencyLocking {
+                lockAllConfigurations()
+            }
+            
+            repositories {
+                maven {
+                    url = "${mavenRepo.uri}"
+                }
+            }
+            configurations {
+                conf
+            }
+            
+            dependencies {
+                conf 'org:bar:1.+'
+            }
+            
+            task copyDeps(type: Copy) {
+                from configurations.conf
+                into "\$buildDir/output"
+                doLast {
+                    throw new RuntimeException("Build failed")
+                }
+            }
+        """
 
         when:
         fails 'copyDeps', '--write-locks'
 
         then:
-        lockfileFixture.expectLockStateMissing('conf')
+        if (GradleContextualExecuter.isConfigCache()) {
+            lockfileFixture.verifyLockfile('conf', ['org:bar:1.1']) // TODO: should NOT write lock files, see https://github.com/gradle/gradle/issues/36733
+        } else {
+            lockfileFixture.expectLockStateMissing('conf')
+        }
     }
 
     def 'does not write lock file when dependency resolution fails'() {
