@@ -700,6 +700,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "ide-model-impls",
+    "path": "platforms/ide/ide-model-impls",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "ide-native",
     "path": "platforms/ide/ide-native",
     "unitTests": true,

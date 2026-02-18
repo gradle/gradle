@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.ide) {
         because("To pick up various builders (which should live somewhere else)")
     }
+    implementation(projects.ideModelImpls)
     implementation(projects.languageNative)
     implementation(projects.platformNative)
     implementation(projects.testingNative)

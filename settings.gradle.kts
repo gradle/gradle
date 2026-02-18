@@ -177,6 +177,7 @@ module("documentation") {
 module("ide") {
     subproject("base-ide-plugins")
     subproject("ide")
+    subproject("ide-model-impls")
     subproject("ide-native")
     subproject("ide-plugins")
     subproject("problems")

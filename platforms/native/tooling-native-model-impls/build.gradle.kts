@@ -5,6 +5,6 @@ plugins {
 description = "Implementations for TAPI native models"
 
 dependencies {
-    api(projects.ide)
+    api(projects.ideModelImpls)
     api(projects.toolingApi)
 }
