@@ -399,19 +399,6 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
         "after"  | afterClassAnnotation
     }
 
-    private String buildRequestingNewerJavaVersion() {
-        """
-            java {
-                sourceCompatibility = 17
-                targetCompatibility = 17
-            }
-        """
-    }
-
-    private static JavaVersion classFormat(TestFile path) {
-        JavaVersion.forClassVersion(path.bytes[7] & 0xFF)
-    }
-
     @Requires(UnitTestPreconditions.FilePermissions)
     def "binary test result files have correct permissions"() {
         given:
@@ -428,5 +415,18 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
             assert perms.contains(PosixFilePermission.OTHERS_READ)
             assert perms.contains(PosixFilePermission.GROUP_READ)
         }
+    }
+
+    private String buildRequestingNewerJavaVersion() {
+        """
+            java {
+                sourceCompatibility = 17
+                targetCompatibility = 17
+            }
+        """
+    }
+
+    private static JavaVersion classFormat(TestFile path) {
+        JavaVersion.forClassVersion(path.bytes[7] & 0xFF)
     }
 }
