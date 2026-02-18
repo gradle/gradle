@@ -17,9 +17,16 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ArtifactCollection
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
+import org.gradle.kotlin.dsl.get
 import org.gradle.tooling.model.buildscript.GradleScriptModel
 import org.gradle.tooling.model.buildscript.ProjectScriptModel
+import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.jetbrains.kotlin.resolve.deprecatedParentTargetMap
 import java.io.File
 
 object ProjectScriptsModelBuilder : ToolingModelBuilder {
@@ -31,12 +38,50 @@ object ProjectScriptsModelBuilder : ToolingModelBuilder {
         return StandardProjectScriptModel(
             buildScriptModel = StandardGradleScriptModel(
                 scriptFile = project.buildFile,
-                implicitImports = emptyList(),
-                contextPath = emptyList(),
+                implicitImports = project.gradle.scriptImplicitImports,
+                contextPath = buildContextPathFor(project),
             ),
             precompiledScriptModels = emptyMap()
         )
     }
+
+    private fun buildContextPathFor(project: Project): List<ScriptContextPathElement> =
+        buildList {
+            // TODO incomplete and doesn't have the component identifiers
+            val compilationClassPath = project.scriptCompilationClassPath.asFiles
+
+            val resolvedClassPath: MutableSet<ResolvedArtifactResult> = hashSetOf()
+            for (buildscript in sourceLookupScriptHandlersFor(project).asReversed()) {
+                resolvedClassPath += classpathDependenciesOf(buildscript)
+                    .filter { dep -> dep.id !in resolvedClassPath.map { it.id } }
+            }
+
+            compilationClassPath.forEach { file ->
+                add(
+                    StandardScriptContextPathElement(
+                        file,
+                        resolvedClassPath.firstOrNull { it.file == file }
+                            ?.id?.componentIdentifier
+                            ?.let { componentId ->
+                                listOf(
+                                    StandardSourceComponentIdentifier(
+                                        displayName = componentId.displayName,
+                                        bytes = serialize(componentId)
+                                    )
+                                )
+                            } ?: emptyList()
+                    )
+                )
+            }
+        }
+
+    private
+    fun classpathDependenciesOf(buildscript: ScriptHandler): ArtifactCollection =
+        buildscript
+            .configurations[CLASSPATH_CONFIGURATION]
+            .incoming
+            .artifactView { it.lenient(true) }
+            .artifacts
 }
 
 class StandardProjectScriptModel(
