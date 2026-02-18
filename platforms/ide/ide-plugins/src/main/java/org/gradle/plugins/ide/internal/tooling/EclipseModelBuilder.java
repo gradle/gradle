@@ -68,9 +68,11 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.EclipseRuntime;
 import org.gradle.tooling.model.eclipse.EclipseWorkspace;
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
@@ -88,6 +90,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
+
+    private static final String ECLIPSE_PROJECT_MODEL_NAME = EclipseProject.class.getName();
+    private static final String ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME = HierarchicalEclipseProject.class.getName();
+
     private final GradleProjectBuilderInternal gradleProjectBuilder;
     private final EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider;
 
@@ -112,7 +118,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject") || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
+        return modelName.equals(ECLIPSE_PROJECT_MODEL_NAME) || modelName.equals(ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME);
     }
 
     @Override
@@ -143,9 +149,9 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     @Override
     public DefaultEclipseProject buildAll(String modelName, Project project) {
-        boolean includeTasks = modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject");
+        boolean includeTasks = modelName.equals(ECLIPSE_PROJECT_MODEL_NAME);
         tasksFactory = new TasksFactory(includeTasks);
-        projectDependenciesOnly = modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
+        projectDependenciesOnly = modelName.equals(ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME);
         currentProjectId = ((ProjectInternal) project).getProjectIdentity();
         eclipseProjects = new ArrayList<>();
         ProjectInternal root = (ProjectInternal) project.getRootProject();

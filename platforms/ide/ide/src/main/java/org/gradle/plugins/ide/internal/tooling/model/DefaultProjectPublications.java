@@ -23,6 +23,9 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.gradle.ProjectPublications} model.
+ */
 public class DefaultProjectPublications implements Serializable, GradleProjectIdentity {
     private List<DefaultGradlePublication> publications;
     private DefaultProjectIdentifier projectIdentifier;

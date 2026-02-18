@@ -16,25 +16,26 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.tooling.model.idea.IdeaLanguageLevel;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.LinkedList;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.idea.IdeaProject} model.
+ */
 public class DefaultIdeaProject implements Serializable {
     private String name;
     private String description;
     private Collection<DefaultIdeaModule> children = new LinkedList<DefaultIdeaModule>();
-    private IdeaLanguageLevel languageLevel;
+    private DefaultIdeaLanguageLevel languageLevel;
     private String jdkName;
     private DefaultIdeaJavaLanguageSettings javaLanguageSettings;
 
-    public IdeaLanguageLevel getLanguageLevel() {
+    public DefaultIdeaLanguageLevel getLanguageLevel() {
         return languageLevel;
     }
 
-    public DefaultIdeaProject setLanguageLevel(IdeaLanguageLevel languageLevel) {
+    public DefaultIdeaProject setLanguageLevel(DefaultIdeaLanguageLevel languageLevel) {
         this.languageLevel = languageLevel;
         return this;
     }

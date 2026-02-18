@@ -29,6 +29,7 @@ import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTaskSelector;
 import org.gradle.plugins.ide.internal.tooling.model.TaskNameComparator;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.model.gradle.BuildInvocations;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
@@ -44,6 +45,8 @@ import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport
 
 public class BuildInvocationsBuilder implements ToolingModelBuilder {
 
+    private static final String MODEL_NAME = BuildInvocations.class.getName();
+
     private final ProjectTaskLister taskLister;
     private final TaskNameComparator taskNameComparator;
 
@@ -54,7 +57,7 @@ public class BuildInvocationsBuilder implements ToolingModelBuilder {
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.gradle.BuildInvocations");
+        return modelName.equals(MODEL_NAME);
     }
 
     @Override
