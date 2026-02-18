@@ -20,30 +20,30 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.defaults.projectFeatureRegistryBasedModelDefaultsRegistrar
-import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
-import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
-import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaultsHandler
-import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDefinitionCollector
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
+import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionEvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepResult
+import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaultsHandler
+import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDefinitionCollector
 import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
-import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
-import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
-import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations
-import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionEvaluationResult
 
 
 @ServiceScope(Scope.Build::class)
@@ -74,7 +74,7 @@ internal
 class DefaultDeclarativeKotlinScriptEvaluator(
     private val schemaBuilder: InterpretationSchemaBuilder,
     documentChecks: Iterable<DocumentCheck>,
-    resolutionResultHandlers: Iterable<ResolutionResultHandler>
+    resolutionResultHandlers: Iterable<ResolutionResultHandler>,
 ) : DeclarativeKotlinScriptEvaluator {
 
     private
@@ -108,9 +108,8 @@ class DefaultDeclarativeKotlinScriptEvaluator(
                 scriptSource.resource.text,
                 step,
                 ConversionStepContext(target, { classLoaderScope.localClassLoader }, { classLoaderScope.parent.localClassLoader },defaultAnalysisContext)
-            )
-                .also { if (it is NotEvaluated) return it }
-        }.lastOrNull() ?: NotEvaluated(stageFailures = emptyList(), partialStepResult = ConversionStepResult.CannotRunStep)
+            ).also { if (it is NotEvaluated) return it }
+        }.lastOrNull() ?: throw DeclarativeDslNotEvaluatedException(scriptSource.fileName, emptyList())
 
     private
     fun scriptContextFor(target: Any): DeclarativeScriptContext = when (target) {
