@@ -401,7 +401,7 @@ fun textResourceScriptSource(description: String, scriptFile: File, resourceLoad
     TextResourceScriptSource(resourceLoader.loadFile(description, scriptFile))
 
 
-private
+internal
 fun sourceLookupScriptHandlersFor(project: Project) =
     project.hierarchy.map { it.buildscript }.toList()
 

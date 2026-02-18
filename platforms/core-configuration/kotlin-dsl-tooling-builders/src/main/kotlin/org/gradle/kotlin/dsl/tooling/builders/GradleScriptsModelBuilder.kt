@@ -17,14 +17,16 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.kotlin.dsl.*
 import org.gradle.tooling.model.buildscript.GradleScriptModel
 import org.gradle.tooling.model.buildscript.GradleScriptsModel
 import org.gradle.tooling.model.buildscript.ScriptContextPathElement
@@ -46,6 +48,7 @@ object GradleScriptsModelBuilder : ToolingModelBuilder {
             scripts.associateWith { script ->
                 val scriptProject = rootProject.findProjectWithBuildFile(script)
                 StandardGradleScriptModel(
+                    scriptFile = script,
                     implicitImports = scriptProject?.scriptImplicitImports ?: emptyList(),
                     contextPath = buildContextPathFor(script, scriptProject)
                 )
@@ -53,32 +56,65 @@ object GradleScriptsModelBuilder : ToolingModelBuilder {
         )
     }
 
-    private fun buildContextPathFor(script: File, scriptProject: Project?): List<ScriptContextPathElement> {
-        if (scriptProject == null) return emptyList()
-        val compilationClassPath = scriptProject.scriptCompilationClassPath.asFiles
+    private fun buildContextPathFor(script: File, scriptProject: Project?): List<ScriptContextPathElement> =
+        if (scriptProject == null) emptyList()
+        else buildList {
+            // TODO incomplete and doesn't have the component identifiers
+            val compilationClassPath = scriptProject.scriptCompilationClassPath.asFiles
 
-        val antComponentId: ComponentIdentifier = DefaultModuleComponentIdentifier.newId(
-            DefaultModuleIdentifier.newId("org.apache.ant", "ant"),
-            "1.10.15"
-        )
-        val asmComponentId: ComponentIdentifier = DefaultModuleComponentIdentifier.newId(
-            DefaultModuleIdentifier.newId("org.ow2.asm", "asm"),
-            "9.9"
-        )
-        val antBytes = serialize(antComponentId)
-        val asmBytes = serialize(asmComponentId)
+            val resolvedClassPath: MutableSet<ResolvedArtifactResult> = hashSetOf()
+            for (buildscript in sourceLookupScriptHandlersFor(scriptProject).asReversed()) {
+                resolvedClassPath += classpathDependenciesOf(buildscript)
+                    .filter { dep -> dep.id !in resolvedClassPath.map { it.id } }
+            }
 
-        return compilationClassPath.map { file ->
-            StandardScriptContextPathElement(
-                file,
-                listOf(
-                    StandardSourceComponentIdentifier(antComponentId.displayName, antBytes),
-                    StandardSourceComponentIdentifier(antComponentId.displayName, antBytes),
-                    StandardSourceComponentIdentifier(asmComponentId.displayName, asmBytes),
+            val classPathFromLoadersTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-classpath-classloader-files.txt")
+            classPathFromLoadersTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
+                compilationClassPath.forEach { writer.appendLine(it.absolutePath) }
+            }
+            val classPathFromResolutionFilesTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-classpath-resolved-files.txt")
+            classPathFromResolutionFilesTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
+                resolvedClassPath.forEach { writer.appendLine(it.file.absolutePath) }
+            }
+            val classPathFromResolutionIdsTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-classpath-resolved-ids.txt")
+            classPathFromResolutionIdsTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
+                resolvedClassPath.forEach { writer.appendLine(it.id.componentIdentifier.displayName) }
+            }
+            val sourcePathFromResolutionTxt = File("/Users/paul/src/gradle-related/gradle/${scriptProject.name}-sourcepath-resolved.txt")
+            val sourcePathIdentifiers: List<ComponentIdentifier> =
+                resolvedClassPath.map { it.id.componentIdentifier }
+            sourcePathFromResolutionTxt.bufferedWriter(Charsets.UTF_8).use { writer ->
+                sourcePathIdentifiers.forEach { writer.appendLine(it.displayName) }
+            }
+
+            compilationClassPath.forEach { file ->
+                add(
+                    StandardScriptContextPathElement(
+                        file,
+                        resolvedClassPath.firstOrNull { it.file == file }
+                            ?.id?.componentIdentifier
+                            ?.let { componentId ->
+                                listOf(
+                                    StandardSourceComponentIdentifier(
+                                        displayName = componentId.displayName,
+                                        bytes = serialize(componentId)
+                                    )
+                                )
+                            } ?: emptyList()
+                    )
                 )
-            )
+            }
         }
-    }
+
+    private
+    fun classpathDependenciesOf(buildscript: ScriptHandler): ArtifactCollection =
+        buildscript
+            .configurations[CLASSPATH_CONFIGURATION]
+            .incoming
+            .artifactView { it.lenient(true) }
+            .artifacts
+
+
 }
 
 class StandardGradleScriptsModel(
@@ -93,14 +129,14 @@ class StandardGradleScriptsModel(
 }
 
 class StandardGradleScriptModel(
+    private val scriptFile: File,
     private val implicitImports: List<String>,
     private val contextPath: List<ScriptContextPathElement>,
 ) : GradleScriptModel, Serializable {
-    override fun getImplicitImports(): List<String> =
-        implicitImports
 
-    override fun getContextPath(): List<ScriptContextPathElement> =
-        contextPath
+    override fun getScriptFile(): File = scriptFile
+    override fun getImplicitImports(): List<String> = implicitImports
+    override fun getContextPath(): List<ScriptContextPathElement> = contextPath
 
     override fun toString(): String {
         return "StandardGradleScriptModel(implicitImports=${implicitImports.size}, contextPath=$contextPath)"

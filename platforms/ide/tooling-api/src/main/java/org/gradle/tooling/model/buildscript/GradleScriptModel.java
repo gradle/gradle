@@ -16,9 +16,12 @@
 
 package org.gradle.tooling.model.buildscript;
 
+import java.io.File;
 import java.util.List;
 
 public interface GradleScriptModel {
+
+    File getScriptFile();
 
     List<String> getImplicitImports();
 

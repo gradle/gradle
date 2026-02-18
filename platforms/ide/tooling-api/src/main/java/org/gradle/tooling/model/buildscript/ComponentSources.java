@@ -20,7 +20,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-// TODO parameterized builder taking a list of ComponentIdentifiers
 public interface ComponentSources {
 
     Map<SourceComponentIdentifier, List<File>> getSourcesByComponents();

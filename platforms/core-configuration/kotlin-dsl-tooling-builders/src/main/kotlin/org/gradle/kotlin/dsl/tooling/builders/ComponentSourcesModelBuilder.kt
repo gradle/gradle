@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.Project
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.jvm.JvmLibrary
 import org.gradle.language.base.artifact.SourcesArtifact
@@ -43,10 +42,6 @@ object ComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<Component
         val componentIdentifiers = parameter.sourceComponentIdentifiers
             .map { it as SourceComponentIdentifierInternal }
             .map { deserialize(it.componentIdentifierBytes) }
-
-        require(componentIdentifiers.size == 3)
-
-        project.buildscript.repositories { it.mavenCentral() }
 
         val sourcesArtifacts = project.buildscript.dependencies.createArtifactResolutionQuery()
             .forComponents(componentIdentifiers)
