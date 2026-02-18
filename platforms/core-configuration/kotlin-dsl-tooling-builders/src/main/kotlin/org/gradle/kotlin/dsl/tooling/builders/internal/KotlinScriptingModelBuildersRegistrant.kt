@@ -22,6 +22,7 @@ import org.gradle.kotlin.dsl.tooling.builders.ComponentSourcesModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.GradleScriptsModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelBuilder
+import org.gradle.kotlin.dsl.tooling.builders.ProjectScriptsModelBuilder
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
@@ -48,6 +49,7 @@ class KotlinScriptingModelBuildersRegistrant(
             registry.register(builder)
             registry.register(GradleScriptsModelBuilder)
             registry.register(ComponentSourcesModelBuilder)
+            registry.register(ProjectScriptsModelBuilder)
         }
     }
 

@@ -49,7 +49,7 @@ object GradleScriptsModelBuilder : ToolingModelBuilder {
                 val scriptProject = rootProject.findProjectWithBuildFile(script)
                 StandardGradleScriptModel(
                     scriptFile = script,
-                    implicitImports = scriptProject?.scriptImplicitImports ?: emptyList(),
+                    implicitImports = scriptProject?.gradle?.scriptImplicitImports ?: emptyList(),
                     contextPath = buildContextPathFor(script, scriptProject)
                 )
             }

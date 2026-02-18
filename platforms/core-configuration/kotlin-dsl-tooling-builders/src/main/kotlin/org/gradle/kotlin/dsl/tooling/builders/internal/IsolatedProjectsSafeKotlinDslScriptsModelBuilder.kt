@@ -203,7 +203,7 @@ fun GradleInternal.baseScriptClassPath(): ClassPath {
 
 private
 fun ProjectInternal.gradleSourceRoots() =
-    gradle.gradleHomeDir?.let { SourcePathProvider.sourceRootsOf(it, SourceDistributionResolver(this)) } ?: emptyList()
+    gradle.gradleHomeDir?.let { SourcePathProvider.sourceRootsOf(it, SourceDistributionResolver(gradle)) } ?: emptyList()
 
 
 private
@@ -231,7 +231,7 @@ fun buildInitScriptModel(initScript: File, rootProject: ProjectInternal): NonPro
         scriptFile = initScript,
         baseScope = gradle.classLoaderScope,
         scriptHandlerFactory = scriptHandlerFactoryOf(gradle),
-        project = rootProject,
+        gradle = gradle,
         resourceDescription = "initialization script"
     )
 

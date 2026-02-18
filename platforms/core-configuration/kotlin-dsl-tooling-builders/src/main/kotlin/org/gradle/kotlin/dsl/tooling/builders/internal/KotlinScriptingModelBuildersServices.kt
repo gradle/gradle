@@ -21,6 +21,8 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
+import org.gradle.kotlin.dsl.tooling.builders.InitScriptsModelBuilder
+import org.gradle.kotlin.dsl.tooling.builders.SettingsScriptModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
@@ -43,6 +45,8 @@ class KotlinScriptingModelBuildersServices : AbstractGradleModuleServices() {
                 override fun execute(registry: ToolingModelBuilderRegistry) {
                     @Suppress("DEPRECATION")
                     registry.register(org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelBuilder)
+                    registry.register(InitScriptsModelBuilder)
+                    registry.register(SettingsScriptModelBuilder)
                 }
             }
     }

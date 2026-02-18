@@ -16,12 +16,14 @@
 
 package org.gradle.kotlin.dsl.resolver.internal
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.AuthenticationSupported
 import org.gradle.api.credentials.HttpHeaderCredentials
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.logging.Logging
 import org.gradle.util.internal.WrapperCredentials
 import org.gradle.util.internal.WrapperDistributionUrlConverter
 import org.gradle.wrapper.WrapperExecutor
+import org.slf4j.Logger
 import java.io.File
 import java.net.URI
 import java.util.Properties
@@ -31,13 +33,17 @@ private const val DEFAULT_GRADLE_DIST_ARTIFACT_PATTERN = "[module]-[revision](-[
 private val STANDARD_GRADLE_DIST_FILENAME_REGEX = Regex("gradle-[0-9]+(?:\\.[0-9]+){1,2}(?:-[a-zA-Z0-9+]+)*-(?:bin|all).zip")
 
 class GradleDistRepoDescriptorLocator(
-    private val project: Project,
-    val gradleVersion: GradleDistVersion = GradleDistVersion(project.gradle.gradleVersion),
+    private val gradle: GradleInternal,
+    val gradleVersion: GradleDistVersion = GradleDistVersion(gradle.gradle.gradleVersion),
     explicitRootProjectDir: File? = null
 ) {
+    companion object {
+        private val logger: Logger = Logging.getLogger(GradleDistRepoDescriptorLocator::class.java)
+    }
+
     // `explicitRootProjectDir` is needed for testing only to be able to set some arbitrary non-working URL
     private
-    val rootProjectDir = explicitRootProjectDir ?: project.layout.settingsDirectory.asFile
+    val rootProjectDir = explicitRootProjectDir ?: gradle.settings.layout.settingsDirectory.asFile
 
     private
     val repositoryName = if (gradleVersion.isSnapshot) "distributions-snapshots" else "distributions"
@@ -46,7 +52,7 @@ class GradleDistRepoDescriptorLocator(
         get() = try {
             findCustomGradleDistRepository() ?: defaultGradleDistRepository
         } catch (ex: Exception) {
-            project.logger.warn("Unexpected exception while trying to find the URL for Gradle sources: ${ex.message}", ex)
+            logger.warn("Unexpected exception while trying to find the URL for Gradle sources: ${ex.message}", ex)
             defaultGradleDistRepository
         }
 

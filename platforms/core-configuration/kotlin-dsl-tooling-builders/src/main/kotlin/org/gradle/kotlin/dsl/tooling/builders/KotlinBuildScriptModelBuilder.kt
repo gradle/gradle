@@ -211,6 +211,7 @@ fun precompiledScriptPluginModelBuilder(
 ) = KotlinScriptTargetModelBuilder(
     scriptFile = scriptFile,
     project = modelRequestProject,
+    gradle = modelRequestProject.gradle,
     scriptClassPath = DefaultClassPath.of(enclosingSourceSet.sourceSet.compileClasspath),
     enclosingScriptProjectDir = enclosingSourceSet.project.projectDir,
     additionalImports = {
@@ -251,6 +252,7 @@ fun projectScriptModelBuilder(
 ) = KotlinScriptTargetModelBuilder(
     scriptFile = scriptFile,
     project = project,
+    gradle = project.gradle,
     scriptClassPath = project.scriptCompilationClassPath,
     accessorsClassPath = { project.accessorsClassPathOf(it) },
     sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
@@ -284,13 +286,14 @@ fun initScriptModelBuilder(scriptFile: File, project: ProjectInternal) = project
         scriptFile = scriptFile,
         baseScope = gradle.classLoaderScope,
         scriptHandlerFactory = scriptHandlerFactoryOf(gradle),
-        project = project,
+        gradle = project.gradle,
         resourceDescription = "initialization script"
     )
 
     KotlinScriptTargetModelBuilder(
         scriptFile = scriptFile,
         project = project,
+        gradle = project.gradle,
         scriptClassPath = scriptClassPath,
         sourceLookupScriptHandlers = listOf(scriptHandler)
     )
@@ -303,6 +306,7 @@ fun settingsScriptModelBuilder(scriptFile: File, project: Project) = project.run
     KotlinScriptTargetModelBuilder(
         scriptFile = scriptFile,
         project = project,
+        gradle = project.gradle,
         scriptClassPath = settings.scriptCompilationClassPath,
         accessorsClassPath = { settings.accessorsClassPathOf(it) },
         sourceLookupScriptHandlers = listOf(settings.buildscript),
@@ -319,13 +323,14 @@ fun settingsScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal)
         scriptFile = scriptFile,
         baseScope = settings.baseClassLoaderScope,
         scriptHandlerFactory = scriptHandlerFactoryOf(gradle),
-        project = project,
+        gradle = project.gradle,
         resourceDescription = "settings file"
     )
 
     KotlinScriptTargetModelBuilder(
         scriptFile = scriptFile,
         project = project,
+        gradle = project.gradle,
         scriptClassPath = scriptClassPath,
         sourceLookupScriptHandlers = listOf(scriptHandler, settings.buildscript)
     )
@@ -340,13 +345,14 @@ fun projectScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal) 
         scriptFile = scriptFile,
         baseScope = rootProject.baseClassLoaderScope,
         scriptHandlerFactory = scriptHandlerFactoryOf(project),
-        project = project,
+        gradle = project.gradle,
         resourceDescription = "build file"
     )
 
     KotlinScriptTargetModelBuilder(
         scriptFile = scriptFile,
         project = project,
+        gradle = project.gradle,
         scriptClassPath = scriptClassPath,
         sourceLookupScriptHandlers = listOf(scriptHandler, buildscript)
     )
@@ -359,15 +365,15 @@ fun compilationClassPathForScriptPluginOf(
     scriptFile: File,
     baseScope: ClassLoaderScope,
     scriptHandlerFactory: ScriptHandlerFactory,
-    project: ProjectInternal,
+    gradle: GradleInternal,
     resourceDescription: String
 ): Pair<ScriptHandlerInternal, ClassPath> {
 
-    val scriptSource = textResourceScriptSource(resourceDescription, scriptFile, project.serviceOf())
+    val scriptSource = textResourceScriptSource(resourceDescription, scriptFile, gradle.serviceOf())
     val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
     val scriptHandler = scriptHandlerFactory.create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
 
-    kotlinScriptFactoryOf(project).evaluate(
+    kotlinScriptFactoryOf(gradle).evaluate(
         target = target,
         scriptSource = scriptSource,
         scriptHandler = scriptHandler,
@@ -377,13 +383,13 @@ fun compilationClassPathForScriptPluginOf(
         options = EnumSet.of(EvalOption.IgnoreErrors, EvalOption.SkipBody)
     )
 
-    return scriptHandler to project.compilationClassPathOf(scriptScope)
+    return scriptHandler to gradle.compilationClassPathOf(scriptScope)
 }
 
 
 private
-fun kotlinScriptFactoryOf(project: ProjectInternal) =
-    project.serviceOf<KotlinScriptEvaluator>()
+fun kotlinScriptFactoryOf(gradle: GradleInternal) =
+    gradle.serviceOf<KotlinScriptEvaluator>()
 
 
 private
@@ -406,10 +412,11 @@ fun sourceLookupScriptHandlersFor(project: Project) =
     project.hierarchy.map { it.buildscript }.toList()
 
 
-private
+internal
 data class KotlinScriptTargetModelBuilder(
     val scriptFile: File?,
-    val project: Project,
+    val project: Project?,
+    val gradle: Gradle,
     val scriptClassPath: ClassPath,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath = { AccessorsClassPath.empty },
     val sourceLookupScriptHandlers: List<ScriptHandler> = emptyList(),
@@ -419,7 +426,7 @@ data class KotlinScriptTargetModelBuilder(
 
     fun buildModel(): KotlinBuildScriptModel {
         val classpathSources = sourcePathFor(sourceLookupScriptHandlers)
-        val classPathModeExceptionCollector = project.serviceOf<ClassPathModeExceptionCollector>()
+        val classPathModeExceptionCollector = gradle.serviceOf<ClassPathModeExceptionCollector>()
         val accessorsClassPath =
             classPathModeExceptionCollector.runCatching {
                 accessorsClassPath(scriptClassPath)
@@ -434,7 +441,7 @@ data class KotlinScriptTargetModelBuilder(
         return StandardKotlinBuildScriptModel(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
-            project.scriptImplicitImports + additionalImports,
+            gradle.scriptImplicitImports + additionalImports,
             buildEditorReportsFor(exceptions),
             getExceptionsForFile(exceptions, this.scriptFile),
             enclosingScriptProjectDir
@@ -455,9 +462,9 @@ data class KotlinScriptTargetModelBuilder(
         SourcePathProvider.sourcePathFor(
             scriptClassPath,
             scriptFile,
-            project.rootDir,
-            project.gradle.gradleHomeDir,
-            SourceDistributionResolver(project)
+            (gradle as GradleInternal).settings.layout.settingsDirectory.asFile,
+            gradle.gradleHomeDir,
+            SourceDistributionResolver(gradle)
         )
 
     private
@@ -493,11 +500,11 @@ val Project.settings
 
 internal
 val Project.scriptCompilationClassPath
-    get() = compilationClassPathOf((this as ProjectInternal).classLoaderScope)
+    get() = gradle.compilationClassPathOf((this as ProjectInternal).classLoaderScope)
 
 
 private
-fun Project.compilationClassPathOf(classLoaderScope: ClassLoaderScope) =
+fun Gradle.compilationClassPathOf(classLoaderScope: ClassLoaderScope) =
     serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope, true) {
         (this as ProjectInternal).gradle
     }
@@ -519,7 +526,7 @@ inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
 
 
 internal
-val Project.scriptImplicitImports
+val Gradle.scriptImplicitImports
     get() = serviceOf<ImplicitImports>().list
 
 
@@ -536,8 +543,8 @@ val Project.hierarchy: Sequence<Project>
 
 
 private
-val Project.isLocationAwareEditorHintsEnabled: Boolean
-    get() = findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
+val Project?.isLocationAwareEditorHintsEnabled: Boolean
+    get() = this?.findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
 
 
 internal

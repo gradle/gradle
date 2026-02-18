@@ -17,18 +17,21 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.invocation.Gradle
+import org.gradle.api.logging.Logging
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptorLocator
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistVersion
 import org.gradle.util.GradleVersion
+import org.slf4j.Logger
 import java.io.File
 
 interface SourceDistributionProvider {
@@ -36,21 +39,22 @@ interface SourceDistributionProvider {
 }
 
 
-class SourceDistributionResolver(private val project: Project) : SourceDistributionProvider {
+class SourceDistributionResolver(private val gradle: Gradle) : SourceDistributionProvider {
 
     companion object {
+        private val logger: Logger = Logging.getLogger(SourceDistributionProvider::class.java)
         val artifactType: Attribute<String> = Attribute.of("artifactType", String::class.java)
         const val ZIP_TYPE = "zip"
         const val SOURCE_DIRECTORY = "src-directory"
     }
 
-    private val repoLocator = GradleDistRepoDescriptorLocator(project)
+    private val repoLocator = GradleDistRepoDescriptorLocator(gradle as GradleInternal)
 
     override fun sourceDirs(): Collection<File> =
         try {
             sourceDirs
         } catch (ex: Exception) {
-            project.logger.warn("Unexpected exception while resolving Gradle distribution sources: ${ex.message}", ex)
+            logger.warn("Unexpected exception while resolving Gradle distribution sources: ${ex.message}", ex)
             emptyList()
         }
 
@@ -150,7 +154,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     val projectInternal
-        get() = project as ProjectInternal
+        get() = gradle as ProjectInternal
 
     private
     val repositories
