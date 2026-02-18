@@ -275,6 +275,7 @@
             <option value="$PROJECT_DIR$/platforms/native/platform-native" />
             <option value="$PROJECT_DIR$/platforms/native/testing-native" />
             <option value="$PROJECT_DIR$/platforms/native/tooling-native" />
+            <option value="$PROJECT_DIR$/platforms/native/tooling-native-model-impls" />
             <option value="$PROJECT_DIR$/platforms/software/base-compiler-worker" />
             <option value="$PROJECT_DIR$/platforms/software/build-init" />
             <option value="$PROJECT_DIR$/platforms/software/build-init-specs" />
