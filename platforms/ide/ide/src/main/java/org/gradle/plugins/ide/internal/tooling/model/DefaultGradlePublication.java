@@ -24,6 +24,9 @@ import org.gradle.tooling.model.GradleModuleVersion;
 import java.io.File;
 import java.io.Serializable;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.gradle.GradlePublication} model.
+ */
 public class DefaultGradlePublication implements Serializable, GradleProjectIdentity {
     private GradleModuleVersion id;
     private DefaultProjectIdentifier projectIdentifier;

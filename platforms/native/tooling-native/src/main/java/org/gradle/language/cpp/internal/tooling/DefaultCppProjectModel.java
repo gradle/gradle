@@ -20,6 +20,9 @@ import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 
 import java.io.Serializable;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.cpp.CppProject} model.
+ */
 public class DefaultCppProjectModel implements Serializable {
     private final DefaultProjectIdentifier projectIdentifier;
     private final DefaultCppComponentModel mainComponent;
