@@ -1540,6 +1540,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "tooling-native-model-impls",
+    "path": "platforms/native/tooling-native-model-impls",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "unit-test-fixtures",
     "path": "platforms/extensibility/unit-test-fixtures",
     "unitTests": true,

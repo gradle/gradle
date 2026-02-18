@@ -7,17 +7,19 @@ description = "Tooling API model builders for native builds"
 dependencies {
     api(projects.coreApi)
     api(projects.core)
-    api(projects.ide) {
-        because("To pick up various builders (which should live somewhere else)")
-    }
     api(projects.serviceProvider)
     api(projects.toolingApi)
+    api(projects.toolingNativeModelImpls)
 
     implementation(projects.baseServices)
     implementation(projects.fileCollections)
+    implementation(projects.ide) {
+        because("To pick up various builders (which should live somewhere else)")
+    }
     implementation(projects.languageNative)
     implementation(projects.platformNative)
     implementation(projects.testingNative)
+
 
     implementation(libs.guava)
 
