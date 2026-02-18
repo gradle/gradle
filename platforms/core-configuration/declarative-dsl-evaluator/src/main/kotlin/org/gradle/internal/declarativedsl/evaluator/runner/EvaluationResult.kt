@@ -40,7 +40,6 @@ sealed interface EvaluationResult<out Success : StepResult, out Partial : StepRe
             data class NoSchemaAvailable(val scriptContext: DeclarativeScriptContext) : StageFailure
             data class SchemaBuildingFailures(val failures: List<SchemaBuildingFailure>) : StageFailure
 
-            object NoParseResult : StageFailure
             data class FailuresInLanguageTree(val failures: List<SingleFailureResult>) : StageFailure
             data class FailuresInResolution(val errors: List<ResolutionError>) : StageFailure
             data class DocumentCheckFailures(val failures: List<DocumentCheckFailure>) : StageFailure

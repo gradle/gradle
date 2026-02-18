@@ -21,10 +21,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationSpec implements ProjectFeatureFixture {
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     def 'schema building failures are reported in the build output'() {
         given:
         PluginBuilder pluginBuilder = withProjectFeature()
-        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 
         def settings = file("settings.gradle.dcl")
@@ -32,21 +35,35 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
 
         file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
             "Property<String> getText();",
-            "Property<String> getText();\njava.util.Map<String, String> myMap();\njava.util.Map<String, String> anotherMap();"
+            "Property<String> getText();\n" +
+                "java.util.Map<String, String> myMap();\n" +
+                "java.util.Map<String, String> anotherMap();\n" +
+                "Property<? extends CharSequence> getWildcard();"
         )
 
         expect:
-        fails().assertHasErrorOutput("""
+        fails().assertHasErrorOutput(
+            """
             |Failed to interpret the declarative DSL file '${settings.absolutePath}':
             |  Failures in building the schema:
-            |    Illegal type 'kotlin.collections.Map<kotlin.String, kotlin.String>': functions returning Map types are not supported
-            |      in return value type 'kotlin.collections.Map<kotlin.String, kotlin.String>'
-            |      in member 'fun org.gradle.test.FeatureDefinition.myMap(): kotlin.collections.(Mutable)Map<kotlin.String!, kotlin.String!>!'
+            |    Illegal 'OUT' variance
+            |      in type argument 'out kotlin.CharSequence'
+            |      in return value type 'org.gradle.api.provider.Property<out kotlin.CharSequence>'
+            |      in member 'fun org.gradle.test.FeatureDefinition.getWildcard(): org.gradle.api.provider.Property<out kotlin.CharSequence!>!'
             |      in class 'org.gradle.test.FeatureDefinition'
             |    Illegal type 'kotlin.collections.Map<kotlin.String, kotlin.String>': functions returning Map types are not supported
             |      in return value type 'kotlin.collections.Map<kotlin.String, kotlin.String>'
             |      in member 'fun org.gradle.test.FeatureDefinition.anotherMap(): kotlin.collections.(Mutable)Map<kotlin.String!, kotlin.String!>!'
             |      in class 'org.gradle.test.FeatureDefinition'
-        """.stripMargin("|").strip())
+            |    Illegal type 'kotlin.collections.Map<kotlin.String, kotlin.String>': functions returning Map types are not supported
+            |      in return value type 'kotlin.collections.Map<kotlin.String, kotlin.String>'
+            |      in member 'fun org.gradle.test.FeatureDefinition.myMap(): kotlin.collections.(Mutable)Map<kotlin.String!, kotlin.String!>!'
+            |      in class 'org.gradle.test.FeatureDefinition'
+            """.stripMargin("|").strip()
+        )
+
+        receivedProblem(0).fqid == "scripts:dcl-schema:illegal-variance-in-parameterized-type-usage"
+        receivedProblem(1).fqid == "scripts:dcl-schema:unsupported-map-factory"
+        receivedProblem(2).fqid == "scripts:dcl-schema:unsupported-map-factory"
     }
 }

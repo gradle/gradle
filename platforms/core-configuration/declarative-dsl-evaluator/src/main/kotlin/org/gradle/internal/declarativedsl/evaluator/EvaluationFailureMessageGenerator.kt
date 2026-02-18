@@ -61,7 +61,6 @@ object EvaluationFailureMessageGenerator {
                     }
                 }
 
-                StageFailure.NoParseResult -> appendLine("Failed to parse due to syntax errors")
                 is StageFailure.NoSchemaAvailable -> appendLine("No associated schema for ${stageFailure.scriptContext}")
                 is StageFailure.PropertyLinkErrors -> {
                     appendLine("Failures in property links:".indent(1))

@@ -46,7 +46,7 @@ import kotlin.reflect.KVariance
  */
 sealed class SchemaResult<out T> {
     data class Result<out T : Any>(val result: T) : SchemaResult<T>()
-    data class Failure(val issue: SchemaBuildingIssue, val contextElements: List<SchemaBuildingContextElement>) : SchemaResult<Nothing>()
+    data class Failure(val issue: SchemaIssue, val contextElements: List<SchemaBuildingContextElement>) : SchemaResult<Nothing>()
 }
 
 fun <T, R> SchemaResult<T>.flatMap(transform: (T) -> SchemaResult<R>): SchemaResult<R> = when (this) {
@@ -88,7 +88,7 @@ fun <T> SchemaResult<T>.orError(): T = when (this) {
 fun <T : Any> schemaResult(result: T) = SchemaResult.Result(result)
 
 
-sealed interface SchemaBuildingIssue : SchemaIssue {
+sealed interface SchemaBuildingIssue {
     data object DeclarationBothHiddenAndVisible : SchemaBuildingIssue, SchemaIssue.DeclarationBothHiddenAndVisible {
         private fun readResolve(): Any = DeclarationBothHiddenAndVisible
     }
