@@ -590,6 +590,7 @@ By declaring compatible attributes, you decouple your projects from internal nam
 - <<variant_aware_resolution.adoc#sec:understanding-variant-selection,Understanding Variant Selection>>
 - <<variant_attributes.adoc#variant-attributes,Variant Attributes>>
 - <<declaring_configurations.adoc#sec:resolvable-consumable-configs,Resolvable and Consumable Configurations>>
+- https://github.com/liutikas/gmm-wiki[Known Attributes]
 
 === Tags
 
