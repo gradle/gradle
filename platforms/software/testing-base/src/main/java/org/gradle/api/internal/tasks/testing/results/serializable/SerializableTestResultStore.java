@@ -40,6 +40,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -100,6 +101,8 @@ public final class SerializableTestResultStore {
         /**
          * Encoder storing the serialized test results.
          */
+        private final Path serializedResultsFile;
+        private final Path temporaryResultsFile;
         private final KryoBackedEncoder resultsEncoder;
         private final TestOutputWriter outputWriter;
         private long nextId = 1;
@@ -109,12 +112,14 @@ public final class SerializableTestResultStore {
 
         private Writer(Path serializedResultsFile, Path outputEventsFile, int diskSkipLevels) throws IOException {
             this.diskSkipLevels = diskSkipLevels;
+            this.serializedResultsFile = serializedResultsFile;
+            this.temporaryResultsFile = serializedResultsFile.getParent().resolve("in-progress-results-generic.bin");
             // Use constants to avoid allocating empty collections if flattening is not enabled
             flatteningIds = isDiskSkipEnabled() ? new HashSet<>() : Collections.emptySet();
             extraFlattenedDescriptors = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
             extraFlattenedResults = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
             Files.createDirectories(serializedResultsFile.getParent());
-            resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(serializedResultsFile));
+            resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(temporaryResultsFile));
             Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
             try {
                 resultsEncoder.writeSmallInt(STORE_VERSION);
@@ -291,6 +296,8 @@ public final class SerializableTestResultStore {
             } finally {
                 CompositeStoppable.stoppable(resultsEncoder, outputWriter).stop();
             }
+            // Move the completed in-progress file to the final location
+            Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
