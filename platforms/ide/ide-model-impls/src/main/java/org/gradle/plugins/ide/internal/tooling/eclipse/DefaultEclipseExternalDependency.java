@@ -15,8 +15,6 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
 import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.File;
@@ -28,19 +26,17 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
     private final File javadoc;
     private final File source;
 
-    private final ModuleVersionIdentifier identifier;
     private final GradleModuleVersion moduleVersion;
 
     private final boolean resolved;
     private final DefaultEclipseComponentSelector attemptedSelector;
 
-    private DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules, boolean resolved, String attemptedSelector) {
+    private DefaultEclipseExternalDependency(File file, File javadoc, File source, GradleModuleVersion moduleVersion, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules, boolean resolved, String attemptedSelector) {
         super(exported, attributes, accessRules);
         this.file = file;
         this.javadoc = javadoc;
         this.source = source;
-        this.identifier = identifier;
-        this.moduleVersion = (identifier == null) ? null : new DefaultGradleModuleVersion(identifier);
+        this.moduleVersion = moduleVersion;
         this.resolved = resolved;
         this.attemptedSelector = (attemptedSelector == null) ? null : new DefaultEclipseComponentSelector(attemptedSelector);
     }
@@ -57,10 +53,6 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
         return source;
     }
 
-    public ModuleVersionIdentifier getModuleVersionIdentifier() {
-        return identifier;
-    }
-
     public GradleModuleVersion getGradleModuleVersion() {
         return moduleVersion;
     }
@@ -73,12 +65,12 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
         return attemptedSelector;
     }
 
-    public static DefaultEclipseExternalDependency createResolved(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
-        return new DefaultEclipseExternalDependency(file, javadoc, source, identifier, exported, attributes, accessRules, true, null);
+    public static DefaultEclipseExternalDependency createResolved(File file, File javadoc, File source, GradleModuleVersion moduleVersion, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+        return new DefaultEclipseExternalDependency(file, javadoc, source, moduleVersion, exported, attributes, accessRules, true, null);
     }
 
-    public static DefaultEclipseExternalDependency createUnresolved(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules, String attemptedSelector) {
-        return new DefaultEclipseExternalDependency(file, javadoc, source, identifier, exported, attributes, accessRules, false, attemptedSelector);
+    public static DefaultEclipseExternalDependency createUnresolved(File file, File javadoc, File source, GradleModuleVersion moduleVersion, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules, String attemptedSelector) {
+        return new DefaultEclipseExternalDependency(file, javadoc, source, moduleVersion, exported, attributes, accessRules, false, attemptedSelector);
     }
 
 }
