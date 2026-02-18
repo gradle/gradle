@@ -226,6 +226,7 @@
             <option value="$PROJECT_DIR$/platforms/extensibility/unit-test-fixtures" />
             <option value="$PROJECT_DIR$/platforms/ide/base-ide-plugins" />
             <option value="$PROJECT_DIR$/platforms/ide/ide" />
+            <option value="$PROJECT_DIR$/platforms/ide/ide-model-impls" />
             <option value="$PROJECT_DIR$/platforms/ide/ide-native" />
             <option value="$PROJECT_DIR$/platforms/ide/ide-plugins" />
             <option value="$PROJECT_DIR$/platforms/ide/problems" />
