@@ -33,6 +33,7 @@ object SettingsScriptModelBuilder : BuildScopeModelBuilder {
         SettingsScriptModel::class.java.name == modelName
 
     override fun create(target: BuildState): SettingsScriptModel {
+        target.ensureProjectsLoaded()
         val gradle = target.mutableModel
         val settings = gradle.settings
         val scriptFile = File(settings.settingsScript.fileName)

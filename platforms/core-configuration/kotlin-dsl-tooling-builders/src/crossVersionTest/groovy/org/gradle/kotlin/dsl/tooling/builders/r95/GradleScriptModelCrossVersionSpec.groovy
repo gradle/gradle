@@ -129,8 +129,8 @@ class AllScriptModelsAndSourcesBuildAction implements BuildAction<GradleScriptsM
     @Override
     GradleScriptsModel execute(BuildController controller) {
         def init = controller.getModel(InitScriptsModel)
+        def settings = controller.getModel(SettingsScriptModel)
         def build = controller.getModel(GradleBuild)
-        def settings = controller.getModel(build.rootProject, SettingsScriptModel)
         def projects = build.projects.collect { project ->
             controller.getModel(project, ProjectScriptsModel)
         }
