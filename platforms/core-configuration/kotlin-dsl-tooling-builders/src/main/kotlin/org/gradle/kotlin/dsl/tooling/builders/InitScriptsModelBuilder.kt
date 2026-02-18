@@ -43,7 +43,7 @@ object InitScriptsModelBuilder : BuildScopeModelBuilder {
                     implicitImports = gradle.scriptImplicitImports,
                     contextPath = buildContextPathFor(scriptFile, gradle),
                 )
-            }.associateBy { it.scriptFile }
+            }
         )
     }
 
@@ -77,7 +77,7 @@ object InitScriptsModelBuilder : BuildScopeModelBuilder {
 }
 
 class StandardInitScriptsModel(
-    private val initScriptModels: Map<File, GradleScriptModel>
+    private val initScriptModels: List<GradleScriptModel>
 ) : InitScriptsModel {
-    override fun getInitScriptModels(): Map<File, GradleScriptModel> = initScriptModels
+    override fun getInitScriptModels(): List<GradleScriptModel>  = initScriptModels
 }

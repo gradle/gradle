@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.model.buildscript;
 
-import java.io.File;
-import java.util.Map;
+import java.util.List;
 
 public interface ProjectScriptsModel {
     GradleScriptModel getBuildScriptModel();
 
-    Map<File, GradleScriptModel> getPrecompiledScriptModels();
+    List<GradleScriptModel> getPrecompiledScriptModels();
+
 }

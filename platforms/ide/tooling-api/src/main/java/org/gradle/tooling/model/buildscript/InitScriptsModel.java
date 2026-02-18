@@ -16,12 +16,11 @@
 
 package org.gradle.tooling.model.buildscript;
 
-import java.io.File;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Build scoped builder, one per composite build.
  */
 public interface InitScriptsModel {
-    Map<File, GradleScriptModel> getInitScriptModels();
+    List<GradleScriptModel> getInitScriptModels();
 }

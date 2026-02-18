@@ -21,12 +21,11 @@ import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
-import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.*
 import org.gradle.tooling.model.buildscript.GradleScriptModel
 import org.gradle.tooling.model.buildscript.ProjectScriptsModel
 import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.provider.model.ToolingModelBuilder
-import java.io.File
 
 object ProjectScriptsModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
@@ -39,7 +38,7 @@ object ProjectScriptsModelBuilder : ToolingModelBuilder {
                 implicitImports = project.gradle.scriptImplicitImports,
                 contextPath = buildContextPathFor(project),
             ),
-            precompiledScriptModels = emptyMap()
+            precompiledScriptModels = emptyList()
         )
     }
 
@@ -84,8 +83,8 @@ fun classpathDependencyArtifactsOf(buildscript: ScriptHandler): ArtifactCollecti
 
 class StandardProjectScriptsModel(
     private val buildScriptModel: GradleScriptModel,
-    private val precompiledScriptModels: Map<File, GradleScriptModel>
+    private val precompiledScriptModels: List<GradleScriptModel>
 ) : ProjectScriptsModel {
     override fun getBuildScriptModel(): GradleScriptModel = buildScriptModel
-    override fun getPrecompiledScriptModels(): Map<File, GradleScriptModel> = precompiledScriptModels
+    override fun getPrecompiledScriptModels(): List<GradleScriptModel> = precompiledScriptModels
 }

@@ -134,13 +134,15 @@ class AllScriptModelsAndSourcesBuildAction implements BuildAction<GradleScriptsM
         def projects = build.projects.collect { project ->
             controller.getModel(project, ProjectScriptsModel)
         }
+
         Map<File, GradleScriptModel> all = [:]
-        all << init.initScriptModels
+        all << init.initScriptModels.collectEntries { [it.scriptFile, it] }
         all[settings.settingsScriptModel.scriptFile] = settings.settingsScriptModel
         projects.each { project ->
             all[project.buildScriptModel.scriptFile] = project.buildScriptModel
-            all << project.precompiledScriptModels
+            all << project.precompiledScriptModels.collectEntries { [it.scriptFile, it] }
         }
+
         return new StandardGradleScriptsModel(all)
     }
 }
