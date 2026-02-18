@@ -27,7 +27,6 @@ import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
 import java.time.Duration
-import java.nio.file.Files as NioFiles
 import java.nio.file.attribute.PosixFilePermission
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo
@@ -409,12 +408,13 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
         then:
         def binaryDir = file("build/test-results/test/binary")
-        binaryDir.listFiles().each { File f ->
-            assert f.canRead()
-            def perms = NioFiles.getPosixFilePermissions(f.toPath())
-            assert perms.contains(PosixFilePermission.OTHERS_READ)
-            assert perms.contains(PosixFilePermission.GROUP_READ)
-        }
+        java.nio.file.Files.walk(binaryDir.toPath())
+            .filter { java.nio.file.Files.isRegularFile(it) }
+            .each { path ->
+                def perms = java.nio.file.Files.getPosixFilePermissions(path)
+                assert perms.contains(PosixFilePermission.OTHERS_READ)
+                assert perms.contains(PosixFilePermission.GROUP_READ)
+            }
     }
 
     private String buildRequestingNewerJavaVersion() {
