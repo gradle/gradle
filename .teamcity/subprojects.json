@@ -945,6 +945,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "kotlin-dsl-tooling-model-impls",
+    "path": "platforms/core-configuration/kotlin-dsl-tooling-model-impls",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "kotlin-dsl-tooling-models",
     "path": "platforms/core-configuration/kotlin-dsl-tooling-models",
     "unitTests": false,

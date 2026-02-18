@@ -129,6 +129,7 @@
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-plugins" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-provider-plugins" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-tooling-builders" />
+            <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-tooling-model-impls" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-tooling-models" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/model-core" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/model-groovy" />

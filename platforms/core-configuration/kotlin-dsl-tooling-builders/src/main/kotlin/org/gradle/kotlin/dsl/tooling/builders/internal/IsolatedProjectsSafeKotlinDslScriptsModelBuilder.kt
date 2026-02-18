@@ -38,6 +38,7 @@ import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptsModel
 import org.gradle.kotlin.dsl.tooling.builders.accessorsClassPathOf
 import org.gradle.kotlin.dsl.tooling.builders.addNotNull
 import org.gradle.kotlin.dsl.tooling.builders.compilationClassPathForScriptPluginOf
+import org.gradle.kotlin.dsl.tooling.builders.createStandardKotlinDslScriptsModel
 import org.gradle.kotlin.dsl.tooling.builders.discoverBuildScript
 import org.gradle.kotlin.dsl.tooling.builders.discoverInitScripts
 import org.gradle.kotlin.dsl.tooling.builders.discoverPrecompiledScriptPluginScripts
@@ -77,7 +78,7 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
         val base = ScriptModelBase(rootProject)
         val nonProjectScriptModels = buildNonProjectScriptModels(rootProject, base)
         val projectHierarchyScriptModels = buildScriptModelsInHierarchy(rootProject, base, intermediateModelProvider)
-        return StandardKotlinDslScriptsModel.from(nonProjectScriptModels + projectHierarchyScriptModels)
+        return createStandardKotlinDslScriptsModel(nonProjectScriptModels + projectHierarchyScriptModels)
     }
 }
 
