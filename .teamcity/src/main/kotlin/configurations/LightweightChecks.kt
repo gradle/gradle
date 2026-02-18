@@ -8,6 +8,8 @@ import common.Os
 import common.applyDefaultSettings
 import common.javaHome
 import jetbrains.buildServer.configs.kotlin.BuildStep
+import jetbrains.buildServer.configs.kotlin.buildSteps.MavenBuildStep
+import jetbrains.buildServer.configs.kotlin.buildSteps.maven
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
 import model.Stage
@@ -46,6 +48,8 @@ class LightweightChecks(
                 param("JdkProviderEnabled", "false")
                 // should be the same version we run TeamCity with
                 param("env.JAVA_HOME", javaHome(DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK), os))
+                // The Maven integration passes secrets in a save way, but not our fake credential so we override it to not trip our safety net here
+                param("system.fakeCredentials", "notForMaven")
             }
 
             steps {
@@ -82,12 +86,19 @@ class LightweightChecks(
                         "$defaultJavaBinary" .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}
                         """.trimIndent()
                 }
-                script {
+                maven {
                     name = "RUN_MAVEN_CLEAN_VERIFY"
-                    scriptContent =
-                        """
-                        ./mvnw clean verify -Dmaven.repo.local=../build -Dscan.value.gitCommitId=%build.vcs.number% -Dscan.tag.CI -Dscan.value.tcBuildType=${model.projectId}_LightweightChecks
-                        """.trimIndent()
+                    goals = "clean verify"
+                    localRepoScope = MavenBuildStep.RepositoryScope.BUILD_CONFIGURATION
+                    runnerArgs =
+                        listOf(
+                            "-Dscan.value.gitCommitId=%build.vcs.number%",
+                            "-Dscan.tag.CI",
+                            "-Dscan.value.tcBuildType=${model.projectId}_LightweightChecks",
+                        ).joinToString(" ")
+                    userSettingsSelection
+                    mavenVersion = auto()
+                    pomLocation = ".teamcity/pom.xml"
                     workingDir = ".teamcity"
                 }
                 script {
