@@ -26,11 +26,11 @@ import org.gradle.internal.HasInternalProtocol;
  * Requirements for selecting a Java toolchain.
  * <p>
  * A toolchain is a JRE/JDK used by the tasks of a build.
- * Tasks may require one or more of the tools (javac, java, or javadoc) of a toolchain.
+ * Tasks may require one or more of the tools ({@code javac}, {@code java}, or {@code javadoc}) of a toolchain.
  * Depending on the needs of a build, only toolchains matching specific characteristics can be used to run a build or a specific task of a build.
  * <p>
  * Even though specification properties can be configured independently,
- * the configuration must follow certain rules in order to form a  specification.
+ * the configuration must follow certain rules to form a specification.
  * <p>
  * A {@code JavaToolchainSpec} is considered <em>valid</em> in two cases:
  * <ul>
@@ -83,6 +83,15 @@ public interface JavaToolchainSpec extends Describable {
     @Incubating
     Property<Boolean> getNativeImageCapable();
 
+    /**
+     * Controls how to handle the outcome when a matching toolchain cannot be found.
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    Property<JavaToolchainNotFoundMode> getOnNoMatchFound();
+
+
     @Override
     default String getDisplayName() {
         final MoreObjects.ToStringHelper builder = MoreObjects.toStringHelper("");
@@ -91,6 +100,7 @@ public interface JavaToolchainSpec extends Describable {
         builder.add("vendor", getVendor().map(JvmVendorSpec::toString).getOrNull());
         builder.add("implementation", getImplementation().map(JvmImplementation::toString).getOrNull());
         builder.add("nativeImageCapable", getNativeImageCapable().getOrElse(false));
+        builder.add("onNoMatchFound", getOnNoMatchFound().getOrNull());
         return builder.toString();
     }
 
