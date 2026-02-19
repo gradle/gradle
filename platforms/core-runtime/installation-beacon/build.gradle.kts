@@ -5,6 +5,11 @@ plugins {
 description = "Marker class file used to locate the Gradle distribution base directory"
 
 gradleModule {
+    requiredRuntimes {
+        client = true
+        daemon = true
+        worker = true
+    }
     computedRuntimes {
     }
 }
