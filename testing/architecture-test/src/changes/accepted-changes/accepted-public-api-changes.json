@@ -2,14 +2,6 @@
     "acceptedApiChanges": [
         {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getSoftwareTypeRegistry()",
-            "acceptation": "Internal and unpublished API",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Class org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "acceptation": "Adding method to TaskInternal",
             "changes": [
@@ -18,11 +10,11 @@
         },
         {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getSoftwareTypeRegistry()",
-            "acceptation": "Internal and unpublished API",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getProjectFeatureDeclarations()",
+            "acceptation": "Removing unused internal service getter",
             "changes": [
                 "Method has been removed"
             ]
-        },
+        }
     ]
 }

@@ -172,7 +172,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
      *
      * This property can be set via command-line option '--provenance'.
      *
-     * @since 9.4.0
+     * @since 9.5.0
      */
     @Console
     @Option(option = "provenance", description = "Show task provenance information")
