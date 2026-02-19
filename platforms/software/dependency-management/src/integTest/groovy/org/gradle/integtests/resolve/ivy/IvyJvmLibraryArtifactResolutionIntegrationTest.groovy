@@ -264,6 +264,7 @@ Searched in the following locations:
 
         when:
         if (!GradleContextualExecuter.isConfigCache()) {
+            // With CC the build caches resolution failure, so rerunning the task makes no new resolution attempt.
             server.resetExpectations()
             module.ivy.expectGetMissing()
         }
