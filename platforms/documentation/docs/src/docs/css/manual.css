@@ -58,6 +58,7 @@ body {
 	--quoteblock-color: #7a2518;
 	--menu-burger-color: #fff;
 	--various-border-color: #e7e7e9;
+	--right-menu-gray: hsl(224, 6%, 56%);
 }
 
 body.dark-theme {
@@ -4221,17 +4222,27 @@ body.dark-theme {
 	#header #toc a {
 		padding-left: 10px;
 		font-weight: 400;
-		color: var(--text-color);
+		color: var(--right-menu-gray);
 		font-size: .95rem;
 		display: inline-block;
 	}
 
-	#header #toc a.active {
-		font-weight: 500;
-		border-left: 3px solid #01303a;
-		margin-left: -2px;
-		padding-left: 9px;
-	}
+    #header #toc a.active {
+        font-weight: 500;
+        color: var(--gradle-blue-lite);
+    }
+
+	#header #toc a:hover {
+        color: var(--gradle-blue-lite);
+    }
+
+    #header #toc .sectlevel1 a {
+        font-size: 0.85rem;
+    }
+
+    #header #toc .sectlevel2 a {
+        font-size: 0.8rem;
+    }
 
 	.site-footer__navigation {
 		flex-wrap: wrap;
