@@ -65,7 +65,7 @@ data class StandardScriptComponentSourceIdentifier(
     override fun getScriptFile(): File =
         scriptFile
 
-    override fun getComponentIdentifierBytes(): ByteArray =
+    override fun getScriptComponentSourceInternalBytes(): ByteArray =
         bytes
 
     override fun equals(other: Any?): Boolean {

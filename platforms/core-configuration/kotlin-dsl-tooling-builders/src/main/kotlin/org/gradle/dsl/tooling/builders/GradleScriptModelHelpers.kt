@@ -96,7 +96,7 @@ internal fun ScriptComponentSourcesRequest.deserializeIdentifiers(): Map<File, L
         .map { it as ScriptComponentSourceIdentifierInternal }
         .groupBy { it.scriptFile }
         .mapValues { entry ->
-            entry.value.map { deserialize(it.componentIdentifierBytes) }
+            entry.value.map { deserialize(it.scriptComponentSourceInternalBytes) }
         }
 
 
