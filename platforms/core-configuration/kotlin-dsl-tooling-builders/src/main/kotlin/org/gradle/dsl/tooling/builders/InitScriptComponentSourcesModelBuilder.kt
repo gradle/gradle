@@ -41,7 +41,12 @@ object InitScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuilder
             "Unexpected requested source identifiers (Only $initScripts were expected): $parameter"
         }
         // TODO Use the right ScriptHandler
-        val results = gradle.settings.buildscript.dependencies.downloadSources(identifiers.filterKeys { initScripts.contains(it) })
+
+        val results = downloadSources(
+            gradle,
+            gradle.settings.buildscript.dependencies,
+            identifiers.filterKeys { initScripts.contains(it) }
+        )
         return StandardScriptComponentSources(results)
     }
 }

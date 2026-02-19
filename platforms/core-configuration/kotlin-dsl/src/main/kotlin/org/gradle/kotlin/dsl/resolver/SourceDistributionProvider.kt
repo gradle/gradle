@@ -24,12 +24,17 @@ import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.artifacts.DependencyManagementServices
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptorLocator
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistVersion
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.GradleVersion
 import org.slf4j.Logger
 import java.io.File
@@ -150,11 +155,16 @@ class SourceDistributionResolver(private val gradle: Gradle) : SourceDistributio
         Integer.parseInt(versionDigit) - 1
 
     private
-    val resolver by lazy { projectInternal.newDetachedResolver() }
-
-    private
-    val projectInternal
-        get() = gradle as ProjectInternal
+    val resolver by lazy {
+        val gradleInternal = gradle as GradleInternal
+        val dms = gradleInternal.serviceOf<DependencyManagementServices>()
+        val resolver = dms.newDetachedResolver(
+            gradle.serviceOf<FileResolver>(),
+            gradle.serviceOf<FileCollectionFactory>(),
+            StandaloneDomainObjectContext.ANONYMOUS
+        )
+        DefaultProject.LocalDetachedResolver(resolver)
+    }
 
     private
     val repositories

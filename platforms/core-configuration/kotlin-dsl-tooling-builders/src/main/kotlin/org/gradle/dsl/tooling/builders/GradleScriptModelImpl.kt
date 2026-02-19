@@ -38,6 +38,9 @@ data class StandardGradleScriptModel(
     override fun getScriptFile(): File = scriptFile
     override fun getImplicitImports(): List<String> = implicitImports
     override fun getContextPath(): List<ScriptContextPathElement> = contextPath
+    override fun toString(): String {
+        return "StandardGradleScriptModel(scriptFile=$scriptFile, implicitImports=${implicitImports.size}, contextPath=$contextPath)"
+    }
 }
 
 data class StandardScriptContextPathElement(

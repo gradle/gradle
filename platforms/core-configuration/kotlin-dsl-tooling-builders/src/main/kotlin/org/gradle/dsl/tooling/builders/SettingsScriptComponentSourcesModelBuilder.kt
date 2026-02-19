@@ -18,6 +18,7 @@ package org.gradle.dsl.tooling.builders
 
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
+import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.tooling.model.buildscript.ScriptComponentSourcesRequest
 import org.gradle.tooling.model.buildscript.SettingsScriptComponentSources
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
@@ -34,8 +35,14 @@ object SettingsScriptComponentSourcesModelBuilder : ParameterizedToolingModelBui
 
     override fun buildAll(modelName: String, parameter: ScriptComponentSourcesRequest, project: Project): SettingsScriptComponentSources {
         val identifiers = parameter.deserializeIdentifiers()
-        val settings = (project.gradle as GradleInternal).settings
-        val results = settings.buildscript.dependencies.downloadSources(identifiers)
+        val gradle = project.gradle as GradleInternal
+        val settings = gradle.settings
+        SourceDistributionResolver(project.gradle).sourceDirs()
+        val results = downloadSources(
+            gradle,
+            settings.buildscript.dependencies,
+            identifiers
+        )
         return StandardScriptComponentSources(results)
     }
 }

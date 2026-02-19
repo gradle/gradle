@@ -21,13 +21,18 @@ import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
+import org.gradle.api.invocation.Gradle
+import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptImplicitImports
 import org.gradle.kotlin.dsl.tooling.builders.sourceLookupScriptHandlersFor
 import org.gradle.tooling.model.buildscript.ProjectScriptsModel
+import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifier
 import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import java.io.File
 
 object ProjectScriptsModelBuilder : ToolingModelBuilder {
 
@@ -39,13 +44,13 @@ object ProjectScriptsModelBuilder : ToolingModelBuilder {
             buildScriptModel = StandardGradleScriptModel(
                 scriptFile = project.buildFile,
                 implicitImports = project.gradle.scriptImplicitImports,
-                contextPath = buildContextPathFor(project),
+                contextPath = buildContextPathFor(project.buildFile, project),
             ),
             precompiledScriptModels = emptyList()
         )
     }
 
-    private fun buildContextPathFor(project: Project): List<ScriptContextPathElement> =
+    private fun buildContextPathFor(scriptFile: File, project: Project): List<ScriptContextPathElement> =
         buildList {
             val compilationClassPath = project.scriptCompilationClassPath.asFiles
 
@@ -58,22 +63,54 @@ object ProjectScriptsModelBuilder : ToolingModelBuilder {
             compilationClassPath.forEach { file ->
                 add(
                     StandardScriptContextPathElement(
-                        file,
-                        resolvedClassPath.firstOrNull { it.file == file }
-                            ?.id?.componentIdentifier
-                            ?.let { componentId ->
-                                listOf(
-                                    StandardScriptComponentSourceIdentifier(
-                                        displayName = componentId.displayName,
-                                        scriptFile = file,
-                                        bytes = serialize(componentId)
-                                    )
-                                )
-                            } ?: emptyList()
+                        classPath = file,
+                        sourcePath = project.gradle.buildSourcePathFor(scriptFile, file, resolvedClassPath)
                     )
                 )
             }
         }
+}
+
+
+internal fun Gradle.buildSourcePathFor(
+    scriptFile: File,
+    compileClassPathFile: File,
+    resolvedClasspath: Set<ResolvedArtifactResult>
+): List<ScriptComponentSourceIdentifier> {
+    val externalId = resolvedClasspath.firstOrNull { it.file == compileClassPathFile }?.id?.componentIdentifier
+    return if (externalId != null) {
+        // Resolved external dependency
+        listOf(
+            newScriptComponentSourceIdentifier(
+                displayName = externalId.displayName,
+                scriptFile = scriptFile,
+                identifier = SourceComponentIdentifierType.ExternalDependency(externalId)
+            )
+        )
+    } else if (isGradleModule(compileClassPathFile)) {
+        // Gradle sources
+        listOf(
+            newScriptComponentSourceIdentifier(
+                displayName = "Gradle ${gradle.gradleVersion}",
+                scriptFile = scriptFile,
+                identifier = SourceComponentIdentifierType.GradleSrc
+            )
+        )
+    } else if (isGradleDistroLib(compileClassPathFile)) {
+        emptyList()
+    } else {
+        emptyList()
+    }
+}
+
+internal fun Gradle.isGradleModule(file: File): Boolean {
+    return file.parentFile.name == "generated-gradle-jars" || serviceOf<CurrentGradleInstallation>().installation?.libDirs?.any { libDir ->
+        file.name.startsWith("gradle-") && file.absolutePath.startsWith(libDir.absolutePath)
+    } == true
+}
+
+internal fun Gradle.isGradleDistroLib(file: File): Boolean {
+    return false
 }
 
 internal

@@ -35,9 +35,9 @@ object ProjectScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuil
         val identifiers = parameter.deserializeIdentifiers()
         val results = buildMap {
             identifiers[project.buildFile]?.let {
-                putAll(project.buildscript.dependencies.downloadSources(mapOf(project.buildFile to it)))
+                putAll(downloadSources(project.gradle, project.buildscript.dependencies, mapOf(project.buildFile to it)))
             }
-            putAll(project.dependencies.downloadSources(identifiers.filterKeys { it != project.buildFile }))
+            putAll(downloadSources(project.gradle, project.dependencies, identifiers.filterKeys { it != project.buildFile }))
         }
         return StandardScriptComponentSources(results)
     }

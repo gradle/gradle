@@ -67,17 +67,7 @@ object SettingsScriptModelBuilder : BuildScopeModelBuilder {
                 add(
                     StandardScriptContextPathElement(
                         file,
-                        resolvedClassPath.firstOrNull { it.file == file }
-                            ?.id?.componentIdentifier
-                            ?.let { componentId ->
-                                listOf(
-                                    StandardScriptComponentSourceIdentifier(
-                                        displayName = componentId.displayName,
-                                        scriptFile = scriptFile,
-                                        bytes = serialize(componentId)
-                                    )
-                                )
-                            } ?: emptyList()
+                        gradle.buildSourcePathFor(scriptFile, file, resolvedClassPath.artifacts)
                     )
                 )
             }
