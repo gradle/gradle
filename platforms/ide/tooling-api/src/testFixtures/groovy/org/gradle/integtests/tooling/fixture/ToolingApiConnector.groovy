@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling.fixture
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 
-class ToolingApiConnector {
+class ToolingApiConnector extends GradleConnector {
     GradleConnector connector
     private final OutputStream stdout
     private final OutputStream stderr
@@ -34,29 +34,49 @@ class ToolingApiConnector {
         new ToolingApiConnection(connector.connect(), stdout, stderr) as ProjectConnection
     }
 
+    @Override
+    void disconnect() {
+        connector.disconnect()
+    }
+
     ToolingApiConnector searchUpwards(boolean searchUpwards) {
         connector.searchUpwards(searchUpwards)
         this
     }
 
-    def methodMissing(String name, args) {
-        connector."$name"(*args)
+    @Override
+    GradleConnector useInstallation(File gradleHome) {
+        connector.useInstallation(gradleHome)
+        this
     }
 
-    void propertyMissing(String name, value) {
-        connector."$name" = value
+    @Override
+    GradleConnector useGradleVersion(String gradleVersion) {
+        connector.useGradleVersion(gradleVersion)
+        this
     }
 
-    def propertyMissing(String name) {
-        connector."$name"
+    @Override
+    GradleConnector useDistribution(URI gradleDistribution) {
+        connector.useDistribution(gradleDistribution)
+        this
     }
 
-    ToolingApiConnector forProjectDirectory(File projectDir) {
+    @Override
+    GradleConnector useBuildDistribution() {
+        connector.useBuildDistribution()
+        this
+    }
+
+    @Override
+    GradleConnector forProjectDirectory(File projectDir) {
         connector.forProjectDirectory(projectDir)
         this
     }
 
-    def disconnect() {
-        connector.disconnect()
+    @Override
+    GradleConnector useGradleUserHomeDir(File gradleUserHomeDir) {
+        connector.useGradleUserHomeDir(gradleUserHomeDir)
+        this
     }
 }
