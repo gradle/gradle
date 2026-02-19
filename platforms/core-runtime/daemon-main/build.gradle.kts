@@ -37,6 +37,9 @@ dependencies {
 }
 
 gradleModule {
+    requiredRuntimes {
+        daemon = true
+    }
     computedRuntimes {
     }
 }
