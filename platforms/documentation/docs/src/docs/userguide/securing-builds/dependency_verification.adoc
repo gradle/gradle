@@ -1182,7 +1182,3 @@ However, if you only do so, Gradle will still fail because all keys for this art
        </component>
    </components>
 ----
-
-++++
-<script src="js/scroll.js"></script>
-++++
