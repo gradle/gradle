@@ -69,6 +69,11 @@ dependencies {
     }
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/quality/internal/*")
 }

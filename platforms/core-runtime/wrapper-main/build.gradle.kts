@@ -57,6 +57,11 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 val executableJar by tasks.registering(Jar::class) {
     archiveFileName = "gradle-wrapper-executable.jar"
     manifest {

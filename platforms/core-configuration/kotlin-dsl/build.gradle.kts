@@ -162,6 +162,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 // Relocate kotlin-metadata-jvm
 configurations.compileOnly {
     extendsFrom(configurations.shadow.get())

@@ -32,6 +32,11 @@ dependencies {
     jmhImplementation(projects.baseServices)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 jmh {
     fork = 1
     threads = 2

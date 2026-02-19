@@ -15,6 +15,11 @@ dependencies {
     testImplementation(testFixtures(projects.core))
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

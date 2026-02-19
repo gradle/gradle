@@ -9,3 +9,8 @@ dependencies {
     api(projects.credentialsApi)
     api(projects.stdlibJavaExtensions)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

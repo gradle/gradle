@@ -66,3 +66,8 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

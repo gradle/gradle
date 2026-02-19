@@ -27,6 +27,11 @@ dependencies {
     testRuntimeOnly(projects.resources)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

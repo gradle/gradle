@@ -73,6 +73,11 @@ dependencies {
     }
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

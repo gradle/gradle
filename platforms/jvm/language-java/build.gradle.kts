@@ -99,6 +99,11 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
 }

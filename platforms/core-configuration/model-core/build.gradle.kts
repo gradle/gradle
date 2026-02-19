@@ -69,6 +69,11 @@ dependencies {
     jmhImplementation(platform(projects.distributionsDependencies))
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 jvmCompile {
     compilations {
         named("main") {

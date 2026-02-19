@@ -21,3 +21,8 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

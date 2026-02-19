@@ -60,6 +60,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 jvmCompile {
     compilations {
         named("main") {

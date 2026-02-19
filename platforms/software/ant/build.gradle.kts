@@ -25,3 +25,8 @@ dependencies {
 
     compileOnly(libs.jetbrainsAnnotations)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

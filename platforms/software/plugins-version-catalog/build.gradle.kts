@@ -46,6 +46,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/**")
 }

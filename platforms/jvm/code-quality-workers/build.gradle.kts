@@ -22,3 +22,8 @@ dependencies {
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

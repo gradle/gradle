@@ -48,3 +48,8 @@ dependencies {
     testImplementation(testFixtures(projects.beanSerializationServices))
     testImplementation(testLibs.mockitoKotlin)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

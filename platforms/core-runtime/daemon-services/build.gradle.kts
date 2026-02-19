@@ -41,3 +41,8 @@ dependencies {
 
     testImplementation(testFixtures(projects.time))
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

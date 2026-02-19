@@ -26,6 +26,11 @@ dependencies {
     testImplementation(testFixtures(projects.snapshots))
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 // TODO Put a comment here about what this does
 listOf(configurations["apiElements"], configurations["runtimeElements"]).forEach {
     (components["java"] as AdhocComponentWithVariants).withVariantsFromConfiguration(it) {

@@ -14,3 +14,8 @@ dependencies {
     compileOnly(libs.jspecify)
     compileOnly(libs.jetbrainsAnnotations)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

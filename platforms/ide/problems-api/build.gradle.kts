@@ -52,6 +52,11 @@ dependencies {
     testFixturesImplementation(projects.internalDistributionTesting)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 jvmCompile {
     compilations {
         named("testFixtures") {

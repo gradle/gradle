@@ -17,6 +17,11 @@ dependencies {
     implementation(libs.inject)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

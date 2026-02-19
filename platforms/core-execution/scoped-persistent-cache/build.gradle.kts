@@ -32,3 +32,8 @@ dependencies {
 
     implementation(libs.guava)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

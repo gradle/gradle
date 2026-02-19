@@ -12,6 +12,11 @@ dependencies {
     api(libs.errorProneAnnotations)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

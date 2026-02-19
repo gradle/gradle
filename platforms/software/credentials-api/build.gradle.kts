@@ -12,3 +12,8 @@ dependencies {
         because("Provides @ToBeReplacedByLazyProperty annotation, following the same pattern as core-api")
     }
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

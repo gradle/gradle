@@ -47,3 +47,8 @@ dependencies {
 
     testImplementation(projects.serviceRegistryImpl)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

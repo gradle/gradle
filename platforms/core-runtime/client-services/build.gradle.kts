@@ -85,3 +85,8 @@ dependencies {
     }
     testImplementation(testFixtures(projects.daemonProtocol))
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

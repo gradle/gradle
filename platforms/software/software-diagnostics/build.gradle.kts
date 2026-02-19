@@ -72,6 +72,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
     excludePatterns.add("org/gradle/api/plugins/internal/*")
