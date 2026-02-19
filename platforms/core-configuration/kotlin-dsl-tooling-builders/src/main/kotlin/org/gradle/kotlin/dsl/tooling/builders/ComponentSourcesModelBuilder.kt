@@ -20,27 +20,27 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.jvm.JvmLibrary
 import org.gradle.language.base.artifact.SourcesArtifact
-import org.gradle.tooling.model.buildscript.ComponentSources
-import org.gradle.tooling.model.buildscript.ComponentSourcesRequest
-import org.gradle.tooling.model.buildscript.SourceComponentIdentifier
-import org.gradle.tooling.model.buildscript.SourceComponentIdentifierInternal
+import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifier
+import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifierInternal
+import org.gradle.tooling.model.buildscript.ScriptComponentSources
+import org.gradle.tooling.model.buildscript.ScriptComponentSourcesRequest
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import java.io.File
 import java.io.Serializable
 
-object ComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<ComponentSourcesRequest> {
+object ComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<ScriptComponentSourcesRequest> {
     override fun canBuild(modelName: String): Boolean =
-        ComponentSources::class.java.name.equals(modelName)
+        ScriptComponentSources::class.java.name.equals(modelName)
 
-    override fun getParameterType(): Class<ComponentSourcesRequest> =
-        ComponentSourcesRequest::class.java
+    override fun getParameterType(): Class<ScriptComponentSourcesRequest> =
+        ScriptComponentSourcesRequest::class.java
 
-    override fun buildAll(modelName: String, project: Project): ComponentSources =
+    override fun buildAll(modelName: String, project: Project): ScriptComponentSources =
         error("Should not be called")
 
-    override fun buildAll(modelName: String, parameter: ComponentSourcesRequest, project: Project): ComponentSources {
+    override fun buildAll(modelName: String, parameter: ScriptComponentSourcesRequest, project: Project): ScriptComponentSources {
         val componentIdentifiers = parameter.sourceComponentIdentifiers
-            .map { it as SourceComponentIdentifierInternal }
+            .map { it as ScriptComponentSourceIdentifierInternal }
             .map { deserialize(it.componentIdentifierBytes) }
 
         val sourcesArtifacts = project.buildscript.dependencies.createArtifactResolutionQuery()
@@ -54,10 +54,10 @@ object ComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<Component
             .filter { it.second.any { it is ResolvedArtifactResult } }
             .associate { it.first to it.second.filterIsInstance<ResolvedArtifactResult>().map { it.file } }
 
-        return StandardComponentSources(
+        return StandardScriptComponentSources(
             buildMap {
                 results.forEach { (compId, sourceFiles) ->
-                    put(StandardSourceComponentIdentifier(compId.displayName, serialize(compId)), sourceFiles)
+                    put(StandardScriptComponentSourceIdentifier(compId.displayName, serialize(compId)), sourceFiles)
                 }
             }
         )
@@ -65,9 +65,9 @@ object ComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<Component
 }
 
 
-class StandardComponentSources(
-    private val state: Map<SourceComponentIdentifier, List<File>>
-) : ComponentSources, Serializable {
-    override fun getSourcesByComponents(): Map<SourceComponentIdentifier, List<File>> =
+class StandardScriptComponentSources(
+    private val state: Map<ScriptComponentSourceIdentifier, List<File>>
+) : ScriptComponentSources, Serializable {
+    override fun getSourcesByComponents(): Map<ScriptComponentSourceIdentifier, List<File>> =
         state
 }

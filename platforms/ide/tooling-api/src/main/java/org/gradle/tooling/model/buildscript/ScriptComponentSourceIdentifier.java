@@ -19,9 +19,9 @@ package org.gradle.tooling.model.buildscript;
 import org.gradle.tooling.ToolingModelContract;
 
 @ToolingModelContract(
-    subTypes = {SourceComponentIdentifierInternal.class}
+    subTypes = {ScriptComponentSourceIdentifierInternal.class}
 )
-public interface SourceComponentIdentifier {
+public interface ScriptComponentSourceIdentifier {
 
     String getDisplayName();
 }

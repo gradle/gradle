@@ -16,18 +16,17 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r95
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
-import org.gradle.tooling.model.buildscript.ComponentSources
-import org.gradle.tooling.model.buildscript.ComponentSourcesRequest
 import org.gradle.tooling.model.buildscript.GradleScriptsModel
 import org.gradle.tooling.model.buildscript.InitScriptsModel
 import org.gradle.tooling.model.buildscript.ProjectScriptsModel
+import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifier
+import org.gradle.tooling.model.buildscript.ScriptComponentSources
+import org.gradle.tooling.model.buildscript.ScriptComponentSourcesRequest
 import org.gradle.tooling.model.buildscript.SettingsScriptModel
-import org.gradle.tooling.model.buildscript.SourceComponentIdentifier
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
@@ -102,7 +101,7 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
         def projectModel = model.modelsByScripts[projectScript]
         println projectModel.scriptFile
         def contextPathElements = projectModel.contextPath.takeRight(2)
-        def sourcePath = contextPathElements.collectMany { it.sourcePath }
+        def sourcePath = contextPathElements.collectMany { it.sourcePathIdentifiers }
         sourcePath.size() == 2
         sourcePath[0] != sourcePath[1]
         // sourcePath[0] != sourcePath[2]
@@ -159,7 +158,7 @@ class AllScriptModelsAndSourcesBuildAction implements BuildAction<AllScriptsMode
 }
 
 
-class AllComponentSourcesBuildAction implements BuildAction<Map<SourceComponentIdentifier, List<File>>> {
+class AllComponentSourcesBuildAction implements BuildAction<Map<ScriptComponentSourceIdentifier, List<File>>> {
 
     AllScriptsModel allScriptsModel
 
@@ -168,25 +167,25 @@ class AllComponentSourcesBuildAction implements BuildAction<Map<SourceComponentI
     }
 
     @Override
-    Map<SourceComponentIdentifier, List<File>> execute(BuildController controller) {
-        def initSources = controller.getModel(ComponentSources, ComponentSourcesRequest) {
+    Map<ScriptComponentSourceIdentifier, List<File>> execute(BuildController controller) {
+        def initSources = controller.getModel(ScriptComponentSources, ScriptComponentSourcesRequest) {
             it.sourceComponentIdentifiers = allScriptsModel.initScriptsModel.initScriptModels.collectMany {
-                it.contextPath.collectMany { it.sourcePath }
+                it.contextPath.collectMany { it.sourcePathIdentifiers }
             }
         }.sourcesByComponents
-        def settingsSource = controller.getModel(ComponentSources, ComponentSourcesRequest) {
+        def settingsSource = controller.getModel(ScriptComponentSources, ScriptComponentSourcesRequest) {
             it.sourceComponentIdentifiers = allScriptsModel.settingsScriptModel.settingsScriptModel.contextPath.collectMany {
-                it.sourcePath
+                it.sourcePathIdentifiers
             }
         }.sourcesByComponents
-        Map<SourceComponentIdentifier, List<File>> projectSources = allScriptsModel.projectScriptsModels.entrySet().collectEntries { entry ->
+        Map<ScriptComponentSourceIdentifier, List<File>> projectSources = allScriptsModel.projectScriptsModels.entrySet().collectEntries { entry ->
             def project = entry.key
             def scriptsModel = entry.value
-            controller.getModel(project, ComponentSources, ComponentSourcesRequest) {
+            controller.getModel(project, ScriptComponentSources, ScriptComponentSourcesRequest) {
                 it.sourceComponentIdentifiers = scriptsModel.buildScriptModel.contextPath
-                    .collectMany { it.sourcePath } +
+                    .collectMany { it.sourcePathIdentifiers } +
                     scriptsModel.precompiledScriptModels.collectMany {
-                        it.contextPath.collectMany { it.sourcePath }
+                        it.contextPath.collectMany { it.sourcePathIdentifiers }
                     }
             }.sourcesByComponents
         }
@@ -195,17 +194,17 @@ class AllComponentSourcesBuildAction implements BuildAction<Map<SourceComponentI
 }
 
 
-class ComponentSourcesBuildAction implements BuildAction<ComponentSources> {
+class ComponentSourcesBuildAction implements BuildAction<ScriptComponentSources> {
 
-    List<SourceComponentIdentifier> sourceIds
+    List<ScriptComponentSourceIdentifier> sourceIds
 
-    ComponentSourcesBuildAction(List<SourceComponentIdentifier> sourceIds) {
+    ComponentSourcesBuildAction(List<ScriptComponentSourceIdentifier> sourceIds) {
         this.sourceIds = sourceIds
     }
 
     @Override
-    ComponentSources execute(BuildController controller) {
-        return controller.getModel(ComponentSources, ComponentSourcesRequest) {
+    ScriptComponentSources execute(BuildController controller) {
+        return controller.getModel(ScriptComponentSources, ScriptComponentSourcesRequest) {
             it.sourceComponentIdentifiers = sourceIds
         }
     }

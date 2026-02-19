@@ -23,15 +23,14 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer
-import org.gradle.internal.hash.Hashing
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.kotlin.dsl.*
 import org.gradle.tooling.model.buildscript.GradleScriptModel
 import org.gradle.tooling.model.buildscript.GradleScriptsModel
+import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifier
+import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifierInternal
 import org.gradle.tooling.model.buildscript.ScriptContextPathElement
-import org.gradle.tooling.model.buildscript.SourceComponentIdentifier
-import org.gradle.tooling.model.buildscript.SourceComponentIdentifierInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -95,7 +94,7 @@ object GradleScriptsModelBuilder : ToolingModelBuilder {
                             ?.id?.componentIdentifier
                             ?.let { componentId ->
                                 listOf(
-                                    StandardSourceComponentIdentifier(
+                                    StandardScriptComponentSourceIdentifier(
                                         displayName = componentId.displayName,
                                         bytes = serialize(componentId)
                                     )
@@ -141,19 +140,19 @@ data class StandardGradleScriptModel(
 
 data class StandardScriptContextPathElement(
     private val classPath: File,
-    private val sourcePath: List<SourceComponentIdentifier>
+    private val sourcePath: List<ScriptComponentSourceIdentifier>
 ) : ScriptContextPathElement, Serializable {
-    override fun getClassPath(): File =
+    override fun getClassPathElement(): File =
         classPath
 
-    override fun getSourcePath(): List<SourceComponentIdentifier> =
+    override fun getSourcePathIdentifiers(): List<ScriptComponentSourceIdentifier> =
         sourcePath
 }
 
-data class StandardSourceComponentIdentifier(
+data class StandardScriptComponentSourceIdentifier(
     private val displayName: String,
     val bytes: ByteArray,
-) : SourceComponentIdentifierInternal, Serializable {
+) : ScriptComponentSourceIdentifierInternal, Serializable {
     override fun getDisplayName(): String =
         displayName
 
@@ -163,7 +162,7 @@ data class StandardSourceComponentIdentifier(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
-        other as StandardSourceComponentIdentifier
+        other as StandardScriptComponentSourceIdentifier
         return bytes.contentEquals(other.bytes)
     }
 

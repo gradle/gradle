@@ -16,14 +16,12 @@
 
 package org.gradle.tooling.model.buildscript;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-
 import java.io.File;
 import java.util.List;
 
 public interface ScriptContextPathElement {
 
-    File getClassPath();
+    File getClassPathElement();
 
-    List<SourceComponentIdentifier> getSourcePath();
+    List<ScriptComponentSourceIdentifier> getSourcePathIdentifiers();
 }

@@ -18,8 +18,8 @@ package org.gradle.tooling.model.buildscript;
 
 import java.util.List;
 
-public interface ComponentSourcesRequest {
-    List<SourceComponentIdentifier> getSourceComponentIdentifiers();
+public interface ScriptComponentSourcesRequest {
+    List<ScriptComponentSourceIdentifier> getSourceComponentIdentifiers();
 
-    void setSourceComponentIdentifiers(List<SourceComponentIdentifier> elements);
+    void setSourceComponentIdentifiers(List<ScriptComponentSourceIdentifier> elements);
 }

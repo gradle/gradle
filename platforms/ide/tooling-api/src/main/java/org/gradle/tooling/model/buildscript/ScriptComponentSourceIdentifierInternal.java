@@ -16,11 +16,6 @@
 
 package org.gradle.tooling.model.buildscript;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
-public interface ComponentSources {
-
-    Map<SourceComponentIdentifier, List<File>> getSourcesByComponents();
+public interface ScriptComponentSourceIdentifierInternal extends ScriptComponentSourceIdentifier {
+    byte[] getComponentIdentifierBytes();
 }

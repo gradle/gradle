@@ -69,7 +69,7 @@ object SettingsScriptModelBuilder : BuildScopeModelBuilder {
                             ?.id?.componentIdentifier
                             ?.let { componentId ->
                                 listOf(
-                                    StandardSourceComponentIdentifier(
+                                    StandardScriptComponentSourceIdentifier(
                                         displayName = componentId.displayName,
                                         bytes = serialize(componentId)
                                     )
