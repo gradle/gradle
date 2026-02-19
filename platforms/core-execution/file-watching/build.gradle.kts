@@ -37,6 +37,12 @@ dependencies {
         because("Uses application plugin.")
     }
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

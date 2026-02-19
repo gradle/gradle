@@ -64,5 +64,9 @@ dependencies {
     testImplementation(testFixtures(projects.hashing))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
 
+gradleModule {
+    computedRuntimes {
+    }
 }

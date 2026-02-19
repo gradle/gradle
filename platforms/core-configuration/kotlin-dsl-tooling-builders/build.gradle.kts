@@ -52,6 +52,11 @@ dependencies {
     }
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 testFilesCleanup.reportOnly = true
 
 // Kotlin DSL tooling builders should not be part of the public API

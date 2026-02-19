@@ -65,6 +65,11 @@ dependencies {
     implementation(libs.guava)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 jvmCompile {
     compilations {
         named("main") {

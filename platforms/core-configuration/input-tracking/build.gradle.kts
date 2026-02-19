@@ -11,6 +11,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

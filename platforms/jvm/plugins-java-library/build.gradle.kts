@@ -49,6 +49,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 dependencyAnalysis {
     issues {
         onRuntimeOnly {

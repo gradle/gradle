@@ -38,3 +38,8 @@ dependencies {
     implementation(projects.daemonProtocol)
     implementation(projects.daemonLogging)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

@@ -34,3 +34,8 @@ dependencies {
     implementation(projects.serialization)
     implementation(projects.stdlibKotlinExtensions)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

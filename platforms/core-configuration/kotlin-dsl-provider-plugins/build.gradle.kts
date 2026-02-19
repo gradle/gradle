@@ -44,6 +44,11 @@ dependencies {
     testImplementation(testLibs.mockitoKotlin)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/provider/plugins/precompiled/tasks/**")
 }

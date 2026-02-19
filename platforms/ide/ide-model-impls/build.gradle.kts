@@ -12,3 +12,8 @@ dependencies {
     implementation(projects.classloaders)
     implementation(libs.guava)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

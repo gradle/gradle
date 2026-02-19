@@ -23,3 +23,8 @@ description = "Daemon logging cleanup and management utilities"
 dependencies {
     compileOnly(libs.jspecify)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

@@ -47,6 +47,11 @@ dependencies {
     testImplementation(testLibs.mockitoKotlin)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 // Note: these dependencies have strict versions, but Gradle currently supports the scenario when higher version of kotlin can be used
 fun<T: ExternalModuleDependency> Provider<T>.relaxRestriction() = map {
     it.copy().apply {

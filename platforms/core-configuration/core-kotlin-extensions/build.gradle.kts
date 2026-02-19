@@ -22,3 +22,8 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.stdlibKotlinExtensions)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

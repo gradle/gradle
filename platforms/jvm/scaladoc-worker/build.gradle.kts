@@ -11,3 +11,8 @@ dependencies {
 
     implementation(projects.baseServices)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

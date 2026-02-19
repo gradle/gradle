@@ -34,6 +34,11 @@ dependencies {
     testFixturesImplementation(libs.commonsLang)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 testing {
     suites {
         @Suppress("UnstableApiUsage")

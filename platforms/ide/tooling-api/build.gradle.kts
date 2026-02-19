@@ -88,6 +88,11 @@ dependencies {
     }
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 jvmCompile {
     compilations {
         named("main") {

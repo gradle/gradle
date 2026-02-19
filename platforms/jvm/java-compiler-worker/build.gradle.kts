@@ -27,6 +27,11 @@ dependencies {
     testImplementation(testFixtures(projects.core))
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 jvmCompile {
     compilations {
         named("main") {

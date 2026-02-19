@@ -54,6 +54,11 @@ dependencies {
     testFixturesImplementation(libs.commonsCompress)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     // Needed for the factory methods in the interface since the implementation is in an internal package
     // which in turn references the interface.

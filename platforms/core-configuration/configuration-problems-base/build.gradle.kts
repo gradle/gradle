@@ -60,3 +60,8 @@ dependencies {
     implementation(projects.hashing)
     implementation(projects.stdlibKotlinExtensions)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

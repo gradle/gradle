@@ -39,6 +39,12 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

@@ -30,6 +30,11 @@ dependencies {
     implementation(libs.slf4jApi)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

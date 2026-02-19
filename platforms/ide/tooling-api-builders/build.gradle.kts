@@ -42,6 +42,11 @@ dependencies {
     testImplementation(testFixtures(projects.core))
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreDeprecations()
 }

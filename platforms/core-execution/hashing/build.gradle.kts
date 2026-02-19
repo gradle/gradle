@@ -13,6 +13,11 @@ dependencies {
     implementation(libs.guava)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }
