@@ -8,6 +8,11 @@ dependencies {
     compileOnly(libs.jspecify)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 tasks.named<Jar>("jar") {
     manifest {
         attributes(mapOf(

@@ -19,3 +19,8 @@ dependencies {
 
     testRuntimeOnly(projects.logging)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

@@ -36,6 +36,11 @@ dependencies {
     }
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreRawTypes() // raw types used in public API
 }

@@ -18,3 +18,8 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.groovy)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

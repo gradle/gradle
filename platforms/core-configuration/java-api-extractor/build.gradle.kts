@@ -10,6 +10,11 @@ dependencies {
     api(libs.guava)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/internal/tools/api/impl/*")
 }

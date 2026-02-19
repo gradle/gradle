@@ -72,6 +72,11 @@ dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreRawTypes() // raw types used in public API (org.gradle.api.tasks.testing.Test)
     ignoreDeprecations() // uses deprecated software model types

@@ -12,6 +12,11 @@ dependencies {
     api(libs.jspecify)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

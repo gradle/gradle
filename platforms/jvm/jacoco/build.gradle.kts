@@ -52,6 +52,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreRawTypes()
 }

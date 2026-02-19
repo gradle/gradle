@@ -48,3 +48,8 @@ dependencies {
         because("AntBuilder relies on groovy-loader which ships with the JVM distribution")
     }
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

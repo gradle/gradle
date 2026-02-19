@@ -48,6 +48,11 @@ dependencies {
     testFixturesImplementation(testLibs.jettyWebApp)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreRawTypes() // raw types used in public API
 }

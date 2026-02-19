@@ -25,3 +25,8 @@ dependencies {
     testFixturesApi(projects.internalIntegTesting)
     testFixturesImplementation(libs.guava)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

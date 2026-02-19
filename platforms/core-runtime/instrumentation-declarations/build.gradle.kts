@@ -27,6 +27,11 @@ dependencies {
     annotationProcessor(platform(projects.distributionsDependencies))
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 tasks.named<JavaCompile>("compileJava") {
     // Without this, javac will complain about unclaimed org.jspecify.annotations.NullMarked annotation
     options.compilerArgs.add("-Xlint:-processing")

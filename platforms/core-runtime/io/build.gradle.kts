@@ -27,6 +27,11 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

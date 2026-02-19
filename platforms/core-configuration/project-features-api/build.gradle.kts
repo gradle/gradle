@@ -30,3 +30,8 @@ dependencies {
 
     implementation(libs.kotlinReflect)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

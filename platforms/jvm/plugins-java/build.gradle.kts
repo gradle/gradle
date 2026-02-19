@@ -52,6 +52,11 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }
