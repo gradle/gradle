@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -24,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.collect.ChunkedSequence;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
@@ -455,7 +457,7 @@ public interface ValueSupplier {
         Value<T> withSideEffect(@Nullable SideEffect<? super T> sideEffect);
 
         // Only populated when value is missing
-        List<DisplayName> getPathToOrigin();
+        ChunkedSequence<DisplayName> getPathToOrigin();
 
         boolean isMissing();
 
@@ -552,7 +554,7 @@ public interface ValueSupplier {
         }
 
         @Override
-        public List<DisplayName> getPathToOrigin() {
+        public ChunkedSequence<DisplayName> getPathToOrigin() {
             throw new IllegalStateException();
         }
 
@@ -576,13 +578,13 @@ public interface ValueSupplier {
     }
 
     class Missing<T> implements Value<T> {
-        private final List<DisplayName> path;
+        private final ChunkedSequence<DisplayName> path;
 
         private Missing() {
-            this.path = ImmutableList.of();
+            this.path = ChunkedSequence.of();
         }
 
-        private Missing(List<DisplayName> path) {
+        private Missing(ChunkedSequence<DisplayName> path) {
             this.path = path;
         }
 
@@ -629,7 +631,7 @@ public interface ValueSupplier {
         }
 
         @Override
-        public List<DisplayName> getPathToOrigin() {
+        public ChunkedSequence<DisplayName> getPathToOrigin() {
             return path;
         }
 
@@ -643,10 +645,7 @@ public interface ValueSupplier {
             if (displayName == null) {
                 return this;
             }
-            ImmutableList.Builder<DisplayName> builder = ImmutableList.builderWithExpectedSize(path.size() + 1);
-            builder.add(displayName);
-            builder.addAll(path);
-            return new Missing<>(builder.build());
+            return new Missing<>(path.prepend(displayName));
         }
 
         @Override
@@ -658,15 +657,12 @@ public interface ValueSupplier {
             if (other.path.isEmpty()) {
                 return this;
             }
-            ImmutableList.Builder<DisplayName> builder = ImmutableList.builderWithExpectedSize(path.size() + other.path.size());
-            builder.addAll(path);
-            builder.addAll(other.path);
-            return new Missing<>(builder.build());
+            return new Missing<>(path.concat(other.path));
         }
 
         @Override
         public String toString() {
-            return path.isEmpty() ? "missing" : String.format("missing(path=%s)", path);
+            return path.isEmpty() ? "missing" : String.format("missing(path=%s)", Iterables.toString(path));
         }
     }
 
