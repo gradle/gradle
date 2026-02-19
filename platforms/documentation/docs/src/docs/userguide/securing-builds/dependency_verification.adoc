@@ -1011,11 +1011,11 @@ NOTE: Only public key packets and a single userId per key are stored. All other 
 
 Once signature verification is enabled, Gradle follows this workflow for each artifact:
 
-// Really gradle uses gpg to try to recreated the hash and verify that the two hasshes match
+// Really gradle uses gpg to try to recreate the hash and verify that the two hashes match
 
 1. Attempts to download the corresponding `.asc` signature file
 2. If the signature file exists:
-* Automatically downloads the public keys needed for verification
+* Looks for the keys in the keyring, if they are not there, automatically downloads the public keys needed for verification
 * Verifies the artifact using the downloaded keys
 * If signature verification passes, performs any additional checksum verification you configured
 3. If the signature file is absent, falls back to checksum verification
@@ -1096,7 +1096,7 @@ Gradle shows the dependency, expected checksum (declared in metadata file), and 
 You must perform manual verification.
 Several scenarios:
 
-* **Dependency tampered in local cache** - Usually harmless. Delete the file from cache and Gradle will re-download.
+* **Dependency tampered in local cache** - Delete the file from cache and Gradle will re-download.
 * **Dependency available in multiple sources with slightly different binaries** - Additional whitespace, timestamps, etc.
 ** Inform library maintainers about the issue
 ** Use <<#sec:trusting-several-checksums,`also-trust`>> to accept additional checksums
