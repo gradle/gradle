@@ -49,6 +49,9 @@ dependencies {
 }
 
 gradleModule {
+    requiredRuntimes {
+        client = true
+    }
     computedRuntimes {
     }
 }
