@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.cache.internal.CacheVersion;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
@@ -49,11 +48,6 @@ public interface GradleDistribution {
      * Returns true if this version handles the client provided standard input stream when running in embedded mode.
      */
     boolean isToolingApiStdinInEmbeddedModeSupported();
-
-    /**
-     * Returns the version of the artifact cache layout
-     */
-    CacheVersion getArtifactCacheLayoutVersion();
 
     /**
      * Returns true if this version always adds a task execution exception around all failures, such as input fingerprinting or property validation failures, rather than only around task action failures.

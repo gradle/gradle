@@ -30,7 +30,6 @@ dependencies {
     api(projects.internalDistributionTesting)
     api(projects.internalTesting)
     api(projects.stdlibJavaExtensions)
-    api(projects.persistentCache)
     api(projects.reportRendering)
     api(projects.time)
     api(projects.toolingApi)
