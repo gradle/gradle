@@ -77,6 +77,10 @@ public abstract class PgpSignatoryService implements BuildService<BuildServicePa
 
     private static class PgpKeyData implements PgpKeyHandle {
         final @Nullable String keyId;
+        // The key may be about several KB long.
+        // If you're changing the lifetime there, consider other places that may retain that String:
+        //  - KeyDataInternService
+        //  - map {} closures in PgpSignatoryFactory
         final String armoredKey;
         final String password;
 

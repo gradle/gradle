@@ -24,6 +24,7 @@ import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableTransform
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.plugins.signing.SigningExtension;
+import org.gradle.plugins.signing.signatory.internal.pgp.KeyDataInternService;
 import org.gradle.plugins.signing.signatory.internal.pgp.PgpSignatoryService;
 import org.gradle.plugins.signing.signatory.internal.pgp.PgpSignatoryUtil;
 import org.jspecify.annotations.Nullable;
@@ -140,7 +141,10 @@ public class PgpSignatoryFactory {
     }
 
     private PgpSignatory createLazySignatory(Project project, String name, String keyId, String keyData, String password) {
-        return createLazySignatory(project, name, service -> service.readSecretKeyFromArmoredString(keyId, keyData, password));
+        // keyData may be several KB long, and each project may try to register one, though with the same contents.
+        // Other strings aren't as long/critical and interning them will likely hurt performance more than help.
+        String internedKeyData = KeyDataInternService.obtain(project).get().internKeyData(keyData);
+        return createLazySignatory(project, name, service -> service.readSecretKeyFromArmoredString(keyId, internedKeyData, password));
     }
 
     private PgpSignatory createLazySignatory(Project project, String name, SerializableTransformer<PgpSignatoryService.ParsedPgpKey, PgpSignatoryService> keyBuilder) {
