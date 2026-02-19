@@ -101,7 +101,7 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
             |         */
             |        @Incubating
             |        ${annotations}fun $targetTypeKotlinString.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
-            |            applyProjectType(this, "$functionName", configure)
+            |            applyProjectFeature(this, "$functionName", configure)
             |        }
             """.trimMargin(),
             signature = JvmMethodSignature(
