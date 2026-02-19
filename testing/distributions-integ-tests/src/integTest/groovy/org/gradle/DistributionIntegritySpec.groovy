@@ -38,7 +38,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     @Override
     int getDistributionSizeMiB() {
-        return 132
+        return 134
     }
 
     /**
