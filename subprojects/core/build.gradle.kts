@@ -282,6 +282,11 @@ dependencies {
     "testInterceptorsAnnotationProcessor"(platform(projects.distributionsDependencies))
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreRawTypes() // raw types used in public API
     ignoreAnnotationProcessing() // Without this, javac will complain about unclaimed annotations

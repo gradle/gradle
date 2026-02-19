@@ -80,6 +80,11 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/plugins/ide/idea/**")
 }

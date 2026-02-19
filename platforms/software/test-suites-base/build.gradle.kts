@@ -30,3 +30,8 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

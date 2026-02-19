@@ -30,6 +30,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 // The samples test is the only one in the project, so we need to have it or the `generateSubprojectsInfo` will not rebuild the json properly.
 // TODO(bt-dev-prod) can the json generator figure that out automatically?
 integTest.generateDefaultAutoTestedSamplesTest = false

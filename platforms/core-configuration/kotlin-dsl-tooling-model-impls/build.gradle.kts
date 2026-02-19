@@ -9,3 +9,8 @@ dependencies {
     api(projects.kotlinDslToolingModels)
     api(libs.kotlinStdlib)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

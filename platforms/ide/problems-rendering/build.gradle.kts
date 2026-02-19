@@ -32,3 +32,8 @@ dependencies {
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

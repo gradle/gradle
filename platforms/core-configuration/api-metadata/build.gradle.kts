@@ -5,6 +5,11 @@ plugins {
 
 description = "Generated metadata about Gradle API needed by Kotlin DSL"
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

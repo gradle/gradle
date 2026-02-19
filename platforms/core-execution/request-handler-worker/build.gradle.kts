@@ -33,3 +33,8 @@ dependencies {
 
     runtimeOnly(projects.coreApi)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

@@ -51,6 +51,11 @@ dependencies {
     }
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 testFilesCleanup.reportOnly = true
 tasks.isolatedProjectsIntegTest {
     enabled = false

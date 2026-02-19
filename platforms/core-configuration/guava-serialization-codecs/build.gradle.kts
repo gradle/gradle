@@ -25,3 +25,8 @@ dependencies {
     api(libs.kotlinStdlib)
     api(libs.guava)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

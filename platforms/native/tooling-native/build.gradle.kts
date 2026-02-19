@@ -31,3 +31,8 @@ dependencies {
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsNative)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

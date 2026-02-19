@@ -34,3 +34,8 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.serviceLookup)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

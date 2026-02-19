@@ -29,3 +29,8 @@ dependencies {
         exclude(module="log4j-api")
     }
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

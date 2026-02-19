@@ -29,6 +29,11 @@ dependencies {
     implementation(projects.internalInstrumentationApi)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

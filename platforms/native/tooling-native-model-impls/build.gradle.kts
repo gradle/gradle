@@ -8,3 +8,9 @@ dependencies {
     api(projects.ideModelImpls)
     api(projects.toolingApi)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}
+

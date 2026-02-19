@@ -54,3 +54,8 @@ dependencies {
     implementation(libs.groovyTemplates)
     implementation(libs.slf4jApi)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

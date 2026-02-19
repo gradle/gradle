@@ -41,6 +41,11 @@ dependencies {
     jmhImplementation(libs.fastutil)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

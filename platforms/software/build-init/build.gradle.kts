@@ -107,6 +107,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/api/tasks/wrapper/internal/*")
 }

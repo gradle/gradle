@@ -61,6 +61,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/internal/featurelifecycle/**")
     excludePatterns.add("org/gradle/util/**")

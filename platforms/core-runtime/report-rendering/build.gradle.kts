@@ -31,3 +31,8 @@ dependencies {
 
     testImplementation(libs.jsoup)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

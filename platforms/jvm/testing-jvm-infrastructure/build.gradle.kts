@@ -77,5 +77,9 @@ dependencies {
     testFixturesImplementation(projects.testingBase)
     testFixturesImplementation(testLibs.junit)
     testFixturesImplementation(providedLibs.testng)
+}
 
+gradleModule {
+    computedRuntimes {
+    }
 }

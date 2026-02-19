@@ -48,6 +48,11 @@ dependencies {
     agentsClasspath(projects.instrumentationAgent)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

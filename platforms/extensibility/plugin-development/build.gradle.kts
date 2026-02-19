@@ -91,6 +91,11 @@ dependencies {
     testFixturesImplementation(projects.baseServices)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreDeprecations()
 }

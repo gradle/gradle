@@ -44,6 +44,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreRawTypes() // raw types used in public API
 }

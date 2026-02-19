@@ -69,6 +69,11 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreDeprecations() // old 'maven' publishing mechanism: types are deprecated
     ignoreRawTypes() // old 'maven' publishing mechanism: raw types used in public API

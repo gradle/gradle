@@ -28,3 +28,8 @@ dependencies {
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.snapshots))
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

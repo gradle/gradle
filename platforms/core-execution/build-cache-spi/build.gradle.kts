@@ -11,6 +11,12 @@ dependencies {
     integTestImplementation(projects.logging)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

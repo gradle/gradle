@@ -37,3 +37,8 @@ dependencies {
     implementation(projects.scopedPersistentCache)
     implementation(projects.stdlibKotlinExtensions)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

@@ -73,6 +73,11 @@ dependencies {
     }
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/nativeplatform/plugins/**")
     excludePatterns.add("org/gradle/nativeplatform/tasks/**")

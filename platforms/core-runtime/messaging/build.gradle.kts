@@ -33,6 +33,12 @@ dependencies {
     integTestImplementation(projects.toolingApi)
     integTestImplementation(testFixtures(projects.testingBase))
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

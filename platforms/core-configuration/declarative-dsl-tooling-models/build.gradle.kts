@@ -33,3 +33,8 @@ dependencies {
 
     compileOnly(libs.jspecify)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

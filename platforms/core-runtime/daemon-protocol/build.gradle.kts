@@ -48,3 +48,8 @@ dependencies {
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.core))
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

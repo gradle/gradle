@@ -7,3 +7,8 @@ description = "Contains classes which all compiler workers leverage, regardless 
 dependencies {
     api(projects.coreApi)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

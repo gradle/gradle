@@ -34,6 +34,11 @@ dependencies {
     integTestImplementation(testFixtures(projects.testingBase))
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }

@@ -11,3 +11,8 @@ dependencies {
 
     implementation(projects.serviceRegistryImpl)
 }
+
+gradleModule {
+    computedRuntimes {
+    }
+}

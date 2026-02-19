@@ -47,6 +47,11 @@ dependencies {
     testFixturesImplementation(testFixtures(projects.persistentCache))
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 jvmCompile {
     compilations {
         named("main") {

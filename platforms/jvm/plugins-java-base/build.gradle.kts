@@ -61,6 +61,11 @@ dependencies {
     testFixturesImplementation(projects.logging)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }

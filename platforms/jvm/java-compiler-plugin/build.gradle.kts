@@ -4,6 +4,11 @@ plugins {
 
 description = "A Java compiler plugin used by Gradle's incremental compiler"
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 jvmCompile {
     compilations {
         named("main") {

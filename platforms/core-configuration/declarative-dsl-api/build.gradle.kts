@@ -9,6 +9,11 @@ dependencies {
     compileOnly(libs.jspecify)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

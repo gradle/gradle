@@ -36,6 +36,11 @@ dependencies {
     manifestClasspath(projects.serviceLookup)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

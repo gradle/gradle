@@ -38,6 +38,11 @@ dependencies {
     compileOnly(libs.errorProneAnnotations)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 jvmCompile {
     compilations {
         named("main") {

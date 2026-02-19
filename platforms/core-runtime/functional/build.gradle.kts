@@ -14,6 +14,11 @@ dependencies {
     implementation(libs.jsr305)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

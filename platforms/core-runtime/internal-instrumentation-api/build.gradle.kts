@@ -31,6 +31,11 @@ dependencies {
     implementation(libs.groovy)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }

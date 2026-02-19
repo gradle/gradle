@@ -48,6 +48,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }

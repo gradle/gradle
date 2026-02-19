@@ -75,6 +75,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsNative)
 }
 
+gradleModule {
+    computedRuntimes {
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/language/nativeplatform/internal/**")
 }
