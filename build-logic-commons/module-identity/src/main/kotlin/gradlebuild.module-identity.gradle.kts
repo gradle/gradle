@@ -45,10 +45,8 @@ val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtensio
     }
 
     computedRuntimes {
-        // By default, assume a library targets only the daemon
-        // TODO: Eventually, all projects should explicitly declare their target platform(s)
         client = false
-        daemon = true
+        daemon = false
         worker = false
     }
 

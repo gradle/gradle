@@ -104,9 +104,7 @@ fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
         worker to 8
     )
 
-    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(provider {
-        throw GradleException("No target JVM version configured. Specify at least one runtime target for $project on the '${GradleModuleExtension.NAME}' extension.")
-    })
+    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(8)
 }
 
 fun configureSourcesVariant() {
