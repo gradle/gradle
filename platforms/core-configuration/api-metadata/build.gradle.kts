@@ -6,6 +6,11 @@ plugins {
 description = "Generated metadata about Gradle API needed by Kotlin DSL"
 
 gradleModule {
+    requiredRuntimes {
+        client = true
+        daemon = true
+        worker = true
+    }
     computedRuntimes {
     }
 }

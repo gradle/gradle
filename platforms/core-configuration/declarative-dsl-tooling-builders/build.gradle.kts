@@ -26,6 +26,10 @@ dependencies {
 }
 
 gradleModule {
+    requiredRuntimes {
+        client = true // This contains tooling model implementation classes, which should be split out
+        daemon = true
+    }
     computedRuntimes {
     }
 }
