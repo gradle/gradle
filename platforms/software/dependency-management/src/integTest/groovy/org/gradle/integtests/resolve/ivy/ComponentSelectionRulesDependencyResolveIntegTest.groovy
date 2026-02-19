@@ -396,9 +396,9 @@ Required by:
             }
 
             tasks.checkDeps {
-                def avArtifacts = configurations.conf.incoming.artifacts
+                def artifactCollection = configurations.conf.incoming.artifacts
                 doLast {
-                    def artifacts = avArtifacts.artifacts
+                    def artifacts = artifactCollection.artifacts
                     assert artifacts.size() == 2
                     assert artifacts[0].id.componentIdentifier.version == '${chosen}'
                     assert candidates == ${candidates}
