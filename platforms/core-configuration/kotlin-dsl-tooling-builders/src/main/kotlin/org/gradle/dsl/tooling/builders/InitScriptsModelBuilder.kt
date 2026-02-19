@@ -21,7 +21,6 @@ import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.build.BuildState
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.compilationClassPathOf
-import org.gradle.kotlin.dsl.tooling.builders.isKotlinDslFile
 import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
 import org.gradle.kotlin.dsl.tooling.builders.scriptImplicitImports
 import org.gradle.kotlin.dsl.tooling.builders.textResourceScriptSource
@@ -38,8 +37,6 @@ object InitScriptsModelBuilder : BuildScopeModelBuilder {
     override fun create(target: BuildState): InitScriptsModel {
         val gradle = target.mutableModel
         val initScripts: List<File> = gradle.startParameter.allInitScripts
-            // TODO remove KTS filtering
-            .filter { it.isKotlinDslFile }
         return StandardInitScriptsModel(
             initScripts.map { scriptFile ->
                 StandardGradleScriptModel(

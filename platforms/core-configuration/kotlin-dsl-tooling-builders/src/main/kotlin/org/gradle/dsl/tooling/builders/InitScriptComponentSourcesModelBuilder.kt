@@ -18,7 +18,6 @@ package org.gradle.dsl.tooling.builders
 
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
-import org.gradle.kotlin.dsl.tooling.builders.isKotlinDslFile
 import org.gradle.tooling.model.buildscript.InitScriptComponentSources
 import org.gradle.tooling.model.buildscript.ScriptComponentSourcesRequest
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
@@ -38,8 +37,6 @@ object InitScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuilder
         val identifiers = parameter.deserializeIdentifiers()
         val gradle = project.gradle as GradleInternal
         val initScripts: List<File> = gradle.startParameter.allInitScripts
-            // TODO remove KTS filtering
-            .filter { it.isKotlinDslFile }
         require(identifiers.keys.all { it in initScripts }) {
             "Unexpected requested source identifiers (Only $initScripts were expected): $parameter"
         }
