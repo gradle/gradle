@@ -9,6 +9,11 @@ dependencies {
 }
 
 gradleModule {
+    requiredRuntimes {
+        client = true
+        daemon = true
+        worker = true
+    }
     computedRuntimes {
     }
 }
