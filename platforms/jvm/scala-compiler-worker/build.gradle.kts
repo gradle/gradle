@@ -31,6 +31,9 @@ dependencies {
 }
 
 gradleModule {
+    requiredRuntimes {
+        worker = true
+    }
     computedRuntimes {
     }
 }
