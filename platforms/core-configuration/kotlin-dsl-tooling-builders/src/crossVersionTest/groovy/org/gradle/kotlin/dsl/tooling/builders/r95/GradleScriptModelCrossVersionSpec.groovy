@@ -20,11 +20,13 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.model.buildscript.InitScriptComponentSources
 import org.gradle.tooling.model.buildscript.InitScriptsModel
+import org.gradle.tooling.model.buildscript.ProjectScriptComponentSources
 import org.gradle.tooling.model.buildscript.ProjectScriptsModel
 import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifier
-import org.gradle.tooling.model.buildscript.ScriptComponentSources
 import org.gradle.tooling.model.buildscript.ScriptComponentSourcesRequest
+import org.gradle.tooling.model.buildscript.SettingsScriptComponentSources
 import org.gradle.tooling.model.buildscript.SettingsScriptModel
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
@@ -119,12 +121,12 @@ class AllComponentSourcesBuildAction implements BuildAction<Map<ScriptComponentS
 
     @Override
     Map<ScriptComponentSourceIdentifier, List<File>> execute(BuildController controller) {
-        def initSources = controller.getModel(ScriptComponentSources, ScriptComponentSourcesRequest) {
+        def initSources = controller.getModel(InitScriptComponentSources, ScriptComponentSourcesRequest) {
             it.sourceComponentIdentifiers = allScriptsModel.initScriptsModel.initScriptModels.collectMany {
                 it.contextPath.collectMany { it.sourcePathIdentifiers }
             }
         }.sourcesByComponents
-        def settingsSource = controller.getModel(ScriptComponentSources, ScriptComponentSourcesRequest) {
+        def settingsSource = controller.getModel(SettingsScriptComponentSources, ScriptComponentSourcesRequest) {
             it.sourceComponentIdentifiers = allScriptsModel.settingsScriptModel.settingsScriptModel.contextPath.collectMany {
                 it.sourcePathIdentifiers
             }
@@ -132,7 +134,7 @@ class AllComponentSourcesBuildAction implements BuildAction<Map<ScriptComponentS
         Map<ScriptComponentSourceIdentifier, List<File>> projectSources = allScriptsModel.projectScriptsModels.entrySet().collectEntries { entry ->
             def project = entry.key
             def scriptsModel = entry.value
-            controller.getModel(project, ScriptComponentSources, ScriptComponentSourcesRequest) {
+            controller.getModel(project, ProjectScriptComponentSources, ScriptComponentSourcesRequest) {
                 it.sourceComponentIdentifiers = scriptsModel.buildScriptModel.contextPath
                     .collectMany { it.sourcePathIdentifiers } +
                     scriptsModel.precompiledScriptModels.collectMany {

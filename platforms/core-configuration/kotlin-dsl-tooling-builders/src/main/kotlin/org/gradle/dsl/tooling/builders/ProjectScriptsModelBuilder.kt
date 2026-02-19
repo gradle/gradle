@@ -65,6 +65,7 @@ object ProjectScriptsModelBuilder : ToolingModelBuilder {
                                 listOf(
                                     StandardScriptComponentSourceIdentifier(
                                         displayName = componentId.displayName,
+                                        scriptFile = file,
                                         bytes = serialize(componentId)
                                     )
                                 )

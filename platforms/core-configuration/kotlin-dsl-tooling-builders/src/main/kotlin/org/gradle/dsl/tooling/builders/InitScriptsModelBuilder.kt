@@ -70,6 +70,7 @@ object InitScriptsModelBuilder : BuildScopeModelBuilder {
                                 listOf(
                                     StandardScriptComponentSourceIdentifier(
                                         displayName = componentId.displayName,
+                                        scriptFile = scriptFile,
                                         bytes = serialize(componentId)
                                     )
                                 )
