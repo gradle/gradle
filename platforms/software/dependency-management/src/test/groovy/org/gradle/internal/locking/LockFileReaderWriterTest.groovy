@@ -24,6 +24,8 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+
+import java.nio.charset.StandardCharsets
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import org.junit.Rule
@@ -65,7 +67,7 @@ class LockFileReaderWriterTest extends Specification {
 bar=a
 foo=a,b
 empty=c
-""".denormalize()
+"""
         !lockDir.exists()
     }
 
@@ -92,7 +94,7 @@ bar=b,d
 foo=a,b
 foobar=d
 empty=c,e,f
-""".denormalize()
+"""
     }
 
     def 'writes a unique lock file to a custom location'() {
@@ -109,7 +111,7 @@ empty=c,e,f
 bar=a
 foo=a,b
 empty=c
-""".denormalize()
+"""
         !lockDir.exists()
     }
 
@@ -138,6 +140,20 @@ bar=a,c
 foo=a,b,c
 empty=d
 """
+
+        when:
+        def result = lockFileReaderWriter.readUniqueLockFile()
+
+        then:
+        result == [a: ['bar', 'foo'], b: ['foo'], c: ['bar', 'foo'], d: []]
+
+        1 * listener.fileObserved(lockFile)
+    }
+
+    def 'reads a unique lock file with CRLF line endings'() {
+        given:
+        def lockFile = tmpDir.file('gradle.lockfile')
+        lockFile.bytes = "#ignored\r\nbar=a,c\r\nfoo=a,b,c\r\nempty=d\r\n".getBytes(StandardCharsets.UTF_8)
 
         when:
         def result = lockFileReaderWriter.readUniqueLockFile()
@@ -197,7 +213,7 @@ empty=d
 bar=a
 foo=a,b
 empty=c
-""".denormalize()
+"""
 
     }
 

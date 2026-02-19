@@ -70,6 +70,13 @@ Gradle <<configuration_cache_requirements.adoc#config_cache:requirements:reading
 Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` records **all** environment variables or system properties respectively as inputs to the Configuration Cache, similarly to how `.forEach()` calls are tracked in previous versions.
 If your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, you may experience more frequent Configuration Cache invalidations.
 
+==== Dependency lockfiles are generated with a platform-independent line ending
+
+Dependency lockfiles now use a platform independent line ending (`\n`) instead of the system default.
+Existing lockfiles written with Windows line endings can still be read, but new lockfiles generated will only use platform independent line endings.
+
+During the next lock update using Gradle 9.5.0 or above, if the lockfiles were previously generated with Windows line endings, all line endings will be changed, regardless of whether dependencies have changed.
+
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
 
