@@ -44,6 +44,9 @@ dependencies {
     testImplementation(testFixtures(projects.smokeTest)) {
         because("Smoke test preconditions are coming from here")
     }
+    testImplementation(testFixtures(projects.platformNative)) {
+        because("Native test preconditions are coming from here")
+    }
 
     // This is a special dependency, as some of the preconditions might need a distribution.
     // E.g. see "IntegTestPreconditions.groovy"
