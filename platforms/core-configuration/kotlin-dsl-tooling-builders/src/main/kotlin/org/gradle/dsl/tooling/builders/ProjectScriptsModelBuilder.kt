@@ -30,6 +30,7 @@ import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
 object ProjectScriptsModelBuilder : ToolingModelBuilder {
+
     override fun canBuild(modelName: String): Boolean =
         ProjectScriptsModel::class.java.name == modelName
 
@@ -46,7 +47,6 @@ object ProjectScriptsModelBuilder : ToolingModelBuilder {
 
     private fun buildContextPathFor(project: Project): List<ScriptContextPathElement> =
         buildList {
-            // TODO incomplete and doesn't have the component identifiers
             val compilationClassPath = project.scriptCompilationClassPath.asFiles
 
             val resolvedClassPath: MutableSet<ResolvedArtifactResult> = hashSetOf()
