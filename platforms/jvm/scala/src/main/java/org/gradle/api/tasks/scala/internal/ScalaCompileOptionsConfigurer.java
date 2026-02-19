@@ -52,8 +52,14 @@ public class ScalaCompileOptionsConfigurer {
         "-Xtarget", "--Xtarget"
     );
 
-    private static final VersionNumber PLAIN_TARGET_FORMAT_SINCE_VERSION = VersionNumber.parse("2.13.1");
-    private static final VersionNumber RELEASE_REPLACES_TARGET_SINCE_VERSION = VersionNumber.parse("2.13.9");
+    private static final VersionNumber SCALA_3_FIRST_VERSION = VersionNumber.parse("3.0.0");
+
+    private static final VersionNumber SCALA_2_13_FIRST_VERSION = VersionNumber.parse("2.13.0");
+    private static final VersionNumber PLAIN_TARGET_FORMAT_IN_2_13_SINCE_VERSION = VersionNumber.parse("2.13.1");
+    private static final VersionNumber RELEASE_REPLACES_TARGET_IN_2_13_SINCE_VERSION = VersionNumber.parse("2.13.9");
+
+    private static final VersionNumber PLAIN_TARGET_FORMAT_IN_2_12_SINCE_VERSION = VersionNumber.parse("2.12.16");
+    private static final VersionNumber RELEASE_REPLACES_TARGET_IN_2_12_SINCE_VERSION = VersionNumber.parse("2.12.17");
 
     public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
         if (toolchain == null) {
@@ -97,24 +103,55 @@ public class ScalaCompileOptionsConfigurer {
      * @return a Scala compiler parameter
      */
     private static String determineTargetParameter(VersionNumber scalaVersion, JavaToolchain javaToolchain) {
+        TargetParameterFormat parameterFormat = getTargetParameterFormat(scalaVersion);
+
         boolean explicitToolchain = !javaToolchain.isFallbackToolchain();
         int effectiveTarget = !explicitToolchain ? FALLBACK_JVM_TARGET : javaToolchain.getLanguageVersion().asInt();
-        if (scalaVersion.compareTo(VersionNumber.parse("3.0.0")) >= 0) {
+        if (parameterFormat == TargetParameterFormat.RELEASE_OR_HIDDEN_PLAIN_TARGET) {
             if (explicitToolchain) {
                 return String.format("-release:%s", effectiveTarget);
             } else {
                 return String.format("-Xtarget:%s", effectiveTarget);
             }
-        } else if (scalaVersion.compareTo(RELEASE_REPLACES_TARGET_SINCE_VERSION) >= 0) {
+        } else if (parameterFormat == TargetParameterFormat.RELEASE_OR_PLAIN_TARGET) {
             if (explicitToolchain) {
                 return String.format("-release:%s", effectiveTarget);
             } else {
                 return String.format("-target:%s", effectiveTarget);
             }
-        } else if (scalaVersion.compareTo(PLAIN_TARGET_FORMAT_SINCE_VERSION) >= 0) {
+        } else if (parameterFormat == TargetParameterFormat.PLAIN_TARGET) {
             return String.format("-target:%s", effectiveTarget);
         } else {
             return String.format("-target:jvm-1.%s", effectiveTarget);
         }
+    }
+
+    private static TargetParameterFormat getTargetParameterFormat(VersionNumber scalaVersion) {
+        TargetParameterFormat parameterFormat = TargetParameterFormat.FULL_TARGET;
+
+        if (scalaVersion.compareTo(SCALA_3_FIRST_VERSION) >= 0) {
+            parameterFormat = TargetParameterFormat.RELEASE_OR_HIDDEN_PLAIN_TARGET;
+        } else if (scalaVersion.compareTo(SCALA_2_13_FIRST_VERSION) >= 0) {
+            if (scalaVersion.compareTo(RELEASE_REPLACES_TARGET_IN_2_13_SINCE_VERSION) >= 0) {
+                parameterFormat = TargetParameterFormat.RELEASE_OR_PLAIN_TARGET;
+            } else if (scalaVersion.compareTo(PLAIN_TARGET_FORMAT_IN_2_13_SINCE_VERSION) >= 0) {
+                parameterFormat = TargetParameterFormat.PLAIN_TARGET;
+            }
+        } else {
+            // Scala versions older than 2.12.0 all use the oldest FULL_TARGET
+            if (scalaVersion.compareTo(RELEASE_REPLACES_TARGET_IN_2_12_SINCE_VERSION) >= 0) {
+                parameterFormat = TargetParameterFormat.RELEASE_OR_PLAIN_TARGET;
+            } else if (scalaVersion.compareTo(PLAIN_TARGET_FORMAT_IN_2_12_SINCE_VERSION) >= 0) {
+                parameterFormat = TargetParameterFormat.PLAIN_TARGET;
+            }
+        }
+        return parameterFormat;
+    }
+
+    private enum TargetParameterFormat {
+        FULL_TARGET,
+        PLAIN_TARGET,
+        RELEASE_OR_PLAIN_TARGET,
+        RELEASE_OR_HIDDEN_PLAIN_TARGET,
     }
 }

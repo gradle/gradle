@@ -268,14 +268,17 @@ The following table explains the values computed by Gradle:
 [%header%autowidth,compact]
 |===
 | Scala version | Toolchain in use | Parameter value
-.2+| version < `2.13.1`                 | yes   | `-target:jvm-1.<java_version>`
-                                        | no    | `-target:jvm-1.8`
-.2+| `2.13.1` \<= version < `2.13.9`    | yes   | `-target:<java_version>`
-                                        | no    | `-target:8`
-.2+| `2.13.9` \<= version < `3.0`       | yes   | `-release:<java_version>`
-                                        | no    | `-target:8`
-.2+| `3.0` \<= version                  | yes   | `-release:<java_version>`
-                                        | no    | `-Xtarget:8`
+.2+| version < `2.12.16`, +
+     `2.13` \<= version < `2.13.1`        | yes   | `-target:jvm-1.<java_version>`
+                                          | no    | `-target:jvm-1.8`
+.2+| `2.12.16` \<= version < `2.12.17`, +
+     `2.13.1` \<= version < `2.13.9`      | yes   | `-target:<java_version>`
+                                          | no    | `-target:8`
+.2+| `2.12.17` \<= version < `2.13`, +
+     `2.13.9` \<= version < `3.0`         | yes   | `-release:<java_version>`
+                                          | no    | `-target:8`
+.2+| `3.0` \<= version                    | yes   | `-release:<java_version>`
+                                          | no    | `-Xtarget:8`
 |===
 
 Setting any of these flags explicitly, or using flags containing `java-output-version`, on link:{groovyDslPath}/org.gradle.language.scala.tasks.BaseScalaCompileOptions.html#org.gradle.language.scala.tasks.BaseScalaCompileOptions:additionalParameters[`ScalaCompile.scalaCompileOptions.additionalParameters`] disables that logic in favor of the explicit flag.
