@@ -11,3 +11,7 @@ task checkAll {
     dependsOn gradle.includedBuild('my-utils').task(':number-utils:check')
     dependsOn gradle.includedBuild('my-utils').task(':string-utils:check')
 }
+
+println "propertiesFileMessage = ${findProperty('propertiesFileMessage')}"
+println "systemMessage = ${System.getProperty('systemMessage')}"
+println "propertiesMessage = ${findProperty('propertiesMessage')}"
