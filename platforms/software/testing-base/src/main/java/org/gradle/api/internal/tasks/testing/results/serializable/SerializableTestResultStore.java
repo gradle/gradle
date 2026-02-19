@@ -113,7 +113,7 @@ public final class SerializableTestResultStore {
         private Writer(Path serializedResultsFile, Path outputEventsFile, int diskSkipLevels) throws IOException {
             this.diskSkipLevels = diskSkipLevels;
             this.serializedResultsFile = serializedResultsFile;
-            this.temporaryResultsFile = serializedResultsFile.getParent().resolve("in-progress-results-generic.bin");
+            this.temporaryResultsFile = serializedResultsFile.resolveSibling("in-progress-results-generic.bin");
             // Use constants to avoid allocating empty collections if flattening is not enabled
             flatteningIds = isDiskSkipEnabled() ? new HashSet<>() : Collections.emptySet();
             extraFlattenedDescriptors = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
