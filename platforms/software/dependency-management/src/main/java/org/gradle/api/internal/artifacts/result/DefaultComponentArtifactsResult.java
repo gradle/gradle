@@ -17,13 +17,12 @@ package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResult;
-import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.component.Artifact;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultComponentArtifactsResult implements ComponentArtifactsResult {
+public class DefaultComponentArtifactsResult implements ComponentArtifactsResultInternal {
     private final ComponentIdentifier componentIdentifier;
     private final Set<ArtifactResult> artifactResults = new LinkedHashSet<>();
 
@@ -45,6 +44,11 @@ public class DefaultComponentArtifactsResult implements ComponentArtifactsResult
             }
         }
         return matching;
+    }
+
+    @Override
+    public Set<ArtifactResult> getAllArtifacts() {
+        return artifactResults;
     }
 
     public void addArtifact(ArtifactResult artifact) {
