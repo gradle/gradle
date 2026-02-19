@@ -243,7 +243,6 @@ testing {
 }
 ----
 
-The `project()` method can be used to specify a dependency on the current project in both test suites and in the top-level `dependencies {}` block.
 
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
