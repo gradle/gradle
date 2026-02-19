@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.builders
+package org.gradle.dsl.tooling.builders
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.jvm.JvmLibrary
 import org.gradle.language.base.artifact.SourcesArtifact
-import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifier
 import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifierInternal
 import org.gradle.tooling.model.buildscript.ScriptComponentSources
 import org.gradle.tooling.model.buildscript.ScriptComponentSourcesRequest
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
-import java.io.File
-import java.io.Serializable
 
-object ComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<ScriptComponentSourcesRequest> {
+object ScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<ScriptComponentSourcesRequest> {
     override fun canBuild(modelName: String): Boolean =
         ScriptComponentSources::class.java.name.equals(modelName)
 
@@ -62,12 +59,4 @@ object ComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<ScriptCom
             }
         )
     }
-}
-
-
-class StandardScriptComponentSources(
-    private val state: Map<ScriptComponentSourceIdentifier, List<File>>
-) : ScriptComponentSources, Serializable {
-    override fun getSourcesByComponents(): Map<ScriptComponentSourceIdentifier, List<File>> =
-        state
 }

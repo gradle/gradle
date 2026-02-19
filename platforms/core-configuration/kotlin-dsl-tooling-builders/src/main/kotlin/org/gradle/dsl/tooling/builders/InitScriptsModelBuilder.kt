@@ -14,49 +14,48 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.builders
+package org.gradle.dsl.tooling.builders
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.build.BuildState
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.tooling.model.buildscript.GradleScriptModel
+import org.gradle.kotlin.dsl.tooling.builders.compilationClassPathOf
+import org.gradle.kotlin.dsl.tooling.builders.isKotlinDslFile
+import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
+import org.gradle.kotlin.dsl.tooling.builders.scriptImplicitImports
+import org.gradle.kotlin.dsl.tooling.builders.textResourceScriptSource
+import org.gradle.tooling.model.buildscript.InitScriptsModel
 import org.gradle.tooling.model.buildscript.ScriptContextPathElement
-import org.gradle.tooling.model.buildscript.SettingsScriptModel
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
-import java.io.Serializable
 
-object SettingsScriptModelBuilder : BuildScopeModelBuilder {
+object InitScriptsModelBuilder : BuildScopeModelBuilder {
 
     override fun canBuild(modelName: String): Boolean =
-        SettingsScriptModel::class.java.name == modelName
+        InitScriptsModel::class.java.name == modelName
 
-    override fun create(target: BuildState): SettingsScriptModel {
-        target.ensureProjectsLoaded()
+    override fun create(target: BuildState): InitScriptsModel {
         val gradle = target.mutableModel
-        val settings = gradle.settings
-        val scriptFile = File(settings.settingsScript.fileName)
-
-        return StandardSettingsScriptModel(
-            StandardGradleScriptModel(
-                scriptFile = scriptFile,
-                implicitImports = gradle.scriptImplicitImports,
-                contextPath = buildContextPathFor(scriptFile, gradle, settings),
-            )
+        val initScripts: List<File> = gradle.startParameter.allInitScripts
+            // TODO remove KTS filtering
+            .filter { it.isKotlinDslFile }
+        return StandardInitScriptsModel(
+            initScripts.map { scriptFile ->
+                StandardGradleScriptModel(
+                    scriptFile = scriptFile,
+                    implicitImports = gradle.scriptImplicitImports,
+                    contextPath = buildContextPathFor(scriptFile, gradle),
+                )
+            }
         )
     }
 
-    private fun buildContextPathFor(
-        scriptFile: File,
-        gradle: GradleInternal,
-        settings: SettingsInternal
-    ): List<ScriptContextPathElement> =
+    private fun buildContextPathFor(scriptFile: File, gradle: GradleInternal): List<ScriptContextPathElement> =
         buildList {
-            val baseScope = settings.classLoaderScope
+            val baseScope = gradle.classLoaderScope
             val compilationClassPath = gradle.compilationClassPathOf(baseScope).asFiles
-            val scriptSource = textResourceScriptSource("settings script", scriptFile, gradle.serviceOf())
+            val scriptSource = textResourceScriptSource("initialization script", scriptFile, gradle.serviceOf())
             val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
             val scriptHandler = scriptHandlerFactoryOf(gradle).create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
             val resolvedClassPath = classpathDependencyArtifactsOf(scriptHandler)
@@ -79,10 +78,4 @@ object SettingsScriptModelBuilder : BuildScopeModelBuilder {
                 )
             }
         }
-}
-
-data class StandardSettingsScriptModel(
-    private val settingsScriptModel: GradleScriptModel
-) : SettingsScriptModel, Serializable {
-    override fun getSettingsScriptModel(): GradleScriptModel = settingsScriptModel
 }

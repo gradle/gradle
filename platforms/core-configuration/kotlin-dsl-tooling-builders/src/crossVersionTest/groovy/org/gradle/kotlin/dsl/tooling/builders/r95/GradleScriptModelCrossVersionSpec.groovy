@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
-import org.gradle.tooling.model.buildscript.GradleScriptsModel
 import org.gradle.tooling.model.buildscript.InitScriptsModel
 import org.gradle.tooling.model.buildscript.ProjectScriptsModel
 import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifier
@@ -70,54 +69,6 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
         then:
         println sourcesModel
         sourcesModel != null
-    }
-
-
-    def "query script with mapped classpath and sources with sources downloaded in a subsequent call"() {
-        given:
-        withMultipleSubprojects()
-        settingsFileKts << """
-        """
-
-        def scriptDependency = """
-            buildscript {
-                repositories { gradlePluginPortal() }
-                dependencies {
-                    classpath("org.nosphere.apache.rat:org.nosphere.apache.rat.gradle.plugin:0.8.1")
-                    classpath("net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin:5.0.0")
-                }
-            }
-        """
-        file("build.gradle.kts") << scriptDependency
-        file("a/build.gradle.kts") << scriptDependency
-        file("b/build.gradle.kts") << scriptDependency
-
-        when:
-        def model = loadToolingModel(GradleScriptsModel)
-
-        then:
-        model.modelsByScripts.size() == 4
-        def projectScript = model.modelsByScripts.keySet().drop(2).first()
-        def projectModel = model.modelsByScripts[projectScript]
-        println projectModel.scriptFile
-        def contextPathElements = projectModel.contextPath.takeRight(2)
-        def sourcePath = contextPathElements.collectMany { it.sourcePathIdentifiers }
-        sourcePath.size() == 2
-        sourcePath[0] != sourcePath[1]
-        // sourcePath[0] != sourcePath[2]
-
-        when:
-        def sourcesModel = withConnection {
-            it.action(new ComponentSourcesBuildAction(sourcePath))
-//                .withArguments("-Dorg.gradle.debug=true")
-                .run()
-        }
-
-        then:
-        sourcesModel != null
-        sourcesModel.sourcesByComponents.size() == 2
-        def sourceArtifacts = sourcesModel.sourcesByComponents.values().collectMany { it }
-        println sourceArtifacts
     }
 }
 
@@ -190,22 +141,5 @@ class AllComponentSourcesBuildAction implements BuildAction<Map<ScriptComponentS
             }.sourcesByComponents
         }
         return initSources + settingsSource + projectSources
-    }
-}
-
-
-class ComponentSourcesBuildAction implements BuildAction<ScriptComponentSources> {
-
-    List<ScriptComponentSourceIdentifier> sourceIds
-
-    ComponentSourcesBuildAction(List<ScriptComponentSourceIdentifier> sourceIds) {
-        this.sourceIds = sourceIds
-    }
-
-    @Override
-    ScriptComponentSources execute(BuildController controller) {
-        return controller.getModel(ScriptComponentSources, ScriptComponentSourcesRequest) {
-            it.sourceComponentIdentifiers = sourceIds
-        }
     }
 }
