@@ -54,7 +54,7 @@ public final class ClassTestDefinition implements TestDefinition {
 
     @Override
     public boolean matches(TestSelectionMatcher matcher) {
-        return matcher.mayIncludeClass(getId());
+        return matcher.getClassTestSelectionMatcher().mayIncludeClass(getId());
     }
 
     @Override

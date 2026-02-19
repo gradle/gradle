@@ -66,7 +66,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
         then:
         def result = resultsFor()
-        result.testPathPreNormalized(":$testLocation/helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPathPreNormalized(":helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
 
         where:
         testLocation << ["src/test/resources", DEFAULT_DEFINITIONS_LOCATION]
@@ -110,7 +110,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
         then:
         def result = resultsFor()
-        result.testPathPreNormalized(":src/test/resources/helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPathPreNormalized(":helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     private writeCucumberStepDefinitions(String path = "src/test/java") {

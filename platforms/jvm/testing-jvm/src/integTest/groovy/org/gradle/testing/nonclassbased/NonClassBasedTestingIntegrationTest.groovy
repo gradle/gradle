@@ -18,14 +18,6 @@ package org.gradle.testing.nonclassbased
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TestOutputStream
-import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.model.gradle.GradleBuild
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
@@ -311,7 +303,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt - other] [SomeOtherTestSpec.rbt - other] [SKIPPED] [1] [null]")
     }
 
-    def "invalid path filter handled gracefully (filter type = #filterType) "() {
+    def "resource-based test engine can exclude test definitions"() {
         given:
         buildFile << """
             plugins {
@@ -328,43 +320,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            $filterType "mis(matched/parens"
-                        }
-                    }
-                }
-            }
-        """
-        writeTestDefinitions()
-
-        when:
-        fails("test")
-
-        then:
-        failureDescriptionContains("Execution failed for task ':test'.")
-        failureCauseContains("Path filter pattern is not a valid regex: mis(matched/parens")
-
-        where:
-        filterType << ["includeTestsMatching", "excludeTestsMatching"]
-    }
-
-    def "resource-based test engine can exclude test definitions (with leading slash = #leadingSlash)"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing.suites.test {
-                ${enableEngineForSuite()}
-
-                targets.all {
-                    testTask.configure {
-                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
-
-                        filter {
-                            excludeTestsMatching "${leadingSlash ? "/" : ""}src/test/definitions/SomeTestSpec.rbt"
+                            excludeTestsMatching "*SomeTestSpec.rbt"
                         }
                     }
                 }
@@ -378,12 +334,9 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
         then:
         resultsFor().assertTestPathsExecuted(":SomeOtherTestSpec.rbt - other")
-
-        where:
-        leadingSlash << [true, false]
     }
 
-    def "resource-based test engine can exclude test definitions in subdirectories (using pattern = #filterPattern)"() {
+    def "resource-based test engine can exclude test definitions in subdirectories"() {
         given:
         buildFile << """
             plugins {
@@ -400,7 +353,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            excludeTestsMatching "$filterPattern"
+                            excludeTestsMatching "*AdditionalDir.*"
                         }
                     }
                 }
@@ -424,12 +377,9 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
         then:
         resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar", ":SomeOtherTestSpec.rbt - other")
-
-        where:
-        filterPattern << ["src/test/definitions/AdditionalDir/.*|src/test/definitions/subdir1/AdditionalDir/.*", ".*/AdditionalDir/.*"]
     }
 
-    def "resource-based test engine can include test definitions (with leading slash = #leadingSlash)"() {
+    def "resource-based test engine can include test definitions"() {
         given:
         buildFile << """
             plugins {
@@ -446,7 +396,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            includeTestsMatching "${leadingSlash ? "/" : ""}src/test/definitions/SomeTestSpec.rbt"
+                            includeTestsMatching "*SomeTestSpec.rbt"
                         }
                     }
                 }
@@ -460,9 +410,6 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
         then:
         resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar")
-
-        where:
-        leadingSlash << [true, false]
     }
 
     def "resource-based test engine can include test definitions in subdirectories (using pattern = #filterPattern)"() {
@@ -482,7 +429,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            includeTestsMatching ".*/subdir1/SomeTestSpec.*"
+                            includeTestsMatching "*subdir1.SomeTestSpec.*"
                         }
                     }
                 }
@@ -501,9 +448,6 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
         then:
         resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - subfoo")
-
-        where:
-        filterPattern << [".*/subdir1/SomeTestSpec.*", ".*/SomeTestSpec.*", ".*/SomeTestSpec.rbt", "/src/test/definitions/subdir1/SomeTestSpec.rbt"]
     }
 
     def "resource-based test engine can include and exclude test definitions"() {
@@ -523,8 +467,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            includeTestsMatching ".*/SomeTestSpec.*"
-                            excludeTestsMatching ".*/SomeTestSpecThatShouldntRun.*"
+                            includeTestsMatching "*SomeTestSpec.*"
+                            excludeTestsMatching "*SomeTestSpecThatShouldntRun.*"
                         }
                     }
                 }
@@ -545,7 +489,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar")
     }
 
-    def "when running class-based and non-class-based tests, filters with slashes only apply to non-class-based tests"() {
+    def "when running class-based and non-class-based tests, filters apply to both non-class-based tests"() {
         given:
         buildFile << """
             plugins {
@@ -560,10 +504,6 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                 targets.all {
                     testTask.configure {
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
-
-                        filter {
-                            excludeTestsMatching ".*/definitions/SampleTest.*"
-                        }
                     }
                 }
             }
@@ -581,19 +521,33 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                 }
             }
         """
+        file("src/test/java/definitions/OtherSampleTest.java") << """
+            package definitions;
 
+            import org.junit.jupiter.api.Test;
+
+            public class OtherSampleTest {
+                @Test
+                public void foo() {
+                    System.out.println("Tested!");
+                }
+            }
+        """
         file("$DEFAULT_DEFINITIONS_LOCATION/SampleTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
             <tests>
                 <test name="foo" />
             </tests>
         """
-
+        file("$DEFAULT_DEFINITIONS_LOCATION/OtherSampleTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="foo" />
+            </tests>
+        """
         when:
-        succeeds("test", "--info")
+        succeeds("test", "--tests", "*.SampleTest.*")
 
         then:
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SampleTest.rbt, name=foo]")
-        resultsFor().assertTestPathsExecuted(":definitions.SampleTest:foo()")
+        resultsFor().assertTestPathsExecuted(":definitions.SampleTest", ":definitions.SampleTest:foo()", ":SampleTest.rbt - foo")
     }
 
     def "when running class-based and non-class-based tests, filters without slashes only apply to class-based tests"() {
@@ -670,65 +624,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         writeTestDefinitions()
 
         when:
-        succeeds("test", "--tests", "src/test/definitions/sub/SomeOtherTestSpec.rbt")
+        succeeds("test", "--tests", "*sub.SomeOtherTestSpec.rbt")
 
         then:
         resultsFor()
             .assertTestPathsExecuted(":SomeOtherTestSpec.rbt - other")
             .assertTestPathsNotExecuted(":SomeTestSpec.rbt - foo")
             .assertTestPathsNotExecuted(":SomeTestSpec.rbt - bar")
-    }
-
-    def "can filter resource-based test using TAPI with #entryPoint"() {
-        given:
-        settingsFile << """
-            rootProject.name = 'non-class-based-test-filtering'
-        """
-
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing.suites.test {
-                ${enableEngineForSuite()}
-
-                targets.all {
-                    testTask.configure {
-                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
-
-                        filter {
-                            excludeTestsMatching "src/test/definitions/SomeTestSpec.rbt"
-                        }
-                    }
-                }
-            }
-        """
-
-        writeTestDefinitions()
-
-        and:
-        TestOutputStream stderr = new TestOutputStream()
-        TestOutputStream stdout = new TestOutputStream()
-        GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
-        final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder, stdout, stderr)
-
-        when:
-        ProgressEvents events = ProgressEvents.create()
-        toolingApi.withConnection {
-            entryPointConfiguration(it).addProgressListener(events, OperationType.TEST)."$execMethod"()
-        }
-
-        then:
-        events.tests.size() == 3 // task + executor + 1 test
-        events.operation('Test SomeOtherTestSpec.rbt - other')
-
-        where:
-        entryPoint             | entryPointConfiguration                                                    | execMethod
-        'BuildLauncher'        | { ProjectConnection p -> p.newBuild().forTasks("test") }                   | 'run'
-        'TestLauncher'         | { ProjectConnection p -> p.newTestLauncher().forTasks("test") }            | 'run'
-        'ModelBuilder'         | { ProjectConnection p -> p.model(GradleBuild).forTasks("test") }           | 'get'
     }
 }

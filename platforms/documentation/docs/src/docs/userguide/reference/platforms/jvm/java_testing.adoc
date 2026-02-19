@@ -956,22 +956,16 @@ When `./gradlew test --info` is run, the output contains lines that confirm that
 
 === Filtering
 
-Non-class-based tests can be filtered in a similar manner as class-based tests using the link:{javadocPath}/org/gradle/api/tasks/testing/TestFilter.html[`TestFilter`] API or `--tests` command line option.
+Non-class-based tests can be filtered in the same way as class-based tests using the link:{javadocPath}/org/gradle/api/tasks/testing/TestFilter.html[`TestFilter`] API or `--tests` command line option.
 
-Non-class-based test filtering is performed using regex matching against the relative path from the project directory to the test definitions file.
+Non-class-based test filtering is performed by converting the path to the test definition into a package like name by converting file path separators into package separators.
+A file with the path `src/test/definitions/sub/MoreTests.xml` would be converted into a class name like `sub.MoreTests.xml` by calculating a path relative to the root of the test definitions.
 
-To apply a filter to non-class-based tests, that filter *must* include at least one `/` character to indicate that it is a file path filter rather than a class name filter.
-This forward slash can appear anywhere in the filter string, even at the start.
-If a filter does start with a `/`, it is still treated as a relative path from the project directory.
+Filtering is only supported at a file level granularity for non-class-based tests. There is no support for filtering individual tests within a test definition file.
 
-NOTE: As the same filter properties are used for both class-based and non-class-based tests, care should be taken to ensure that the filter in the proper format for the given type of test definitions and only matches the intended tests.
+If the previous example was run with the filter: `./gradlew test --info --tests "*ExampleTests.xml"` then only the tests in `ExampleTests.xml` would be executed.
 
-If the previous example was run with the filter: `./gradlew test --info --tests "src/test/definitions/ExampleTests.xml"` then only the tests in `ExampleTests.xml` would be executed.
-
-If it were run with the filter `/.gradlew test --info --tests ".*/sub/.*"` then only the tests in `MoreTests.xml` would be executed.
-
-Filtering is only supported at a file level granularity for non-class-based tests.
-There is no support for filtering individual tests within a test definition file.
+If it were run with the filter `/.gradlew test --info --tests "\*sub.*"` then only the tests in `MoreTests.xml` would be executed.
 
 === Parallel Execution
 

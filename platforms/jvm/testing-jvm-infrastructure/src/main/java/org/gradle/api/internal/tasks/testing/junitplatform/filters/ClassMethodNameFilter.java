@@ -82,22 +82,22 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
         }
         if (children.isEmpty()) {
             String className = classSource.getClassName();
-            return matcher.matchesTest(className, null)
-                || matcher.matchesTest(className, descriptor.getLegacyReportingName());
+            return matcher.getClassTestSelectionMatcher().matchesTest(className, null)
+                || matcher.getClassTestSelectionMatcher().matchesTest(className, descriptor.getLegacyReportingName());
         }
         return true;
     }
 
     private boolean shouldRun(TestDescriptor descriptor, MethodSource methodSource) {
         String methodName = methodSource.getMethodName();
-        return matcher.matchesTest(methodSource.getClassName(), methodName)
+        return matcher.getClassTestSelectionMatcher().matchesTest(methodSource.getClassName(), methodName)
             || matchesParentMethod(descriptor, methodName);
     }
 
     private boolean matchesParentMethod(TestDescriptor descriptor, String methodName) {
         return descriptor.getParent()
             .flatMap(this::className)
-            .filter(className -> matcher.matchesTest(className, methodName))
+            .filter(className -> matcher.getClassTestSelectionMatcher().matchesTest(className, methodName))
             .isPresent();
     }
 
@@ -114,7 +114,7 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
             // If the current descriptor is a class, check if it matches the test selection criteria
             Optional<String> className = className(current);
             if (className.isPresent()) {
-                if (matcher.matchesTest(className.get(), methodName)) {
+                if (matcher.getClassTestSelectionMatcher().matchesTest(className.get(), methodName)) {
                     return true;
                 }
             }

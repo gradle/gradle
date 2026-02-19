@@ -217,8 +217,8 @@ public class TestNGTestRunner {
             ISuite suite = context.getSuite();
             List<IMethodInstance> filtered = new LinkedList<IMethodInstance>();
             for (IMethodInstance candidate : methods) {
-                if (matcher.matchesTest(candidate.getMethod().getTestClass().getName(), candidate.getMethod().getMethodName())
-                    || matcher.matchesTest(suite.getName(), null)) {
+                if (matcher.getClassTestSelectionMatcher().matchesTest(candidate.getMethod().getTestClass().getName(), candidate.getMethod().getMethodName())
+                    || matcher.getClassTestSelectionMatcher().matchesTest(suite.getName(), null)) {
                     filtered.add(candidate);
                 }
             }
