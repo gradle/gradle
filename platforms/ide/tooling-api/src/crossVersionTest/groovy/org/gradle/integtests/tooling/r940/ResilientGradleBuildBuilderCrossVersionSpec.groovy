@@ -99,14 +99,14 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecificatio
             plugins {
                 `kotlin-dsl`
             }
-            
+
             repositories {
                 gradlePluginPortal()
             }
         """
 
         file("buildSrc/src/main/kotlin/my-conventions.gradle.kts") << """
-             broken !!! 
+             broken !!!
         """
 
         when:
@@ -114,7 +114,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         def e = thrown(BuildException)
-        e.cause.message.contains("Execution failed for task ':buildSrc:compileKotlin'.")
+        e.cause.message.contains("Execution failed for task ':buildSrc:compileKotlin'")
         def model = modelCollector.model
         assertFailures(model,
                 "Execution failed for task ':buildSrc:compileKotlin'.",

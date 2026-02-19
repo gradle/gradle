@@ -134,7 +134,7 @@ latch.await()
 
             // Verify that there is some logging output that explains that the build was cancelled
             def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
-            if (targetVersion >= GradleVersion.version("9.4.0")) {
+            if (targetVersion >= GradleVersion.version("9.5.0")) {
                 failure.assertHasDescription("Execution failed for task '${taskPath}' (registered in build file 'build.gradle').")
             } else {
                 failure.assertHasDescription("Execution failed for task '${taskPath}'.")
