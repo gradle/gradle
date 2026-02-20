@@ -46,14 +46,14 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             """
             |Failed to interpret the declarative DSL file '${settings.absolutePath}':
             |  Failures in building the schema:
+            |    Illegal type 'kotlin.collections.Map<kotlin.String, kotlin.String>': functions returning Map types are not supported
+            |      in return value type 'kotlin.collections.Map<kotlin.String, kotlin.String>'
+            |      in member 'fun org.gradle.test.FeatureDefinition.anotherMap(): kotlin.collections.(Mutable)Map<kotlin.String!, kotlin.String!>!'
+            |      in class 'org.gradle.test.FeatureDefinition'
             |    Illegal 'OUT' variance
             |      in type argument 'out kotlin.CharSequence'
             |      in return value type 'org.gradle.api.provider.Property<out kotlin.CharSequence>'
             |      in member 'fun org.gradle.test.FeatureDefinition.getWildcard(): org.gradle.api.provider.Property<out kotlin.CharSequence!>!'
-            |      in class 'org.gradle.test.FeatureDefinition'
-            |    Illegal type 'kotlin.collections.Map<kotlin.String, kotlin.String>': functions returning Map types are not supported
-            |      in return value type 'kotlin.collections.Map<kotlin.String, kotlin.String>'
-            |      in member 'fun org.gradle.test.FeatureDefinition.anotherMap(): kotlin.collections.(Mutable)Map<kotlin.String!, kotlin.String!>!'
             |      in class 'org.gradle.test.FeatureDefinition'
             |    Illegal type 'kotlin.collections.Map<kotlin.String, kotlin.String>': functions returning Map types are not supported
             |      in return value type 'kotlin.collections.Map<kotlin.String, kotlin.String>'

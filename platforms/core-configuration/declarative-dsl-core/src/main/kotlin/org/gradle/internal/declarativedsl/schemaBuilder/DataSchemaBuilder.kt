@@ -196,7 +196,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
     }
 
     override fun membersWithFailures(kClass: KClass<*>): Map<SupportedCallable, Iterable<SchemaResult.Failure>> =
-        failedMembers[kClass] ?: emptyMap()
+        failedMembers[kClass]?.toSortedMap(compareBy { it.toString() }) ?: emptyMap()
 
     override fun isUnusedMember(kClass: KClass<*>, member: SupportedCallable): Boolean =
         claimedMembers[kClass]?.contains(member) != true && failedMembers[kClass]?.contains(member) != true
@@ -428,8 +428,8 @@ class DataSchemaBuilder(
         host: SchemaBuildingHost,
         preIndex: PreIndex,
         schema: DefaultAnalysisSchema,
-    ): List<SchemaResult.Failure> = buildList {
-        addAll(host.typeFailures.distinct())
+    ): List<SchemaResult.Failure> = buildSet {
+        addAll(host.typeFailures)
 
         addAll(checkDiscoveredTypeForIllegalHiddenTypeUsages(host, preIndex.allDiscoveredTypes))
 
@@ -461,7 +461,7 @@ class DataSchemaBuilder(
                 addAll(failures)
             }
         }
-    }
+    }.toList()
 
     private fun validateSchemaInvariants(host: SchemaBuildingHost, schema: AnalysisSchema) {
         checkAllTypesInScope(host, schema, collectReachableContainerTypes(schema))
