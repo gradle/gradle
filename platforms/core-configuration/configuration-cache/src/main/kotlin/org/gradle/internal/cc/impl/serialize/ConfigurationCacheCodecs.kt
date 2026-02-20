@@ -112,6 +112,7 @@ import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
+import org.gradle.internal.serialize.codecs.dm.FileCollectionDependencyCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesSchemaCodec
 import org.gradle.internal.serialize.codecs.dm.LocalFileDependencyBackedArtifactSetCodec
@@ -209,6 +210,9 @@ class DefaultConfigurationCacheCodecs(
     private
     val fingerprintUserTypesBindings: Bindings
 
+    private
+    val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory, artifactSetConverter, taskDependencyFactory)
+
     init {
         fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = Bindings.of {
             unsupportedTypes()
@@ -224,7 +228,7 @@ class DefaultConfigurationCacheCodecs(
             bind(DefaultContextAwareTaskLoggerCodec)
             bind(LoggerCodec)
 
-            fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
+            fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileFactory, patternSetFactory, fileLookup, fileCollectionCodec)
 
             bind(org.gradle.internal.serialize.codecs.core.ApiTextResourceAdapterCodec)
 
@@ -256,6 +260,7 @@ class DefaultConfigurationCacheCodecs(
             bind(ResolveArtifactNodeCodec)
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
+            bind(FileCollectionDependencyCodec(fileCollectionCodec))
 
             bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, propertyFactory, instantiator, fileSystemOperations))
             bind(DestinationRootCopySpecCodec(fileResolver))
@@ -328,7 +333,7 @@ class DefaultConfigurationCacheCodecs(
         baseTypes()
 
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileFactory, patternSetFactory, fileLookup, fileCollectionCodec)
 
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
 
@@ -391,19 +396,17 @@ class DefaultConfigurationCacheCodecs(
     fun BindingsBuilder.fileCollectionTypes(
         directoryFileTreeFactory: DirectoryFileTreeFactory,
         fileCollectionFactory: FileCollectionFactory,
-        artifactSetConverter: ArtifactSetToFileCollectionFactory,
         fileOperations: FileOperations,
         fileFactory: FileFactory,
         patternSetFactory: PatternSetFactory,
         fileLookup: FileLookup,
-        taskDependencyFactory: TaskDependencyFactory
+        fileCollectionCodec: FileCollectionCodec
     ) {
         bind(PathToFileResolverCodec(fileLookup))
         bind(DirectoryCodec(fileFactory))
         bind(RegularFileCodec(fileFactory))
         bind(ConfigurableFileTreeCodec(fileCollectionFactory))
         bind(FileTreeCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations))
-        val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory, artifactSetConverter, taskDependencyFactory)
         bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
         bind(fileCollectionCodec)
         bind(IntersectionPatternSetCodec)
