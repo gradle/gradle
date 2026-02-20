@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -186,11 +187,16 @@ public class CommandLineParser {
         Formatter formatter = new Formatter(out);
         Set<CommandLineOption> orderedOptions = new TreeSet<CommandLineOption>(new OptionComparator());
         orderedOptions.addAll(optionsByString.values());
-        Map<String, String> lines = new LinkedHashMap<String, String>();
+
+        Map<HelpCategory, LinkedHashMap<String, String>> grouped = new EnumMap<>(HelpCategory.class);
+        for (HelpCategory cat : HelpCategory.values()) {
+            grouped.put(cat, new LinkedHashMap<String, String>());
+        }
+
         for (CommandLineOption option : orderedOptions) {
-            Set<String> orderedOptionStrings = new TreeSet<String>(new OptionStringComparator());
+            Set<String> orderedOptionStrings = new TreeSet<>(new OptionStringComparator());
             orderedOptionStrings.addAll(option.getOptions());
-            List<String> prefixedStrings = new ArrayList<String>();
+            List<String> prefixedStrings = new ArrayList<>();
             for (String optionString : orderedOptionStrings) {
                 if (optionString.length() == 1) {
                     prefixedStrings.add("-" + optionString);
@@ -205,22 +211,61 @@ public class CommandLineParser {
                 value = "";
             }
 
-            lines.put(key, value);
+            HelpCategory cat = option.getCategory();
+            if (cat == null) {
+                cat = HelpCategory.OTHER;
+            }
+
+            Map<String, String> section = grouped.get(cat);
+            if (section == null) {
+                section = grouped.get(HelpCategory.OTHER);
+            }
+            java.util.Objects.requireNonNull(section);
+            section.put(key, value);
         }
-        // The "--" delimiter isn't an option, but it's useful to print it in the usage message anyway.
-        lines.put("--", "Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.");
+
+        final String delimiterKey = "--";
+        final String delimiterValue = "Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.";
 
         int max = 0;
-        for (String optionStr : lines.keySet()) {
-            max = Math.max(max, optionStr.length());
-        }
-        for (Map.Entry<String, String> entry : lines.entrySet()) {
-            if (entry.getValue().length() == 0) {
-                formatter.format("%s%n", entry.getKey());
-            } else {
-                formatter.format("%-" + max + "s  %s%n", entry.getKey(), entry.getValue());
+        for (Map<String, String> section : grouped.values()) {
+            for (String k : section.keySet()) {
+                max = Math.max(max, k.length());
             }
         }
+        max = Math.max(max, delimiterKey.length());
+
+        final int maxPad = 120;
+        max = Math.min(max, maxPad);
+
+        for (HelpCategory cat : HelpCategory.values()) {
+            Map<String, String> section = grouped.get(cat);
+            if (section == null || section.isEmpty()) {
+                continue;
+            }
+
+            String header = cat.getDisplayName();
+            if (header != null && !header.isEmpty()) {
+                formatter.format("%n%s:%n", header);
+            } else if (cat != HelpCategory.BUILTIN) {
+                formatter.format("%n");
+            }
+
+            for (Map.Entry<String, String> entry : section.entrySet()) {
+                String k = entry.getKey();
+                String v = entry.getValue();
+                if (v == null || v.isEmpty()) {
+                    formatter.format("%s%n", k);
+                } else {
+                    formatter.format("%-" + max + "s %s%n", k, v);
+                }
+            }
+
+            if (cat == HelpCategory.BUILTIN) {
+                formatter.format("%-" + max + "s %s%n", delimiterKey, delimiterValue);
+            }
+        }
+
         formatter.flush();
     }
 

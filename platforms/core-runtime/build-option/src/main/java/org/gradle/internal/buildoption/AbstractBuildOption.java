@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.HelpCategory;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
@@ -75,6 +76,10 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         return deprecatedProperty;
     }
 
+    protected HelpCategory getHelpCategory() {
+        return HelpCategory.CONFIGURATION;
+    }
+
     protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, boolean deprecated, boolean incubating) {
         CommandLineOption option = parser.option(options)
             .hasDescription(description);
@@ -86,6 +91,8 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         if (incubating) {
             option.incubating();
         }
+
+        option.hasCategory(getHelpCategory());
 
         return option;
     }
