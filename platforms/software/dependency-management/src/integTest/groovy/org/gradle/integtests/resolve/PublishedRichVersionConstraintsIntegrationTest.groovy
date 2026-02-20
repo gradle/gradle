@@ -370,9 +370,6 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
             'org:a:1.0' {
                 expectGetMetadata()
             }
-            'org:b:1.0' {
-                expectGetMetadata()
-            }
             'org:b:1.1' {
                 expectGetMetadata()
             }
@@ -427,9 +424,6 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         when:
         repositoryInteractions {
             'org:a:1.0' {
-                expectGetMetadata()
-            }
-            'org:b:1.0' {
                 expectGetMetadata()
             }
             'org:b:1.1' {

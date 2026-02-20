@@ -195,7 +195,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:test:1.0' also provided by ['org:test:1.0' (api), 'org:test:1.0' (runtime)]""")
+   Cannot select module with conflict on capability 'org:test:1.0' also provided by ['org:test:1.0' (runtime)]""")
+        failure.assertHasCause("""Module 'org:test' has been rejected:
+   Cannot select module with conflict on capability 'org:test:1.0' also provided by ['org:test:1.0' (api)]""")
     }
 
     void "can select distinct variants of the same component by using different attributes with capabilities"() {
@@ -334,7 +336,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (api), 'org:test:1.0' (runtime)]""")
+   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (runtime)]""")
+        failure.assertHasCause("""Module 'org:test' has been rejected:
+   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (api)]""")
     }
 
     def "selects 2 variants of the same component with transitive dependency if they have different capabilities"() {
@@ -577,8 +581,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.1' also provided by ['org:foo:1.1' (api), 'org:foo:1.1' (runtime)]""")
-
+   Cannot select module with conflict on capability 'org:foo:1.1' also provided by ['org:foo:1.1' (runtime)]""")
+        failure.assertHasCause("""Module 'org:foo' has been rejected:
+   Cannot select module with conflict on capability 'org:foo:1.1' also provided by ['org:foo:1.1' (api)]""")
     }
 
     def "selects a single variant of the same component when asking for a consumer specific attribute"() {

@@ -104,6 +104,7 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
         // losing modules, the winning module always has a selected component.
         ModuleResolveState winningModule = selected.getModule();
         resolveState.getModule(winningModule.getId()).changeSelection(selected);
+        resolveState.onIncomingModuleEdge(winningModule);
 
         for (ModuleIdentifier moduleId : conflict.participants) {
             if (!moduleId.equals(winningModule.getId())) {

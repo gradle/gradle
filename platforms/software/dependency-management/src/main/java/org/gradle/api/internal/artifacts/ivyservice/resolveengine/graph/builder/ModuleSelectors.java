@@ -38,7 +38,6 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
 
     private final VersionParser versionParser;
     private final List<T> selectors = new ArrayList<>();
-    private boolean deferSelection;
     private boolean forced;
     private final Comparator<ResolvableSelectorState> selectorComparator;
 
@@ -85,21 +84,12 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         }
     }
 
-    public boolean checkDeferSelection() {
-        if (deferSelection) {
-            deferSelection = false;
-            return true;
-        }
-        return false;
-    }
-
     @Override
     public Iterator<T> iterator() {
         return selectors.iterator();
     }
 
-    public void add(T selector, boolean deferSelection) {
-        this.deferSelection = deferSelection;
+    public void add(T selector) {
         if (selectors.isEmpty() || forced) {
             selectors.add(selector);
         } else {

@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
+import org.gradle.internal.Pair;
 import org.gradle.internal.Try;
 import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -66,6 +67,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -89,7 +91,9 @@ public class NodeState implements DependencyGraphNode {
     ExcludeSpec previousTraversalExclusions;
 
     private boolean queued;
+    private int numCapabilityConflicts;
     private @Nullable NodeState replacement;
+    private @Nullable Pair<Capability, Collection<NodeState>> capabilityReject;
     private int transitiveEdgeCount;
     private @Nullable Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
 
@@ -172,9 +176,8 @@ public class NodeState implements DependencyGraphNode {
         return true;
     }
 
-    NodeState dequeue() {
+    void dequeue() {
         queued = false;
-        return this;
     }
 
     @Override
@@ -342,7 +345,7 @@ public class NodeState implements DependencyGraphNode {
                         module.getPendingDependencies().registerConstraintProvider(this);
                     } else {
                         for (EdgeState edge : edges) {
-                            doLinkOutgoingEdge(edge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module, false);
+                            doLinkOutgoingEdge(edge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module);
                         }
                     }
                 }
@@ -378,6 +381,7 @@ public class NodeState implements DependencyGraphNode {
      */
     private void cleanupConstraints() {
         // This part covers constraint that were taken into account between a selection being deferred and this node being scheduled for traversal
+        // TODO: Is this relevant anymore?
         if (upcomingNoLongerPendingConstraints != null) {
             for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
                 ModuleResolveState module = resolveState.getModule(identifier);
@@ -445,11 +449,10 @@ public class NodeState implements DependencyGraphNode {
         ModuleIdentifier moduleId = dependencyEdge.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter());
         ModuleResolveState module = resolveState.getModule(moduleId);
 
-        boolean deferSelection = false;
         if (constraint) {
             registerActivatingConstraint(dependencyEdge, moduleId);
         } else {
-            deferSelection = module.getPendingDependencies().addIncomingHardEdge();
+            module.getPendingDependencies().addIncomingHardEdge();
         }
 
         if (constraint && module.isPending()) {
@@ -457,7 +460,7 @@ public class NodeState implements DependencyGraphNode {
             module.registerConstraintProvider(this);
         } else {
             // We are a hard edge, or we are a constraint but there is already another hard edge targeting the same module.
-            doLinkOutgoingEdge(dependencyEdge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module, deferSelection);
+            doLinkOutgoingEdge(dependencyEdge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module);
         }
     }
 
@@ -566,11 +569,10 @@ public class NodeState implements DependencyGraphNode {
         Collection<EdgeState> discoveredEdges,
         ExcludeSpec resolutionFilter,
         StrictVersionConstraints ancestorsStrictVersions,
-        ModuleResolveState module,
-        boolean deferSelection
+        ModuleResolveState module
     ) {
         dependencyEdge.updateTransitiveExcludes(resolutionFilter);
-        dependencyEdge.computeSelector(ancestorsStrictVersions, deferSelection);
+        dependencyEdge.computeSelector(ancestorsStrictVersions);
         module.addUnattachedEdge(dependencyEdge);
         discoveredEdges.add(dependencyEdge);
         outgoingEdges.add(dependencyEdge);
@@ -597,7 +599,7 @@ public class NodeState implements DependencyGraphNode {
 
                     boolean forced = hasStrongOpinion();
                     final ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(platformId.getModuleIdentifier(), platformId.getVersion());
-                    DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(resolveState, this, selector, platformId, platformId, forced, true, false);
+                    DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(selector, platformId, forced, true, false);
                     EdgeState virtualPlatformEdge = createEdge(dependencyMetadata);
 
                     registerOutgoingEdge(
@@ -761,15 +763,75 @@ public class NodeState implements DependencyGraphNode {
         return !incomingEdges.isEmpty();
     }
 
+    public void markInCapabilityConflict() {
+        this.numCapabilityConflicts++;
+        if (numCapabilityConflicts == 1) {
+            resolveState.onFewerSelected(this);
+        }
+    }
+
+    public boolean isInCapabilityConflict() {
+        return numCapabilityConflicts > 0;
+    }
+
+    public void onFilteredFromConflict() {
+        numCapabilityConflicts--;
+    }
+
     /**
-     * Mark this node as being evicted by another node in the same component,
-     * after these two nodes entered a capability conflict and the conflict
-     * was resolved with the given node as the winner and this node as a loser.
+     * Resolve a capability conflict this node is involved in.
      */
     @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public void replaceWith(@Nullable NodeState replacement) {
-        assert replacement == null || replacement.getComponent() == getComponent();
-        this.replacement = replacement;
+    public void resolveCapabilityConflict(NodeState winner) {
+        numCapabilityConflicts--;
+        if (winner == this) {
+            resolveState.onMoreSelected(this);
+        } else {
+            for (EdgeState edge : incomingEdges) {
+                resolveState.onIncomingModuleEdge(edge.getSelector().getTargetModule());
+            }
+            detachIncomingEdges();
+            this.replacement = winner;
+        }
+    }
+
+    public boolean isRejectedForCapabilityConflict() {
+        return capabilityReject != null;
+    }
+
+    public void rejectForCapabilityConflict(Capability capability, Collection<NodeState> conflictedNodes) {
+        if (this.capabilityReject == null) {
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
+        } else {
+            mergeCapabilityRejects(capability, conflictedNodes);
+        }
+
+        numCapabilityConflicts--;
+        resolveState.onMoreSelected(this);
+    }
+
+    private void mergeCapabilityRejects(Capability capability, Collection<NodeState> conflictedNodes) {
+        // Only merge if about the same capability, otherwise last wins
+        if (this.capabilityReject.getLeft().equals(capability)) {
+            this.capabilityReject.getRight().addAll(conflictedNodes);
+        } else {
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
+        }
+    }
+
+    public String getRejectedErrorMessage() {
+        assert capabilityReject != null;
+        return formatCapabilityRejectMessage(getComponent().getModule().getId(), capabilityReject);
+    }
+
+    private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        return "Module '" + id + "' has been rejected:\n" +
+            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
+            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
+    }
+
+    private static String formatCapability(Capability capability) {
+        return capability.getGroup() + ":" + capability.getName() + ":" + capability.getVersion();
     }
 
     /**
@@ -1175,42 +1237,23 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Called for each participant of a conflict after the conflict was resolved.
-     */
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public void restart(ComponentState selected) {
-        if (component == selected && replacement == null) {
-            // We are in the selected component and are not replaced by another node in our own component.
-            // We are the winning node. Queue ourselves up for traversal.
-            resolveState.onMoreSelected(this);
-        } else {
-            // We are the losing node. Retarget all incoming edges so they are attached to their correct nodes.
-            restartIncomingEdges();
-        }
-    }
-
-    /**
      * Called on losing nodes after conflict resolution to retarget their existing incoming
      * edges to the winning node. This method must be called after any relevant state is updated
      * so that retargeting chooses the correct new target node.
      */
-    private void restartIncomingEdges() {
+    public void detachIncomingEdges() {
         if (incomingEdges.size() == 1) {
             EdgeState singleEdge = incomingEdges.get(0);
-            singleEdge.retarget();
+            singleEdge.unattach();
         } else if (incomingEdges.size() > 1){
             for (EdgeState edge : new ArrayList<>(incomingEdges)) {
-                edge.retarget();
+                edge.unattach();
             }
         }
 
         // This method is called on a node that fails conflict resolution. If, after retargeting,
         // we still have incoming edges, something went wrong.
         assert incomingEdges.isEmpty();
-    }
-
-    public void deselect() {
-        removeOutgoingEdges();
     }
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
@@ -1343,11 +1386,9 @@ public class NodeState implements DependencyGraphNode {
 
     private void dependsTransitivelyOn(Set<NodeState> visited) {
         for (EdgeState outgoingEdge : getOutgoingEdges()) {
-            if (outgoingEdge.getTargetComponent() != null) {
-                for (NodeState nodeState : outgoingEdge.getTargetComponent().getNodes()) {
-                    if (visited.add(nodeState)) {
-                        nodeState.dependsTransitivelyOn(visited);
-                    }
+            for (NodeState nodeState : outgoingEdge.getTargetNodes()) {
+                if (visited.add(nodeState)) {
+                    nodeState.dependsTransitivelyOn(visited);
                 }
             }
         }

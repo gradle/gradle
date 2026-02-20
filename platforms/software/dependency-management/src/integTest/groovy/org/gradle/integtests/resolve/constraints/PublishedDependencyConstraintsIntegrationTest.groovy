@@ -453,6 +453,9 @@ dependencies {
                 expectGetMetadata()
                 expectGetArtifact()
             }
+            'org:bar:1.1' {
+                expectGetMetadata()
+            }
         }
 
         when:
