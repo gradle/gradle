@@ -44,6 +44,7 @@ class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScript
         assertModelMatchesBuildSpec(model, spec)
     }
 
+    @TargetGradleVersion("<=9.3")
     def "can fetch model for a given set of init scripts of a build in lenient mode"() {
 
         given:

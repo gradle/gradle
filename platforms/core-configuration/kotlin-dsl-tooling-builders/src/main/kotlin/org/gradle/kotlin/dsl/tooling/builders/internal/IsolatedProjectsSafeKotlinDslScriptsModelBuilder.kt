@@ -42,7 +42,6 @@ import org.gradle.kotlin.dsl.tooling.builders.discoverBuildScript
 import org.gradle.kotlin.dsl.tooling.builders.discoverInitScripts
 import org.gradle.kotlin.dsl.tooling.builders.discoverPrecompiledScriptPluginScripts
 import org.gradle.kotlin.dsl.tooling.builders.discoverSettingScript
-import org.gradle.kotlin.dsl.tooling.builders.resolveCorrelationIdParameter
 import org.gradle.kotlin.dsl.tooling.builders.runtimeFailuresLocatedIn
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
@@ -65,7 +64,7 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
             "Property ${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME} is not supported with Isolated Projects"
         }
 
-        return KotlinDslScriptsParameter(rootProject.resolveCorrelationIdParameter(), emptyList())
+        return KotlinDslScriptsParameter(emptyList())
     }
 
     override fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
