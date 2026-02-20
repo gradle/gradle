@@ -24,10 +24,10 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -39,11 +39,8 @@ import org.gradle.api.problems.Problems;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
-import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NoOpBuildEventConsumer;
-import org.gradle.initialization.ProjectDescriptorInternal;
-import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
@@ -70,11 +67,14 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
+import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.scripts.ScriptFileUtil;
+import org.gradle.internal.scripts.ScriptResolutionResultReporter;
 import org.gradle.internal.service.CloseableServiceRegistry;
-import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -100,23 +100,16 @@ public class ProjectBuilderImpl {
 
     private static final Logger LOGGER = Logging.getLogger(ProjectBuilderImpl.class);
 
-    public Project createChildProject(String name, Project parent, @Nullable File projectDir) {
+    public Project createChildProject(String name, Project parent, @Nullable File inputProjectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
-        ProjectDescriptorRegistry descriptorRegistry = parentProject.getServices().get(ProjectDescriptorRegistry.class);
-        ProjectDescriptorInternal parentDescriptor = descriptorRegistry.getProject(parentProject.getPath());
+        File projectDir = (inputProjectDir != null) ? inputProjectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
 
-        projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
-        // Descriptor is added to registry as a side effect
-        ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(
-            parentDescriptor,
-            name,
-            projectDir,
-            descriptorRegistry,
-            parentProject.getServices().get(FileResolver.class),
-            parentProject.getServices().get(Problems.class).getReporter()
-        );
+        ProjectBuilderProjectDescriptor descriptor = descriptorForSubproject(parentProject, projectDir, name);
+        ProjectBuilderProjectDescriptor parentDescriptor = (ProjectBuilderProjectDescriptor) parentProject.getOwner().getDescriptor();
+        // Side effect, required due to projects being created one by one, instead of all together
+        parentDescriptor.addChild(descriptor.getIdentity());
 
-        ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
+        ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), descriptor);
         projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name, null), parentProject.getBaseClassLoaderScope());
         ProjectInternal project = projectState.getMutableModel();
 
@@ -198,24 +191,12 @@ public class ProjectBuilderImpl {
         GradlePropertiesController gradlePropertiesController = buildServices.get(GradlePropertiesController.class);
         gradlePropertiesController.loadGradleProperties(build.getBuildIdentifier(), build.getBuildRootDir(), false);
 
-        ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
-        FileResolver fileResolver = buildServices.get(FileResolver.class);
-        Problems problems = buildServices.get(Problems.class);
-
-        // Registers project as a side effect
-        ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(null,
-            name,
-            projectDir,
-            projectDescriptorRegistry,
-            fileResolver,
-            problems.getReporter()
-        );
-
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);
 
         ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
-        ProjectState projectState = projectStateRegistry.registerProject(build, projectDescriptor);
+        ImmutableProjectDescriptor rootProjectDescriptor = descriptorForRootProject(build.getIdentityPath(), projectDir, name, buildServices);
+        ProjectState projectState = projectStateRegistry.registerProject(build, rootProjectDescriptor);
         projectState.createMutableModel(rootProjectScope, baseScope);
         ProjectInternal project = projectState.getMutableModel();
 
@@ -224,7 +205,6 @@ public class ProjectBuilderImpl {
 
         // Lock root project; this won't ever be released as ProjectBuilder has no lifecycle
         coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
-
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
             stoppable(
@@ -238,6 +218,33 @@ public class ProjectBuilderImpl {
         );
 
         return project;
+    }
+
+    private static ImmutableProjectDescriptor descriptorForRootProject(
+        Path buildPath,
+        File projectDir,
+        String projectName,
+        ServiceRegistry buildServices
+    ) {
+        ProjectIdentity identity = ProjectIdentity.forRootProject(buildPath, projectName);
+        ScriptFileResolver scriptFileResolver = buildServices.get(ScriptFileResolver.class);
+        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(buildServices.get(Problems.class).getReporter());
+        File buildFile = ScriptFileUtil.resolveBuildFile(projectDir, scriptFileResolver, reporter::reportResolutionProblemsOf);
+        return new ProjectBuilderProjectDescriptor(identity, projectDir, buildFile, null);
+    }
+
+    private static ProjectBuilderProjectDescriptor descriptorForSubproject(
+        ProjectInternal parent,
+        File projectDir,
+        String projectName
+    ) {
+        ProjectIdentity parentIdentity = parent.getProjectIdentity();
+        Path projectPath = parentIdentity.getProjectPath().child(projectName);
+        ProjectIdentity identity = ProjectIdentity.forSubproject(parentIdentity.getBuildPath(), projectPath);
+        ScriptFileResolver scriptFileResolver = parent.getServices().get(ScriptFileResolver.class);
+        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(parent.getServices().get(Problems.class).getReporter());
+        File buildFile = ScriptFileUtil.resolveBuildFile(projectDir, scriptFileResolver, reporter::reportResolutionProblemsOf);
+        return new ProjectBuilderProjectDescriptor(identity, projectDir, buildFile, parentIdentity);
     }
 
     public static void stop(Project rootProject) {
@@ -301,11 +308,6 @@ public class ProjectBuilderImpl {
             super(buildTreeState, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), null);
             this.buildServices = getBuildServices();
             this.gradle = buildServices.get(GradleInternal.class);
-        }
-
-        @Override
-        protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition) {
-            return new TestBuildScopeServices(buildDefinition, this);
         }
 
         @Override
