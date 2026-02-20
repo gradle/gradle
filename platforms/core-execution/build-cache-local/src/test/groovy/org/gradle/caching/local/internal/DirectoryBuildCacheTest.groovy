@@ -38,28 +38,25 @@ class DirectoryBuildCacheTest extends Specification {
     def fileAccessTracker = Mock(FileAccessTracker)
     def cache = new DirectoryBuildCache(persistentCache, fileAccessTracker, ".failed")
     def key = TestHashCodes.hashCodeFrom(12345678)
-    def hashCode = key.toString()
 
     def "does not store partial result"() {
+        given:
+        def is = Mock(InputStream)
+
         when:
-        cache.store(key) { output ->
-            // Check that partial result file is created inside the cache directory
-            def cacheDirFiles = cacheDir.listFiles()
-            assert cacheDirFiles.length == 1
-
-            def partialCacheFile = cacheDirFiles[0]
-            assert partialCacheFile.name.startsWith(hashCode)
-            assert partialCacheFile.name.endsWith(BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX)
-
-            output << "abcd"
-            throw new RuntimeException("Simulated write error")
-        }
+        cache.store(key, is)
 
         then:
         def ex = thrown RuntimeException
         ex.message == "Simulated write error"
         cacheDir.listFiles() as List == []
         0 * fileAccessTracker.markAccessed(_)
+        2 * is.read(_) >> { args ->
+            (args[0] as byte[])[0] = (byte) 'x'
+            return 1
+        } >> { args ->
+            throw new RuntimeException("Simulated write error")
+        }
     }
 
 
@@ -91,9 +88,7 @@ class DirectoryBuildCacheTest extends Specification {
         File cachedFile = null
 
         when:
-        cache.store(key) { output ->
-            output.write("foo".getBytes())
-        }
+        cache.store(key, new ByteArrayInputStream("foo".getBytes()))
 
         then:
         1 * fileAccessTracker.markAccessed(_) >> { File file -> cachedFile = file }
@@ -116,18 +111,14 @@ class DirectoryBuildCacheTest extends Specification {
         originalFile.text = "bar"
 
         when:
-        cache.store(key) { output ->
-            output.write("foo".getBytes())
-        }
+        cache.store(key, new ByteArrayInputStream("foo".getBytes()))
 
         then:
         1 * fileAccessTracker.markAccessed(_) >> { File file -> cachedFile = file }
         cachedFile.absolutePath.startsWith(cacheDir.absolutePath)
 
         when:
-        cache.store(key) { output ->
-            output.write("bar".getBytes())
-        }
+        cache.store(key, new ByteArrayInputStream("bar".getBytes()))
 
         then:
         1 * fileAccessTracker.markAccessed(cachedFile)
