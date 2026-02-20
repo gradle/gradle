@@ -19,10 +19,11 @@ package org.gradle.kotlin.dsl.resolver.internal
 import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.AuthenticationSupported
 import org.gradle.api.credentials.HttpHeaderCredentials
+import org.gradle.api.internal.GradleInternal
+import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.util.internal.WrapperCredentials
 import org.gradle.util.internal.WrapperDistributionUrlConverter
 import org.gradle.wrapper.WrapperExecutor
-import java.io.File
 import java.net.URI
 import java.util.Properties
 
@@ -32,13 +33,8 @@ private val STANDARD_GRADLE_DIST_FILENAME_REGEX = Regex("gradle-[0-9]+(?:\\.[0-9
 
 class GradleDistRepoDescriptorLocator(
     private val project: Project,
-    val gradleVersion: GradleDistVersion = GradleDistVersion(project.gradle.gradleVersion),
-    explicitRootProjectDir: File? = null
+    val gradleVersion: GradleDistVersion = GradleDistVersion(project.gradle.gradleVersion)
 ) {
-    // `explicitRootProjectDir` is needed for testing only to be able to set some arbitrary non-working URL
-    private
-    val rootProjectDir = explicitRootProjectDir ?: project.layout.settingsDirectory.asFile
-
     private
     val repositoryName = if (gradleVersion.isSnapshot) "distributions-snapshots" else "distributions"
 
@@ -65,7 +61,7 @@ class GradleDistRepoDescriptorLocator(
 
     private
     fun findStandardWrapperUri(): URI? {
-        val wrapperProperties = WrapperExecutor.wrapperPropertiesForProjectDirectory(rootProjectDir)
+        val wrapperProperties = WrapperExecutor.wrapperPropertiesForProjectDirectory(rootBuildDir())
         if (wrapperProperties.exists()) {
 
             val currentWrapperUri = Properties()
@@ -83,6 +79,11 @@ class GradleDistRepoDescriptorLocator(
         }
         return null
     }
+
+    private
+    fun rootBuildDir() =
+        // project.gradle.root.settings may not be available, so we need to compute the root directory from the start parameters
+        BuildLayoutFactory().getLayoutFor((project.gradle as GradleInternal).root.startParameter.toBuildLayoutConfiguration()).rootDirectory
 
     private
     fun findStandardCustomBasePath(customUri: URI): String? {

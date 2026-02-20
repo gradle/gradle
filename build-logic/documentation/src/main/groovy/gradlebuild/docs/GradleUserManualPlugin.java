@@ -259,7 +259,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("icons", "font");
             configureCodeHighlightingAttributes(attributes);
             attributes.put("toc", "auto");
-            attributes.put("toclevels", 1);
+            attributes.put("toclevels", 2);
             attributes.put("toc-title", "Contents");
             attributes.put("groovyDslPath", "../dsl");
             attributes.put("javadocPath", "../javadoc");

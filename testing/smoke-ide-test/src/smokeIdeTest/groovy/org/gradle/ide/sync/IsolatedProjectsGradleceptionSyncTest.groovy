@@ -18,9 +18,11 @@ package org.gradle.ide.sync
 
 import org.gradle.ide.starter.IdeScenarioBuilder
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/5093")
 @DoesNotSupportNonAsciiPaths(reason = "This fixes weird compilation error during sync when running locally on MacOs. See https://github.com/gradle/gradle/issues/35525")
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
