@@ -27,6 +27,8 @@ dependencyResolutionManagement {
 plugins {
     id("gradlebuild.version-catalogs")
     id("gradlebuild.default-settings-plugins")
+    id("gradlebuild.build-logic-software-types")
+    `kotlin-dsl` apply false
 }
 
 includeBuild("../build-logic-settings")
