@@ -41,6 +41,7 @@ import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider;
 import org.gradle.plugins.signing.signatory.internal.pgp.InMemoryPgpSignatoryProvider;
+import org.gradle.plugins.signing.signatory.internal.pgp.PrivateKeyExtractor;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider;
 import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider;
 import org.gradle.plugins.signing.type.SignatureType;
@@ -92,13 +93,16 @@ public abstract class SigningExtension {
      */
     private SignatoryProvider<?> signatories;
 
+    private final PrivateKeyExtractor privateKeyExtractor;
+
     /**
      * Configures the signing settings for the given project.
      */
-    public SigningExtension(Project project) {
+    public SigningExtension(Project project, PrivateKeyExtractor privateKeyExtractor) {
         this.project = project;
         this.configuration = getDefaultConfiguration();
         this.signatureTypes = createSignatureTypeProvider();
+        this.privateKeyExtractor = privateKeyExtractor;
         this.signatories = createSignatoryProvider();
         project.getTasks().withType(Sign.class, this::addSignatureSpecConventions);
     }
@@ -176,7 +180,7 @@ public abstract class SigningExtension {
      * Provides the signatory provider. Called once during construction.
      */
     protected SignatoryProvider<?> createSignatoryProvider() {
-        return new PgpSignatoryProvider();
+        return new PgpSignatoryProvider(privateKeyExtractor);
     }
 
     /**

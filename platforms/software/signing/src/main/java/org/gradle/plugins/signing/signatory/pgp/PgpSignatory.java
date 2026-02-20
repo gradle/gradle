@@ -22,12 +22,10 @@ import org.bouncycastle.openpgp.PGPSecretKey;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureGenerator;
 import org.bouncycastle.openpgp.PGPUtil;
-import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
-import org.bouncycastle.openpgp.operator.bc.BcPBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
-import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.signing.signatory.SignatorySupport;
+import org.gradle.plugins.signing.signatory.internal.pgp.PrivateKeyExtractor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,9 +41,13 @@ public class PgpSignatory extends SignatorySupport {
     private final PGPPrivateKey privateKey;
 
     public PgpSignatory(String name, PGPSecretKey secretKey, String password) {
+        this(name, secretKey, PrivateKeyExtractor.DEFAULT.extractPrivateKey(secretKey, password));
+    }
+
+    PgpSignatory(String name, PGPSecretKey secretKey, PGPPrivateKey privateKey) {
         this.name = name;
         this.secretKey = secretKey;
-        this.privateKey = createPrivateKey(secretKey, password);
+        this.privateKey = privateKey;
     }
 
     @Override
@@ -101,15 +103,6 @@ public class PgpSignatory extends SignatorySupport {
             PGPSignatureGenerator generator = new PGPSignatureGenerator(builder, secretKey.getPublicKey());
             generator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
             return generator;
-        } catch (PGPException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private PGPPrivateKey createPrivateKey(PGPSecretKey secretKey, String password) {
-        try {
-            PBESecretKeyDecryptor decryptor = new BcPBESecretKeyDecryptorBuilder(new BcPGPDigestCalculatorProvider()).build(password.toCharArray());
-            return secretKey.extractPrivateKey(decryptor);
         } catch (PGPException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
