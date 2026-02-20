@@ -26,13 +26,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.jar.JarInputStream;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
 
 @ServiceScope(Scope.UserHome.class)
 public class JavaModuleDetector {
@@ -149,20 +149,20 @@ public class JavaModuleDetector {
         }
 
         private static boolean isModuleJar(File jarFile) {
-            try (JarInputStream jarStream = new JarInputStream(new FileInputStream(jarFile))) {
-                if (containsAutomaticModuleName(jarStream)) {
+            try (JarFile openedJar = new JarFile(jarFile)) {
+                if (containsAutomaticModuleName(openedJar)) {
                     return true;
                 }
-                boolean isMultiReleaseJar = containsMultiReleaseJarEntry(jarStream);
-                ZipEntry next = jarStream.getNextEntry();
-                while (next != null) {
-                    if (MODULE_INFO_CLASS_FILE.equals(next.getName())) {
+                boolean isMultiReleaseJar = containsMultiReleaseJarEntry(openedJar);
+                Enumeration<JarEntry> jarEntries = openedJar.entries();
+                while (jarEntries.hasMoreElements()) {
+                    JarEntry entry = jarEntries.nextElement();
+                    if (MODULE_INFO_CLASS_FILE.equals(entry.getName())) {
                         return true;
                     }
-                    if (isMultiReleaseJar && MODULE_INFO_CLASS_MRJAR_PATH.matcher(next.getName()).matches()) {
+                    if (isMultiReleaseJar && MODULE_INFO_CLASS_MRJAR_PATH.matcher(entry.getName()).matches()) {
                         return true;
                     }
-                    next = jarStream.getNextEntry();
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -170,13 +170,13 @@ public class JavaModuleDetector {
             return false;
         }
 
-        private static boolean containsMultiReleaseJarEntry(JarInputStream jarStream) {
-            Manifest manifest = jarStream.getManifest();
+        private static boolean containsMultiReleaseJarEntry(JarFile jarFile) throws IOException {
+            Manifest manifest = jarFile.getManifest();
             return manifest != null && Boolean.parseBoolean(manifest.getMainAttributes().getValue(MULTI_RELEASE_ATTRIBUTE));
         }
 
-        private static boolean containsAutomaticModuleName(JarInputStream jarStream) {
-            return getAutomaticModuleName(jarStream.getManifest()) != null;
+        private static boolean containsAutomaticModuleName(JarFile jarFile) throws IOException {
+            return getAutomaticModuleName(jarFile.getManifest()) != null;
         }
 
         @Nullable
