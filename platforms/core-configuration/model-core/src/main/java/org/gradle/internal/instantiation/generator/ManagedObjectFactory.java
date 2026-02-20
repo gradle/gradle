@@ -26,6 +26,8 @@ import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A helper used by generated classes to create managed instances.
@@ -84,9 +86,9 @@ public class ManagedObjectFactory {
     private static ManagedPropertyName displayNameFor(ModelObject owner, String propertyName) {
         if (owner.getModelIdentityDisplayName() instanceof ManagedPropertyName) {
             ManagedPropertyName root = (ManagedPropertyName) owner.getModelIdentityDisplayName();
-            return new ManagedPropertyName(root.ownerDisplayName, root.propertyName + "." + propertyName);
+            return new NestedManagedPropertyName(root, propertyName);
         } else {
-            return new ManagedPropertyName(cachedOwnerDisplayNameOf(owner), propertyName);
+            return new RootManagedPropertyName(cachedOwnerDisplayNameOf(owner), propertyName);
         }
     }
 
@@ -108,14 +110,9 @@ public class ManagedObjectFactory {
         return managedObjectRegistry;
     }
 
-    private static class ManagedPropertyName implements DisplayName {
-        private final Cached<String> ownerDisplayName;
-        private final String propertyName;
-
-        public ManagedPropertyName(Cached<String> ownerDisplayName, String propertyName) {
-            this.ownerDisplayName = ownerDisplayName;
-            this.propertyName = propertyName;
-        }
+    private static abstract class ManagedPropertyName implements DisplayName {
+        abstract String getPath();
+        abstract @Nullable String getOwnerDisplayName();
 
         @Override
         public String toString() {
@@ -123,17 +120,59 @@ public class ManagedObjectFactory {
         }
 
         @Override
+        @NonNull
         public String getCapitalizedDisplayName() {
             return StringUtils.capitalize(getDisplayName());
         }
 
         @Override
         public String getDisplayName() {
-            if (ownerDisplayName.get() != null) {
-                return ownerDisplayName.get() + " property '" + propertyName + "'";
+            String ownerDisplayName = getOwnerDisplayName();
+            if (ownerDisplayName != null) {
+                return ownerDisplayName + " property '" + getPath() + "'";
             } else {
-                return "property '" + propertyName + "'";
+                return "property '" + getPath() + "'";
             }
+        }
+    }
+
+    private static class RootManagedPropertyName extends ManagedPropertyName {
+        private final Cached<String> ownerDisplayName;
+        private final String propertyName;
+
+        public RootManagedPropertyName(Cached<String> ownerDisplayName, String propertyName) {
+            this.ownerDisplayName = ownerDisplayName;
+            this.propertyName = propertyName;
+        }
+
+        @Override
+        String getPath() {
+            return propertyName;
+        }
+
+        @Override
+        public @Nullable String getOwnerDisplayName() {
+            return ownerDisplayName.get();
+        }
+    }
+
+    private static class NestedManagedPropertyName extends ManagedPropertyName {
+        private final ManagedPropertyName parent;
+        private final String propertyName;
+
+        public NestedManagedPropertyName(ManagedPropertyName parent, String propertyName) {
+            this.parent = parent;
+            this.propertyName = propertyName;
+        }
+
+        @Override
+        public String getPath() {
+            return parent.getPath() + "." + propertyName;
+        }
+
+        @Override
+        @Nullable String getOwnerDisplayName() {
+            return parent.getOwnerDisplayName();
         }
     }
 }
