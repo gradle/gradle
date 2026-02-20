@@ -29,7 +29,7 @@ object ProjectScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuil
         ScriptComponentSourcesRequest::class.java
 
     override fun buildAll(modelName: String, project: Project): ProjectScriptComponentSources =
-        error("Should not be called")
+        error("Building model ${ProjectScriptComponentSources::class.simpleName} requires a parameter of type ${ScriptComponentSourcesRequest::class.simpleName}")
 
     override fun buildAll(modelName: String, parameter: ScriptComponentSourcesRequest, project: Project): ProjectScriptComponentSources {
         val identifiers = parameter.deserializeIdentifiers()

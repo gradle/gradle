@@ -82,6 +82,10 @@ data class StandardScriptComponentSourceIdentifier(
         result = 31 * result + scriptFile.hashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "StandardScriptComponentSourceIdentifier(displayName='$displayName', scriptFile=$scriptFile, bytes=${bytes.size})"
+    }
 }
 
 data class StandardInitScriptsModel(

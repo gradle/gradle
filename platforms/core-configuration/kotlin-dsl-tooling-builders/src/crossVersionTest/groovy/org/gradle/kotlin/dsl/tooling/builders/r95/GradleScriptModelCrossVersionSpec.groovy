@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.model.buildscript.GradleScriptModel
 import org.gradle.tooling.model.buildscript.InitScriptComponentSources
 import org.gradle.tooling.model.buildscript.InitScriptsModel
 import org.gradle.tooling.model.buildscript.ProjectScriptComponentSources
@@ -31,46 +32,113 @@ import org.gradle.tooling.model.buildscript.SettingsScriptModel
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
+import java.util.function.Predicate
+
 @TargetGradleVersion(">=9.5")
 class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "new model"() {
         given:
         withMultipleSubprojects()
-        def scriptDependency = """
+        file("build.gradle.kts") << """
             buildscript {
                 repositories { gradlePluginPortal() }
                 dependencies {
                     classpath("org.nosphere.apache.rat:org.nosphere.apache.rat.gradle.plugin:0.8.1")
-                    classpath("net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin:5.0.0")
                 }
             }
+            plugins {
+                id("net.ltgt.errorprone") version "5.0.0"
+            }
         """
-        file("build.gradle.kts") << scriptDependency
-        file("a/build.gradle.kts") << scriptDependency
-        file("b/build.gradle.kts") << scriptDependency
 
         when:
-        def result = withConnection {
-            it.action(new AllScriptModelsAndSourcesBuildAction())
+        def allScriptsModel = withConnection {
+            it.action(new AllScriptModelsBuildAction())
 //                .withArguments("-Dorg.gradle.debug=true")
                 .run()
         }
 
         then:
-        result != null
-        println result
+        allScriptsModel != null
+        allScriptsModel.initScriptsModel.initScriptModels.isEmpty()
+        allScriptsModel.settingsScriptModel.settingsScriptModel.scriptFile == settingsFileKts
+        !allScriptsModel.settingsScriptModel.settingsScriptModel.implicitImports.isEmpty()
+        !allScriptsModel.settingsScriptModel.settingsScriptModel.contextPath.isEmpty()
+        assertContainsGradleApi(allScriptsModel.settingsScriptModel.settingsScriptModel)
+
+        and:
+        allScriptsModel.projectScriptsModels.size() == 3
+        Map<String, ProjectScriptsModel> projectScriptModels = allScriptsModel.projectScriptsModels.collectEntries { [it.key.buildTreePath, it.value] }
+        def rootModel = projectScriptModels[":"]
+        def aModel = projectScriptModels[":a"]
+        def bModel = projectScriptModels[":b"]
+        rootModel.precompiledScriptModels.isEmpty()
+        aModel.precompiledScriptModels.isEmpty()
+        bModel.precompiledScriptModels.isEmpty()
+        rootModel.buildScriptModel.scriptFile == buildFileKts
+        aModel.buildScriptModel.scriptFile == file("a/build.gradle.kts")
+        bModel.buildScriptModel.scriptFile == file("b/build.gradle.kts")
+        !rootModel.buildScriptModel.implicitImports.isEmpty()
+        !aModel.buildScriptModel.implicitImports.isEmpty()
+        !bModel.buildScriptModel.implicitImports.isEmpty()
+        !rootModel.buildScriptModel.contextPath.isEmpty()
+        !aModel.buildScriptModel.contextPath.isEmpty()
+        !bModel.buildScriptModel.contextPath.isEmpty()
+        assertContainsGradleApi(rootModel.buildScriptModel)
+        assertContainsGradleApi(aModel.buildScriptModel)
+        assertContainsGradleApi(bModel.buildScriptModel)
+
+        and:
+        Predicate<File> projectBuildscriptDepFileSelector = { it.name.startsWith("creadur-rat-gradle-") }
+        Predicate<File> projectPluginsDepFileSelector = { it.name.startsWith("gradle-errorprone-plugin-") }
+        assertContainsExternalDependency(rootModel.buildScriptModel, projectBuildscriptDepFileSelector)
+        assertContainsExternalDependency(rootModel.buildScriptModel, projectPluginsDepFileSelector)
+        assertContainsExternalDependency(aModel.buildScriptModel, projectBuildscriptDepFileSelector)
+        assertContainsExternalDependency(aModel.buildScriptModel, projectPluginsDepFileSelector)
+        assertContainsExternalDependency(bModel.buildScriptModel, projectBuildscriptDepFileSelector)
+        assertContainsExternalDependency(bModel.buildScriptModel, projectPluginsDepFileSelector)
 
         when:
-        def sourcesModel = withConnection {
-            it.action(new AllComponentSourcesBuildAction(result))
+        def allSources = withConnection {
+            it.action(new AllComponentSourcesBuildAction(allScriptsModel))
 //                .withArguments("-Dorg.gradle.debug=true")
                 .run()
         }
 
         then:
-        println sourcesModel
-        sourcesModel != null
+        allSources != null
+        !allSources.isEmpty()
+        assertContainsGradleApi(allSources)
+        assertContainsExternalDependencies(allSources, "creadur-rat-gradle", "gradle-errorprone-plugin")
+    }
+
+    private static void assertContainsGradleApi(GradleScriptModel model) {
+        def gradleApi = model.contextPath.find { it.classPathElement.name.startsWith("gradle-api-") }
+        println("Gradle API for ${model.scriptFile}: $gradleApi")
+        assert gradleApi != null
+        assert !gradleApi.sourcePathIdentifiers.isEmpty()
+    }
+
+    private static void assertContainsExternalDependency(GradleScriptModel model, Predicate<File> fileSelector) {
+        def element = model.contextPath.find { fileSelector.test(it.classPathElement) }
+        println("External dependency for ${model.scriptFile}: $element")
+        assert element != null
+        assert !element.sourcePathIdentifiers.isEmpty()
+    }
+
+    private static void assertContainsGradleApi(Map<ScriptComponentSourceIdentifier, List<File>> allSources) {
+        def gradleApi = allSources.find { it.key.displayName.startsWith("Gradle API") }
+        assert gradleApi != null
+        assert !gradleApi.value.isEmpty()
+    }
+
+    private static void assertContainsExternalDependencies(Map<ScriptComponentSourceIdentifier, List<File>> allSources, String... externalDepNames) {
+        for (final def externalDepName in externalDepNames) {
+            def external = allSources.find { it.key.displayName.contains(externalDepName) }
+            assert external != null
+            assert !external.value.isEmpty()
+        }
     }
 }
 
@@ -96,7 +164,7 @@ class AllScriptsModel implements Serializable {
     }
 }
 
-class AllScriptModelsAndSourcesBuildAction implements BuildAction<AllScriptsModel> {
+class AllScriptModelsBuildAction implements BuildAction<AllScriptsModel> {
     @Override
     AllScriptsModel execute(BuildController controller) {
         def init = controller.getModel(InitScriptsModel)

@@ -113,7 +113,7 @@ internal fun downloadSources(
             sourceIds.filterIsInstance<SourceComponentIdentifierType.GradleSrc>().forEach { gradleSrcIds ->
                 put(
                     newScriptComponentSourceIdentifier(
-                        displayName = "Gradle ${gradle.gradleVersion}",
+                        displayName = "Gradle API ${gradle.gradleVersion}",
                         scriptFile = scriptFile,
                         identifier = gradleSrcIds
                     ),
