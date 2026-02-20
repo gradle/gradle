@@ -43,12 +43,23 @@ public class PgpSignatory extends SignatorySupport {
     private final Provider<PGPSecretKey> secretKey;
     private final Provider<PGPPrivateKey> privateKey;
 
+    /**
+     * Creates a PGP signatory from secret and private key.
+     * <p>
+     * <b>Warning</b>: the dependencies of providers aren't exposed anywhere.
+     * Consider using {@link PgpSignatoryFactory} to create instances of this class instead.
+     *
+     * @param name the name of the signatory
+     * @param secretKey the secret key
+     * @param privateKey the private key extracted from the secret key
+     */
     PgpSignatory(String name, Provider<PGPSecretKey> secretKey, Provider<PGPPrivateKey> privateKey) {
         this.name = name;
         this.secretKey = secretKey;
         this.privateKey = privateKey;
     }
 
+    // This is a legacy constructor. It is a public API, so it has to be preserved, but it shouldn't be used internally.
     public PgpSignatory(String name, PGPSecretKey secretKey, String password) {
         this(name, Providers.of(secretKey), Providers.of(PgpSignatoryUtil.extractPrivateKey(secretKey, password)));
     }
