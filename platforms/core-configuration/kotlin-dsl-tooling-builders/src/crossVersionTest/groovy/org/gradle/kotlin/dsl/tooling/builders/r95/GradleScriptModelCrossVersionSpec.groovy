@@ -52,6 +52,15 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
             }
         """
 
+        and:
+        settingsFileKts << """
+            include("grr")
+            include("dcl")
+        """
+        file("grr/build.gradle") << ""
+        file("dcl/build.gradle.dcl") << ""
+
+
         when:
         def allScriptsModel = withConnection {
             it.action(new AllScriptModelsBuildAction())
@@ -68,36 +77,35 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
         assertContainsGradleApi(allScriptsModel.settingsScriptModel.settingsScriptModel)
 
         and:
-        allScriptsModel.projectScriptsModels.size() == 3
+        allScriptsModel.projectScriptsModels.size() == 5
         Map<String, ProjectScriptsModel> projectScriptModels = allScriptsModel.projectScriptsModels.collectEntries { [it.key.buildTreePath, it.value] }
         def rootModel = projectScriptModels[":"]
         def aModel = projectScriptModels[":a"]
         def bModel = projectScriptModels[":b"]
-        rootModel.precompiledScriptModels.isEmpty()
-        aModel.precompiledScriptModels.isEmpty()
-        bModel.precompiledScriptModels.isEmpty()
+        def grrModel = projectScriptModels[":grr"]
+        def dclModel = projectScriptModels[":dcl"]
         rootModel.buildScriptModel.scriptFile == buildFileKts
         aModel.buildScriptModel.scriptFile == file("a/build.gradle.kts")
         bModel.buildScriptModel.scriptFile == file("b/build.gradle.kts")
-        !rootModel.buildScriptModel.implicitImports.isEmpty()
-        !aModel.buildScriptModel.implicitImports.isEmpty()
-        !bModel.buildScriptModel.implicitImports.isEmpty()
-        !rootModel.buildScriptModel.contextPath.isEmpty()
-        !aModel.buildScriptModel.contextPath.isEmpty()
-        !bModel.buildScriptModel.contextPath.isEmpty()
-        assertContainsGradleApi(rootModel.buildScriptModel)
-        assertContainsGradleApi(aModel.buildScriptModel)
-        assertContainsGradleApi(bModel.buildScriptModel)
+        grrModel.buildScriptModel.scriptFile == file("grr/build.gradle")
+        dclModel.buildScriptModel.scriptFile == file("dcl/build.gradle.dcl")
+
+        and:
+        def allProjectModels = allScriptsModel.projectScriptsModels.values()
+        allProjectModels.each {
+            assert it.precompiledScriptModels.isEmpty()
+            assert !it.buildScriptModel.implicitImports.isEmpty()
+            assert !it.buildScriptModel.contextPath.isEmpty()
+            assertContainsGradleApi(it.buildScriptModel)
+        }
 
         and:
         Predicate<File> projectBuildscriptDepFileSelector = { it.name.startsWith("creadur-rat-gradle-") }
         Predicate<File> projectPluginsDepFileSelector = { it.name.startsWith("gradle-errorprone-plugin-") }
-        assertContainsExternalDependency(rootModel.buildScriptModel, projectBuildscriptDepFileSelector)
-        assertContainsExternalDependency(rootModel.buildScriptModel, projectPluginsDepFileSelector)
-        assertContainsExternalDependency(aModel.buildScriptModel, projectBuildscriptDepFileSelector)
-        assertContainsExternalDependency(aModel.buildScriptModel, projectPluginsDepFileSelector)
-        assertContainsExternalDependency(bModel.buildScriptModel, projectBuildscriptDepFileSelector)
-        assertContainsExternalDependency(bModel.buildScriptModel, projectPluginsDepFileSelector)
+        allProjectModels.each {
+            assertContainsExternalDependency(it.buildScriptModel, projectBuildscriptDepFileSelector)
+            assertContainsExternalDependency(it.buildScriptModel, projectPluginsDepFileSelector)
+        }
 
         when:
         def allSources = withConnection {
@@ -115,14 +123,12 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
 
     private static void assertContainsGradleApi(GradleScriptModel model) {
         def gradleApi = model.contextPath.find { it.classPathElement.name.startsWith("gradle-api-") }
-        println("Gradle API for ${model.scriptFile}: $gradleApi")
         assert gradleApi != null
         assert !gradleApi.sourcePathIdentifiers.isEmpty()
     }
 
     private static void assertContainsExternalDependency(GradleScriptModel model, Predicate<File> fileSelector) {
         def element = model.contextPath.find { fileSelector.test(it.classPathElement) }
-        println("External dependency for ${model.scriptFile}: $element")
         assert element != null
         assert !element.sourcePathIdentifiers.isEmpty()
     }
