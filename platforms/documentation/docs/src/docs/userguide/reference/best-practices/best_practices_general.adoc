@@ -811,7 +811,7 @@ This structure uses an extension type to hold values, allowing properties to be 
 [[consider_use_of_incubating_apis_carefully]]
 == Consider use of `@Incubating` APIs carefully
 
-Use Incubating APIs deliberately and with awareness of trade-offs. New or unstable Incubating features can require updates even on minor Gradle upgrades, while some features are close to Stable and already widely adopted by the users. Weigh the benefits against ongoing maintenance effort.
+Use Incubating APIs deliberately and with awareness of trade-offs. New or unstable Incubating features can require updates even on minor Gradle upgrades, while some features are close to Stable and already widely adopted by the users. Weigh the benefits against the likely increase in maintenance effort.
 
 === Explanation
 
