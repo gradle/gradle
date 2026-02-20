@@ -22,7 +22,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
-import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
@@ -88,18 +87,8 @@ public class ManagedObjectFactory {
             ManagedPropertyName root = (ManagedPropertyName) owner.getModelIdentityDisplayName();
             return new NestedManagedPropertyName(root, propertyName);
         } else {
-            return new RootManagedPropertyName(cachedOwnerDisplayNameOf(owner), propertyName);
+            return new RootManagedPropertyName(owner, propertyName);
         }
-    }
-
-    private static Cached<String> cachedOwnerDisplayNameOf(ModelObject owner) {
-        return Cached.of(() -> {
-            Describable ownerModelIdentityDisplayName = owner.getModelIdentityDisplayName();
-            if (ownerModelIdentityDisplayName != null) {
-                return ownerModelIdentityDisplayName.getDisplayName();
-            }
-            return null;
-        });
     }
 
     private ManagedObjectRegistry getManagedObjectRegistry() {
@@ -137,11 +126,14 @@ public class ManagedObjectFactory {
     }
 
     private static class RootManagedPropertyName extends ManagedPropertyName {
-        private final Cached<String> ownerDisplayName;
+        // This is mutable to throw away the reference to the owner
+        // when it is no longer needed
+        private transient ModelObject owner;
+        private String ownerDisplayName;
         private final String propertyName;
 
-        public RootManagedPropertyName(Cached<String> ownerDisplayName, String propertyName) {
-            this.ownerDisplayName = ownerDisplayName;
+        public RootManagedPropertyName(ModelObject owner, String propertyName) {
+            this.owner = owner;
             this.propertyName = propertyName;
         }
 
@@ -152,7 +144,17 @@ public class ManagedObjectFactory {
 
         @Override
         public @Nullable String getOwnerDisplayName() {
-            return ownerDisplayName.get();
+            ModelObject current = owner;
+            if (current != null) {
+                Describable ownerModelIdentityDisplayName = current.getModelIdentityDisplayName();
+                owner = null; // discard owner now that we have the display name
+                if (ownerModelIdentityDisplayName != null) {
+                    ownerDisplayName = ownerModelIdentityDisplayName.getDisplayName();
+                } else {
+                    ownerDisplayName = null;
+                }
+            }
+            return ownerDisplayName;
         }
     }
 
