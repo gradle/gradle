@@ -824,7 +824,7 @@ When considering using an Incubating feature, the best approach is to check its 
 
 If the feature is new or still has many linked issues, consider its use carefully. It may introduce an additional maintenance cost for your build setup, as you may need to update your build scripts even on minor version updates.
 
-NOTE: Remember that the goal of Incubating features is to put them early in the hands of the users to get early feedback and guide the evolution. If you are using such features provide feedback about them and file bug issues, if you encounter any.
+NOTE: Remember that the goal of Incubating features is to put them in users' hands early to gather early feedback and guide their evolution. If you are using such features, please provide feedback about them and file bug issues if you encounter any.
 
 === References
 
