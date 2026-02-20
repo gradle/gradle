@@ -18,10 +18,12 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -32,6 +34,8 @@ import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.internal.consumer.GradleConnectorFactory
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.GradleVersion
+import org.hamcrest.core.IsNot
+import org.junit.Assume
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -242,7 +246,18 @@ class ToolingApi implements TestRule {
             error = new TeeOutputStream(stderr, System.err)
         }
 
-        return new ToolingApiConnector(connector, output, error)
+        Jvm jvm = null
+        if (!dist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
+            println("Auto detect: " + System.getProperty("org.gradle.java.installations.auto-detect"))
+            println("Auto download: " + System.getProperty("org.gradle.java.installations.auto-download"))
+            println("Installations: " + System.getProperty("org.gradle.java.installations.paths"))
+            println("Searching supported JDK from: ${AvailableJavaHomes.getAvailableJdks { j -> true }}")
+            jvm = AvailableJavaHomes.getAvailableJdk { dist.daemonWorksWith(it.javaMajorVersion) }
+            println("Searching supported JDK -> ${jvm}")
+            Assume.assumeThat("JVM compatible with the distribution daemon", jvm, IsNot.not(null));
+        }
+
+        return new ToolingApiConnector(connector, jvm?.javaHome, output, error)
     }
 
     /**

@@ -18,14 +18,14 @@ package org.gradle.internal.instrumentation.processor;
 
 import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
-import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-import org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeClassSourceGenerator;
+import org.gradle.internal.instrumentation.extensions.property.InstrumentedPropertiesResourceGenerator;
 import org.gradle.internal.instrumentation.extensions.types.InstrumentedTypesResourceGenerator;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator;
@@ -41,12 +41,15 @@ import org.gradle.internal.instrumentation.processor.features.withstaticreferenc
 import org.gradle.internal.instrumentation.processor.features.withstaticreference.WithExtensionReferencesReader;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationCallInterceptionRequestReaderImpl;
 
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 import java.util.Arrays;
 import java.util.Collection;
 
 import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasAnnotation;
 import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasExtraOfType;
 
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrumentationProcessor {
 
     @Override

@@ -18,7 +18,7 @@ package org.gradle.test.fixtures.server
 
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 
-public interface RepositoryServer {
+interface RepositoryServer {
 
     RemoteIvyRepository getRemoteIvyRepo()
 

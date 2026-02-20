@@ -18,10 +18,6 @@ jvmCompile {
             // JSpecify annotations on static inner type return types
             usesJdkInternals = true
         }
-        named("crossVersionTest") {
-            // The TAPI tests must be able to run the TAPI client, which is still JVM 8 compatible
-            targetJvmVersion = 8
-        }
     }
 }
 
@@ -83,6 +79,9 @@ dependencies {
     integTestImplementation(projects.persistentCache)
     integTestImplementation(projects.kotlinDslToolingModels)
     integTestImplementation(testFixtures(projects.buildProcessServices))
+
+    crossVersionTestFixturesCompileOnly(project(path, "shadedRuntimeElements"))
+    crossVersionTestFixturesCompileOnly(libs.slf4jApi + ":2.0.17") // TODO: user version from version catalog
 
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.internalTesting)

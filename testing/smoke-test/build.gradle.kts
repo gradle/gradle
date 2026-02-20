@@ -12,6 +12,14 @@ plugins {
     id("gradlebuild.android-home-warmup")
 }
 
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 8
+        }
+    }
+}
+
 val smokeTestSourceSet = sourceSets.create("smokeTest") {
     compileClasspath += sourceSets.main.get().output
     runtimeClasspath += sourceSets.main.get().output
