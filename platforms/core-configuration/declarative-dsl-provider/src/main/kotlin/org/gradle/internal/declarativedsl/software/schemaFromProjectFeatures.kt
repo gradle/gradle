@@ -112,7 +112,7 @@ class ProjectFeatureComponent(
                 (bindingToDefinition.values + bindingByModelType.values).flatten().map {
                     TypeDiscovery.DiscoveredClass(
                         it.definitionPublicType.kotlin,
-                        listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("project feature definition"))
+                        TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("project feature definition")
                     )
                 }
             }
