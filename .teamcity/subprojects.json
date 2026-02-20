@@ -700,6 +700,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "ide-model-impls",
+    "path": "platforms/ide/ide-model-impls",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "ide-native",
     "path": "platforms/ide/ide-native",
     "unitTests": true,
@@ -936,6 +943,13 @@
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": true
+  },
+  {
+    "name": "kotlin-dsl-tooling-model-impls",
+    "path": "platforms/core-configuration/kotlin-dsl-tooling-model-impls",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-tooling-models",
@@ -1538,6 +1552,13 @@
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": true
+  },
+  {
+    "name": "tooling-native-model-impls",
+    "path": "platforms/native/tooling-native-model-impls",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
   },
   {
     "name": "unit-test-fixtures",

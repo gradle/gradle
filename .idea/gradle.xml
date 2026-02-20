@@ -129,6 +129,7 @@
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-plugins" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-provider-plugins" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-tooling-builders" />
+            <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-tooling-model-impls" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-tooling-models" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/model-core" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/model-groovy" />
@@ -226,6 +227,7 @@
             <option value="$PROJECT_DIR$/platforms/extensibility/unit-test-fixtures" />
             <option value="$PROJECT_DIR$/platforms/ide/base-ide-plugins" />
             <option value="$PROJECT_DIR$/platforms/ide/ide" />
+            <option value="$PROJECT_DIR$/platforms/ide/ide-model-impls" />
             <option value="$PROJECT_DIR$/platforms/ide/ide-native" />
             <option value="$PROJECT_DIR$/platforms/ide/ide-plugins" />
             <option value="$PROJECT_DIR$/platforms/ide/problems" />
@@ -275,6 +277,7 @@
             <option value="$PROJECT_DIR$/platforms/native/platform-native" />
             <option value="$PROJECT_DIR$/platforms/native/testing-native" />
             <option value="$PROJECT_DIR$/platforms/native/tooling-native" />
+            <option value="$PROJECT_DIR$/platforms/native/tooling-native-model-impls" />
             <option value="$PROJECT_DIR$/platforms/software/base-compiler-worker" />
             <option value="$PROJECT_DIR$/platforms/software/build-init" />
             <option value="$PROJECT_DIR$/platforms/software/build-init-specs" />

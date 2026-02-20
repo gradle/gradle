@@ -26,6 +26,9 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.gradle.GradleBuild} model.
+ */
 public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
     private PartialBasicGradleProject rootProject;
     private BuildIdentifier buildIdentifier;

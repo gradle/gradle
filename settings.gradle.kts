@@ -129,6 +129,7 @@ val core = platform("core") {
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
         subproject("kotlin-dsl-tooling-builders")
+        subproject("kotlin-dsl-tooling-model-impls")
         subproject("kotlin-dsl-tooling-models")
         subproject("kotlin-dsl-plugins")
         subproject("kotlin-dsl-integ-tests")
@@ -177,6 +178,7 @@ module("documentation") {
 module("ide") {
     subproject("base-ide-plugins")
     subproject("ide")
+    subproject("ide-model-impls")
     subproject("ide-native")
     subproject("ide-plugins")
     subproject("problems")
@@ -277,6 +279,7 @@ platform("native") {
     subproject("platform-native")
     subproject("language-native")
     subproject("tooling-native")
+    subproject("tooling-native-model-impls")
     subproject("testing-native")
 }
 

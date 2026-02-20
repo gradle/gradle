@@ -23,23 +23,19 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.model.dsl.GradleDslBaseScriptModel;
-import org.gradle.tooling.model.dsl.GroovyDslBaseScriptModel;
-import org.gradle.tooling.model.dsl.KotlinDslBaseScriptModel;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Stream;
 
 @NullMarked
 public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
 
+    private static final String MODEL_NAME = GradleDslBaseScriptModel.class.getName();
+
     @Override
     public boolean canBuild(String modelName) {
-        return "org.gradle.tooling.model.dsl.GradleDslBaseScriptModel".equals(modelName);
+        return MODEL_NAME.equals(modelName);
     }
 
     @Override
@@ -84,90 +80,5 @@ public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
         return moduleNames.map(name -> moduleRegistry.getModule(name).getImplementationClasspath())
             .reduce(ClassPath.EMPTY, ClassPath::plus, ClassPath::plus);
     }
-}
 
-@NullMarked
-class DefaultGradleDslBaseScriptModel implements GradleDslBaseScriptModel, Serializable {
-
-    private final GroovyDslBaseScriptModel groovyDslBaseScriptModel;
-
-    private final KotlinDslBaseScriptModel kotlinDslBaseScriptModel;
-
-    public DefaultGradleDslBaseScriptModel(GroovyDslBaseScriptModel groovyDslBaseScriptModel, KotlinDslBaseScriptModel kotlinDslBaseScriptModel) {
-        this.groovyDslBaseScriptModel = groovyDslBaseScriptModel;
-        this.kotlinDslBaseScriptModel = kotlinDslBaseScriptModel;
-    }
-
-    @Override
-    public GroovyDslBaseScriptModel getGroovyDslBaseScriptModel() {
-        return groovyDslBaseScriptModel;
-    }
-
-    @Override
-    public KotlinDslBaseScriptModel getKotlinDslBaseScriptModel() {
-        return kotlinDslBaseScriptModel;
-    }
-
-}
-
-@NullMarked
-class DefaultGroovyDslBaseScriptModel implements GroovyDslBaseScriptModel, Serializable {
-
-    private final List<File> compileClassPath;
-    private final List<String> implicitImports;
-
-    public DefaultGroovyDslBaseScriptModel(ClassPath compileClassPath, List<String> implicitImports) {
-        this.compileClassPath = compileClassPath.getAsFiles();
-        this.implicitImports = implicitImports;
-    }
-
-    @Override
-    public List<File> getCompileClassPath() {
-        return compileClassPath;
-    }
-
-    @Override
-    public List<String> getImplicitImports() {
-        return implicitImports;
-    }
-}
-
-@NullMarked
-class DefaultKotlinDslBaseScriptModel implements KotlinDslBaseScriptModel, Serializable {
-
-    private static final List<String> TEMPLATE_CLASS_NAMES = Arrays.asList(
-        "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
-        "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
-        "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate"
-    );
-
-    private final List<File> scriptTemplatesClassPath;
-    private final List<File> compileClassPath;
-    private final List<String> implicitImports;
-
-    public DefaultKotlinDslBaseScriptModel(ClassPath scriptTemplatesClassPath, ClassPath compileClassPath, List<String> implicitImports) {
-        this.scriptTemplatesClassPath = scriptTemplatesClassPath.getAsFiles();
-        this.compileClassPath = compileClassPath.getAsFiles();
-        this.implicitImports = implicitImports;
-    }
-
-    @Override
-    public List<File> getScriptTemplatesClassPath() {
-        return scriptTemplatesClassPath;
-    }
-
-    @Override
-    public List<File> getCompileClassPath() {
-        return compileClassPath;
-    }
-
-    @Override
-    public List<String> getImplicitImports() {
-        return implicitImports;
-    }
-
-    @Override
-    public List<String> getTemplateClassNames() {
-        return TEMPLATE_CLASS_NAMES;
-    }
 }

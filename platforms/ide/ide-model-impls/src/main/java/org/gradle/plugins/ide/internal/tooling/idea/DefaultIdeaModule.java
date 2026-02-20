@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.internal.tooling.idea;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
-import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 
 import java.io.File;
 import java.io.Serializable;
@@ -28,6 +27,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Structurally implements {@link org.gradle.tooling.model.idea.IdeaModule} model.
+ */
 public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     private String name;
     private List<DefaultIdeaContentRoot> contentRoots = new LinkedList<DefaultIdeaContentRoot>();
@@ -36,7 +38,7 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     private List<DefaultIdeaDependency> dependencies = new LinkedList<DefaultIdeaDependency>();
     private DefaultGradleProject gradleProject;
 
-    private IdeaCompilerOutput compilerOutput;
+    private DefaultIdeaCompilerOutput compilerOutput;
 
     private DefaultIdeaJavaLanguageSettings javaLanguageSettings;
     private String jdkName;
@@ -98,11 +100,11 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
         return this;
     }
 
-    public IdeaCompilerOutput getCompilerOutput() {
+    public DefaultIdeaCompilerOutput getCompilerOutput() {
         return compilerOutput;
     }
 
-    public DefaultIdeaModule setCompilerOutput(IdeaCompilerOutput compilerOutput) {
+    public DefaultIdeaModule setCompilerOutput(DefaultIdeaCompilerOutput compilerOutput) {
         this.compilerOutput = compilerOutput;
         return this;
     }
