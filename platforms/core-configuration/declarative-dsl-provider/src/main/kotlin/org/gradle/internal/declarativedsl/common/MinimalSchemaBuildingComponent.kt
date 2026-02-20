@@ -63,4 +63,5 @@ private fun isValidNestedGradleModelType(type: SupportedTypeProjection.Supported
  * TODO: find a better communication mechanism for the schema builder components to coordinate importing a member
  */
 private fun isValidBasicProperty(owner: KClass<*>, callable: SupportedCallable): Boolean =
-    !DependencyCollectorFunctionExtractorAndRuntimeResolver.Companion.isDependencyCollectorPropertyOrGetter(owner, callable)
+    !DependencyCollectorFunctionExtractorAndRuntimeResolver.isDependencyCollectorPropertyOrGetter(owner, callable) &&
+        (callable.returnType.classifier as? KClass<*>)?.isSubclassOf(NamedDomainObjectContainer::class) != true
