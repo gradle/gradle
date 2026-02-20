@@ -41,6 +41,20 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== `ProjectBuilder` now handles build-scoped locations more consistently
+
+link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[`ProjectBuilder`] lets you configure a project directory, which `project.projectDir` and `project.rootDir` correctly reflect.
+However, `project.layout.settingsDirectory` was not derived from that directory and could point outside of `rootDir`, causing file resolution to inadvertently escape the project directory.
+
+Gradle now anchors the settings search to the configured project directory, so `layout.settingsDirectory`, `projectDir`, and `rootDir` all point to the same location.
+Projects created with `ProjectBuilder` are no longer affected by the surrounding build environment.
+
+If your tests relied on `layout.settingsDirectory` pointing outside the configured project directory, you will need to adjust them.
+Even if you did not use `settingsDirectory` directly, you may still observe changes in file resolution.
+For instance, files related to dependency management could previously be picked up from the surrounding build, but this is no longer the case.
+
+For more details see link:https://github.com/gradle/gradle/issues/32928[the related issue].
+
 ==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
 
 The `gradleApi()` dependency is now added to the `compileOnlyApi` scope instead of the `api` scope.
