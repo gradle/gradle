@@ -5,6 +5,10 @@ Method <org.gradle.api.plugins.quality.Checkstyle.getCheckstyleClasspath()> is n
 Method <org.gradle.api.plugins.quality.Checkstyle.getClasspath()> is not abstract
 Method <org.gradle.api.plugins.quality.Checkstyle.getConfigDirectory()> is not abstract
 Method <org.gradle.api.plugins.quality.Checkstyle.getEnableExternalDtdLoad()> is not abstract
+Method <org.gradle.api.plugins.quality.Checkstyle.getIgnoreFailuresProperty()> is not abstract
+Method <org.gradle.api.plugins.quality.Checkstyle.getJavaLauncher()> is not abstract
+Method <org.gradle.api.plugins.quality.Checkstyle.getMaxHeapSize()> is not abstract
+Method <org.gradle.api.plugins.quality.Checkstyle.getMinHeapSize()> is not abstract
 Method <org.gradle.api.plugins.quality.Checkstyle.getSource()> is not abstract
 Method <org.gradle.api.plugins.quality.CodeNarc.getCodenarcClasspath()> is not abstract
 Method <org.gradle.api.plugins.quality.CodeNarc.getCompilationClasspath()> is not abstract
