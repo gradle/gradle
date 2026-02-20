@@ -45,6 +45,12 @@ val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
     objects.property<Boolean>()
 ).apply {
     disabledChecks.addAll(
+        // ENABLE
+        "PatternMatchingInstanceof", // We should enable this.
+        "StatementSwitchToExpressionSwitch", // We should enable this.
+        "StringConcatToTextBlock", // We should enable this.
+        "ClassCanBeStatic", // We should enable this.
+
         // DISCUSS
         "EnumOrdinal", // This violation is ubiquitous, though most are benign.
         "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
