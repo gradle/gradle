@@ -19,7 +19,6 @@ package org.gradle.dsl.tooling.builders
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
-import org.gradle.tooling.model.buildscript.ProjectScriptComponentSources
 import org.gradle.tooling.model.buildscript.ScriptComponentSourcesRequest
 import org.gradle.tooling.model.buildscript.SettingsScriptComponentSources
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder

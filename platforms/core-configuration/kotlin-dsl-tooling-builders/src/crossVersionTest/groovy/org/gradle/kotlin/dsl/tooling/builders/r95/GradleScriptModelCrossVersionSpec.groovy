@@ -39,6 +39,12 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
 
     def "new model"() {
         given:
+        def initKotlinScript = file("some.init.gradle.kts")
+        initKotlinScript << ""
+        def initGroovyScript = file("some.init.gradle")
+        initGroovyScript << ""
+
+        and:
         withMultipleSubprojects()
         file("build.gradle.kts") << """
             buildscript {
@@ -64,17 +70,23 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
         when:
         def allScriptsModel = withConnection {
             it.action(new AllScriptModelsBuildAction())
+                .withArguments("-I", initKotlinScript.absolutePath, "-I", initGroovyScript.absolutePath)
 //                .withArguments("-Dorg.gradle.debug=true")
                 .run()
         }
 
         then:
         allScriptsModel != null
-        allScriptsModel.initScriptsModel.initScriptModels.isEmpty()
+        allScriptsModel.initScriptsModel.initScriptModels.size() == 2
+        allScriptsModel.initScriptsModel.initScriptModels.each {
+            assertContainsBaseDependencies(it)
+        }
+
+        and:
         allScriptsModel.settingsScriptModel.settingsScriptModel.scriptFile == settingsFileKts
         !allScriptsModel.settingsScriptModel.settingsScriptModel.implicitImports.isEmpty()
         !allScriptsModel.settingsScriptModel.settingsScriptModel.contextPath.isEmpty()
-        assertContainsGradleApi(allScriptsModel.settingsScriptModel.settingsScriptModel)
+        assertContainsBaseDependencies(allScriptsModel.settingsScriptModel.settingsScriptModel)
 
         and:
         allScriptsModel.projectScriptsModels.size() == 5
@@ -96,15 +108,9 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
             assert it.precompiledScriptModels.isEmpty()
             assert !it.buildScriptModel.implicitImports.isEmpty()
             assert !it.buildScriptModel.contextPath.isEmpty()
-            assertContainsGradleApi(it.buildScriptModel)
-        }
-
-        and:
-        Predicate<File> projectBuildscriptDepFileSelector = { it.name.startsWith("creadur-rat-gradle-") }
-        Predicate<File> projectPluginsDepFileSelector = { it.name.startsWith("gradle-errorprone-plugin-") }
-        allProjectModels.each {
-            assertContainsExternalDependency(it.buildScriptModel, projectBuildscriptDepFileSelector)
-            assertContainsExternalDependency(it.buildScriptModel, projectPluginsDepFileSelector)
+            assertContainsBaseDependencies(it.buildScriptModel)
+            assertContainsExternalDependency(it.buildScriptModel) { it.name.startsWith("creadur-rat-gradle-") }
+            assertContainsExternalDependency(it.buildScriptModel) { it.name.startsWith("gradle-errorprone-plugin-") }
         }
 
         when:
@@ -117,33 +123,49 @@ class GradleScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVe
         then:
         allSources != null
         !allSources.isEmpty()
-        assertContainsGradleApi(allSources)
-        assertContainsExternalDependencies(allSources, "creadur-rat-gradle", "gradle-errorprone-plugin")
+        assertContainsSourceOfBaseDependencies(allSources)
+        assertContainsSourceOfExternalDependencies(allSources, "creadur-rat-gradle", "gradle-errorprone-plugin")
+    }
+
+    private static void assertContainsBaseDependencies(GradleScriptModel model) {
+        assertContainsGradleApi(model)
+        assertContainsExternalDependency(model) { it.name.startsWith("groovy-dateutil-") }
+        assertContainsExternalDependency(model) { it.name.startsWith("kotlin-stdlib-") }
     }
 
     private static void assertContainsGradleApi(GradleScriptModel model) {
         def gradleApi = model.contextPath.find { it.classPathElement.name.startsWith("gradle-api-") }
-        assert gradleApi != null
-        assert !gradleApi.sourcePathIdentifiers.isEmpty()
+        assert gradleApi != null: model.scriptFile
+        assert !gradleApi.sourcePathIdentifiers.isEmpty(): model.scriptFile
     }
 
     private static void assertContainsExternalDependency(GradleScriptModel model, Predicate<File> fileSelector) {
         def element = model.contextPath.find { fileSelector.test(it.classPathElement) }
-        assert element != null
-        assert !element.sourcePathIdentifiers.isEmpty()
+        assert element != null: model.scriptFile
+        assert !element.sourcePathIdentifiers.isEmpty(): model.scriptFile
     }
 
-    private static void assertContainsGradleApi(Map<ScriptComponentSourceIdentifier, List<File>> allSources) {
+    private static void assertDoesNotContainExternalDependency(GradleScriptModel model, Predicate<File> fileSelector) {
+        def element = model.contextPath.find { fileSelector.test(it.classPathElement) }
+        assert element == null: model.scriptFile
+    }
+
+    private static void assertContainsSourceOfBaseDependencies(Map<ScriptComponentSourceIdentifier, List<File>> allSources) {
+        assertContainsSourceOfGradleApi(allSources)
+        assertContainsSourceOfExternalDependencies(allSources, "groovy-dateutil", "kotlin-stdlib",)
+    }
+
+    private static void assertContainsSourceOfGradleApi(Map<ScriptComponentSourceIdentifier, List<File>> allSources) {
         def gradleApi = allSources.find { it.key.displayName.startsWith("Gradle API") }
         assert gradleApi != null
         assert !gradleApi.value.isEmpty()
     }
 
-    private static void assertContainsExternalDependencies(Map<ScriptComponentSourceIdentifier, List<File>> allSources, String... externalDepNames) {
+    private static void assertContainsSourceOfExternalDependencies(Map<ScriptComponentSourceIdentifier, List<File>> allSources, String... externalDepNames) {
         for (final def externalDepName in externalDepNames) {
             def external = allSources.find { it.key.displayName.contains(externalDepName) }
-            assert external != null
-            assert !external.value.isEmpty()
+            assert external != null: externalDepName
+            assert !external.value.isEmpty(): externalDepName
         }
     }
 }

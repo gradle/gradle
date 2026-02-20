@@ -108,7 +108,7 @@ internal fun downloadSources(
     val reconciled: Map<ScriptComponentSourceIdentifier, MutableList<File>> = buildMap {
 
         // Gradle sources
-        val gradleSource = SourceDistributionResolver(gradle)
+        val gradleSource = SourceDistributionResolver(gradle) // TODO host in a build scope service
         identifiers.forEach { (scriptFile, sourceIds) ->
             sourceIds.filterIsInstance<SourceComponentIdentifierType.GradleSrc>().forEach { gradleSrcIds ->
                 put(
@@ -122,7 +122,7 @@ internal fun downloadSources(
             }
         }
 
-        // External dependencies
+        // Distro libs and external dependencies
         val externalIds = identifiers.values.flatten()
             .filterIsInstance<SourceComponentIdentifierType.ExternalDependency>().map { it.id }
         val sourcesArtifacts = dependencies.createArtifactResolutionQuery()

@@ -20,9 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.tooling.model.buildscript.InitScriptComponentSources
 import org.gradle.tooling.model.buildscript.ScriptComponentSourcesRequest
-import org.gradle.tooling.model.buildscript.SettingsScriptComponentSources
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
-import java.io.File
 
 object InitScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<ScriptComponentSourcesRequest> {
     override fun canBuild(modelName: String): Boolean =
@@ -37,16 +35,11 @@ object InitScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuilder
     override fun buildAll(modelName: String, parameter: ScriptComponentSourcesRequest, project: Project): InitScriptComponentSources {
         val identifiers = parameter.deserializeIdentifiers()
         val gradle = project.gradle as GradleInternal
-        val initScripts: List<File> = gradle.startParameter.allInitScripts
-        require(identifiers.keys.all { it in initScripts }) {
-            "Unexpected requested source identifiers (Only $initScripts were expected): $parameter"
-        }
-        // TODO Use the right ScriptHandler
-
         val results = downloadSources(
             gradle,
+            // TODO Use the right ScriptHandler
             gradle.settings.buildscript.dependencies,
-            identifiers.filterKeys { initScripts.contains(it) }
+            identifiers
         )
         return StandardScriptComponentSources(results)
     }
