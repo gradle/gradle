@@ -822,7 +822,7 @@ When considering using an Incubating feature, the best approach is to check its 
 1. Check which Gradle version introduced it
 2. Check GitHub issues related to the feature, how many linked issues there are,  and whether they would affect you
 
-If the feature is new or still has many linked issues consider it's use carefully. It may introduce an additional maintenance cost for your build setup, as you may need to update your build scripts even on minor version updates.
+If the feature is new or still has many linked issues, consider its use carefully. It may introduce an additional maintenance cost for your build setup, as you may need to update your build scripts even on minor version updates.
 
 NOTE: Remember that the goal of Incubating features is to put them early in the hands of the users to get early feedback and guide the evolution. If you are using such features provide feedback about them and file bug issues, if you encounter any.
 
