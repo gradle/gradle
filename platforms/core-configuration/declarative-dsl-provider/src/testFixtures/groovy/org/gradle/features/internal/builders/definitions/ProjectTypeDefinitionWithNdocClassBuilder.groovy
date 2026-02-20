@@ -23,6 +23,12 @@ import org.gradle.features.binding.Definition
  * A {@link ProjectTypeDefinitionClassBuilder} for creating a project type definition that has a NamedDomainObjectContainer property.
  */
 class ProjectTypeDefinitionWithNdocClassBuilder extends ProjectTypeDefinitionClassBuilder {
+    private boolean isOutProjected = false
+
+    ProjectTypeDefinitionWithNdocClassBuilder(boolean isOutProjected) {
+        this.isOutProjected = isOutProjected
+    }
+
     @Override
     String getPublicTypeClassContent() {
         return """
@@ -37,7 +43,8 @@ class ProjectTypeDefinitionWithNdocClassBuilder extends ProjectTypeDefinitionCla
             public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
                 public abstract Property<String> getId();
 
-                public abstract NamedDomainObjectContainer<Foo> getFoos();
+                ${if (isOutProjected) { "" } else { "public" }} abstract NamedDomainObjectContainer<Foo> getFoos();
+                ${if (isOutProjected) { "public NamedDomainObjectContainer<? extends Foo> getOutFoos() { return getFoos(); }" } else { "" }};
 
                 public abstract static class Foo implements Named {
                     private String name;
