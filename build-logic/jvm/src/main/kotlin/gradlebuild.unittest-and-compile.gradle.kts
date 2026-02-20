@@ -100,11 +100,15 @@ fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
     // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
     val targetRuntimeJavaVersions = mapOf(
         client to 8,
-        daemon to 8,
+        daemon to 17,
         worker to 8
     )
 
-    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(8)
+    // By default, compile to 17. This ensures projects that do not declare any target runtimes
+    // can successfully resolve their classpaths. Then, `:checkTargetRuntimes` will ensure that
+    // each project declares the proper target runtimes. Note that `:checkTargetRuntimes` cannot
+    // execute unless all project classpaths can be successfully resolved.
+    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(17)
 }
 
 fun configureSourcesVariant() {
