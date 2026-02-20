@@ -23,13 +23,15 @@ import com.google.common.collect.Range;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.file.TestFiles;
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
@@ -40,9 +42,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator;
 import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
-import org.gradle.internal.operations.TestBuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.progress.NoOpProgressLoggerFactory;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
@@ -57,6 +57,7 @@ import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import javax.annotation.Nonnull;
@@ -88,8 +89,8 @@ public abstract class AvailableJavaHomes {
      */
     private static final String FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY = JAVA_INSTALLATIONS_PATHS_PROPERTY + ".integTest";
 
+    private static final ClientExecHandleBuilderFactory EXEC_HANDLE_FACTORY = DefaultClientExecHandleBuilderFactory.of(new IdentityFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
     private static final Supplier<List<JvmInstallationMetadata>> INSTALLATIONS = Suppliers.memoize(AvailableJavaHomes::discoverLocalInstallations);
-
     private static final GradleDistribution DISTRIBUTION = new UnderDevelopmentGradleDistribution();
 
     @Nullable
@@ -462,14 +463,13 @@ public abstract class AvailableJavaHomes {
     }
 
     private static List<JvmInstallationMetadata> discoverLocalInstallations() {
-        ClientExecHandleBuilderFactory execHandleFactory = TestFiles.execHandleFactory();
-        TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
+        TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(() -> new File(SystemProperties.getInstance().getJavaIoTmpDir()));
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
-            new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
+            new DefaultJvmMetadataDetector(EXEC_HANDLE_FACTORY, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
         ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
 
-        final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), metadataDetector, new TestBuildOperationRunner(), OperatingSystem.current(), new NoOpProgressLoggerFactory(), new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter())
+        final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), metadataDetector, null, OperatingSystem.current(), null, new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter())
             .toolchains()
             .stream()
             .map(x -> x.metadata)
@@ -502,7 +502,7 @@ public abstract class AvailableJavaHomes {
             new IntellijInstallationSupplier(toolchainConfiguration),
             new JabbaInstallationSupplier(toolchainConfiguration),
             new LinuxInstallationSupplier(),
-            new OsXInstallationSupplier(OperatingSystem.current(), new DefaultOsXJavaHomeCommand(TestFiles.execHandleFactory())),
+            new OsXInstallationSupplier(OperatingSystem.current(), new DefaultOsXJavaHomeCommand(EXEC_HANDLE_FACTORY)),
             new SdkmanInstallationSupplier(toolchainConfiguration),
             new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current())
         );

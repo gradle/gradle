@@ -21,7 +21,6 @@ import groovy.xml.XmlParser
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.AbstractModule
@@ -566,7 +565,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
             new MarkupBuilder(writer).project {
                 mkp.comment(artifactContent)
                 if (writeRedirect) {
-                    mkp.comment(MetaDataParser.GRADLE_6_METADATA_MARKER)
+                    mkp.comment(GRADLE_6_METADATA_MARKER)
                 }
                 modelVersion("4.0.0")
                 groupId(groupId)

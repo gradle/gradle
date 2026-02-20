@@ -18,6 +18,10 @@ jvmCompile {
             // JSpecify annotations on static inner type return types
             usesJdkInternals = true
         }
+        named("testFixtures") {
+            // The cross version tests depend on the test fixtures
+            targetJvmVersion = 8
+        }
         named("crossVersionTest") {
             // The TAPI tests must be able to run the TAPI client, which is still JVM 8 compatible
             targetJvmVersion = 8
@@ -75,23 +79,25 @@ dependencies {
     testFixturesImplementation(projects.logging)
     testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
-    testFixturesImplementation(testFixtures(projects.enterpriseLogging))
-    testFixturesImplementation(testFixtures(projects.launcher))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
+
+    testFixturesRuntimeOnly(testLibs.spockJUnit4) {
+        because("Required for @org.junit.Rule, used in ToolingApiSpecification")
+    }
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.persistentCache)
     integTestImplementation(projects.kotlinDslToolingModels)
     integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.launcher))
 
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
-    crossVersionTestImplementation(testFixtures(projects.launcher))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
-    crossVersionTestImplementation(testLibs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
+    crossVersionTestImplementation(testLibs.jettyWebApp)
     crossVersionTestRuntimeOnly(testLibs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
@@ -105,7 +111,6 @@ dependencies {
     integTestNormalizedDistribution(projects.distributionsFull) {
         because("Used by ToolingApiRemoteIntegrationTest")
     }
-
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
     integTestLocalRepository(project(path)) {

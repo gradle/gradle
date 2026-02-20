@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.xml.XmlTransformer
@@ -506,7 +505,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         }
         infoAttrs += extraAttributes.collectEntries { key, value -> ["e:$key", value] }
         if (writeGradleMetadataRedirection) {
-            ivyFileWriter << "<!-- ${MetaDataParser.GRADLE_6_METADATA_MARKER} -->"
+            ivyFileWriter << "<!-- ${GRADLE_6_METADATA_MARKER} -->"
         }
         builder.info(infoAttrs) {
             if (extendsFrom) {
@@ -708,14 +707,14 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     IvyFileModule removeGradleMetadataRedirection() {
-        if (ivyFile.exists() && ivyFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)) {
-            ivyFile.replace(MetaDataParser.GRADLE_6_METADATA_MARKER, '')
+        if (ivyFile.exists() && ivyFile.text.contains(GRADLE_6_METADATA_MARKER)) {
+            ivyFile.replace(GRADLE_6_METADATA_MARKER, '')
         }
         this
     }
 
     boolean hasGradleMetadataRedirectionMarker() {
-        ivyFile.exists() && ivyFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
+        ivyFile.exists() && ivyFile.text.contains(GRADLE_6_METADATA_MARKER)
     }
 
     interface IvyModuleArtifact extends ModuleArtifact {

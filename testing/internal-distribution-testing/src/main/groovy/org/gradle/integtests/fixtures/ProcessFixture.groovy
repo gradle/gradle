@@ -17,13 +17,21 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.internal.DefaultClientExecHandleBuilder
 import org.gradle.process.internal.streams.SafeStreams
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.jspecify.annotations.Nullable
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
 class ProcessFixture {
+
+    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool()
+
     final Long pid;
 
     ProcessFixture(Long pid) {
@@ -165,7 +173,7 @@ class ProcessFixture {
 
     private static String execute(Object[] commandLine, InputStream input) {
         def output = new ByteArrayOutputStream()
-        def e = TestFiles.execHandleFactory().newExecHandleBuilder()
+        def e = new DefaultClientExecHandleBuilder(new IdentityFileResolver(), EXECUTOR, new DefaultBuildCancellationToken())
                 .commandLine(commandLine)
                 .redirectErrorStream()
                 .setStandardInput(input)
@@ -235,4 +243,5 @@ killtree() {
             throw new IllegalStateException()
         }
     }
+
 }

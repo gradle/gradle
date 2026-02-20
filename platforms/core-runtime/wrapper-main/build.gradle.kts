@@ -50,15 +50,16 @@ dependencies {
     integTestImplementation(testLibs.jetty)
     integTestImplementation(testFixtures(projects.buildProcessServices))
 
+    integTestNormalizedDistribution(projects.distributionsFull)
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(projects.launcher)
     crossVersionTestImplementation(projects.logging)
     crossVersionTestImplementation(projects.persistentCache)
-    crossVersionTestImplementation(projects.launcher)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
 
-    integTestNormalizedDistribution(projects.distributionsFull)
     crossVersionTestNormalizedDistribution(projects.distributionsFull)
-
-    integTestDistributionRuntimeOnly(projects.distributionsFull)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 

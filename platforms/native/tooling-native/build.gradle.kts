@@ -23,5 +23,8 @@ dependencies {
 
     testImplementation(testFixtures(projects.platformNative))
 
+    crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(testFixtures(projects.platformNative))
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsNative)
 }

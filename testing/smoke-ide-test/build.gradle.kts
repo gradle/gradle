@@ -106,6 +106,7 @@ dependencies {
     smokeIdeTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Tests starts an IDE with using current Gradle distribution")
     }
+    smokeIdeTestImplementation(projects.internalIntegTesting)
     smokeIdeTestImplementation(testLibs.gradleIdeStarterScenarios)
     smokeIdeTestImplementation(testFixtures(projects.core))
 }

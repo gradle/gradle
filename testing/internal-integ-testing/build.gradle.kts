@@ -4,15 +4,6 @@ plugins {
 
 description = "Collection of test fixtures for integration tests, internal use only"
 
-jvmCompile {
-    compilations {
-        named("main") {
-            // These test fixtures used by many test fixtures, many of which still require JVM 8
-            targetJvmVersion = 8
-        }
-    }
-}
-
 sourceSets {
     main {
         // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
@@ -117,6 +108,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(testLibs.jettyServlet)
+    implementation(testLibs.junit5JupiterApi)
     implementation(testLibs.littleproxy)
     implementation(testLibs.mavenResolverSupplier) {
         because("For ApiMavenResolver. Wires together implementation for maven-resolver-api")

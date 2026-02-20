@@ -27,6 +27,9 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
 abstract class AbstractModule implements Module {
+
+    protected static final String GRADLE_6_METADATA_MARKER = "do_not_remove: published-with-gradle-metadata";
+
     /**
      Last modified date for writeZipped to be able to create zipFiles with identical hashes
      */

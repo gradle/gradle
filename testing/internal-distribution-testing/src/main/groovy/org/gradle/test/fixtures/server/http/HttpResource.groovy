@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.server.http
 
-import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class HttpResource extends AbstractHttpResource {
@@ -53,7 +52,7 @@ abstract class HttpResource extends AbstractHttpResource {
         server.expectGetBlocking(getPath())
     }
 
-    void expectGetMissing(PasswordCredentials credentials = null) {
+    void expectGetMissing(HttpServer.PasswordCredentials credentials = null) {
         server.expectGetMissing(getPath(), credentials)
     }
 
@@ -78,7 +77,7 @@ abstract class HttpResource extends AbstractHttpResource {
         server.expectHeadRevalidate(path, file)
     }
 
-    void expectPut(PasswordCredentials credentials) {
+    void expectPut(HttpServer.PasswordCredentials credentials) {
         expectPut(200, credentials)
     }
 
@@ -86,7 +85,7 @@ abstract class HttpResource extends AbstractHttpResource {
         server.expectPut(getPath(), username, password, getFile())
     }
 
-    void expectPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
+    void expectPut(Integer statusCode = 200, HttpServer.PasswordCredentials credentials = null) {
         server.expectPut(getPath(), getFile(), statusCode, credentials)
     }
 

@@ -16,14 +16,12 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ivy.IvyRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.TestCredentialUtil
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
 
@@ -136,7 +134,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractIntegrationSpe
         !GUtil.isSecureUrl(server.uri)
 
         when:
-        prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
+        prepareIvyHttpRepository(projectConfig.remoteRepo, new HttpServer.PasswordCredentials(username, password))
         run(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -150,7 +148,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractIntegrationSpe
         metadataFile.delete()
         deleteDirectory(ivyRepo.rootDir)
 
-        prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
+        prepareIvyHttpRepository(projectConfig.remoteRepo, new HttpServer.PasswordCredentials(username, password))
         run(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -173,7 +171,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractIntegrationSpe
         !GUtil.isSecureUrl(server.uri)
 
         when:
-        prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
+        prepareIvyHttpRepository(projectConfig.remoteRepo, new HttpServer.PasswordCredentials(username, password))
         run("publishAllPublicationsToIvyRepoRepository")
         server.resetExpectations()
 
@@ -184,7 +182,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractIntegrationSpe
         def storeTimeRepo = ivyRepoFiles()
         deleteDirectory(ivyRepo.rootDir)
 
-        prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
+        prepareIvyHttpRepository(projectConfig.remoteRepo, new HttpServer.PasswordCredentials(username, password))
         run("publishAllPublicationsToIvyRepoRepository")
         server.resetExpectations()
 
@@ -287,7 +285,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractIntegrationSpe
         IvyHttpRepository remoteRepo
     }
 
-    private void prepareIvyHttpRepository(IvyHttpRepository repository, PasswordCredentials credentials) {
+    private void prepareIvyHttpRepository(IvyHttpRepository repository, HttpServer.PasswordCredentials credentials) {
         def rootModule = repository.module("group", "root")
         rootModule.ivy.expectPublish(true, credentials)
         rootModule.moduleMetadata.expectPublish(true, credentials)

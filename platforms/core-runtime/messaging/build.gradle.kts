@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jsr305)
 
+    testImplementation(projects.internalDistributionTesting)
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.core))
 

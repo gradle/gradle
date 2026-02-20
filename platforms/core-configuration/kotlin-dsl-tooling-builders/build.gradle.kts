@@ -28,19 +28,24 @@ dependencies {
     compileOnly(libs.jspecify)
 
     testImplementation(testFixtures(projects.kotlinDsl))
-    integTestImplementation(testFixtures(projects.toolingApi))
 
     integTestImplementation(projects.internalTesting)
+    integTestImplementation(testFixtures(projects.toolingApi))
+
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)
+
     testFixturesImplementation(projects.kotlinDsl)
     testFixturesImplementation(projects.toolingApi)
     testFixturesImplementation(projects.internalIntegTesting)
 
+    crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(projects.kotlinDsl)
+    crossVersionTestImplementation(projects.kotlinDslToolingModels)
     crossVersionTestImplementation(projects.persistentCache)
-    crossVersionTestImplementation(libs.slf4jApi)
-    crossVersionTestImplementation(libs.guava)
     crossVersionTestImplementation(libs.ant)
+    crossVersionTestImplementation(libs.guava)
+    crossVersionTestImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(projects.distributionsBasics)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
     }

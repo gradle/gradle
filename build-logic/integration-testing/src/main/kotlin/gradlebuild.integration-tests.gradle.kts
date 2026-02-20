@@ -45,6 +45,18 @@ configurations.named("integTestRuntimeClasspath") {
     // avoid this and instead dynamically load the classpath from `integTest.gradleHomeDir` instead.
     extendsFrom(configurations.named("integTestDistributionRuntimeOnly").get())
 }
+configurations.named("integTestImplementation") {
+    // For historical reasons, the integration tests inherit all the dependencies from the unit tests.
+    // The integ test suite is not a superset of the unit test suite, so there is no reason to do this.
+    // We should remove this `extendsFrom` and update our dependency declarations accordingly.
+    extendsFrom(configurations.testImplementation.get())
+
+    dependencies.apply {
+        // Use a provider so we don't lookup the project when we generate accessors
+        addLater(provider { dependencyFactory.create(project.project(":internal-integ-testing")) })
+    }
+}
+
 createTasks(sourceSet, TestType.INTEGRATION)
 configureIde(TestType.INTEGRATION)
 

@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.gradle
 
 import groovy.json.JsonBuilder
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 
 class GradleFileModuleAdapter {
     static boolean printComponentGAV = true
@@ -43,7 +42,7 @@ class GradleFileModuleAdapter {
     void publishTo(Writer writer, long publishId) {
         def jsonBuilder = new JsonBuilder()
         jsonBuilder {
-            formatVersion GradleModuleMetadataParser.FORMAT_VERSION
+            formatVersion "1.1"
             builtBy {
                 gradle {
                     // padding is used to avoid test flakiness: often the FS will not correctly

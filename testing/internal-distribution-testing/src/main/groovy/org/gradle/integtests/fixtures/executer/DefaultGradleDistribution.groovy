@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.cache.internal.CacheVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
@@ -156,11 +154,6 @@ class DefaultGradleDistribution implements GradleDistribution {
     @Override
     boolean isToolingApiStdinInEmbeddedModeSupported() {
         return isSameOrNewer("5.6-rc-1");
-    }
-
-    @Override
-    CacheVersion getArtifactCacheLayoutVersion() {
-        return CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(this.version).get()
     }
 
     @Override

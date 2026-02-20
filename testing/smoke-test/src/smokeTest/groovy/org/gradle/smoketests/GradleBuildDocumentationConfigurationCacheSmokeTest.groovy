@@ -16,9 +16,9 @@
 
 package org.gradle.smoketests
 
-import groovy.test.NotYetImplemented
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 
 class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
@@ -62,7 +62,7 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
     }
 
     @Ignore("Broken by at least the Asciidoctor plugin, and takes 40mins on CI")
-    @NotYetImplemented
+    @ToBeImplemented
     def "can build and test Gradle documentation with configuration cache enabled"() {
 
         given:

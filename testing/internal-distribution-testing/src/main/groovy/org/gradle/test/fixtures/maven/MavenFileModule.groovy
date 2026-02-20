@@ -15,7 +15,6 @@
  */
 package org.gradle.test.fixtures.maven
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.file.TestFile
 
@@ -99,13 +98,13 @@ class MavenFileModule extends AbstractMavenModule {
     }
 
     MavenFileModule removeGradleMetadataRedirection() {
-        if (pomFile.exists() && pomFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)) {
-            pomFile.replace(MetaDataParser.GRADLE_6_METADATA_MARKER, '')
+        if (pomFile.exists() && pomFile.text.contains(GRADLE_6_METADATA_MARKER)) {
+            pomFile.replace(GRADLE_6_METADATA_MARKER, '')
         }
         this
     }
 
     boolean hasGradleMetadataRedirectionMarker() {
-        pomFile.exists() && pomFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
+        pomFile.exists() && pomFile.text.contains(GRADLE_6_METADATA_MARKER)
     }
 }
