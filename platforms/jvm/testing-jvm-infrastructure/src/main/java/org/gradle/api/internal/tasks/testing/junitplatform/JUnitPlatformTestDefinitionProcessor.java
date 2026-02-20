@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
-import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -52,7 +52,9 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
 import javax.annotation.WillCloseWhenClosed;
+import java.io.IOException;
 import java.lang.reflect.Modifier;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -118,6 +120,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
 
     private static final class CollectThenExecuteTestDefinitionConsumer implements TestDefinitionConsumer<TestDefinition> {
         private final List<DiscoverySelector> selectors = new ArrayList<>();
+        private final List<Path> roots = new ArrayList<>();
 
         private final TestResultProcessor resultProcessor;
         private final BackwardsCompatibleLauncherSession launcherSession;
@@ -157,11 +160,16 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
 
         private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
             selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefinitionsDir()));
+            try {
+                roots.add(testDefinition.getTestDefinitionsDir().toPath().toRealPath());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         private void processAllTestDefinitions() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
-            JUnitPlatformTestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, spec.getBaseDefinitionsDir());
+            JUnitPlatformTestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, roots);
             Launcher launcher = Objects.requireNonNull(launcherSession).getLauncher();
             if (spec.isDryRun()) {
                 TestPlan testPlan = launcher.discover(discoveryRequest);
@@ -213,20 +221,17 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
             TestFilterSpec filterSpec = spec.getFilter();
             if (isNotEmpty(filterSpec)) {
-                TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec);
+                TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec, roots);
 
                 DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter();
 
-                if (matcher.hasClassBasedFilters()) {
-                    ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
-                    delegatingFilter.addDelegate(ClassSource.class, classFilter);
-                    delegatingFilter.addDelegate(MethodSource.class, classFilter);
-                }
-                if (matcher.hasPathBasedFilters()) {
-                    FilePathFilter fileFilter = new FilePathFilter(matcher, spec.getBaseDefinitionsDir());
-                    delegatingFilter.addDelegate(FileSource.class, fileFilter);
-                    delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
-                }
+                ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
+                delegatingFilter.addDelegate(ClassSource.class, classFilter);
+                delegatingFilter.addDelegate(MethodSource.class, classFilter);
+
+                FilePathFilter fileFilter = new FilePathFilter(matcher);
+                delegatingFilter.addDelegate(FileSource.class, fileFilter);
+                delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
 
                 requestBuilder.filters(delegatingFilter);
             }

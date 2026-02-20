@@ -25,9 +25,6 @@ import org.junit.platform.engine.support.descriptor.FileSource;
 import org.junit.platform.engine.support.descriptor.FileSystemSource;
 import org.junit.platform.launcher.PostDiscoveryFilter;
 
-import java.io.File;
-import java.nio.file.Path;
-
 /**
  * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
  * file or directory based tests based on their relative paths to the root directory
@@ -35,11 +32,9 @@ import java.nio.file.Path;
  */
 public final class FilePathFilter implements PostDiscoveryFilter {
     private final TestSelectionMatcher matcher;
-    private final File baseFilterDir;
 
-    public FilePathFilter(TestSelectionMatcher matcher, File baseFilterDir) {
+    public FilePathFilter(TestSelectionMatcher matcher) {
         this.matcher = matcher;
-        this.baseFilterDir = baseFilterDir;
     }
 
     @Override
@@ -50,14 +45,9 @@ public final class FilePathFilter implements PostDiscoveryFilter {
     private boolean shouldRun(TestDescriptor descriptor) {
         TestSource testSource = descriptor.getSource().orElseThrow(() -> new IllegalArgumentException("No test source found for " + descriptor));
         if (testSource instanceof FileSource || testSource instanceof DirectorySource) {
-            return fileMatch(((FileSystemSource) testSource).getFile());
+            return matcher.matchesFile(((FileSystemSource) testSource).getFile());
         }
 
         return false;
-    }
-
-    private boolean fileMatch(File file) {
-        Path relativePath = baseFilterDir.toPath().relativize(file.toPath());
-        return matcher.matchesPath(relativePath);
     }
 }
