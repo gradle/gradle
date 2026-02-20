@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.launcher.cli.HelpFixture
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.build.Help
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion(">=9.4.0")
 @TargetGradleVersion(">=9.4.0")
@@ -71,7 +72,15 @@ class HelpCrossVersionSpec extends ToolingApiSpecification {
         resultFromQuery == resultFromAction
     }
 
-    private static void assertHelpText(String help) {
-        assert help.normalize() == HelpFixture.DEFAULT_OUTPUT
+    private void assertHelpText(String help) {
+        if (targetVersion.baseVersion.equals(GradleVersion.version("9.4.0"))) {
+            assertHelpText94(help)
+        } else {
+            assert help.normalize() == HelpFixture.DEFAULT_OUTPUT
+        }
+    }
+
+    private static void assertHelpText94(String help) {
+        assert help.normalize() == HelpFixture.DEFAULT_OUTPUT.replaceAll("--develocity-(plugin-version|url).*\\n", "")
     }
 }
