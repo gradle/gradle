@@ -40,11 +40,19 @@ public abstract class PgpSignatoryService implements BuildService<BuildServicePa
     private final ConcurrentMap<PgpKeyHandle, ParsedPgpKey> cachedKeys = new ConcurrentHashMap<>();
 
     public ParsedPgpKey readSecretKeyFromKeyRingFile(String keyId, File file, String password) {
-        return cachedKeys.computeIfAbsent(new PgpKeyInKeyringFile(keyId, file, password), handle -> new ParsedPgpKey(PgpSignatoryUtil.readSecretKey(keyId, file), password));
+        return cachedKeys.computeIfAbsent(
+            new PgpKeyInKeyringFile(keyId, file, password),
+            handle ->
+                new ParsedPgpKey(Lazy.locking().of(() -> PgpSignatoryUtil.readSecretKey(keyId, file)), password)
+        );
     }
 
     public ParsedPgpKey readSecretKeyFromArmoredString(@Nullable String keyId, String keyData, String password) {
-        return cachedKeys.computeIfAbsent(new PgpKeyData(keyId, keyData, password), handle -> new ParsedPgpKey(PgpSignatoryUtil.parseSecretKey(keyId, keyData), password));
+        return cachedKeys.computeIfAbsent(
+            new PgpKeyData(keyId, keyData, password),
+            handle ->
+                new ParsedPgpKey(Lazy.locking().of(() -> PgpSignatoryUtil.parseSecretKey(keyId, keyData)), password)
+        );
     }
 
     private interface PgpKeyHandle {}
@@ -106,16 +114,16 @@ public abstract class PgpSignatoryService implements BuildService<BuildServicePa
     }
 
     public static class ParsedPgpKey {
-        private final PGPSecretKey secretKey;
+        private final Lazy<PGPSecretKey> secretKey;
         private final Lazy<PGPPrivateKey> privateKey;
 
-        private ParsedPgpKey(PGPSecretKey secretKey, String password) {
+        private ParsedPgpKey(Lazy<PGPSecretKey> secretKey, String password) {
             this.secretKey = secretKey;
-            privateKey = Lazy.locking().of(() -> PgpSignatoryUtil.extractPrivateKey(secretKey, password));
+            this.privateKey = Lazy.locking().of(() -> PgpSignatoryUtil.extractPrivateKey(secretKey.get(), password));
         }
 
         public PGPSecretKey getSecretKey() {
-            return secretKey;
+            return secretKey.get();
         }
 
         public PGPPrivateKey getPrivateKey() {
