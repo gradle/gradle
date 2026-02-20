@@ -19,10 +19,14 @@ package org.gradle.internal.cc.impl.serialize
 import com.esotericsoftware.kryo.io.Output
 import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder.Companion.EMPTY_STRING_ID
 import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder.Companion.NULL_STRING_ID
+import org.gradle.internal.collect.PersistentArray
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.StringEncoder
 import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.thread
 
 
 /**
@@ -46,13 +50,59 @@ class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
     }
 
     private
+    data class WriteQueue(
+        val nextStringId: Int,
+        val pending: PersistentArray<String>
+    ) {
+        fun offer(s: String): WriteQueue =
+            WriteQueue(nextStringId + 1, pending + s)
+
+        fun flush(): WriteQueue = when {
+            pending.isEmpty() -> this
+
+            else -> WriteQueue(nextStringId, PersistentArray.of())
+        }
+    }
+
+    private
+    val writeQueue = AtomicReference(
+        WriteQueue(
+            FIRST_STRING_ID, // 0 => null, 1 => ""
+            PersistentArray.of()
+        )
+    )
+
+    @Volatile
+    private
+    var writeFailure: Exception? = null
+
+    private
+    val writeThread = thread(priority = Thread.MIN_PRIORITY) {
+        try {
+            Output(stream).use { output ->
+                var writing = true
+                while (writing) {
+                    val pending = writeQueue.getAndUpdate(WriteQueue::flush).pending
+                    if (pending.isEmpty) {
+                        Thread.onSpinWait()
+                        continue
+                    }
+                    for (s in pending) {
+                        output.writeString(s)
+                        if (s.isEmpty()) {
+                            writing = false
+                            break
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            writeFailure = e;
+        }
+    }
+
+    private
     val strings = ConcurrentHashMap<String, Int>()
-
-    private
-    var nextId = FIRST_STRING_ID // 0 => null, 1 => ""
-
-    private
-    val output = Output(stream)
 
     override fun writeNullableString(encoder: Encoder, string: CharSequence?) {
         if (string == null) {
@@ -70,16 +120,16 @@ class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
     }
 
     override fun close() {
-        synchronized(output) {
-            output.writeString("") // EOF
-            output.close()
+        doWriteString("")
+        writeThread.join(TimeUnit.MINUTES.toMillis(1))
+        writeFailure?.let {
+            throw it
         }
     }
 
     private
-    fun doWriteString(string: String): Int =
-        synchronized(output) {
-            output.writeString(string)
-            nextId++
-        }
+    fun doWriteString(s: String): Int =
+        writeQueue.getAndUpdate {
+            it.offer(s)
+        }.nextStringId
 }
