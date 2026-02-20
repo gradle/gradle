@@ -603,7 +603,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     List<String> userIDs = PGPUtils.getUserIDs(pk);
                     for(String uid : userIDs) {
                         hasUid = true;
-                        out.write(("uid    " + uid + "\n").getBytes(StandardCharsets.US_ASCII));
+                        // Even though ArmoredOutputStream is ASCII-armoring the output, we want to be able to support non-ASCII user ids
+                        out.write(("uid    " + uid + "\n").getBytes(StandardCharsets.UTF_8));
                     }
                     if (hasUid) {
                         out.write('\n');

@@ -539,6 +539,37 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         outputContains("Exported 1 keys to")
     }
 
+    def "exported ascii armored keyring preserves non-ascii characters in user ids"() {
+        def userId = "Björk Guðmundsdóttir <bjork@example.com>"
+        def keyring = newKeyRingWithUserId(userId)
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        then:
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        exportedKeyRingAscii.exists()
+        exportedKeyRingAscii.getText("UTF-8").contains("uid    $userId")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/18567")
     def "--export-keys can export keys even with without --write-verification-metadata"() {
         def keyring = newKeyRing()
