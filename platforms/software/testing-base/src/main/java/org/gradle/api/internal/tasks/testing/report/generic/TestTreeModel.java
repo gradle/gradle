@@ -185,7 +185,16 @@ public class TestTreeModel {
                 // multiple test workers.  These results must be recombined in the model to get the correct counts and report structure.
                 boolean isLeaf = rootInfo.isLeaf();
                 if (isLeaf) {
-                    existingRootInfos.add(rootInfo);
+                    // Merge into an existing non-leaf if possible, otherwise add as a new entry for retries.
+                    PerRootInfo.Builder existingNonLeaf = existingRootInfos.stream()
+                        .filter(info -> !info.isLeaf())
+                        .findFirst()
+                        .orElse(null);
+                    if (existingNonLeaf != null) {
+                        existingNonLeaf.merge(rootInfo);
+                    } else {
+                        existingRootInfos.add(rootInfo);
+                    }
                 } else {
                     // Merge into the one that is also not a leaf if possible, otherwise just merge into the first one.
                     PerRootInfo.Builder toMerge = existingRootInfos.stream()

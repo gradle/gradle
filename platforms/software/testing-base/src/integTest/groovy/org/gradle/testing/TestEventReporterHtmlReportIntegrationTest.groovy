@@ -140,6 +140,54 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
             ).entries().toList())
     }
 
+    def "HTML report is correct when test group is re-emitted without children"() {
+        given:
+        buildFile """
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        name,
+                        getLayout().getBuildDirectory().dir("test-results/" + name).get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/" + name).get()
+                    )) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup(name + " suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest(name + " test", name + " test")) {
+                                 myTest.started(Instant.now())
+                                 myTest.succeeded(Instant.now())
+                            }
+                            mySuite.succeeded(Instant.now())
+                       }
+                       try (def mySuite = reporter.reportTestGroup(name + " suite")) {
+                            mySuite.started(Instant.now())
+                            mySuite.succeeded(Instant.now())
+                       }
+                       reporter.succeeded(Instant.now())
+                   }
+                }
+            }
+            tasks.register("reemitted", CustomTestTask)
+        """
+
+        when:
+        succeeds("reemitted")
+
+        then:
+        def results = aggregateResults()
+        results
+            .testPath(":reemitted suite")
+            .onlyRoot()
+            .assertChildCount(1, 0)
+    }
+
     def "emits test results in error exception message when test fails"() {
         given:
         buildFile << failingTask("failing")
