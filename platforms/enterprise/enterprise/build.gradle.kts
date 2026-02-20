@@ -69,11 +69,3 @@ gradleModule {
         daemon = true
     }
 }
-
-jvmCompile {
-    compilations {
-        named("main") {
-            targetJvmVersion = 17
-        }
-    }
-}
