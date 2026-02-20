@@ -17,13 +17,30 @@
 package org.gradle.api.internal.tasks.testing.filter;
 
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 
-public class FileTestSelectionMatcher {
+/**
+ * This class has one responsibility.
+ *
+ * It converts a given file path into something that looks like a class name using a given set of search roots
+ * and then uses a regular {@link ClassTestSelectionMatcher} to match against the quasi-class name.
+ *
+ * Examples:
+ * src/test/definitions/foo.test becomes foo.test
+ * src/test/definitions/sub/foo.test becomes sub.foo.test
+ *
+ * Limitations:
+ * This means it's impossible to pick one file or the other if multiple roots have the same structure and file names.
+ * It's also difficult to select files in the root of the directory without selecting other files too. This is similar to how the class matcher deals with default packages.
+ * It's also currently impossible to select a subset of a given file.
+ */
+@NullMarked
+class FileTestSelectionMatcher {
     private final ClassTestSelectionMatcher classTestSelectionMatcher;
     private final Collection<Path> roots;
 
@@ -38,7 +55,7 @@ public class FileTestSelectionMatcher {
             for (Path root : roots) {
                 if (path.startsWith(root)) {
                     String relativePath = TextUtil.normaliseFileSeparators(root.relativize(path).toString());
-                    String packagified = "." + relativePath.replaceAll("/", ".");
+                    String packagified = relativePath.replaceAll("/", ".");
                     return classTestSelectionMatcher.matchesTest(packagified, "");
                 }
             }

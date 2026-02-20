@@ -25,8 +25,6 @@ import org.junit.platform.engine.support.descriptor.FileSource;
 import org.junit.platform.engine.support.descriptor.FileSystemSource;
 import org.junit.platform.launcher.PostDiscoveryFilter;
 
-import java.io.File;
-
 /**
  * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
  * file or directory based tests based on their relative paths to the root directory
@@ -47,13 +45,9 @@ public final class FilePathFilter implements PostDiscoveryFilter {
     private boolean shouldRun(TestDescriptor descriptor) {
         TestSource testSource = descriptor.getSource().orElseThrow(() -> new IllegalArgumentException("No test source found for " + descriptor));
         if (testSource instanceof FileSource || testSource instanceof DirectorySource) {
-            return fileMatch(((FileSystemSource) testSource).getFile());
+            return matcher.matchesFile(((FileSystemSource) testSource).getFile());
         }
 
         return false;
-    }
-
-    private boolean fileMatch(File file) {
-        return matcher.getFileTestSelectionMatcher().matchesFile(file);
     }
 }

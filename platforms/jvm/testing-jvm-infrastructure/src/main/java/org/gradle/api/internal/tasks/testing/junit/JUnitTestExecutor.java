@@ -159,7 +159,7 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
             TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec);
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.
-            if (!filteredRunner.getDescription().isSuite() || !matcher.getClassTestSelectionMatcher().matchesTest(testClassName, null)) {
+            if (!filteredRunner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
                 filters.add(new MethodNameFilter(matcher));
             }
         }
@@ -262,7 +262,7 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
 
         @Override
         public boolean shouldRun(Description description) {
-            if (matcher.getClassTestSelectionMatcher().matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description))) {
+            if (matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description))) {
                 return true;
             }
 

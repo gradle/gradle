@@ -521,12 +521,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                 }
             }
         """
-        file("src/test/java/definitions/OtherSampleTest.java") << """
+        file("src/test/java/definitions/OtherTest.java") << """
             package definitions;
 
             import org.junit.jupiter.api.Test;
 
-            public class OtherSampleTest {
+            public class OtherTest {
                 @Test
                 public void foo() {
                     System.out.println("Tested!");
@@ -538,67 +538,16 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                 <test name="foo" />
             </tests>
         """
-        file("$DEFAULT_DEFINITIONS_LOCATION/OtherSampleTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+        file("$DEFAULT_DEFINITIONS_LOCATION/OtherTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
             <tests>
                 <test name="foo" />
             </tests>
         """
         when:
-        succeeds("test", "--tests", "*.SampleTest.*")
+        succeeds("test", "--tests", "*SampleTest.*")
 
         then:
         resultsFor().assertTestPathsExecuted(":definitions.SampleTest", ":definitions.SampleTest:foo()", ":SampleTest.rbt - foo")
-    }
-
-    def "when running class-based and non-class-based tests, filters without slashes only apply to class-based tests"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing.suites.test {
-                ${enableEngineForSuite()}
-
-                targets.all {
-                    testTask.configure {
-                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
-
-                        filter {
-                            excludeTestsMatching "definitions.SampleTest"
-                        }
-                    }
-                }
-            }
-        """
-
-        file("src/test/java/definitions/SampleTest.java") << """
-            package definitions;
-
-            import org.junit.jupiter.api.Test;
-
-            public class SampleTest {
-                @Test
-                public void foo() {
-                    System.out.println("Tested!");
-                }
-            }
-        """
-
-        file("$DEFAULT_DEFINITIONS_LOCATION/SampleTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
-            <tests>
-                <test name="foo" />
-            </tests>
-        """
-
-        when:
-        succeeds("test", "--info")
-
-        then:
-        outputContains("INFO: Executing resource-based test: Test[file=SampleTest.rbt, name=foo]")
-        resultsFor().assertTestPathsNotExecuted(":definitions.SampleTest:foo()")
     }
 
     def "resource-based test engine can select test definitions using --tests"() {

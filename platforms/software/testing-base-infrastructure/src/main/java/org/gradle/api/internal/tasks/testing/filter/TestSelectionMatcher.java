@@ -16,6 +16,9 @@
 package org.gradle.api.internal.tasks.testing.filter;
 
 
+import org.jspecify.annotations.Nullable;
+
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,16 +45,41 @@ public class TestSelectionMatcher {
         this(filter, Collections.emptyList());
     }
 
+    /**
+     * Create a test matcher.
+     * @param filter the include and exclude patterns to use as a filter
+     * @param roots the roots to search when matching on file paths
+     */
     public TestSelectionMatcher(TestFilterSpec filter, Collection<Path> roots) {
         classTestSelectionMatcher = new ClassTestSelectionMatcher(filter.getIncludedTests(), filter.getExcludedTests(), filter.getIncludedTestsCommandLine());
         fileTestSelectionMatcher = new FileTestSelectionMatcher(classTestSelectionMatcher, roots);
     }
 
-    public FileTestSelectionMatcher getFileTestSelectionMatcher() {
-        return fileTestSelectionMatcher;
+    /**
+     * Returns true if the given file matches any given include patterns and is not discarded by any exclude patterns.
+     *
+     * @see FileTestSelectionMatcher
+     */
+    public boolean matchesFile(File file) {
+        return fileTestSelectionMatcher.matchesFile(file);
     }
 
-    public ClassTestSelectionMatcher getClassTestSelectionMatcher() {
-        return classTestSelectionMatcher;
+    /**
+     * Returns true if the given class and method matches any include pattern and is not discarded by any exclude pattern.
+     *
+     * @see ClassTestSelectionMatcher
+     */
+    public boolean matchesTest(String className, @Nullable String methodName) {
+        return classTestSelectionMatcher.matchesTest(className, methodName);
+    }
+
+    /**
+     * Returns true if the given fully qualified class name may be included in test execution. This is more optimistic than {@link #matchesTest(String, String)}
+     * because some classes may still be excluded later for other reasons.
+     *
+     * @see ClassTestSelectionMatcher
+     */
+    public boolean mayIncludeClass(String fullQualifiedClassName) {
+        return classTestSelectionMatcher.mayIncludeClass(fullQualifiedClassName);
     }
 }
