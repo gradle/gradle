@@ -40,7 +40,7 @@ class DclContainerMemberExtractionUtilsTest {
         DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType(type.asSupported(host).orError())
 
     private fun elementTypeFromNdocContainerType(type: KType): KType? =
-        elementTypeFromNdocContainerType(host, type.asSupported(host).orError())?.toKType()
+        elementTypeFromNdocContainerType(host, type.asSupported(host).orError()).orError()?.toKType()
 
     @Test
     fun `the default element factory name is the decapitalized type name`() {
