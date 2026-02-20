@@ -145,7 +145,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
 
         then:
         // if the source and target are different, we can't actually compile because javac requires them to be the same
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescription("Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         if (source.isCompatibleWith(JavaVersion.VERSION_22)) {
             failure.assertHasCause("error: specified target release 1.8 is too old for the specified source release ${source.majorVersion}")
         } else {

@@ -125,7 +125,7 @@ Required by:
         fails(buildA, ":assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildB:buildSrc:classes'.")
+        failure.assertHasDescription("Execution failed for task ':buildB:buildSrc:classes' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failure.assertHasCause("broken")
 
         where:
@@ -178,5 +178,3 @@ Required by:
         "rootProject.name='someLib'" | "someLib"       | "configured root project name"
     }
 }
-
-

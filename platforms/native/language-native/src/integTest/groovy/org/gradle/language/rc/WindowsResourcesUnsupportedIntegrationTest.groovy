@@ -87,8 +87,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.")
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc' (registered in build file 'build.gradle').")
         failure.assertHasCause("Windows resource compiler is not available")
     }
 }
-

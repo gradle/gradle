@@ -70,7 +70,7 @@ The following types/formats are supported:
         '''
 
         ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
         failure.assertHasCause("Couldn't follow symbolic link '${link}'.")
     }
 
@@ -95,7 +95,7 @@ The following types/formats are supported:
     '''
 
             ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-            failure.assertHasDescription("Execution failed for task ':copy'.")
+            failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
             failure.assertHasDocumentedCause("Cannot access input property 'rootSpec\$1' of task ':copy'. " +
                 "Accessing unreadable inputs or outputs is not supported. " +
                 "Declare the task as untracked by using Task.doNotTrackState(). " +

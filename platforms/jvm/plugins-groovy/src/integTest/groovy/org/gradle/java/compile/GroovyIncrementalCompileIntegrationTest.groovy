@@ -16,8 +16,14 @@
 
 package org.gradle.java.compile
 
+import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.integtests.fixtures.CompiledLanguage
 
 class GroovyIncrementalCompileIntegrationTest extends AbstractIncrementalCompileIntegrationTest {
     CompiledLanguage language = CompiledLanguage.GROOVY
+
+    @Override
+    Class<?> getLanguageBasePluginClass() {
+        return GroovyBasePlugin
+    }
 }
