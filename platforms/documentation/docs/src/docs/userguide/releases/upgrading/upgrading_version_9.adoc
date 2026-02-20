@@ -250,6 +250,48 @@ plugins {
 }
 ----
 
+==== Deprecation of `Dependencies.getProject()` method
+
+The `getProject()` method on `Dependencies` has been deprecated and will be removed in Gradle 10.0.0.
+
+`Dependencies` is used to configure dependencies in test suites.
+Previously, `getProject()` was used by Gradle internally to reference the current project.
+While never intended for public use, it could be used unintentionally in build scripts.
+
+For example, the following configuration accidentally invokes the deprecated method because `project.path` resolves against the `Dependencies` object rather than the top-level `Project` object:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project(project.path)) // `project.path` accesses `Dependencies.getProject()`
+            }
+        }
+    }
+}
+----
+
+The configuration above may now fail to compile with an error in 9.5.0 if `-Werror` is set.
+
+To depend on the current project, use the `project()` method without arguments. 
+This syntax is the idiomatic way to reference the project in both test suites and standard `dependencies {}` blocks:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project())
+            }
+        }
+    }
+}
+----
+
+
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 
