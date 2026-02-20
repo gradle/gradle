@@ -38,6 +38,7 @@ dependencies {
     implementation(projects.baseAsm)
     implementation(projects.instrumentationReporting)
     implementation(projects.buildOperations)
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.declarativeDslEvaluator)
