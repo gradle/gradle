@@ -16,13 +16,11 @@
 package org.gradle.internal.buildtree;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.Describables;
-import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
@@ -48,25 +46,19 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     private final BuildTreeModelCreator modelCreator;
     private final BuildTreeFinishExecutor finishExecutor;
     private final StateTransitionController<State> state;
-    private final StartParameter startParameter;
-    private final BuildModelParameters buildModelParameters;
 
     public DefaultBuildTreeLifecycleController(
         BuildLifecycleController buildLifecycleController,
         BuildTreeWorkController workController,
         BuildTreeModelCreator modelCreator,
         BuildTreeFinishExecutor finishExecutor,
-        StateTransitionControllerFactory controllerFactory,
-        StartParameter startParameter,
-        BuildModelParameters buildModelParameters
+        StateTransitionControllerFactory controllerFactory
     ) {
         this.buildLifecycleController = buildLifecycleController;
         this.workController = workController;
         this.modelCreator = modelCreator;
         this.finishExecutor = finishExecutor;
         this.state = controllerFactory.newController(Describables.of("build tree state"), State.NotStarted);
-        this.startParameter = startParameter;
-        this.buildModelParameters = buildModelParameters;
     }
 
     @Override
@@ -89,7 +81,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
             ExecutionResult<Void> taskRunResult = ExecutionResult.succeeded();
-            if (runTasks && isEligibleToRunTasks()) {
+            if (runTasks) {
                 taskRunResult = runTasks();
             }
             // Allow model action to run even if tasks failed
@@ -120,19 +112,6 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             T result = buildLifecycleController.withSettings(action);
             return ExecutionResult.succeeded(result);
         });
-    }
-
-    // Temporary workaround to make incremental sync work. IDEA requires to execute `help` task
-    // to prevent default tasks be executed during sync. This is forcing all projects configuration.
-    // Must be removed as soon as IDEA will use appropriate API for avoiding any tasks to be executed.
-    private Boolean isEligibleToRunTasks() {
-        boolean isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
-        boolean isDefaultTasksRequested = startParameter.getTaskRequests().size() == 1 &&
-            startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest;
-        boolean isHelpTaskOnly = startParameter.getTaskRequests().size() == 1 &&
-            startParameter.getTaskRequests().get(0).getArgs().contains("help");
-
-        return !isIsolatedProjectsEnabled || !(isDefaultTasksRequested || isHelpTaskOnly);
     }
 
     private <T> T runBuild(Supplier<ExecutionResult<? extends T>> action) {
