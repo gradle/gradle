@@ -135,15 +135,15 @@ class SchemeExtractionErrorTest {
                     |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
                     |  in member 'var org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.s: kotlin.String'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
-                    |
-                    |* Unsupported property declaration: nullable read-only property
-                    |  in member 'val org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.y: kotlin.Int?'
-                    |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
-                    |
+                |
                     |* Illegal 'IN' variance
                     |  in type argument 'in kotlin.String'
                     |  in parameter 'x'
                     |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.f(org.gradle.api.provider.ListProperty<in kotlin.String>): kotlin.Int'
+                    |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
+                    |
+                    |* Unsupported property declaration: nullable read-only property
+                    |  in member 'val org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.y: kotlin.Int?'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
                     """.trimMargin(),
                     message
