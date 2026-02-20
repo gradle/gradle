@@ -116,7 +116,7 @@ class ClassTestSelectionMatcher {
         return matchesClassAndMethod(includePatterns, className, methodName);
     }
 
-    private boolean matchesExcludePattern(String className, String methodName) {
+    private boolean matchesExcludePattern(String className, @Nullable String methodName) {
         if (buildScriptExcludePatterns.isEmpty()) {
             return false;
         }

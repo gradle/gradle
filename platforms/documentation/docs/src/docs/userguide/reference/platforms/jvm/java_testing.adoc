@@ -965,7 +965,7 @@ Filtering is only supported at a file level granularity for non-class-based test
 
 If the previous example was run with the filter: `./gradlew test --info --tests "*ExampleTests.xml"` then only the tests in `ExampleTests.xml` would be executed.
 
-If it were run with the filter `/.gradlew test --info --tests "\*sub.*"` then only the tests in `MoreTests.xml` would be executed.
+If it were run with the filter `./gradlew test --info --tests "\*sub.*"` then only the tests in `MoreTests.xml` would be executed.
 
 === Parallel Execution
 
