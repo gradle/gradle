@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.DependencyDeclarationFixture
 import org.gradle.test.fixtures.Repository
@@ -499,30 +499,29 @@ dependencies {
     }
 
     @Issue("gradle/gradle#3019")
-    @ToBeFixedForConfigurationCache(because = "Does not check for updates to remote artifact")
-    def "should honour dynamic version cache expiry for subsequent resolutions in the same build"() {
+    def "should honour dynamic version cache expiry for subsequent resolutions"() {
         given:
         useRepository ivyHttpRepo
         buildFile << """
-configurations {
-    fresh
-    stale
-}
-configurations.fresh.resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+            configurations {
+                fresh
+                stale
+            }
+            configurations.fresh.resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
 
-dependencies {
-    fresh("org.test:projectA:1.+")
-    stale("org.test:projectA:1.+")
-}
+            dependencies {
+                fresh("org.test:projectA:1.+")
+                stale("org.test:projectA:1.+")
+            }
 
-task resolveStaleThenFresh {
-    def stale = configurations.stale
-    def fresh = configurations.fresh
-    doFirst {
-        println 'stale:' + stale.collect { it.name } + ',fresh:' + fresh.collect { it.name }
-    }
-}
-"""
+            task resolveStaleThenFresh {
+                def stale = configurations.stale
+                def fresh = configurations.fresh
+                doFirst {
+                    println 'stale:' + stale.collect { it.name } + ',fresh:' + fresh.collect { it.name }
+                }
+            }
+        """
 
         when:
         def projectA11 = ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
@@ -549,7 +548,64 @@ task resolveStaleThenFresh {
         succeeds "resolveStaleThenFresh"
 
         and:
-        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
+        if (GradleContextualExecuter.isConfigCache()) { // CC causes even stale conf to be re-resolved, which finds the latest available version
+            outputContains("Calculating task graph as configuration cache cannot be reused because cached version information for org.test:projectA:1.+ has expired.")
+            outputContains("stale:[projectA-1.3.jar],fresh:[projectA-1.3.jar]")
+        } else {
+            outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
+        }
+    }
+
+    /**
+     * This test ensures that even if the conf is a part of the task fingerprint, if it isn't actually resolved, it doesn't force re-resolution
+     * Compare this with {@link #"should honour dynamic version cache expiry for subsequent resolutions"()} above.
+     */
+    def "expired dynamic version on a conf doesn't invalidate configuration cache if that cache is not resolved"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+            configurations {
+                fresh
+                stale
+            }
+            configurations.fresh.resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+
+            dependencies {
+                fresh("org.test:projectA:1.+")
+                stale("org.test:projectA:1.+")
+            }
+
+            task resolveOnlyStale {
+                def fresh = configurations.fresh
+                def stale = configurations.stale
+                doFirst {
+                    println 'stale:' + stale.collect { it.name }
+                }
+            }
+        """
+
+        when:
+        def projectA11 = ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
+
+        and:
+        expectGetDynamicRevision(projectA12)
+
+        then:
+        succeeds "resolveOnlyStale"
+
+        and:
+        outputContains("stale:[projectA-1.2.jar]")
+
+        when:
+        def projectA13 = ivyHttpRepo.module("org.test", "projectA", "1.3").publish()
+        server.resetExpectations()
+
+        then:
+        succeeds "resolveOnlyStale"
+
+        and:
+        outputContains("stale:[projectA-1.2.jar]")
     }
 
     def "reuses cached version lists unless no matches"() {
