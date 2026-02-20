@@ -28,6 +28,7 @@ import static javax.tools.Diagnostic.NOPOS
 class DiagnosticToProblemListenerTest extends Specification {
 
     private static final String DIAGNOSTIC_DETAIL = "Error detail line 1${System.lineSeparator()}error detail line 2"
+    private static final String DIAGNOSTIC_DETAIL_WITH_LINE_INFO = "Main.java:6: " + DIAGNOSTIC_DETAIL;
 
     def spec = Mock(InternalProblemSpec)
 
@@ -197,13 +198,14 @@ class DiagnosticToProblemListenerTest extends Specification {
         then:
         // Only the first line of the message is used as the contextual message
         1 * spec.contextualLabel("Error detail line 1")
-        1 * spec.details(DIAGNOSTIC_DETAIL)
+        1 * spec.details(DIAGNOSTIC_DETAIL_WITH_LINE_INFO)
     }
 
     Diagnostic<?> getMockDiagnostics() {
         return Mock(Diagnostic) {
             code >> "dummy.code"
             getMessage(_) >> DIAGNOSTIC_DETAIL
+            toString() >> DIAGNOSTIC_DETAIL_WITH_LINE_INFO
             kind >> Diagnostic.Kind.ERROR
         }
     }
