@@ -16,9 +16,9 @@
 package org.gradle.integtests.resolve.suppliers
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
@@ -264,7 +263,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": "group:projectB:2.3"
     }
 
-    @UnsupportedWithConfigurationCache(because = "This test is structured to expect repeated resolutions")
     def "can use --offline to use cached result after remote failure"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier(buildFile, false)
@@ -300,7 +298,7 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         server.expectHeadBroken('/repo/group/projectB/2.2/status.txt')
 
         then:
-        fails 'checkDeps'
+        fails 'checkDeps', "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         and:
         failure.assertHasCause("Could not HEAD '${server.uri}/repo/group/projectB/2.2/status.txt'.")
