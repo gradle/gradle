@@ -126,7 +126,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     private static List<ProjectFeatureImplementation<?, ?>> getProjectTypesFor(Project project) {
         List<ProjectFeatureImplementation<?, ?>> results = new ArrayList<>(1);
-        results.addAll(ProjectFeatureSupportInternal.getContext((DefaultProject) project).childrenDefinitions().keySet());
+        results.addAll(ProjectFeatureSupportInternal.getContext((DefaultProject) project).childFeatures().keySet());
         return results;
     }
 

@@ -37,6 +37,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         it.getTargetDefinitionType() >> new TargetTypeInformation.DefinitionTargetTypeInformation(Object.class)
     }
     def context = Mock(ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext)
+    def featureApplication = Mock(ProjectFeatureApplicator.FeatureApplication)
     def projectFeaturesDynamicObject
 
     def setup() {
@@ -47,7 +48,24 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         projectFeaturesDynamicObject = services.get(ObjectFactory.class).newInstance(ProjectFeaturesDynamicObject, dynamicObjectAware, context)
     }
 
-    def "applies project feature when configured"() {
+    def "applies project type when configured"() {
+        def foo = TestUtil.objectFactory().newInstance(Foo)
+
+        when:
+        projectFeaturesDynamicObject.invokeMethod("foo", closureArg { bar = 'baz' })
+
+        then:
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
+        1 * projectFeatureApplicator.createFeatureApplicationFor(dynamicObjectAware, projectTypeImplementation) >> featureApplication
+        3 * featureApplication.getDefinitionInstance() >> foo
+        1 * featureApplication.isProjectType() >> true
+        1 * featureApplication.apply()
+
+        and:
+        foo.bar == 'baz'
+    }
+
+    def "creates, but does not apply project feature when configured"() {
         def foo = new Foo()
 
         when:
@@ -55,7 +73,10 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
-        1 * projectFeatureApplicator.applyFeatureTo(dynamicObjectAware, projectTypeImplementation) >> foo
+        1 * projectFeatureApplicator.createFeatureApplicationFor(dynamicObjectAware, projectTypeImplementation) >> featureApplication
+        2 * featureApplication.getDefinitionInstance() >> foo
+        1 * featureApplication.isProjectType() >> false
+        0 * featureApplication.apply()
 
         and:
         foo.bar == 'baz'
@@ -67,7 +88,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         0 * projectFeatureRegistry.getProjectFeatureImplementations()
-        0 * projectFeatureApplicator.applyFeatureTo(_, _)
+        0 * projectFeatureApplicator.createFeatureApplicationFor(_, _)
 
         and:
         thrown(MissingPropertyException)
@@ -79,7 +100,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         0 * projectFeatureRegistry.getProjectFeatureImplementations()
-        0 * projectFeatureApplicator.applyFeatureTo(_, _)
+        0 * projectFeatureApplicator.createFeatureApplicationFor(_, _)
 
         and:
         thrown(MissingMethodException)
@@ -91,7 +112,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
-        0 * projectFeatureApplicator.applyFeatureTo(_, _)
+        0 * projectFeatureApplicator.createFeatureApplicationFor(_, _)
 
         and:
         thrown(MissingMethodException)
@@ -103,14 +124,14 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
-        0 * projectFeatureApplicator.applyFeatureTo(_, _)
+        0 * projectFeatureApplicator.createFeatureApplicationFor(_, _)
     }
 
     private static Object[] closureArg(Closure closure) {
         return [closure]
     }
 
-    class Foo implements Definition<Baz> {
+    static class Foo implements Definition<Baz> {
         String bar
     }
 

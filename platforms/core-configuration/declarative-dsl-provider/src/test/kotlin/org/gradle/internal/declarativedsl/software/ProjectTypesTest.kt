@@ -33,6 +33,8 @@ import org.gradle.features.internal.binding.ModelDefault
 import org.gradle.features.internal.binding.ProjectFeatureApplyActionFactory
 import org.gradle.features.internal.binding.ProjectFeatureImplementation
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.internal.declarativedsl.features.projectFeaturesComponent
+import org.gradle.internal.declarativedsl.features.projectFeaturesDefaultsComponent
 import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.Test
