@@ -36,6 +36,7 @@ plugins {
     id("gradlebuild.ci-lifecycle")
     id("gradlebuild.ci-reporting") // CI: Prepare reports to be uploaded to TeamCity
     id("gradlebuild.configure-ci-artifacts") // CI: Prepare reports to be uploaded to TeamCity
+    id("gradlebuild.module-target-runtimes")
     id("com.autonomousapps.dependency-analysis") // Auditing dependencies to find unused libraries
 }
 

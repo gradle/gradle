@@ -4,22 +4,6 @@ plugins {
 
 description = "Collection of test fixtures for both unit tests and integration tests, internal use only"
 
-jvmCompile {
-    compilations {
-        named("main") {
-            // These test fixtures are used by the tooling API tests, which still run on JVM 8
-            targetJvmVersion = 8
-        }
-    }
-}
-
-sourceSets {
-    main {
-        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
-        errorprone.enabled = false
-    }
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.concurrent)
@@ -44,7 +28,6 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.native)
     implementation(projects.serialization)
-    implementation(projects.testingBase)
     implementation(projects.time)
 
     implementation(libs.ant)
@@ -62,4 +45,20 @@ dependencies {
 
     runtimeOnly(libs.groovyJson)
     runtimeOnly(testLibs.bytebuddy)
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            // These test fixtures are used by the tooling API tests, which still run on JVM 8
+            targetJvmVersion = 8
+        }
+    }
+}
+
+sourceSets {
+    main {
+        // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
+        errorprone.enabled = false
+    }
 }
