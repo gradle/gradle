@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 
@@ -29,24 +28,16 @@ import javax.inject.Inject;
  * This is not sent to the compiler daemon as options.
  */
 public abstract class IncrementalCompileOptions {
-    private final RegularFileProperty analysisFile;
-    private final RegularFileProperty classfileBackupDir;
-    private final RegularFileProperty publishedCode;
-
     @Inject
-    public IncrementalCompileOptions(ObjectFactory objectFactory) {
-        this.analysisFile = objectFactory.fileProperty();
-        this.classfileBackupDir = objectFactory.fileProperty();
-        this.publishedCode = objectFactory.fileProperty();
+    public IncrementalCompileOptions() {
+
     }
 
     /**
      * Returns the file path where results of code analysis are to be stored.
      */
     @LocalState
-    public RegularFileProperty getAnalysisFile() {
-        return analysisFile;
-    }
+    public abstract RegularFileProperty getAnalysisFile();
 
     /**
      * Returns the path to the directory where previously generated class files are backed up during the next, incremental compilation.
@@ -55,9 +46,7 @@ public abstract class IncrementalCompileOptions {
      * @since 6.6
      */
     @LocalState
-    public RegularFileProperty getClassfileBackupDir() {
-        return classfileBackupDir;
-    }
+    public abstract RegularFileProperty getClassfileBackupDir();
 
     /**
      * Returns the directory or archive path by which the code produced by this task
@@ -65,7 +54,5 @@ public abstract class IncrementalCompileOptions {
      */
     // only an input for other task instances
     @Internal
-    public RegularFileProperty getPublishedCode() {
-        return publishedCode;
-    }
+    public abstract RegularFileProperty getPublishedCode();
 }
