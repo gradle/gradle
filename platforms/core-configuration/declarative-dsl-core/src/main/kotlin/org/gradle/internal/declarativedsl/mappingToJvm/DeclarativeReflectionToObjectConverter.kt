@@ -26,7 +26,7 @@ class DeclarativeReflectionToObjectConverter(
     private val getScopeClassLoader: () -> ClassLoader
 ) : ReflectionToObjectConverter {
 
-    override fun apply(objectReflection: ObjectReflection, conversionFilter: ReflectionToObjectConverter.ConversionFilter) {
+    override fun apply(objectReflection: ObjectReflection, conversionFilter: ReflectionToObjectConverter.ConversionFilter): ReflectionToConversionResult {
         if (objectReflection is ObjectReflection.DataObjectReflection) {
             conversionFilter.filterProperties(objectReflection).forEach { property ->
                 val assigned = objectReflection.properties.getValue(property)
@@ -53,6 +53,12 @@ class DeclarativeReflectionToObjectConverter(
                 apply(lambdaAccessedObject, conversionFilter)
             }
         }
+        return ReflectionToConversionResult(objectReflection,  DefaultResolvedObjectGraph(this))
+    }
+
+    private
+    class DefaultResolvedObjectGraph(private val converter: DeclarativeReflectionToObjectConverter) : ResolvedObjectGraph {
+        override fun getObjectByResolvedOrigin(objectOrigin: ObjectOrigin): InstanceAndPublicType = converter.getObjectByResolvedOrigin(objectOrigin)
     }
 
     private
