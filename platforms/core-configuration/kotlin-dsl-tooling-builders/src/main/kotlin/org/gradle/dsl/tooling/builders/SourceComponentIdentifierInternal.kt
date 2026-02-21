@@ -46,10 +46,16 @@ internal fun newScriptComponentSourceIdentifier(
         bytes = serialize(identifier)
     )
 
+internal val ScriptComponentSourcesRequest.internalIdentifiers: List<ScriptComponentSourceIdentifierInternal>
+    get() = sourceComponentIdentifiers.map { it as ScriptComponentSourceIdentifierInternal }
+
 internal fun ScriptComponentSourcesRequest.deserializeIdentifiers(): Map<File, List<ScriptComponentSourceIdentifierType>> =
     sourceComponentIdentifiers
         .map { it as ScriptComponentSourceIdentifierInternal }
-        .groupBy { it.scriptFile }
+        .deserializeIdentifiers()
+
+internal fun List<ScriptComponentSourceIdentifierInternal>.deserializeIdentifiers(): Map<File, List<ScriptComponentSourceIdentifierType>> =
+    groupBy { it.scriptFile }
         .mapValues { entry ->
             entry.value.map { deserialize(it.scriptComponentSourceInternalBytes) }
         }

@@ -26,23 +26,25 @@ import org.gradle.jvm.JvmLibrary
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.language.base.artifact.SourcesArtifact
 import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifier
+import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifierInternal
 import java.io.File
 
 @ServiceScope(Scope.Build::class)
 internal class GradleScriptModelSources(
     private val gradle: Gradle
 ) {
-
     private val sourceDistroResolver = SourceDistributionResolver(gradle)
 
     fun downloadSources(
-        identifiers: Map<File, List<ScriptComponentSourceIdentifierType>>,
-        dependencies: DependencyHandler,
+        identifiers: List<ScriptComponentSourceIdentifierInternal>,
+        dependencies: DependencyHandler
     ): Map<ScriptComponentSourceIdentifier, List<File>> {
-        val reconciled: Map<ScriptComponentSourceIdentifier, MutableList<File>> = buildMap {
+
+        val identifiersByScript = identifiers.deserializeIdentifiers()
+        val sourcePathByIdentifier: Map<ScriptComponentSourceIdentifier, MutableList<File>> = buildMap {
 
             // Gradle sources
-            identifiers.forEach { (scriptFile, sourceIds) ->
+            identifiersByScript.forEach { (scriptFile, sourceIds) ->
                 sourceIds.filterIsInstance<ScriptComponentSourceIdentifierType.GradleSrc>().forEach { gradleSrcIds ->
                     put(
                         newScriptComponentSourceIdentifier(
@@ -56,7 +58,7 @@ internal class GradleScriptModelSources(
             }
 
             // Distro libs and external dependencies
-            val externalIds = identifiers.values.flatten()
+            val externalIds = identifiersByScript.values.flatten()
                 .filterIsInstance<ScriptComponentSourceIdentifierType.ExternalDependency>().map { it.id }
             val sourcesArtifacts = dependencies.createArtifactResolutionQuery()
                 .forComponents(externalIds)
@@ -69,7 +71,7 @@ internal class GradleScriptModelSources(
                 .associate { it.first to it.second.filterIsInstance<ResolvedArtifactResult>().map { it.file } }
 
             fun scriptFilesFor(componentIdentifier: ComponentIdentifier): List<File> {
-                return identifiers.filter {
+                return identifiersByScript.filter {
                     it.value.filterIsInstance<ScriptComponentSourceIdentifierType.ExternalDependency>()
                         .map { it.id }.contains(componentIdentifier)
                 }.keys.toList()
@@ -85,6 +87,6 @@ internal class GradleScriptModelSources(
             }
 
         }
-        return reconciled
+        return sourcePathByIdentifier
     }
 }

@@ -35,23 +35,17 @@ object ProjectScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuil
 
     override fun buildAll(modelName: String, parameter: ScriptComponentSourcesRequest, project: Project): ProjectScriptComponentSources {
         val sources = project.gradle.serviceOf<GradleScriptModelSources>()
-        val identifiers = parameter.deserializeIdentifiers()
-        val results = buildMap {
-            identifiers[project.buildFile]?.let {
-                putAll(
-                    sources.downloadSources(
-                        mapOf(project.buildFile to it),
-                        project.buildscript.dependencies
-                    )
-                )
-            }
-            putAll(
-                sources.downloadSources(
-                    identifiers.filterKeys { it != project.buildFile },
-                    project.dependencies
-                )
-            )
-        }
-        return StandardScriptComponentSources(results)
+        val internalIdentifiers = parameter.internalIdentifiers
+        val buildScriptSources = sources.downloadSources(
+            internalIdentifiers.filter { it.scriptFile == project.buildFile },
+            project.buildscript.dependencies
+        )
+        val projectSources = sources.downloadSources(
+            internalIdentifiers.filter { it.scriptFile != project.buildFile },
+            project.dependencies
+        )
+        return StandardScriptComponentSources(
+            buildScriptSources + projectSources
+        )
     }
 }

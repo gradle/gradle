@@ -38,10 +38,11 @@ object SettingsScriptComponentSourcesModelBuilder : ParameterizedToolingModelBui
         val gradle = project.gradle as GradleInternal
         val settings = gradle.settings
         val sources = gradle.serviceOf<GradleScriptModelSources>()
-        val results = sources.downloadSources(
-            parameter.deserializeIdentifiers(),
-            settings.buildscript.dependencies
+        return StandardScriptComponentSources(
+            sources.downloadSources(
+                parameter.internalIdentifiers,
+                settings.buildscript.dependencies
+            )
         )
-        return StandardScriptComponentSources(results)
     }
 }

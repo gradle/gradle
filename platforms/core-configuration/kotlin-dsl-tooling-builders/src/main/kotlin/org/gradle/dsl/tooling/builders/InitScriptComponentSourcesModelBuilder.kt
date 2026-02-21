@@ -37,11 +37,12 @@ object InitScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuilder
     override fun buildAll(modelName: String, parameter: ScriptComponentSourcesRequest, project: Project): InitScriptComponentSources {
         val gradle = project.gradle as GradleInternal
         val sources = gradle.serviceOf<GradleScriptModelSources>()
-        val results = sources.downloadSources(
-            parameter.deserializeIdentifiers(),
-            // TODO Use the right ScriptHandler
-            gradle.settings.buildscript.dependencies
+        return StandardScriptComponentSources(
+            sources.downloadSources(
+                parameter.internalIdentifiers,
+                // TODO Use the right ScriptHandler
+                gradle.settings.buildscript.dependencies
+            )
         )
-        return StandardScriptComponentSources(results)
     }
 }
