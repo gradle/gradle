@@ -29,7 +29,6 @@ import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
-import org.gradle.internal.declarativedsl.Workarounds
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
@@ -317,9 +316,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
 
     private fun isAllowedTypeParameter(typeParameter: KTypeParameter): Boolean =
         currentContextStack.any { contextElement ->
-            contextElement is SchemaBuildingContextElement.ModelMemberContextElement && contextElement.kCallable.typeParameters.any {
-                Workarounds.typeParameterMatches(it, typeParameter)
-            }
+            contextElement is SchemaBuildingContextElement.ModelMemberContextElement && typeParameter in contextElement.kCallable.typeParameters
         }
 
     private fun instantiateGenericOpaqueType(kType: KType): SchemaResult<DataTypeRef> {
