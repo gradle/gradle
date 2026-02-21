@@ -135,7 +135,9 @@ public abstract class Wrapper extends DefaultTask {
             unixScript, getBatchScript(),
             getDistributionUrl(),
             getValidateDistributionUrl().get(),
-            networkTimeout.getOrNull()
+            networkTimeout.getOrNull(),
+            getRetries().getOrNull(),
+            getRetryTimeoutMs().getOrNull()
         );
     }
 
@@ -498,6 +500,36 @@ public abstract class Wrapper extends DefaultTask {
     public Property<Integer> getNetworkTimeout() {
         return networkTimeout;
     }
+
+    /**
+     * The number of retries to attempt when downloading the Gradle distribution.
+     *
+     * If a download fails, the wrapper will attempt to download it again up to the specified number of times.
+     *
+     * @return The number of retries property.
+     * 
+     * @since 9.5.0
+     */
+    @Input
+    @Incubating
+    @Optional
+    @Option(option = "retries", description = "The number of download retries.")
+    public abstract Property<Integer> getRetries();
+
+    /**
+     * The timeout in milliseconds to wait between download retries.
+     *
+     * After a failed download attempt, the wrapper will wait for this amount of time before attempting the next retry.
+     *
+     * @return The retry timeout property in milliseconds.
+     * 
+     * @since 9.5.0
+     */
+    @Input
+    @Incubating
+    @Optional
+    @Option(option = "retry-timeout-ms", description = "The timeout in milliseconds between retries.")
+    public abstract Property<Integer> getRetryTimeoutMs();
 
     /**
      * Indicates if this task will validate the distribution url that has been configured.

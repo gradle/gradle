@@ -49,6 +49,8 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
 
         prepareWrapperWithGradleBin()
 
+        file('gradle/wrapper/gradle-wrapper.properties') << "retries=2"
+
         when:
         def success = wrapperExecuter.run()
 
@@ -70,6 +72,8 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
         server.start()
 
         prepareWrapperWithGradleBin()
+
+        file('gradle/wrapper/gradle-wrapper.properties') << "retries=2"
 
         when:
         def success = wrapperExecuter.run()
@@ -93,6 +97,8 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
 
         prepareWrapperWithGradleBin()
 
+        file('gradle/wrapper/gradle-wrapper.properties') << "retries=2"
+
         when:
         def failure = wrapperExecuter
             .withStackTraceChecksDisabled()
@@ -111,6 +117,8 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
         server.start()
 
         prepareWrapperWithGradleBin()
+
+        file('gradle/wrapper/gradle-wrapper.properties') << "retries=2"
 
         when:
         def success = wrapperExecuter.run()

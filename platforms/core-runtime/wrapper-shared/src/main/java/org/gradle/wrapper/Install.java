@@ -47,7 +47,12 @@ import static org.gradle.wrapper.Download.safeUri;
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
     public static final String SHA_256 = ".sha256";
-    public static final int RETRIES = 3;
+
+    public static final int MIN_RETRIES = 0;
+    public static final int MAX_RETRIES = 10;
+    public static final int MIN_RETRY_TIMEOUT_MS = 2000;
+    public static final int MAX_RETRY_TIMEOUT_MS = 60000;
+
     private final Logger logger;
     private final IDownload download;
     private final PathAssembler pathAssembler;
@@ -98,7 +103,21 @@ public class Install {
     private void fetchDistribution(File localZipFile, URI distributionUrl, File distDir, WrapperConfiguration configuration) throws Exception {
         String distributionSha256Sum = configuration.getDistributionSha256Sum();
         boolean failed = false;
-        int retries = RETRIES;
+
+        int retries = configuration.getRetries();
+        retries = retries < MIN_RETRIES ? MIN_RETRIES : (retries > MAX_RETRIES ? MAX_RETRIES : retries);
+
+        int retryTimeoutMs = configuration.getRetryTimeout();
+        retryTimeoutMs = retryTimeoutMs < MIN_RETRY_TIMEOUT_MS ? MIN_RETRY_TIMEOUT_MS :
+                         (retryTimeoutMs > MAX_RETRY_TIMEOUT_MS ? MAX_RETRY_TIMEOUT_MS : retryTimeoutMs);
+
+        Exception lastException = null;
+
+        logger.log(String.format(
+            "Fetching distribution. Retry settings: %d attempts, %d ms timeout",
+            retries,
+            retryTimeoutMs));
+
         do {
             try {
                 boolean needsDownload = !localZipFile.isFile() || failed;
@@ -113,18 +132,38 @@ public class Install {
                 unzipLocal(localZipFile, distDir);
                 failed = false;
             } catch (ZipException e) {
-                if (retries >= RETRIES && distributionSha256Sum == null) {
+                if (!failed && distributionSha256Sum == null) {
                     distributionSha256Sum = fetchDistributionSha256Sum(configuration, localZipFile);
                 }
                 failed = true;
-                retries--;
-                if(retries <= 0){
-                    throw new RuntimeException("Downloaded distribution file " + localZipFile + " is no valid zip file.");
+                lastException = new RuntimeException("Downloaded distribution file " + localZipFile + " is no valid zip file.");
+            } catch (IOException e) {
+                failed = true;
+                lastException = e;
+            }
+
+            if (failed) {
+                if (retries-- <= 0) {
+                    throw lastException;
                 }
+
+                logger.log(String.format(
+                    "Attempt failed. Retrying in %d ms... Reason: %s",
+                    retryTimeoutMs,
+                    lastException == null ? "" : lastException.getMessage()));
+
+                waitFor(retryTimeoutMs);
             }
         } while (failed);
     }
 
+    private static void waitFor(int timeoutMs) {
+        try {
+            Thread.sleep(timeoutMs);
+        } catch (InterruptedException ex) {
+            // empty
+        }
+    }
 
     private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
         URI distribution = configuration.getDistribution();

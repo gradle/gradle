@@ -40,6 +40,8 @@ class WrapperExecutorTest extends Specification {
         properties.zipStorePath = 'testZipPath'
         properties.distributionSha256Sum = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         properties.networkTimeout = '11000'
+        properties.retries = '5'
+        properties.retryTimeoutMs = '5000'
         properties.validateDistributionUrl = 'true'
         propertiesFile.parentFile.mkdirs()
         propertiesFile.withOutputStream { properties.store(it, 'header') }
@@ -57,6 +59,8 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.zipPath == 'testZipPath'
         wrapper.configuration.distributionSha256Sum == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         wrapper.configuration.networkTimeout == 11000
+        wrapper.configuration.retries == 5
+        wrapper.configuration.retryTimeoutMs == 5000
         wrapper.configuration.validateDistributionUrl
     }
 
@@ -72,6 +76,8 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.zipPath == 'testZipPath'
         wrapper.configuration.distributionSha256Sum == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         wrapper.configuration.networkTimeout == 11000
+        wrapper.configuration.retries == 5
+        wrapper.configuration.retryTimeoutMs == 5000
         wrapper.configuration.validateDistributionUrl
     }
 
@@ -87,6 +93,8 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.zipPath == Install.DEFAULT_DISTRIBUTION_PATH
         wrapper.configuration.distributionSha256Sum == null
         wrapper.configuration.networkTimeout == Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS
+        wrapper.configuration.retries == Install.MIN_RETRIES;
+        wrapper.configuration.retryTimeoutMs == Install.MIN_RETRY_TIMEOUT_MS
         wrapper.configuration.validateDistributionUrl
     }
 
@@ -106,6 +114,8 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.zipBase == PathAssembler.GRADLE_USER_HOME_STRING
         wrapper.configuration.zipPath == Install.DEFAULT_DISTRIBUTION_PATH
         wrapper.configuration.networkTimeout == Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS
+        wrapper.configuration.retries == Install.MIN_RETRIES;
+        wrapper.configuration.retryTimeoutMs == Install.MIN_RETRY_TIMEOUT_MS
         wrapper.configuration.validateDistributionUrl
     }
 
