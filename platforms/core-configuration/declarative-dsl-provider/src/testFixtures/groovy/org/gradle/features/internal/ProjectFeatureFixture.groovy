@@ -203,7 +203,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def anotherProjectType = new ProjectTypePluginClassBuilder(anotherProjectTypeDefinition)
             .name("anotherProjectType")
             .projectTypePluginClassName("AnotherProjectTypePlugin")
-            .withoutConventions()
         def anotherFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
             .withPublicClassName("AnotherFeatureDefinition")
         def anotherProjectFeature = new ProjectFeaturePluginClassBuilder(anotherFeatureDefinition)

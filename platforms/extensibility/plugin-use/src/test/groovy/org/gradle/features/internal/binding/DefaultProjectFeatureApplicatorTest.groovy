@@ -16,6 +16,7 @@
 
 package org.gradle.features.internal.binding
 
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.Plugin
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.ProjectLayout
@@ -35,6 +36,8 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.Cast
 import org.gradle.internal.extensibility.ExtensibleDynamicObject
 import org.gradle.internal.metaobject.DynamicInvokeResult
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceLookupException
 import org.gradle.internal.service.UnknownServiceException
@@ -45,27 +48,7 @@ import java.lang.annotation.Annotation
 import java.lang.reflect.Type
 
 class DefaultProjectFeatureApplicatorTest extends Specification {
-    def targetChildrenDefinitions = new LinkedHashMap()
-    def targetFeatureDefinitionContext = Mock(ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext) {
-        it.childrenDefinitions() >> targetChildrenDefinitions
-        _ * it.getOrAddChildDefinition(_, _) >> { args ->
-            if (targetChildrenDefinitions.containsKey(args[0])) {
-                return new ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult(false, targetChildrenDefinitions.get(args[0]))
-            } else {
-                def definition = args[1].get()
-                targetChildrenDefinitions.put(args[0], definition)
-                return new ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult(true, definition)
-            }
-        }
-    }
-    def targetDynamicObject = Mock(ExtensibleDynamicObject) {
-        tryInvokeMethod(ProjectFeaturesDynamicObject.CONTEXT_METHOD_NAME, _ as Object[]) >>
-            DynamicInvokeResult.found(targetFeatureDefinitionContext)
-    }
-    def target = Mock(DefinitionWithExtensions) {
-        _ * it.asDynamicObject >> targetDynamicObject
-    }
-
+    def target = definitionOf(DefinitionWithExtensions)
     def modelDefaultsApplicator = Mock(ModelDefaultsApplicator)
     def pluginManager = Mock(PluginManagerInternal)
     def classLoaderScope = Mock(ClassLoaderScope) {
@@ -79,6 +62,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
     def configurationContainer = Mock(ConfigurationContainer)
     def internalProblemReporter = Mock(InternalProblemReporter)
     def services = Mock(ServiceLookup)
+    def typeAnnotationMetadataStore = Mock(TypeAnnotationMetadataStore)
     def projectFeatureRegistry = Mock(ProjectFeatureDeclarations)
     def instantiator = TestUtil.instantiatorFactory().inject(new Services())
     def applicator = instantiator.newInstance(DefaultProjectFeatureApplicator.class, classLoaderScope, objectFactory, internalProblemReporter, services)
@@ -86,13 +70,39 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
     def plugins = Mock(PluginContainer)
     def boundProjectTypeImplementation = Mock(BoundProjectFeatureImplementation)
     def applyActionFactory = Mock(ProjectFeatureApplyActionFactory)
-    def foo = Mock(Foo) {
-        _ * it.asDynamicObject >> Mock(ExtensibleDynamicObject)
+    def foo = definitionOf(Foo)
+
+    def definitionContext() {
+        def targetChildrenDefinitions = new LinkedHashMap()
+        def targetFeatureDefinitionContext = Mock(ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext) {
+            it.childFeatures() >> targetChildrenDefinitions
+            _ * it.getOrAddChildDefinition(_, _) >> { args ->
+                if (targetChildrenDefinitions.containsKey(args[0])) {
+                    return new ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult(false, targetChildrenDefinitions.get(args[0]))
+                } else {
+                    def definition = args[1].get()
+                    targetChildrenDefinitions.put(args[0], definition)
+                    return new ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult(true, definition)
+                }
+            }
+        }
+        return targetFeatureDefinitionContext
     }
 
-    def "applies plugin and defaults when project type is applied"() {
+    def definitionOf(Class<? extends Definition> definitionType) {
+        def targetFeatureDefinitionContext = definitionContext()
+        def targetDynamicObject = Mock(ExtensibleDynamicObject) {
+            tryInvokeMethod(ProjectFeaturesDynamicObject.CONTEXT_METHOD_NAME, _ as Object[]) >>
+                DynamicInvokeResult.found(targetFeatureDefinitionContext)
+        }
+        return Mock(definitionType) {
+            _ * it.asDynamicObject >> targetDynamicObject
+        }
+    }
+
+    def "creates definition and model when feature application is created"() {
         when:
-        def returned = applicator.applyFeatureTo(target as DynamicObjectAware, boundProjectTypeImplementation)
+        def returned = applicator.createFeatureApplicationFor(target as DynamicObjectAware, boundProjectTypeImplementation)
 
         then:
         _ * boundProjectTypeImplementation.pluginClass >> plugin.class
@@ -100,18 +110,22 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         _ * boundProjectTypeImplementation.buildModelImplementationType >> Bar
         _ * boundProjectTypeImplementation.applyActionFactory >> applyActionFactory
         _ * applyActionFactory.create(_) >> Mock(ProjectFeatureApplyAction)
-        _ * pluginManager.pluginContainer >> plugins
-        _ * plugins.getPlugin(plugin.class) >> plugin
-        1 * pluginManager.apply(plugin.class)
         1 * modelDefaultsApplicator.applyDefaultsTo(target, _, _, plugin, boundProjectTypeImplementation)
         1 * objectFactoryFactory.createObjectFactory(_) >> featureObjectFactory
         1 * featureObjectFactory.newInstance(Foo) >> foo
+        1 * typeAnnotationMetadataStore.getTypeAnnotationMetadata(Foo) >> Mock(TypeAnnotationMetadata) {
+            _ * it.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
+        }
+        1 * boundProjectTypeImplementation.definitionPublicType >> Foo
+        1 * pluginManager.pluginContainer >> plugins
+        1 * plugins.getPlugin(plugin.class) >> plugin
 
         and:
-        returned == foo
+        returned.definitionInstance == foo
     }
 
     def "throws exception when multiple project types are applied to a project"() {
+        def targetFeatureDefinitionContext = definitionContext()
         def projectDynamicObject = Mock(ExtensibleDynamicObject) {
             tryInvokeMethod(ProjectFeaturesDynamicObject.CONTEXT_METHOD_NAME, _ as Object[]) >>
                 DynamicInvokeResult.found(targetFeatureDefinitionContext)
@@ -122,7 +136,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         def secondProjectTypeImplementation = Mock(BoundProjectFeatureImplementation)
 
         when:
-        def returned = applicator.applyFeatureTo(project as DynamicObjectAware, boundProjectTypeImplementation)
+        def returned = applicator.createFeatureApplicationFor(project as DynamicObjectAware, boundProjectTypeImplementation)
 
         then:
         _ * boundProjectTypeImplementation.pluginClass >> plugin.class
@@ -136,18 +150,23 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         1 * modelDefaultsApplicator.applyDefaultsTo(project, _, _, plugin, boundProjectTypeImplementation)
         1 * objectFactoryFactory.createObjectFactory(_) >> featureObjectFactory
         1 * featureObjectFactory.newInstance(Foo) >> foo
+        1 * typeAnnotationMetadataStore.getTypeAnnotationMetadata(Foo) >> Mock(TypeAnnotationMetadata) {
+            _ * it.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
+        }
+        1 * boundProjectTypeImplementation.definitionPublicType >> Foo
 
         and:
-        returned == foo
+        returned.definitionInstance == foo
 
         when:
-        applicator.applyFeatureTo(project as DynamicObjectAware, secondProjectTypeImplementation)
+        applicator.createFeatureApplicationFor(project as DynamicObjectAware, secondProjectTypeImplementation)
 
         then:
         thrown(IllegalStateException)
     }
 
-    private interface DefinitionWithExtensions extends DynamicObjectAware, ExtensionAware {}
+    private interface DefinitionWithExtensions extends DynamicObjectAware, ExtensionAware, Definition<TestBuildModel> {}
+    private interface TestBuildModel extends BuildModel {}
     private interface DynamicAwareProjectMockType extends ProjectInternal, DynamicObjectAware {}
     private interface Foo extends Definition<Bar>, DynamicObjectAware {}
     private static class Bar implements BuildModel {}
@@ -160,7 +179,8 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
             (ProjectFeatureDeclarations): projectFeatureRegistry,
             (ProjectLayout): projectLayout,
             (TaskContainer): taskContainer,
-            (ConfigurationContainer): configurationContainer
+            (ConfigurationContainer): configurationContainer,
+            (TypeAnnotationMetadataStore): typeAnnotationMetadataStore
         ]
 
         @Override
@@ -176,7 +196,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
             Object found = find(serviceType)
             if (found == null) {
-                throw new UnknownServiceException("No service of type $serviceType found.")
+                throw new UnknownServiceException(serviceType, "No service of type $serviceType found.")
             }
             return found
         }

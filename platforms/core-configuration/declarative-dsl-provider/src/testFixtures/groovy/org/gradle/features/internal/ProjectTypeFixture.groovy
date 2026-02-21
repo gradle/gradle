@@ -67,7 +67,6 @@ trait ProjectTypeFixture {
     PluginBuilder withProjectTypeWithNdoc(boolean isOutProjected) {
         def definition = new ProjectTypeDefinitionWithNdocClassBuilder(isOutProjected)
         def projectType = new ProjectTypePluginClassBuilder(definition)
-            .withoutConventions()
             .withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
@@ -83,7 +82,6 @@ trait ProjectTypeFixture {
         def definition = new ProjectTypeDefinitionWithNdocClassBuilder(false)
         def projectType = new ProjectPluginThatDoesNotExposeProjectTypesBuilder(definition)
             .projectTypePluginClassName("NotAProjectTypePlugin")
-            .withoutConventions()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
@@ -100,7 +98,6 @@ trait ProjectTypeFixture {
         def mainProjectType = new ProjectTypePluginClassBuilder(mainDefinition)
         def anotherProjectType = new ProjectTypePluginClassBuilder(anotherDefinition)
             .projectTypePluginClassName("AnotherProjectTypeImplPlugin")
-            .withoutConventions()
             .name("anotherProjectType")
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(mainProjectType.projectTypePluginClassName)
@@ -125,7 +122,6 @@ trait ProjectTypeFixture {
         def mainProjectType = new ProjectTypePluginClassBuilder(mainDefinition)
         def anotherProjectType = new ProjectTypePluginClassBuilder(anotherDefinition)
             .projectTypePluginClassName("AnotherProjectTypeImplPlugin")
-            .withoutConventions()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(mainProjectType.projectTypePluginClassName)
             .registersProjectType(anotherProjectType.projectTypePluginClassName)

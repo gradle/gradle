@@ -70,7 +70,6 @@ class ProjectTypeThatBindsWithClassBuilder extends ProjectTypePluginClassBuilder
                     @Override
                     public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, ${definition.publicTypeClassName} definition, ${definition.fullyQualifiedBuildModelClassName} model) {
                         System.out.println("Binding " + ${definition.publicTypeClassName}.class.getSimpleName());
-                        ${conventions == null ? "" : conventions}
 
                         ${definition.buildModelMapping}
 

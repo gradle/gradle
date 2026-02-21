@@ -83,7 +83,13 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
                 "<none>",
                 "",
                 step,
-                ConversionStepContext(target, { classLoaderContext.classLoader }, { classLoaderContext.parentClassLoader }, analysisStepContext)
+                ConversionStepContext(
+                    target,
+                    { classLoaderContext.classLoader },
+                    { classLoaderContext.parentClassLoader },
+                    analysisStepContext,
+                    emptyList()
+                )
             )
 
         when (result) {

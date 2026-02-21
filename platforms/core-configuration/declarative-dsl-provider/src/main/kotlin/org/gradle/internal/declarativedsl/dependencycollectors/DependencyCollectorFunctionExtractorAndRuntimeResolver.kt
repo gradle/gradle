@@ -142,7 +142,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
                     else -> error("Unsupported argument type: ${arg!!.javaClass} shouldn't be possible")
                 }
             }
-            val result = InstanceAndPublicType(modifiedDependency, modifiedDependency.javaClass::class)
+            val result = InstanceAndPublicType.of(modifiedDependency, modifiedDependency.javaClass::class)
             return DeclarativeRuntimeFunction.InvocationResult(result, result)
         }
     }

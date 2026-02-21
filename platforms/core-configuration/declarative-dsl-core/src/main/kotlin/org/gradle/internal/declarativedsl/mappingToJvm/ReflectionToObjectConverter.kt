@@ -17,14 +17,25 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
+import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 
+
+data class ReflectionToConversionResult(
+    val topLevelObjectReflection: ObjectReflection,
+    val resolvedObjectGraph: ResolvedObjectGraph
+)
+
+interface ResolvedObjectGraph {
+    fun getObjectByResolvedOrigin(objectOrigin: ObjectOrigin): InstanceAndPublicType
+}
 
 /**
  * Takes a given {@link ObjectReflection} and applies its operations to the underlying object graph.
  */
 interface ReflectionToObjectConverter {
-    fun apply(objectReflection: ObjectReflection, conversionFilter: ConversionFilter = ConversionFilter.none)
+    fun apply(objectReflection: ObjectReflection, conversionFilter: ConversionFilter = ConversionFilter.none) : ReflectionToConversionResult
     fun interface ConversionFilter {
         fun filterProperties(dataObjectReflection: ObjectReflection.DataObjectReflection): Iterable<DataProperty>
 
