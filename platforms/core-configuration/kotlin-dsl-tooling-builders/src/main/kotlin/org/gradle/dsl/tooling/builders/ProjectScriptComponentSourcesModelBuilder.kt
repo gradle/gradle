@@ -17,11 +17,13 @@
 package org.gradle.dsl.tooling.builders
 
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.tooling.model.buildscript.ProjectScriptComponentSources
 import org.gradle.tooling.model.buildscript.ScriptComponentSourcesRequest
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 
 object ProjectScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<ScriptComponentSourcesRequest> {
+
     override fun canBuild(modelName: String): Boolean =
         ProjectScriptComponentSources::class.java.name.equals(modelName)
 
@@ -32,12 +34,23 @@ object ProjectScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuil
         error("Building model ${ProjectScriptComponentSources::class.simpleName} requires a parameter of type ${ScriptComponentSourcesRequest::class.simpleName}")
 
     override fun buildAll(modelName: String, parameter: ScriptComponentSourcesRequest, project: Project): ProjectScriptComponentSources {
+        val sources = project.gradle.serviceOf<GradleScriptModelSources>()
         val identifiers = parameter.deserializeIdentifiers()
         val results = buildMap {
             identifiers[project.buildFile]?.let {
-                putAll(downloadSources(project.gradle, project.buildscript.dependencies, mapOf(project.buildFile to it)))
+                putAll(
+                    sources.downloadSources(
+                        mapOf(project.buildFile to it),
+                        project.buildscript.dependencies
+                    )
+                )
             }
-            putAll(downloadSources(project.gradle, project.dependencies, identifiers.filterKeys { it != project.buildFile }))
+            putAll(
+                sources.downloadSources(
+                    identifiers.filterKeys { it != project.buildFile },
+                    project.dependencies
+                )
+            )
         }
         return StandardScriptComponentSources(results)
     }

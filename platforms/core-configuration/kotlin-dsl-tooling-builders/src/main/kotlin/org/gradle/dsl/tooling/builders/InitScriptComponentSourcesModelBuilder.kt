@@ -18,11 +18,13 @@ package org.gradle.dsl.tooling.builders
 
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.tooling.model.buildscript.InitScriptComponentSources
 import org.gradle.tooling.model.buildscript.ScriptComponentSourcesRequest
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 
 object InitScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuilder<ScriptComponentSourcesRequest> {
+
     override fun canBuild(modelName: String): Boolean =
         InitScriptComponentSources::class.java.name.equals(modelName)
 
@@ -33,13 +35,12 @@ object InitScriptComponentSourcesModelBuilder : ParameterizedToolingModelBuilder
         error("Building model ${InitScriptComponentSources::class.simpleName} requires a parameter of type ${ScriptComponentSourcesRequest::class.simpleName}")
 
     override fun buildAll(modelName: String, parameter: ScriptComponentSourcesRequest, project: Project): InitScriptComponentSources {
-        val identifiers = parameter.deserializeIdentifiers()
         val gradle = project.gradle as GradleInternal
-        val results = downloadSources(
-            gradle,
+        val sources = gradle.serviceOf<GradleScriptModelSources>()
+        val results = sources.downloadSources(
+            parameter.deserializeIdentifiers(),
             // TODO Use the right ScriptHandler
-            gradle.settings.buildscript.dependencies,
-            identifiers
+            gradle.settings.buildscript.dependencies
         )
         return StandardScriptComponentSources(results)
     }

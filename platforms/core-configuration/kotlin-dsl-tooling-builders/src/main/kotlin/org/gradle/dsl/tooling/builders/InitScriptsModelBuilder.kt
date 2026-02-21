@@ -57,11 +57,12 @@ object InitScriptsModelBuilder : BuildScopeModelBuilder {
             val scriptHandler = scriptHandlerFactoryOf(gradle).create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
             val resolvedClassPath = classpathDependencyArtifactsOf(scriptHandler)
 
+            val dependencies = gradle.serviceOf<GradleScriptModelDependencies>()
             compilationClassPath.forEach { file ->
                 add(
                     StandardScriptContextPathElement(
                         file,
-                        gradle.buildSourcePathFor(scriptFile, file, resolvedClassPath.artifacts)
+                        dependencies.buildSourcePathFor(scriptFile, file, resolvedClassPath.artifacts)
                     )
                 )
             }

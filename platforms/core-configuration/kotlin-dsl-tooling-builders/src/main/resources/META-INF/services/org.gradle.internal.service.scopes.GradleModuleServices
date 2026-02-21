@@ -1,1 +1,2 @@
 org.gradle.kotlin.dsl.tooling.builders.internal.KotlinScriptingModelBuildersServices
+org.gradle.dsl.tooling.builders.GradleScriptModelBuildersServices

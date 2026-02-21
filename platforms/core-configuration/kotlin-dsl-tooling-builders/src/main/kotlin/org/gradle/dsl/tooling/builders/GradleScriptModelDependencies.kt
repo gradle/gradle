@@ -17,6 +17,7 @@
 package org.gradle.dsl.tooling.builders
 
 import org.gradle.api.artifacts.ArtifactCollection
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
@@ -24,85 +25,12 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.invocation.Gradle
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifier
 import java.io.File
 import java.util.Properties
-
-internal fun Gradle.buildSourcePathFor(
-    scriptFile: File,
-    compileClassPathFile: File,
-    resolvedClasspath: Set<ResolvedArtifactResult>
-): List<ScriptComponentSourceIdentifier> {
-    val externalId = resolvedClasspath.firstOrNull { it.file == compileClassPathFile }?.id?.componentIdentifier
-    return if (externalId != null) {
-        // Resolved external dependency
-        listOf(
-            newScriptComponentSourceIdentifier(
-                displayName = externalId.displayName,
-                scriptFile = scriptFile,
-                identifier = SourceComponentIdentifierType.ExternalDependency(externalId)
-            )
-        )
-    } else if (isGradleModule(compileClassPathFile)) {
-        // Gradle sources
-        listOf(
-            newScriptComponentSourceIdentifier(
-                displayName = "Gradle ${gradle.gradleVersion}",
-                scriptFile = scriptFile,
-                identifier = SourceComponentIdentifierType.GradleSrc
-            )
-        )
-    } else if (isGradleDistroLib(compileClassPathFile)) {
-        val moduleName = distroLibModuleNameOf(compileClassPathFile)
-        serviceOf<CurrentGradleInstallation>().installation?.libDirs
-            ?.mapNotNull { libDir ->
-                if (libDir.resolve(compileClassPathFile.name) == compileClassPathFile) libDir.resolve("$moduleName.properties").takeIf { it.exists() }
-                else null
-            }
-            ?.singleOrNull()
-            ?.let { modulePropertiesFile ->
-                try {
-                    val moduleProperties = Properties().apply { modulePropertiesFile.inputStream().use { load(it) } }
-                    val group = moduleProperties.getProperty("alias.group")
-                    val name = moduleProperties.getProperty("alias.name")
-                    val version = moduleProperties.getProperty("alias.version")
-                    val externalId = DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), version)
-                    listOf(
-                        newScriptComponentSourceIdentifier(
-                            displayName = externalId.displayName,
-                            scriptFile = scriptFile,
-                            identifier = SourceComponentIdentifierType.ExternalDependency(externalId)
-                        )
-                    )
-                } catch (e: Exception) {
-                    e.printStackTrace(System.err)
-                    emptyList()
-                }
-            }
-            ?: emptyList()
-    } else {
-        emptyList()
-    }
-}
-
-private fun Gradle.isGradleModule(file: File): Boolean {
-    return file.parentFile.name == "generated-gradle-jars" || serviceOf<CurrentGradleInstallation>().installation?.libDirs?.any { libDir ->
-        file.name.startsWith("gradle-") && file.absolutePath.startsWith(libDir.absolutePath)
-    } == true
-}
-
-private fun Gradle.isGradleDistroLib(file: File): Boolean {
-    return serviceOf<CurrentGradleInstallation>().installation?.libDirs?.any { libDir ->
-        file.absolutePath.startsWith(libDir.absolutePath)
-    } == true
-}
-
-private val distroLibModuleNameRegex = Regex("(.*)-\\d.*")
-private fun distroLibModuleNameOf(file: File): String? {
-    return distroLibModuleNameRegex.find(file.nameWithoutExtension)?.groupValues?.getOrNull(1)
-}
 
 internal
 fun classpathDependencyArtifactsOf(buildscript: ScriptHandler): ArtifactCollection =
@@ -111,3 +39,87 @@ fun classpathDependencyArtifactsOf(buildscript: ScriptHandler): ArtifactCollecti
         .incoming
         .artifactView { it.lenient(true) }
         .artifacts
+
+@ServiceScope(Scope.Build::class)
+internal class GradleScriptModelDependencies(
+    private val gradle: Gradle,
+    private val install: CurrentGradleInstallation
+) {
+
+    fun buildSourcePathFor(
+        scriptFile: File,
+        classPathFile: File,
+        resolvedClasspath: Set<ResolvedArtifactResult>
+    ): List<ScriptComponentSourceIdentifier> {
+        val externalId = resolvedClasspath.firstOrNull { it.file == classPathFile }?.id?.componentIdentifier
+        return if (externalId != null) {
+            // External dependency
+            listOf(
+                newScriptComponentSourceIdentifier(
+                    displayName = externalId.displayName,
+                    scriptFile = scriptFile,
+                    identifier = ScriptComponentSourceIdentifierType.ExternalDependency(externalId)
+                )
+            )
+        } else if (install.isGradleModule(classPathFile)) {
+            // Gradle sources
+            listOf(
+                newScriptComponentSourceIdentifier(
+                    displayName = "Gradle ${gradle.gradleVersion}",
+                    scriptFile = scriptFile,
+                    identifier = ScriptComponentSourceIdentifierType.GradleSrc
+                )
+            )
+        } else if (install.isGradleDistroLib(classPathFile)) {
+            // External dependency matching Gradle distribution library
+            install.componentIdOrNull(classPathFile)?.let { externalId ->
+                listOf(
+                    newScriptComponentSourceIdentifier(
+                        displayName = externalId.displayName,
+                        scriptFile = scriptFile,
+                        identifier = ScriptComponentSourceIdentifierType.ExternalDependency(externalId)
+                    )
+                )
+            } ?: emptyList()
+        } else {
+            emptyList()
+        }
+    }
+
+    private fun CurrentGradleInstallation.isGradleModule(file: File): Boolean =
+        file.parentFile.name == "generated-gradle-jars" || installation?.libDirs?.any { libDir ->
+            file.name.startsWith("gradle-") && file.absolutePath.startsWith(libDir.absolutePath)
+        } == true
+
+    private fun CurrentGradleInstallation.isGradleDistroLib(file: File): Boolean =
+        installation?.libDirs?.any { libDir -> file.absolutePath.startsWith(libDir.absolutePath) } == true
+
+    private fun CurrentGradleInstallation.componentIdOrNull(classPathFile: File): ComponentIdentifier? =
+        installation?.libDirs
+            ?.mapNotNull { libDir ->
+                val moduleName = distroLibModuleNameOf(classPathFile)
+                if (libDir.resolve(classPathFile.name) == classPathFile) libDir.resolve("$moduleName.properties").takeIf { it.exists() }
+                else null
+            }
+            ?.singleOrNull()?.let { componentIdFromModulePropertiesOrNull(it) }
+
+    private val distroLibModuleNameRegex = Regex("(.*)-\\d.*")
+    private fun distroLibModuleNameOf(file: File): String? =
+        distroLibModuleNameRegex.find(file.nameWithoutExtension)?.groupValues?.getOrNull(1)
+
+    private fun componentIdFromModulePropertiesOrNull(modulePropertiesFile: File): ComponentIdentifier? =
+        try {
+            Properties().let { props ->
+                modulePropertiesFile.inputStream().use { input ->
+                    props.load(input)
+                    DefaultModuleComponentIdentifier(
+                        DefaultModuleIdentifier.newId(props.getProperty("alias.group"), props.getProperty("alias.name")),
+                        props.getProperty("alias.version")
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace(System.err)
+            null
+        }
+}

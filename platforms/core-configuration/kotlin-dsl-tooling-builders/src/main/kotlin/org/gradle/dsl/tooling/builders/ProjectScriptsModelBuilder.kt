@@ -18,6 +18,7 @@ package org.gradle.dsl.tooling.builders
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptImplicitImports
 import org.gradle.kotlin.dsl.tooling.builders.sourceLookupScriptHandlersFor
@@ -52,11 +53,12 @@ object ProjectScriptsModelBuilder : ToolingModelBuilder {
                     .filter { dep -> dep.id !in resolvedClassPath.map { it.id } }
             }
 
+            val dependencies = project.gradle.serviceOf<GradleScriptModelDependencies>()
             compilationClassPath.forEach { file ->
                 add(
                     StandardScriptContextPathElement(
                         classPath = file,
-                        sourcePath = project.gradle.buildSourcePathFor(scriptFile, file, resolvedClassPath)
+                        sourcePath = dependencies.buildSourcePathFor(scriptFile, file, resolvedClassPath)
                     )
                 )
             }
