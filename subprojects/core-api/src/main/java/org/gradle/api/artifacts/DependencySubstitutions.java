@@ -62,7 +62,8 @@ public interface DependencySubstitutions {
     DependencySubstitutions all(Action<? super DependencySubstitution> rule);
 
     /**
-     * Create a ModuleComponentSelector from the provided input string. Strings must be in the format "{group}:{module}:{version}".
+     * Create a ModuleComponentSelector from the provided input string.
+     * Strings must be in the format "{group}:{module}" or "{group}:{module}:{version}".
      */
     ComponentSelector module(String notation);
 
