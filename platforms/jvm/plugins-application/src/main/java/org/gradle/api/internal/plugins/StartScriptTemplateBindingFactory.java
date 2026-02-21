@@ -54,7 +54,7 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         Map<String, String> binding = new HashMap<>();
         // Before changing, see the note in ScriptBindingParameter's Javadoc
         binding.put(ScriptBindingParameter.APP_NAME.getKey(), details.getApplicationName());
-        binding.put(ScriptBindingParameter.GIT_REF.getKey(), details.getGitRef() != null ? details.getGitRef() : "HEAD");  // TODO cleanup after wrapper upgrade. See #35693
+        binding.put(ScriptBindingParameter.GIT_REF.getKey(), details.getGitRef());
         binding.put(ScriptBindingParameter.OPTS_ENV_VAR.getKey(), details.getOptsEnvironmentVar());
         binding.put(ScriptBindingParameter.EXIT_ENV_VAR.getKey(), details.getExitEnvironmentVar());
 
