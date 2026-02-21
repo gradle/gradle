@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.tasks.Nested;
 import org.gradle.features.internal.file.DefaultProjectFeatureLayout;
 import org.gradle.features.file.ProjectFeatureLayout;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -47,6 +48,9 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
+
+import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
@@ -134,12 +138,23 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         ProjectFeatureApplicationContext applyActionContext =
             projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
 
+        // bind any nested definitions to build model instances
+        bindNestedDefinitions(projectFeature.getDefinitionPublicType(), definition, applyActionContext);
+
         // Invoke the feature's binding transform
         projectFeature.getApplyActionFactory()
             .create(featureObjectFactory)
             .apply(applyActionContext, definition, buildModelInstance, Cast.uncheckedCast(parentDefinition));
 
         return definition;
+    }
+
+    private void bindNestedDefinitions(Class<?> publicType, Object parent, ProjectFeatureApplicationContext applyActionContext) {
+        new PropertyWalker().walkProperties(publicType, parent, (propertyMetadata, propertyValue) -> {
+            if (Definition.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
+                applyActionContext.registerBuildModel(Cast.uncheckedCast(propertyValue));
+            }
+        });
     }
 
     private <T extends Definition<V>, V extends BuildModel> ServiceLookup getContextSpecificServiceLookup(ProjectFeatureImplementation<T, V> projectFeature) {
@@ -177,6 +192,34 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
 
     @Inject
     abstract protected ProjectFeatureDeclarations getProjectFeatureDeclarations();
+
+    @Inject
+    abstract protected TypeAnnotationMetadataStore getTypeAnnotationMetadataStore();
+
+    /**
+     * Walks the public properties of a given object, visiting each property and descending into any properties that are annotated with {@link Nested}.
+     *
+     * Ignores any properties that are null, although properties whose value is null will be visited (e.g. ignores getFoo() == null, but will visit
+     * getFoo().getOrNull() == null)
+     */
+    private class PropertyWalker {
+        void walkProperties(Class<?> publicType, Object parent, PropertyVisitor visitor) {
+            getTypeAnnotationMetadataStore().getTypeAnnotationMetadata(publicType).getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
+                Object propertyValue = propertyMetadata.getPropertyValue(parent);
+                if (propertyValue != null) {
+                    visitor.visit(propertyMetadata, propertyValue);
+
+                    if (propertyMetadata.isAnnotationPresent(Nested.class)) {
+                        walkProperties(propertyMetadata.getDeclaredReturnType().getRawType(), Cast.uncheckedCast(propertyValue), visitor);
+                    }
+                }
+            });
+        }
+    }
+
+    private interface PropertyVisitor {
+        void visit(PropertyAnnotationMetadata propertyMetadata, Object propertyValue);
+    }
 
     /**
      * The internal implementation of the context passed to project feature apply actions, exposing an object factory
