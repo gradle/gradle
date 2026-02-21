@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Internal;
@@ -48,4 +49,44 @@ public interface CodeNarcReports extends ReportContainer<SingleFileReport> {
      */
     @Internal
     SingleFileReport getText();
+
+    /**
+     * The codenarc baseline XML report
+     *
+     * @return The codenarc baseline XML report
+     * @since 9.5.0
+     */
+    @Incubating
+    @Internal
+    SingleFileReport getBaseline();
+
+    /**
+     * The codenarc sortable HTML report
+     *
+     * @return The codenarc sortable HTML report
+     * @since 9.5.0
+     */
+    @Incubating
+    @Internal
+    SingleFileReport getSortable();
+
+    /**
+     * The codenarc JSON report
+     *
+     * @return The codenarc JSON report
+     * @since 9.5.0
+     */
+    @Incubating
+    @Internal
+    SingleFileReport getJson();
+
+    /**
+     * The codenarc GitLab Code Quality JSON report
+     *
+     * @return The codenarc GitLab Code Quality JSON report
+     * @since 9.5.0
+     */
+    @Incubating
+    @Internal
+    SingleFileReport getGitlab();
 }

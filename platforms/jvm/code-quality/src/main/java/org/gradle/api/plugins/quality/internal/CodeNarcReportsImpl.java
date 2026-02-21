@@ -35,7 +35,11 @@ public class CodeNarcReportsImpl extends DelegatingReportContainer<SingleFileRep
             factory.instantiateReport(DefaultSingleFileReport.class, "xml", owner),
             factory.instantiateReport(DefaultSingleFileReport.class, "html", owner),
             factory.instantiateReport(DefaultSingleFileReport.class, "text", owner),
-            factory.instantiateReport(DefaultSingleFileReport.class, "console", owner)
+            factory.instantiateReport(DefaultSingleFileReport.class, "console", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "baseline", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "sortable", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "json", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "gitlab", owner)
         )));
     }
 
@@ -52,5 +56,25 @@ public class CodeNarcReportsImpl extends DelegatingReportContainer<SingleFileRep
     @Override
     public SingleFileReport getText() {
         return getByName("text");
+    }
+
+    @Override
+    public SingleFileReport getBaseline() {
+        return getByName("baseline");
+    }
+
+    @Override
+    public SingleFileReport getSortable() {
+        return getByName("sortable");
+    }
+
+    @Override
+    public SingleFileReport getJson() {
+        return getByName("json");
+    }
+
+    @Override
+    public SingleFileReport getGitlab() {
+        return getByName("gitlab");
     }
 }
