@@ -31,7 +31,7 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
-import org.gradle.api.java.archives.internal.DefaultManifest;
+import org.gradle.api.java.archives.internal.ManifestFactory;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
@@ -71,7 +71,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * multiple components may be created by JVM language plugins in the future.
  */
 @SuppressWarnings("JavadocReference")
-public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
+abstract public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
     private static final Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
     private final SourceSetContainer sourceSets;
 
@@ -80,6 +80,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
     private final ModularitySpec modularity;
     private final JavaToolchainSpec toolchain;
     private final ProjectInternal project;
+    private final ManifestFactory manifestFactory;
 
     private final DirectoryProperty docsDir;
     private final DirectoryProperty testResultsDir;
@@ -89,7 +90,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
     private JavaVersion targetCompat;
 
     @Inject
-    public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
+    public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec, ManifestFactory manifestFactory) {
         this.docsDir = project.getObjects().directoryProperty();
         this.testResultsDir = project.getObjects().directoryProperty();
         this.testReportDir = project.getObjects().directoryProperty(); //TestingBasePlugin.TESTS_DIR_NAME;
@@ -100,6 +101,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
         this.objectFactory = project.getObjects();
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.toolchain = toolchainSpec;
+        this.manifestFactory = manifestFactory;
         configureDefaults();
     }
 
@@ -196,7 +198,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
     }
 
     private Manifest createManifest() {
-        return new DefaultManifest(project.getFileResolver());
+        return manifestFactory.create();
     }
 
     @Override

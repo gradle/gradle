@@ -18,14 +18,18 @@ package org.gradle.jvm.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.file.CopySpec
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
+import org.gradle.api.java.archives.internal.DefaultManifestFactory
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.TestUtil
 
 class JarTest extends AbstractArchiveTaskTest {
     Jar jar
+    def manifestFactory = new DefaultManifestFactory(TestUtil.objectFactory(), TestUtil.providerFactory(), Mock(FileResolver))
 
     def setup() {
         jar = createTask(Jar)
@@ -46,7 +50,7 @@ class JarTest extends AbstractArchiveTaskTest {
 
     def "correct jar manifest"() {
         when:
-        jar.manifest = new DefaultManifest(null)
+        jar.manifest = newManifest()
         jar.manifest {
             attributes(key: 'value')
         }
@@ -87,5 +91,9 @@ class JarTest extends AbstractArchiveTaskTest {
 
         then:
         new JarTestFixture(jar.archiveFile.get().asFile).assertContainsFile('META-INF/file.txt')
+    }
+
+    private DefaultManifest newManifest() {
+        return manifestFactory.create()
     }
 }
