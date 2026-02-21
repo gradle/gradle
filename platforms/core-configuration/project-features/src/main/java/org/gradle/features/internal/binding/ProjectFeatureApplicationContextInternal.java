@@ -43,9 +43,7 @@ public interface ProjectFeatureApplicationContextInternal extends ProjectFeature
     default <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition, Class<? extends V> implementationType) {
         ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext maybeContext = ProjectFeatureSupportInternal.tryGetContext(definition);
         if (maybeContext != null) {
-            throw new IllegalStateException("Definition object '" + definition + "' already has a registered build model '" + maybeContext.getBuildModel()
-                + "'. Registering another build model for it is an error."
-            );
+            return Cast.uncheckedCast(maybeContext.getBuildModel());
         }
 
         V buildModel = ProjectFeatureSupportInternal.createBuildModelInstance(getObjectFactory(), implementationType);
