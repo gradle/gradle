@@ -18,13 +18,10 @@ package org.gradle.dsl.tooling.builders
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.build.BuildState
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.compilationClassPathOf
-import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
 import org.gradle.kotlin.dsl.tooling.builders.scriptImplicitImports
-import org.gradle.kotlin.dsl.tooling.builders.textResourceScriptSource
 import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import org.gradle.tooling.model.buildscript.SettingsScriptModel
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
@@ -55,22 +52,9 @@ object SettingsScriptModelBuilder : BuildScopeModelBuilder {
         gradle: GradleInternal,
         settings: SettingsInternal
     ): List<ScriptContextPathElement> =
-        buildList {
-            val baseScope = settings.classLoaderScope
-            val compilationClassPath = gradle.compilationClassPathOf(baseScope).asFiles
-            val scriptSource = textResourceScriptSource("settings script", scriptFile, gradle.serviceOf())
-            val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
-            val scriptHandler = scriptHandlerFactoryOf(gradle).create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
-            val resolvedClassPath = classpathDependencyArtifactsOf(scriptHandler)
-
-            val dependencies = gradle.serviceOf<GradleScriptModelDependencies>()
-            compilationClassPath.forEach { file ->
-                add(
-                    StandardScriptContextPathElement(
-                        file,
-                        dependencies.buildSourcePathFor(scriptFile, file, resolvedClassPath.artifacts)
-                    )
-                )
-            }
-        }
+        gradle.serviceOf<GradleScriptModelDependencies>().buildContextPathFor(
+            scriptFile = scriptFile,
+            classPathFiles = gradle.compilationClassPathOf(settings.classLoaderScope).asFiles,
+            scriptHandlers = listOf(settings.buildscript)
+        )
 }

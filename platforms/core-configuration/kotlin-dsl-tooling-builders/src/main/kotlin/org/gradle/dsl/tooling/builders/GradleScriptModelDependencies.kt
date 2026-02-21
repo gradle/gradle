@@ -29,29 +29,46 @@ import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.*
 import org.gradle.tooling.model.buildscript.ScriptComponentSourceIdentifier
+import org.gradle.tooling.model.buildscript.ScriptContextPathElement
 import java.io.File
 import java.util.Properties
-
-internal
-fun classpathDependencyArtifactsOf(buildscript: ScriptHandler): ArtifactCollection =
-    buildscript
-        .configurations[CLASSPATH_CONFIGURATION]
-        .incoming
-        .artifactView { it.lenient(true) }
-        .artifacts
 
 @ServiceScope(Scope.Build::class)
 internal class GradleScriptModelDependencies(
     private val gradle: Gradle,
     private val install: CurrentGradleInstallation
 ) {
-
-    fun buildSourcePathFor(
+    fun buildContextPathFor(
         scriptFile: File,
+        classPathFiles: List<File>,
+        scriptHandlers: List<ScriptHandler>,
+    ): List<ScriptContextPathElement> =
+        classPathFiles.map { classPathFile ->
+            StandardScriptContextPathElement(
+                classPath = classPathFile,
+                sourcePath = buildSourcePathFor(
+                    classPathFile = classPathFile,
+                    resolvedArtifacts = resolvedArtifactsOf(scriptHandlers),
+                    scriptFile = scriptFile
+                )
+            )
+        }
+
+    private fun resolvedArtifactsOf(scriptHandlers: List<ScriptHandler>): Set<ResolvedArtifactResult> {
+        val resolvedArtifacts: MutableSet<ResolvedArtifactResult> = hashSetOf()
+        for (buildscript in scriptHandlers) {
+            resolvedArtifacts += classpathDependencyArtifactsOf(buildscript)
+                .filter { dep -> dep.id !in resolvedArtifacts.map { it.id } }
+        }
+        return resolvedArtifacts
+    }
+
+    private fun buildSourcePathFor(
         classPathFile: File,
-        resolvedClasspath: Set<ResolvedArtifactResult>
+        resolvedArtifacts: Set<ResolvedArtifactResult>,
+        scriptFile: File
     ): List<ScriptComponentSourceIdentifier> {
-        val externalId = resolvedClasspath.firstOrNull { it.file == classPathFile }?.id?.componentIdentifier
+        val externalId = resolvedArtifacts.firstOrNull { it.file == classPathFile }?.id?.componentIdentifier
         return if (externalId != null) {
             // External dependency
             listOf(
@@ -85,6 +102,14 @@ internal class GradleScriptModelDependencies(
             emptyList()
         }
     }
+
+    private
+    fun classpathDependencyArtifactsOf(buildscript: ScriptHandler): ArtifactCollection =
+        buildscript
+            .configurations[CLASSPATH_CONFIGURATION]
+            .incoming
+            .artifactView { it.lenient(true) }
+            .artifacts
 
     private fun CurrentGradleInstallation.isGradleModule(file: File): Boolean =
         file.parentFile.name == "generated-gradle-jars" || installation?.libDirs?.any { libDir ->

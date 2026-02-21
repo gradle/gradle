@@ -48,23 +48,19 @@ object InitScriptsModelBuilder : BuildScopeModelBuilder {
         )
     }
 
-    private fun buildContextPathFor(scriptFile: File, gradle: GradleInternal): List<ScriptContextPathElement> =
-        buildList {
-            val baseScope = gradle.classLoaderScope
-            val compilationClassPath = gradle.compilationClassPathOf(baseScope).asFiles
-            val scriptSource = textResourceScriptSource("initialization script", scriptFile, gradle.serviceOf())
-            val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
-            val scriptHandler = scriptHandlerFactoryOf(gradle).create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
-            val resolvedClassPath = classpathDependencyArtifactsOf(scriptHandler)
+    private fun buildContextPathFor(scriptFile: File, gradle: GradleInternal): List<ScriptContextPathElement> {
+        val dependencies = gradle.serviceOf<GradleScriptModelDependencies>()
 
-            val dependencies = gradle.serviceOf<GradleScriptModelDependencies>()
-            compilationClassPath.forEach { file ->
-                add(
-                    StandardScriptContextPathElement(
-                        file,
-                        dependencies.buildSourcePathFor(scriptFile, file, resolvedClassPath.artifacts)
-                    )
-                )
-            }
-        }
+        val baseScope = gradle.classLoaderScope
+        val compilationClassPath = gradle.compilationClassPathOf(baseScope).asFiles
+        val scriptSource = textResourceScriptSource("initialization script", scriptFile, gradle.serviceOf())
+        val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
+        val scriptHandler = scriptHandlerFactoryOf(gradle).create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
+
+        return dependencies.buildContextPathFor(
+            scriptFile = scriptFile,
+            classPathFiles = compilationClassPath,
+            scriptHandlers = listOf(scriptHandler)
+        )
+    }
 }
