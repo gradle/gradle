@@ -16,23 +16,24 @@
 package org.gradle.plugins.signing.signatory.pgp;
 
 import org.bouncycastle.openpgp.PGPSecretKey;
-import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
-import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableTransformer;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
+import org.gradle.plugins.signing.SigningExtension;
+import org.gradle.plugins.signing.signatory.internal.pgp.KeyDataInternService;
+import org.gradle.plugins.signing.signatory.internal.pgp.PgpSignatoryService;
+import org.gradle.plugins.signing.signatory.internal.pgp.PgpSignatoryUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 
-import static org.gradle.internal.Cast.uncheckedCast;
-import static org.gradle.internal.IoActions.uncheckedClose;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 /**
  * Creates {@link PgpSignatory} instances.
@@ -40,6 +41,8 @@ import static org.gradle.internal.IoActions.uncheckedClose;
 public class PgpSignatoryFactory {
 
     private static final String[] PROPERTIES = new String[]{"keyId", "secretKeyRingFile", "password"};
+
+    // Most of these methods are here because they once leaked into Public API.
 
     public PgpSignatory createSignatory(Project project, boolean required) {
         return readProperties(project, null, "default", required);
@@ -73,14 +76,94 @@ public class PgpSignatoryFactory {
         return new PgpSignatory(name, secretKey, password);
     }
 
+    /**
+     * Creates a {@link PgpSignatory} named {@code name} based on the private key with id {@code keyId} stored in the key ring file {@code keyRing} with {@code password} password.
+     * <p>
+     * In most cases, you want to use {@link SigningExtension} to create signatories instead of this method.
+     *
+     * @param project the project to which the signing plugin has been applied
+     * @param name the name for the signatory
+     * @param keyId the key id to look it up in the keyring
+     * @param keyRing the keyring file
+     * @param password the password for the private key
+     * @return the signatory instance
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    public PgpSignatory createSignatory(Project project, String name, String keyId, File keyRing, String password) {
+        return createLazySignatory(project, name, keyId, keyRing, password);
+    }
+
+    /**
+     * Creates a {@link PgpSignatory} named {@code name} based on the private key with id {@code keyId} stored in the ASCII-armored {@code key} with {@code password} password.
+     * <p>
+     * In most cases, you want to use {@link SigningExtension} to create signatories instead of this method.
+     *
+     * @param project the project to which the signing plugin has been applied
+     * @param name the name for the signatory
+     * @param keyId the key id to look it up in the keyring (optional if keyring contains only one master key, and it should be used)
+     * @param key the ASCII-armored key
+     * @param password the password for the private key
+     * @return the signatory instance
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    public PgpSignatory createSignatory(Project project, String name, @Nullable String keyId, String key, String password) {
+        return createLazySignatory(project, name, keyId, key, password);
+    }
+
     protected PgpSignatory readProperties(Project project, String prefix, String name) {
         return readProperties(project, prefix, name, false);
+    }
+
+    public PGPSecretKey readSecretKey(final String keyId, final File file) {
+        return PgpSignatoryUtil.readSecretKey(keyId, file);
+    }
+
+    protected PGPSecretKey readSecretKey(InputStream input, String keyId, String sourceDescription) {
+        return PgpSignatoryUtil.readSecretKey(input, keyId, sourceDescription);
+    }
+
+    protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, final PgpKeyId keyId, String sourceDescription) {
+        return PgpSignatoryUtil.readSecretKey(keyRings, keyId, sourceDescription);
+    }
+
+    protected PgpKeyId normalizeKeyId(String keyId) {
+        return PgpSignatoryUtil.normalizeKeyId(keyId);
+    }
+
+    private PgpSignatory createLazySignatory(Project project, String name, String keyId, File keyRing, String password) {
+        // The returned signatory instance doesn't track changes to originating properties (and never did).
+        // In order to account for property mutability, the calling code recreates signatories over and over.
+        return createLazySignatory(project, name, service -> service.readSecretKeyFromKeyRingFile(keyId, keyRing, password));
+    }
+
+    private PgpSignatory createLazySignatory(Project project, String name, String keyId, String keyData, String password) {
+        // keyData may be several KB long, and each project may try to register one, though with the same contents.
+        // Other strings aren't as long/critical and interning them will likely hurt performance more than help.
+        String internedKeyData = KeyDataInternService.obtain(project).get().internKeyData(keyData);
+        return createLazySignatory(project, name, service -> service.readSecretKeyFromArmoredString(keyId, internedKeyData, password));
+    }
+
+    private PgpSignatory createLazySignatory(Project project, String name, SerializableTransformer<PgpSignatoryService.ParsedPgpKey, PgpSignatoryService> keyBuilder) {
+        Provider<PgpSignatoryService> signatoryService = PgpSignatoryService.obtain(project);
+        // Trying to read the key has a cost.
+        Provider<PgpSignatoryService.ParsedPgpKey> keyData = Providers.memoizing(Providers.internal(signatoryService.map(keyBuilder)));
+
+        return new PgpSignatoryInternal(
+            signatoryService,
+            name,
+            keyData.map(transformer(PgpSignatoryService.ParsedPgpKey::getSecretKey)),
+            keyData.map(transformer(PgpSignatoryService.ParsedPgpKey::getPrivateKey))
+        );
     }
 
     protected PgpSignatory readProperties(Project project, String prefix, String name, boolean required) {
         ArrayList<Object> values = new ArrayList<>();
         for (String property : PROPERTIES) {
-            String qualifiedProperty = (String)getQualifiedPropertyName(prefix, property);
+            String qualifiedProperty = (String) getQualifiedPropertyName(prefix, property);
             Object prop = getPropertySafely(project, qualifiedProperty, required);
             if (prop != null) {
                 values.add(prop);
@@ -92,7 +175,7 @@ public class PgpSignatoryFactory {
         String keyId = values.get(0).toString();
         File keyRing = project.file(values.get(1).toString());
         String password = values.get(2).toString();
-        return createSignatory(name, keyId, keyRing, password);
+        return createLazySignatory(project, name, keyId, keyRing, password);
     }
 
     private Object getPropertySafely(Project project, String qualifiedProperty, boolean required) {
@@ -115,68 +198,5 @@ public class PgpSignatoryFactory {
 
     protected Object getQualifiedPropertyName(final String propertyPrefix, final String name) {
         return "signing." + (propertyPrefix != null ? propertyPrefix + "." : "") + name;
-    }
-
-    public PGPSecretKey readSecretKey(final String keyId, final File file) {
-        InputStream inputStream = openSecretKeyFile(file);
-        try {
-            return readSecretKey(inputStream, keyId, "file: " + file.getAbsolutePath());
-        } finally {
-            uncheckedClose(inputStream);
-        }
-    }
-
-    private InputStream openSecretKeyFile(File file) {
-        try {
-            return new BufferedInputStream(new FileInputStream(file));
-        } catch (FileNotFoundException e) {
-            throw new InvalidUserDataException("Unable to retrieve secret key from key ring file '" + file + "' as it does not exist");
-        }
-    }
-
-    protected PGPSecretKey readSecretKey(InputStream input, String keyId, String sourceDescription) {
-        PGPSecretKeyRingCollection keyRingCollection;
-        try {
-            keyRingCollection = new BcPGPSecretKeyRingCollection(input);
-        } catch (Exception e) {
-            throw new InvalidUserDataException("Unable to read secret key from " + sourceDescription + " (it may not be a PGP secret key ring)", e);
-        }
-        return readSecretKey(keyRingCollection, normalizeKeyId(keyId), sourceDescription);
-    }
-
-    protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, final PgpKeyId keyId, String sourceDescription) {
-        PGPSecretKey key = findSecretKey(keyRings, keyId);
-        if (key == null) {
-            throw new InvalidUserDataException("did not find secret key for id '" + keyId + "' in key source '" + sourceDescription + "'");
-        }
-        return key;
-    }
-
-    @Nullable
-    private PGPSecretKey findSecretKey(PGPSecretKeyRingCollection keyRings, PgpKeyId keyId) {
-        Iterator<PGPSecretKeyRing> keyRingIterator = uncheckedCast(keyRings.getKeyRings());
-        while (keyRingIterator.hasNext()) {
-            PGPSecretKeyRing keyRing = keyRingIterator.next();
-            Iterator<PGPSecretKey> secretKeyIterator = uncheckedCast(keyRing.getSecretKeys());
-            while (secretKeyIterator.hasNext()) {
-                PGPSecretKey secretKey = secretKeyIterator.next();
-                if (hasId(keyId, secretKey)) {
-                    return secretKey;
-                }
-            }
-        }
-        return null;
-    }
-
-    private boolean hasId(PgpKeyId keyId, PGPSecretKey secretKey) {
-        return new PgpKeyId(secretKey.getKeyID()).equals(keyId);
-    }
-
-    protected PgpKeyId normalizeKeyId(String keyId) {
-        try {
-            return new PgpKeyId(keyId);
-        } catch (IllegalArgumentException e) {
-            throw new InvalidUserDataException(e.getMessage());
-        }
     }
 }
