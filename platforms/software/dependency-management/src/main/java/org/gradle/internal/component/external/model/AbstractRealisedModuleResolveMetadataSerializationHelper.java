@@ -131,7 +131,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
 
     protected GradleDependencyMetadata readDependencyMetadata(Decoder decoder) throws IOException {
         ModuleComponentSelector selector = componentSelectorSerializer.read(decoder);
-        List<ExcludeMetadata> excludes = readMavenExcludes(decoder);
+        ImmutableList<ExcludeMetadata> excludes = readMavenExcludes(decoder);
         boolean constraint = decoder.readBoolean();
         boolean endorsing = decoder.readBoolean();
         boolean force = decoder.readBoolean();
@@ -181,15 +181,15 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         return artifacts.build();
     }
 
-    protected List<ExcludeMetadata> readMavenExcludes(Decoder decoder) throws IOException {
+    protected ImmutableList<ExcludeMetadata> readMavenExcludes(Decoder decoder) throws IOException {
         int excludeCount = decoder.readSmallInt();
-        List<ExcludeMetadata> excludes = new ArrayList<>(excludeCount);
+        ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builderWithExpectedSize(excludeCount);
         for (int i = 0; i < excludeCount; i++) {
             String group = decoder.readString();
             String name = decoder.readString();
             excludes.add(excludeRuleConverter.createExcludeRule(group, name));
         }
-        return excludes;
+        return excludes.build();
     }
 
     protected static ImmutableCapabilities readCapabilities(Decoder decoder) throws IOException {

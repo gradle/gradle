@@ -68,7 +68,7 @@ abstract class AbstractDependencyDescriptorFactoryInternalSpec extends Specifica
     }
 
     private static void assertDependencyDescriptorHasArtifacts(DependencyMetadata dependencyMetadata) {
-        List<IvyArtifactName> artifactDescriptors = WrapUtil.toList(dependencyMetadata.getArtifacts())
+        List<IvyArtifactName> artifactDescriptors = dependencyMetadata.getArtifacts()
         assert artifactDescriptors.size() == 2
 
         IvyArtifactName artifactDescriptorWithoutClassifier = findDescriptor(artifactDescriptors, ARTIFACT)
