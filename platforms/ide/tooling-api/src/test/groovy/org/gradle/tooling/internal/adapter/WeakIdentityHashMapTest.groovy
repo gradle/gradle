@@ -159,8 +159,12 @@ class WeakIdentityHashMapTest extends Specification {
         WeakIdentityHashMap.WeakKey<Thing> weakKey1 = null
         WeakIdentityHashMap.WeakKey<Thing> weakKey2 = null
         for (WeakIdentityHashMap.WeakKey<Thing> key : map.keySet()) {
-            if (key.get() == thing1) weakKey1 = key
-            if (key.get() == thing2) weakKey2 = key
+            if (key.get() == thing1) {
+                weakKey1 = key
+            }
+            if (key.get() == thing2) {
+                weakKey2 = key
+            }
         }
 
         when:
