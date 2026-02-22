@@ -42,17 +42,17 @@ object SettingsScriptModelBuilder : BuildScopeModelBuilder {
             StandardGradleScriptModel(
                 scriptFile = scriptFile,
                 implicitImports = gradle.scriptImplicitImports,
-                contextPath = buildContextPathFor(scriptFile, gradle, settings),
+                contextPath = contextPathFor(scriptFile, gradle, settings),
             )
         )
     }
 
-    private fun buildContextPathFor(
+    private fun contextPathFor(
         scriptFile: File,
         gradle: GradleInternal,
         settings: SettingsInternal
     ): List<ScriptContextPathElement> =
-        gradle.serviceOf<GradleScriptModelDependencies>().buildContextPathFor(
+        gradle.serviceOf<GradleScriptModelDependencies>().contextPathFor(
             scriptFile = scriptFile,
             classPathFiles = gradle.compilationClassPathOf(settings.classLoaderScope).asFiles,
             scriptHandlers = listOf(settings.buildscript)

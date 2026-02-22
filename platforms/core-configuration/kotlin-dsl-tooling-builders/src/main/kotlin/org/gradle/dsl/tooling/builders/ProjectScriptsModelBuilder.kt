@@ -36,14 +36,14 @@ object ProjectScriptsModelBuilder : ToolingModelBuilder {
             buildScriptModel = StandardGradleScriptModel(
                 scriptFile = project.buildFile,
                 implicitImports = project.gradle.scriptImplicitImports,
-                contextPath = buildContextPathFor(project.buildFile, project),
+                contextPath = contextPathFor(project.buildFile, project),
             ),
             precompiledScriptModels = emptyList()
         )
     }
 
-    private fun buildContextPathFor(scriptFile: File, project: Project): List<ScriptContextPathElement> =
-        project.gradle.serviceOf<GradleScriptModelDependencies>().buildContextPathFor(
+    private fun contextPathFor(scriptFile: File, project: Project): List<ScriptContextPathElement> =
+        project.gradle.serviceOf<GradleScriptModelDependencies>().contextPathFor(
             scriptFile = scriptFile,
             classPathFiles = project.scriptCompilationClassPath.asFiles,
             scriptHandlers = sourceLookupScriptHandlersFor(project).asReversed()

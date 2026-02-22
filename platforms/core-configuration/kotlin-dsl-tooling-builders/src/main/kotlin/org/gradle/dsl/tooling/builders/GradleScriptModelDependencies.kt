@@ -23,6 +23,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.invocation.Gradle
+import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.service.scopes.Scope
@@ -38,21 +39,30 @@ internal class GradleScriptModelDependencies(
     private val gradle: Gradle,
     private val install: CurrentGradleInstallation
 ) {
-    fun buildContextPathFor(
+    fun contextPathFor(
         scriptFile: File,
         classPathFiles: List<File>,
         scriptHandlers: List<ScriptHandler>,
     ): List<ScriptContextPathElement> =
-        classPathFiles.map { classPathFile ->
-            StandardScriptContextPathElement(
-                classPath = classPathFile,
-                sourcePath = buildSourcePathFor(
-                    classPathFile = classPathFile,
-                    resolvedArtifacts = resolvedArtifactsOf(scriptHandlers),
-                    scriptFile = scriptFile
-                )
-            )
+        resolvedArtifactsOf(scriptHandlers).let { resolvedArtifacts ->
+            classPathFiles.map { classPathFile ->
+                contextPathElementFor(scriptFile, classPathFile, resolvedArtifacts)
+            }
         }
+
+    private fun contextPathElementFor(
+        scriptFile: File,
+        classPathFile: File,
+        resolvedArtifacts: Set<ResolvedArtifactResult>
+    ): ScriptContextPathElement =
+        StandardScriptContextPathElement(
+            classPath = classPathFile,
+            sourcePath = sourcePathFor(
+                classPathFile = classPathFile,
+                resolvedArtifacts = resolvedArtifacts,
+                scriptFile = scriptFile
+            )
+        )
 
     private fun resolvedArtifactsOf(scriptHandlers: List<ScriptHandler>): Set<ResolvedArtifactResult> {
         val resolvedArtifacts: MutableSet<ResolvedArtifactResult> = hashSetOf()
@@ -63,7 +73,15 @@ internal class GradleScriptModelDependencies(
         return resolvedArtifacts
     }
 
-    private fun buildSourcePathFor(
+    private
+    fun classpathDependencyArtifactsOf(buildscript: ScriptHandler): ArtifactCollection =
+        buildscript
+            .configurations[CLASSPATH_CONFIGURATION]
+            .incoming
+            .artifactView { it.lenient(true) }
+            .artifacts
+
+    private fun sourcePathFor(
         classPathFile: File,
         resolvedArtifacts: Set<ResolvedArtifactResult>,
         scriptFile: File
@@ -103,30 +121,24 @@ internal class GradleScriptModelDependencies(
         }
     }
 
-    private
-    fun classpathDependencyArtifactsOf(buildscript: ScriptHandler): ArtifactCollection =
-        buildscript
-            .configurations[CLASSPATH_CONFIGURATION]
-            .incoming
-            .artifactView { it.lenient(true) }
-            .artifacts
-
     private fun CurrentGradleInstallation.isGradleModule(file: File): Boolean =
-        file.parentFile.name == "generated-gradle-jars" || installation?.libDirs?.any { libDir ->
-            file.name.startsWith("gradle-") && file.absolutePath.startsWith(libDir.absolutePath)
-        } == true
+        file.name.startsWith("gradle-") &&
+            (file.parentFile.name == GeneratedGradleJarCache.CACHE_KEY ||
+                installation?.gradleHome?.let { installDir -> file.absolutePath.startsWith(installDir.absolutePath) } == true)
 
     private fun CurrentGradleInstallation.isGradleDistroLib(file: File): Boolean =
-        installation?.libDirs?.any { libDir -> file.absolutePath.startsWith(libDir.absolutePath) } == true
+        installation?.gradleHome?.let { installDir -> file.absolutePath.startsWith(installDir.absolutePath) } == true
 
     private fun CurrentGradleInstallation.componentIdOrNull(classPathFile: File): ComponentIdentifier? =
-        installation?.libDirs
-            ?.mapNotNull { libDir ->
-                val moduleName = distroLibModuleNameOf(classPathFile)
-                if (libDir.resolve(classPathFile.name) == classPathFile) libDir.resolve("$moduleName.properties").takeIf { it.exists() }
-                else null
-            }
-            ?.singleOrNull()?.let { componentIdFromModulePropertiesOrNull(it) }
+        distroLibModuleNameOf(classPathFile).let { moduleName ->
+            installation?.libDirs
+                ?.mapNotNull { libDir ->
+                    if (classPathFile.parentFile == libDir) libDir.resolve("$moduleName.properties").takeIf { it.exists() }
+                    else null
+                }
+                ?.singleOrNull()
+                ?.let { componentIdFromModulePropertiesOrNull(it) }
+        }
 
     private val distroLibModuleNameRegex = Regex("(.*)-\\d.*")
     private fun distroLibModuleNameOf(file: File): String? =

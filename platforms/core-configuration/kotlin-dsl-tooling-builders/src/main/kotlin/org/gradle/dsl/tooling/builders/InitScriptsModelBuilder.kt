@@ -42,13 +42,16 @@ object InitScriptsModelBuilder : BuildScopeModelBuilder {
                 StandardGradleScriptModel(
                     scriptFile = scriptFile,
                     implicitImports = gradle.scriptImplicitImports,
-                    contextPath = buildContextPathFor(scriptFile, gradle),
+                    contextPath = contextPathFor(scriptFile, gradle),
                 )
             }
         )
     }
 
-    private fun buildContextPathFor(scriptFile: File, gradle: GradleInternal): List<ScriptContextPathElement> {
+    private fun contextPathFor(
+        scriptFile: File,
+        gradle: GradleInternal
+    ): List<ScriptContextPathElement> {
         val dependencies = gradle.serviceOf<GradleScriptModelDependencies>()
 
         val baseScope = gradle.classLoaderScope
@@ -57,7 +60,7 @@ object InitScriptsModelBuilder : BuildScopeModelBuilder {
         val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
         val scriptHandler = scriptHandlerFactoryOf(gradle).create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
 
-        return dependencies.buildContextPathFor(
+        return dependencies.contextPathFor(
             scriptFile = scriptFile,
             classPathFiles = compilationClassPath,
             scriptHandlers = listOf(scriptHandler)
