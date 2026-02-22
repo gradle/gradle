@@ -134,6 +134,7 @@ class WeakIdentityHashMapTest extends Specification {
         weakKey.hashCode() == System.identityHashCode(thing)
     }
 
+    @Timeout(value = 15, unit = TimeUnit.SECONDS)
     def "weakKeys are removed when reference is null"() {
         WeakIdentityHashMap<Object, String> map = new WeakIdentityHashMap<>()
         Thing thing1 = new Thing("thing")
@@ -143,7 +144,9 @@ class WeakIdentityHashMapTest extends Specification {
         thing1 = null
         System.gc()
         try {
-            Thread.sleep(15000)
+            do {
+                Thread.sleep(1000)
+            } while (map.keySet().size() != 0)
         } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt()
         }
@@ -152,6 +155,7 @@ class WeakIdentityHashMapTest extends Specification {
         map.keySet().size() == 0
     }
 
+    @Timeout(value = 15, unit = TimeUnit.SECONDS)
     def "equals() of two dereferenced WeakKeys returns false"() {
         WeakIdentityHashMap<Thing, String> map = new WeakIdentityHashMap<>()
         Thing thing1 = new Thing("thing1")
