@@ -41,6 +41,8 @@ dependencies {
 
     compileOnly(libs.jspecify)
 
+    integTestImplementation(testFixtures(projects.testingBase))
+
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 tasks.isolatedProjectsIntegTest {
