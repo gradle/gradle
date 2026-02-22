@@ -152,6 +152,40 @@ class WeakIdentityHashMapTest extends Specification {
         map.keySet().size() == 0
     }
 
+    def "equals() of two dereferenced WeakKeys returns false"() {
+        WeakIdentityHashMap<Thing, String> map = new WeakIdentityHashMap<>()
+        Thing thing1 = new Thing("thing1")
+        Thing thing2 = new Thing("thing2")
+
+        // Add two different keys
+        map.put(thing1, "value1")
+        map.put(thing2, "value2")
+
+        // Save corresponding WeakKeys (obtained via keySet)
+        WeakIdentityHashMap.WeakKey<Thing> weakKey1 = null
+        WeakIdentityHashMap.WeakKey<Thing> weakKey2 = null
+        for (WeakIdentityHashMap.WeakKey<Thing> key : map.keySet()) {
+            if (key.get() == thing1) weakKey1 = key
+            if (key.get() == thing2) weakKey2 = key
+        }
+
+        // Remove strong references and trigger GC (make WeakKey referents null)
+        thing1 = null
+        thing2 = null
+        System.gc()
+        try {
+            do {
+                Thread.sleep(1000)
+            } while (map.keySet().size() != 0)
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt()
+        }
+
+        // Verify: When both WeakKeys have null referents, equals() returns false
+        expect:
+        !weakKey1.equals(weakKey2)
+    }
+
     @Timeout(value = 15, unit = TimeUnit.SECONDS)
     def "computeIfAbsent is thread-safe (provider executed once, all threads observe same value)"() {
         given:

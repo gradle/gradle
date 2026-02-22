@@ -84,6 +84,7 @@ class WeakIdentityHashMap<K, V> {
         }
 
         @Override
+        @SuppressWarnings("SuperCallToObjectMethod")
         public boolean equals(Object obj) {
             if (this == obj) {
                 return true;
@@ -93,6 +94,11 @@ class WeakIdentityHashMap<K, V> {
             }
             Object thisReferent = get();
             Object objReferent = ((WeakKey<?>) obj).get();
+
+            if (thisReferent == null && objReferent == null) {
+                return super.equals(obj);
+            }
+
             return thisReferent == objReferent;
         }
 
