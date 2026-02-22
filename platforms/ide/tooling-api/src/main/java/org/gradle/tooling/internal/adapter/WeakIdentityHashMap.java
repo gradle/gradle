@@ -109,7 +109,7 @@ class WeakIdentityHashMap<K, V> {
 
         @Override
         public int hashCode() {
-            return hashCode;
+            return get() != null ? hashCode : 0;
         }
     }
 }
