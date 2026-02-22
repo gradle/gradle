@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.adapter;
 
 import org.jspecify.annotations.Nullable;
 
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Set;
@@ -31,21 +32,27 @@ import java.util.Set;
  */
 class WeakIdentityHashMap<K, V> {
     private final HashMap<WeakKey<K>, V> map = new HashMap<>();
+    private final ReferenceQueue<K> referenceQueue = new ReferenceQueue<>();
 
     void put(K key, V value) {
-        map.put(new WeakKey<>(key), value);
+        cleanUnreferencedKeys();
+        map.put(new WeakKey<>(key, referenceQueue), value);
     }
 
     @Nullable
     V get(K key) {
+        cleanUnreferencedKeys();
         return map.get(new WeakKey<>(key));
     }
 
     Set<WeakKey<K>> keySet() {
+        cleanUnreferencedKeys();
         return map.keySet();
     }
 
     V computeIfAbsent(K key, AbsentValueProvider<V> absentValueProvider) {
+        cleanUnreferencedKeys();
+
         WeakKey<K> weakKey = new WeakKey<>(key);
         V value = map.get(weakKey);
 
@@ -57,6 +64,19 @@ class WeakIdentityHashMap<K, V> {
         return value;
     }
 
+    int size() {
+        cleanUnreferencedKeys();
+        return map.size();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void cleanUnreferencedKeys() {
+        WeakKey<K> staleKey;
+        while ((staleKey = (WeakKey<K>) referenceQueue.poll()) != null) {
+            map.remove(staleKey);
+        }
+    }
+
     public interface AbsentValueProvider<T> {
 
         T provide();
@@ -66,7 +86,11 @@ class WeakIdentityHashMap<K, V> {
         private final int hashCode;
 
         public WeakKey(T referent) {
-            super(referent);
+            this(referent, null);
+        }
+
+        public WeakKey(T referent, @Nullable ReferenceQueue<? super T> q) {
+            super(referent, q);
             hashCode = System.identityHashCode(referent);
         }
 

@@ -127,6 +127,24 @@ class WeakIdentityHashMapTest extends Specification {
         weakKey.hashCode() == System.identityHashCode(thing)
     }
 
+    def "weakKeys are removed when reference is null"() {
+        WeakIdentityHashMap<Object, String> map = new WeakIdentityHashMap<>()
+        Thing thing1 = new Thing("thing")
+
+        map.put(thing1, "Foo")
+
+        thing1 = null
+        System.gc()
+        try {
+            Thread.sleep(15000)
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt()
+        }
+
+        expect:
+        map.size() == 0
+    }
+
     class Thing {
         String name
 
