@@ -57,6 +57,8 @@ public class CleanRule implements Rule {
             return;
         }
 
+        // TODO Task rules only create tasks that are requested, there is no point in "registering"
+        // We should figure out an API to be used then which is not deprecated.
         @SuppressWarnings("deprecation")
         Delete clean = tasks.create(taskName, Delete.class);
         clean.delete(task.getOutputs().getFiles());
