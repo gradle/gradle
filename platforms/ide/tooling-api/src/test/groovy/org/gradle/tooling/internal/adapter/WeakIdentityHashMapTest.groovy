@@ -134,40 +134,28 @@ class WeakIdentityHashMapTest extends Specification {
         weakKey.hashCode() == System.identityHashCode(thing)
     }
 
-    @SuppressWarnings('GroovyUnusedAssignment')
     @Timeout(value = 15, unit = TimeUnit.SECONDS)
     def "weakKeys are removed when reference is null"() {
         WeakIdentityHashMap<Object, String> map = new WeakIdentityHashMap<>()
         Thing thing1 = new Thing("thing")
-
         map.put(thing1, "Foo")
 
+        when:
         thing1 = null
-        System.gc()
-        try {
-            do {
-                Thread.sleep(1000)
-            } while (map.keySet().size() != 0)
-        } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt()
-        }
 
-        expect:
-        map.keySet().size() == 0
+        then:
+        waitForConditionAfterGC { map.keySet().size() == 0 }
     }
 
-    @SuppressWarnings('GroovyUnusedAssignment')
     @Timeout(value = 15, unit = TimeUnit.SECONDS)
     def "equals() of two different dereferenced WeakKeys returns false"() {
         WeakIdentityHashMap<Thing, String> map = new WeakIdentityHashMap<>()
         Thing thing1 = new Thing("thing1")
         Thing thing2 = new Thing("thing2")
 
-        // Add two different keys
         map.put(thing1, "value1")
         map.put(thing2, "value2")
 
-        // Save corresponding WeakKeys (obtained via keySet)
         WeakIdentityHashMap.WeakKey<Thing> weakKey1 = null
         WeakIdentityHashMap.WeakKey<Thing> weakKey2 = null
         for (WeakIdentityHashMap.WeakKey<Thing> key : map.keySet()) {
@@ -175,21 +163,12 @@ class WeakIdentityHashMapTest extends Specification {
             if (key.get() == thing2) weakKey2 = key
         }
 
-        // Remove strong references and trigger GC (make WeakKey referents null)
+        when:
         thing1 = null
         thing2 = null
-        System.gc()
-        try {
-            do {
-                Thread.sleep(1000)
-            } while (map.keySet().size() != 0)
-        } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt()
-        }
 
-        // Verify: When both WeakKeys have null referents, equals() returns false
-        expect:
-        !weakKey1.equals(weakKey2)
+        then:
+        waitForConditionAfterGC { !weakKey1.equals(weakKey2) }
     }
 
     @Timeout(value = 15, unit = TimeUnit.SECONDS)
