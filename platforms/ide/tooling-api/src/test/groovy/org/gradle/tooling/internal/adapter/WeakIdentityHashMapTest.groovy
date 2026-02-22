@@ -134,6 +134,7 @@ class WeakIdentityHashMapTest extends Specification {
         weakKey.hashCode() == System.identityHashCode(thing)
     }
 
+    @SuppressWarnings('GroovyUnusedAssignment')
     @Timeout(value = 15, unit = TimeUnit.SECONDS)
     def "weakKeys are removed when reference is null"() {
         WeakIdentityHashMap<Object, String> map = new WeakIdentityHashMap<>()
@@ -155,6 +156,7 @@ class WeakIdentityHashMapTest extends Specification {
         map.keySet().size() == 0
     }
 
+    @SuppressWarnings('GroovyUnusedAssignment')
     @Timeout(value = 15, unit = TimeUnit.SECONDS)
     def "equals() of two different dereferenced WeakKeys returns false"() {
         WeakIdentityHashMap<Thing, String> map = new WeakIdentityHashMap<>()
@@ -181,7 +183,7 @@ class WeakIdentityHashMapTest extends Specification {
             do {
                 Thread.sleep(1000)
             } while (map.keySet().size() != 0)
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt()
         }
 
@@ -220,7 +222,7 @@ class WeakIdentityHashMapTest extends Specification {
                                 Thread.yield()
                                 try {
                                     Thread.sleep(2)
-                                } catch (InterruptedException e) {
+                                } catch (InterruptedException ignored) {
                                     Thread.currentThread().interrupt()
                                 }
 
