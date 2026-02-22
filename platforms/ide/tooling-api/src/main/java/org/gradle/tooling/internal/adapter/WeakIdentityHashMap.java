@@ -20,8 +20,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A specialized map wrapper, that uses weak references for keys and stores
@@ -31,7 +31,7 @@ import java.util.Set;
  * for generating hash code and considers referent equality for {@code equals} method.
  */
 class WeakIdentityHashMap<K, V> {
-    private final HashMap<WeakKey<K>, V> map = new HashMap<>();
+    private final ConcurrentHashMap<WeakKey<K>, V> map = new ConcurrentHashMap<>();
     private final ReferenceQueue<K> referenceQueue = new ReferenceQueue<>();
 
     void put(K key, V value) {
@@ -52,16 +52,8 @@ class WeakIdentityHashMap<K, V> {
 
     V computeIfAbsent(K key, AbsentValueProvider<V> absentValueProvider) {
         cleanUnreferencedKeys();
-
         WeakKey<K> weakKey = new WeakKey<>(key);
-        V value = map.get(weakKey);
-
-        if (value == null) {
-            value = absentValueProvider.provide();
-            map.put(weakKey, value);
-        }
-
-        return value;
+        return map.computeIfAbsent(weakKey, k -> absentValueProvider.provide());
     }
 
     int size() {
