@@ -156,7 +156,7 @@ class WeakIdentityHashMapTest extends Specification {
     }
 
     @Timeout(value = 15, unit = TimeUnit.SECONDS)
-    def "equals() of two dereferenced WeakKeys returns false"() {
+    def "equals() of two different dereferenced WeakKeys returns false"() {
         WeakIdentityHashMap<Thing, String> map = new WeakIdentityHashMap<>()
         Thing thing1 = new Thing("thing1")
         Thing thing2 = new Thing("thing2")
