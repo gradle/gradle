@@ -24,14 +24,13 @@ import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.serialize.graph.writeFile
 
 
 class ConfigurableFileTreeCodec(
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<ConfigurableFileTree> {
+
     override suspend fun WriteContext.encode(value: ConfigurableFileTree) {
         require(value is DefaultConfigurableFileTree)
         write(value.resolver)
@@ -45,7 +44,7 @@ class ConfigurableFileTreeCodec(
         val patterns = readNonNull<PatternSet>()
         val tree = fileCollectionFactory.withResolver(resolver).fileTree()
         tree.setDir(dir)
-        // TODO - read patterns directly into tree
+        // TODO:configuration-cache - read patterns directly into tree
         tree.patterns.copyFrom(patterns)
         return tree
     }

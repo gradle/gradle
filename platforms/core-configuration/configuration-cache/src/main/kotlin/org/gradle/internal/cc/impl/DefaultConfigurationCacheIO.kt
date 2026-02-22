@@ -74,7 +74,6 @@ import org.gradle.internal.serialize.graph.StringEncoder
 import org.gradle.internal.serialize.graph.Tracer
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readCollection
-import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readStrings
@@ -82,7 +81,6 @@ import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.serialize.graph.writeFile
 import org.gradle.internal.serialize.graph.writeStrings
 import org.gradle.internal.serialize.graph.writeWith
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder

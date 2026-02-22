@@ -18,6 +18,7 @@ package org.gradle.internal.serialize;
 
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -81,6 +82,11 @@ public abstract class AbstractEncoder implements Encoder {
             writeBoolean(true);
             writeString(value.toString());
         }
+    }
+
+    @Override
+    public void writeFile(File file) throws IOException {
+        writeString(file.getPath());
     }
 
     private class EncoderStream extends OutputStream {
