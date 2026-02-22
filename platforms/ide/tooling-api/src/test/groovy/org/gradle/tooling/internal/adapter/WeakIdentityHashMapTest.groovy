@@ -149,7 +149,7 @@ class WeakIdentityHashMapTest extends Specification {
         }
 
         expect:
-        map.size() == 0
+        map.keySet().size() == 0
     }
 
     def "equals() and hashCode() should be consistent"() {

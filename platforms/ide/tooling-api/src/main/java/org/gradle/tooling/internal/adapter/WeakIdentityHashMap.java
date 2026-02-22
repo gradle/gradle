@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.adapter;
 
+import org.jetbrains.annotations.VisibleForTesting;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.ref.ReferenceQueue;
@@ -45,6 +46,7 @@ class WeakIdentityHashMap<K, V> {
         return map.get(new WeakKey<>(key));
     }
 
+    @VisibleForTesting
     Set<WeakKey<K>> keySet() {
         cleanUnreferencedKeys();
         return map.keySet();
@@ -52,13 +54,8 @@ class WeakIdentityHashMap<K, V> {
 
     V computeIfAbsent(K key, AbsentValueProvider<V> absentValueProvider) {
         cleanUnreferencedKeys();
-        WeakKey<K> weakKey = new WeakKey<>(key);
+        WeakKey<K> weakKey = new WeakKey<>(key, referenceQueue);
         return map.computeIfAbsent(weakKey, k -> absentValueProvider.provide());
-    }
-
-    int size() {
-        cleanUnreferencedKeys();
-        return map.size();
     }
 
     @SuppressWarnings("unchecked")
