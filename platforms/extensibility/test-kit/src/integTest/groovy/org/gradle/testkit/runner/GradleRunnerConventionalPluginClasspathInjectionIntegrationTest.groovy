@@ -16,8 +16,6 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
-import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
@@ -25,7 +23,6 @@ import org.gradle.util.UsesNativeServices
 import static org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading.IMPLEMENTATION_CLASSPATH_PROP_KEY
 import static org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading.PLUGIN_METADATA_FILE_NAME
 
-@InjectsPluginClasspath
 @UsesNativeServices
 class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
@@ -47,7 +44,6 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
         result.task(":helloWorld").outcome == TaskOutcome.SUCCESS
     }
 
-    @InspectsBuildOutput
     def "does not use conventional plugin classpath if not requested"() {
         when:
         def result = pluginUnderTest.build().exposeMetadata {
@@ -59,7 +55,6 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
         !execFailure(result).error.contains("Gradle TestKit (classpath:")
     }
 
-    @InspectsBuildOutput
     def "explicit classpath takes precedence over conventional classpath"() {
         given:
         def explicitClasspath = [file('does/not/exist')]

@@ -18,8 +18,6 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
-import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.InspectsGroupedOutput
 import org.gradle.util.GradleVersion
 
@@ -52,8 +50,6 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
         noExceptionThrown()
     }
 
-    @InspectsBuildOutput
-    @InspectsExecutedTasks
     def "exposes result when build fails expectantly"() {
         given:
         buildFile """
@@ -84,9 +80,7 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
         t.buildResult != null
     }
 
-    @InspectsBuildOutput
     @InspectsGroupedOutput
-    @InspectsExecutedTasks
     def "exposes result when build is expected to fail but does not"() {
         given:
         buildFile helloWorldTask()
@@ -139,8 +133,6 @@ $t.buildResult.output"""
         t.buildResult != null
     }
 
-    @InspectsExecutedTasks
-    @InspectsBuildOutput
     def "exposes result with build is expected to succeed but fails "() {
         given:
         buildFile """

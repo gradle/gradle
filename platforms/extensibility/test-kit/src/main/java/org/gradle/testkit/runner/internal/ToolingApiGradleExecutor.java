@@ -125,7 +125,6 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
                 warnIfUnsupportedVersion(targetGradleVersion);
             }
 
-
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
 
             launcher.setStandardOutput(new NoCloseOutputStream(teeOutput(syncOutput, parameters.getStandardOutput())));

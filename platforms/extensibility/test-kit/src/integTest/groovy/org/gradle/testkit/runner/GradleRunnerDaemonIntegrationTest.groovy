@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.util.GradleVersion
 import org.junit.Assume
@@ -63,7 +62,6 @@ class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest 
     }
 
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "TestKit needs a real Gradle distribution here")
-    @CustomDaemonDirectory
     def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
         given:
         def defaultDaemonDir = testKitDir.file("daemon")
