@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic
 
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestStartEvent
@@ -77,7 +79,7 @@ class TestTreeModelTest extends Specification {
 
     def "report generation does not crash when childless execution follows execution with children"() {
         given:
-        def storeDir = writeStoreDir { writer ->
+        def storeDir = writeStore { writer ->
             def root = descriptor("root", null)
             def suite1 = descriptor("MySuite", root, "com.example.MySuite")
             def testA = descriptor("testA", suite1, "com.example.MySuite")
@@ -96,7 +98,7 @@ class TestTreeModelTest extends Specification {
         }
 
         when:
-        TestTreeModelResultsProvider.useResultsFrom(storeDir) { provider ->
+        TestTreeModelResultsProvider.useResultsFrom(tempDir.resolve("store")) { provider ->
             provider.visitClasses { }
         }
 
@@ -134,19 +136,11 @@ class TestTreeModelTest extends Specification {
         testNode.perRootInfo[0][1].isLeaf()
     }
 
-    private Path writeStoreDir(String name = "store", Closure writeAction) {
-        def storeDir = tempDir.resolve(name)
-        def store = new SerializableTestResultStore(storeDir)
-        def writer = store.openWriter(0)
-        try {
-            writeAction(writer)
-        } finally {
-            writer.close()
-        }
-        return storeDir
-    }
-
-    private SerializableTestResultStore writeStore(String name = "store", Closure writeAction) {
+    private SerializableTestResultStore writeStore(
+        String name = "store",
+        @ClosureParams(value = SimpleType, options = "org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore.Writer")
+            Closure<?> writeAction
+    ) {
         def storeDir = tempDir.resolve(name)
         def store = new SerializableTestResultStore(storeDir)
         def writer = store.openWriter(0)
