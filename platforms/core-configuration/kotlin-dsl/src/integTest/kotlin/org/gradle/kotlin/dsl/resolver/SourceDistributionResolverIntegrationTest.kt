@@ -150,29 +150,32 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     @Test
     @LeaksFileHandles
     fun `source distribution resolved from fallback when custom repo does not have it`() {
+        val gradleVersion = distribution.version
+
         withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
-            val customServer = HttpServer()
+            // Will play the role of the primary, custom Gradle repository, but with a missing source distribution.
+            val primaryServer = HttpServer()
+            primaryServer.start()
+            // Will play the role of `services.gradle.org` (overriden by the system property), with a source distribution.
             val fallbackServer = HttpServer()
-            customServer.start()
             fallbackServer.start()
+
             try {
-                val gradleVersion = distribution.version.version
-                val artifactFileName = "gradle-${gradleVersion}-src.zip"
+                val artifactFileName = "gradle-${gradleVersion.version}-src.zip"
+                val repositoryName = if (gradleVersion.isSnapshot) "distributions-snapshots" else "distributions"
 
-                // Wrapper distribution, that will set `GradleDistRepoDescriptorLocator#getPrimaryRepository`
-                withCustomGradleProperties("${customServer.uri}/gradle-${gradleVersion}-bin.zip")
+                withCustomGradleProperties("${primaryServer.uri}/$repositoryName/gradle-${gradleVersion.version}-bin.zip")
 
-                // Create a minimal empty zip
-                val fakeSourceZip = file("fake-src.zip").also { zip ->
+                // Primary: empty repo — source artifact is missing
+                val primaryDir = file("primary-repo/$repositoryName").also { it.mkdirs() }
+                primaryServer.allowGetOrHead("/$repositoryName", primaryDir)
+
+                // Fallback: repo with the source artifact
+                val fallbackDir = file("fallback-repo/$repositoryName").also { it.mkdirs() }
+                file("fallback-repo/$repositoryName/$artifactFileName").also { zip ->
                     ZipOutputStream(zip.outputStream()).close()
                 }
-
-                // Custom server returns 404 for the source artifact (HEAD and GET)
-                customServer.allowGetOrHeadMissing("/$artifactFileName")
-
-                // Fallback server serves the artifact under the distributions sub-path
-                // (matching repositoryName used in defaultGradleDistRepoBaseUrl)
-                fallbackServer.allowGetOrHead("/distributions/$artifactFileName", fakeSourceZip)
+                fallbackServer.allowGetOrHead("/$repositoryName", fallbackDir)
 
                 withBuildScript("""
                     val sourceDirs =
@@ -180,10 +183,9 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
                     println("resolved sourceDirs: " + sourceDirs.size)
                 """)
 
-                // Build with a system property setting `GradleDistRepoDescriptorLocator#getFallbackRepository`
                 build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${fallbackServer.uri}")
             } finally {
-                customServer.stop()
+                primaryServer.stop()
                 fallbackServer.stop()
             }
         }
@@ -222,7 +224,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
     private fun buildScriptAssertingGradleDistRepository(expectedUrl: String) =
         $$"""
-            val gradleDistRepository = $${queryGradleDistRepository()}
+            val gradleDistRepository = $${queryGradleDistRepository()}!!
             require(gradleDistRepository.repoBaseUrl == uri("$$expectedUrl")) {
                 "Unexpected repoBaseUrl in: ${gradleDistRepository}"
             }
@@ -233,4 +235,4 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 }
 
 private fun queryGradleDistRepository() =
-    "${GradleDistRepoDescriptorLocator::class.qualifiedName}(project).gradleDistRepository"
+    "${GradleDistRepoDescriptorLocator::class.qualifiedName}(project).primaryRepository"
