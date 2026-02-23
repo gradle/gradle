@@ -50,7 +50,8 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
         try {
             sourceDirs
         } catch (ex: Exception) {
-            project.logger.warn("Unexpected exception while resolving Gradle distribution sources: ${ex.message}", ex)
+            project.logger.warn("Could not resolve Gradle distribution sources. See debug logs for details.")
+            project.logger.debug("Root cause for failure to resolve Gradle distribution sources", ex)
             emptyList()
         }
 
