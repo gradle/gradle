@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptor
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptorLocator
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistVersion
 import org.gradle.util.GradleVersion
@@ -56,7 +57,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     val sourceDirs by lazy {
-        createSourceRepository()
+        createSourceRepositories()
         registerTransforms()
         transientConfigurationForSourcesDownload().files
     }
@@ -88,10 +89,19 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
     }
 
     private
-    fun createSourceRepository() = ivy {
-        val gradleDistRepository = repoLocator.gradleDistRepository
-        name = "Gradle ${gradleDistRepository.name}"
-        url = gradleDistRepository.repoBaseUrl
+    fun createSourceRepositories() {
+        listOfNotNull(
+            // The repository inferred from the project configuration (e.g. wrapper properties)
+            repoLocator.primaryRepository,
+            // The fallback solution if the inferred repository is not available
+            repoLocator.fallbackRepository
+        ).forEach(::createSourceRepository)
+    }
+
+    private
+    fun createSourceRepository(repo: GradleDistRepoDescriptor) = ivy {
+        name = "Gradle ${repo.name}"
+        url = repo.repoBaseUrl
         metadataSources {
             artifact()
         }
@@ -99,9 +109,9 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
             if (repoLocator.gradleVersion.isSnapshot) {
                 ivy("/dummy") // avoids a lookup that interferes with version listing
             }
-            artifact(gradleDistRepository.artifactPattern)
+            artifact(repo.artifactPattern)
         }
-        gradleDistRepository.credentialsApplier(this)
+        repo.credentialsApplier(this)
     }
 
     private

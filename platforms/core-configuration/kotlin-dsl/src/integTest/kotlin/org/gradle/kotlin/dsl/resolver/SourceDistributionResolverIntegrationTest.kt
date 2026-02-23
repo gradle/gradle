@@ -4,7 +4,10 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptorLocator
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Test
+import java.util.zip.ZipOutputStream
 
 class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest() {
 
@@ -142,6 +145,48 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
         withFile("../flat-included-build/build.gradle.kts", buildScriptAssertingGradleDistRepository(baseUrl))
 
         build()
+    }
+
+    @Test
+    @LeaksFileHandles
+    fun `source distribution resolved from fallback when custom repo does not have it`() {
+        withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
+            val customServer = HttpServer()
+            val fallbackServer = HttpServer()
+            customServer.start()
+            fallbackServer.start()
+            try {
+                val gradleVersion = distribution.version.version
+                val artifactFileName = "gradle-${gradleVersion}-src.zip"
+
+                // Wrapper distribution, that will set `GradleDistRepoDescriptorLocator#getPrimaryRepository`
+                withCustomGradleProperties("${customServer.uri}/gradle-${gradleVersion}-bin.zip")
+
+                // Create a minimal empty zip
+                val fakeSourceZip = file("fake-src.zip").also { zip ->
+                    ZipOutputStream(zip.outputStream()).close()
+                }
+
+                // Custom server returns 404 for the source artifact (HEAD and GET)
+                customServer.allowGetOrHeadMissing("/$artifactFileName")
+
+                // Fallback server serves the artifact under the distributions sub-path
+                // (matching repositoryName used in defaultGradleDistRepoBaseUrl)
+                fallbackServer.allowGetOrHead("/distributions/$artifactFileName", fakeSourceZip)
+
+                withBuildScript("""
+                    val sourceDirs =
+                        ${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs()
+                    println("resolved sourceDirs: " + sourceDirs.size)
+                """)
+
+                // Build with a system property setting `GradleDistRepoDescriptorLocator#getFallbackRepository`
+                build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${fallbackServer.uri}")
+            } finally {
+                customServer.stop()
+                fallbackServer.stop()
+            }
+        }
     }
 
     private fun testStandardCustomRepoLayout(distributionFileName: String) {

@@ -38,22 +38,32 @@ class GradleDistRepoDescriptorLocator(
     private
     val repositoryName = if (gradleVersion.isSnapshot) "distributions-snapshots" else "distributions"
 
-    val gradleDistRepository: GradleDistRepoDescriptor
+    val primaryRepository: GradleDistRepoDescriptor?
         get() = try {
-            findCustomGradleDistRepository() ?: defaultGradleDistRepository
+            findCustomGradleDistRepository()
         } catch (ex: Exception) {
             project.logger.warn("Unexpected exception while trying to find the URL for Gradle sources: ${ex.message}", ex)
-            defaultGradleDistRepository
+            null
         }
 
-    private
-    val defaultGradleDistRepository: GradleDistRepoDescriptor
+    val fallbackRepository: GradleDistRepoDescriptor
         get() = gradleDistRepoDescriptor(
             repositoryName,
-            URI.create("https://${DEFAULT_GRADLE_DIST_REPO_HOST_NAME}/$repositoryName"),
+            fallbackDistURI(),
             "[module]-[revision](-[classifier])(.[ext])",
             null
         )
+
+    private
+    fun fallbackDistURI(): URI {
+        // Allow overriding the default repository base URL via a system property, primarily for testing purposes
+        val overrideBaseUrl = System.getProperty("org.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl")
+        return if (overrideBaseUrl != null) {
+            URI.create("$overrideBaseUrl/$repositoryName")
+        } else {
+            URI.create("https://$DEFAULT_GRADLE_DIST_REPO_HOST_NAME/$repositoryName")
+        }
+    }
 
     private
     fun wrapperCredentials(baseUrl: URI): WrapperCredentials? =
