@@ -184,7 +184,8 @@ class MultiProducerSingleConsumerProcessorTest extends ConcurrentSpec {
 
         then:
         def e = waitForFailure { processor.submit(2) }
-        e.is(failureInstance)
+        e.message == "Cannot submit values after processor has failed."
+        e.cause.is(failureInstance)
 
         cleanup:
         stopQuietly(processor)
@@ -230,7 +231,8 @@ class MultiProducerSingleConsumerProcessorTest extends ConcurrentSpec {
 
         then:
         def e = thrown(RuntimeException)
-        e.is(failureInstance)
+        e.message == "Failure occurred during processor execution."
+        e.cause.is(failureInstance)
 
         cleanup:
         stopQuietly(processor)

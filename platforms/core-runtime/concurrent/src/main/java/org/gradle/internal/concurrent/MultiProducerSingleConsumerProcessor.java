@@ -16,8 +16,6 @@
 
 package org.gradle.internal.concurrent;
 
-
-import org.gradle.internal.UncheckedException;
 import org.jctools.queues.MessagePassingQueue;
 import org.jctools.queues.MpscUnboundedArrayQueue;
 import org.jspecify.annotations.Nullable;
@@ -35,7 +33,7 @@ import java.util.function.Consumer;
  * the values to process.
  * <p>
  * Any failure in the processor will terminate the worker thread. Any subsequent
- * interactions with the processor will rethrow the failure.
+ * interactions with the processor will immediately throw an exception.
  * <p>
  * If the worker thread is interrupted during execution, any remaining unprocessed
  * work is dropped.
@@ -46,7 +44,7 @@ public class MultiProducerSingleConsumerProcessor<T> {
      * The number of items to process in a single iteration of the worker loop,
      * before checking failure status or thread interruption.
      */
-    public static final int BATCH_SIZE = 1024;
+    static final int BATCH_SIZE = 1024;
 
     /**
      * Processes submitted values on a separate thread.
@@ -97,7 +95,7 @@ public class MultiProducerSingleConsumerProcessor<T> {
             }
         };
 
-        this.queue = new MpscUnboundedArrayQueue<>(1024);
+        this.queue = new MpscUnboundedArrayQueue<>(BATCH_SIZE);
         this.worker = new Thread(this::workerLoop, workerThreadName);
         this.worker.setDaemon(true);
     }
@@ -122,7 +120,7 @@ public class MultiProducerSingleConsumerProcessor<T> {
      */
     public void submit(T value) {
         if (failure != null) {
-            throw UncheckedException.throwAsUncheckedException(failure);
+            throw new IllegalStateException("Cannot submit values after processor has failed.", failure);
         }
 
         if (!running) {
@@ -168,7 +166,7 @@ public class MultiProducerSingleConsumerProcessor<T> {
         }
 
         if (failure != null) {
-            throw UncheckedException.throwAsUncheckedException(failure);
+            throw new IllegalStateException("Failure occurred during processor execution.", failure);
         }
     }
 
@@ -180,8 +178,8 @@ public class MultiProducerSingleConsumerProcessor<T> {
                     break;
                 }
 
-                // Invoke the processor with at most 1024 new values.
-                int processed = queue.drain(processor, 1024);
+                // Invoke the processor with at most BATCH_SIZE new values.
+                int processed = queue.drain(processor, BATCH_SIZE);
                 if (failure != null) {
                     break;
                 }
