@@ -85,7 +85,7 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec implement
         withInstallations(jdkCurrent, jdkOther).runAndFail(":run")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':run'.")
+        failureDescriptionStartsWith("Execution failed for task ':run' (registered by plugin 'org.gradle.application').")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javaLauncher` property")
     }
 
@@ -102,7 +102,7 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec implement
         withInstallations(jdkCurrent, jdkOther).runAndFail(":run")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':run'.")
+        failureDescriptionStartsWith("Execution failed for task ':run' (registered in build file 'build.gradle').")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javaLauncher` property")
     }
 

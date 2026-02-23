@@ -119,7 +119,7 @@ model {
         fails "assemble"
 
         then:
-        failureDescriptionContains("Execution failed for task ':assemble'.")
+        failureDescriptionContains("Execution failed for task ':assemble' (registered by plugin class 'org.gradle.language.base.plugins.LifecycleBasePlugin').")
         failure.assertHasCause("""No buildable binaries found:
   - shared library 'another:sharedLibrary': Disabled by user
   - static library 'another:staticLibrary': Disabled by user
@@ -232,7 +232,7 @@ model {
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.");
+        failure.assertHasDescription("Execution failed for task ':linkMainExecutable' (registered by Rule).");
         failure.assertHasCause("A build operation failed.")
         def exeName = executable("build/binaries/mainExecutable/main").file.name
         failure.assertThatCause(containsText("Linker failed while linking ${exeName}"))
@@ -265,7 +265,7 @@ model {
         fails "mainSharedLibrary"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary'.");
+        failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary' (registered by Rule).");
         failure.assertHasCause("A build operation failed.")
         def libName = sharedLibrary("build/binaries/mainSharedLibrary/main").file.name
         failure.assertThatCause(containsText("Linker failed while linking ${libName}"))
@@ -298,7 +298,7 @@ model {
         fails "mainStaticLibrary"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary'.");
+        failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary' (registered by Rule).");
         failure.assertHasCause("A build operation failed.")
         def libName = staticLibrary("build/binaries/mainSharedLibrary/main").file.name
         failure.assertThatCause(containsText("Static library archiver failed while archiving ${libName}"))

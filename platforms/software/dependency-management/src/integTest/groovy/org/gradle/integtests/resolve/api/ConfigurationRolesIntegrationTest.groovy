@@ -118,7 +118,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails 'checkState'
-        failure.assertHasDescription("Execution failed for task ':checkState'.")
+        failure.assertHasDescription("Execution failed for task ':checkState' (registered in build file 'build.gradle').")
         if ((method as String) in ['getResolvedConfiguration()']) {
             failure.assertHasCause("""Method call not allowed
   Calling configuration method '$method' is not allowed for configuration 'internal'

@@ -314,7 +314,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':generatePomFileForMavenPublication'.")
+        failure.assertHasDescription("Execution failed for task ':generatePomFileForMavenPublication' (registered by plugin 'org.gradle.maven-publish').")
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(15)
         failure.assertHasCause("Could not apply withXml() to generated POM")
@@ -348,7 +348,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository' (registered by plugin 'org.gradle.maven-publish').")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
         failure.assertHasCause("Invalid publication 'maven': POM file is invalid. Check any modifications you have made to the POM file.")
     }
@@ -380,7 +380,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository' (registered by plugin 'org.gradle.maven-publish').")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
         failure.assertHasCause("Invalid publication 'maven': supplied version (1.0) does not match value from POM file (2.0). Cannot edit version directly in the POM file.")
     }

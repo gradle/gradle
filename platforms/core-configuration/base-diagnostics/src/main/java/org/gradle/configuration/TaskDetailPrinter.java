@@ -66,7 +66,7 @@ public class TaskDetailPrinter {
             final LinePrefixingStyledTextOutput pathOutput = createIndentedOutput(output, INDENT);
             pathOutput.println("Path" + getPluralEnding(tasksByType));
             for (TaskDetails task : tasksByType) {
-                pathOutput.withStyle(UserInput).println(task.getPath());
+                pathOutput.withStyle(UserInput).println(getTaskPathAndProvenance(task));
             }
 
             output.println();
@@ -92,6 +92,15 @@ public class TaskDetailPrinter {
 
     private Map<String, List<TaskDetails>> groupTasksByType(Collection<TaskDetails> tasks) {
         return tasks.stream().collect(Collectors.groupingBy(TaskDetails::getTaskType, LinkedHashMap::new, Collectors.toList()));
+    }
+    private String getTaskPathAndProvenance(TaskDetails task) {
+        StringBuilder result = new StringBuilder();
+        result.append(task.getPath());
+        String provenance = task.getProvenance();
+        if (provenance != null) {
+            result.append(" (").append(provenance).append(")");
+        }
+        return result.toString();
     }
 
     private void printTaskDescription(StyledTextOutput output, List<TaskDetails> tasks) {

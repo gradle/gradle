@@ -221,35 +221,35 @@ task useFileProviderApi {
         fails("useIntTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':useIntTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':useIntTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
 
         when:
         fails("useIntTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':useIntTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':useIntTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.Directory using an instance of type java.lang.Integer.")
 
         when:
         fails("useFileTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':useFileTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':useFileTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.Directory using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile.")
 
         when:
         fails("useFileProviderDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':useFileProviderDsl'.")
+        failure.assertHasDescription("Execution failed for task ':useFileProviderDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
 
         when:
         fails("useFileProviderApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':useFileProviderApi'.")
+        failure.assertHasDescription("Execution failed for task ':useFileProviderApi' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.Directory using a provider of type org.gradle.api.file.RegularFile.")
     }
 
@@ -310,35 +310,35 @@ task useDirProviderApi {
         fails("useIntTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':useIntTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':useIntTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using an instance of type java.lang.Integer.")
 
         when:
         fails("useIntTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':useIntTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':useIntTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using an instance of type java.lang.Integer.")
 
         when:
         fails("useDirTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':useDirTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':useDirTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using an instance of type org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedDirectory.")
 
         when:
         fails("useDirProviderDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':useDirProviderDsl'.")
+        failure.assertHasDescription("Execution failed for task ':useDirProviderDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
 
         when:
         fails("useDirProviderApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':useDirProviderApi'.")
+        failure.assertHasDescription("Execution failed for task ':useDirProviderApi' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
     }
 

@@ -357,7 +357,7 @@ model {
         fails "runHelloTestGoogleTestExe"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':runHelloTestGoogleTestExe'.")
+        failure.assertHasDescription("Execution failed for task ':runHelloTestGoogleTestExe' (registered by Rule).")
         failure.assertHasCause("There were failing tests. See the results at: ")
 
         and:

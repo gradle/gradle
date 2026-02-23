@@ -175,7 +175,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         expect:
         fails("checkstyleMain")
         outputContains("Running checkstyle with toolchain '${jdk.javaHome.absolutePath}'.")
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered in build file 'build.gradle').")
         failure.assertHasErrorOutput("Name 'class1' must match pattern")
         failure.assertHasResolutions(SCAN)
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))

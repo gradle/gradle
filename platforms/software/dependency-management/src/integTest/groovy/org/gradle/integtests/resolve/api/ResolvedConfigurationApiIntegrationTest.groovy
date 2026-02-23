@@ -114,7 +114,7 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescription("Execution failed for task ':show' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
         failure.assertHasCause("Could not find test:test1:1.2.")
         failure.assertHasCause("Could not resolve test:test2:1.2.")
@@ -157,7 +157,7 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescription("Execution failed for task ':show' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not find test1-1.2.jar (test:test1:1.2).")
     }
 }

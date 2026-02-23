@@ -396,7 +396,7 @@ abstract class Resolve extends Copy {
         when:
         fails ':consumer:resolve'
         then:
-        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve'.")
+        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve' (registered in build file 'build.gradle').")
         failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters null of artifact transform MakeGreen")
     }
 }

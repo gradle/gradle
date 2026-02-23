@@ -87,7 +87,7 @@ model {
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.")
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc' (registered in build file 'build.gradle').")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Windows resource compiler failed while compiling broken.rc"))
     }

@@ -1106,7 +1106,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         expect:
         fails "resolveView"
 
-        failure.assertHasDescription("Execution failed for task ':app:resolveView'.")
+        failure.assertHasDescription("Execution failed for task ':app:resolveView' (registered in build file 'app/build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
 
         failure.assertHasCause("""No variants of project :lib match the consumer attributes:

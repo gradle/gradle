@@ -69,7 +69,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         fails "assemble"
 
         then:
-        failureDescriptionContains("Execution failed for task ':assemble'.")
+        failureDescriptionContains("Execution failed for task ':assemble' (registered by plugin class 'org.gradle.language.base.plugins.LifecycleBasePlugin').")
         failure.assertHasCause("""No buildable binaries found:
   - SampleBinary 'lib:notBuildableBinary1':
       - Binary notBuildableBinary1 has 'notBuildable' in the name

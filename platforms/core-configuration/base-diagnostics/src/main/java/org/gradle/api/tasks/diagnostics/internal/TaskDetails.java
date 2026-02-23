@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -28,22 +29,27 @@ public interface TaskDetails {
 
     String getTypeName();
 
+    @Nullable
+    String getProvenance();
+
     static TaskDetails of(Path path, Task task) {
-        return of(path, new DslObject(task).getPublicType().getFullyQualifiedName(), task.getDescription());
+        return of(path, new DslObject(task).getPublicType().getFullyQualifiedName(), task.getDescription(), ((TaskInternal) task).getProvenance().orElse(null));
     }
 
-    static TaskDetails of(Path path, String typeName, @Nullable String description) {
-        return new DefaultTaskDetails(path, typeName, description);
+    static TaskDetails of(Path path, String typeName, @Nullable String description, @Nullable String provenance) {
+        return new DefaultTaskDetails(path, typeName, description, provenance);
     }
 
     final class DefaultTaskDetails implements TaskDetails {
         private final Path path;
         private final String typeName;
+        @Nullable private final String provenance;
         @Nullable private final String description;
 
-        private DefaultTaskDetails(Path path, String typeName, @Nullable String description) {
+        private DefaultTaskDetails(Path path, String typeName, @Nullable String description, @Nullable String provenance) {
             this.path = path;
             this.typeName = typeName;
+            this.provenance = provenance;
             this.description = description;
         }
 
@@ -57,11 +63,15 @@ public interface TaskDetails {
             return typeName;
         }
 
+        @Override
+        public String getProvenance() {
+            return provenance;
+        }
+
         @Nullable
         @Override
         public String getDescription() {
             return description;
         }
-
     }
 }

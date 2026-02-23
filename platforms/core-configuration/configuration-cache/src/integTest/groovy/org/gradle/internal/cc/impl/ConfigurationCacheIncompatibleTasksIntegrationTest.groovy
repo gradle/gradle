@@ -205,7 +205,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheFails("markedIncompatible", "broken")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'.")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         result.assertTasksScheduled(":markedIncompatible", ":broken")

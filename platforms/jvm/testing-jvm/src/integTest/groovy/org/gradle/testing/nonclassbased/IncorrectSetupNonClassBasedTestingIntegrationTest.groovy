@@ -383,7 +383,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("${filterType.capitalize()} pattern 'ClassBasedFilter.methodName' is class-based, but no class-based tests were found. Please remove class-based $filterType patterns when running only non-class-based tests.")
 
         where:
@@ -418,7 +418,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("${filterType.capitalize()} pattern '/PathBasedFilter/.*/myTest.xml' is path-based, but no non-class-based tests were found. Please remove path-based $filterType patterns when running only class-based tests.")
 
         where:

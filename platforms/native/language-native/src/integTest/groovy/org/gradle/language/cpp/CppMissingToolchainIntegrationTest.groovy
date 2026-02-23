@@ -55,7 +55,7 @@ class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec impleme
         fails("assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileDebugCpp'.")
+        failure.assertHasDescription("Execution failed for task ':compileDebugCpp' (registered by plugin class 'org.gradle.language.cpp.plugins.CppBasePlugin').")
         if (OperatingSystem.current().windows) {
             failure.assertHasCause("""No tool chain is available to build C++ for host operating system '${osName}' architecture '${archName}':
   - Tool chain 'visualCpp' (Visual Studio):

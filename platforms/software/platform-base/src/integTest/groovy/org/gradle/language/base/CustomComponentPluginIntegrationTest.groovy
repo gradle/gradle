@@ -324,7 +324,7 @@ BUILD SUCCESSFUL"""
         fails "model"
 
         then:
-        failure.assertHasDescription "Execution failed for task ':model'."
+        failure.assertHasDescription "Execution failed for task ':model' (registered by plugin 'org.gradle.model-reporting-tasks')."
         failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin#register"
         failure.assertHasCause "Cannot register implementation for type 'UnmanagedComponent' because an implementation for this type was already registered by MyPlugin#register"
     }

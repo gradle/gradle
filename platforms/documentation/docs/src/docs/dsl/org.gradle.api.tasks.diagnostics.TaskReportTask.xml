@@ -17,6 +17,9 @@
                 <td>displayGroups</td>
             </tr>
             <tr>
+                <td>showProvenance</td>
+            </tr>
+            <tr>
                 <td>showTypes</td>
             </tr>
         </table>
