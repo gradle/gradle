@@ -18,10 +18,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.api.internal.initialization.DefaultScriptHandler
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -458,7 +458,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = "Runtime classpath for CompileJava task is resolved even though the task will not run")
     def "resolved components contain their source repository name, even when taken from the cache"() {
         setup:
         def secondMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
@@ -502,7 +501,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
 
             task resolve(type: Copy) {
-                from configurations.runtimeClasspath
+                from configurations.runtimeClasspath.files
                 into "build/resolved"
             }
         """
@@ -548,7 +547,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         when:
         server.resetExpectations()
-        succeeds 'resolve'
+        succeeds "resolve", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
         verifyExpectedOperation()
@@ -611,7 +610,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolvedComponents.'org.foo:transitive1:1.0'.repoId == repoId
     }
 
-    @ToBeFixedForConfigurationCache(because = "Dependency resolution does not run for a from-cache build")
     def "resolved components contain their source repository id, even when they are structurally identical"() {
         setup:
         buildFile << """
@@ -660,7 +658,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         when:
         server.resetExpectations()
-        succeeds 'resolve'
+        succeeds "resolve", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
         // This demonstrates a bug in Gradle, where we ignore the requirement for credentials when retrieving from the cache
