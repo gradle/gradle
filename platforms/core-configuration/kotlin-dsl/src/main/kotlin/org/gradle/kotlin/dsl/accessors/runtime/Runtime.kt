@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.DynamicObjectAware
-import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ExtensionAware
@@ -31,7 +30,6 @@ import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 import org.gradle.kotlin.dsl.support.uncheckedCast
-import org.gradle.features.internal.binding.ProjectFeatureImplementation
 import org.gradle.features.internal.binding.ProjectFeatureSupportInternal
 import org.gradle.features.internal.binding.TargetTypeInformationChecks
 import java.util.Locale.getDefault

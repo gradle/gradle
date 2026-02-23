@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Nested;
 import org.gradle.features.binding.ProjectFeatureApplyAction;
 import org.gradle.features.internal.file.DefaultProjectFeatureLayout;
@@ -75,6 +76,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
     private final ObjectFactory projectObjectFactory;
     private final InternalProblemReporter problemReporter;
     private final ServiceLookup allServices;
+    private final PropertyWalker propertyWalker = new DefaultPropertyWalker(getTypeAnnotationMetadataStore());
 
     @Inject
     public DefaultProjectFeatureApplicator(
@@ -109,7 +111,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
 
         if (result.isNew) {
             Plugin<Project> plugin = getPluginManager().getPluginContainer().getPlugin(projectFeature.getPluginClass());
-            getModelDefaultsApplicator().applyDefaultsTo(parentDefinition, result.featureApplication, new ClassLoaderContextFromScope(classLoaderScope), plugin, projectFeature);
+            getModelDefaultsApplicator().applyDefaultsTo(parentDefinition, result.featureApplication.getDefinitionInstance(), new ClassLoaderContextFromScope(classLoaderScope), plugin, projectFeature);
         }
 
         return result.featureApplication;
@@ -145,17 +147,19 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         bindNestedDefinitions(projectFeature.getDefinitionPublicType(), Cast.uncheckedCast(definition), applyActionContext);
 
         return new DefaultFeatureApplication<>(
+            projectFeature.getDefinitionImplementationType(),
             definition,
             buildModelInstance,
             parentDefinition,
             applyActionContext,
-            projectFeature.getApplyActionFactory().create(featureObjectFactory)
+            projectFeature.getApplyActionFactory().create(featureObjectFactory),
+            propertyWalker
         );
     }
 
     private void bindNestedDefinitions(Class<?> publicType, DynamicObjectAware parent, ProjectFeatureApplicationContext applyActionContext) {
         ProjectFeatureDefinitionContext rootDefinitionContext = ProjectFeatureSupportInternal.getContext(parent);
-        new PropertyWalker().walkProperties(publicType, parent, (propertyMetadata, propertyValue) -> {
+        propertyWalker.walkProperties(publicType, parent, (propertyMetadata, propertyValue) -> {
             if (Definition.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
                 Definition<?> nestedDefinition = Cast.uncheckedCast(propertyValue);
                 applyActionContext.registerBuildModel(nestedDefinition);
@@ -205,9 +209,16 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
      * Ignores any properties that are null, although properties whose value is null will be visited (e.g. ignores getFoo() == null, but will visit
      * getFoo().getOrNull() == null)
      */
-    private class PropertyWalker {
-        void walkProperties(Class<?> publicType, Object parent, PropertyVisitor visitor) {
-            getTypeAnnotationMetadataStore().getTypeAnnotationMetadata(publicType).getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
+    private static class DefaultPropertyWalker implements PropertyWalker {
+        private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
+
+        private DefaultPropertyWalker(TypeAnnotationMetadataStore typeAnnotationMetadataStore) {
+            this.typeAnnotationMetadataStore = typeAnnotationMetadataStore;
+        }
+
+        @Override
+        public void walkProperties(Class<?> publicType, Object parent, PropertyWalker.Visitor visitor) {
+            typeAnnotationMetadataStore.getTypeAnnotationMetadata(publicType).getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
                 Object propertyValue = propertyMetadata.getPropertyValue(parent);
                 if (propertyValue != null) {
                     visitor.visit(propertyMetadata, propertyValue);
@@ -220,24 +231,31 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         }
     }
 
-    private interface PropertyVisitor {
-        void visit(PropertyAnnotationMetadata propertyMetadata, Object propertyValue);
+    private interface PropertyWalker {
+        void walkProperties(Class<?> publicType, Object parent, Visitor visitor);
+        interface Visitor {
+            void visit(PropertyAnnotationMetadata propertyMetadata, Object propertyValue);
+        }
     }
 
     private static class DefaultFeatureApplication<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> implements FeatureApplication<OwnDefinition, OwnBuildModel> {
+        private final Class<? extends OwnDefinition> definitionImplementationType;
         private final OwnDefinition definitionInstance;
         private final OwnBuildModel buildModelInstance;
         private final Object parentDefinition;
         private final ProjectFeatureApplicationContext context;
         private final ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, ?> applyAction;
+        private final PropertyWalker propertyWalker;
         private boolean applied;
 
-        public DefaultFeatureApplication(OwnDefinition definitionInstance, OwnBuildModel buildModelInstance, Object parentDefinition, ProjectFeatureApplicationContext context, ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, ?> applyAction) {
+        public DefaultFeatureApplication(Class<? extends OwnDefinition> definitionImplementationType, OwnDefinition definitionInstance, OwnBuildModel buildModelInstance, Object parentDefinition, ProjectFeatureApplicationContext context, ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, ?> applyAction, PropertyWalker propertyWalker) {
+            this.definitionImplementationType = definitionImplementationType;
             this.definitionInstance = definitionInstance;
             this.buildModelInstance = buildModelInstance;
             this.parentDefinition = parentDefinition;
             this.context = context;
             this.applyAction = applyAction;
+            this.propertyWalker = propertyWalker;
         }
 
         @Override
@@ -253,9 +271,18 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         @Override
         public void apply() {
             if (!applied) {
+                finalizeProperties();
                 applyAction.apply(context, definitionInstance, buildModelInstance, Cast.uncheckedCast(parentDefinition));
                 applied = true;
             }
+        }
+
+        private void finalizeProperties() {
+            propertyWalker.walkProperties(definitionImplementationType, definitionInstance, (propertyMetadata, propertyValue) -> {
+                if (Property.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
+                    ((Property<?>) propertyValue).finalizeValue();
+                }
+            });
         }
     }
 
