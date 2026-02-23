@@ -67,6 +67,30 @@ class FileTestSelectionMatcherTest extends Specification {
         include << [ "*i*.test", "included.test", "*included.test*", "included.test*", "*included.test", "included.*" ]
     }
 
+    def "matchesFile with default packages"() {
+        expect:
+        // This captures current behavior, but not desired behavior.
+        // We cannot select files in the default package without
+        // including other files because *.included.test requires included.test
+        // to be in a package
+        def root = temp.createDir("root")
+        def included = root.file("included.test").touch()
+        def subIncluded = root.file("sub/included.test").touch()
+        def excluded = root.file("sub/someincluded.test").touch()
+
+        def matcher = createMatcher(["*.included.test"], [], root)
+        !matcher.matchesFile(included) // This isn't desired
+        matcher.matchesFile(subIncluded)
+        !matcher.matchesFile(excluded)
+        and:
+        // If you drop the dot from the pattern, we now incidentally include
+        // tests that are in any package and end with the given pattern
+        def matcherWithoutDot = createMatcher(["*included.test"], [], root)
+        matcherWithoutDot.matchesFile(included)
+        matcherWithoutDot.matchesFile(subIncluded)
+        matcherWithoutDot.matchesFile(excluded) // This is a side effect of the include
+    }
+
     private FileTestSelectionMatcher createMatcher(Collection<String> includes, Collection<String> excludes, TestFile root) {
         def classTestSelectionMatcher = new ClassTestSelectionMatcher(includes, excludes, [])
         def matcher = new FileTestSelectionMatcher(classTestSelectionMatcher, [root.toPath().toRealPath()])
