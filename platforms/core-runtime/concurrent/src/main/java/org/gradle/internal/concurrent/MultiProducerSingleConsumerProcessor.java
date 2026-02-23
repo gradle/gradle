@@ -131,6 +131,32 @@ public class MultiProducerSingleConsumerProcessor<T> {
             }
         }
 
+        doSubmit(value);
+    }
+
+    /**
+     * Submit a value to be processed, discarding the value if the processor is
+     * shutdown or in a failure state.
+     */
+    public void maybeSubmit(T value) {
+        if (failure != null) {
+            return;
+        }
+
+        if (!running) {
+            if (worker.getState() == Thread.State.NEW) {
+                throw new IllegalStateException("Cannot submit values before processor has been started.");
+            }
+            return;
+        }
+
+        doSubmit(value);
+    }
+
+    /**
+     * Submit the value to the queue, waking up the worker thread if necessary.
+     */
+    private void doSubmit(T value) {
         if (!queue.offer(value)) {
             throw new IllegalStateException("Failed to offer value to queue");
         }

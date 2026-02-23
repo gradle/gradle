@@ -386,6 +386,79 @@ class MultiProducerSingleConsumerProcessorTest extends ConcurrentSpec {
         stopQuietly(processor)
     }
 
+    def "maybeSubmit processes values when running"() {
+        given:
+        def processed = new CopyOnWriteArrayList<Integer>()
+        def processor = newProcessor { Integer value ->
+            processed.add(value)
+            instant.processed
+        }
+        processor.start()
+
+        when:
+        processor.maybeSubmit(123)
+        waitFor.processed
+
+        then:
+        processed == [123]
+
+        cleanup:
+        stopQuietly(processor)
+    }
+
+    def "maybeSubmit throws exception when called before start"() {
+        given:
+        def processor = newProcessor {}
+
+        when:
+        processor.maybeSubmit(123)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot submit values before processor has been started."
+    }
+
+    def "maybeSubmit discards values after stop"() {
+        given:
+        def processed = new CopyOnWriteArrayList<Integer>()
+        def processor = newProcessor { processed.add(it) }
+        processor.start()
+        processor.stop(TIMEOUT)
+
+        when:
+        processor.maybeSubmit(123)
+
+        then:
+        processed.isEmpty()
+    }
+
+    def "maybeSubmit discards values after failure"() {
+        given:
+        def processed = new CopyOnWriteArrayList<Integer>()
+        def processor = newProcessor { Integer value ->
+            if (value == 1) {
+                throw new RuntimeException("failed")
+            }
+            processed.add(value)
+        }
+        processor.start()
+
+        when:
+        processor.submit(1)
+
+        then:
+        waitForFailure { processor.submit(2) }
+
+        when:
+        processor.maybeSubmit(3)
+
+        then:
+        processed.isEmpty()
+
+        cleanup:
+        stopQuietly(processor)
+    }
+
     /**
      * A failure in the processor may not be immediately visible in the producing thread,
      * so we retry a given action we expect to emit a failure util that failure is emitted.
