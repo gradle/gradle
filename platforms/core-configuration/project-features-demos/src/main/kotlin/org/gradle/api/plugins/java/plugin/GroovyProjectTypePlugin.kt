@@ -74,6 +74,7 @@ class GroovyProjectTypePlugin : Plugin<Project> {
                 registerJar(model.classes.named("main"), model, services.taskRegistrar)
             }
             .withUnsafeDefinitionImplementationType(DefaultGroovyProjectType::class.java)
+            .withUnsafeApplyAction()
         }
 
         interface Services {

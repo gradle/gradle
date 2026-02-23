@@ -176,6 +176,7 @@ trait ProjectTypeFixture {
         def definitionWithClasses = new ProjectTypeDefinitionWithDependenciesClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder(definitionWithClasses)
             .withUnsafeDefinition()
+            .withUnsafeApplyAction()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
