@@ -28,6 +28,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
+import org.gradle.platform.BuildPlatform;
 
 import java.io.File;
 import java.net.URI;
@@ -36,6 +37,8 @@ import java.net.URI;
 public interface JavaToolchainProvisioningService {
 
     File tryInstall(JavaToolchainSpec spec) throws ToolchainDownloadException, ToolchainProvisioningException;
+
+    File tryInstall(JavaToolchainSpec spec, BuildPlatform buildPlatform) throws ToolchainDownloadException, ToolchainProvisioningException;
 
     default boolean isAutoDownloadEnabled() {
         return true;

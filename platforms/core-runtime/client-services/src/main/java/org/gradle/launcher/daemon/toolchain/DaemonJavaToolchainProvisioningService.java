@@ -27,7 +27,8 @@ import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningServic
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
-import org.gradle.platform.internal.CurrentBuildPlatform;
+import org.gradle.platform.BuildPlatform;
+import org.gradle.platform.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
+import java.util.Objects;
 
 public class DaemonJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
@@ -43,12 +45,12 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
 
     private final SecureFileDownloader downloader;
     private final DefaultJdkCacheDirectory cacheDirProvider;
-    private final CurrentBuildPlatform buildPlatform;
+    private final BuildPlatform buildPlatform;
     private final ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
     private final boolean isAutoDownloadEnabled;
     private final ProgressLoggerFactory progressLoggerFactory;
 
-    public DaemonJavaToolchainProvisioningService(SecureFileDownloader downloader, JdkCacheDirectory cacheDirProvider, CurrentBuildPlatform buildPlatform, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, Boolean isAutoDownloadEnabled, ProgressLoggerFactory progressLoggerFactory) {
+    public DaemonJavaToolchainProvisioningService(SecureFileDownloader downloader, JdkCacheDirectory cacheDirProvider, BuildPlatform buildPlatform, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, Boolean isAutoDownloadEnabled, ProgressLoggerFactory progressLoggerFactory) {
         this.downloader = downloader;
         this.cacheDirProvider = (DefaultJdkCacheDirectory) cacheDirProvider;
         this.buildPlatform = buildPlatform;
@@ -64,13 +66,20 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
 
     @Override
     public File tryInstall(JavaToolchainSpec spec) {
+        return tryInstall(spec, buildPlatform);
+    }
+
+    @Override
+    public File tryInstall(JavaToolchainSpec spec, BuildPlatform buildPlatform) {
+        Objects.requireNonNull(spec, "spec must not be null");
+        Objects.requireNonNull(buildPlatform, "buildPlatform must not be null");
         if (!isAutoDownloadEnabled()) {
             throw new ToolchainProvisioningException(spec, "Toolchain auto-provisioning is not enabled.",
                 ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION);
         }
 
         synchronized (PROVISIONING_PROCESS_LOCK) {
-            URI uri = getBuildPlatformToolchainUrl(spec);
+            URI uri = getBuildPlatformToolchainUrl(spec, buildPlatform);
             // TODO: Would there be a way to have this progress logger be the parent of the one used for download progress logging
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DaemonJavaToolchainProvisioningService.class);
             progressLogger.start("Installing toolchain", null);
@@ -109,15 +118,17 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
         }
     }
 
-    private URI getBuildPlatformToolchainUrl(JavaToolchainSpec spec) {
-        String stringUri = toolchainDownloadUrlProvider.getToolchainDownloadUrlByPlatform().get(buildPlatform.toBuildPlatform());
+    private URI getBuildPlatformToolchainUrl(JavaToolchainSpec spec, BuildPlatform buildPlatform) {
+        String stringUri = toolchainDownloadUrlProvider.getToolchainDownloadUrlByPlatform().get(buildPlatform);
+        OperatingSystem operatingSystem = buildPlatform.getOperatingSystem();
+        String architecture = buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT);
         try {
             return new URI(stringUri);
         } catch (NullPointerException e) {
-            String cause = String.format("No defined toolchain download url for %s on %s architecture.", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
+            String cause = String.format("No defined toolchain download url for %s on %s architecture.", operatingSystem, architecture);
             throw new ToolchainDownloadException(spec, stringUri, cause);
         } catch (URISyntaxException e) {
-            String cause =  String.format("Invalid toolchain download url %s for %s on %s architecture.", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
+            String cause =  String.format("Invalid toolchain download url %s for %s on %s architecture.", stringUri, operatingSystem, architecture);
             throw new ToolchainDownloadException(spec, stringUri, cause);
         }
     }

@@ -32,6 +32,7 @@ import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException
+import org.gradle.platform.BuildPlatform
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -356,6 +357,10 @@ class JavaToolchainQueryServiceTest extends Specification {
                 installed = true
                 new File("/path/12")
             }
+
+            File tryInstall(JavaToolchainSpec spec, BuildPlatform buildPlatform) {
+                throw new UnsupportedOperationException()
+            }
         }
         def queryService = createQueryService(registry, newJvmMetadataDetector(), provisionService)
 
@@ -377,6 +382,10 @@ class JavaToolchainQueryServiceTest extends Specification {
             File tryInstall(JavaToolchainSpec spec) {
                 installed = true
                 new File("/path/12.broken")
+            }
+
+            File tryInstall(JavaToolchainSpec spec, BuildPlatform buildPlatform) {
+                throw new UnsupportedOperationException()
             }
         }
         def queryService = createQueryService(registry, newJvmMetadataDetector(), provisionService)
@@ -400,6 +409,10 @@ class JavaToolchainQueryServiceTest extends Specification {
             File tryInstall(JavaToolchainSpec spec) {
                 installed++
                 new File("/path/12")
+            }
+
+            File tryInstall(JavaToolchainSpec spec, BuildPlatform buildPlatform) {
+                throw new UnsupportedOperationException()
             }
         }
         def queryService = createQueryService(registry, newJvmMetadataDetector(), provisionService)
