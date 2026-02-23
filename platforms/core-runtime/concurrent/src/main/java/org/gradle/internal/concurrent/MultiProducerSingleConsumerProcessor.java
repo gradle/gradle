@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
+import java.util.function.Consumer;
 
 /**
  * Processes values submitted from many producer threads on a single consumer thread.
@@ -34,12 +35,18 @@ import java.util.concurrent.locks.LockSupport;
  * the values to process.
  * <p>
  * Any failure in the processor will terminate the worker thread. Any subsequent
- * calls to {@link #submit(Object)} will throw an exception.
+ * interactions with the processor will rethrow the failure.
  * <p>
  * If the worker thread is interrupted during execution, any remaining unprocessed
  * work is dropped.
  */
 public class MultiProducerSingleConsumerProcessor<T> {
+
+    /**
+     * The number of items to process in a single iteration of the worker loop,
+     * before checking failure status or thread interruption.
+     */
+    public static final int BATCH_SIZE = 1024;
 
     /**
      * Processes submitted values on a separate thread.
@@ -76,9 +83,19 @@ public class MultiProducerSingleConsumerProcessor<T> {
 
     public MultiProducerSingleConsumerProcessor(
         String workerThreadName,
-        MessagePassingQueue.Consumer<T> processor
+        Consumer<T> processor
     ) {
-        this.processor = processor;
+        this.processor = value -> {
+            if (failure != null) {
+                return;
+            }
+
+            try {
+                processor.accept(value);
+            } catch (Throwable t) {
+                failure = t;
+            }
+        };
 
         this.queue = new MpscUnboundedArrayQueue<>(1024);
         this.worker = new Thread(this::workerLoop, workerThreadName);
@@ -89,6 +106,12 @@ public class MultiProducerSingleConsumerProcessor<T> {
      * Start the handler. This must be called before any values may be submitted.
      */
     public void start() {
+        if (running) {
+            throw new IllegalStateException("Cannot start processor after it has been started.");
+        }
+        if (failure != null) {
+            throw new IllegalStateException("Cannot restart processor after it failed.", failure);
+        }
         this.running = true;
         this.worker.start();
     }
@@ -103,7 +126,11 @@ public class MultiProducerSingleConsumerProcessor<T> {
         }
 
         if (!running) {
-            throw new IllegalStateException("Cannot submit values after processor has been stopped.");
+            if (worker.getState() == Thread.State.NEW) {
+                throw new IllegalStateException("Cannot submit values before processor has been started.");
+            } else {
+                throw new IllegalStateException("Cannot submit values after processor has been stopped.");
+            }
         }
 
         if (!queue.offer(value)) {
@@ -130,9 +157,10 @@ public class MultiProducerSingleConsumerProcessor<T> {
         LockSupport.unpark(worker);
 
         try {
-            worker.join(timeout.toMillis());
+            long timeoutMillis = Math.max(1, timeout.toMillis());
+            worker.join(timeoutMillis);
             if (worker.isAlive()) {
-                throw new RuntimeException("Timed out waiting for handler to complete");
+                throw new RuntimeException("Timed out waiting for handler to complete.");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -148,10 +176,15 @@ public class MultiProducerSingleConsumerProcessor<T> {
         try {
             while (running || !queue.isEmpty()) {
                 if (Thread.interrupted()) {
-                    throw new InterruptedException();
+                    this.failure = new InterruptedException();
+                    break;
                 }
 
+                // Invoke the processor with at most 1024 new values.
                 int processed = queue.drain(processor, 1024);
+                if (failure != null) {
+                    break;
+                }
                 if (processed > 0) {
                     continue;
                 }
@@ -159,19 +192,22 @@ public class MultiProducerSingleConsumerProcessor<T> {
                 // Signal that we are going to sleep.
                 awake.set(false);
 
-                // It is possible that a new value was submitted after we drained the
+                // Double-check: It is possible that a new value was submitted after we drained the
                 // queue but before we set the awake flag to false. This would cause
                 // the submitting thread to not attempt to wake up the worker thread.
+                // By checking queue.isEmpty() again, we catch values added during the race window.
                 if (queue.isEmpty() && running) {
                     LockSupport.park();
                 }
 
                 // Most of the time, this will be set to true by the producer thread before unparking
-                // the worker. However, `park` may return even if unpark was never requested.
-                // Therefore, We must always set the `awake` flag to true unconditionally.
+                // the worker. However, `park` may return even if unpark was never requested
+                // (spurious wakeup). Therefore, we must always set the `awake` flag to true
+                // unconditionally to maintain the invariant that awake=true when the worker is active.
                 awake.set(true);
             }
         } catch (Throwable e) {
+            // `processor` should never throw, but this catch ensures we do not miss any fatal JVM Errors.
             this.failure = e;
         } finally {
             this.running = false;
