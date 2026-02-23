@@ -99,7 +99,7 @@ include::sample[dir="snippets/bestPractices/modularizeYourBuild-avoid/groovy/app
 ====
 
 <1> This build contains only a single project (in addition to the root project) that contains all the source code.  If there is any change to any source file, Gradle will have to recompile and rebuild everything.  While incremental compilation will help (especially in this simplified example) this is still less efficient then avoidance.  Gradle also won't be able to run any tasks in parallel, since all these tasks are in the same project, so this design won't scale nicely.
-<2> As there is only a single project in this build, the `application` plugin must be applied here.  This means that the `application` plugin will be affect all source files in the build, even those which have no need for it.
+<2> As there is only a single project in this build, the `application` plugin must be applied here.  This means that the `application` plugin will affect all source files in the build, even those which have no need for it.
 <3> Likewise, the dependencies here are only needed by each particular implmentation of util.  There's no need for the implementation using Guava to have access to the Commons library, but it does because they are all in the same project.  This also means that the classpath for each subproject is much larger than it needs to be, which can lead to longer build times and other confusion.
 
 ==== Do This Instead
