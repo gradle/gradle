@@ -180,7 +180,8 @@ public class TestTreeModel {
 
             List<PerRootInfo.Builder> existingRootInfos = model.perRootInfoBuilders.get(rootIndex);
             if (!existingRootInfos.isEmpty()) {
-                // Only merge non-leaf nodes.  Leaf nodes might be repeated by test retries, so we'll want to add them all to the model.
+                // Only merge into non-leaf nodes. Leaf nodes might be repeated by test retries,
+                // so we'll want to add them all to the model if possible.
                 // The merging is necessary to support test engines like TestNG which can split test methods in a single class between
                 // multiple test workers.  These results must be recombined in the model to get the correct counts and report structure.
                 boolean isLeaf = rootInfo.isLeaf();
