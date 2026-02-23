@@ -66,7 +66,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -329,10 +328,9 @@ public class DependencyGraphBuilder {
                 if (selected.isRejected()) {
                     List<String> conflictResolutions = buildConflictResolutions(selected, failureResolutions).getRight();
                     GradleException error = resolutionFailureHandler.moduleRejected(module, conflictResolutions);
-                    attachFailureToEdges(error, module.getIncomingEdges());
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.
-                    attachFailureToEdges(error, module.getUnattachedEdges());
+                    module.visitAllIncomingEdges(edge -> edge.failWith(error));
                 } else {
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);
@@ -562,9 +560,7 @@ public class DependencyGraphBuilder {
                 .map(NodeState::getMetadata)
                 .collect(Collectors.toSet());
             AbstractResolutionFailureException variantsSelectionException = resolutionFailureHandler.incompatibleMultipleNodesValidationFailure(matcher, selected.getMetadata(), incompatibleNodeMetadatas);
-            for (EdgeState edge : module.getIncomingEdges()) {
-                edge.failWith(variantsSelectionException);
-            }
+            module.visitIncomingEdges(edge -> edge.failWith(variantsSelectionException));
         }
     }
 
@@ -574,22 +570,27 @@ public class DependencyGraphBuilder {
         String currentVersion = module.maybeFindForcedPlatformVersion();
         Set<ModuleResolveState> participatingModules = module.getPlatformState().getParticipatingModules();
         for (ModuleResolveState participatingModule : participatingModules) {
-            for (EdgeState incomingEdge : participatingModule.getIncomingEdges()) {
-                SelectorState selector = incomingEdge.getSelector();
-                if (isPlatformForcedEdge(selector)) {
-                    ComponentSelector componentSelector = selector.getSelector();
-                    if (componentSelector instanceof ModuleComponentSelector) {
-                        ModuleComponentSelector mcs = (ModuleComponentSelector) componentSelector;
-                        if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {
-                            if (forcedEdges == null) {
-                                forcedEdges = new ArrayList<>();
-                            }
-                            forcedEdges.add(incomingEdge);
-                            if (currentVersion == null) {
-                                currentVersion = mcs.getVersion();
-                            } else {
-                                if (!currentVersion.equals(mcs.getVersion())) {
-                                    hasMultipleVersions = true;
+            ComponentState selected = participatingModule.getSelected();
+            if (selected != null) {
+                for (NodeState nodeState : participatingModule.getSelected().getNodes()) {
+                    for (EdgeState incomingEdge : nodeState.getIncomingEdges()) {
+                        SelectorState selector = incomingEdge.getSelector();
+                        if (isPlatformForcedEdge(selector)) {
+                            ComponentSelector componentSelector = selector.getSelector();
+                            if (componentSelector instanceof ModuleComponentSelector) {
+                                ModuleComponentSelector mcs = (ModuleComponentSelector) componentSelector;
+                                if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {
+                                    if (forcedEdges == null) {
+                                        forcedEdges = new ArrayList<>();
+                                    }
+                                    forcedEdges.add(incomingEdge);
+                                    if (currentVersion == null) {
+                                        currentVersion = mcs.getVersion();
+                                    } else {
+                                        if (!currentVersion.equals(mcs.getVersion())) {
+                                            hasMultipleVersions = true;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -598,24 +599,13 @@ public class DependencyGraphBuilder {
             }
         }
         if (hasMultipleVersions) {
-            attachFailureToEdges(new GradleException("Multiple forces on different versions for virtual platform " + module.getId()), forcedEdges);
+            GradleException failure = new GradleException("Multiple forces on different versions for virtual platform " + module.getId());
+            forcedEdges.forEach(edge -> edge.failWith(failure));
         }
     }
 
     private static boolean isPlatformForcedEdge(SelectorState selector) {
         return selector.isForce() && !selector.isSoftForce();
-    }
-
-    /**
-     * Attaches errors late in the process. This is useful whenever we have built a graph, and that
-     * validation is going to cause a failure (the error is not in the graph itself, but in the way
-     * we handle it: do we use failOnVersionConflict?). This method therefore needs to be called
-     * before the graph is handed over, so that we can properly fail resolution.
-     */
-    private static void attachFailureToEdges(GradleException error, Collection<EdgeState> incomingEdges) {
-        for (EdgeState edge : incomingEdges) {
-            edge.failWith(error);
-        }
     }
 
     /**
