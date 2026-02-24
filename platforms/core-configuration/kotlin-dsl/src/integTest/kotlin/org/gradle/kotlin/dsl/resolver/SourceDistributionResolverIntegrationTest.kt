@@ -15,9 +15,6 @@ import org.junit.Test
 @Suppress("DuplicatedCode")
 class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest() {
 
-    private val srcDistribution get() = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
-    private val binDistribution get() = IntegrationTestBuildContext.INSTANCE.binDistribution!!
-
     @Test
     fun `standard layout custom repository release bin`() {
         testStandardCustomRepoLayout("gradle-9.4.0-bin.zip")
@@ -158,6 +155,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     @LeaksFileHandles
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from fallback when custom repo does not have it`() {
+        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
         val gradleVersion = distribution.version
 
         withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
@@ -201,6 +199,8 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     @LeaksFileHandles
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from local file when src zip is next to bin zip`() {
+        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
+        val binDistribution = IntegrationTestBuildContext.INSTANCE.binDistribution!!
         val gradleVersion = distribution.version.version
 
         withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
@@ -223,6 +223,8 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     @LeaksFileHandles
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from fallback when wrapper uses a local file distribution without src zip`() {
+        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
+        val binDistribution = IntegrationTestBuildContext.INSTANCE.binDistribution!!
         val gradleVersion = distribution.version
 
         withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
