@@ -515,6 +515,62 @@ dependencies {
             }
 
             task resolveStaleThenFresh {
+                // Force resolution at Configuration time, to ensure stale is resolved BEFORE fresh, so it doesn't see the new dynamic version fresh will later add to the resolution cache
+                def stale = configurations.stale.files
+                def fresh = configurations.fresh.files
+                doFirst {
+                    println 'stale:' + stale.collect { it.name } + ',fresh:' + fresh.collect { it.name }
+                }
+            }
+        """
+
+        when:
+        def projectA11 = ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
+
+        and:
+        expectGetDynamicRevision(projectA12)
+
+        then:
+        succeeds "resolveStaleThenFresh"
+
+        and:
+        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.2.jar]")
+
+        when:
+        def projectA13 = ivyHttpRepo.module("org.test", "projectA", "1.3").publish()
+        server.resetExpectations()
+
+        and:
+        // Should get the newer version when resolving 'fresh'
+        expectGetDynamicRevision(projectA13)
+
+        then:
+        succeeds "resolveStaleThenFresh"
+
+        and:
+        outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
+    }
+
+    def "dynamic version cache expiry will cause CC invalidation for subsequent resolutions"() {
+        given:
+        useRepository ivyHttpRepo
+        file("gradle.properties")
+
+        buildFile << """
+            configurations {
+                fresh
+                stale
+            }
+            configurations.fresh.resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+
+            dependencies {
+                fresh("org.test:projectA:1.+")
+                stale("org.test:projectA:1.+")
+            }
+
+            task resolveStaleThenFresh {
+                // Proper CC serialization versus the above test
                 def stale = configurations.stale
                 def fresh = configurations.fresh
                 doFirst {
@@ -548,10 +604,9 @@ dependencies {
         succeeds "resolveStaleThenFresh"
 
         and:
-        if (GradleContextualExecuter.isConfigCache()) { // CC causes even stale conf to be re-resolved, which finds the latest available version
-            outputContains("Calculating task graph as configuration cache cannot be reused because cached version information for org.test:projectA:1.+ has expired.")
+        if (GradleContextualExecuter.isConfigCache()) { // CC has expired, so conf stale is re-resolved and gets the newer version
             outputContains("stale:[projectA-1.3.jar],fresh:[projectA-1.3.jar]")
-        } else {
+        } else { // No CC, so conf stale is not re-resolved and still has the older version
             outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
         }
     }
@@ -560,7 +615,7 @@ dependencies {
      * This test ensures that even if the conf is a part of the task fingerprint, if it isn't actually resolved, it doesn't force re-resolution
      * Compare this with {@link #"should honour dynamic version cache expiry for subsequent resolutions"()} above.
      */
-    def "expired dynamic version on a conf doesn't invalidate configuration cache if that cache is not resolved"() {
+    def "expired dynamic version on a conf doesn't invalidate configuration cache if the cache is not resolved"() {
         given:
         useRepository ivyHttpRepo
         buildFile << """
