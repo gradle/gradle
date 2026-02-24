@@ -37,6 +37,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestExecutionResult;
+import org.junit.platform.engine.discovery.DirectorySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.DirectorySource;
@@ -120,7 +121,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
 
     private static final class CollectThenExecuteTestDefinitionConsumer implements TestDefinitionConsumer<TestDefinition> {
         private final List<DiscoverySelector> selectors = new ArrayList<>();
-        private final List<Path> roots = new ArrayList<>();
+        private final List<Path> testDefinitionDirs = new ArrayList<>();
 
         private final TestResultProcessor resultProcessor;
         private final BackwardsCompatibleLauncherSession launcherSession;
@@ -161,7 +162,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
             selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefinitionsDir()));
             try {
-                roots.add(testDefinition.getTestDefinitionsDir().toPath().toRealPath());
+                testDefinitionDirs.add(testDefinition.getTestDefinitionsDir().toPath().toRealPath());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -169,7 +170,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
 
         private void processAllTestDefinitions() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
-            JUnitPlatformTestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, roots);
+            JUnitPlatformTestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, testDefinitionDirs);
             Launcher launcher = Objects.requireNonNull(launcherSession).getLauncher();
             if (spec.isDryRun()) {
                 TestPlan testPlan = launcher.discover(discoveryRequest);
@@ -221,20 +222,26 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
             TestFilterSpec filterSpec = spec.getFilter();
             if (isNotEmpty(filterSpec)) {
-                TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec, roots);
+                TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec, testDefinitionDirs);
 
                 DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter();
 
-                ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
-                delegatingFilter.addDelegate(ClassSource.class, classFilter);
-                delegatingFilter.addDelegate(MethodSource.class, classFilter);
-
-                FilePathFilter fileFilter = new FilePathFilter(matcher);
-                delegatingFilter.addDelegate(FileSource.class, fileFilter);
-                delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
+                if (hasDirectorySelectors()) {
+                    FilePathFilter fileFilter = new FilePathFilter(matcher);
+                    delegatingFilter.addDelegate(FileSource.class, fileFilter);
+                    delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
+                } else {
+                    ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
+                    delegatingFilter.addDelegate(ClassSource.class, classFilter);
+                    delegatingFilter.addDelegate(MethodSource.class, classFilter);
+                }
 
                 requestBuilder.filters(delegatingFilter);
             }
+        }
+
+        private boolean hasDirectorySelectors() {
+            return selectors.stream().anyMatch(it -> it instanceof DirectorySelector);
         }
 
         private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {

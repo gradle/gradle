@@ -148,16 +148,16 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
-    private final Collection<Path> roots;
+    private final Collection<Path> testDefinitionDirs;
 
     @Nullable
     private TestPlan currentTestPlan;
 
-    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, Collection<Path> roots) {
+    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, Collection<Path> testDefinitionDirs) {
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
-        this.roots = roots;
+        this.testDefinitionDirs = testDefinitionDirs;
     }
 
     public void throwAnyFatalExceptions() {
@@ -568,9 +568,9 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
         try {
             Path path = ((FileSource) source).getFile().toPath().toRealPath();
-            for (Path root : roots) {
-                if (path.startsWith(root)) {
-                    String relativePath = TextUtil.normaliseFileSeparators(root.relativize(path).toString());
+            for (Path testDefinitionDir : testDefinitionDirs) {
+                if (path.startsWith(testDefinitionDir)) {
+                    String relativePath = TextUtil.normaliseFileSeparators(testDefinitionDir.relativize(path).toString());
                     return Optional.of(relativePath);
                 }
             }
