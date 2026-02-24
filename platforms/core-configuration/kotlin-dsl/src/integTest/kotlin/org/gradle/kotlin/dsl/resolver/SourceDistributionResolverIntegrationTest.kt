@@ -129,12 +129,14 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     fun `source distribution available everywhere in a complex build`() {
         val baseUrl = "https://my-host.org/my-path/distributions"
         withCustomGradleProperties("$baseUrl/gradle-9.4.0-bin.zip")
-        withSettings("""
+        withSettings(
+            """
             rootProject.name = "root"
             include("subproject")
             includeBuild("sub-included-build")
             includeBuild("../flat-included-build")
-        """.trimIndent())
+            """.trimIndent()
+        )
 
         // rootProject
         withBuildScript(buildScriptAssertingGradleDistRepository(baseUrl))
@@ -162,7 +164,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
             // Will play the role of the primary, custom Gradle repository, but with a missing source distribution.
             val primaryServer = HttpServer()
             primaryServer.start()
-            // Will play the role of `services.gradle.org` (overriden by the system property), with a source distribution.
+            // Will play the role of `services.gradle.org` (overridden by the system property), with a source distribution.
             val fallbackServer = HttpServer()
             fallbackServer.start()
 
@@ -173,24 +175,29 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
                 withCustomGradleProperties("${primaryServer.uri}/$repositoryName/gradle-${gradleVersion.version}-bin.zip")
 
                 // Primary: empty repo — source artifact is missing
-                val primaryDir = file("primary-repo/$repositoryName").also { it.mkdirs() }
-                primaryServer.allowGetOrHead("/$repositoryName", primaryDir)
+                primaryServer.expectGetMissing("/$repositoryName/")
 
                 // Fallback: repo with the source artifact
                 val fallbackDir = file("fallback-repo/$repositoryName").also { it.mkdirs() }
                 srcDistribution.copyTo(file("fallback-repo/$repositoryName/$artifactFileName"))
-                fallbackServer.allowGetOrHead("/$repositoryName", fallbackDir)
+                fallbackServer.expectGetDirectoryListing("/$repositoryName/", fallbackDir)
+                fallbackServer.expectHead("/$repositoryName/gradle-${gradleVersion.version}-src.zip", srcDistribution)
+                fallbackServer.expectGet("/$repositoryName/gradle-${gradleVersion.version}-src.zip", srcDistribution)
 
-                withBuildScript("""
+                withBuildScript(
+                    """
                     require(${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs().isNotEmpty()) {
                         "Expected source dirs to be resolved from the fallback repository"
                     }
-                """)
+                    """
+                )
 
                 build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${fallbackServer.uri}")
             } finally {
                 primaryServer.stop()
                 fallbackServer.stop()
+                primaryServer.resetExpectations()
+                fallbackServer.resetExpectations()
             }
         }
     }
@@ -209,11 +216,13 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
             srcDistribution.copyTo(file("local-dist/gradle-${gradleVersion}-src.zip"))
             withCustomGradleProperties(file("local-dist/gradle-${gradleVersion}-bin.zip").toURI().toASCIIString())
 
-            withBuildScript("""
+            withBuildScript(
+                """
                 require(${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs().isNotEmpty()) {
                     "Expected source dirs to be resolved from the local file distribution"
                 }
-            """)
+                """
+            )
 
             build()
         }
@@ -243,17 +252,22 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
                 // Fallback: repo with the source artifact
                 val fallbackDir = file("fallback-repo/$repositoryName").also { it.mkdirs() }
                 srcDistribution.copyTo(file("fallback-repo/$repositoryName/$artifactFileName"))
-                fallbackServer.allowGetOrHead("/$repositoryName", fallbackDir)
+                fallbackServer.expectGetDirectoryListing("/$repositoryName/", fallbackDir)
+                fallbackServer.expectHead("/$repositoryName/gradle-${gradleVersion.version}-src.zip", srcDistribution)
+                fallbackServer.expectGet("/$repositoryName/gradle-${gradleVersion.version}-src.zip", srcDistribution)
 
-                withBuildScript("""
+                withBuildScript(
+                    """
                     require(${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs().isNotEmpty()) {
                         "Expected source dirs to be resolved from the fallback repository"
                     }
-                """)
+                    """
+                )
 
                 build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${fallbackServer.uri}")
             } finally {
                 fallbackServer.stop()
+                fallbackServer.resetExpectations()
             }
         }
     }
