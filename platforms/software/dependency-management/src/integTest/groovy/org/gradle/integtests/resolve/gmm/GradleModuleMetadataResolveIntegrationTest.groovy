@@ -101,13 +101,14 @@ class GradleModuleMetadataResolveIntegrationTest extends AbstractIntegrationSpec
             task resolve {
                 def files = configurations.runtimeClasspath
                 doLast {
-                    assert files*.name == ["foo-1.0.jar", "${expectedFile}"]
+                    println files*.name
                 }
             }
         """
 
         expect:
         succeeds("resolve")
+        outputContains("[foo-1.0.jar, ${expectedFile}]")
 
         where:
         artifactDeclaration | expectedFile
