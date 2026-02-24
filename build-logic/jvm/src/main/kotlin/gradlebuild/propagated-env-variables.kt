@@ -108,15 +108,15 @@ val credentialsKeywords = listOf(
 )
 
 
-fun Test.filterEnvironmentVariables(inheritDevelocityAccessToken: Boolean) {
+fun Test.filterEnvironmentVariables(inheritedEnvVars: List<String>) {
     environment = makePropagatedEnvironment()
     environment.forEach { (key, _) ->
         require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
     }
 
-    if (inheritDevelocityAccessToken) {
-        System.getenv("DEVELOCITY_ACCESS_KEY")?.let {
-            environment["DEVELOCITY_ACCESS_KEY"] = it
+    inheritedEnvVars.forEach { envVar ->
+        System.getenv(envVar)?.let {
+            environment[envVar] = it
         }
     }
 }
