@@ -483,17 +483,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 id("java-library")
             }
 
-            repositories {
-                maven {
-                    name = 'maven1'
-                    url = "${mavenHttpRepo.uri}"
-                }
-                maven {
-                    name = 'maven2'
-                    url = "${secondMavenHttpRepo.uri}"
-                }
-            }
-
             dependencies {
                 implementation 'org.foo:direct1:1.0'
                 implementation 'org.foo:direct2:1.0'
@@ -506,7 +495,22 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
         """
 
-        settingsFile << "include 'child'"
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven {
+                        name = 'maven1'
+                        url = "${mavenHttpRepo.uri}"
+                    }
+                    maven {
+                        name = 'maven2'
+                        url = "${secondMavenHttpRepo.uri}"
+                    }
+                }
+            }
+
+            include 'child'
+        """
 
         file("child/build.gradle") << """
             plugins {
