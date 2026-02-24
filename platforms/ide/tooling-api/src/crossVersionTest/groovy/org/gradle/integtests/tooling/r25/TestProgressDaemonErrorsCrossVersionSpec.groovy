@@ -25,6 +25,8 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.junit.Rule
 
+import java.util.concurrent.ForkJoinPool
+
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
     boolean killed = false
@@ -44,9 +46,17 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification i
             connection.newBuild().forTasks('test').addProgressListener({ ProgressEvent event ->
                 result << event
                 if (!killed) {
-                    sync.waitForAllPendingCalls()
-                    sync.releaseAll()
-                    toolingApi.daemons.daemon.kill()
+                    // we expect to receive a DaemonDisappearedException, however the DaemonClient only generates such an exception if an EOFException is received
+                    // considering that the time of the termination is non deterministic we could also receive a "SocketException: Connection reset" but the DaemonClient
+                    // does not transform that into a DaemonDisappearedException causing this test to fail.
+                    // We mitigate this by consuming any events on the client side while we wait and eventually kill the daemon hopefully putting the connection in a
+                    // semi deterministic state that will then trigger an EOFException and successfully convert to DaemonDisappearedException
+                    ForkJoinPool.commonPool().submit {
+                        sync.waitForAllPendingCalls()
+                        sync.releaseAll()
+                        Thread.sleep(1500) // some time for receiving the output of the build before killing it (while it then sleeps)
+                        toolingApi.daemons.daemon.kill()
+                    }
                     killed = true
                 }
             }, EnumSet.of(OperationType.TEST)).run()
