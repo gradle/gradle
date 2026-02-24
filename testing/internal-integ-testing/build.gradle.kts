@@ -37,7 +37,6 @@ dependencies {
     api(projects.serviceLookup)
 
     api(libs.groovy)
-    api(libs.groovyXml)
     api(testLibs.hamcrest)
     api(testLibs.jettyWebApp) {
         because("Part of the public API via HttpServer")
