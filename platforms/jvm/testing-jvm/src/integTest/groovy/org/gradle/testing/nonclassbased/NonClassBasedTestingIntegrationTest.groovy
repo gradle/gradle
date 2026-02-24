@@ -509,8 +509,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
             }
         """
 
-        file("src/test/java/definitions/SampleTest.java") << """
-            package definitions;
+        file("src/test/java/example/SampleTest.java") << """
+            package example;
 
             import org.junit.jupiter.api.Test;
 
@@ -521,8 +521,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                 }
             }
         """
-        file("src/test/java/definitions/OtherTest.java") << """
-            package definitions;
+        file("src/test/java/example/OtherTest.java") << """
+            package example;
 
             import org.junit.jupiter.api.Test;
 
@@ -533,21 +533,21 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                 }
             }
         """
-        file("$DEFAULT_DEFINITIONS_LOCATION/SampleTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+        file("$DEFAULT_DEFINITIONS_LOCATION/example/SampleTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
             <tests>
                 <test name="foo" />
             </tests>
         """
-        file("$DEFAULT_DEFINITIONS_LOCATION/OtherTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+        file("$DEFAULT_DEFINITIONS_LOCATION/example/OtherTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
             <tests>
                 <test name="foo" />
             </tests>
         """
         when:
-        succeeds("test", "--tests", "*SampleTest.*")
+        succeeds("test", "--tests", "example.SampleTest.*")
 
         then:
-        resultsFor().assertTestPathsExecuted(":definitions.SampleTest", ":definitions.SampleTest:foo()", ":SampleTest.rbt - foo")
+        resultsFor().assertTestPathsExecuted(":example.SampleTest", ":example.SampleTest:foo()", ":SampleTest.rbt - foo")
     }
 
     def "resource-based test engine can select test definitions using --tests"() {
@@ -576,6 +576,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("test", "--tests", "*sub.SomeOtherTestSpec.rbt")
 
         then:
+        // TODO: Update org/gradle/testing/AbstractTestFilteringIntegrationTest.groovy when de-incubated
+        outputContains("Filtering non-class-based tests is an incubating feature.")
         resultsFor()
             .assertTestPathsExecuted(":SomeOtherTestSpec.rbt - other")
             .assertTestPathsNotExecuted(":SomeTestSpec.rbt - foo")
