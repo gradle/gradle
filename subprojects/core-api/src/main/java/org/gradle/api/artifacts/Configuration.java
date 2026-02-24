@@ -166,7 +166,8 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @since 9.4.0
      */
     @Incubating
-    Configuration extendsFrom(Provider<? extends Configuration> superConfigs);
+    @SuppressWarnings("unchecked")
+    Configuration extendsFrom(Provider<? extends Configuration>... superConfigs);
 
     /**
      * Returns the transitivity of this configuration. A transitive configuration contains the transitive closure of its
