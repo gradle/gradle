@@ -47,6 +47,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         loadToolingModel(KotlinDslScriptsModel)
     }
 
+    @TargetGradleVersion("<=9.3")
     def 'exceptions in different scripts are reported on the corresponding scripts'() {
 
         given:

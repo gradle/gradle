@@ -36,6 +36,7 @@ import static org.junit.Assert.assertTrue
 @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')
 class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
+    @TargetGradleVersion("<=9.3")
     def "can fetch buildSrc classpath in face of compilation errors"() {
 
         given:
@@ -51,6 +52,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         assertContainsBuildSrc(canonicalClassPath())
     }
 
+    @TargetGradleVersion("<=9.3")
     def "can fetch buildSrc classpath in face of buildscript exceptions"() {
 
         given:
@@ -66,6 +68,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         assertContainsBuildSrc(canonicalClassPath())
     }
 
+    @TargetGradleVersion("<=9.3")
     def "can fetch buildscript classpath in face of compilation errors"() {
 
         given:
@@ -143,6 +146,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         assertContainsGradleKotlinDslJars(classPath)
     }
 
+    @TargetGradleVersion("<=9.3")
     def "can fetch buildscript classpath for sub-project script when parent has errors"() {
 
         given:
