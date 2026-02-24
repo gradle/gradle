@@ -1,15 +1,22 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptorLocator
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Test
-import java.util.zip.ZipOutputStream
 
+// We have some duplicated segments in the tests, but I think it's worth for the readability
+@Suppress("DuplicatedCode")
 class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest() {
+
+    private val srcDistribution get() = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
+    private val binDistribution get() = IntegrationTestBuildContext.INSTANCE.binDistribution!!
 
     @Test
     fun `standard layout custom repository release bin`() {
@@ -149,6 +156,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
     @Test
     @LeaksFileHandles
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from fallback when custom repo does not have it`() {
         val gradleVersion = distribution.version
 
@@ -172,20 +180,77 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
                 // Fallback: repo with the source artifact
                 val fallbackDir = file("fallback-repo/$repositoryName").also { it.mkdirs() }
-                file("fallback-repo/$repositoryName/$artifactFileName").also { zip ->
-                    ZipOutputStream(zip.outputStream()).close()
-                }
+                srcDistribution.copyTo(file("fallback-repo/$repositoryName/$artifactFileName"))
                 fallbackServer.allowGetOrHead("/$repositoryName", fallbackDir)
 
                 withBuildScript("""
-                    val sourceDirs =
-                        ${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs()
-                    println("resolved sourceDirs: " + sourceDirs.size)
+                    require(${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs().isNotEmpty()) {
+                        "Expected source dirs to be resolved from the fallback repository"
+                    }
                 """)
 
                 build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${fallbackServer.uri}")
             } finally {
                 primaryServer.stop()
+                fallbackServer.stop()
+            }
+        }
+    }
+
+    @Test
+    @LeaksFileHandles
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    fun `source distribution resolved from local file when src zip is next to bin zip`() {
+        val gradleVersion = distribution.version.version
+
+        withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
+            file("local-dist").also { it.mkdirs() }
+            binDistribution.copyTo(file("local-dist/gradle-${gradleVersion}-bin.zip"))
+            srcDistribution.copyTo(file("local-dist/gradle-${gradleVersion}-src.zip"))
+            withCustomGradleProperties(file("local-dist/gradle-${gradleVersion}-bin.zip").toURI().toASCIIString())
+
+            withBuildScript("""
+                require(${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs().isNotEmpty()) {
+                    "Expected source dirs to be resolved from the local file distribution"
+                }
+            """)
+
+            build()
+        }
+    }
+
+    @Test
+    @LeaksFileHandles
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    fun `source distribution resolved from fallback when wrapper uses a local file distribution without src zip`() {
+        val gradleVersion = distribution.version
+
+        withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
+            val fallbackServer = HttpServer()
+            fallbackServer.start()
+
+            try {
+                val artifactFileName = "gradle-${gradleVersion.version}-src.zip"
+                val repositoryName = if (gradleVersion.isSnapshot) "distributions-snapshots" else "distributions"
+
+                // Local file:// distribution without a src zip next to it
+                file("local-dist").also { it.mkdirs() }
+                binDistribution.copyTo(file("local-dist/gradle-${gradleVersion.version}-bin.zip"))
+                withCustomGradleProperties(file("local-dist/gradle-${gradleVersion.version}-bin.zip").toURI().toASCIIString())
+
+                // Fallback: repo with the source artifact
+                val fallbackDir = file("fallback-repo/$repositoryName").also { it.mkdirs() }
+                srcDistribution.copyTo(file("fallback-repo/$repositoryName/$artifactFileName"))
+                fallbackServer.allowGetOrHead("/$repositoryName", fallbackDir)
+
+                withBuildScript("""
+                    require(${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs().isNotEmpty()) {
+                        "Expected source dirs to be resolved from the fallback repository"
+                    }
+                """)
+
+                build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${fallbackServer.uri}")
+            } finally {
                 fallbackServer.stop()
             }
         }
