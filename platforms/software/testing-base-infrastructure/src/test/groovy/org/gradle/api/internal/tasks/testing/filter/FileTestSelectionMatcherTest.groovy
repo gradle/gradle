@@ -67,6 +67,19 @@ class FileTestSelectionMatcherTest extends Specification {
         include << [ "*i*.test", "included.test", "*included.test*", "included.test*", "*included.test", "included.*" ]
     }
 
+    def "matchesFile with simple include pattern"() {
+        def root = temp.createDir("root")
+        def included = root.file("Included").touch()
+        def otherIncluded = root.file("other.Included").touch()
+        def subIncluded = root.file("sub/Included").touch()
+
+        expect:
+        def matcher = createMatcher(["Included"], [], root)
+        matcher.matchesFile(included)
+        matcher.matchesFile(subIncluded)
+        !matcher.matchesFile(otherIncluded)
+    }
+
     def "matchesFile with default packages"() {
         expect:
         // This captures current behavior, but not desired behavior.
