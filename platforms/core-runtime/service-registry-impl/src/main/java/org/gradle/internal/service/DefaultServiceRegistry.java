@@ -17,7 +17,6 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.collect.PersistentArray;
 import org.gradle.internal.collect.PersistentList;
-import org.gradle.internal.collect.PersistentMap;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
@@ -396,19 +395,16 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         public OwnServices() {
             final ThisAsService thisServiceRegistry = new ThisAsService(ServiceAccess.getPublicScope());
+            ConcurrentMap<Class<?>, ArraySnapshot<ServiceProvider>> providersByType = new ConcurrentHashMap<>();
+            providersByType.put(ServiceRegistry.class, ArraySnapshot.of(thisServiceRegistry));
             services = new AtomicReference<>(
-                ServicesSnapshot.of(
-                    PersistentMap.of(
-                        ServiceRegistry.class,
-                        PersistentArray.of(thisServiceRegistry)
-                    )
-                )
+                ServicesSnapshot.of(providersByType)
             );
         }
 
         @Override
         public @Nullable Service getService(Type type, @Nullable ServiceAccessToken token) {
-            PersistentArray<ServiceProvider> serviceProviders = getProviders(unwrap(type));
+            ArraySnapshot<ServiceProvider> serviceProviders = getProviders(unwrap(type));
             if (serviceProviders.isEmpty()) {
                 return null;
             }
@@ -416,24 +412,28 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 return serviceProviders.get(0).getService(type, token);
             }
 
-            List<Service> services = new ArrayList<Service>(serviceProviders.size());
-            for (ServiceProvider serviceProvider : serviceProviders) {
-                Service service = serviceProvider.getService(type, token);
+            Service singletonService = null;
+            List<Service> duplicatedServices = null;
+            for (int i = 0; i < serviceProviders.size(); i++) {
+                Service service = serviceProviders.get(i).getService(type, token);
                 if (service != null) {
-                    services.add(service);
+                    if (singletonService == null) {
+                        singletonService = service;
+                    } else {
+                        duplicatedServices = duplicatedServices == null
+                            ? new ArrayList<>(Collections.singletonList(singletonService))
+                            : duplicatedServices;
+                        duplicatedServices.add(service)
+                    }
                 }
             }
 
-            if (services.isEmpty()) {
-                return null;
+            if (duplicatedServices == null) {
+                return singletonService;
             }
 
-            if (services.size() == 1) {
-                return services.get(0);
-            }
-
-            Set<String> descriptions = new TreeSet<String>();
-            for (Service candidate : services) {
+            Set<String> descriptions = new TreeSet<>();
+            for (Service candidate : duplicatedServices) {
                 descriptions.add(candidate.getDisplayName());
             }
 
@@ -445,17 +445,17 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             throw new ServiceLookupException(formatter.toString());
         }
 
-        private PersistentArray<ServiceProvider> getProviders(Class<?> type) {
+        private ArraySnapshot<ServiceProvider> getProviders(Class<?> type) {
             @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
-            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType = services.get().providersByType;
-
-            return providersByType.getOrDefault(type, PersistentArray.of());
+            ConcurrentMap<Class<?>, ArraySnapshot<ServiceProvider>> providersByType = services.get().providersByType;
+            return providersByType.getOrDefault(type, ArraySnapshot.empty());
         }
 
         @Override
         public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
-            for (ServiceProvider serviceProvider : getProviders(serviceType)) {
-                visitor = serviceProvider.getAll(serviceType, token, visitor);
+            ArraySnapshot<ServiceProvider> providers = getProviders(serviceType);
+            for (int i = 0; i < providers.size(); i++) {
+                visitor = providers.get(i).getAll(serviceType, token, visitor);
             }
             return visitor;
         }
@@ -1424,7 +1424,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      */
     private static class ServicesSnapshot {
 
-        public static ServicesSnapshot of(PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType) {
+        public static ServicesSnapshot of(ConcurrentMap<Class<?>, ArraySnapshot<ServiceProvider>> providersByType) {
             return new ServicesSnapshot(
                 PersistentList.of(),
                 PersistentArray.of(),
@@ -1434,12 +1434,12 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         final PersistentList<SingletonService> services;
         final PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers;
-        final PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType;
+        final ConcurrentMap<Class<?>, ArraySnapshot<ServiceProvider>> providersByType;
 
         private ServicesSnapshot(
             PersistentList<SingletonService> services,
             PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers,
-            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
+            ConcurrentMap<Class<?>, ArraySnapshot<ServiceProvider>> providersByType
         ) {
             this.services = services;
             this.lifecycleHandlers = lifecycleHandlers;
@@ -1462,12 +1462,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             );
         }
 
-        private static PersistentMap<Class<?>, PersistentArray<ServiceProvider>> collectProvidersForClassHierarchyOf(
+        private static ConcurrentMap<Class<?>, ArraySnapshot<ServiceProvider>> collectProvidersForClassHierarchyOf(
             SingletonService serviceProvider,
             ClassInspector inspector,
-            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
+            ConcurrentMap<Class<?>, ArraySnapshot<ServiceProvider>> providersByType
         ) {
-            PersistentArray<ServiceProvider> newProviders = PersistentArray.of(serviceProvider);
             for (Class<?> serviceType : serviceProvider.getDeclaredServiceTypes()) {
                 for (Class<?> type : inspector.getHierarchy(serviceType)) {
                     if (type.equals(Object.class)) {
@@ -1477,9 +1476,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                         // Disallow custom services of type ServiceRegistry, as these are automatically provided
                         throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
                     }
-                    providersByType = providersByType.modify(type, (key, providers) -> {
+                    providersByType.compute(type, (key, providers) -> {
                         if (providers == null) {
-                            return newProviders;
+                            return ArraySnapshot.of(serviceProvider);
                         } else {
                             return providers.contains(serviceProvider)
                                 ? providers
@@ -1489,6 +1488,91 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 }
             }
             return providersByType;
+        }
+    }
+
+    /**
+     * An array wrapper that allows only additions to array, but no modifications of previous buckets.
+     *
+     * WARNING: internal private T[] array  should not be accessed directly, it's private for a reason.
+     * Also ArraySnapshot should not be instantiated directly, but only via factory methods
+     */
+    private static class ArraySnapshot<T> {
+
+        @SuppressWarnings("rawtypes")
+        private static final ArraySnapshot EMPTY = new ArraySnapshot<>(0, new Object[0]);
+
+        private final int numberOfElements;
+        private final T[] array;
+
+        @SuppressWarnings("unchecked")
+        private ArraySnapshot(int numberOfElements, Object[] array) {
+            this.array = (T[]) array;
+            this.numberOfElements = numberOfElements;
+        }
+
+        public boolean contains(T element) {
+            for (int i = 0; i < size(); i++) {
+                if (array[i].equals(element)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public ArraySnapshot<T> plus(T element) {
+            switch (array.length) {
+                case 0:
+                    return ArraySnapshot.of(element);
+                case 1:
+                    return addToOne(element);
+                default:
+                    return addToMany(element);
+            }
+        }
+
+        public T get(int i) {
+            if (i >= numberOfElements) {
+                throw new IndexOutOfBoundsException("Index " + i + " is out of bounds for array of size " + numberOfElements);
+            }
+            return array[i];
+        }
+
+        public int size() {
+            return numberOfElements;
+        }
+
+        public boolean isEmpty() {
+            return numberOfElements == 0;
+        }
+
+        private ArraySnapshot<T> addToOne(T element) {
+            Object[] newArray = new Object[10];
+            newArray[0] = array[0];
+            newArray[1] = element;
+            return new ArraySnapshot<>(numberOfElements + 1, newArray);
+        }
+
+        private ArraySnapshot<T> addToMany(T element) {
+            Object[] array = this.array;
+            int size = array.length;
+            if (numberOfElements == size) {
+                // Is full, need to resize
+                Object[] newArray = new Object[size + (size >> 1)];
+                System.arraycopy(array, 0, newArray, 0, size);
+                array = newArray;
+            }
+            array[numberOfElements] = element;
+            return new ArraySnapshot<>(numberOfElements + 1, array);
+        }
+
+        public static <T> ArraySnapshot<T> of(T element) {
+            return new ArraySnapshot<>(1, new Object[]{element});
+        }
+
+        @SuppressWarnings("unchecked")
+        public static <T> ArraySnapshot<T> empty() {
+            return EMPTY;
         }
     }
 }
