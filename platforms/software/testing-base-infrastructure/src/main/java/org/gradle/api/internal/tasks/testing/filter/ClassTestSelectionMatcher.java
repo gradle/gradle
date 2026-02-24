@@ -22,7 +22,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -55,12 +54,8 @@ class ClassTestSelectionMatcher {
     }
 
     private static List<ClassTestPattern> prepareClassBasedPatternList(Collection<String> includedTests) {
-        return preparePatternList(includedTests, ClassTestPattern::new);
-    }
-
-    private static <T> List<T> preparePatternList(Collection<String> includedTests, Function<String, T> patternCreator) {
         return includedTests.stream()
-            .map(patternCreator)
+            .map(ClassTestPattern::new)
             .collect(Collectors.toList());
     }
 
