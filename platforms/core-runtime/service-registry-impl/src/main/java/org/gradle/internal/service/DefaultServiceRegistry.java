@@ -34,9 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
@@ -406,12 +404,12 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         @Override
         public @Nullable Service getService(Type type, @Nullable ServiceAccessToken token) {
-            Iterable<ServiceProvider> serviceProviders = getProviders(unwrap(type));
+            ThreadSafeArray<ServiceProvider> serviceProviders = getProviders(unwrap(type));
 
             Service singletonService = null;
             List<Service> duplicatedServices = null;
-            for (ServiceProvider serviceProvider : serviceProviders) {
-                Service service = serviceProvider.getService(type, token);
+            for (int i = 0; i < serviceProviders.elements; i++) {
+                Service service = serviceProviders.get(i).getService(type, token);
                 if (service != null) {
                     if (singletonService == null) {
                         singletonService = service;
@@ -441,18 +439,17 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             throw new ServiceLookupException(formatter.toString());
         }
 
-        private Iterable<ServiceProvider> getProviders(Class<?> type) {
+        private ThreadSafeArray<ServiceProvider> getProviders(Class<?> type) {
             @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
             ConcurrentMap<Class<?>, ThreadSafeArray<ServiceProvider>> providersByType = services.get().providersByType;
-
-            ThreadSafeArray<ServiceProvider> providers = providersByType.get(type);
-            return providers != null ? providers : Collections.emptyList();
+            return providersByType.getOrDefault(type, ThreadSafeArray.empty());
         }
 
         @Override
         public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
-            for (ServiceProvider serviceProvider : getProviders(serviceType)) {
-                visitor = serviceProvider.getAll(serviceType, token, visitor);
+            ThreadSafeArray<ServiceProvider> providers = getProviders(serviceType);
+            for (int i = 0; i < providers.elements; i++) {
+                visitor = providers.get(i).getAll(serviceType, token, visitor);
             }
             return visitor;
         }
@@ -1487,13 +1484,17 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
-    private static class ThreadSafeArray<T> implements Iterable<T> {
+    private static class ThreadSafeArray<T> {
+
+        @SuppressWarnings("rawtypes")
+        private static final ThreadSafeArray EMPTY = new ThreadSafeArray<>(0, new Object[0]);
 
         private final int elements;
-        private final Object[] array;
+        private final T[] array;
 
+        @SuppressWarnings("unchecked")
         private ThreadSafeArray(int elements, Object[] array) {
-            this.array = array;
+            this.array = (T[]) array;
             this.elements = elements;
         }
 
@@ -1517,6 +1518,13 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             }
         }
 
+        public T get(int i) {
+            if (i >= elements) {
+                throw new IndexOutOfBoundsException("Index " + i + " is out of bounds for array of size " + elements);
+            }
+            return array[i];
+        }
+
         private ThreadSafeArray<T> addToOne(T element) {
             Object[] newArray = new Object[10];
             newArray[0] = array[0];
@@ -1537,30 +1545,13 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             return new ThreadSafeArray<>(elements + 1, array);
         }
 
-        @Override
-        public Iterator<T> iterator() {
-            return new Iterator<T>() {
-                int index = 0;
-
-                @Override
-                public boolean hasNext() {
-                    return index < elements;
-                }
-
-                @SuppressWarnings("unchecked")
-                @Override
-                public T next() {
-                    if (index < elements) {
-                        return (T) array[index++];
-                    } else {
-                        throw new NoSuchElementException();
-                    }
-                }
-            };
-        }
-
         public static <T> ThreadSafeArray<T> of(T element) {
             return new ThreadSafeArray<>(1, new Object[]{element});
+        }
+
+        @SuppressWarnings("unchecked")
+        public static <T> ThreadSafeArray<T> empty() {
+            return EMPTY;
         }
     }
 }
