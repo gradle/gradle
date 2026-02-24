@@ -20,10 +20,10 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.AuthenticationSupported
 import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.internal.GradleInternal
-import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.util.internal.WrapperCredentials
 import org.gradle.util.internal.WrapperDistributionUrlConverter
 import org.gradle.wrapper.WrapperExecutor
+import java.io.File
 import java.net.URI
 import java.util.Properties
 
@@ -91,9 +91,10 @@ class GradleDistRepoDescriptorLocator(
     }
 
     private
-    fun rootBuildDir() =
-        // project.gradle.root.settings may not be available, so we need to compute the root directory from the start parameters
-        BuildLayoutFactory().getLayoutFor((project.gradle as GradleInternal).root.startParameter.toBuildLayoutConfiguration()).rootDirectory
+    fun rootBuildDir(): File {
+        val gradle = project.gradle as GradleInternal
+        return gradle.root.settings.layout.settingsDirectory.asFile
+    }
 
     private
     fun findStandardCustomBasePath(customUri: URI): String? {
