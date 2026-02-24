@@ -51,6 +51,8 @@ import java.util.Set;
  */
 public class IdeaModelBuilder implements IdeaModelBuilderInternal {
 
+    private static final String MODEL_NAME = org.gradle.tooling.model.idea.IdeaProject.class.getName();
+
     private final GradleProjectBuilderInternal gradleProjectBuilder;
 
     public IdeaModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder) {
@@ -59,7 +61,7 @@ public class IdeaModelBuilder implements IdeaModelBuilderInternal {
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.idea.IdeaProject");
+        return modelName.equals(MODEL_NAME);
     }
 
     @Override

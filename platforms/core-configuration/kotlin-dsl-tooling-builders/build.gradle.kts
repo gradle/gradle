@@ -22,6 +22,7 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.pluginsJavaBase)
     implementation(projects.toolingApi)
+    implementation(projects.kotlinDslToolingModelImpls)
     implementation(projects.kotlinDslToolingModels)
     implementation(projects.buildProcessServices)
 

@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.Serializable;
@@ -27,10 +26,10 @@ public class DefaultGradleModuleVersion implements GradleModuleVersion, Serializ
     private final String name;
     private final String version;
 
-    public DefaultGradleModuleVersion(ModuleVersionIdentifier identifier) {
-        this.group = identifier.getGroup();
-        this.name = identifier.getName();
-        this.version = identifier.getVersion();
+    public DefaultGradleModuleVersion(String group, String name, String version) {
+        this.group = group;
+        this.name = name;
+        this.version = version;
     }
 
     @Override

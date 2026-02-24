@@ -16,24 +16,26 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
-import com.google.common.base.MoreObjects;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
-import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
-public class DefaultGradlePublication implements Serializable, GradleProjectIdentity {
-    private GradleModuleVersion id;
+/**
+ * Structurally implements {@link org.gradle.tooling.model.gradle.ProjectPublications} model.
+ */
+public class DefaultProjectPublications implements Serializable, GradleProjectIdentity {
+    private List<DefaultGradlePublication> publications;
     private DefaultProjectIdentifier projectIdentifier;
 
-    public GradleModuleVersion getId() {
-        return id;
+    public List<DefaultGradlePublication> getPublications() {
+        return publications;
     }
 
-    public DefaultGradlePublication setId(GradleModuleVersion id) {
-        this.id = id;
+    public DefaultProjectPublications setPublications(List<DefaultGradlePublication> publications) {
+        this.publications = publications;
         return this;
     }
 
@@ -51,15 +53,8 @@ public class DefaultGradlePublication implements Serializable, GradleProjectIden
         return projectIdentifier.getBuildIdentifier().getRootDir();
     }
 
-    public DefaultGradlePublication setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
+    public DefaultProjectPublications setProjectIdentifier(DefaultProjectIdentifier projectIdentifier) {
         this.projectIdentifier = projectIdentifier;
         return this;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("id", id)
-                .toString();
     }
 }

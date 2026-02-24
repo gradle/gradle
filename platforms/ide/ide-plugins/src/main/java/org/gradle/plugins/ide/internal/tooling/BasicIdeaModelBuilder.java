@@ -18,13 +18,17 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaProject;
+import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 /**
- * Builds the {@link org.gradle.tooling.model.idea.BasicIdeaProject} model
+ * Builds the {@link BasicIdeaProject} model
  * that contains the Idea module hierarchy without resolving dependencies.
  */
 public class BasicIdeaModelBuilder implements ToolingModelBuilder {
+
+    private static final String MODEL_NAME = BasicIdeaProject.class.getName();
+
     private final IdeaModelBuilderInternal ideaModelBuilder;
 
     public BasicIdeaModelBuilder(IdeaModelBuilderInternal ideaModelBuilder) {
@@ -33,7 +37,7 @@ public class BasicIdeaModelBuilder implements ToolingModelBuilder {
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.idea.BasicIdeaProject");
+        return modelName.equals(MODEL_NAME);
     }
 
     @Override
