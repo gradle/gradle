@@ -125,7 +125,6 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<ResolvedDependency>())
     bind(unsupported<ResolvedArtifact>())
     bind(unsupported<ArtifactView>())
-    bind(unsupported<ArtifactResolutionResult>())
 
     // Publishing types
     bind(unsupported<Publication>())
