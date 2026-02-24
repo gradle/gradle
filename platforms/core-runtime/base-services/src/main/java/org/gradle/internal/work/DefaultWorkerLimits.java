@@ -16,7 +16,10 @@
 
 package org.gradle.internal.work;
 
-public class DefaultWorkerLimits implements WorkerLimits {
+public final class DefaultWorkerLimits implements WorkerLimits {
+    // Chosen since this value is used by kotlinx coroutines for their own IO scheduler:
+    // https://github.com/Kotlin/kotlinx.coroutines/blob/1f521941faad4d2ee9c8236a7d5fa2c62eaa6b7d/kotlinx-coroutines-core/jvm/src/scheduling/Dispatcher.kt#L67
+    private static final int MIN_UNCONSTRAINED_PARALLELISM = 64;
 
     private final int maxWorkerCount;
 
@@ -27,5 +30,10 @@ public class DefaultWorkerLimits implements WorkerLimits {
     @Override
     public int getMaxWorkerCount() {
         return maxWorkerCount;
+    }
+
+    @Override
+    public int getMaxUnconstrainedWorkerCount() {
+        return Math.max(MIN_UNCONSTRAINED_PARALLELISM, maxWorkerCount);
     }
 }

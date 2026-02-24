@@ -29,10 +29,4 @@ public interface ConditionalExecutionQueue<T> extends Stoppable {
      * {@link ConditionalExecution#complete()} will be called.
      */
     void submit(ConditionalExecution<T> execution);
-
-    /**
-     * Expand the execution queue worker pool.  This should be called before an execution in the queue is blocked waiting
-     * on another execution (e.g. work that submits and waits on other work).
-     */
-    void expand();
 }
