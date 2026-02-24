@@ -20,6 +20,7 @@ import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
 import org.gradle.features.binding.TargetTypeInformation;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -52,6 +53,11 @@ public interface ProjectFeatureBindingDeclaration<OwnDefinition extends Definiti
      * to represent the build model for the feature.
      */
     Optional<Class<? extends OwnBuildModel>> getBuildModelImplementationType();
+
+    /**
+     * A mapping of nested build model types to their implementation types.  This is used to instantiate nested build models.
+     */
+    Map<Class<?>, Class<?>> getNestedBuildModelTypes();
 
     /**
      * The name of the feature binding.  This is the name used in the DSL to configure the feature.

@@ -17,11 +17,13 @@
 package org.gradle.features.internal.binding;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Nested;
@@ -140,11 +142,11 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, getProjectFeatureDeclarations(), featureObjectFactory);
 
         // Construct an apply action context with the feature-specific object factory
-        ProjectFeatureApplicationContext applyActionContext =
+        ProjectFeatureApplicationContextInternal applyActionContext =
             projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
 
         // bind any nested definitions to build model instances
-        bindNestedDefinitions(projectFeature.getDefinitionPublicType(), Cast.uncheckedCast(definition), applyActionContext);
+        bindNestedDefinitions(projectFeature.getDefinitionPublicType(), Cast.uncheckedCast(definition), applyActionContext, projectFeature);
 
         return new DefaultFeatureApplication<>(
             projectFeature.getDefinitionImplementationType(),
@@ -157,15 +159,26 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         );
     }
 
-    private void bindNestedDefinitions(Class<?> publicType, DynamicObjectAware parent, ProjectFeatureApplicationContext applyActionContext) {
+    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> void bindNestedDefinitions(Class<?> publicType, DynamicObjectAware parent, ProjectFeatureApplicationContextInternal applyActionContext, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
         ProjectFeatureDefinitionContext rootDefinitionContext = ProjectFeatureSupportInternal.getContext(parent);
         propertyWalker.walkProperties(publicType, parent, (propertyMetadata, propertyValue) -> {
             if (Definition.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
-                Definition<?> nestedDefinition = Cast.uncheckedCast(propertyValue);
-                applyActionContext.registerBuildModel(nestedDefinition);
-                rootDefinitionContext.addNestedDefinition(nestedDefinition);
+                bindNestedDefinition(propertyValue, rootDefinitionContext, applyActionContext, projectFeature);
+            }
+            if (NamedDomainObjectContainer.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
+                NamedDomainObjectContainer<?> ndoc = Cast.uncheckedCast(propertyValue);
+                Class<?> elementType = ((AbstractNamedDomainObjectContainer<?>) ndoc).getType();
+                if (Definition.class.isAssignableFrom(elementType)) {
+                    ndoc.configureEach(element -> bindNestedDefinition(element, rootDefinitionContext, applyActionContext, projectFeature));
+                }
             }
         });
+    }
+
+    private static <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> void bindNestedDefinition(Object propertyValue, ProjectFeatureDefinitionContext rootDefinitionContext, ProjectFeatureApplicationContextInternal applyActionContext, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
+        Definition<?> nestedDefinition = Cast.uncheckedCast(propertyValue);
+        applyActionContext.registerBuildModel(nestedDefinition, projectFeature.getNestedBuildModelTypes());
+        rootDefinitionContext.addNestedDefinition(nestedDefinition);
     }
 
     private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> ServiceLookup getContextSpecificServiceLookup(ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {

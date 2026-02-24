@@ -25,6 +25,7 @@ import org.gradle.internal.inspection.DefaultTypeParameterInspection;
 import org.gradle.internal.inspection.TypeParameterInspection;
 
 import javax.inject.Inject;
+import java.util.Map;
 
 public interface ProjectFeatureApplicationContextInternal extends ProjectFeatureApplicationContext {
 
@@ -59,5 +60,18 @@ public interface ProjectFeatureApplicationContextInternal extends ProjectFeature
         Class<V> modelType = inspection.parameterTypeFor(definition.getClass());
 
         return registerBuildModel(definition, modelType);
+    }
+
+    default <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition, Map<Class<?>, Class<?>> nestedBuildModelTypesToImplementationTypes) {
+        @SuppressWarnings("rawtypes")
+        TypeParameterInspection<Definition, BuildModel> inspection = new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.None.class);
+        Class<V> modelType = inspection.parameterTypeFor(definition.getClass());
+
+        if (nestedBuildModelTypesToImplementationTypes.containsKey(modelType)) {
+            Class<? extends V> buildModelImplementationType = Cast.uncheckedCast(nestedBuildModelTypesToImplementationTypes.get(modelType));
+            return registerBuildModel(definition, buildModelImplementationType);
+        } else {
+            return registerBuildModel(definition, modelType);
+        }
     }
 }

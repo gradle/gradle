@@ -56,6 +56,7 @@ class ProjectTypesTest {
                             override fun getApplyActionSafety(): ProjectFeatureBindingDeclaration.Safety = ProjectFeatureBindingDeclaration.Safety.UNSAFE
                             override fun getBuildModelType(): Class<ModelType> = ModelType::class.java
                             override fun getBuildModelImplementationType(): Class<out ModelType> = buildModelType
+                            override fun getNestedBuildModelTypes(): Map<Class<*>, Class<*>> = emptyMap()
                             override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
                             override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
                             override fun getRegisteringPluginId(): String = "com.example.test"
