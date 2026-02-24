@@ -615,8 +615,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                       TaskDependencyFactory taskDependencyFactory,
                                                                       InternalProblems problems,
                                                                       AttributeDesugaring attributeDesugaring,
-                                                                      ResolveExceptionMapper exceptionMapper,
-                                                                      ProviderFactory providerFactory) {
+                                                                      ResolveExceptionMapper exceptionMapper) {
             return new DefaultConfigurationServicesBundle(
                 buildOperationRunner,
                 projectStateRegistry,
@@ -629,8 +628,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 collectionCallbackActionDecorator,
                 problems,
                 attributeDesugaring,
-                exceptionMapper,
-                providerFactory
+                exceptionMapper
             );
         }
 
