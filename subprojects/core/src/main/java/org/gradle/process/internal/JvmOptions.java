@@ -62,11 +62,22 @@ public class JvmOptions {
     public static final String SSL_TRUSTPASSWORD_KEY = "javax.net.ssl.trustStorePassword";
     public static final String SSL_TRUSTSTORETYPE_KEY = "javax.net.ssl.trustStoreType";
 
+    // The following three properties are used in java.net.InetAddress.initializePlatformLookupPolicy
+    // (static initialization).
+
+    // Useful fallback when using IPv6 causes issues.
+    public static final String JAVA_NET_PREFER_IPV4_STACK_KEY = "java.net.preferIPv4Stack";
+    // Note: InetAddress.get*() yield IPv4 addresses before IPv6 addresses (Hyrum's law).
+    // To comply with https://datatracker.ietf.org/doc/html/rfc6724, users have to set
+    // java.net.preferIPv6Addresses=true.
+    public static final String JAVA_NET_PREFER_IPV6_ADDRESSES_KEY = "java.net.preferIPv6Addresses";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JvmOptions.class);
 
     public static final Collection<String> IMMUTABLE_SYSTEM_PROPERTIES = Arrays.asList(
         FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, JAVA_SECURITY_PROPERTIES_KEY, JDK_ENABLE_ADS_KEY,
         SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY,
+        JAVA_NET_PREFER_IPV4_STACK_KEY, JAVA_NET_PREFER_IPV6_ADDRESSES_KEY,
         // Gradle specific
         HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY
     );
