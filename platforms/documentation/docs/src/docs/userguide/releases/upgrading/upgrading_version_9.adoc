@@ -82,6 +82,22 @@ During the next lock update using Gradle 9.5.0 or above, if the lockfiles were p
 
 === Potential breaking changes
 
+==== `ProjectBuilder` now enforces consistent build-scoped locations
+
+link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[`ProjectBuilder`] allows you to configure a specific project directory for tests.
+While `project.projectDir` and `project.rootDir` have always respected this setting, `project.layout.settingsDirectory` previously did not.
+This discrepancy could cause file resolution to inadvertently escape the project directory.
+
+Gradle now anchors the settings search directly to the configured project directory.
+This ensures that `layout.settingsDirectory`, `projectDir`, and `rootDir` all point to the same consistent location.
+Projects created via `ProjectBuilder` are now better isolated from the host build environment.
+
+If your tests specifically relied on `layout.settingsDirectory` pointing to an external location, they will need to be adjusted.
+Even if you do not use `settingsDirectory` directly, you may still observe changes in file resolution.
+Previously, dependency management files could be "leaked" into the test from the host build environment; this is no longer the case.
+
+For more details see link:https://github.com/gradle/gradle/issues/32928[the related issue].
+
 ==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
 
 The `gradleApi()` dependency is now added to the `compileOnlyApi` scope instead of the `api` scope.
