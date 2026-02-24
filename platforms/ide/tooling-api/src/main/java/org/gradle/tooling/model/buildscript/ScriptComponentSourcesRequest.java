@@ -19,6 +19,8 @@ package org.gradle.tooling.model.buildscript;
 import java.util.List;
 
 public interface ScriptComponentSourcesRequest {
+
+    // TODO Should this be a Property<T> instead?
     List<ScriptComponentSourceIdentifier> getSourceComponentIdentifiers();
 
     void setSourceComponentIdentifiers(List<ScriptComponentSourceIdentifier> elements);

@@ -18,6 +18,7 @@ package org.gradle.tooling.model.buildscript;
 
 import java.io.File;
 
+// TODO How not to leak this in the public API?
 public interface ScriptComponentSourceIdentifierInternal extends ScriptComponentSourceIdentifier {
     File getScriptFile();
 

@@ -23,5 +23,6 @@ import org.gradle.tooling.ToolingModelContract;
 )
 public interface ScriptComponentSourceIdentifier {
 
+    // TODO Is this needed at all?
     String getDisplayName();
 }
