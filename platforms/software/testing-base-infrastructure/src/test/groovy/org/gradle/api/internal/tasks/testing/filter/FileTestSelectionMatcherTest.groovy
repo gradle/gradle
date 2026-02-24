@@ -51,7 +51,7 @@ class FileTestSelectionMatcherTest extends Specification {
         matcher.matchesFile(included)
         !matcher.matchesFile(excluded)
         where:
-        exclude << [ "excluded.test", "*excluded.test", "*excluded.test*", "excluded.*" ]
+        exclude << [ "excluded", "*excluded", "*excluded*", "excluded*" ]
     }
 
     def "matchesFile with include pattern (#include)"(String include) {
@@ -64,11 +64,10 @@ class FileTestSelectionMatcherTest extends Specification {
         matcher.matchesFile(included)
         !matcher.matchesFile(excluded)
         where:
-        include << [ "*i*.test", "included.test", "*included.test*", "included.test*", "*included.test", "included.*" ]
+        include << [ "*i*", "included", "*included*", "included*", "*included", "includ*" ]
     }
 
     def "matchesFile with simple include pattern"() {
-        // This captures current behavior, but not necessarily desired behavior
         def root = temp.createDir("root")
         def included = root.file("Included").touch()
         def otherIncluded = root.file("other.Included").touch()
@@ -78,7 +77,7 @@ class FileTestSelectionMatcherTest extends Specification {
         def matcher = createMatcher(["Included"], [], root)
         matcher.matchesFile(included)
         matcher.matchesFile(subIncluded)
-        matcher.matchesFile(otherIncluded) // This is not desired
+        !matcher.matchesFile(otherIncluded)
     }
 
     def "matchesFile with subdirectory include pattern"() {
@@ -123,7 +122,7 @@ class FileTestSelectionMatcherTest extends Specification {
         def outsideFile = temp.createDir("outside").file("foo.test").touch()
 
         expect:
-        def matcher = createMatcher(["foo.test"], [], root1, root2)
+        def matcher = createMatcher(["foo"], [], root1, root2)
         matcher.matchesFile(file1)
         matcher.matchesFile(file2)
         !matcher.matchesFile(outsideFile)
@@ -136,7 +135,7 @@ class FileTestSelectionMatcherTest extends Specification {
         def otherTest = root.file("other/foo.test").touch()
 
         expect:
-        def matcher = createMatcher(["sub.*"], ["sub.bar.test"], root)
+        def matcher = createMatcher(["sub.*"], ["sub.bar"], root)
         matcher.matchesFile(fooTest)
         !matcher.matchesFile(barTest)
         !matcher.matchesFile(otherTest)
@@ -148,12 +147,14 @@ class FileTestSelectionMatcherTest extends Specification {
         def shallowFile = root.file("a/test.file").touch()
 
         expect:
-        def matcherExact = createMatcher(["a.b.c.d.test.file"], [], root)
+        // a/b/c/d/test.file -> a.b.c.d.test (extension stripped)
+        def matcherExact = createMatcher(["a.b.c.d.test"], [], root)
         matcherExact.matchesFile(deepFile)
         !matcherExact.matchesFile(shallowFile)
 
         and:
-        def matcherWildcard = createMatcher(["a.*.test.file"], [], root)
+        // a/test.file -> a.test (extension stripped)
+        def matcherWildcard = createMatcher(["a.*.test"], [], root)
         matcherWildcard.matchesFile(deepFile)
         !matcherWildcard.matchesFile(shallowFile)
     }
@@ -163,8 +164,8 @@ class FileTestSelectionMatcherTest extends Specification {
         def dottedDir = root.file("my.module/foo.test").touch()
 
         expect:
-        // The file my.module/foo.test becomes my.module.foo.test
-        def matcherExact = createMatcher(["my.module.foo.test"], [], root)
+        // my.module/foo.test -> my.module/foo -> my.module.foo (extension stripped, then / -> .)
+        def matcherExact = createMatcher(["my.module.foo"], [], root)
         matcherExact.matchesFile(dottedDir)
 
         and:
@@ -174,14 +175,15 @@ class FileTestSelectionMatcherTest extends Specification {
 
     def "matchesFile with multiple dots in file names"() {
         def root = temp.createDir("root")
+        // foo.bar.test -> foo.bar (extension stripped)
         def multiDotFile = root.file("foo.bar.test").touch()
 
         expect:
-        def matcherExact = createMatcher(["foo.bar.test"], [], root)
+        def matcherExact = createMatcher(["foo.bar"], [], root)
         matcherExact.matchesFile(multiDotFile)
 
         and:
-        def matcherWildSuffix = createMatcher(["*.bar.test"], [], root)
+        def matcherWildSuffix = createMatcher(["*.bar"], [], root)
         matcherWildSuffix.matchesFile(multiDotFile)
 
         and:
@@ -193,21 +195,22 @@ class FileTestSelectionMatcherTest extends Specification {
         expect:
         // This captures current behavior, but not desired behavior.
         // We cannot select files in the default package without
-        // including other files because *.included.test requires included.test
+        // including other files because *.included requires included
         // to be in a package
         def root = temp.createDir("root")
         def included = root.file("included.test").touch()
         def subIncluded = root.file("sub/included.test").touch()
         def excluded = root.file("sub/someincluded.test").touch()
 
-        def matcher = createMatcher(["*.included.test"], [], root)
+        // included.test -> included, sub/included.test -> sub.included, sub/someincluded.test -> sub.someincluded
+        def matcher = createMatcher(["*.included"], [], root)
         !matcher.matchesFile(included) // This isn't desired
         matcher.matchesFile(subIncluded)
         !matcher.matchesFile(excluded)
         and:
         // If you drop the dot from the pattern, we now incidentally include
         // tests that are in any package and end with the given pattern
-        def matcherWithoutDot = createMatcher(["*included.test"], [], root)
+        def matcherWithoutDot = createMatcher(["*included"], [], root)
         matcherWithoutDot.matchesFile(included)
         matcherWithoutDot.matchesFile(subIncluded)
         matcherWithoutDot.matchesFile(excluded) // This is a side effect of the include

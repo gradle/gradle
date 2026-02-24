@@ -320,7 +320,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            excludeTestsMatching "*SomeTestSpec.rbt"
+                            excludeTestsMatching "*SomeTestSpec"
                         }
                     }
                 }
@@ -396,7 +396,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            includeTestsMatching "*SomeTestSpec.rbt"
+                            includeTestsMatching "*SomeTestSpec"
                         }
                     }
                 }
@@ -576,7 +576,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         writeTestDefinitions()
 
         when:
-        succeeds("test", "--tests", "*sub.SomeOtherTestSpec.rbt")
+        succeeds("test", "--tests", "*sub.SomeOtherTestSpec")
 
         then:
         // TODO: Update org/gradle/testing/AbstractTestFilteringIntegrationTest.groovy when de-incubated

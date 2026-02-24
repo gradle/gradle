@@ -30,9 +30,12 @@ import java.util.Collection;
  * It converts a given file path into something that looks like a class name using a given set of search roots
  * and then uses a regular {@link ClassTestSelectionMatcher} to match against the quasi-class name.
  *
+ * The file extension is stripped before conversion so that the result looks like a class name
+ * rather than including the extension as an extra segment.
+ *
  * Examples:
- * src/test/definitions/foo.test becomes foo.test
- * src/test/definitions/sub/foo.test becomes sub.foo.test
+ * src/test/definitions/foo.test becomes foo
+ * src/test/definitions/sub/foo.test becomes sub.foo
  *
  * Limitations:
  * This means it's impossible to pick one file or the other if multiple roots have the same structure and file names.
@@ -55,7 +58,8 @@ class FileTestSelectionMatcher {
             for (Path root : roots) {
                 if (path.startsWith(root)) {
                     String relativePath = TextUtil.normaliseFileSeparators(root.relativize(path).toString());
-                    String packagified = relativePath.replaceAll("/", ".");
+                    String withoutExtension = removeExtension(relativePath);
+                    String packagified = withoutExtension.replaceAll("/", ".");
                     return classTestSelectionMatcher.matchesTest(packagified, "");
                 }
             }
@@ -63,5 +67,14 @@ class FileTestSelectionMatcher {
         } catch (IOException e) {
             return true;
         }
+    }
+
+    private static String removeExtension(String relativePath) {
+        int lastSlash = relativePath.lastIndexOf('/');
+        int lastDot = relativePath.lastIndexOf('.');
+        if (lastDot > lastSlash) {
+            return relativePath.substring(0, lastDot);
+        }
+        return relativePath;
     }
 }
