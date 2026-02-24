@@ -226,14 +226,14 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
 
                 DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter();
 
+                ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
+                delegatingFilter.addDelegate(ClassSource.class, classFilter);
+                delegatingFilter.addDelegate(MethodSource.class, classFilter);
+
                 if (hasDirectorySelectors()) {
                     FilePathFilter fileFilter = new FilePathFilter(matcher);
                     delegatingFilter.addDelegate(FileSource.class, fileFilter);
                     delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
-                } else {
-                    ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
-                    delegatingFilter.addDelegate(ClassSource.class, classFilter);
-                    delegatingFilter.addDelegate(MethodSource.class, classFilter);
                 }
 
                 requestBuilder.filters(delegatingFilter);

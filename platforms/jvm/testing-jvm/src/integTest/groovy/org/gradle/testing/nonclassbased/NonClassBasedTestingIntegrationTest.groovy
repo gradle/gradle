@@ -489,7 +489,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar")
     }
 
-    def "when running class-based and non-class-based tests, filters apply to both non-class-based tests"() {
+    def "when running class-based and non-class-based tests, filters (#pattern) apply to both non-class-based tests"() {
         given:
         buildFile << """
             plugins {
@@ -544,10 +544,13 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
             </tests>
         """
         when:
-        succeeds("test", "--tests", "example.SampleTest.*")
+        succeeds("test", "--tests", pattern)
 
         then:
         resultsFor().assertTestPathsExecuted(":example.SampleTest", ":example.SampleTest:foo()", ":SampleTest.rbt - foo")
+
+        where:
+        pattern << ["example.SampleTest.*", "*SampleTest.*"]
     }
 
     def "resource-based test engine can select test definitions using --tests"() {
