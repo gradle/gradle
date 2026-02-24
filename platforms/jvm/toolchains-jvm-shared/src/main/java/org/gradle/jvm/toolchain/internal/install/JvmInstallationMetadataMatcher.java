@@ -33,27 +33,37 @@ public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallation
     private final JavaLanguageVersion languageVersion;
     private final DefaultJvmVendorSpec vendorSpec;
     private final JvmImplementation jvmImplementation;
+    private final String implementationVersion;
     private final Set<JavaInstallationCapability> requiredCapabilities;
 
-    public JvmInstallationMetadataMatcher(JavaLanguageVersion languageVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation, Set<JavaInstallationCapability> requiredCapabilities) {
+    public JvmInstallationMetadataMatcher(JavaLanguageVersion languageVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation,  String implementationVersion, Set<JavaInstallationCapability> requiredCapabilities) {
         this.languageVersion = languageVersion;
         this.vendorSpec = (DefaultJvmVendorSpec)vendorSpec;
         this.jvmImplementation = jvmImplementation;
+        this.implementationVersion = implementationVersion;
         this.requiredCapabilities = ImmutableSet.copyOf(requiredCapabilities);
     }
 
     public JvmInstallationMetadataMatcher(JavaToolchainSpec spec, Set<JavaInstallationCapability> requiredCapabilities) {
-        this(spec.getLanguageVersion().get(), spec.getVendor().get(), spec.getImplementation().get(), requiredCapabilities);
+        this(spec.getLanguageVersion().get(), spec.getVendor().get(), spec.getImplementation().get(), spec.getImplementationVersion().getOrNull(), requiredCapabilities);
     }
 
     @Override
     public boolean test(JvmInstallationMetadata metadata) {
-        return hasMatchingMajorVersion(metadata) && vendorSpec.test(metadata) && hasRequiredCapabilities(metadata) && hasMatchingImplementation(metadata);
+        return hasMatchingMajorVersion(metadata) && hasMatchingImplementationVersion(metadata) && vendorSpec.test(metadata) && hasRequiredCapabilities(metadata) && hasMatchingImplementation(metadata);
     }
 
     private boolean hasMatchingMajorVersion(JvmInstallationMetadata metadata) {
         JavaLanguageVersion actualVersion = JavaLanguageVersion.of(metadata.getJavaMajorVersion());
         return actualVersion.equals(languageVersion);
+    }
+
+    private boolean hasMatchingImplementationVersion(JvmInstallationMetadata metadata) {
+        if (implementationVersion == null) {
+            return true;
+        }
+        String actualVersion = metadata.getJavaVersion();
+        return actualVersion.equals(implementationVersion);
     }
 
     private boolean hasRequiredCapabilities(JvmInstallationMetadata metadata) {
