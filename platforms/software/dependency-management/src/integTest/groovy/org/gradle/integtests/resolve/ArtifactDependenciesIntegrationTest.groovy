@@ -327,12 +327,13 @@ Searched in the following locations:
             task test {
                 def files = configurations.compile
                 doLast {
-                    assert files.collect { it.name } == ['middle2-1.0.jar', 'middle1-1.0.jar', 'leaf3-1.0.jar', 'leaf4-1.0.jar', 'leaf1-1.0.jar', 'leaf2-1.0.jar']
+                    println files.collect { it.name }
                 }
             }
         """
 
         succeeds("test")
+        outputContains("[middle2-1.0.jar, middle1-1.0.jar, leaf3-1.0.jar, leaf4-1.0.jar, leaf1-1.0.jar, leaf2-1.0.jar]")
     }
 
     void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
@@ -366,26 +367,13 @@ abstract class CheckArtifacts extends DefaultTask {
 
     @TaskAction
     void test() {
-        assert this.files.collect { it.name } == ['lib-1.0.jar', 'lib-1.0-classifier.jar', 'lib-1.0.zip', 'dist-1.0.zip']
-        def artifacts = this.artifacts.artifacts.collect { it.id.name }
-
-        assert artifacts.size() == 4
-        assert artifacts[0].name == 'lib'
-        assert artifacts[0].type == 'jar'
-        assert artifacts[0].extension == 'jar'
-        assert artifacts[0].classifier == null
-        assert artifacts[1].name == 'lib'
-        assert artifacts[1].type == 'jar'
-        assert artifacts[1].extension == 'jar'
-        assert artifacts[1].classifier == 'classifier'
-        assert artifacts[2].name == 'lib'
-        assert artifacts[2].type == 'zip'
-        assert artifacts[2].extension == 'zip'
-        assert artifacts[2].classifier == null
-        assert artifacts[3].name == 'dist'
-        assert artifacts[3].type == 'zip'
-        assert artifacts[3].extension == 'zip'
-        assert artifacts[3].classifier == null
+        println this.files.collect { it.name }
+        this.artifacts.artifacts.eachWithIndex { artifact, i ->
+            println "artifact\${i}.name=\${artifact.id.name.name}"
+            println "artifact\${i}.type=\${artifact.id.name.type}"
+            println "artifact\${i}.extension=\${artifact.id.name.extension}"
+            println "artifact\${i}.classifier=\${artifact.id.name.classifier}"
+        }
     }
 }
 
@@ -396,6 +384,23 @@ tasks.register("test", CheckArtifacts) {
 """
 
         succeeds('test')
+        outputContains("[lib-1.0.jar, lib-1.0-classifier.jar, lib-1.0.zip, dist-1.0.zip]")
+        outputContains("artifact0.name=lib")
+        outputContains("artifact0.type=jar")
+        outputContains("artifact0.extension=jar")
+        outputContains("artifact0.classifier=null")
+        outputContains("artifact1.name=lib")
+        outputContains("artifact1.type=jar")
+        outputContains("artifact1.extension=jar")
+        outputContains("artifact1.classifier=classifier")
+        outputContains("artifact2.name=lib")
+        outputContains("artifact2.type=zip")
+        outputContains("artifact2.extension=zip")
+        outputContains("artifact2.classifier=null")
+        outputContains("artifact3.name=dist")
+        outputContains("artifact3.type=zip")
+        outputContains("artifact3.extension=zip")
+        outputContains("artifact3.classifier=null")
     }
 
     @Issue("GRADLE-1567")
@@ -421,11 +426,9 @@ tasks.register("test", CheckArtifacts) {
             dependencies {
                 compile 'org.gradle.test:external1:1.0:classifier1'
             }
-            task test(dependsOn: configurations.compile) {
-                doLast {
-                    assert configurations.compile.collect { it.name } == ['external1-1.0-classifier1.jar']
-                    assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { "\${it.name}-\${it.classifier}" } == ['external1-classifier1']
-                }
+            task test {
+                def files = configurations.compile
+                doLast { println files.collect { it.name } }
             }
         """
         file("b/build.gradle") << """
@@ -439,16 +442,14 @@ tasks.register("test", CheckArtifacts) {
             dependencies {
                 compile 'org.gradle.test:external1:1.0:classifier2'
             }
-            task test(dependsOn: configurations.compile) {
-                doLast {
-                    assert configurations.compile.collect { it.name } == ['external1-1.0-classifier2.jar']
-                    assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { "\${it.name}-\${it.classifier}" } == ['external1-classifier2']
-                }
+            task test {
+                def files = configurations.compile
+                doLast { println files.collect { it.name } }
             }
         """
 
         when:
-        succeeds("a:checkDeps")
+        succeeds("a:checkDeps", "a:test")
 
         then:
         resolve.expectGraph(":a") {
@@ -458,9 +459,10 @@ tasks.register("test", CheckArtifacts) {
                 }
             }
         }
+        outputContains("[external1-1.0-classifier1.jar]")
 
         when:
-        succeeds("b:checkDeps")
+        succeeds("b:checkDeps", "b:test")
 
         then:
         resolve.expectGraph(":b") {
@@ -470,6 +472,7 @@ tasks.register("test", CheckArtifacts) {
                 }
             }
         }
+        outputContains("[external1-1.0-classifier2.jar]")
     }
 
     @Issue("GRADLE-739")
@@ -724,15 +727,16 @@ dependencies {
     override 'org.gradle.test:external1:1.0'
 }
 
-task test {
-    def files = configurations.override
-    doLast {
-        assert files.collect { it.name } == ['external1-1.0.jar']
-    }
-}
+        task test {
+            def files = configurations.override
+            doLast {
+                println files.collect { it.name }
+            }
+        }
 """
 
         succeeds('test')
+        outputContains("[external1-1.0.jar]")
     }
 
     /*
@@ -766,12 +770,14 @@ task test {
     def a = configurations.a
     def b = configurations.b
     doLast {
-        assert a*.name == ['external1-1.0.jar']
-        assert b*.name == ['external1-1.0.jar', 'external1-1.0-withClassifier.jar']
+        println a*.name
+        println b*.name
     }
 }
 """
         succeeds('test')
+        outputContains("[external1-1.0.jar]")
+        outputContains("[external1-1.0.jar, external1-1.0-withClassifier.jar]")
     }
 
     void projectCanDependOnItself() {
