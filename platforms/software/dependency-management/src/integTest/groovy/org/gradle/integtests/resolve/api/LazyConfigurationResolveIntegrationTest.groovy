@@ -74,32 +74,27 @@ class LazyConfigurationResolveIntegrationTest extends AbstractIntegrationSpec {
                     assert false
                 }
 
-                def referenced = dependencyScope("referencedByRealized")
-                resolvable("realizedResolvable") {
-                    extendsFrom(referenced)
-                }
-
-                def otherDeps = dependencyScope("otherDependencies")
+                // TODO: A lazy extendsFrom mechanism would allow us to avoid realizing otherDependencies
+                dependencyScope("otherDependencies")
                 consumable("otherConsumable") {
-                    extendsFrom(otherDeps)
+                    extendsFrom(otherDependencies)
                     attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "other"))
                 }
 
-                def mainDeps = dependencyScope("mainDependencies")
+                dependencyScope("mainDependencies")
                 consumable("main") {
-                    extendsFrom(mainDeps)
+                    extendsFrom(mainDependencies)
                     attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "main"))
                     outgoing.artifact(file("main.txt"))
-                    realizedResolvable // force realization of realizedResolvable
                 }
             }
         """
 
         buildFile << """
             configurations {
-                def depScope = dependencyScope("deps")
+                dependencyScope("deps")
                 resolvable("res") {
-                    extendsFrom(depScope)
+                    extendsFrom(deps)
                     attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "main"))
                 }
             }
@@ -128,12 +123,10 @@ class LazyConfigurationResolveIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("""
 Realizing configuration otherConsumable
-Realizing configuration main
-Realizing configuration realizedResolvable
-Realizing configuration mainDependencies
 Realizing configuration otherDependencies
+Realizing configuration main
+Realizing configuration mainDependencies
         """)
-        outputDoesNotContain("Realizing configuration referencedByRealized")
     }
 
     def "realizes non-role-locked configurations in target project"() {
@@ -159,9 +152,9 @@ Realizing configuration otherDependencies
 
         buildFile << """
             configurations {
-                def depScope = dependencyScope("deps")
+                dependencyScope("deps")
                 resolvable("res") {
-                    extendsFrom(depScope)
+                    extendsFrom(deps)
                     attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "main"))
                 }
             }
@@ -216,9 +209,9 @@ Realizing configuration unrelatedConsumable
 
         buildFile << """
             configurations {
-                def depScope = dependencyScope("deps")
+                dependencyScope("deps")
                 resolvable("res") {
-                    extendsFrom(depScope)
+                    extendsFrom(deps)
                     attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "main"))
                 }
             }
@@ -273,12 +266,12 @@ Realizing configuration main
                     assert false
                 }
 
-                def depScope = dependencyScope("deps") {
+                dependencyScope("deps") {
                     // Add the dependency lazily without realizing the configuration
                     dependencies.add(project.dependencies.create("org:foo:1.0"))
                 }
                 resolvable("res") {
-                    extendsFrom(depScope)
+                    extendsFrom(deps)
                 }
             }
 
