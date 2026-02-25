@@ -19,8 +19,6 @@ package org.gradle.internal.declarativedsl.dependencycollectors
 import com.google.common.graph.Traverser
 import org.gradle.api.Action
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.Dependencies
@@ -210,8 +208,6 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             val dependencyCollector = collectorAccessor.kCallable.call(checkNotNull(receiver)) as DependencyCollector
             lateinit var target : Dependency
             when (val dependency = binding.values.single()) {
-                is FileCollectionDependency -> dependencyCollector.add(dependency, Action { target = it })
-                is ExternalModuleDependency -> dependencyCollector.add(dependency, Action { target = it })
                 is ProjectDependency -> dependencyCollector.add(dependency, Action { target = it })
                 is Dependency -> dependencyCollector.add(dependency, Action { target = it })
                 else -> dependencyCollector.add(dependency.toString(), Action { target = it })

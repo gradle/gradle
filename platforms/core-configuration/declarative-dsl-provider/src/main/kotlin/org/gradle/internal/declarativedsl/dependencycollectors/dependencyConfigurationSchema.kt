@@ -18,8 +18,8 @@ package org.gradle.internal.declarativedsl.dependencycollectors
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
@@ -97,11 +97,15 @@ class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionC
             FixedTypeDiscovery(
                 PlatformDependencyModifiers::class,
                 listOf(
-                    TypeDiscovery.DiscoveredClass(ExternalModuleDependency::class, listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL"))),
-                    TypeDiscovery.DiscoveredClass(FileCollectionDependency::class, listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL"))),
                     TypeDiscovery.DiscoveredClass(ProjectDependency::class, listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL")))
                 )
-            )
+            ),
+            FixedTypeDiscovery(
+                DependencyCollector::class,
+                listOf(
+                    TypeDiscovery.DiscoveredClass(ExternalModuleDependency::class, listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL"))),
+                )
+            ),
         )
     }
 }
