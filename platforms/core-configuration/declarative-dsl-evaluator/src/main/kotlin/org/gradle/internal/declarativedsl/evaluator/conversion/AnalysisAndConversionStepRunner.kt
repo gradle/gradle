@@ -41,14 +41,15 @@ data class ConversionStepContext(
     val analysisStepContext: AnalysisStepContext
 ) : StepContext
 
+typealias ConversionEvaluationResult = EvaluationResult<ConversionStepResult, ConversionStepResult>
 
 sealed interface ConversionStepResult : StepResult {
     data class ConversionSucceeded(
-        val analysisResult: AnalysisStepResult
+        val analysisResult: AnalysisStepResult.PassedAnalysisStepResult
     ) : ConversionStepResult
 
     data class ConversionNotApplicable(
-        val analysisResult: AnalysisStepResult
+        val analysisResult: AnalysisStepResult.PassedAnalysisStepResult
     ) : ConversionStepResult
 
     data class AnalysisFailed(
@@ -60,15 +61,15 @@ sealed interface ConversionStepResult : StepResult {
 
 
 class AnalysisAndConversionStepRunner(
-    private val analysisStepRunner: InterpretationSequenceStepRunner<AnalysisStepContext, AnalysisStepResult>,
-) : InterpretationSequenceStepRunner<ConversionStepContext, ConversionStepResult> {
+    private val analysisStepRunner: InterpretationSequenceStepRunner<AnalysisStepContext, AnalysisStepResult.PassedAnalysisStepResult, AnalysisStepResult>,
+) : InterpretationSequenceStepRunner<ConversionStepContext, ConversionStepResult, ConversionStepResult> {
 
     override fun runInterpretationSequenceStep(
         scriptIdentifier: String,
         scriptSource: String,
         step: InterpretationSequenceStep,
         stepContext: ConversionStepContext
-    ): EvaluationResult<ConversionStepResult> = when (val analysisResult = analysisStepRunner.runInterpretationSequenceStep(scriptIdentifier, scriptSource, step, stepContext.analysisStepContext)) {
+    ): ConversionEvaluationResult = when (val analysisResult = analysisStepRunner.runInterpretationSequenceStep(scriptIdentifier, scriptSource, step, stepContext.analysisStepContext)) {
         is EvaluationResult.NotEvaluated ->
             EvaluationResult.NotEvaluated(analysisResult.stageFailures, ConversionStepResult.AnalysisFailed(analysisResult.partialStepResult))
 
