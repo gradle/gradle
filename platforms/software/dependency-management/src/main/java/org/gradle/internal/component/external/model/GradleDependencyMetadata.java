@@ -34,20 +34,20 @@ import java.util.List;
 public class GradleDependencyMetadata implements ModuleDependencyMetadata, ForcingDependencyMetadata {
 
     private final ModuleComponentSelector selector;
-    private final List<ExcludeMetadata> excludes;
+    private final ImmutableList<ExcludeMetadata> excludes;
     private final boolean constraint;
     private final boolean endorsing;
     private final @Nullable String reason;
     private final boolean force;
-    private final List<IvyArtifactName> artifacts;
+    private final ImmutableList<IvyArtifactName> artifacts;
 
     private final int hashCode;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, @Nullable String reason, boolean force, @Nullable IvyArtifactName artifact) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, ImmutableList<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, @Nullable String reason, boolean force, @Nullable IvyArtifactName artifact) {
         this(selector, excludes, constraint, endorsing, reason, force, artifact == null ? ImmutableList.of() : ImmutableList.of(artifact));
     }
 
-    private GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, @Nullable String reason, boolean force, List<IvyArtifactName> artifacts) {
+    private GradleDependencyMetadata(ModuleComponentSelector selector, ImmutableList<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, @Nullable String reason, boolean force, ImmutableList<IvyArtifactName> artifacts) {
         this.selector = selector;
         this.excludes = excludes;
         this.constraint = constraint;
@@ -78,7 +78,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     }
 
     @Override
-    public List<IvyArtifactName> getArtifacts() {
+    public ImmutableList<IvyArtifactName> getArtifacts() {
         return artifacts;
     }
 
@@ -120,14 +120,14 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     }
 
     @Override
-    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts) {
         if (target instanceof ModuleComponentSelector) {
             return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, endorsing, reason, force, artifacts);
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this.withArtifacts(artifacts));
     }
 
-    private DependencyMetadata withArtifacts(List<IvyArtifactName> artifacts) {
+    private DependencyMetadata withArtifacts(ImmutableList<IvyArtifactName> artifacts) {
         return new GradleDependencyMetadata(selector, excludes, constraint, endorsing, reason, force, artifacts);
     }
 
@@ -137,7 +137,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     }
 
     @Override
-    public List<ExcludeMetadata> getExcludes() {
+    public ImmutableList<ExcludeMetadata> getExcludes() {
         return excludes;
     }
 
