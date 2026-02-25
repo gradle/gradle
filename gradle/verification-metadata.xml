@@ -973,11 +973,6 @@
             <sha256 value="757eeb1c6703b81fa3bb6bc2eae7a5fe6ddac5d833b977aa1ce08979d7c2de5a" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="nl.jqno.equalsverifier" name="equalsverifier" version="2.1.6">
-         <artifact name="equalsverifier-2.1.6.jar">
-            <pgp value="2C1708EA05ADF6966C32D6454A1BAC7F1E3B89B3"/>
-         </artifact>
-      </component>
       <component group="org.abego.treelayout" name="org.abego.treelayout.core" version="1.0.3">
          <artifact name="org.abego.treelayout.core-1.0.3.jar">
             <pgp value="D790F72EA8FD39551012B62DCF9F3090CE4CB752"/>
