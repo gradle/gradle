@@ -25,10 +25,17 @@ import org.junit.platform.engine.support.descriptor.FileSource;
 import org.junit.platform.engine.support.descriptor.FileSystemSource;
 import org.junit.platform.launcher.PostDiscoveryFilter;
 
+import java.io.File;
+
 /**
  * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
- * file or directory based tests based on their relative paths to the root directory
- * of the project that contains them.
+ * file or directory based tests based on their relative path to the
+ * directory that they were selected from.
+ *
+ * src/test/definitions/sub/foo.test has a relative path of sub/foo.test
+ * relative to the directory src/test/definitions.
+ *
+ * @see org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher#matchesFile(File)
  */
 public final class FilePathFilter implements PostDiscoveryFilter {
     private final TestSelectionMatcher matcher;

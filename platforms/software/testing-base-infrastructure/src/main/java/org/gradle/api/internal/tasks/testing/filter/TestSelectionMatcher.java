@@ -24,17 +24,25 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * This class has two public APIs:
+ * This class has three public APIs:
  *
  * <ul>
- * <li>Judge whether a test class might be included. For example, class 'org.gradle.Test' can't
- * be included by pattern 'org.apache.Test'
- * <li>Judge whether a test method is matched exactly.
+ * <li>Judge whether a test class might be included.
+ * <li>Judge whether a test class or class+method is definitely included.
+ * <li>Judge whether a test file is definitely included for resource-based tests.
  * </ul>
  *
- * In both cases, if the pattern starts with an upper-case letter, it will be used to match
- * the simple class name;
- * otherwise, it will be used to match the fully qualified class name.
+ * For example, class 'org.gradle.Test' can't be included by pattern 'org.apache.Test', so
+ * {@link #mayIncludeClass(String)} will return false when given 'org.gradle.Test'.
+ *
+ * In all cases, if the pattern starts with an uppercase letter, matching is performed on the
+ * simple name of the test. For classes, this is the class name. For resource files, this is
+ * the file name without an extension.
+ *
+ * Otherwise, the pattern will be used to match the fully qualified name of the test.
+ *
+ * @see ClassTestSelectionMatcher
+ * @see FileTestSelectionMatcher
  */
 public class TestSelectionMatcher {
 
