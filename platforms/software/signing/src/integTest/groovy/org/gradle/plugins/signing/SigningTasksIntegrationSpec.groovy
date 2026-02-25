@@ -17,6 +17,7 @@ package org.gradle.plugins.signing
 
 
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
+import org.gradle.plugins.signing.signatory.internal.pgp.PrivateKeyExtractor
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -107,10 +108,10 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         if (newSignMethod == GPG_CMD) {
             setupGpgCmd()
         }
-        def signatoryProviderClass = newSignMethod == GPG_CMD ? GnupgSignatoryProvider : PgpSignatoryProvider
+        def signatoryProvider = newSignMethod == GPG_CMD ? "new ${GnupgSignatoryProvider.name}()" : "new ${PgpSignatoryProvider.name}(${PrivateKeyExtractor.name}.DEFAULT)"
         buildFile << """
             signing {
-                signatories = new ${signatoryProviderClass.name}()
+                signatories = ${signatoryProvider}
             }
         """
         run "signJar", "-i"
