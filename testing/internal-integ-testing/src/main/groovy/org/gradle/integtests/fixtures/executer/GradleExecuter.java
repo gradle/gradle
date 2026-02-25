@@ -507,9 +507,9 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withProfiler(String profilerArg);
 
     /**
-     * Forces Gradle to consider the build to be interactive
+     * Forces Gradle to consider the build to be attached to an interactive console
      */
-    GradleExecuter withForceInteractive(boolean flag);
+    GradleExecuter withForceInteractiveConsole(boolean flag);
 
     boolean isDebug();
 

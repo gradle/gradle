@@ -70,7 +70,7 @@ class CancellationContinuousIntegrationTest extends AbstractContinuousIntegratio
     def "does not cancel on EOT or by closing System.in when not interactive"() {
         when:
         executer.beforeExecute {
-            it.withForceInteractive(false).withStdinPipe(new PipedOutputStream() {
+            it.withForceInteractiveConsole(false).withStdinPipe(new PipedOutputStream() {
                 @Override
                 void connect(PipedInputStream snk) throws IOException {
                     super.connect(snk)
