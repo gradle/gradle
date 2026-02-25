@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
 @FluidDependenciesResolveTest
+@Issue("https://github.com/gradle/gradle/issues/30550")
 @UnsupportedWithConfigurationCache(because = "this tests ResolvedConfiguration, a deprecated, non-CC compatible API")
 class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
