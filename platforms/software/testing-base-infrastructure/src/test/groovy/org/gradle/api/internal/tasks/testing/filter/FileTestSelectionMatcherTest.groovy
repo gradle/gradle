@@ -191,6 +191,81 @@ class FileTestSelectionMatcherTest extends Specification {
         matcherWildPrefix.matchesFile(multiDotFile)
     }
 
+    def "matchesFile with hyphens in file and directory names"() {
+        def root = temp.createDir("root")
+        // my-feature/test-case.spec -> my-feature.test-case (extension stripped)
+        def hyphenatedFile = root.file("my-feature/test-case.spec").touch()
+        def otherFile = root.file("my-feature/other-case.spec").touch()
+
+        expect:
+        def matcherExact = createMatcher(["my-feature.test-case"], [], root)
+        matcherExact.matchesFile(hyphenatedFile)
+        !matcherExact.matchesFile(otherFile)
+
+        and:
+        def matcherWildcard = createMatcher(["my-feature.*"], [], root)
+        matcherWildcard.matchesFile(hyphenatedFile)
+        matcherWildcard.matchesFile(otherFile)
+    }
+
+    def "matchesFile with dollar sign in file names"() {
+        def root = temp.createDir("root")
+        // Foo$Bar.test -> Foo$Bar (extension stripped)
+        def dollarFile = root.file("Foo\$Bar.test").touch()
+        def fooFile = root.file("Foo.test").touch()
+
+        expect:
+        // Exact match works
+        def matcherExact = createMatcher(["Foo\$Bar"], [], root)
+        matcherExact.matchesFile(dollarFile)
+        // ClassTestSelectionMatcher's nested class logic in classNameMatch causes
+        // pattern Foo$Bar to also match the simple class name Foo, but matchesTest
+        // uses regex matching (not classNameMatch), so Foo does NOT match
+        !matcherExact.matchesFile(fooFile)
+
+        and:
+        // Wildcard matching works
+        def matcherWildcard = createMatcher(["Foo*"], [], root)
+        matcherWildcard.matchesFile(dollarFile)
+        matcherWildcard.matchesFile(fooFile)
+    }
+
+    def "matchesFile with files that have no extension"() {
+        def root = temp.createDir("root")
+        def noExtFile = root.file("Makefile").touch()
+        def subNoExtFile = root.file("sub/Makefile").touch()
+
+        expect:
+        // No extension to strip, name is used as-is
+        def matcherExact = createMatcher(["Makefile"], [], root)
+        // Starts with uppercase -> SimpleClassNameSelector -> matches simple name
+        matcherExact.matchesFile(noExtFile)
+        matcherExact.matchesFile(subNoExtFile)
+
+        and:
+        def matcherQualified = createMatcher(["sub.Makefile"], [], root)
+        !matcherQualified.matchesFile(noExtFile)
+        matcherQualified.matchesFile(subNoExtFile)
+    }
+
+    def "matchesFile with brackets in file names"() {
+        def root = temp.createDir("root")
+        // test[1].spec -> test[1] (extension stripped)
+        // Brackets interact with ClassTestSelectionMatcher's parametrized test handling
+        def bracketFile = root.file("test[1].spec").touch()
+        def plainFile = root.file("test.spec").touch()
+
+        expect:
+        def matcherExact = createMatcher(["test[1]"], [], root)
+        matcherExact.matchesFile(bracketFile)
+        !matcherExact.matchesFile(plainFile)
+
+        and:
+        def matcherWildcard = createMatcher(["test*"], [], root)
+        matcherWildcard.matchesFile(bracketFile)
+        matcherWildcard.matchesFile(plainFile)
+    }
+
     def "matchesFile with default packages"() {
         expect:
         // This captures current behavior, but not desired behavior.
