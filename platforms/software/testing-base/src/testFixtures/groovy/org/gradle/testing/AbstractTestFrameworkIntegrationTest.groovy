@@ -243,6 +243,33 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](filter.includeTestsMatching)")
     }
 
+    def "can disable fail on no matching tests via task property"() {
+        given:
+        createPassingFailingTest()
+        buildFile << """
+            tasks.withType(AbstractTestTask) {
+                failOnNoMatchingTests = false
+            }
+        """
+
+        when:
+        run(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can disable fail on no matching tests via CLI"() {
+        given:
+        createPassingFailingTest()
+
+        when:
+        run(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod", "--no-fail-on-no-matching-tests")
+
+        then:
+        noExceptionThrown()
+    }
+
     def "task is out of date when --tests argument changes"() {
         given:
         createPassingFailingTest()
