@@ -21,7 +21,16 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import java.util.Set;
 
 /**
- * Allows filtering tests for execution. Some examples:
+ * Allows filtering tests for execution.
+ *
+ * Class-based and non-class-based tests are filtered using the same selection logic.
+ *
+ * Classes can be selected by their simple, fully qualified names or partial matches on class name or package.
+ * Methods can be selected by their full names, containing class or partial matches.
+ *
+ * Non-class-based tests are converted to fully qualified names based on their relative path.
+ *
+ * Some examples:
  *
  * <pre class='autoTested'>
  *   apply plugin: 'java'
@@ -64,6 +73,8 @@ import java.util.Set;
  * </pre>
  *
  * @since 1.10
+ * <a href="https://docs.gradle.org/current/userguide/java_testing.html#test_filtering">General information about filtering.</a>
+ * <a href="https://docs.gradle.org/current/userguide/java_testing.html#filtering">Special notes about filtering non-class-based tests.</a>
  */
 public interface TestFilter {
 

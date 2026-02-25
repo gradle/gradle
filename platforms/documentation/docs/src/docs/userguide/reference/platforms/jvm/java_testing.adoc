@@ -822,14 +822,14 @@ include::sample[dir="snippets/java/fixtures/groovy/lib",files="build.gradle[tags
 ====
 
 [[sec:non-class-based-testing]]
-== Non-class based testing
+== Non-class-based testing
 
 === Overview
 
 Some testing frameworks do not use classes to define tests (for instance https://cucumber.io/[Cucumber]).
-Gradle supports non-class based testing via JUnit Platform https://docs.junit.org/current/user-guide/#test-engines[`TestEngine`]s.
+Gradle supports non-class-based testing via JUnit Platform https://docs.junit.org/current/user-guide/#test-engines[`TestEngine`]s.
 
-To use a non-class based testing framework, you need to:
+To use a non-class-based testing framework, you need to:
 
  * Add the appropriate `TestEngine` dependency to the test runtime classpath
  * Configure the `Test` task to use JUnit Platform
@@ -842,7 +842,7 @@ NOTE: Though possible, it is not recommended to mix class-based and non-class-ba
 
 === Basic Example
 
-Here is an example project structure for a non-class based testing setup.
+Here is an example project structure for a non-class-based testing setup.
 Test Engines for non-class-based testing are commonly added as test `runtimeOnly` dependencies.
 
 Typically these would be added via a 3rd party library, but in this simple example the build defines a custom JUnit Platform `TestEngine` in the `test-engine` project and uses it to run tests in the `lib` project.
@@ -956,16 +956,55 @@ When `./gradlew test --info` is run, the output contains lines that confirm that
 
 === Filtering
 
-Non-class-based tests can be filtered in the same way as class-based tests using the link:{javadocPath}/org/gradle/api/tasks/testing/TestFilter.html[`TestFilter`] API or `--tests` command line option.
+Non-class-based tests can be filtered in the same way as <<java_testing.adoc#test_filtering, class-based tests>> using the link:{javadocPath}/org/gradle/api/tasks/testing/TestFilter.html[`TestFilter`] API or `--tests` command line option.
 
-Non-class-based test filtering is performed by converting the path to the test definition into a package like name by converting file path separators into package separators.
-A file with the path `src/test/definitions/sub/MoreTests.xml` would be converted into a class name like `sub.MoreTests.xml` by calculating a path relative to the root of the test definitions.
+NOTE: Non-class-based filtering is an <<feature_lifecycle.adoc#sec:incubating_state,incubating>> feature that may change.
 
-Filtering is only supported at a file level granularity for non-class-based tests. There is no support for filtering individual tests within a test definition file.
+Non-class-based test filtering is performed by converting the relative file path into a fully qualified name. The package structure is constructed from the test definition directory.
+File path separators are converted into dots (`.`) and the file extension is removed.
 
-If the previous example was run with the filter: `./gradlew test --info --tests "*ExampleTests.xml"` then only the tests in `ExampleTests.xml` would be executed.
+[cols="1,1", options="header"]
+|===
+| File path | Fully qualified name
+| src/test/definitions/ExampleTests.xml
+| ExampleTests
 
-If it were run with the filter `./gradlew test --info --tests "\*sub.*"` then only the tests in `MoreTests.xml` would be executed.
+| src/test/definitions/sub/MoreTests.xml
+| sub.MoreTests
+|===
+
+To run only the tests in `ExampleTests.xml`:
+
+    ./gradlew test --tests "ExampleTests*"
+
+To run all tests within the `sub` directory:
+
+    ./gradlew test --tests "sub.*"
+
+==== Ambiguity with test selection
+
+The goal of following the same selection rules as class-based tests is to make it easier for users to run all tests within a logical grouping without knowing if they are class-based or non-class-based.
+
+The conversion from file path to fully qualified name will be ambiguous for some directory structures.
+Directory names that contain dots or file names that contain multiple dots can make it impossible to select an individual test file.
+Some directory or file names may be awkward to select (e.g., paths with spaces).
+Our recommendation is to follow link:https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html[Java package naming conventions] or use a single unambiguous naming convention for directories and files.
+
+All of the following file paths appear to be the same test and cannot be filtered individually.
+[cols="1,1", options="header"]
+|===
+| File path | Fully qualified name
+| src/test/definitions/sub.ExampleTests.xml
+| sub.ExampleTests
+
+| src/test/definitions/sub/ExampleTests.xml
+| sub.ExampleTests
+
+| src/test/definitions/sub/ExampleTests
+| sub.ExampleTests
+|===
+
+NOTE: Filtering is only supported at a file level granularity for non-class-based tests. There is no support for filtering individual tests within a test definition file.
 
 === Parallel Execution
 

@@ -111,7 +111,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         }
 
         /*
-         * We're possibly running non-class based tests and there is a filter present.
+         * We're possibly running non-class-based tests and there is a filter present.
          *
          * @see org.gradle.api.internal.tasks.testing.filter.FileTestSelectionMatcher
          */
