@@ -60,6 +60,7 @@ public class StartParameterInternal extends StartParameter {
     private Option.Value<Boolean> parallelToolingModelBuilding = Option.Value.defaultValue(false);
     private @Nullable String develocityUrl;
     private @Nullable String develocityPluginVersion;
+    private boolean nonInteractive = false;
 
     public StartParameterInternal() {
     }
@@ -360,6 +361,13 @@ public class StartParameterInternal extends StartParameter {
 
     public void setDevelocityPluginVersion(@Nullable String develocityPluginVersion) {
         this.develocityPluginVersion = develocityPluginVersion;
+    }
+    public boolean isNonInteractive() {
+        return nonInteractive;
+    }
+
+    public void setNonInteractive(boolean nonInteractive) {
+        this.nonInteractive = nonInteractive;
     }
 
     public BuildLayoutConfiguration toBuildLayoutConfiguration() {

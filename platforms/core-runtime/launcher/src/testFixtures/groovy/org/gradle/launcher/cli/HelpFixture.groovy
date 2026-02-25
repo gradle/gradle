@@ -40,6 +40,7 @@ Logging:
   --debug, -d                        Sets log level to debug. Includes the normal stacktrace.
   --full-stacktrace, -S              Prints the full (very verbose) stacktrace for all exceptions.
   --info, -i                         Sets the log level to info.
+  --non-interactive                  Do not do interactive prompting.
   --quiet, -q                        Logs errors only.
   --stacktrace, -s                   Prints the stacktrace for all exceptions.
   --warn, -w                         Sets the log level to warn.
