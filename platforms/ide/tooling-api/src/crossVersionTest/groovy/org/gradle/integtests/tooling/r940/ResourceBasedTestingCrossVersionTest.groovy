@@ -96,7 +96,7 @@ class  ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTesting
             it.newTestLauncher()
                 .addProgressListener(events, OperationType.TASK, OperationType.TEST)
                 .withTestsFor { tests ->
-                    tests.forTaskPath(':test').includePattern("subSomeOtherTestSpec.rbt")
+                    tests.forTaskPath(':test').includePattern("subSomeOtherTestSpec")
                 }
                 .run()
         }
