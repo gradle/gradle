@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleHandle
 
@@ -55,6 +56,11 @@ abstract class AbstractInteractiveInitIntegrationSpec extends AbstractInitIntegr
     protected ExecutionResult closeInteractiveExecutor(GradleHandle handle) {
         handle.stdinPipe.close()
         handle.waitForFinish()
+    }
+
+    protected ExecutionFailure closeFailingInteractiveExecutor(GradleHandle handle) {
+        handle.stdinPipe.close()
+        handle.waitForFailure()
     }
 
     protected void assertPromptedToOverwriteExistingFiles(GradleHandle handle) {

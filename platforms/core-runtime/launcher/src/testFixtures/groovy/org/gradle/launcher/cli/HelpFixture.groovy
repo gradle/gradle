@@ -54,6 +54,7 @@ USAGE: gradle [option...] [task...]
 -M, --write-verification-metadata  Generates checksums for dependencies used in the project (comma-separated list)
 -m, --dry-run                      Run the builds with all task actions disabled.
 --max-workers                      Configure the number of concurrent workers Gradle is allowed to use.
+--non-interactive                  Do not do interactive prompting.
 --offline                          Execute the build without accessing network resources.
 -P, --project-prop                 Set project property for the build script (e.g. -Pmyprop=myvalue).
 -p, --project-dir                  Specifies the start directory for Gradle. Defaults to current directory.

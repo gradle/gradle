@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
@@ -181,12 +182,13 @@ public class LauncherServices extends AbstractGradleModuleServices {
 
         @Provides
         UserInputHandler createUserInputHandler(
+            StartParameterInternal startParameter,
             BuildRequestMetaData requestMetaData,
             OutputEventListenerManager outputEventListenerManager,
             Clock clock,
             UserInputReader inputReader
         ) {
-            if (!requestMetaData.isInteractiveConsole()) {
+            if (startParameter.isNonInteractive() || !requestMetaData.isInteractiveConsole()) {
                 return new NonInteractiveUserInputHandler();
             }
 
