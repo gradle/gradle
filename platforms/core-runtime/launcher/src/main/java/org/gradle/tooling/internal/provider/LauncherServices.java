@@ -180,8 +180,13 @@ public class LauncherServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        UserInputHandler createUserInputHandler(BuildRequestMetaData requestMetaData, OutputEventListenerManager outputEventListenerManager, Clock clock, UserInputReader inputReader) {
-            if (!requestMetaData.isInteractive()) {
+        UserInputHandler createUserInputHandler(
+            BuildRequestMetaData requestMetaData,
+            OutputEventListenerManager outputEventListenerManager,
+            Clock clock,
+            UserInputReader inputReader
+        ) {
+            if (!requestMetaData.isInteractiveConsole()) {
                 return new NonInteractiveUserInputHandler();
             }
 

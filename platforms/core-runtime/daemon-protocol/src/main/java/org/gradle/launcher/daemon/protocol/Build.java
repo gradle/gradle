@@ -25,15 +25,15 @@ public class Build extends Command {
     private final BuildAction action;
     private final GradleLauncherMetaData buildClientMetaData;
     private final long startTime;
-    private final boolean interactive;
+    private final boolean interactiveConsole;
     private final BuildActionParameters parameters;
 
-    public Build(UUID identifier, byte[] token, BuildAction action, GradleLauncherMetaData buildClientMetaData, long startTime, boolean interactive, BuildActionParameters parameters) {
+    public Build(UUID identifier, byte[] token, BuildAction action, GradleLauncherMetaData buildClientMetaData, long startTime, boolean interactiveConsole, BuildActionParameters parameters) {
         super(identifier, token);
         this.action = action;
         this.buildClientMetaData = buildClientMetaData;
         this.startTime = startTime;
-        this.interactive = interactive;
+        this.interactiveConsole = interactiveConsole;
         this.parameters = parameters;
     }
 
@@ -41,8 +41,8 @@ public class Build extends Command {
         return startTime;
     }
 
-    public boolean isInteractive() {
-        return interactive;
+    public boolean isInteractiveConsole() {
+        return interactiveConsole;
     }
 
     public GradleLauncherMetaData getBuildClientMetaData() {

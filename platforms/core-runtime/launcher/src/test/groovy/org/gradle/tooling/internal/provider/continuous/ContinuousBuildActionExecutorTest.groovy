@@ -372,7 +372,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private void buildIsInteractive() {
-        requestMetadata.interactive >> true
+        requestMetadata.interactiveConsole >> true
     }
 
     private void continuousBuildEnabled() {

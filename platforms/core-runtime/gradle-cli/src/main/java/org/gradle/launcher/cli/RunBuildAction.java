@@ -56,7 +56,7 @@ public class RunBuildAction implements Runnable {
             BuildActionResult result = executor.execute(
                 new ExecuteBuildAction(startParameter),
                 buildActionParameters,
-                new ClientBuildRequestContext(clientMetaData, startTime, sharedServices.get(ConsoleDetector.class).isConsoleInput(), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer())
+                new ClientBuildRequestContext(clientMetaData, startTime, sharedServices.get(ConsoleDetector.class).isInteractiveConsole(), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer())
             );
             if (result.hasFailure()) {
                 // Don't need to unpack the serialized failure. It will already have been reported and is not used by anything downstream of this action.

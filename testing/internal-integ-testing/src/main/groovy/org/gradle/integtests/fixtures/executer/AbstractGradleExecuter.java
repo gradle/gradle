@@ -199,7 +199,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
-    protected boolean interactive;
+    protected boolean interactiveConsole;
 
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace;
@@ -276,7 +276,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DebugUtil.DAEMON_DEBUG_PORT);
         debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP), LAUNCHER_DEBUG_PORT);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
-        interactive = false;
+        interactiveConsole = false;
         checkDeprecations = true;
         filterJavaVersionDeprecation = true;
         durationMeasurement = null;
@@ -440,7 +440,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         executer
             .withProfiler(profiler)
-            .withForceInteractive(interactive);
+            .withForceInteractiveConsole(interactiveConsole);
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
@@ -1228,8 +1228,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, Boolean.toString(eagerClassLoaderCreationChecksOn));
 
-        if (interactive) {
-            properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
+        if (interactiveConsole) {
+            properties.put(TestOverrideConsoleDetector.INTERACTIVE_CONSOLE_TOGGLE, "true");
         }
 
         properties.put(WelcomeMessageAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
@@ -1514,8 +1514,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withForceInteractive(boolean flag) {
-        interactive = flag;
+    public GradleExecuter withForceInteractiveConsole(boolean flag) {
+        interactiveConsole = flag;
         return this;
     }
 
