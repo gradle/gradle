@@ -81,7 +81,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @ToolingApiTest
 @CleanupTestDirectory
 @ToolingApiVersion('>=8.0')
-@TargetGradleVersion('>=4.0')
+// TODO: Gradle 10: remove comments, see https://github.com/gradle/gradle-private/issues/5096 for more information, TL;DR: StackTraceElement can't be serialized across Java 8 & Java 9+
+@TargetGradleVersion('>=5.0') // technically this should be 4.0, and we could get this with reasonable effort to be 4.3 but that would require an unsupported JVM (9), sticking to supported JVMs means Gradle 5 is as low as we can get
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification implements CommonTestFilesFixture, LanguageSpecificTestFileFixture, KotlinDslTestProjectInitiation, ProjectDirectoryCreator {
     /**
