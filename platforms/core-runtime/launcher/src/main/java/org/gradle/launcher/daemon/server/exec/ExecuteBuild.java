@@ -57,7 +57,7 @@ public class ExecuteBuild extends BuildCommandOnly {
         try {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();
             DefaultBuildClientMetaData clientMetaData = new DefaultBuildClientMetaData(build.getBuildClientMetaData());
-            BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(clientMetaData, build.getStartTime(), build.isInteractive());
+            BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(clientMetaData, build.getStartTime(), build.isInteractiveConsole());
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(buildRequestMetaData, cancellationToken, buildEventConsumer);
             if (!build.getAction().getStartParameter().isContinuous()) {
                 buildRequestContext.getCancellationToken().addCallback(new Runnable() {
