@@ -84,6 +84,10 @@ tasks {
         systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
         systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
 
+        testLogging {
+            events("passed", "skipped", "failed", "standardOut", "standardError")
+        }
+
         jvmArgumentProviders.add(
             ArchUnitPlatformsData(
                 layout.settingsDirectory.dir("platforms"),
