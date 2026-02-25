@@ -66,7 +66,6 @@ dependencies {
 
     testImplementation(projects.dependencyManagement)
     testImplementation(testLibs.xmlunit)
-    testImplementation(testLibs.equalsverifier)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.languageGroovy))
