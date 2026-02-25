@@ -17,7 +17,6 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.collect.PersistentArray;
 import org.gradle.internal.collect.PersistentList;
-import org.gradle.internal.collect.PersistentMap;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
@@ -396,44 +395,39 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         public OwnServices() {
             final ThisAsService thisServiceRegistry = new ThisAsService(ServiceAccess.getPublicScope());
+            ConcurrentMap<Class<?>, ThreadSafeArray<ServiceProvider>> providersByType = new ConcurrentHashMap<>();
+            providersByType.put(ServiceRegistry.class, ThreadSafeArray.of(thisServiceRegistry));
             services = new AtomicReference<>(
-                ServicesSnapshot.of(
-                    PersistentMap.of(
-                        ServiceRegistry.class,
-                        PersistentArray.of(thisServiceRegistry)
-                    )
-                )
+                ServicesSnapshot.of(providersByType)
             );
         }
 
         @Override
         public @Nullable Service getService(Type type, @Nullable ServiceAccessToken token) {
-            PersistentArray<ServiceProvider> serviceProviders = getProviders(unwrap(type));
-            if (serviceProviders.isEmpty()) {
-                return null;
-            }
-            if (serviceProviders.size() == 1) {
-                return serviceProviders.get(0).getService(type, token);
-            }
+            ThreadSafeArray<ServiceProvider> serviceProviders = getProviders(unwrap(type));
 
-            List<Service> services = new ArrayList<Service>(serviceProviders.size());
-            for (ServiceProvider serviceProvider : serviceProviders) {
-                Service service = serviceProvider.getService(type, token);
+            Service singletonService = null;
+            List<Service> duplicatedServices = null;
+            for (int i = 0; i < serviceProviders.elements; i++) {
+                Service service = serviceProviders.get(i).getService(type, token);
                 if (service != null) {
-                    services.add(service);
+                    if (singletonService == null) {
+                        singletonService = service;
+                    } else {
+                        duplicatedServices = duplicatedServices == null
+                            ? new ArrayList<>(Collections.singletonList(singletonService))
+                            : duplicatedServices;
+                        duplicatedServices.add(service);
+                    }
                 }
             }
 
-            if (services.isEmpty()) {
-                return null;
+            if (duplicatedServices == null) {
+                return singletonService;
             }
 
-            if (services.size() == 1) {
-                return services.get(0);
-            }
-
-            Set<String> descriptions = new TreeSet<String>();
-            for (Service candidate : services) {
+            Set<String> descriptions = new TreeSet<>();
+            for (Service candidate : duplicatedServices) {
                 descriptions.add(candidate.getDisplayName());
             }
 
@@ -445,17 +439,17 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             throw new ServiceLookupException(formatter.toString());
         }
 
-        private PersistentArray<ServiceProvider> getProviders(Class<?> type) {
+        private ThreadSafeArray<ServiceProvider> getProviders(Class<?> type) {
             @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
-            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType = services.get().providersByType;
-
-            return providersByType.getOrDefault(type, PersistentArray.of());
+            ConcurrentMap<Class<?>, ThreadSafeArray<ServiceProvider>> providersByType = services.get().providersByType;
+            return providersByType.getOrDefault(type, ThreadSafeArray.empty());
         }
 
         @Override
         public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
-            for (ServiceProvider serviceProvider : getProviders(serviceType)) {
-                visitor = serviceProvider.getAll(serviceType, token, visitor);
+            ThreadSafeArray<ServiceProvider> providers = getProviders(serviceType);
+            for (int i = 0; i < providers.elements; i++) {
+                visitor = providers.get(i).getAll(serviceType, token, visitor);
             }
             return visitor;
         }
@@ -1423,8 +1417,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      * rarely (once per lifecycle handler).
      */
     private static class ServicesSnapshot {
+        private final PersistentList<SingletonService> services;
+        private final PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers;
+        private final ConcurrentMap<Class<?>, ThreadSafeArray<ServiceProvider>> providersByType;
 
-        public static ServicesSnapshot of(PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType) {
+        public static ServicesSnapshot of(ConcurrentMap<Class<?>, ThreadSafeArray<ServiceProvider>> providersByType) {
             return new ServicesSnapshot(
                 PersistentList.of(),
                 PersistentArray.of(),
@@ -1432,14 +1429,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             );
         }
 
-        final PersistentList<SingletonService> services;
-        final PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers;
-        final PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType;
-
         private ServicesSnapshot(
             PersistentList<SingletonService> services,
             PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers,
-            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
+            ConcurrentMap<Class<?>, ThreadSafeArray<ServiceProvider>> providersByType
         ) {
             this.services = services;
             this.lifecycleHandlers = lifecycleHandlers;
@@ -1462,12 +1455,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             );
         }
 
-        private static PersistentMap<Class<?>, PersistentArray<ServiceProvider>> collectProvidersForClassHierarchyOf(
+        private static ConcurrentMap<Class<?>, ThreadSafeArray<ServiceProvider>> collectProvidersForClassHierarchyOf(
             SingletonService serviceProvider,
             ClassInspector inspector,
-            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
+            ConcurrentMap<Class<?>, ThreadSafeArray<ServiceProvider>> providersByType
         ) {
-            PersistentArray<ServiceProvider> newProviders = PersistentArray.of(serviceProvider);
             for (Class<?> serviceType : serviceProvider.getDeclaredServiceTypes()) {
                 for (Class<?> type : inspector.getHierarchy(serviceType)) {
                     if (type.equals(Object.class)) {
@@ -1477,9 +1469,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                         // Disallow custom services of type ServiceRegistry, as these are automatically provided
                         throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
                     }
-                    providersByType = providersByType.modify(type, (key, providers) -> {
+                    providersByType.compute(type, (key, providers) -> {
                         if (providers == null) {
-                            return newProviders;
+                            return ThreadSafeArray.of(serviceProvider);
                         } else {
                             return providers.contains(serviceProvider)
                                 ? providers
@@ -1489,6 +1481,77 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 }
             }
             return providersByType;
+        }
+    }
+
+    private static class ThreadSafeArray<T> {
+
+        @SuppressWarnings("rawtypes")
+        private static final ThreadSafeArray EMPTY = new ThreadSafeArray<>(0, new Object[0]);
+
+        private final int elements;
+        private final T[] array;
+
+        @SuppressWarnings("unchecked")
+        private ThreadSafeArray(int elements, Object[] array) {
+            this.array = (T[]) array;
+            this.elements = elements;
+        }
+
+        public boolean contains(T element) {
+            for (int i = 0; i < elements; i++) {
+                if (array[i].equals(element)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public ThreadSafeArray<T> plus(T element) {
+            switch (array.length) {
+                case 0:
+                    return ThreadSafeArray.of(element);
+                case 1:
+                    return addToOne(element);
+                default:
+                    return addToMany(element);
+            }
+        }
+
+        public T get(int i) {
+            if (i >= elements) {
+                throw new IndexOutOfBoundsException("Index " + i + " is out of bounds for array of size " + elements);
+            }
+            return array[i];
+        }
+
+        private ThreadSafeArray<T> addToOne(T element) {
+            Object[] newArray = new Object[10];
+            newArray[0] = array[0];
+            newArray[1] = element;
+            return new ThreadSafeArray<>(elements + 1, newArray);
+        }
+
+        private ThreadSafeArray<T> addToMany(T element) {
+            Object[] array = this.array;
+            int size = array.length;
+            if (elements == size) {
+                // Is full, need to resize
+                Object[] newArray = new Object[size + (size >> 1)];
+                System.arraycopy(array, 0, newArray, 0, size);
+                array = newArray;
+            }
+            array[elements] = element;
+            return new ThreadSafeArray<>(elements + 1, array);
+        }
+
+        public static <T> ThreadSafeArray<T> of(T element) {
+            return new ThreadSafeArray<>(1, new Object[]{element});
+        }
+
+        @SuppressWarnings("unchecked")
+        public static <T> ThreadSafeArray<T> empty() {
+            return EMPTY;
         }
     }
 }

@@ -26,7 +26,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
@@ -54,5 +53,4 @@ public interface ConfigurationServicesBundle {
     InternalProblems getProblems();
     AttributeDesugaring getAttributeDesugaring();
     ResolveExceptionMapper getExceptionMapper();
-    ProviderFactory getProviderFactory();
 }
