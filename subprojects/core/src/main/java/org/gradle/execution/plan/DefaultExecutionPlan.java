@@ -18,6 +18,7 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -30,7 +31,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map;
@@ -46,7 +46,7 @@ import static com.google.common.collect.Sets.newIdentityHashSet;
  */
 @NullMarked
 public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPlan {
-    private final Set<Node> entryNodes = new LinkedHashSet<>();
+    private final Set<Node> entryNodes = new ObjectLinkedOpenHashSet<>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final String displayName;
     private final TaskNodeFactory taskNodeFactory;
@@ -59,7 +59,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private boolean continueOnFailure;
 
     private final Set<Node> filteredNodes = newIdentityHashSet();
-    private final Set<Node> finalizers = new LinkedHashSet<>();
+    private final Set<Node> finalizers = new ObjectLinkedOpenHashSet<>();
     private final OrdinalNodeAccess ordinalNodeAccess;
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
@@ -332,7 +332,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     static class NodeMapping extends AbstractCollection<Node> {
         private final Map<Task, LocalTaskNode> taskMapping = new LinkedHashMap<>();
-        private final Set<Node> nodes = new LinkedHashSet<>();
+        private final Set<Node> nodes = new ObjectLinkedOpenHashSet<>();
 
         @Override
         public boolean contains(Object o) {

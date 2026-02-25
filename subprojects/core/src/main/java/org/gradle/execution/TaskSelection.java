@@ -16,9 +16,9 @@
 
 package org.gradle.execution;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Task;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class TaskSelection {
@@ -41,7 +41,7 @@ public class TaskSelection {
     }
 
     public Set<Task> getTasks() {
-        LinkedHashSet<Task> result = new LinkedHashSet<Task>();
+        ObjectLinkedOpenHashSet<Task> result = new ObjectLinkedOpenHashSet<Task>();
         taskSelectionResult.collectTasks(result);
         return result;
     }

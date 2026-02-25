@@ -23,6 +23,7 @@ import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
@@ -42,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -357,7 +357,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 }
                 realized = true;
                 if (realizeAction != null) {
-                    Set<T> realizedValues = new LinkedHashSet<>();
+                    Set<T> realizedValues = new ObjectLinkedOpenHashSet<>();
                     for (T value : cache) {
                         if (!realizedValues.contains(value)) {
                             realizeAction.execute(value);

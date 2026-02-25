@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.file.FileResolver;
@@ -38,7 +39,6 @@ import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.gradle.util.internal.GUtil;
 
 import java.net.URI;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultObjectConfigurationAction implements ObjectConfigurationAction {
@@ -46,8 +46,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final FileResolver resolver;
     private final ScriptPluginFactory configurerFactory;
     private final ScriptHandlerFactory scriptHandlerFactory;
-    private final Set<Object> targets = new LinkedHashSet<Object>();
-    private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
+    private final Set<Object> targets = new ObjectLinkedOpenHashSet<Object>();
+    private final Set<Runnable> actions = new ObjectLinkedOpenHashSet<Runnable>();
     private final ClassLoaderScope classLoaderScope;
     private final TextUriResourceLoader.Factory textUriFileResourceLoaderFactory;
     private final Object defaultTarget;

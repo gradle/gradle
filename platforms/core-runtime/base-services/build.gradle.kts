@@ -43,6 +43,7 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.fastutil)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 

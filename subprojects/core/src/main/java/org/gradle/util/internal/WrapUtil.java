@@ -15,6 +15,7 @@
  */
 package org.gradle.util.internal;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
@@ -25,7 +26,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,7 +64,7 @@ public class WrapUtil {
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> Set<T> toLinkedSet(T... items) {
-        Set<T> coll = new LinkedHashSet<T>();
+        Set<T> coll = new ObjectLinkedOpenHashSet<T>();
         Collections.addAll(coll, items);
         return coll;
     }

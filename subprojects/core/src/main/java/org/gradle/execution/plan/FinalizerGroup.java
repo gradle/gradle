@@ -20,13 +20,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import kotlin.collections.ArrayDeque;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -38,7 +38,7 @@ public class FinalizerGroup extends HasFinalizers {
     private static final MemberSuccessors DO_NOT_BLOCK = new DoNotBlock();
     private final TaskNode node;
     private final NodeGroup delegate;
-    private final Set<Node> members = new LinkedHashSet<>();
+    private final Set<Node> members = new ObjectLinkedOpenHashSet<>();
     @Nullable
     private OrdinalGroup ordinal;
     @Nullable
@@ -211,7 +211,7 @@ public class FinalizerGroup extends HasFinalizers {
                     blockingNodesBuilder.put(member, waitForFinalizers);
                 } else {
                     // Wait for the finalized nodes that don't introduce a cycle
-                    Set<Node> blockOn = new LinkedHashSet<>(finalizedNodesToBlockOn);
+                    Set<Node> blockOn = new ObjectLinkedOpenHashSet<>(finalizedNodesToBlockOn);
                     blockOn.addAll(blockedFinalizedMembers);
                     blockingNodesBuilder.put(member, new WaitForNodesToComplete(blockOn));
                 }
