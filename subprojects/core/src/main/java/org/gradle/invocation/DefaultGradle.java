@@ -98,6 +98,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private @Nullable ProjectInternal rootProject;
     private @Nullable ProjectInternal defaultProject;
     private boolean projectsLoaded;
+    private boolean isContributesToBuildscriptClasspath = false;
 
     public DefaultGradle(BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
         this.buildState = buildState;
@@ -217,6 +218,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         rootProject = null;
         defaultProject = null;
         projectsLoaded = false;
+        isContributesToBuildscriptClasspath = false;
         includedBuilds = null;
         rootProjectActions.clear();
         isolatedProjectEvaluationListenerProvider.clear();
@@ -616,6 +618,16 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
      */
     private DefaultGradleLifecycle instantiateGradleLifecycle() {
         return buildScopeServices.get(ObjectFactory.class).newInstance(DefaultGradleLifecycle.class, this);
+    }
+
+    @Override
+    public boolean isContributesToBuildscriptClasspath() {
+        return isContributesToBuildscriptClasspath;
+    }
+
+    @Override
+    public void setContributesToBuildscriptClasspath() {
+        this.isContributesToBuildscriptClasspath = true;
     }
 
     static class DefaultGradleLifecycle implements GradleLifecycle {

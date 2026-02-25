@@ -158,6 +158,12 @@ class CrossProjectConfigurationReportingGradle private constructor(
         throw UnsupportedOperationException()
     }
 
+    override fun isContributesToBuildscriptClasspath(): Boolean = delegate.isContributesToBuildscriptClasspath
+
+    override fun setContributesToBuildscriptClasspath() {
+        delegate.setContributesToBuildscriptClasspath()
+    }
+
     internal
     companion object {
         fun from(gradle: GradleInternal, referrerProject: ProjectInternal): CrossProjectConfigurationReportingGradle {
