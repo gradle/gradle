@@ -17,13 +17,13 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -35,7 +35,7 @@ public class DefaultMutableCapabilitiesMetadata implements MutableCapabilitiesMe
     private final Set<ImmutableCapability> descriptors;
 
     public DefaultMutableCapabilitiesMetadata(ImmutableCapabilities capabilities) {
-        this.descriptors = new LinkedHashSet<>(capabilities.asSet());
+        this.descriptors = new ObjectLinkedOpenHashSet<>(capabilities.asSet());
     }
 
     @Override

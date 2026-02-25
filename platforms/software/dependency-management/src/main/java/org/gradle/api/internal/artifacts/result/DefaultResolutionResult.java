@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.result;
 
 import groovy.lang.Closure;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
@@ -30,7 +31,6 @@ import org.gradle.internal.Actions;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -71,7 +71,7 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     @Override
     public Set<? extends DependencyResult> getAllDependencies() {
-        final Set<DependencyResult> out = new LinkedHashSet<>();
+        final Set<DependencyResult> out = new ObjectLinkedOpenHashSet<>();
         allDependencies(out::add);
         return out;
     }
@@ -89,7 +89,7 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     @Override
     public Set<ResolvedComponentResult> getAllComponents() {
-        final Set<ResolvedComponentResult> out = new LinkedHashSet<>();
+        final Set<ResolvedComponentResult> out = new ObjectLinkedOpenHashSet<>();
         eachElement(getRoot(), Actions.doNothing(), Actions.doNothing(), out);
         return out;
     }

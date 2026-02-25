@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.result;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -32,7 +33,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,7 +41,7 @@ import java.util.Set;
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
 
     private final ModuleVersionIdentifier moduleVersion;
-    private Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
+    private Set<ResolvedDependencyResult> dependents = new ObjectLinkedOpenHashSet<>();
     private final ComponentSelectionReasonInternal selectionReason;
     private final ComponentIdentifier componentId;
     private final ImmutableList<ResolvedVariantResult> selectedVariants;

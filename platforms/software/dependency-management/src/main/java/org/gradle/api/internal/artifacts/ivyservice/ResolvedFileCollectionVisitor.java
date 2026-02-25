@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 
 import java.io.File;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ResolvedFileCollectionVisitor implements ResolvedFileVisitor {
     private final FileCollectionStructureVisitor visitor;
-    private final Set<File> files = new LinkedHashSet<>();
-    private final Set<Throwable> failures = new LinkedHashSet<>();
+    private final Set<File> files = new ObjectLinkedOpenHashSet<>();
+    private final Set<Throwable> failures = new ObjectLinkedOpenHashSet<>();
 
     public ResolvedFileCollectionVisitor(FileCollectionStructureVisitor visitor) {
         this.visitor = visitor;

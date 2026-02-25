@@ -31,7 +31,6 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;

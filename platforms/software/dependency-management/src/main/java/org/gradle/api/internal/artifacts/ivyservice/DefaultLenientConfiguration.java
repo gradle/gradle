@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -124,7 +125,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
     private static class LenientArtifactCollectingVisitor implements ArtifactVisitor {
 
-        private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<>();
+        private final Set<ResolvedArtifact> artifacts = new ObjectLinkedOpenHashSet<>();
         private @Nullable List<Throwable> failures;
 
         @Override

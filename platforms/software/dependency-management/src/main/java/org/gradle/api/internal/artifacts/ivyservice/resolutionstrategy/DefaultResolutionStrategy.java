@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.CapabilitiesResolution;
 import org.gradle.api.artifacts.ComponentSelection;
@@ -51,7 +52,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -62,7 +62,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
     private static final NotationParser<Object, Set<ModuleComponentSelector>> FORCED_MODULES_PARSER = ModuleComponentSelectorParsers.multiParser("force()");
 
-    private final Set<Object> forcedModules = new LinkedHashSet<>();
+    private final Set<Object> forcedModules = new ObjectLinkedOpenHashSet<>();
     private @Nullable Set<ModuleComponentSelector> parsedForcedModules;
     private ConflictResolution conflictResolution = ConflictResolution.latest;
     private final DefaultComponentSelectionRules componentSelectionRules;

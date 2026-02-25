@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import groovy.lang.Closure;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentSelection;
@@ -41,7 +42,6 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
@@ -129,7 +129,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     public ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
         mutationValidator.validateMutation(STRATEGY);
         if (rules == null) {
-            rules = new LinkedHashSet<>();
+            rules = new ObjectLinkedOpenHashSet<>();
         }
         rules.add(specRuleAction);
         return this;

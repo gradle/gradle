@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.cache.IndexedCache;
@@ -23,7 +24,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
@@ -98,7 +98,7 @@ public class DefaultModuleVersionsCache extends AbstractModuleVersionsCache {
         @Override
         public ModuleVersionsCacheEntry read(Decoder decoder) throws Exception {
             int size = decoder.readInt();
-            Set<String> versions = new LinkedHashSet<>();
+            Set<String> versions = new ObjectLinkedOpenHashSet<>();
             for (int i = 0; i < size; i++) {
                 versions.add(decoder.readString());
             }

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -23,7 +24,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
@@ -63,7 +63,7 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
         protected final long createTimestamp;
 
         ModuleArtifactsCacheEntry(Set<? extends ComponentArtifactMetadata> artifacts, long createTimestamp, HashCode moduleDescriptorHash) {
-            this.artifacts = new LinkedHashSet<>(artifacts);
+            this.artifacts = new ObjectLinkedOpenHashSet<>(artifacts);
             this.createTimestamp = createTimestamp;
             this.moduleDescriptorHash = moduleDescriptorHash;
         }

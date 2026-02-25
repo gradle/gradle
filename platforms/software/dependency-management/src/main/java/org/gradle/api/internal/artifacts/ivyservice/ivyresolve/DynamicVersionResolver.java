@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -54,7 +55,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -251,8 +251,8 @@ public class DynamicVersionResolver {
         private final VersionedComponentChooser versionedComponentChooser;
         private final BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> resolvedVersionMetadata = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
         private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<>();
-        private final Set<String> unmatchedVersions = new LinkedHashSet<>();
-        private final Set<RejectedVersion> rejectedVersions = new LinkedHashSet<>();
+        private final Set<String> unmatchedVersions = new ObjectLinkedOpenHashSet<>();
+        private final Set<RejectedVersion> rejectedVersions = new ObjectLinkedOpenHashSet<>();
         private final VersionListResult versionListingResult;
         private final ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository;
         private final AttemptCollector attemptCollector;
