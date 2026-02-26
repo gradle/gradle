@@ -22,12 +22,12 @@ import org.gradle.api.Action;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -47,15 +47,44 @@ public class DefaultManifest implements ManifestInternal {
     private final DefaultAttributes attributes = new DefaultAttributes();
     private final Map<String, Attributes> sections = new LinkedHashMap<String, Attributes>();
     private final PathToFileResolver fileResolver;
-    private final ProviderFactory providerFactory;
-    private final ManifestFactory manifestFactory;
-    private final Provider<String> contentCharset;
 
-    public DefaultManifest(PathToFileResolver fileResolver, ProviderFactory providerFactory, ManifestFactory manifestFactory, Provider<String> contentCharset) {
+    // We have both of these because the DefaultManifest(PathToFileResolver) constructor is used by the
+    // Shadow and BND plugins. We need the String constructor because DefaultManifestMergeSpec can create a manifest
+    // and has its own contentCharset that is settable via the public API.
+    //
+    // Because we can't change the constructor to accept a ProviderFactory, we can't construct a ManifestMergeSpec
+    // with a ProviderFactory, which means it can't supply a provider when it loops back and creates a new
+    // Manifest, so we have to have constructors that accept either a Provider or a String.
+    //
+    // If we can get Shadow and BND off of using these constructors, then we can remove all of this evil.
+    // We could:
+    //   1. Provide a way for plugins to generate a manifest via a Gradle-provided factory
+    //   2. Make ProviderFactory an argument to the constructor
+    //   3. Make the contentCharset a Property in DefaultManifestMergeSpec
+    //   4. Get rid of the non-Provider constructors
+    @Nullable
+    private final Provider<String> contentCharsetProvider;
+    private final String contentCharset;
+
+    public DefaultManifest(PathToFileResolver fileResolver) {
         this.fileResolver = fileResolver;
-        this.providerFactory = providerFactory;
-        this.manifestFactory = manifestFactory;
-        this.contentCharset = contentCharset.orElse(DEFAULT_CONTENT_CHARSET);
+        this.contentCharsetProvider = null;
+        this.contentCharset = DEFAULT_CONTENT_CHARSET;
+        init();
+    }
+
+    public DefaultManifest(PathToFileResolver fileResolver, String contentCharset) {
+        this.fileResolver = fileResolver;
+        this.contentCharsetProvider = null;
+        this.contentCharset = contentCharset;
+        init();
+    }
+
+    public DefaultManifest(PathToFileResolver fileResolver, @Nullable Provider<String> contentCharsetProvider) {
+        this.fileResolver = fileResolver;
+        this.contentCharsetProvider = contentCharsetProvider;
+        this.contentCharset = DEFAULT_CONTENT_CHARSET;
+        init();
     }
 
     public DefaultManifest init() {
@@ -63,8 +92,13 @@ public class DefaultManifest implements ManifestInternal {
         return this;
     }
 
-    public Provider<String> getContentCharset() {
-        return contentCharset;
+    @Override
+    public @Nullable Provider<String> getContentCharset() {
+        return contentCharsetProvider;
+    }
+
+    private String getEffectiveContentCharset() {
+        return contentCharsetProvider == null ? contentCharset : contentCharsetProvider.getOrElse(contentCharset);
     }
 
     public DefaultManifest mainAttributes(Map<String, ?> attributes) {
@@ -116,7 +150,7 @@ public class DefaultManifest implements ManifestInternal {
 
     @Override
     public DefaultManifest from(Object mergePath, Action<ManifestMergeSpec> action) {
-        DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec(manifestFactory, providerFactory);
+        DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec();
         mergeSpec.from(mergePath);
         manifestMergeSpecs.add(mergeSpec);
         action.execute(mergeSpec);
@@ -131,14 +165,14 @@ public class DefaultManifest implements ManifestInternal {
     protected DefaultManifest getEffectiveManifestInternal(DefaultManifest baseManifest) {
         DefaultManifest resultManifest = baseManifest;
         for (ManifestMergeSpec manifestMergeSpec : manifestMergeSpecs) {
-            resultManifest = ((DefaultManifestMergeSpec) manifestMergeSpec).merge(resultManifest);
+            resultManifest = ((DefaultManifestMergeSpec) manifestMergeSpec).merge(resultManifest, fileResolver);
         }
         return resultManifest;
     }
 
     @Override
     public org.gradle.api.java.archives.Manifest writeTo(OutputStream outputStream) {
-        ManifestWriter.writeTo(this, outputStream, contentCharset.get());
+        ManifestWriter.writeTo(this, outputStream, getEffectiveContentCharset());
         return this;
     }
 
@@ -153,7 +187,7 @@ public class DefaultManifest implements ManifestInternal {
             IoActions.withResource(new FileOutputStream(manifestFile), new Action<FileOutputStream>() {
                 @Override
                 public void execute(FileOutputStream fileOutputStream) {
-                    ManifestWriter.writeTo(DefaultManifest.this, fileOutputStream, contentCharset.get());
+                    ManifestWriter.writeTo(DefaultManifest.this, fileOutputStream, getEffectiveContentCharset());
                 }
             });
             return this;
@@ -173,8 +207,8 @@ public class DefaultManifest implements ManifestInternal {
             byte[] manifestBytes = FileUtils.readFileToByteArray(manifestFile);
             manifestBytes = prepareManifestBytesForInteroperability(manifestBytes);
             // Eventually convert manifest content to UTF-8 before handing it to java.util.jar.Manifest
-            if (!DEFAULT_CONTENT_CHARSET.equals(contentCharset.get())) {
-                manifestBytes = new String(manifestBytes, contentCharset.get()).getBytes(DEFAULT_CONTENT_CHARSET);
+            if (!DEFAULT_CONTENT_CHARSET.equals(getEffectiveContentCharset())) {
+                manifestBytes = new String(manifestBytes, getEffectiveContentCharset()).getBytes(DEFAULT_CONTENT_CHARSET);
             }
             // Effectively read the manifest
             Manifest javaManifest = new Manifest(new ByteArrayInputStream(manifestBytes));

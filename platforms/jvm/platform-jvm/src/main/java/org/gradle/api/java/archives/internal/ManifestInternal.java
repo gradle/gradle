@@ -20,6 +20,7 @@ import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,6 +36,11 @@ import static org.gradle.internal.Cast.uncheckedCast;
  */
 public interface ManifestInternal extends Manifest {
     String DEFAULT_CONTENT_CHARSET = "UTF-8";
+
+    /**
+     * Returns the character set used to decode the manifest content, if known.
+     */
+    @Nullable Provider<String> getContentCharset();
 
     /**
      * Writes the manifest into a stream.

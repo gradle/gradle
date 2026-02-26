@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.java.archives.Manifest;
-import org.gradle.api.java.archives.internal.ManifestFactory;
+import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.provider.Property;
@@ -55,7 +55,6 @@ public abstract class Jar extends Zip {
     private Manifest manifest;
     private final CopySpecInternal metaInf;
     private final Property<String> manifestContentCharset;
-    private final ManifestFactory manifestFactory;
 
     @Inject
     public Jar() {
@@ -63,8 +62,7 @@ public abstract class Jar extends Zip {
         setMetadataCharset("UTF-8");
 
         this.manifestContentCharset = getObjectFactory().property(String.class).convention(ManifestInternal.DEFAULT_CONTENT_CHARSET);
-        this.manifestFactory = getServices().get(ManifestFactory.class);
-        manifest = manifestFactory.create(manifestContentCharset);
+        manifest = new DefaultManifest(getFileResolver(), manifestContentCharset);
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(manifestFileTree());
@@ -85,7 +83,7 @@ public abstract class Jar extends Zip {
     private ManifestInternal computeManifest() {
         Manifest manifest = getManifest();
         if (manifest == null) {
-            manifest = manifestFactory.create(manifestContentCharset);
+            manifest = new DefaultManifest(getFileResolver(), manifestContentCharset);
         }
         ManifestInternal manifestInternal;
         if (manifest instanceof ManifestInternal) {
@@ -213,7 +211,7 @@ public abstract class Jar extends Zip {
 
     private Manifest forceManifest() {
         if (manifest == null) {
-            manifest = manifestFactory.create(manifestContentCharset);
+            manifest = new DefaultManifest(getFileResolver(), manifestContentCharset);
         }
         return manifest;
     }

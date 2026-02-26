@@ -23,6 +23,7 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestException;
 import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.Nullable;
 
 import java.io.OutputStream;
 import java.util.Map;
@@ -72,6 +73,11 @@ public class CustomManifestInternalWrapper implements ManifestInternal {
     @Override
     public Manifest getEffectiveManifest() {
         return delegate.getEffectiveManifest();
+    }
+
+    @Override
+    public @Nullable Provider<String> getContentCharset() {
+        return contentCharset;
     }
 
     @Override

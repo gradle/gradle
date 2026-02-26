@@ -24,7 +24,7 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestMergeDetails;
 import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapUtil;
@@ -39,16 +39,9 @@ import java.util.Set;
 
 public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<Action<? super ManifestMergeDetails>>();
-    private final ManifestFactory manifestFactory;
-    private final ProviderFactory providers;
 
-    List<Object> mergePaths = new ArrayList<Object>();
+    private final List<Object> mergePaths = new ArrayList<Object>();
     private String contentCharset = ManifestInternal.DEFAULT_CONTENT_CHARSET;
-
-    public DefaultManifestMergeSpec(ManifestFactory manifestFactory, ProviderFactory providers) {
-        this.manifestFactory = manifestFactory;
-        this.providers = providers;
-    }
 
     @Override
     public String getContentCharset() {
@@ -83,20 +76,20 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         return eachEntry(ConfigureUtil.configureUsing(mergeAction));
     }
 
-    public DefaultManifest merge(DefaultManifest baseManifest) {
-        Provider<String> baseContentCharset = baseManifest.getContentCharset();
-        DefaultManifest mergedManifest = manifestFactory.create(baseContentCharset);
+    public DefaultManifest merge(Manifest baseManifest, PathToFileResolver fileResolver) {
+        Provider<String> baseContentCharset = baseManifest instanceof ManifestInternal ? ((ManifestInternal)baseManifest).getContentCharset() : null;
+        DefaultManifest mergedManifest = new DefaultManifest(fileResolver, baseContentCharset);
         mergedManifest.getAttributes().putAll(baseManifest.getAttributes());
         mergedManifest.getSections().putAll(baseManifest.getSections());
         for (Object mergePath : mergePaths) {
-            Manifest manifestToMerge = createManifest(mergePath, contentCharset);
-            mergedManifest = mergeManifest(mergedManifest, manifestToMerge);
+            Manifest manifestToMerge = createManifest(mergePath, fileResolver, contentCharset);
+            mergedManifest = mergeManifest(mergedManifest, manifestToMerge, fileResolver);
         }
         return mergedManifest;
     }
 
-    private DefaultManifest mergeManifest(Manifest baseManifest, Manifest toMergeManifest) {
-        DefaultManifest mergedManifest = manifestFactory.create();
+    private DefaultManifest mergeManifest(Manifest baseManifest, Manifest toMergeManifest, PathToFileResolver fileResolver) {
+        DefaultManifest mergedManifest = new DefaultManifest(fileResolver);
         mergeSection(null, mergedManifest, baseManifest.getAttributes(), toMergeManifest.getAttributes());
         Set<String> allSections = Sets.union(baseManifest.getSections().keySet(), toMergeManifest.getSections().keySet());
         for (String section : allSections) {
@@ -156,11 +149,11 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         }
     }
 
-    private Manifest createManifest(Object mergePath, String contentCharset) {
+    private Manifest createManifest(Object mergePath, PathToFileResolver fileResolver, String contentCharset) {
         if (mergePath instanceof Manifest) {
             return ((Manifest) mergePath).getEffectiveManifest();
         }
-        return manifestFactory.readFrom(mergePath, providers.provider(() -> contentCharset));
+        return new DefaultManifest(fileResolver, contentCharset).read(mergePath);
     }
 
     public List<Object> getMergePaths() {

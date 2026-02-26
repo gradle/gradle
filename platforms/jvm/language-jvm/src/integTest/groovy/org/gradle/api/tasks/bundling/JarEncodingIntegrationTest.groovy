@@ -285,21 +285,18 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
             abstract class CustomJarManifest extends org.gradle.jvm.tasks.Jar {
                 CustomJarManifest() {
                     super();
-                    setManifest(new CustomManifest(getFileResolver(), getObjectFactory(), getProviderFactory(), getManifestFactory()))
+                    setManifest(new CustomManifest(getFileResolver(), getProviderFactory()));
                 }
 
                 @javax.inject.Inject
                 abstract org.gradle.api.provider.ProviderFactory getProviderFactory()
-
-                @javax.inject.Inject
-                abstract org.gradle.api.java.archives.internal.ManifestFactory getManifestFactory()
             }
 
             class CustomManifest implements org.gradle.api.java.archives.Manifest {
                 @Delegate org.gradle.api.java.archives.Manifest delegate
 
-                CustomManifest(fileResolver, objectFactory, providerFactory, manifestFactory) {
-                    this.delegate = new org.gradle.api.java.archives.internal.DefaultManifest(fileResolver, objectFactory, providerFactory, manifestFactory, providerFactory.provider(() -> "UTF-8"))
+                CustomManifest(fileResolver, providerFactory) {
+                    this.delegate = new org.gradle.api.java.archives.internal.DefaultManifest(fileResolver, providerFactory.provider { "UTF-8" })
                 }
             }
         '''.stripIndent()

@@ -31,7 +31,7 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
-import org.gradle.api.java.archives.internal.ManifestFactory;
+import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
@@ -80,7 +80,6 @@ abstract public class DefaultJavaPluginExtension implements JavaPluginExtensionI
     private final ModularitySpec modularity;
     private final JavaToolchainSpec toolchain;
     private final ProjectInternal project;
-    private final ManifestFactory manifestFactory;
 
     private final DirectoryProperty docsDir;
     private final DirectoryProperty testResultsDir;
@@ -90,7 +89,7 @@ abstract public class DefaultJavaPluginExtension implements JavaPluginExtensionI
     private JavaVersion targetCompat;
 
     @Inject
-    public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec, ManifestFactory manifestFactory) {
+    public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
         this.docsDir = project.getObjects().directoryProperty();
         this.testResultsDir = project.getObjects().directoryProperty();
         this.testReportDir = project.getObjects().directoryProperty(); //TestingBasePlugin.TESTS_DIR_NAME;
@@ -101,7 +100,6 @@ abstract public class DefaultJavaPluginExtension implements JavaPluginExtensionI
         this.objectFactory = project.getObjects();
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.toolchain = toolchainSpec;
-        this.manifestFactory = manifestFactory;
         configureDefaults();
     }
 
@@ -198,7 +196,7 @@ abstract public class DefaultJavaPluginExtension implements JavaPluginExtensionI
     }
 
     private Manifest createManifest() {
-        return manifestFactory.create();
+        return new DefaultManifest(project.getFileResolver());
     }
 
     @Override

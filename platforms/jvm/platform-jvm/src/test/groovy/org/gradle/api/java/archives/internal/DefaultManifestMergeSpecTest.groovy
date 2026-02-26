@@ -30,8 +30,7 @@ class DefaultManifestMergeSpecTest extends Specification {
     def static final MANIFEST_VERSION_MAP = ['Manifest-Version': '1.0']
     def fileResolver = Mock(FileResolver)
 
-    ManifestFactory manifestFactory = new DefaultManifestFactory(TestUtil.objectFactory(), TestUtil.providerFactory(), fileResolver)
-    DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec(manifestFactory, TestUtil.providerFactory())
+    DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec()
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -67,7 +66,7 @@ class DefaultManifestMergeSpecTest extends Specification {
 
         when:
         mergeSpec.from(otherManifest, manifestFile)
-        DefaultManifest mergedManifest = mergeSpec.merge(baseManifest)
+        DefaultManifest mergedManifest = mergeSpec.merge(baseManifest, fileResolver)
 
         then:
         mergedManifest.attributes == baseMap + otherMap + fileMap
@@ -88,7 +87,7 @@ class DefaultManifestMergeSpecTest extends Specification {
         }
 
         then:
-        mergeSpec.merge(baseManifest).attributes == [key1: 'value1'] + MANIFEST_VERSION_MAP
+        mergeSpec.merge(baseManifest, fileResolver).attributes == [key1: 'value1'] + MANIFEST_VERSION_MAP
     }
 
     def mergeWithNestedFrom() {
@@ -100,7 +99,7 @@ class DefaultManifestMergeSpecTest extends Specification {
         mergeSpec.from(mergeManifest)
 
         expect:
-        mergeSpec.merge(baseManifest).attributes == [key1: 'value1', key2: 'value2', key3: 'value3'] +
+        mergeSpec.merge(baseManifest, fileResolver).attributes == [key1: 'value1', key2: 'value2', key3: 'value3'] +
                 MANIFEST_VERSION_MAP
     }
 
@@ -115,7 +114,7 @@ class DefaultManifestMergeSpecTest extends Specification {
         }
 
         expect:
-        mergeSpec.merge(baseManifest).attributes == [key1: 'value1', key2: 'newValue2'] + MANIFEST_VERSION_MAP
+        mergeSpec.merge(baseManifest, fileResolver).attributes == [key1: 'value1', key2: 'newValue2'] + MANIFEST_VERSION_MAP
     }
 
     def mergeWithActionOnSection() {
@@ -129,7 +128,7 @@ class DefaultManifestMergeSpecTest extends Specification {
         }
 
         expect:
-        mergeSpec.merge(baseManifest).sections.section == [key2: 'mergeValue2']
+        mergeSpec.merge(baseManifest, fileResolver).sections.section == [key2: 'mergeValue2']
     }
 
     def mergeWithForeignManifest() {
@@ -139,7 +138,7 @@ class DefaultManifestMergeSpecTest extends Specification {
         mergeSpec.from(foreign)
 
         expect:
-        mergeSpec.merge(baseManifest).attributes == [key1: 'value1', key2: 'value2'] + MANIFEST_VERSION_MAP
+        mergeSpec.merge(baseManifest, fileResolver).attributes == [key1: 'value1', key2: 'value2'] + MANIFEST_VERSION_MAP
     }
 
     def mergeShouldWinByDefault() {
@@ -148,7 +147,7 @@ class DefaultManifestMergeSpecTest extends Specification {
         mergeSpec.from(newManifest().attributes(key1: 'mergeValue1'))
 
         expect:
-        mergeSpec.merge(baseManifest).attributes == [key1: 'mergeValue1'] + MANIFEST_VERSION_MAP
+        mergeSpec.merge(baseManifest, fileResolver).attributes == [key1: 'mergeValue1'] + MANIFEST_VERSION_MAP
     }
 
     def addActionByAnonymousInnerClass() {
@@ -163,10 +162,10 @@ class DefaultManifestMergeSpecTest extends Specification {
         })
 
         expect:
-        mergeSpec.merge(baseManifest).attributes == MANIFEST_VERSION_MAP
+        mergeSpec.merge(baseManifest, fileResolver).attributes == MANIFEST_VERSION_MAP
     }
 
     private DefaultManifest newManifest() {
-        return manifestFactory.create()
+        return new DefaultManifest(fileResolver)
     }
 }

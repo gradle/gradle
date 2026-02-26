@@ -33,7 +33,6 @@ class DefaultManifestTest extends Specification {
     def static final DEFAULT_MANIFEST_CHARSET = TestUtil.providerFactory().provider { ManifestInternal.DEFAULT_CONTENT_CHARSET }
     def static final MANIFEST_VERSION_MAP = ['Manifest-Version': '1.0']
     def fileResolver = Mock(FileResolver)
-    def manifestFactory = new DefaultManifestFactory(TestUtil.objectFactory(), TestUtil.providerFactory(), fileResolver)
     DefaultManifest gradleManifest = newManifest()
 
     @Rule
@@ -382,6 +381,6 @@ class DefaultManifestTest extends Specification {
     }
 
     private DefaultManifest newManifest() {
-        return manifestFactory.create(DEFAULT_MANIFEST_CHARSET)
+        return new DefaultManifest(fileResolver, DEFAULT_MANIFEST_CHARSET)
     }
 }
