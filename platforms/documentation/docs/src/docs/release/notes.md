@@ -73,8 +73,20 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-
 ## New features and usability improvements
+
+### Automatic retries for wrapper downloads
+
+The Gradle Wrapper now supports automatic retries for distribution downloads.
+This reduces build failures caused by unstable network connections or server-side timeouts.
+By default, the Wrapper will try once and will not retry.
+
+Users can fine-tune the retry logic by adding the following to their Gradle properties file:
+
+```properties
+retries=3
+retryTimeoutMs=5000
+```
 
 ### Type-safe Accessors for Precompiled Kotlin Settings Plugins
 
