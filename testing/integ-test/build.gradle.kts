@@ -5,6 +5,14 @@ plugins {
 
 description = "Integration tests which don't fit anywhere else - should probably be split up"
 
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 8
+        }
+    }
+}
+
 dependencies {
     integTestImplementation(projects.baseServices)
     integTestImplementation(projects.buildOption)

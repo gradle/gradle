@@ -21,6 +21,14 @@ plugins {
 
 description = "Declarative DSL Tooling Models for IDEs"
 
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 8
+        }
+    }
+}
+
 dependencies {
     compileOnly(projects.toolingApi)
 
