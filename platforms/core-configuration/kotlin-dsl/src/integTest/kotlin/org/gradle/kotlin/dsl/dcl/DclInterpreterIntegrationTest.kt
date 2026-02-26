@@ -93,7 +93,7 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 """
                 |    @Incubating
                 |    fun com.example.MyExtension.`myFeature`(configure: Action<in com.example.MyFeatureDefinition>) {
-                |        applyProjectType(this, "myFeature", configure)
+                |        applyProjectFeature(this, "myFeature", configure)
                 |    }
                 """.trimMargin()
             )
@@ -102,7 +102,7 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 """
                 |    @Incubating
                 |    fun org.gradle.features.binding.Definition<out com.example.MyFeatureBuildModel>.`myNestedFeature`(configure: Action<in com.example.MyNestedFeatureDefinition>) {
-                |        applyProjectType(this, "myNestedFeature", configure)
+                |        applyProjectFeature(this, "myNestedFeature", configure)
                 |    }
                 """.trimMargin()
             )
