@@ -97,13 +97,13 @@ class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionC
             FixedTypeDiscovery(
                 PlatformDependencyModifiers::class,
                 listOf(
-                    TypeDiscovery.DiscoveredClass(ProjectDependency::class, listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL")))
+                    TypeDiscovery.DiscoveredClass(ProjectDependency::class, TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL"))
                 )
             ),
             FixedTypeDiscovery(
                 DependencyCollector::class,
                 listOf(
-                    TypeDiscovery.DiscoveredClass(ExternalModuleDependency::class, listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL"))),
+                    TypeDiscovery.DiscoveredClass(ExternalModuleDependency::class, TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL")),
                 )
             ),
         )
