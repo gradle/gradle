@@ -28,7 +28,7 @@ import java.util.Set;
  * Classes can be selected by their simple, fully qualified names or partial matches on class name or package.
  * Methods can be selected by their full names, containing class or partial matches.
  *
- * Non-class-based tests are converted to fully qualified names based on their relative path.
+ * Non-class-based tests are converted to package-like names using the relative path from their test definition directory.
  *
  * Some examples:
  *
