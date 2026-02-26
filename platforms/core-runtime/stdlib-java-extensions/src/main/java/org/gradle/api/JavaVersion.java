@@ -236,13 +236,23 @@ public enum JavaVersion {
         return getVersionForMajor(classVersion - CLASS_MAJOR_VERSION_OFFSET);
     }
 
+    /**
+     * Returns the JVM class file major version for this Java version.
+     *
+     * @return The JVM class file major version for this Java version.
+     *
+     * @since 9.5.0
+     */
+    public int toClassVersion() {
+        return ordinal() + 1 + CLASS_MAJOR_VERSION_OFFSET;
+    }
+
     public static JavaVersion forClass(byte[] classData) {
         if (classData.length < 8) {
             throw new IllegalArgumentException("Invalid class format. Should contain at least 8 bytes");
         }
         return forClassVersion(classData[7] & 0xFF);
     }
-
 
     public boolean isJava5() {
         return this == VERSION_1_5;

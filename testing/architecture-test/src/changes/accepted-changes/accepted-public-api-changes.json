@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Method org.gradle.api.JavaVersion.toClassVersion()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getProjectFeatureDeclarations()",
             "acceptation": "Removing unused internal service getter",
