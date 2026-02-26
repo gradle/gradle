@@ -32,6 +32,14 @@ import java.util.concurrent.TimeUnit;
  * Defines what information is needed on the provider side regarding the build operation.
  *
  * This is used as an adapter over the {@link org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters} instance provided by the consumer.
+ *
+ * Adding a new parameter and exposing it to TAPI clients requires declaring a getter here,
+ * adding it to {@code ConsumerOperationParameters},
+ * and updating the public {@link org.gradle.tooling.LongRunningOperation}.
+ *
+ * For backwards compatibility, the provider need to provide a default value.
+ * Let the getter take a parameter of the same type as its return type.
+ * When the provider queries the parameter, it passes the default value that will be used if none available.
  */
 public interface ProviderOperationParameters {
     boolean getVerboseLogging();
