@@ -1006,6 +1006,3 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 }
 
-interface StartParametersModel {
-    String getValue();
-}

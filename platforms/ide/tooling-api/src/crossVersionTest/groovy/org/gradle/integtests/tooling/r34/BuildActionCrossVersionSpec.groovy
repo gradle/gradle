@@ -44,21 +44,18 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private File getActionJarWithSpacesInPath() {
-        file("other/settings.gradle") << """
+        file("work folder/other/settings.gradle") << """
             rootProject.name = 'other'
         """
-        file("other/build.gradle") << """
+        file("work folder/other/build.gradle") << """
             plugins {
                 id("java-library")
             }
             dependencies {
                 implementation(gradleApi())
             }
-            base {
-                libsDirectory = layout.buildDirectory.dir("li bs")
-            }
         """
-        file('other/src/main/java/ActionImpl.java') << """
+        file('work folder/other/src/main/java/ActionImpl.java') << """
             public class ActionImpl implements ${BuildAction.name}<Void> {
                 public Void execute(${BuildController.name} controller) {
                     return null;
@@ -66,12 +63,12 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
             }
         """
 
-        connector(file("other"))
+        connector(file("work folder/other"))
             .connect()
             .newBuild()
             .forTasks("jar")
             .run()
 
-        return file("other/build/li bs/other.jar")
+        return file("work folder/other/build/libs/other.jar")
     }
 }

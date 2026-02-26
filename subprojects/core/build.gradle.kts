@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Public and internal 'core' Gradle APIs with implementation"

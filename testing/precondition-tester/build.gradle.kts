@@ -19,9 +19,18 @@ import gradlebuild.integrationtests.tasks.DistributionTest
 
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Internal project testing and collecting information about all the test preconditions."
+
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 8
+        }
+    }
+}
 
 dependencies {
     // ========================================================================

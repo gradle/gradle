@@ -132,7 +132,7 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
     }
 
     private GradleExecuter daemonExecutor() {
-        executer
+        withCompatibleJdk(executer)
             .withDaemonBaseDir(toolingApi.daemonBaseDir)
             .withBuildJvmOpts(buildJvmArguments)
             .useOnlyRequestedJvmOpts()

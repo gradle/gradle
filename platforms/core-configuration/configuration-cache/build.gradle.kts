@@ -2,6 +2,7 @@ plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
     id("gradlebuild.kotlin-experimental-contracts")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Configuration cache implementation"
@@ -124,14 +125,6 @@ dependencies {
         because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
-}
-
-jvmCompile {
-    compilations {
-        named("main") {
-            targetJvmVersion = 17
-        }
-    }
 }
 
 packageCycles {

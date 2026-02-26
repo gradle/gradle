@@ -125,7 +125,7 @@ class BuildTestFixture {
      */
     private static void withGroupAndVersion(TestFile settingsFile) {
         settingsFile << """
-            if (GradleVersion.current() >= GradleVersion.version("8.8")) {
+            if (gradle.metaClass.respondsTo(gradle, 'getLifecycle')) { // Gradle >= 8.8
                 gradle.lifecycle.beforeProject {
                     group = 'org.test'
                     version = '1.0'
