@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Tooling API model builders for native builds"

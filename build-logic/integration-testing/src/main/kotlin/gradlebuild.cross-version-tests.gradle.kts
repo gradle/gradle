@@ -16,9 +16,10 @@
 
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.testing.TestType
+import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.configureIde
+import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 
 plugins {
@@ -28,27 +29,38 @@ plugins {
     id("gradlebuild.jvm-compile")
 }
 
-val sourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
-jvmCompile {
-    addCompilationFrom(sourceSet)
-}
-addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
-createQuickFeedbackTasks()
-createAggregateTasks(sourceSet)
-configureIde(TestType.CROSSVERSION)
-configureTestFixturesForCrossVersionTests()
-
-fun configureTestFixturesForCrossVersionTests() {
-    // do not attempt to find projects when the plugin is applied just to generate accessors
-    if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
-        dependencies {
-            "crossVersionTestImplementation"(testFixtures(project(":tooling-api")))
-        }
-    }
-}
+val fixturesSourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}TestFixtures")
+val testSourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
 val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
-fun createQuickFeedbackTasks() {
+jvmCompile {
+    addCompilationFrom(testSourceSet)
+    // crossVersion tests must be able to run the TAPI client, which is still JVM 8 compatible,
+    // code may also run in Gradle versions that may not support the JVM version used to compile
+    // the production code for the in-development Gradle version
+    addCompilationFrom(fixturesSourceSet) {
+        targetJvmVersion = 8
+    }
+}
+
+addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
+createQuickFeedbackTasks(testSourceSet, fixturesSourceSet, releasedVersions)
+createAggregateTasks(testSourceSet, fixturesSourceSet, releasedVersions)
+configureIde(fixturesSourceSet)
+configureIde(testSourceSet)
+configureDependenciesForCrossVersionTests()
+
+fun configureDependenciesForCrossVersionTests() {
+    dependencies {
+        project.configurations[fixturesSourceSet.compileOnlyConfigurationName](project(":tooling-api", "shadedRuntimeElements"))
+        project.configurations[fixturesSourceSet.compileOnlyConfigurationName](libs.slf4jApi + ":2.0.17") // TODO: use version from version catalog
+
+        project.configurations[testSourceSet.implementationConfigurationName](fixturesSourceSet.output)
+        project.configurations[testSourceSet.implementationConfigurationName](testFixtures(project(":tooling-api")))
+    }
+}
+
+fun createQuickFeedbackTasks(sourceSet: SourceSet, fixturesSourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?) {
     val testType = TestType.CROSSVERSION
     val defaultExecuter = "embedded"
     val prefix = testType.prefix
@@ -62,15 +74,38 @@ fun createQuickFeedbackTasks() {
             // We should always be using JUnitPlatform at this point, so don't call useJUnitPlatform(), else this will
             // discard existing options configuration and add a deprecation warning.  Just set the existing options.
             (this.testFramework.options as JUnitPlatformOptions).includeEngines("cross-version-test-engine")
+            this.testClassesDirs += fixturesSourceSet.output.classesDirs
+            this.classpath += fixturesSourceSet.runtimeClasspath
         }
         if (executer == defaultExecuter) {
             // The test task with the default executer runs with 'check'
             tasks.named("check").configure { dependsOn(testTask) }
         }
     }
+
+    tasks.named("quickTest") {
+        dependsOn("embeddedCrossVersionTest")
+    }
+
+    tasks.named("platformTest") {
+        dependsOn("forkingCrossVersionTest")
+    }
+
+    tasks.named("quickFeedbackCrossVersionTest") {
+        dependsOn("quickFeedbackCrossVersionTests")
+    }
 }
 
-fun createAggregateTasks(sourceSet: SourceSet) {
+fun createAggregateTasks(sourceSet: SourceSet, fixturesSourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?) {
+    tasks.register("allVersionsCrossVersionTest") {
+        description = "Run cross-version tests against all released versions (latest patch release of each)"
+        group = "ci lifecycle"
+    }
+
+    tasks.named("allVersionsCrossVersionTest") {
+        dependsOn("allVersionsCrossVersionTests")
+    }
+
     val allVersionsCrossVersionTests = tasks.register("allVersionsCrossVersionTests") {
         group = "verification"
         description = "Runs the cross-version tests against all Gradle versions with 'forking' executer"
@@ -81,7 +116,6 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
     }
 
-    val releasedVersions = gradleModule.identity.releasedVersions.orNull
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
@@ -91,6 +125,8 @@ fun createAggregateTasks(sourceSet: SourceSet) {
             this.useJUnitPlatform {
                 includeEngines("cross-version-test-engine")
             }
+            this.testClassesDirs += fixturesSourceSet.output.classesDirs
+            this.classpath += fixturesSourceSet.runtimeClasspath
         }
 
         allVersionsCrossVersionTests.configure { dependsOn(crossVersionTest) }
