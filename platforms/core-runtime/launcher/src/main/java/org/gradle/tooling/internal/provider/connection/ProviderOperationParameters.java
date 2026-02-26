@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
  *
  * For backwards compatibility, the provider need to provide a default value.
  * Let the getter take a parameter of the same type as its return type.
- * When the provider queries the parameter, it passes the default value that will be used if none available.
+ * When the getter is called and {@code ConsumerOperationParameters} does not have a corresponding getter (without a parameter), the default value from the parameter is returned immediately.
  */
 public interface ProviderOperationParameters {
     boolean getVerboseLogging();
