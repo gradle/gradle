@@ -88,10 +88,7 @@ class  ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTesting
                  }
              }
          }
-
-         // Ensure the definitions directory exists even if no definitions are added; otherwsie the task will fail with "Test definitions directory does not exist"
-         project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION").getAsFile().mkdirs()
-     """
+        """
         writeTestDefinitions()
 
         when:
@@ -99,7 +96,7 @@ class  ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTesting
             it.newTestLauncher()
                 .addProgressListener(events, OperationType.TASK, OperationType.TEST)
                 .withTestsFor { tests ->
-                    tests.forTaskPath(':test').includePattern("$DEFAULT_DEFINITIONS_LOCATION/subSomeOtherTestSpec.rbt")
+                    tests.forTaskPath(':test').includePattern("subSomeOtherTestSpec")
                 }
                 .run()
         }
