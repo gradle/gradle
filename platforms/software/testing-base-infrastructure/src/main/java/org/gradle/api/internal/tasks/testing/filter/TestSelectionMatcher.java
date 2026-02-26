@@ -27,12 +27,12 @@ import java.util.Collections;
  * This class has three public APIs:
  *
  * <ul>
- * <li>Judge whether a test class might be included.
- * <li>Judge whether a test class or class+method is definitely included.
- * <li>Judge whether a test file is definitely included for resource-based tests.
+ * <li>Judge whether a test class might be matched.
+ * <li>Judge whether a test class or class+method is definitely matched.
+ * <li>Judge whether a test file is definitely matched for resource-based tests.
  * </ul>
  *
- * For example, class 'org.gradle.Test' can't be included by pattern 'org.apache.Test', so
+ * For example, class 'org.gradle.Test' can't be matched by pattern 'org.apache.Test', so
  * {@link #mayIncludeClass(String)} will return false when given 'org.gradle.Test'.
  *
  * In all cases, if the pattern starts with an uppercase letter, matching is performed on the

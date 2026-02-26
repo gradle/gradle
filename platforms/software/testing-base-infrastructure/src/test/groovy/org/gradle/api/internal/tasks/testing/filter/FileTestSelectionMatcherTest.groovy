@@ -64,7 +64,7 @@ class FileTestSelectionMatcherTest extends Specification {
         matcher.matchesFile(included)
         !matcher.matchesFile(excluded)
         where:
-        include << [ "*i*", "included", "*included*", "included*", "*included", "includ*" ]
+        include << [ "*i*", "included", "*included*", "included*", "*included", "includ*", "included.*" ]
     }
 
     def "matchesFile with simple include pattern"() {
@@ -266,8 +266,10 @@ class FileTestSelectionMatcherTest extends Specification {
         matcherWildcard.matchesFile(plainFile)
     }
 
-    def "matchesFile with default packages"() {
+    def "matchesFile within root directory"() {
         expect:
+        // This follows the behavior of ClassTestSelectionMatcher
+        //
         // This captures current behavior, but not desired behavior.
         // We cannot select files in the default package without
         // including other files because *.included requires included

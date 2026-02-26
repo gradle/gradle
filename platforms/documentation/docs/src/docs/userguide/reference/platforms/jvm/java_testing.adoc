@@ -987,8 +987,9 @@ The goal of following the same selection rules as class-based tests is to make i
 
 The conversion from file path to fully qualified name will be ambiguous for some directory structures.
 Directory names that contain dots or file names that contain multiple dots can make it impossible to select an individual test file.
-Some directory or file names may be awkward to select (e.g., paths with spaces).
-Our recommendation is to follow link:https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html[Java package naming conventions] or use a single unambiguous naming convention for directories and files.
+Some directory or file names may be awkward to select (e.g., paths with spaces, `$` or other special characters).
+Non-class-based test definitions should use a single unambiguous naming convention for directories and files.
+Our recommendation is to follow link:https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html[Java package naming conventions] for directories and use simple names for the test files.
 
 All of the following file paths appear to be the same test and cannot be filtered individually.
 [cols="1,1", options="header"]
