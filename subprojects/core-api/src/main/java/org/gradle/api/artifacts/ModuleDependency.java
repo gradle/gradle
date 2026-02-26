@@ -79,7 +79,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @param excludeProperties the properties to define the exclude rule.
      * @return this
      */
-    @Adding
+    @Adding // Workaround for configuring excludes in DCL. Should be removed once we have a better model.
     ModuleDependency exclude(Map<String, String> excludeProperties);
 
     /**
