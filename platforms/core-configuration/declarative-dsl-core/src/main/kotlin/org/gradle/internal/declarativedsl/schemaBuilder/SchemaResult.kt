@@ -45,16 +45,16 @@ import kotlin.reflect.KVariance
  * @see ExtractionResult for the cases when both the positive and negative results need to carry some additional metadata
  */
 sealed class SchemaResult<out T> {
-    data class Result<out T : Any>(val result: T) : SchemaResult<T>()
+    data class Result<out T>(val result: T) : SchemaResult<T>()
     data class Failure(val issue: SchemaIssue, val contextElements: List<SchemaBuildingContextElement>) : SchemaResult<Nothing>()
 }
 
-fun <T, R> SchemaResult<T>.flatMap(transform: (T) -> SchemaResult<R>): SchemaResult<R> = when (this) {
+inline fun <T, R> SchemaResult<T>.flatMap(transform: (T) -> SchemaResult<R>): SchemaResult<R> = when (this) {
     is SchemaResult.Failure -> this
     is SchemaResult.Result -> transform(result)
 }
 
-fun <T, R : Any> SchemaResult<T>.map(transform: (T) -> R): SchemaResult<R> = flatMap { schemaResult(transform(it)) }
+inline fun <T, R> SchemaResult<T>.map(transform: (T) -> R): SchemaResult<R> = flatMap { schemaResult(transform(it)) }
 
 inline fun <T> SchemaResult<T>.orFailWith(onFailure: (SchemaResult.Failure) -> Nothing): T = when (this) {
     is SchemaResult.Result -> result
@@ -85,7 +85,7 @@ fun <T> SchemaResult<T>.orError(): T = when (this) {
     is SchemaResult.Failure -> throw IllegalStateException("Unexpected failure: $issue", DeclarativeDslSchemaBuildingException(SchemaFailureMessageFormatter.failureMessage(asReportableFailure())))
 }
 
-fun <T : Any> schemaResult(result: T) = SchemaResult.Result(result)
+fun <T> schemaResult(result: T) = SchemaResult.Result(result)
 
 
 sealed interface SchemaBuildingIssue {

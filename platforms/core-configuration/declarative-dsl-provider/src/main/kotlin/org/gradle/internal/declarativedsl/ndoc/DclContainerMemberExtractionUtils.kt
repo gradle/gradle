@@ -20,8 +20,14 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingIssue
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection.SupportedType
+import org.gradle.internal.declarativedsl.schemaBuilder.flatMap
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaBuildingError
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaBuildingFailure
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.toKType
 import java.util.Locale
 import kotlin.reflect.KClass
@@ -30,8 +36,21 @@ import kotlin.reflect.KVariance
 
 object DclContainerMemberExtractionUtils {
 
-    fun elementTypeFromNdocContainerType(host: SchemaBuildingHost, containerType: SupportedType): SupportedType? {
-        val kClass = containerType.classifier as? KClass<*> ?: return null
+    /**
+     * Tries to extract the DCL element type from a potential representation of a [NamedDomainObjectContainer] type [containerType].
+     * If the type is [NamedDomainObjectContainer], extracts the explicit type argument. If it is a subtype of NDOC, extracts the type argument
+     * from the supertype hierarchy.
+     *
+     * @return
+     * * [SchemaResult.Result]:
+     *   * with a `null` result if the [containerType] is not a [NamedDomainObjectContainer] or its subtype
+     *   * with a non-null [SupportedType] result if the [containerType] is a subtype of NDOC and the type argument is a concrete type
+     * * [SchemaResult.Failure]:
+     *   * if the element type cannot be represented for DCL (e.g., it is a class-bound type parameter usage)
+     *   * if the element type is a `*` or `in`-projection
+     */
+    fun elementTypeFromNdocContainerType(host: SchemaBuildingHost, containerType: SupportedType): SchemaResult<SupportedType?> {
+        val kClass = containerType.classifier as? KClass<*> ?: return schemaResult(null)
 
         return host.declarativeSupertypesHierarchy(kClass)
             .find { it.superClass == NamedDomainObjectContainer::class }
@@ -40,15 +59,24 @@ object DclContainerMemberExtractionUtils {
             ?.let { typeArgumentForNdocElement ->
                 if (typeArgumentForNdocElement.classifier is KTypeParameter) {
                     val index = kClass.typeParameters.indexOf(typeArgumentForNdocElement.classifier)
-                    containerType.arguments.getOrNull(index)?.let { arg ->
+                    val argWithSubstitution = containerType.arguments.getOrNull(index)?.let { arg ->
                         when (arg) {
-                            is SupportedTypeProjection.ProjectedType -> arg.type.takeIf { arg.variance != KVariance.IN }
-                            is SupportedType -> arg
-                            SupportedTypeProjection.StarProjection -> null
-                        }.takeIf { it?.classifier !is KTypeParameter } // accept only concrete types but not type parameters
+                            // We support out-projected or concrete element types here, but not in-projected ones
+                            is SupportedTypeProjection.ProjectedType -> when (arg.variance) {
+                                KVariance.IN -> host.schemaBuildingFailure(SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(arg.variance))
+                                else -> schemaResult(arg.type)
+                            }
+                            SupportedTypeProjection.StarProjection -> host.schemaBuildingFailure(SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage("*"))
+                            is SupportedType -> schemaResult(arg)
+                        }
+                    } ?: host.schemaBuildingError("Could not find the type argument for container element in ${containerType.toKType()}")
+                    argWithSubstitution.flatMap {
+                        if (it?.classifier is KTypeParameter)
+                            host.schemaBuildingFailure(SchemaBuildingIssue.IllegalUsageOfTypeParameterBoundByClass(it.toKType()))
+                        else schemaResult(it)
                     }
-                } else typeArgumentForNdocElement
-            }
+                } else schemaResult(typeArgumentForNdocElement)
+            } ?: schemaResult(null)
     }
 
     fun elementFactoryFunctionNameFromElementType(supportedType: SupportedType): String =
