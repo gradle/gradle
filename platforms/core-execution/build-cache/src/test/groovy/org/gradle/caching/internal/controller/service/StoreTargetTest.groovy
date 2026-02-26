@@ -80,4 +80,35 @@ class StoreTargetTest extends Specification {
         output.closed
     }
 
+    def "can stream content"() {
+        given:
+        def output = new ByteArrayOutputStream()
+
+        when:
+        copyTo(output)
+
+        then:
+        new String(output.toByteArray()) == "test"
+    }
+
+    def "can stream content multiple times"() {
+        given:
+        def output = new ByteArrayOutputStream()
+
+        when:
+        copyTo(output)
+        copyTo(output)
+
+        then:
+        new String(output.toByteArray()) == "testtest"
+    }
+
+    private OutputStream copyTo(OutputStream output) {
+        target.getInputStream().withStream { is ->
+            output.withStream { os ->
+                os << is
+            }
+        }
+    }
+
 }
