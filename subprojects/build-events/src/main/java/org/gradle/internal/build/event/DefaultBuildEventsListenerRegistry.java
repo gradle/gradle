@@ -29,13 +29,11 @@ import org.gradle.build.event.BuildEventsListenerRegistry;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.MultiProducerSingleConsumerProcessor;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -55,16 +53,12 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedTransferQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TransferQueue;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -76,20 +70,17 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     private final BuildOperationListenerManager buildOperationListenerManager;
     @GuardedBy("subscriptions")
     private final Map<Provider<?>, AbstractListener<?>> subscriptions = new LinkedHashMap<>();
-    private final ExecutorFactory executorFactory;
 
     public DefaultBuildEventsListenerRegistry(
         UserCodeApplicationContext applicationContext,
         BuildEventListenerFactory factory,
         ListenerManager listenerManager,
-        BuildOperationListenerManager buildOperationListenerManager,
-        ExecutorFactory executorFactory
+        BuildOperationListenerManager buildOperationListenerManager
     ) {
         this.applicationContext = applicationContext;
         this.factory = factory;
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
-        this.executorFactory = executorFactory;
         listenerManager.addListener(new ListenerCleanup());
     }
 
@@ -118,7 +109,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     private ForwardingBuildOperationListener makeBuildOperationSubscription(Provider<? extends BuildOperationListener> listenerProvider) {
-        ForwardingBuildOperationListener subscription = new ForwardingBuildOperationListener(getCurrentContext(), listenerProvider, executorFactory);
+        ForwardingBuildOperationListener subscription = new ForwardingBuildOperationListener(getCurrentContext(), listenerProvider);
         processIfBuildService(listenerProvider);
         buildOperationListenerManager.addListener(subscription);
         return subscription;
@@ -130,7 +121,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     private ForwardingBuildEventConsumer makeTaskCompletionSubscription(Provider<? extends OperationCompletionListener> listenerProvider) {
-        ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(getCurrentContext(), listenerProvider, executorFactory);
+        ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(getCurrentContext(), listenerProvider);
         processIfBuildService(listenerProvider);
 
         for (Object listener : subscription.getListeners()) {
@@ -195,17 +186,14 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     private static abstract class AbstractListener<T> implements Closeable {
-        private static final Object END = new Object();
         @Nullable
         private final UserCodeSource registrationPoint;
-        private final ManagedExecutor executor;
-        private final TransferQueue<Object> events = new LinkedTransferQueue<>();
-        private final AtomicReference<Throwable> failure = new AtomicReference<>();
+        private final MultiProducerSingleConsumerProcessor<T> processor;
 
-        public AbstractListener(@Nullable UserCodeSource registrationPoint, ExecutorFactory executorFactory) {
+        public AbstractListener(@Nullable UserCodeSource registrationPoint) {
             this.registrationPoint = registrationPoint;
-            this.executor = executorFactory.create("build event listener");
-            Future<?> ignored = executor.submit(this::run);
+            this.processor = new MultiProducerSingleConsumerProcessor<>("build event listener", this::handle);
+            this.processor.start();
         }
 
         @Nullable
@@ -213,48 +201,17 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
             return registrationPoint;
         }
 
-        private void run() {
-            while (true) {
-                Object next;
-                try {
-                    next = events.take();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-                if (next == END) {
-                    return;
-                }
-                try {
-                    handle(Cast.uncheckedNonnullCast(next));
-                } catch (Throwable t) {
-                    failure.set(t);
-                    break;
-                }
-            }
-            // A failure has happened. Drain the queue and complete without waiting. There should no more messages added to the queue
-            // as the dispatch method will see the failure
-            events.clear();
-        }
-
         protected abstract void handle(T message);
 
         public abstract List<Object> getListeners();
 
         protected void queue(T message) {
-            if (failure.get() == null) {
-                events.add(message);
-            }
-            // else, the handler thread is no longer handling messages so discard it
+            processor.submit(message);
         }
 
         @Override
         public void close() {
-            events.add(END);
-            executor.stop(60, TimeUnit.SECONDS);
-            Throwable failure = this.failure.get();
-            if (failure != null) {
-                throw UncheckedException.throwAsUncheckedException(failure);
-            }
+            processor.stop(Duration.ofSeconds(60));
         }
     }
 
@@ -263,10 +220,9 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
 
         public ForwardingBuildOperationListener(
             @Nullable UserCodeSource registrationPoint,
-            Provider<? extends BuildOperationListener> listenerProvider,
-            ExecutorFactory executorFactory
+            Provider<? extends BuildOperationListener> listenerProvider
         ) {
-            super(registrationPoint, executorFactory);
+            super(registrationPoint);
             this.listenerProvider = listenerProvider;
         }
 
@@ -300,10 +256,9 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
 
         public ForwardingBuildEventConsumer(
             @Nullable UserCodeSource registrationPoint,
-            Provider<? extends OperationCompletionListener> listenerProvider,
-            ExecutorFactory executorFactory
+            Provider<? extends OperationCompletionListener> listenerProvider
         ) {
-            super(registrationPoint, executorFactory);
+            super(registrationPoint);
             this.listenerProvider = listenerProvider;
             BuildEventSubscriptions eventSubscriptions = new BuildEventSubscriptions(Collections.singleton(OperationType.TASK));
             // TODO - share these listeners here and with the tooling api client, where possible
