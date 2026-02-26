@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
+import org.gradle.api.internal.tasks.testing.TestIdentifierTestDefinition;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.source.DefaultClassSource;
@@ -68,9 +69,14 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.junit.platform.launcher.TestIdentifier;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -84,6 +90,7 @@ public class TestEventSerializer {
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
         registry.register(ClassTestDefinition.class, new ClassTestDefinitionSerializer());
         registry.register(DirectoryBasedTestDefinition.class, new DirectoryBasedTestDefinitionSerializer());
+        registry.register(TestIdentifierTestDefinition.class, new TestIdentifierTestDefinitionSerializer());
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
         registry.register(DefaultNestedTestSuiteDescriptor.class, new DefaultNestedTestSuiteDescriptorSerializer());
         registry.register(DefaultParameterizedTestDescriptor.class, new DefaultParameterizedTestDescriptorSerializer());
@@ -163,6 +170,34 @@ public class TestEventSerializer {
         @Override
         public void write(Encoder encoder, DirectoryBasedTestDefinition value) throws Exception {
             encoder.writeString(value.getTestDefinitionsDir().getAbsolutePath());
+        }
+    }
+
+    private static class TestIdentifierTestDefinitionSerializer implements Serializer<TestIdentifierTestDefinition> {
+        @Override
+        public TestIdentifierTestDefinition read(Decoder decoder) throws Exception {
+            int size = decoder.readInt();
+            byte[] data = new byte[size];
+            decoder.readBytes(data);
+
+            try (ByteArrayInputStream bais = new java.io.ByteArrayInputStream(data);
+                 ObjectInputStream ois = new java.io.ObjectInputStream(bais)) {
+                TestIdentifier testIdentifier = (TestIdentifier) ois.readObject();
+                return new TestIdentifierTestDefinition(testIdentifier);
+            }
+        }
+
+        @Override
+        public void write(Encoder encoder, TestIdentifierTestDefinition value) throws Exception {
+            try (ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+                 ObjectOutputStream oos = new java.io.ObjectOutputStream(baos)) {
+                oos.writeObject(value.getTestIdentifier());
+                oos.flush();
+
+                byte[] data = baos.toByteArray();
+                encoder.writeInt(data.length);
+                encoder.writeBytes(data);
+            }
         }
     }
 
