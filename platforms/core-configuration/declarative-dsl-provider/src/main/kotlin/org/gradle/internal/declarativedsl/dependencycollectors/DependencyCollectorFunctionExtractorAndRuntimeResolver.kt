@@ -191,7 +191,6 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
                 listOf(dependencyParam),
                 false,
                 FunctionSemanticsInternal.DefaultAddAndConfigure(
-                    @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
                     lambdaReceiverType,
                     FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
                 )
