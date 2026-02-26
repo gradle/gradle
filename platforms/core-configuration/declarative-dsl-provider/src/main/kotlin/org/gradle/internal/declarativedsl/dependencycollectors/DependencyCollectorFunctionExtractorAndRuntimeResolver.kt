@@ -119,8 +119,8 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             (namedCollectorGetters + namedCollectorProperties)
                 .flatMap { (name, callable) ->
                     expandToOverloads(host) { param, lambdaReceiverType -> listOf(
-                        DependencyCollectorDeclaration(callable, buildDataMemberFunction(host, kClass, name, param), buildDeclarativeRuntimeFunction(callable, null)),
-                        DependencyCollectorDeclaration(callable, buildDataMemberFunctionWithLambda(host, kClass, name, param, lambdaReceiverType), buildDeclarativeRuntimeFunction(callable, lambdaReceiverType))) }
+                        DependencyCollectorDeclaration(callable, buildDataMemberFunction(host, kClass, name, param), buildDependencyAddingRuntimeFunction(callable)),
+                        DependencyCollectorDeclaration(callable, buildDataMemberFunctionWithLambda(host, kClass, name, param, lambdaReceiverType), buildDependencyAddingWithActionRuntimeFunction(callable))) }
                 }
         }
 
@@ -202,16 +202,31 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
         SchemaBuildingContextElement.TagContextElement("dependency collector '$name' in $kClass")
 
     private
-    fun buildDeclarativeRuntimeFunction(collectorAccessor: SupportedCallable, lambdaReceiverType: DataTypeRef?) = object : DeclarativeRuntimeFunction {
+    fun buildDependencyAddingRuntimeFunction(collectorAccessor: SupportedCallable) = object : DeclarativeRuntimeFunction {
+        override fun callBy(receiver: Any?, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
+            val dependencyCollector = collectorAccessor.kCallable.call(checkNotNull(receiver)) as DependencyCollector
+            when (val dependency = binding.values.single()) {
+                is ProjectDependency -> dependencyCollector.add(dependency)
+                is Dependency -> dependencyCollector.add(dependency)
+                is String -> dependencyCollector.add(dependency)
+                else -> error("Cannot declare dependency of type: ${dependency!!.javaClass}")
+            }
+            return DeclarativeRuntimeFunction.InvocationResult(InstanceAndPublicType.UNIT, InstanceAndPublicType.NULL)
+        }
+    }
+
+    private
+    fun buildDependencyAddingWithActionRuntimeFunction(collectorAccessor: SupportedCallable) = object : DeclarativeRuntimeFunction {
         override fun callBy(receiver: Any?, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
             val dependencyCollector = collectorAccessor.kCallable.call(checkNotNull(receiver)) as DependencyCollector
             lateinit var target : Dependency
             when (val dependency = binding.values.single()) {
                 is ProjectDependency -> dependencyCollector.add(dependency, Action { target = it })
                 is Dependency -> dependencyCollector.add(dependency, Action { target = it })
-                else -> dependencyCollector.add(dependency.toString(), Action { target = it })
+                is String -> dependencyCollector.add(dependency, Action { target = it })
+                else -> error("Cannot declare dependency of type: ${dependency!!.javaClass}")
             }
-            return DeclarativeRuntimeFunction.InvocationResult(if (lambdaReceiverType == null) InstanceAndPublicType.Companion.UNIT else InstanceAndPublicType.of(target, target::class), InstanceAndPublicType.Companion.NULL)
+            return DeclarativeRuntimeFunction.InvocationResult(InstanceAndPublicType.of(target, target::class), InstanceAndPublicType.NULL)
         }
     }
 
