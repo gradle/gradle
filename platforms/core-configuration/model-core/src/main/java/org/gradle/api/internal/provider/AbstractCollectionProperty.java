@@ -83,10 +83,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final ValueCollector<T> valueCollector;
     private CollectionSupplier<T, C> defaultValue;
 
-    AbstractCollectionProperty(PropertyHost host, Class<? extends Collection> collectionType, Class<T> elementType) {
+    AbstractCollectionProperty(PropertyHost host, ValueCollector<T> valueCollector, Class<T> elementType) {
         super(host);
         this.elementType = elementType;
-        valueCollector = new ValidatingValueCollector<>(collectionType, elementType, ValueSanitizers.forType(elementType));
+        this.valueCollector = valueCollector;
         init();
     }
 

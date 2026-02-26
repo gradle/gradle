@@ -46,7 +46,7 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     }
 
     public DefaultSetProperty(PropertyHost host, Class<T> elementType) {
-        super(host, Set.class, elementType);
+        super(host, new ValidatingValueCollector<>(Set.class, elementType, ValueSanitizers.forType(elementType)), elementType);
     }
 
     @Override
