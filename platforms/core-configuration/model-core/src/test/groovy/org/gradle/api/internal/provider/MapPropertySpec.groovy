@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
 import org.gradle.api.Transformer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -1775,12 +1776,13 @@ The value of this property is derived from: <source>""")
 
     def "can add a lot of providers"() {
         given:
+        def context = Mock(TaskDependencyResolveContext)
         (0..<100000).each {
             property.putAll(supplierWithProducer(Mock(Task), ImmutableMap.of(it.toString(), it.toString())))
         }
 
         expect:
         property.get().size() == 100000
-        property.getProducer().visitProducerTasks {}
+        property.getProducer().getDependencies().visitDependencies(context)
     }
 }

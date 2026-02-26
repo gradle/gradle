@@ -30,18 +30,14 @@ import java.util.function.Consumer;
 public class ActionNode extends Node implements SelfExecutingNode {
     private WorkNodeAction action;
     private List<Node> postExecutionNodes;
-    private final ProjectInternal owningProject;
-    private final ProjectInternal projectToLock;
+    private final @Nullable ProjectInternal owningProject;
+    private final @Nullable ResourceLock accessLock;
     private boolean hasVisitedPreExecutionNode;
 
     public ActionNode(WorkNodeAction action) {
         this.action = action;
         this.owningProject = (ProjectInternal) action.getOwningProject();
-        if (owningProject != null && action.usesMutableProjectState()) {
-            this.projectToLock = owningProject;
-        } else {
-            this.projectToLock = null;
-        }
+        this.accessLock = action.getAccessLock();
     }
 
     @Nullable
@@ -70,16 +66,12 @@ public class ActionNode extends Node implements SelfExecutingNode {
 
     @Override
     public boolean isPriority() {
-        return getProjectToLock() != null;
+        return getAccessLock() != null;
     }
 
-    @Nullable
     @Override
-    public ResourceLock getProjectToLock() {
-        if (projectToLock != null) {
-            return projectToLock.getOwner().getAccessLock();
-        }
-        return null;
+    public @Nullable ResourceLock getAccessLock() {
+        return accessLock;
     }
 
     @Nullable
