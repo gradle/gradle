@@ -34,4 +34,11 @@ public interface DomainObjectCollectionInternal<T> extends DomainObjectCollectio
      * Provide an action to be executed before any changes are made to the collection.
      */
     void beforeCollectionChanges(Action<String> action);
+
+    /**
+     * Returns {@code true} if {@link org.gradle.api.DomainObjectCollection#disallowChanges()} has been called on this collection.
+     */
+    default boolean areChangesDisallowed() {
+        return false;
+    }
 }
