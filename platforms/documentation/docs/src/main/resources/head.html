@@ -1,4 +1,56 @@
+<!-- Fonts -->
 <link crossorigin href="//assets.gradle.com" rel="preconnect">
 <link href="https://fonts.googleapis.com/css?family=Inconsolata:400,700" rel="stylesheet"/>
-<link id="light-theme-style" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/styles/stackoverflow-light.min.css">
-<link id="dark-theme-style" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/stackoverflow-dark.min.css" disabled>
+
+<!-- Theme -->
+<script src="js/theme.js" defer></script>
+<link id="hljs-theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css">
+<script>
+    (function() {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = prefersDark ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        if (prefersDark) {
+            document.getElementById('hljs-theme').href =
+                'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-dark.min.css';
+        }
+    })();
+</script>
+
+<!-- Highlight.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/groovy.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/properties.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/text.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/gradle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/shell.min.js"></script>
+<script>
+    const asciidocCalloutPlugin = {
+      'before:highlightElement': ({ el }) => {
+        // Matches the <i class="conum"...></i><b>(1)</b> pattern
+        // Captures the number inside the parentheses
+        const calloutPattern = /<i class="conum" data-value="(\d+)"><\/i><b>\((\d+)\)<\/b>/g;
+
+        el.innerHTML = el.innerHTML.replace(calloutPattern, (match, val1, val2) => {
+          // We stash it as a unique string highlight.js will ignore
+          return `___CONUM_${val1}___`;
+        });
+      },
+      'after:highlightElement': ({ el }) => {
+        // Restore the exact HTML structure you started with
+        el.innerHTML = el.innerHTML.replace(/___CONUM_(\d+)___/g, (match, num) => {
+          return `<i class="conum" data-value="${num}"></i><b class="conum">(${num})</b>`;
+        });
+      }
+    };
+
+    // Ensure this runs after hljs is loaded but before highlightAll
+    if (typeof hljs !== 'undefined') {
+      hljs.addPlugin(asciidocCalloutPlugin);
+      hljs.highlightAll();
+    }
+</script>

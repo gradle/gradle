@@ -1,35 +1,53 @@
 @media (prefers-color-scheme: dark) {
-    /* Javadoc 21 and newer dark style sheet */
-    /* Dark mode not supported on Java 17 and older */
     :root {
-        --body-text-color: #e0e0e3;
-        --block-text-color: #e6e7ef;
-        --body-background-color: #404040;
-        --section-background-color: #484848;
-        --detail-background-color: #404040;
-        --navbar-background-color: #4D7A97;
+        /* Text colors - shifting to light grays/whites */
+        --body-text-color: #e0e0e0;
+        --block-text-color: #cccccc;
+        --title-color: #a9c6d9;
+
+        /* Background colors - deep charcoals and blacks */
+        --body-background-color: #121212;
+        --section-background-color: #1e1e1e;
+        --detail-background-color: #181818;
+
+        /* Navigation bar - darkened blue to maintain brand feel */
+        --navbar-background-color: #2a3f4d;
         --navbar-text-color: #ffffff;
-        --subnav-background-color: #303030;
-        --selected-background-color: #f8981d;
-        --selected-text-color: #253441;
-        --selected-link-color: #1f389c;
-        --even-row-color: #484848;
-        --odd-row-color: #383838;
-        --title-color: #ffffff;
-        --link-color: #a0c0f8;
-        --link-color-active: #ffb863;
-        --snippet-background-color: #383838;
-        --snippet-text-color: var(--block-text-color);
-        --snippet-highlight-color: #f7c590;
-        --border-color: #383838;
-        --table-border-color: #000000;
-        --search-input-background-color: #000000;
+        --subnav-background-color: #2d333b;
+
+        /* Selected states - using a slightly muted orange for dark mode */
+        --selected-background-color: #c97a16;
+        --selected-text-color: #121212;
+        --selected-link-color: #8ab4f8;
+
+        /* Table row stripes */
+        --even-row-color: #181818;
+        --odd-row-color: #242424;
+
+        /* Link colors - brighter blues/golds for visibility on dark backgrounds */
+        --link-color: #8ab4f8;
+        --link-color-active: #ffb74d;
+
+        /* Snippet/Code colors */
+        --snippet-background-color: #2d2d2d;
+        --snippet-highlight-color: #5e462b;
+
+        /* Borders and Tables */
+        --border-color: #333333;
+        --table-border-color: #444444;
+
+        /* Search input adjustments */
+        --search-input-background-color: #252526;
         --search-input-text-color: #ffffff;
-        --search-input-placeholder-color: #909090;
-        --search-tag-highlight-color: #ffff00;
-        --copy-icon-brightness: 250%;
-        --copy-button-background-color-active: rgba(168, 168, 176, 0.3);
-        --invalid-tag-background-color: #ffe6e6;
-        --invalid-tag-text-color: #000000;
+        --search-input-placeholder-color: #888888;
+        --search-tag-highlight-color: #4d4d00;
+
+        /* Clipboard and UI elements */
+        --copy-icon-brightness: 150%;
+        --copy-button-background-color-active: rgba(255, 255, 255, 0.1);
+
+        /* Invalid tags - darker red background */
+        --invalid-tag-background-color: #4d0000;
+        --invalid-tag-text-color: #ffcccc;
     }
 }
