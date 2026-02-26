@@ -104,7 +104,6 @@
             <option value="$PROJECT_DIR$/platforms/core-configuration/declarative-dsl-api" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/declarative-dsl-core" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/declarative-dsl-evaluator" />
-            <option value="$PROJECT_DIR$/platforms/core-configuration/declarative-dsl-internal-utils" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/declarative-dsl-provider" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/declarative-dsl-tooling-builders" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/declarative-dsl-tooling-models" />
