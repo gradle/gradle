@@ -35,6 +35,7 @@ import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
+import org.gradle.cli.HelpCategory;
 
 import java.io.File;
 import java.time.Duration;
@@ -120,6 +121,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setRerunTasks(true);
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.EXECUTION;
+        }
     }
 
     public static class ProfileOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -130,6 +136,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setProfile(true);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.DIAGNOSTICS;
         }
     }
 
@@ -152,6 +163,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setContinueOnFailure(value);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.EXECUTION;
         }
     }
 
@@ -186,6 +202,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setDryRun(true);
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.EXECUTION;
+        }
     }
 
     public static class ContinuousOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -196,6 +217,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setContinuous(true);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.EXECUTION;
         }
     }
 
@@ -211,6 +237,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(int quietPeriodMillis, StartParameterInternal startParameter, Origin origin) {
             startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(quietPeriodMillis));
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.PERFORMANCE;
+        }
     }
 
     public static class NoProjectDependenciesRebuildOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -224,6 +255,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setBuildProjectDependencies(false);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.EXECUTION;
         }
     }
 
@@ -240,6 +276,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 settings.addInitScript(resolver.transform(script));
             }
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.CONFIGURATION;
+        }
     }
 
     public static class ExcludeTaskOption extends ListBuildOption<StartParameterInternal> {
@@ -250,6 +291,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(List<String> values, StartParameterInternal settings, Origin origin) {
             settings.setExcludedTaskNames(values);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.CONFIGURATION;
         }
     }
 
@@ -266,6 +312,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 settings.includeBuild(resolver.transform(includedBuild));
             }
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.CONFIGURATION;
+        }
     }
 
     public static class ConfigureOnDemandOption extends BooleanBuildOption<StartParameterInternal> {
@@ -278,6 +329,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigureOnDemand(value);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.EXECUTION;
         }
     }
 
@@ -292,6 +348,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setBuildCacheEnabled(value);
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.PERFORMANCE;
+        }
     }
 
     public static class BuildCacheDebugLoggingOption extends BooleanBuildOption<StartParameterInternal> {
@@ -304,6 +365,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setBuildCacheDebugLogging(value);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.LOGGING;
         }
     }
 
@@ -326,6 +392,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 : WatchMode.DISABLED
             );
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.PERFORMANCE;
+        }
     }
 
     public static class VfsVerboseLoggingOption extends BooleanBuildOption<StartParameterInternal> {
@@ -338,6 +409,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
             startParameter.setVfsVerboseLogging(value);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.LOGGING;
         }
     }
 
@@ -360,6 +436,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 settings.setNoBuildScan(true);
             }
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.DEVELOCITY;
+        }
     }
 
     public static class DependencyLockingWriteOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -372,6 +453,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setWriteDependencyLocks(true);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.SECURITY;
         }
     }
 
@@ -395,6 +481,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 .collect(Collectors.toList());
             settings.setWriteDependencyVerifications(checksums);
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.SECURITY;
+        }
     }
 
     public static class DependencyVerificationModeOption extends EnumBuildOption<DependencyVerificationMode, StartParameterInternal> {
@@ -417,6 +508,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(DependencyVerificationMode value, StartParameterInternal settings, Origin origin) {
             settings.setDependencyVerificationMode(value);
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.SECURITY;
+        }
     }
 
     public static class DependencyLockingUpdateOption extends ListBuildOption<StartParameterInternal> {
@@ -428,6 +524,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(List<String> modulesToUpdate, StartParameterInternal settings, Origin origin) {
             settings.setLockedDependenciesToUpdate(modulesToUpdate);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.SECURITY;
         }
     }
 
@@ -444,6 +545,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setRefreshKeys(true);
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.SECURITY;
+        }
     }
 
     public static class ExportKeysOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -458,6 +564,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setExportKeys(true);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.SECURITY;
         }
     }
 
