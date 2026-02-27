@@ -19,8 +19,10 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaToolchainNotFoundMode;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -32,6 +34,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
     private final Property<JvmVendorSpec> vendor;
     private final Property<JvmImplementation> implementation;
     private final Property<Boolean> nativeImageCapable;
+    private final Property<JavaToolchainNotFoundMode> missingToolchainMode;
 
     public static class Key implements JavaToolchainSpecInternal.Key {
         private final JavaLanguageVersion languageVersion;
@@ -83,6 +86,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
         vendor = propertyFactory.property(JvmVendorSpec.class);
         implementation = propertyFactory.property(JvmImplementation.class);
         nativeImageCapable = propertyFactory.property(Boolean.class);
+        missingToolchainMode = propertyFactory.property(JavaToolchainNotFoundMode.class);
 
         getVendor().convention(getConventionVendor());
         getImplementation().convention(getConventionImplementation());
@@ -106,6 +110,12 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
     @Override
     public Property<Boolean> getNativeImageCapable() {
         return nativeImageCapable;
+    }
+
+    @Override
+    @NonNull
+    public Property<JavaToolchainNotFoundMode> getOnNoMatchFound() {
+        return missingToolchainMode;
     }
 
     @Override
