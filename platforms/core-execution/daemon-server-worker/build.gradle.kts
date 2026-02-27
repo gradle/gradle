@@ -62,6 +62,8 @@ dependencies {
     // than what the workers require. Furthermore, the daemon and workers have different
     // JVM version requirements. Depending on :core from here restricts the daemon
     // from upgrading its target bytecode version.
+    implementation(projects.ant)
+    implementation(projects.antImpl)  // WorkerDaemonServer directly references DefaultIsolatedAntBuilder
     implementation(projects.core)
 
     implementation(libs.guava)
