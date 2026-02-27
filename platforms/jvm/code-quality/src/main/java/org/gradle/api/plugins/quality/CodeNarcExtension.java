@@ -31,7 +31,7 @@ import java.util.Set;
  */
 public abstract class CodeNarcExtension extends CodeQualityExtension {
 
-    private static final Set<String> REPORT_FORMATS = Sets.newHashSet("xml", "html", "console", "text");
+    private static final Set<String> REPORT_FORMATS = Sets.newHashSet("xml", "html", "console", "text", "baseline", "sortable", "json", "gitlab");
 
     private final Project project;
 
@@ -125,7 +125,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     }
 
     /**
-     * The format type of the CodeNarc report. One of <code>html</code>, <code>xml</code>, <code>text</code>, <code>console</code>.
+     * The format type of the CodeNarc report. One of <code>html</code>, <code>xml</code>, <code>text</code>, <code>console</code>, <code>baseline</code>, <code>sortable</code>, <code>json</code>, <code>gitlab</code>.
      */
     @ToBeReplacedByLazyProperty
     public String getReportFormat() {
@@ -133,7 +133,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     }
 
     /**
-     * The format type of the CodeNarc report. One of <code>html</code>, <code>xml</code>, <code>text</code>, <code>console</code>.
+     * The format type of the CodeNarc report. One of <code>html</code>, <code>xml</code>, <code>text</code>, <code>console</code>, <code>baseline</code>, <code>sortable</code>, <code>json</code>, <code>gitlab</code>.
      */
     public void setReportFormat(String reportFormat) {
         if (REPORT_FORMATS.contains(reportFormat)) {
