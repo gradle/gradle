@@ -22,6 +22,7 @@ private val remoteProjectRefs =
         "excludeRuleMergingBuildProjectRef",
         "springBootAppProjectRef",
         "largeNativeBuildProjectRef",
+        "isolatedProjectsTestbedRef",
     )
 
 class LightweightChecks(

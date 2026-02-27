@@ -34,7 +34,9 @@ import org.junit.Assume
 import java.util.function.Function
 
 @CompileStatic
-abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> {
+abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> implements PerformanceTestRunner<R> {
+
+    private final List<ExecutionInterceptor> interceptors = []
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
     private final List<BuildOperationMeasurement> measuredBuildOperations = []
 
@@ -71,7 +73,15 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         configureAndAddSpec(builder, configureAction)
     }
 
+    @Override
+    void addInterceptor(ExecutionInterceptor interceptor) {
+        assert specs.isEmpty() : "Must add interceptors before adding specs"
+        interceptors.add(interceptor)
+    }
+
+    @Override
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
+        assert specs.isEmpty() : "Must add build mutators before adding specs"
         buildMutators.add(buildMutator)
     }
 
@@ -106,10 +116,12 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         builder.invocation.distribution(gradleDistribution)
     }
 
-    protected void configureAndAddSpec(BuildExperimentSpec.Builder builder, Closure<?> configureAction) {
+    protected void configureAndAddSpec(GradleBuildExperimentSpec.GradleBuilder builder, Closure<?> configureAction) {
         defaultSpec(builder)
         builder.with(configureAction as Closure<Object>)
         finalizeSpec(builder)
+
+        interceptors.each { it.intercept(builder) }
         def specification = builder.build()
 
         if (specs.any { it.displayName == specification.displayName }) {
@@ -143,6 +155,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     abstract R newResult()
 
+    @Override
     R run() {
         assert !specs.empty
         assert testId
@@ -166,9 +179,14 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     }
 
     void runAllSpecifications(R results) {
-        specs.each {
-            def operations = results.buildResult(it.displayInfo)
-            experimentRunner.run(testId, it, operations)
+        specs.each { spec ->
+            def operations = results.buildResult(spec.displayInfo)
+            try {
+                experimentRunner.run(testId, spec, operations)
+            } catch (Exception e) {
+                interceptors.each { it.handleFailure(e, spec) }
+                throw e
+            }
         }
     }
 

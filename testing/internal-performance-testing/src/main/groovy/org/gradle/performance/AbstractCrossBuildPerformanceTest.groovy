@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.performance.results.WritableResultsStore
@@ -77,6 +78,13 @@ class AbstractCrossBuildPerformanceTest extends AbstractPerformanceTest {
     }
 
     protected void finalizeSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+    }
+
+    protected static BaselineVersion buildBaselineResults(CrossBuildPerformanceResults results, String name) {
+        def baselineResults = new BaselineVersion(name)
+        baselineResults.results.name = name
+        baselineResults.results.addAll(results.buildResult(name))
+        return baselineResults
     }
 
     static {
