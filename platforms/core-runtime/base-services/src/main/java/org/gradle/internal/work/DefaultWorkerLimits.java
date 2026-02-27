@@ -24,6 +24,9 @@ public final class DefaultWorkerLimits implements WorkerLimits {
     private final int maxWorkerCount;
 
     public DefaultWorkerLimits(int maxWorkerCount) {
+        if (maxWorkerCount < 1) {
+            throw new IllegalArgumentException("maxWorkerCount must be at least 1");
+        }
         this.maxWorkerCount = maxWorkerCount;
     }
 

@@ -22,11 +22,8 @@ import org.gradle.internal.concurrent.ManagedExecutor;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
-import java.util.Deque;
-import java.util.LinkedList;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -42,22 +39,20 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
         Working, Stopped
     }
 
-    private final WorkerLimits workerLimits;
     private final WorkerLeaseService workerLeaseService;
     private final ManagedExecutor executor;
-    @GuardedBy("lock")
-    private final Deque<ConditionalExecution<T>> queue = new LinkedList<>();
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
-    private final AtomicInteger blockedWorkerCount = new AtomicInteger();
     private QueueState queueState = QueueState.Working;
     @GuardedBy("lock")
-    private int workerCount;
+    private final WorkerThreadPoolHelper<ConditionalExecution<T>> helper;
 
     public DefaultConditionalExecutionQueue(String displayName, WorkerLimits workerLimits, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
-        this.workerLimits = workerLimits;
         this.workerLeaseService = workerLeaseService;
         this.executor = executorFactory.create(displayName);
+        this.helper = new WorkerThreadPoolHelper<>(workerLimits, () -> {
+            Future<?> ignored = executor.submit(new ExecutionRunner());
+        });
 
         executor.setKeepAlive(KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS);
     }
@@ -70,39 +65,18 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
 
         lock.lock();
         try {
-            // expand the thread pool until we hit max workers
-            if (workerCount < getCurrentMaxWorkerCount()) {
-                startRunner();
-            }
-
-            queue.add(execution);
+            helper.submitWork(execution);
             workAvailable.signalAll();
         } finally {
             lock.unlock();
         }
     }
 
-    @GuardedBy("lock")
-    private void startRunner() {
-        Future<?> ignored = executor.submit(new ExecutionRunner());
-        workerCount++;
-    }
-
-    private int getCurrentMaxWorkerCount() {
-        int maxWorkersWithCompensation = workerLimits.getMaxWorkerCount() + blockedWorkerCount.get();
-        return Math.min(maxWorkersWithCompensation, workerLimits.getMaxUnconstrainedWorkerCount());
-    }
-
     @Override
     public void notifyBlockingWorkStarting() {
         lock.lock();
         try {
-            blockedWorkerCount.incrementAndGet();
-            // May not be above max workers even after adding 1 if we're at the max unconstrained worker count
-            if (!queue.isEmpty() && workerCount < getCurrentMaxWorkerCount()) {
-                // Start runner to compensate immediately when we already have work to do.
-                startRunner();
-            }
+            helper.notifyBlockingWorkStarting();
         } finally {
             lock.unlock();
         }
@@ -110,7 +84,12 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
 
     @Override
     public void notifyBlockingWorkFinished() {
-        blockedWorkerCount.decrementAndGet();
+        lock.lock();
+        try {
+            helper.notifyBlockingWorkFinished();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -147,21 +126,17 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
         private @Nullable ConditionalExecution<?> waitForNextOperation() {
             lock.lock();
             try {
-                // Wait for work to be submitted if the queue is empty and our worker count is under max workers
-                // This attempts to keep up to max workers threads alive once they've been started.
-                while (queueState == QueueState.Working && queue.isEmpty() && workerCount <= getCurrentMaxWorkerCount()) {
+                while (queueState == QueueState.Working && helper.shouldWorkerKeepWaiting()) {
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
-
+                return helper.pollWork();
             } finally {
                 lock.unlock();
             }
-
-            return getReadyExecution();
         }
 
         /**
@@ -174,23 +149,16 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
                     ConditionalExecution<?> operation = firstOperation;
                     while (operation != null) {
                         runExecution(operation);
-                        operation = getReadyExecution();
+
+                        lock.lock();
+                        try {
+                            operation = helper.pollWork();
+                        } finally {
+                            lock.unlock();
+                        }
                     }
                 }
             });
-        }
-
-        /**
-         * Gets the next ConditionalExecution object that is ready to be executed.
-         */
-        @Nullable
-        private ConditionalExecution<?> getReadyExecution() {
-            lock.lock();
-            try {
-                return queue.pollFirst();
-            } finally {
-                lock.unlock();
-            }
         }
 
         /**
@@ -207,7 +175,7 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
         private void shutDown() {
             lock.lock();
             try {
-                workerCount--;
+                helper.notifyWorkerFinished();
             } finally {
                 lock.unlock();
             }
