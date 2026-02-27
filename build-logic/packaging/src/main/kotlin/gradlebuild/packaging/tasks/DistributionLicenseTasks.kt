@@ -29,11 +29,9 @@ import org.gradle.work.DisableCachingByDefault
 private val MODULE_LINE_REGEX = Regex("""^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$""")
 private const val LICENSE_SEPARATOR = "------------------------------------------------------------------------------"
 private const val LICENSE_LIST_HEADER = "Licenses for included components:"
-private const val GENERATED_LICENSE_START_MARKER = "=== BEGIN GENERATED DISTRIBUTION DEPENDENCY LICENSES ==="
-private const val GENERATED_LICENSE_END_MARKER = "=== END GENERATED DISTRIBUTION DEPENDENCY LICENSES ==="
 
 private data class ManagedLicense(val title: String, val url: String? = null)
-private data class ExternalModule(val group: String, val name: String, val version: String) {
+private data class ExternalModule(val group: String, val name: String) {
     val ga: String
         get() = "$group:$name"
 }
@@ -68,8 +66,7 @@ abstract class CheckExternalDependenciesInLicenseTask : DefaultTask() {
 
     @TaskAction
     fun check() {
-        val cleanedLicense = removeLegacyGeneratedBlock(licenseFile.get().asFile.readText())
-        val listedModules = listedLicenseModules(cleanedLicense.lines())
+        val listedModules = listedLicenseModules(licenseFile.get().asFile.readLines())
         val externalModules = externalModulesGa.get().toSet()
         val missingModules = (externalModules - listedModules).sorted()
         val unexpectedModules = (listedModules - externalModules).sorted()
@@ -105,10 +102,8 @@ abstract class UpdateLicenseDependenciesTask : DefaultTask() {
     @TaskAction
     fun update() {
         val license = licenseFile.get().asFile
-        val cleanedContent = removeLegacyGeneratedBlock(license.readText())
-        val lines = cleanedContent.lines().toMutableList()
-        val headerIndex = lines.indexOf(LICENSE_LIST_HEADER)
-        require(headerIndex >= 0) { "Could not find '$LICENSE_LIST_HEADER' in LICENSE." }
+        val lines = license.readLines().toMutableList()
+        require(lines.contains(LICENSE_LIST_HEADER)) { "Could not find '$LICENSE_LIST_HEADER' in LICENSE." }
         val legacyAssignments = legacyLicenseAssignments(lines)
 
         val modulesByLicense = parseExternalModules(externalModules.get()).groupBy { module ->
@@ -157,7 +152,7 @@ private fun parseExternalModules(specs: List<String>): List<ExternalModule> =
     specs.map { spec ->
         val parts = spec.split(":")
         require(parts.size == 3) { "Invalid external module spec: $spec" }
-        ExternalModule(parts[0], parts[1], parts[2])
+        ExternalModule(parts[0], parts[1])
     }
 
 private fun listedLicenseModules(lines: List<String>): Set<String> =
@@ -252,15 +247,4 @@ private fun renderManagedSection(license: ManagedLicense, modules: List<String>)
     result += modules
     result += ""
     return result
-}
-
-private fun removeLegacyGeneratedBlock(content: String): String {
-    val start = content.indexOf(GENERATED_LICENSE_START_MARKER)
-    val end = content.indexOf(GENERATED_LICENSE_END_MARKER)
-    return if (start >= 0 && end > start) {
-        val endExclusive = end + GENERATED_LICENSE_END_MARKER.length
-        (content.substring(0, start) + content.substring(endExclusive)).replace(Regex("\n{3,}"), "\n\n").trimEnd() + "\n"
-    } else {
-        content
-    }
 }
