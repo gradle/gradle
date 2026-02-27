@@ -17,6 +17,7 @@
 package org.gradle.features.internal.binding;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -239,6 +240,10 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                     if (propertyMetadata.isAnnotationPresent(Nested.class)) {
                         walkProperties(propertyMetadata.getDeclaredReturnType().getRawType(), Cast.uncheckedCast(propertyValue), visitor);
                     }
+                    if (DomainObjectCollection.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
+                        DomainObjectCollection<?> collection = Cast.uncheckedCast(propertyValue);
+                        collection.configureEach(element -> walkProperties(element.getClass(), element, visitor));
+                    }
                 }
             });
         }
@@ -294,6 +299,10 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
             propertyWalker.walkProperties(definitionImplementationType, definitionInstance, (propertyMetadata, propertyValue) -> {
                 if (Property.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
                     ((Property<?>) propertyValue).finalizeValue();
+                }
+                if (NamedDomainObjectContainer.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
+                    NamedDomainObjectContainer<?> ndoc = Cast.uncheckedCast(propertyValue);
+                    ndoc.disallowChanges();
                 }
             });
         }
