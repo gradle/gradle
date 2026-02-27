@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
+
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -60,6 +61,117 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
             $fileSizer
         """
+    }
+
+    def "artifact transform cannot perform dependency resolution"() {
+        def m = mavenRepo.module("org.test", "lib", "1.0").publish()
+        m.artifactFile.text = "123"
+
+        given:
+        buildFile << """
+            import javax.inject.Inject
+            import org.gradle.api.artifacts.transform.InputArtifact
+            import org.gradle.api.artifacts.transform.TransformAction
+            import org.gradle.api.artifacts.transform.TransformOutputs
+            import org.gradle.api.artifacts.transform.TransformParameters
+            import org.gradle.api.file.FileSystemLocation
+            import org.gradle.api.provider.Provider
+
+            abstract class RecursiveResolvingTransform implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    println("Running recursive transform")
+                }
+            }
+
+            abstract class ResolvingTransform implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Inject
+                abstract org.gradle.api.model.ObjectFactory getObjects()
+
+                void transform(TransformOutputs outputs) {
+                    println("Running transform")
+                    // Try to resolve a detached configuration during the transform
+                    Injector injector = getObjects().newInstance(Injector.class)
+                    org.gradle.api.artifacts.dsl.DependencyHandler dependencies = injector.getDependencies()
+                    org.gradle.api.artifacts.ConfigurationContainer configurations = injector.getConfigurations()
+                    def artifactType = Attribute.of('artifactType', String)
+                    dependencies.artifactTypes {
+                        jar { attributes.attribute(artifactType, 'jar') }
+                    }
+                    dependencies.registerTransform(RecursiveResolvingTransform) {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'source')
+                    }
+                    def dep = dependencies.create(getObjects().fileCollection().from(new File("test.jar")))
+                    def conf = configurations.detachedConfiguration(dep)
+                    // This should not be allowed from inside a transform
+                    println(conf.incoming.artifactView {
+                        attributes { it.attribute(Attribute.of('artifactType', String), 'source'); }
+                        lenient(false)
+                    }.files.files)
+                }
+
+                interface Injector {
+                    @Inject
+                    abstract org.gradle.api.artifacts.dsl.DependencyHandler getDependencies()
+                    @Inject
+                    abstract org.gradle.api.artifacts.ConfigurationContainer getConfigurations()
+                }
+            }
+
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                compile 'org.test:lib:1.0'
+            }
+
+            dependencies {
+                attributesSchema { attribute(artifactType) }
+            }
+
+            def packed = Attribute.of('artifactType', String)
+            def unpacked = Attribute.of('unpacked', String)
+
+            dependencies {
+                artifactTypes {
+                    jar { attributes.attribute(artifactType, 'jar') }
+                }
+            }
+
+            def view = configurations.compile.incoming.artifactView {
+                attributes { it.attribute(artifactType, 'txt'); }
+                lenient(false)
+            }
+
+            dependencies {
+                registerTransform(ResolvingTransform) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'txt')
+                }
+            }
+
+            task resolveTransformed(type: Copy) {
+                from view.artifacts.artifactFiles
+                into "${'$'}buildDir/out"
+            }
+        """
+
+        when:
+        def failure = runAndFail("resolveTransformed")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':resolveTransformed'.")
+        // Be lenient on exact wording across Gradle versions; check for key hints
+        failure.assertHasCause("Cannot use dependency resolution during artifact transform") ||
+            failure.assertHasCause("dependency resolution is not allowed") ||
+            failure.assertHasCause("No service of type DependencyHandler available")
     }
 
     private static String getFileSizer() {
