@@ -363,7 +363,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                     "settings.gradle.kts",
                     """
                         rootProject.name = "my-repro-project-build-logic"
-    
+
                         pluginManagement.includeBuild("meta")
                         dependencyResolutionManagement.repositories.gradlePluginPortal()
                     """
@@ -392,22 +392,23 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                         "settings.gradle.kts",
                         """
                             rootProject.name = "my-repro-project-build-logic-meta"
-    
-                            dependencyResolutionManagement.repositories.gradlePluginPortal()
+
+                            dependencyResolutionManagement.repositories {
+                                $testRepositories
+                                gradlePluginPortal()
+                            }
                         """
                     )
 
                     withFile(
                         "build.gradle.kts",
                         """
-                            import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
-    
                             plugins {
                                 `kotlin-dsl`
                             }
-    
+
                             dependencies {
-                                implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:${'$'}expectedKotlinDslPluginsVersion")
+                                implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$futureKotlinDslPluginVersion")
                             }
                         """
                     )
