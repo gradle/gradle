@@ -103,6 +103,11 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     }
 
     @Override
+    protected boolean shouldRenderFailureFilter() {
+        return true;
+    }
+
+    @Override
     protected String getTitle() {
         // Show "All Results" in the root, otherwise show nothing, the display name will be provided in each root.
         return buildTitle("All Results", name -> "");
@@ -133,7 +138,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
 
     @Override
     protected ReportRenderer<TestTreeModel, SimpleHtmlWriter> getContentRenderer() {
-        TabsRenderer<TestTreeModel> rootTabsRenderer = new TabsRenderer<>();
+        TabsRenderer<TestTreeModel> rootTabsRenderer = new TabsRenderer<>(true);
         List<List<PerRootInfo>> perRootInfo = getModel().getPerRootInfo();
         for (int rootIndex = 0; rootIndex < perRootInfo.size(); rootIndex++) {
             List<PerRootInfo> infos = perRootInfo.get(rootIndex);
