@@ -17,6 +17,21 @@
 package org.gradle.internal;
 
 import org.gradle.BuildListener;
+import org.gradle.BuildResult;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.invocation.Gradle;
 
 public interface InternalBuildListener extends BuildListener, InternalListener {
+    @Override
+    default void settingsEvaluated(Settings settings) {}
+
+    @Override
+    default void projectsLoaded(Gradle gradle) {}
+
+    @Override
+    default void projectsEvaluated(Gradle gradle) {}
+
+    @Override
+    @SuppressWarnings("deprecation")
+    default void buildFinished(BuildResult result) {}
 }

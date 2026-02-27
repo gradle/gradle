@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -232,10 +233,9 @@ model {
         installation("projectA/build/install/main").exec().out == app.englishOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "produces reasonable error message when no output file is defined for binary"() {
         given:
-        buildFile << """
+        buildFile """
 apply plugin: 'cpp'
 model {
     repositories {
@@ -259,14 +259,17 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+        failure.assertHasDescription(
+            GradleContextualExecuter.configCache
+                ? "Configuration cache state could not be cached:"
+                : "Execution failed for task ':linkMainExecutable'."
+        )
         failure.assertHasCause("Static library file not set for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "produces reasonable error message when prebuilt library output file does not exist"() {
         given:
-        buildFile << """
+        buildFile """
 apply plugin: 'cpp'
 model {
     repositories {
@@ -294,7 +297,11 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+        failure.assertHasDescription(
+            GradleContextualExecuter.configCache
+                ? "Configuration cache state could not be cached:"
+                : "Execution failed for task ':linkMainExecutable'."
+        )
         failure.assertHasCause("Static library file ${file("does_not_exist").absolutePath} does not exist for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 
