@@ -35,9 +35,14 @@ import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.DocsType;
 import org.gradle.api.component.Artifact;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
@@ -62,6 +67,7 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
  * Allows adding and subtracting {@link Configuration}s, working in offline mode and downloading sources/javadoc.
  */
 public class IdeDependencySet {
+    private final ObjectFactory objectFactory;
     private final DependencyHandler dependencyHandler;
     private final JavaModuleDetector javaModuleDetector;
     private final Collection<Configuration> plusConfigurations;
@@ -70,11 +76,12 @@ public class IdeDependencySet {
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
     private final Collection<Configuration> testConfigurations;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
-        this(dependencyHandler, javaModuleDetector, plusConfigurations, minusConfigurations, inferModulePath, gradleApiSourcesResolver, Collections.emptySet());
+    public IdeDependencySet(ObjectFactory objectFactory, DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
+        this(objectFactory, dependencyHandler, javaModuleDetector, plusConfigurations, minusConfigurations, inferModulePath, gradleApiSourcesResolver, Collections.emptySet());
     }
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver, Collection<Configuration> testConfigurations) {
+    public IdeDependencySet(ObjectFactory objectFactory, DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver, Collection<Configuration> testConfigurations) {
+        this.objectFactory = objectFactory;
         this.dependencyHandler = dependencyHandler;
         this.javaModuleDetector = javaModuleDetector;
         this.plusConfigurations = plusConfigurations;
@@ -120,11 +127,52 @@ public class IdeDependencySet {
                     resolvedArtifacts.put(resolvedArtifact.getId(), resolvedArtifact);
                     configurations.put(resolvedArtifact.getId(), configuration);
                 }
+                if (visitor.downloadSources()) {
+                    gatherAuxiliaryArtifacts(configuration, visitor, true);
+                }
+                if (visitor.downloadJavaDoc()) {
+                    gatherAuxiliaryArtifacts(configuration, visitor, false);
+                }
                 if (artifacts.getFailures().isEmpty()) {
                     continue;
                 }
                 for (UnresolvedDependencyResult unresolvedDependency : getUnresolvedDependencies(configuration, visitor)) {
                     unresolvedDependencies.put(unresolvedDependency.getAttempted(), unresolvedDependency);
+                }
+            }
+        }
+
+        private void gatherAuxiliaryArtifacts(Configuration configuration, IdeDependencyVisitor visitor, boolean sources) {
+            ArtifactCollection artifacts = getResolvedArtifactVariants(configuration, visitor, sources);
+            Class<? extends Artifact> type = sources ? SourcesArtifact.class : JavadocArtifact.class;
+
+            Set<ResolvedArtifactResult> resolved;
+            try {
+                resolved = artifacts.getResolvedArtifacts().get();
+            } catch (AssertionError e) {
+                // This can return an exception from GraphVariantSelector.selectByattributeMatchingLenient's assertation.
+                // Lenient should NOT throw an exception when things fail, but it does so just eat it treat it as an empty result
+                resolved = Collections.emptySet();
+            }
+
+            if (resolved.isEmpty()) {
+                return;
+            }
+
+            for (ResolvedArtifactResult resolvedArtifact : artifacts) {
+                if (resolvedArtifact.getId() instanceof ModuleComponentArtifactIdentifier) {
+                    // This is a dirty hack, but it's because ivy repos don't take attributes into account at all.
+                    ResolvedArtifactResult main = resolvedArtifacts.get(resolvedArtifact.getId());
+                    if (main != null && resolvedArtifact.getFile().equals(main.getFile())) {
+                        continue;
+                    }
+                    ModuleComponentIdentifier id = ((ModuleComponentArtifactIdentifier) resolvedArtifact.getId()).getComponentIdentifier();
+                    Set<ResolvedArtifactResult> set = auxiliaryArtifacts.get(id, type);
+                    if (set == null) {
+                        set = new LinkedHashSet<>();
+                        auxiliaryArtifacts.put(id, type, set);
+                    }
+                    set.add(resolvedArtifact);
                 }
             }
         }
@@ -135,6 +183,12 @@ public class IdeDependencySet {
                 for (ResolvedArtifactResult resolvedArtifact : artifacts) {
                     resolvedArtifacts.remove(resolvedArtifact.getId());
                     configurations.removeAll(resolvedArtifact.getId());
+
+                    ComponentIdentifier componentIdentifier = resolvedArtifact.getId().getComponentIdentifier();
+                    if (componentIdentifier instanceof ModuleComponentIdentifier) {
+                        auxiliaryArtifacts.remove(componentIdentifier, SourcesArtifact.class);
+                        auxiliaryArtifacts.remove(componentIdentifier, JavadocArtifact.class);
+                    }
                 }
                 if (artifacts.getFailures().isEmpty()) {
                     continue;
@@ -155,6 +209,19 @@ public class IdeDependencySet {
             }).getArtifacts();
         }
 
+        private ArtifactCollection getResolvedArtifactVariants(Configuration configuration, final IdeDependencyVisitor visitor, boolean sources) {
+            // We want the exact configuration and attributes, except the source variants
+            // So make a recursive copy, which flattens the attributes/constraints/dependency list
+            Configuration copy = configuration.copyRecursive();
+            // Change the category and type to what we want
+            AttributeContainer attrs = copy.getAttributes();
+            attrs.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
+            attrs.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, sources ? DocsType.SOURCES : DocsType.JAVADOC));
+            // Now return a normal resolution, this will not work for anything that doesn't define a gradle module metadata file
+            // However, we fall back to the old ArtifactResolutionQuery for anything we can't find.
+            return getResolvedArtifacts(copy, visitor);
+        }
+
         private Spec<ComponentIdentifier> getComponentFilter(IdeDependencyVisitor visitor) {
             return visitor.isOffline() ? NOT_A_MODULE : Specs.<ComponentIdentifier>satisfyAll();
         }
@@ -171,32 +238,40 @@ public class IdeDependencySet {
                 return;
             }
 
-            Set<ModuleComponentIdentifier> componentIdentifiers = getModuleComponentIdentifiers();
-            if (componentIdentifiers.isEmpty()) {
-                return;
-            }
-
             List<Class<? extends Artifact>> types = getAuxiliaryArtifactTypes(visitor);
             if (types.isEmpty()) {
+                return;
+            }
+            for (Class<? extends Artifact> type : types) {
+                resolveAuxiliaryArtifacts(type);
+            }
+        }
+
+        private void resolveAuxiliaryArtifacts(Class<? extends Artifact> type) {
+            Set<ModuleComponentIdentifier> componentIdentifiers = getModuleComponentIdentifiers();
+
+            Map<ModuleComponentIdentifier, Set<ResolvedArtifactResult>> existing = auxiliaryArtifacts.columnMap().get(type);
+            if (existing != null) {
+                componentIdentifiers.removeIf(existing::containsKey); // Don't find again if we have already found them using ArtifactView
+            }
+            if (componentIdentifiers.isEmpty()) {
                 return;
             }
 
             ArtifactResolutionResult result = dependencyHandler.createArtifactResolutionQuery()
                 .forComponents(componentIdentifiers)
-                .withArtifacts(JvmLibrary.class, types)
+                .withArtifacts(JvmLibrary.class, Collections.singleton(type))
                 .execute();
 
             for (ComponentArtifactsResult artifactsResult : result.getResolvedComponents()) {
-                for (Class<? extends Artifact> type : types) {
-                    Set<ResolvedArtifactResult> resolvedArtifactResults = new LinkedHashSet<>();
+                Set<ResolvedArtifactResult> resolvedArtifactResults = new LinkedHashSet<>();
 
-                    for (ArtifactResult artifactResult : artifactsResult.getArtifacts(type)) {
-                        if (artifactResult instanceof ResolvedArtifactResult) {
-                            resolvedArtifactResults.add((ResolvedArtifactResult) artifactResult);
-                        }
+                for (ArtifactResult artifactResult : artifactsResult.getArtifacts(type)) {
+                    if (artifactResult instanceof ResolvedArtifactResult) {
+                        resolvedArtifactResults.add((ResolvedArtifactResult) artifactResult);
                     }
-                    auxiliaryArtifacts.put((ModuleComponentIdentifier) artifactsResult.getId(), type, resolvedArtifactResults);
                 }
+                auxiliaryArtifacts.put((ModuleComponentIdentifier) artifactsResult.getId(), type, resolvedArtifactResults);
             }
         }
 

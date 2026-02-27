@@ -15,10 +15,16 @@
  */
 package org.gradle.plugins.ide
 
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.DocsType
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
+import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -30,7 +36,7 @@ import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName
 
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule
-    HttpServer server
+    public HttpServer server
 
     String groovyVersion = GroovyCoverage.CURRENT_STABLE
 
@@ -120,6 +126,12 @@ dependencies {
         javadocArtifact.expectHead()
         javadocArtifact.expectGetBroken()
 
+        // Source and javadoc artifacts are queried twice because of their broken state.
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGetBroken()
+
+        javadocArtifact.expectHead()
+        javadocArtifact.expectGetBroken()
 
         then:
         succeeds ideTask
@@ -300,18 +312,14 @@ dependencies {
         given:
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
-        buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
+        buildFile << withIdePlugins("""
             dependencies {
                 implementation gradleApi()
             }
 
             idea.module.downloadSources = false
             eclipse.classpath.downloadSources = false
-            """
+            """)
         when:
         succeeds ideTask
 
@@ -325,15 +333,11 @@ dependencies {
         given:
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
-        buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
+        buildFile << withIdePlugins("""
             dependencies {
                 implementation gradleApi()
             }
-            """
+            """)
         when:
         args("--offline")
         succeeds ideTask
@@ -343,21 +347,18 @@ dependencies {
         ideFileContainsGradleApi("gradle-api")
     }
 
-    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    @Requires(UnitTestPreconditions.StableGroovy)
+    // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
-        buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
+        buildFile << withIdePlugins("""
             dependencies {
                 implementation localGroovy()
             }
-            """
+            """)
 
         when:
         succeeds ideTask
@@ -375,21 +376,18 @@ dependencies {
         ideFileContainsEntry("groovy-xml-${groovyVersion}.jar", ["groovy-xml-${groovyVersion}-sources.jar"], [])
     }
 
-    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    @Requires(UnitTestPreconditions.StableGroovy)
+    // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
-        buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
+        buildFile << withIdePlugins("""
             dependencies {
                 implementation gradleApi()
             }
-            """
+            """)
 
         when:
         succeeds ideTask
@@ -407,15 +405,11 @@ dependencies {
         def repo = givenGroovyExistsInGradleRepo()
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
-        buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
+        buildFile << withIdePlugins("""
             dependencies {
                 implementation gradleTestKit()
             }
-            """
+            """)
 
         when:
         succeeds ideTask
@@ -428,18 +422,14 @@ dependencies {
         given:
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
-        buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
+        buildFile << withIdePlugins("""
             dependencies {
                 implementation localGroovy()
             }
 
             idea.module.downloadSources = false
             eclipse.classpath.downloadSources = false
-            """
+            """)
 
         when:
         succeeds ideTask
@@ -452,15 +442,11 @@ dependencies {
         given:
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
-        buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
+        buildFile << withIdePlugins("""
             dependencies {
                 implementation localGroovy()
             }
-            """
+            """)
 
         when:
         args("--offline")
@@ -470,7 +456,8 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
+    @Requires(UnitTestPreconditions.StableGroovy)
+    // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "does not add project repository to download localGroovy() sources"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -479,21 +466,140 @@ dependencies {
             dependencyResolutionManagement { repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS }
         """
 
-        buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
+        buildFile << withIdePlugins("""
             dependencies {
                 implementation localGroovy()
             }
-        """
+        """)
 
         when:
         succeeds ideTask
 
         then:
         ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
+    }
+
+    def "correct sources and javadoc variants are selected from maven"() {
+        given:
+        def repo = mavenHttpRepo
+        def art = repo.module('some', 'module', '1.0')
+        addClassesVariant(art, 'api-variant', Usage.JAVA_API, 'module-1.0-variant.jar', ['custom-attribute': 'variant'])
+        addClassesVariant(art, 'runtime-variant', Usage.JAVA_RUNTIME, 'module-1.0-variant.jar', ['custom-attribute': 'variant'])
+        addDocumentVariant(art, 'sources-variant', DocsType.SOURCES, null, ['custom-attribute': 'variant'])
+        addDocumentVariant(art, 'javadoc-variant', DocsType.JAVADOC, null, ['custom-attribute': 'variant'])
+        art
+            .withSourceAndJavadoc() // Default version
+            .withModuleMetadata()
+            .publish()
+
+        buildFile.text = withIdePlugins """
+            dependencies {
+                implementation('some:module:1.0') {
+                    attributes {
+                        attribute(Attribute.of('custom-attribute', String), 'variant')
+                    }
+                }
+            }
+
+            eclipse.classpath.downloadJavadoc = true
+            idea.module.downloadJavadoc = true
+        """
+
+        when:
+        useMavenRepo(repo)
+
+        and:
+        art.pom.expectGet()
+        art.moduleMetadata.expectGet()
+        art.artifact(classifier: 'variant').expectGet()
+        art.artifact(classifier: 'sources-variant').expectGet()
+        art.artifact(classifier: 'javadoc-variant').expectGet()
+
+        then:
+        succeeds ideTask
+        ideFileContainsEntry("module-1.0-variant.jar", "module-1.0-sources-variant.jar", "module-1.0-javadoc-variant.jar")
+    }
+
+    def "sources variant is selected when javadoc variant is not available"() {
+        given:
+        def repo = mavenHttpRepo
+        def art = repo.module('some', 'module', '1.0')
+        addClassesVariant(art, 'api-variant', Usage.JAVA_API, 'module-1.0-variant.jar', ['custom-attribute': 'variant'])
+        addClassesVariant(art, 'runtime-variant', Usage.JAVA_RUNTIME, 'module-1.0-variant.jar', ['custom-attribute': 'variant'])
+        addDocumentVariant(art, 'sources-variant', DocsType.SOURCES, null, ['custom-attribute': 'variant'])
+        art
+            .withSourceAndJavadoc() // Default version
+            .withModuleMetadata()
+            .publish()
+
+        buildFile.text = withIdePlugins """
+            dependencies {
+                implementation('some:module:1.0') {
+                    attributes {
+                        attribute(Attribute.of('custom-attribute', String), 'variant')
+                    }
+                }
+            }
+
+            eclipse.classpath.downloadJavadoc = true
+            idea.module.downloadJavadoc = true
+        """
+
+        when:
+        useMavenRepo(repo)
+
+        and:
+        art.pom.expectGet()
+        art.moduleMetadata.expectGet()
+        art.artifact(classifier: 'variant').expectGet()
+        art.artifact(classifier: 'sources-variant').expectGet()
+        art.artifact(classifier: 'javadoc').expectHead()
+        art.artifact(classifier: 'javadoc').expectGet()
+
+        then:
+        succeeds ideTask
+        ideFileContainsEntry("module-1.0-variant.jar", "module-1.0-sources-variant.jar", "module-1.0-javadoc.jar")
+    }
+
+    def "javadoc variant is selected when sources variant is not available"() {
+        given:
+        def repo = mavenHttpRepo
+        def art = repo.module('some', 'module', '1.0')
+        addClassesVariant(art, 'api-variant', Usage.JAVA_API, 'module-1.0-variant.jar', ['custom-attribute': 'variant'])
+        addClassesVariant(art, 'runtime-variant', Usage.JAVA_RUNTIME, 'module-1.0-variant.jar', ['custom-attribute': 'variant'])
+        addDocumentVariant(art, 'javadoc-variant', DocsType.JAVADOC, null, ['custom-attribute': 'variant'])
+        art
+            .withSourceAndJavadoc() // Default version
+            .withModuleMetadata()
+            .publish()
+
+        buildFile.text = withIdePlugins """
+            dependencies {
+                implementation('some:module:1.0') {
+                    attributes {
+                        attribute(Attribute.of('custom-attribute', String), 'variant')
+                    }
+                }
+            }
+
+            eclipse.classpath.downloadJavadoc = true
+            idea.module.downloadJavadoc = true
+        """
+
+        when:
+        useMavenRepo(repo)
+
+        and:
+        art.pom.expectGet()
+        art.moduleMetadata.expectGet()
+        art.artifact(classifier: 'variant').expectGet()
+        art.artifact(classifier: 'sources').expectHead()
+        art.artifact(classifier: 'sources').expectGet()
+        art.artifact(classifier: 'javadoc-variant').expectGet()
+
+        then:
+        succeeds ideTask
+        ideFileContainsEntry("module-1.0-variant.jar", ["module-1.0-sources.jar"], ["module-1.0-javadoc-variant.jar"])
     }
 
     void assertSourcesDirectoryDoesNotExistInDistribution() {
@@ -530,6 +636,15 @@ dependencies {
         module.allowAll()
     }
 
+    String withIdePlugins(@GroovyBuildScriptLanguage String append) {
+        """
+    apply plugin: "java"
+    apply plugin: "idea"
+    apply plugin: "eclipse"
+
+""" + append
+    }
+
     private useIvyRepo(def repo) {
         buildFile << """repositories { ivy { url = "$repo.uri" } }"""
     }
@@ -548,6 +663,36 @@ dependencies {
         module.artifact(type: "javadoc", classifier: "my-javadoc", ext: "jar", conf: "javadoc")
     }
 
+    private static void addDocumentVariant(MavenHttpModule module, String name, String type, String filename = null, Map<String, String> attributes = [:]) {
+        module.withVariant(name) {
+            useDefaultArtifacts = false
+            attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+            attribute(Category.CATEGORY_ATTRIBUTE.name, Category.DOCUMENTATION)
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE.name, type)
+            attributes.forEach (k, v) -> attribute(k, v)
+            if (filename == null) {
+                artifact(module.artifactId + '-' + module.version + '-' + name + '.jar')
+            } else {
+                artifact(filename)
+            }
+        }
+    }
+
+    private static void addClassesVariant(MavenHttpModule module, String name, String type, String filename = null, Map<String, String> attributes = [:]) {
+        module.withVariant(name) {
+            useDefaultArtifacts = false
+            attribute(Usage.USAGE_ATTRIBUTE.name, type)
+            attribute(Category.CATEGORY_ATTRIBUTE.name, Category.LIBRARY)
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name, LibraryElements.JAR)
+            attributes.forEach (k, v) -> attribute(k, v)
+            if (filename == null) {
+                artifact(module.artifactId + '-' + module.version + '-' + name + '.jar')
+            } else {
+                artifact(filename)
+            }
+        }
+    }
+
     MavenHttpRepository getMavenHttpRepo() {
         return new MavenHttpRepository(server, "/repo", mavenRepo)
     }
@@ -557,11 +702,7 @@ dependencies {
     }
 
     String getBaseBuildScript() {
-        """
-apply plugin: "java"
-apply plugin: "idea"
-apply plugin: "eclipse"
-
+        withIdePlugins("""
 dependencies {
     implementation("some:module:1.0")
 }
@@ -584,7 +725,7 @@ task resolve {
         runtimeClasspath.each { println it }
     }
 }
-"""
+""")
     }
 
     abstract String getIdeTask()
