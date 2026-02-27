@@ -45,10 +45,11 @@ catalogExternalModules.forEach { moduleNotation ->
     val version = parts[2]
     val ga = "$group:$name"
     val pomLicense = resolveLicenseFromPom(ModuleCoordinates(group, name, version))
-    if (pomLicense == null) {
+    val resolvedLicense = pomLicense ?: specialLicenseOverride(ga)
+    if (resolvedLicense == null) {
         catalogModulesMissingPomLicense += ga
     } else {
-        val encoded = pomLicense.title + licenseFieldSeparator + (pomLicense.url ?: "")
+        val encoded = resolvedLicense.title + licenseFieldSeparator + (resolvedLicense.url ?: "")
         catalogPomLicenseByModule[ga] = encoded
     }
 }
@@ -148,3 +149,10 @@ fun Element.childText(tagName: String): String? {
     val value = node.textContent.trim()
     return value.takeIf { it.isNotEmpty() }
 }
+
+fun specialLicenseOverride(moduleGa: String): PomLicense? =
+    when (moduleGa) {
+        "jquery:jquery.min" -> PomLicense("MIT", "https://opensource.org/licenses/MIT")
+        "net.rubygrapefruit:native-platform" -> PomLicense("Apache 2.0", "https://www.apache.org/licenses/LICENSE-2.0")
+        else -> null
+    }

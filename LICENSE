@@ -270,9 +270,6 @@ ASM: a very small and fast Java bytecode manipulation framework
 ------------------------------------------------------------------------------
 MIT
 
-com.googlecode.plist:dd-plist
-jquery:jquery.min
-org.jsoup:jsoup
 org.slf4j:jul-to-slf4j
 org.slf4j:slf4j-api
 
@@ -420,67 +417,51 @@ https://www.mozilla.org/en-US/MPL/2.0/
 Apache 2.0
 https://www.apache.org/licenses/LICENSE-2.0
 
-com.amazonaws:aws-java-sdk-core
-com.amazonaws:aws-java-sdk-kms
-com.amazonaws:aws-java-sdk-s3
-com.amazonaws:aws-java-sdk-sts
-com.fasterxml.jackson.core:jackson-annotations
-com.fasterxml.jackson.core:jackson-core
-com.fasterxml.jackson.core:jackson-databind
+net.rubygrapefruit:native-platform
+
+------------------------------------------------------------------------------
+Bouncy Castle Licence
+https://www.bouncycastle.org/licence.html
+
+org.bouncycastle:bcpg-jdk18on
+org.bouncycastle:bcprov-jdk18on
+
+------------------------------------------------------------------------------
+The Apache Software License, Version 2.0
+https://www.apache.org/licenses/LICENSE-2.0.txt
+
 com.fasterxml.jackson.datatype:jackson-datatype-jdk8
 com.fasterxml.jackson.datatype:jackson-datatype-jsr310
-com.github.javaparser:javaparser-core
 com.github.jnr:jnr-constants
 com.google.api-client:google-api-client
 com.google.apis:google-api-services-storage
 com.google.code.findbugs:jsr305
-com.google.code.gson:gson
-com.google.errorprone:error_prone_annotations
-com.google.guava:guava
 com.google.http-client:google-http-client
 com.google.http-client:google-http-client-apache-v2
 com.google.http-client:google-http-client-gson
-com.google.oauth-client:google-oauth-client
 com.googlecode.jatl:jatl
-com.squareup:javapoet
-commons-codec:commons-codec
-commons-io:commons-io
-it.unimi.dsi:fastutil
 javax.inject:javax.inject
-joda-time:joda-time
-net.rubygrapefruit:native-platform
-org.apache.ant:ant
-org.apache.ant:ant-launcher
-org.apache.commons:commons-compress
-org.apache.commons:commons-lang3
-org.apache.groovy:groovy
-org.apache.groovy:groovy-ant
-org.apache.groovy:groovy-astbuilder
-org.apache.groovy:groovy-datetime
-org.apache.groovy:groovy-dateutil
-org.apache.groovy:groovy-groovydoc
-org.apache.groovy:groovy-json
-org.apache.groovy:groovy-nio
-org.apache.groovy:groovy-templates
-org.apache.groovy:groovy-xml
-org.apache.httpcomponents:httpclient
-org.apache.httpcomponents:httpcore
 org.apache.ivy:ivy
-org.apache.maven:maven-model
-org.apache.maven:maven-repository-metadata
-org.apache.maven:maven-settings
-org.apache.maven:maven-settings-builder
-org.apache.sshd:sshd-core
-org.apache.sshd:sshd-osgi
-org.apache.sshd:sshd-scp
-org.apache.sshd:sshd-sftp
-org.codehaus.plexus:plexus-interpolation
-org.codehaus.plexus:plexus-sec-dispatcher
-org.codehaus.plexus:plexus-utils
-org.fusesource.jansi:jansi
+
+------------------------------------------------------------------------------
+BSD-3-Clause
+https://asm.ow2.io/license.html
+
+org.eclipse.jgit:org.eclipse.jgit
+org.eclipse.jgit:org.eclipse.jgit.ssh.apache
+org.eclipse.jgit:org.eclipse.jgit.ssh.apache.agent
+
+------------------------------------------------------------------------------
+Apache License, Version 2.0
+https://aws.amazon.com/apache2.0
+
+joda-time:joda-time
+
+------------------------------------------------------------------------------
+Apache-2.0
+https://www.apache.org/licenses/LICENSE-2.0.txt
+
 org.gradle.buildtool.internal:configuration-cache-report
-org.gradle.fileevents:gradle-fileevents
-org.jctools:jctools-core
 org.jetbrains.kotlin:jvm-abi-gen-embeddable
 org.jetbrains.kotlin:kotlin-assignment
 org.jetbrains.kotlin:kotlin-assignment-compiler-plugin-embeddable
@@ -499,21 +480,60 @@ org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable
 org.jetbrains.kotlin:kotlin-scripting-jvm
 org.jetbrains.kotlin:kotlin-scripting-jvm-host
 org.jetbrains.kotlin:kotlin-stdlib
-org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm
-org.jetbrains.kotlinx:kotlinx-serialization-core
-org.jetbrains.kotlinx:kotlinx-serialization-json
-org.jetbrains:annotations
-org.jspecify:jspecify
-org.objenesis:objenesis
-org.slf4j:jcl-over-slf4j
-org.slf4j:log4j-over-slf4j
-org.sonatype.plexus:plexus-cipher
-org.tomlj:tomlj
-org.yaml:snakeyaml
 
 ------------------------------------------------------------------------------
-Bouncy Castle Licence
-https://www.bouncycastle.org/licence.html
+GNU Lesser General Public License
+http://www.gnu.org/licenses/lgpl-3.0.html
 
-org.bouncycastle:bcpg-jdk18on
-org.bouncycastle:bcprov-jdk18on
+com.github.javaparser:javaparser-core
+
+------------------------------------------------------------------------------
+GNU Lesser General Public License, version 2.1
+http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+
+jcifs:jcifs
+
+------------------------------------------------------------------------------
+LGPL-2.1-or-later
+https://www.gnu.org/licenses/old-licenses/lgpl-2.1
+
+net.java.dev.jna:jna
+net.java.dev.jna:jna-platform
+
+------------------------------------------------------------------------------
+Revised BSD
+https://github.com/mwiede/jsch/blob/master/LICENSE.txt
+
+com.github.mwiede:jsch
+
+------------------------------------------------------------------------------
+The MIT License
+https://jsoup.org/license
+
+org.jsoup:jsoup
+
+------------------------------------------------------------------------------
+The Apache License, Version 2.0
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+org.jspecify:jspecify
+org.tomlj:tomlj
+
+------------------------------------------------------------------------------
+New BSD License
+http://www.opensource.org/licenses/bsd-license.php
+
+com.esotericsoftware.kryo:kryo
+com.esotericsoftware.minlog:minlog
+
+------------------------------------------------------------------------------
+Apache 2
+http://www.apache.org/licenses/LICENSE-2.0.txt
+
+org.objenesis:objenesis
+
+------------------------------------------------------------------------------
+MIT License
+http://opensource.org/licenses/mit
+
+com.googlecode.plist:dd-plist
