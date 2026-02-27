@@ -207,6 +207,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
+        getFailOnUnexpectedTestCount().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
 
@@ -756,10 +757,69 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             getLogger().info("Running tests for remote debugging.");
         }
 
+        // Track test counts if expectedTestCount property is set and --tests is not used.
+        // When --tests is used, the expected test count validation should have no effect.
+        boolean shouldTrackTestCount = getExpectedTestCount().isPresent()
+            && ((DefaultTestFilter) getFilter()).getCommandLineIncludePatterns().isEmpty();
+        TestCountTracker testCountTracker = null;
+        if (shouldTrackTestCount) {
+            testCountTracker = new TestCountTracker();
+            addTestListener(testCountTracker);
+        }
+
         try {
             super.executeTests();
         } finally {
             CompositeStoppable.stoppable(getTestFramework()).stop();
+        }
+
+        if (shouldTrackTestCount) {
+            long actualCount = testCountTracker.getTotalTests();
+            long expectedCount = getExpectedTestCount().get();
+            if (actualCount != expectedCount) {
+                String message = String.format("Task :%s expected %d test(s) but executed %d test(s).", this.getName(), expectedCount, actualCount);
+                if (getFailOnUnexpectedTestCount().get()) {
+                    throw new GradleException(message);
+                } else {
+                    getLogger().warn(message);
+                }
+            }
+        }
+    }
+
+    /**
+     * Helper class to track the total number of tests executed.
+     * Uses the same counting approach as TestCountLogger in the platform.
+     */
+    private static class TestCountTracker implements TestListener {
+        private long totalTests = 0;
+
+        @Override
+        public void beforeSuite(TestDescriptor suite) {
+            // No action needed - test counting is done per test, not per suite
+        }
+
+        @Override
+        public void afterSuite(TestDescriptor suite, TestResult result) {
+            // No action needed - test counting is done per test, not per suite
+            // Suite results contain aggregate counts that would double-count tests
+        }
+
+        @Override
+        public void beforeTest(TestDescriptor testDescriptor) {
+            // No action needed
+        }
+
+        @Override
+        public void afterTest(TestDescriptor testDescriptor, TestResult result) {
+            // Count the number of atomic tests executed for this test
+            // For normal test methods, this returns 1
+            // For parameterized or composite tests, this returns the actual number of atomic tests
+            totalTests += result.getTestCount();
+        }
+
+        public long getTotalTests() {
+            return totalTests;
         }
     }
 
@@ -1325,6 +1385,45 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
+
+    /**
+     * The expected number of tests to be executed.
+     * <p>
+     * If set, the task will emit a warning after test execution if the actual number of executed tests
+     * does not match the expected count. If {@link #getFailOnUnexpectedTestCount()} is set to true,
+     * an exception will be thrown instead of emitting a warning.
+     * </p>
+     * <p>
+     * This is an optional property. If not set, no test count validation is performed.
+     * </p>
+     *
+     * @return the expected test count property
+     * @since 9.5.0
+     */
+    @Incubating
+    @Input
+    @org.gradle.api.tasks.Optional
+    @Option(option = "expected-test-count", description = "Expected number of tests to be executed.")
+    public abstract Property<Long> getExpectedTestCount();
+
+    /**
+     * Whether to fail the build when the expected test count does not match the actual count.
+     * <p>
+     * When set to true, a {@link GradleException} will be thrown if the expected test count
+     * does not match the actual count. When false (the default), only a warning is emitted.
+     * </p>
+     * <p>
+     * This property has no effect if {@link #getExpectedTestCount()} is not set.
+     * </p>
+     *
+     * @return the fail on unexpected test count property
+     * @since 9.5.0
+     */
+    @Incubating
+    @Input
+    @org.gradle.api.tasks.Optional
+    @Option(option = "fail-on-unexpected-test-count", description = "Fail the build when the expected test count does not match.")
+    public abstract Property<Boolean> getFailOnUnexpectedTestCount();
 
     @Override
     boolean testsAreNotFiltered() {
