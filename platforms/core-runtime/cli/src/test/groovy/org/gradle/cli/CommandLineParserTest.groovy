@@ -380,7 +380,7 @@ class CommandLineParserTest extends Specification {
             '-B',
             '-b',
             '-y, -z, --end-option, --last-option  this is the last option',
-            '--                                   Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+            '--                                   Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.'
         ]
     }
 
@@ -398,7 +398,7 @@ class CommandLineParserTest extends Specification {
             '-b                 [deprecated]',
             '-c                 option c [incubating]',
             '-d                 [incubating]',
-            '--                 Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+            '--                 Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.'
         ]
     }
 
@@ -706,7 +706,7 @@ class CommandLineParserTest extends Specification {
             '--a-option-other  this is option --a-option-other',
             '--c-option',
             '--no-c-option',
-            '--                Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+            '--                Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.'
         ]
     }
 }
