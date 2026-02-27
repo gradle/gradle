@@ -256,12 +256,13 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
             task resolve {
                 def files = configurations.runtimeClasspath.incoming.files
                 doLast {
-                    assert files*.name == ["foo.txt"]
+                    println files*.name
                 }
             }
         """
 
         expect:
         succeeds("resolve")
+        outputContains("[foo.txt]")
     }
 }

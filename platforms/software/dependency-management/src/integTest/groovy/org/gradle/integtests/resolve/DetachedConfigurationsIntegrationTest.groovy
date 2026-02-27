@@ -152,13 +152,14 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             task resolve {
                 def files = detached
                 doLast {
-                    assert files.files*.name == ["foo.zip"]
+                    println files.files*.name
                 }
             }
         """
 
         expect:
         succeeds("resolve")
+        outputContains("[foo.zip]")
     }
 
     def "configurations container reserves name #name for detached configurations"() {

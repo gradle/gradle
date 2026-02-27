@@ -56,7 +56,6 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                     @TaskAction
                     void assertThat() {
                         logger.lifecycle 'Found files: {}', artifacts.files*.name
-                        assert artifacts.files*.name == expectations
                     }
                 }
 
@@ -198,6 +197,7 @@ Artifacts
         '''
         expect:
         succeeds(':consumer:resolve')
+        outputContains("Found files: [producer-jar.txt]")
     }
 
     def 'consumer resolves javadoc variant of producer'() {
@@ -208,6 +208,7 @@ Artifacts
         '''
         expect:
         succeeds(':consumer:resolveJavadoc')
+        outputContains("Found files: [producer-javadoc.txt]")
     }
 
     def 'consumer resolves other variant of producer'() {
@@ -218,6 +219,7 @@ Artifacts
         '''
         expect:
         succeeds(':consumer:resolveOther')
+        outputContains("Found files: [producer-other.txt]")
     }
 
     def 'consumer resolves all variants of producer'() {
@@ -228,6 +230,7 @@ Artifacts
         '''
         expect:
         succeeds(':consumer:resolveAll')
+        outputContains("Found files: [producer-jar.txt, producer-javadoc.txt, producer-other.txt]")
     }
 
     def 'consumer resolves jar variant of producer with dependencies'() {
@@ -252,6 +255,7 @@ Artifacts
         '''
         expect:
         succeeds(':consumer:resolve')
+        outputContains("Found files: [producer-jar.txt, direct-jar.txt, transitive-jar.txt]")
     }
 
     def 'consumer resolves javadoc variant of producer with dependencies on jarElements'() {
@@ -276,6 +280,7 @@ Artifacts
         '''
         expect:
         succeeds(':consumer:resolveJavadoc')
+        outputContains("Found files: [producer-javadoc.txt, direct-javadoc.txt, transitive-javadoc.txt]")
     }
 
     def 'consumer resolves other variant of producer with dependencies on jarElements'() {
@@ -300,6 +305,7 @@ Artifacts
         '''
         expect:
         succeeds(':consumer:resolveOther')
+        outputContains("Found files: [producer-other.txt, direct-other.txt, transitive-other.txt]")
     }
 
     def 'consumer resolves other variant of producer with dependencies on otherElements'() {
@@ -324,5 +330,6 @@ Artifacts
         '''
         expect:
         succeeds(':consumer:resolveOther')
+        outputContains("Found files: [producer-other.txt]")
     }
 }

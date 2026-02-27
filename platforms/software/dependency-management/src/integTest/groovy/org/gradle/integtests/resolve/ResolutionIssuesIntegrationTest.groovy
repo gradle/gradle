@@ -221,14 +221,15 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
             task checkDebugDuplicateClasses {
                 def files = configurations.runtimeClasspath
                 doLast {
-                    assert files*.name.contains("guava-32.1.1-jre.jar")
-                    assert !files*.name.contains("listenablefuture-1.0.jar")
+                    println files*.name
                 }
             }
         '''
 
         expect:
         succeeds("checkDebugDuplicateClasses")
+        outputContains("guava-32.1.1-jre.jar")
+        outputDoesNotContain("listenablefuture-1.0.jar")
     }
 
     @NotYetImplemented
