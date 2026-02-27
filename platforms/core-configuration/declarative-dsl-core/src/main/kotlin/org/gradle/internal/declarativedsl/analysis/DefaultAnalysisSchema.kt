@@ -63,7 +63,8 @@ data class DefaultDataClass(
     override val supertypes: Set<FqName>,
     override val properties: List<DataProperty>,
     override val memberFunctions: List<SchemaMemberFunction>,
-    override val constructors: List<DataConstructor> // TODO: remove this property
+    override val constructors: List<DataConstructor>, // TODO: remove this property
+    override val metadata: List<SchemaItemMetadata>
 ) : DataClass {
     override fun toString(): String = name.simpleName
 }
@@ -74,7 +75,8 @@ data class DefaultDataClass(
 data class DefaultEnumClass(
     override val name: FqName,
     override val javaTypeName: String,
-    override val entryNames: List<String>
+    override val entryNames: List<String>,
+    override val metadata: List<SchemaItemMetadata>
 ) : EnumClass {
     override fun toString(): String = name.simpleName
 }
@@ -509,7 +511,8 @@ object SchemaItemMetadataInternal {
             override val ecosystemPluginClassName: String,
             override val ecosystemPluginId: String?,
             override val targetDefinitionClassName: String?,
-            override val targetBuildModelClassName: String?
+            override val targetBuildModelClassName: String?,
+            override val isSafeDefinition: Boolean
         ) : ProjectFeatureOrigin
 
         @Serializable

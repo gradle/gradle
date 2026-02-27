@@ -47,6 +47,7 @@ interface ProjectFeatureOrigin : SchemaMemberOrigin {
     val ecosystemPluginId: String?
     val targetDefinitionClassName: String?
     val targetBuildModelClassName: String?
+    val isSafeDefinition: Boolean
     //TODO: feature owner plugin ID?
 }
 
