@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model.ivy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
@@ -28,7 +29,6 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,7 +50,7 @@ class IvyConfigurationHelper {
     }
 
     ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, Collection<String> hierarchy) {
-        Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<>();
+        Set<ModuleComponentArtifactMetadata> artifacts = new ObjectLinkedOpenHashSet<>();
         collectArtifactsFor(name, artifacts);
         for (String parent : hierarchy) {
             collectArtifactsFor(parent, artifacts);

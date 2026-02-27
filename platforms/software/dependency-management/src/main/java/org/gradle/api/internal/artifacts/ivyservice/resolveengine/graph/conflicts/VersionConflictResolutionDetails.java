@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import com.google.common.base.Objects;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
@@ -24,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -114,7 +114,7 @@ public class VersionConflictResolutionDetails implements Describable {
     }
 
     private static Set<ComponentResolutionState> mergeAllCandidates(List<VersionConflictResolutionDetails> byVersionConflictResolution) {
-        Set<ComponentResolutionState> allCandidates = new LinkedHashSet<>();
+        Set<ComponentResolutionState> allCandidates = new ObjectLinkedOpenHashSet<>();
         for (VersionConflictResolutionDetails versionConflictResolutionDetails : byVersionConflictResolution) {
             allCandidates.addAll(versionConflictResolutionDetails.getCandidates());
         }

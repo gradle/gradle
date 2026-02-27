@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.classpath;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
 
@@ -45,7 +45,7 @@ public class DefaultPluginModuleRegistry implements PluginModuleRegistry {
     }
 
     private Set<Module> loadModules(Properties properties) {
-        Set<Module> modules = new LinkedHashSet<Module>();
+        Set<Module> modules = new ObjectLinkedOpenHashSet<Module>();
         for (String pluginModule : properties.getProperty("plugins").split(",")) {
             try {
                 modules.add(moduleRegistry.getModule(pluginModule));

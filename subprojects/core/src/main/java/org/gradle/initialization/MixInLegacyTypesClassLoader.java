@@ -20,6 +20,7 @@ import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -41,7 +42,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -141,7 +141,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             this.className = name;
 
-            Set<String> interfaceNames = new LinkedHashSet<String>(Arrays.asList(interfaces));
+            Set<String> interfaceNames = new ObjectLinkedOpenHashSet<String>(Arrays.asList(interfaces));
             interfaceNames.add(GROOVY_OBJECT_TYPE.getInternalName());
             cv.visit(version, access, name, signature, superName, interfaceNames.toArray(new String[0]));
         }

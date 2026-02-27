@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.internal.Describables;
@@ -24,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class DependencyGraphPathResolver {
         rootPath.add(Describables.of(owner.getDisplayName()));
         shortestPaths.put(toNode.getOwner(), rootPath);
 
-        Set<DependencyGraphComponent> directDependees = new LinkedHashSet<>();
+        Set<DependencyGraphComponent> directDependees = new ObjectLinkedOpenHashSet<>();
         for (DependencyGraphNode node : fromNodes) {
             directDependees.add(node.getOwner());
         }

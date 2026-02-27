@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
@@ -25,7 +26,7 @@ import java.util.Set;
 
 public class DefaultComponentArtifactsResult implements ComponentArtifactsResult {
     private final ComponentIdentifier componentIdentifier;
-    private final Set<ArtifactResult> artifactResults = new LinkedHashSet<>();
+    private final Set<ArtifactResult> artifactResults = new ObjectLinkedOpenHashSet<>();
 
     public DefaultComponentArtifactsResult(ComponentIdentifier componentIdentifier) {
         this.componentIdentifier = componentIdentifier;

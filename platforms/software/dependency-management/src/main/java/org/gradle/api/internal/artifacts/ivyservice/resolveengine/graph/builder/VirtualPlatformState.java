@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -24,7 +25,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -33,7 +33,7 @@ public class VirtualPlatformState {
     private final ModuleResolveState platformModule;
     private final ResolveOptimizations resolveOptimizations;
 
-    private final Set<ModuleResolveState> participatingModules = new LinkedHashSet<>();
+    private final Set<ModuleResolveState> participatingModules = new ObjectLinkedOpenHashSet<>();
     private final List<EdgeState> orphanEdges = new ArrayList<>(2);
 
     private boolean hasForcedParticipatingModule;
