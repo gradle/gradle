@@ -111,7 +111,10 @@ import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLo
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
+import org.gradle.internal.serialize.codecs.dm.DefaultComponentArtifactsResultCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
+import org.gradle.internal.serialize.codecs.dm.DefaultResolvedArtifactResultCodec
+import org.gradle.internal.serialize.codecs.dm.DefaultUnresolvedComponentResultCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesSchemaCodec
 import org.gradle.internal.serialize.codecs.dm.LocalFileDependencyBackedArtifactSetCodec
@@ -256,6 +259,9 @@ class DefaultConfigurationCacheCodecs(
             bind(ResolveArtifactNodeCodec)
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
+            bind(DefaultComponentArtifactsResultCodec())
+            bind(DefaultResolvedArtifactResultCodec())
+            bind(DefaultUnresolvedComponentResultCodec())
 
             bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, propertyFactory, instantiator, fileSystemOperations))
             bind(DestinationRootCopySpecCodec(fileResolver))
