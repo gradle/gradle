@@ -201,8 +201,33 @@ If you are behind a corporate firewall and cannot access Maven Central directly,
 This will configure Gradle to use your custom repository for resolving Maven dependencies during the conversion process.
 The specified repository will also be automatically added to the generated Gradle build files, ensuring that your build can resolve dependencies using the same repository.
 
-NOTE: If you have Maven settings configured in `~/.m2/settings.xml` with repository mirrors, Gradle will automatically detect and use those repositories as well.
-The `--maven-repo` option takes precedence over any settings in `settings.xml`.
+[[migmvn:maven_settings_xml]]
+=== Automatic repository detection from Maven settings.xml
+
+Gradle automatically detects and uses repositories configured in your Maven `settings.xml` file (`~/.m2/settings.xml`):
+
+* **Mirrors** - Any `<mirror>` configurations will be added to the generated build files
+* **Profile repositories** - Repositories from active profiles will be included
+* **Active by default profiles** - Profiles with `<activeByDefault>true</activeByDefault>` are automatically used
+
+For example, if your `settings.xml` contains:
+
+[source,xml]
+----
+<settings>
+  <mirrors>
+    <mirror>
+      <id>corporate-mirror</id>
+      <url>https://your-corporate-repo.company.com/maven2</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
+----
+
+Gradle will automatically add this mirror to your generated build files during conversion.
+
+NOTE: The `--maven-repo` command-line option takes highest precedence, followed by settings.xml repositories, then `mavenLocal()`, and finally `mavenCentral()`.
 
 The generated build files will include the custom repository along with `mavenLocal()` as a fallback, ensuring maximum compatibility with your corporate environment:
 
