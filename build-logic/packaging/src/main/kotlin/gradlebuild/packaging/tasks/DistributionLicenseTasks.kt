@@ -19,6 +19,7 @@ package gradlebuild.packaging.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.PathSensitive
@@ -29,9 +30,10 @@ import org.gradle.work.DisableCachingByDefault
 private val MODULE_LINE_REGEX = Regex("""^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$""")
 private const val LICENSE_SEPARATOR = "------------------------------------------------------------------------------"
 private const val LICENSE_LIST_HEADER = "Licenses for included components:"
+private const val LICENSE_FIELD_SEPARATOR = "\u001F"
 
 private data class ManagedLicense(val title: String, val url: String? = null)
-private data class ExternalModule(val group: String, val name: String) {
+private data class ExternalModule(val group: String, val name: String, val version: String) {
     val ga: String
         get() = "$group:$name"
 }
@@ -100,44 +102,48 @@ abstract class UpdateLicenseDependenciesTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val licenseFile: RegularFileProperty
 
+    @get:Input
+    abstract val pomLicenseByModule: MapProperty<String, String>
+
+    @get:Input
+    abstract val modulesMissingPomLicense: ListProperty<String>
+
     @TaskAction
     fun update() {
         val license = licenseFile.get().asFile
         val lines = license.readLines().toMutableList()
         require(lines.contains(LICENSE_LIST_HEADER)) { "Could not find '$LICENSE_LIST_HEADER' in LICENSE." }
-        val legacyAssignments = legacyLicenseAssignments(lines)
-
-        val modulesByLicense = parseExternalModules(externalModules.get()).groupBy { module ->
-            canonicalLicenseOverride(module) ?: legacyAssignments[module.ga] ?: fallbackLicenseForModule(module)
-        }
-        val unknownModules = modulesByLicense[null].orEmpty().map { it.ga }.sorted()
-        if (unknownModules.isNotEmpty()) {
+        val missingPomLicenses = modulesMissingPomLicense.get().sorted()
+        if (missingPomLicenses.isNotEmpty()) {
             error(
                 """
-                Could not determine a managed LICENSE section for:
-                ${unknownModules.joinToString("\n")}
-
-                Please add mapping support in UpdateLicenseDependenciesTask for these modules.
+                Missing <license><name> in dependency POM for:
+                ${missingPomLicenses.joinToString("\n")}
                 """.trimIndent()
             )
         }
 
-        val managedModules = modulesByLicense.filterKeys { it != null }
-            .mapKeys { it.key!! }
-            .mapValues { (_, modules) -> modules.map { it.ga }.toSet() }
+        val managedModules = parseExternalModules(externalModules.get())
+            .associateWith { module ->
+                val encodedLicense = pomLicenseByModule.get()[module.ga]
+                    ?: error("Missing resolved POM license for ${module.ga}")
+                decodeManagedLicense(encodedLicense)
+            }
+            .entries
+            .groupBy(
+                keySelector = { it.value!! },
+                valueTransform = { it.key.ga }
+            )
+            .mapValues { (_, modules) -> modules.toSet() }
         val usedModules = managedModules.values.flatten().toSet()
 
-        val sections = MANAGED_LICENSES.mapNotNull { findSection(lines, it.title) }
-        sections.sortedByDescending { it.modulesStart }.forEach { section ->
-            val licenseForSection = managedLicenseByTitle(section.title)
-            replaceModuleRange(lines, section, managedModules[licenseForSection].orEmpty().sorted())
-        }
-
-        val existingTitles = sections.map { it.title }.toSet()
-        val missingSections = MANAGED_LICENSES.filter { it.title !in existingTitles && !managedModules[it].isNullOrEmpty() }
-        if (missingSections.isNotEmpty()) {
-            val rendered = missingSections.flatMap { renderManagedSection(it, managedModules[it].orEmpty().sorted()) }
-            lines.addAll(lines.size, rendered)
+        managedModules.forEach { (managedLicense, modules) ->
+            val existingSection = findSection(lines, managedLicense.title)
+            if (existingSection == null) {
+                lines.addAll(lines.size, renderManagedSection(managedLicense, modules.sorted()))
+            } else {
+                replaceModuleRange(lines, existingSection, modules.sorted())
+            }
         }
 
         lines.removeAll { line ->
@@ -153,63 +159,13 @@ private fun parseExternalModules(specs: List<String>): List<ExternalModule> =
     specs.map { spec ->
         val parts = spec.split(":")
         require(parts.size == 3) { "Invalid external module spec: $spec" }
-        ExternalModule(parts[0], parts[1])
+        ExternalModule(parts[0], parts[1], parts[2])
     }
 
 private fun listedLicenseModules(lines: List<String>): Set<String> =
     lines.map(String::trim)
         .filter { MODULE_LINE_REGEX.matches(it) }
         .toSet()
-
-private fun managedLicenseByTitle(title: String): ManagedLicense =
-    MANAGED_LICENSES.first { it.title == title }
-
-private fun fallbackLicenseForModule(module: ExternalModule): ManagedLicense? {
-    val group = module.group
-    return when {
-        group.startsWith("com.amazonaws") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.apache.") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.gradle.") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("com.fasterxml.jackson") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("com.google.") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("com.github.jnr") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("com.github.javaparser") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("com.esotericsoftware.kryo") -> managedLicenseByTitle("3-Clause BSD")
-        group.startsWith("com.esotericsoftware.minlog") -> managedLicenseByTitle("3-Clause BSD")
-        group.startsWith("com.squareup") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("commons-") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("io.grpc") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("io.opencensus") -> managedLicenseByTitle("Apache 2.0")
-        group == "it.unimi.dsi" -> managedLicenseByTitle("Apache 2.0")
-        group == "javax.inject" -> managedLicenseByTitle("Apache 2.0")
-        group == "joda-time" -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("net.rubygrapefruit") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.codehaus.plexus") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.sonatype.plexus") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.jetbrains.kotlin") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.jetbrains.kotlinx") -> managedLicenseByTitle("Apache 2.0")
-        group == "org.jetbrains" -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.jctools") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.jspecify") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.objenesis") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.slf4j") -> managedLicenseByTitle("MIT")
-        group.startsWith("org.tomlj") -> managedLicenseByTitle("Apache 2.0")
-        group.startsWith("org.yaml") -> managedLicenseByTitle("Apache 2.0")
-        group == "jquery" -> managedLicenseByTitle("MIT")
-        group.startsWith("org.bouncycastle") -> managedLicenseByTitle("Bouncy Castle Licence")
-        group.startsWith("net.java.dev.jna") -> managedLicenseByTitle("LGPL 2.1")
-        group.startsWith("com.github.mwiede") -> managedLicenseByTitle("BSD-style")
-        group.startsWith("org.eclipse.jgit") -> managedLicenseByTitle("Eclipse Distribution License 1.0")
-        group == "jcifs" || group == "org.samba.jcifs" -> managedLicenseByTitle("LGPL 2.1")
-        else -> null
-    }
-}
-
-private fun canonicalLicenseOverride(module: ExternalModule): ManagedLicense? =
-    when {
-        module.group.startsWith("org.bouncycastle") -> managedLicenseByTitle("Bouncy Castle Licence")
-        else -> null
-    }
 
 private fun findSection(lines: List<String>, title: String): LicenseSectionRange? {
     for (i in 0 until lines.lastIndex) {
@@ -228,18 +184,6 @@ private fun findSection(lines: List<String>, title: String): LicenseSectionRange
     return null
 }
 
-private fun legacyLicenseAssignments(lines: List<String>): Map<String, ManagedLicense> =
-    MANAGED_LICENSES.mapNotNull { license ->
-        findSection(lines, license.title)?.let { section ->
-            val modules = lines.subList(section.modulesStart, section.modulesEnd)
-                .map(String::trim)
-                .filter { MODULE_LINE_REGEX.matches(it) }
-            license to modules
-        }
-    }.flatMap { (license, modules) ->
-        modules.map { module -> module to license }
-    }.toMap()
-
 private fun replaceModuleRange(lines: MutableList<String>, section: LicenseSectionRange, modules: List<String>) {
     lines.subList(section.modulesStart, section.modulesEnd).clear()
     lines.addAll(section.modulesStart, modules + listOf(""))
@@ -254,4 +198,12 @@ private fun renderManagedSection(license: ManagedLicense, modules: List<String>)
     result += modules
     result += ""
     return result
+}
+
+private fun decodeManagedLicense(encodedValue: String): ManagedLicense {
+    val parts = encodedValue.split(LICENSE_FIELD_SEPARATOR, limit = 2)
+    val title = parts.firstOrNull().orEmpty()
+    require(title.isNotEmpty()) { "Invalid encoded managed license value: $encodedValue" }
+    val url = parts.getOrNull(1)?.takeIf { it.isNotEmpty() }
+    return ManagedLicense(title, url)
 }
