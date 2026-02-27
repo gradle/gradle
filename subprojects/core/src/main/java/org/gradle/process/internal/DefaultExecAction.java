@@ -29,9 +29,8 @@ import java.util.Map;
 
 /**
  * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
- *
- * TODO: We should remove setters and have abstract getters in Gradle 10 and configure builder in execute() method.
  */
+// TODO: We should remove setters and have abstract getters in Gradle 10 and configure builder in execute() method.
 public class DefaultExecAction implements ExecAction {
 
     private final ClientExecHandleBuilder execHandleBuilder;
@@ -49,6 +48,13 @@ public class DefaultExecAction implements ExecAction {
             execResult.assertNormalExitValue();
         }
         return execResult;
+    }
+
+    @Override
+    public org.gradle.process.ExecHandle executeAsync() {
+        final ExecHandle execHandle = execHandleBuilder.build();
+        execHandle.start();
+        return execHandle;
     }
 
     @Override
