@@ -47,6 +47,7 @@ private val MANAGED_LICENSES = listOf(
     ManagedLicense("Eclipse Public License 1.0", "https://opensource.org/licenses/EPL-1.0"),
     ManagedLicense("3-Clause BSD", "https://opensource.org/licenses/BSD-3-Clause"),
     ManagedLicense("MIT", "https://opensource.org/licenses/MIT"),
+    ManagedLicense("Bouncy Castle Licence", "https://www.bouncycastle.org/licence.html"),
     ManagedLicense("CDDL", "https://opensource.org/licenses/CDDL-1.0"),
     ManagedLicense("LGPL 2.1", "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html"),
     ManagedLicense("Eclipse Distribution License 1.0", "https://www.eclipse.org/org/documents/edl-v10.php"),
@@ -107,7 +108,7 @@ abstract class UpdateLicenseDependenciesTask : DefaultTask() {
         val legacyAssignments = legacyLicenseAssignments(lines)
 
         val modulesByLicense = parseExternalModules(externalModules.get()).groupBy { module ->
-            legacyAssignments[module.ga] ?: fallbackLicenseForModule(module)
+            canonicalLicenseOverride(module) ?: legacyAssignments[module.ga] ?: fallbackLicenseForModule(module)
         }
         val unknownModules = modulesByLicense[null].orEmpty().map { it.ga }.sorted()
         if (unknownModules.isNotEmpty()) {
@@ -195,7 +196,7 @@ private fun fallbackLicenseForModule(module: ExternalModule): ManagedLicense? {
         group.startsWith("org.tomlj") -> managedLicenseByTitle("Apache 2.0")
         group.startsWith("org.yaml") -> managedLicenseByTitle("Apache 2.0")
         group == "jquery" -> managedLicenseByTitle("MIT")
-        group.startsWith("org.bouncycastle") -> managedLicenseByTitle("MIT")
+        group.startsWith("org.bouncycastle") -> managedLicenseByTitle("Bouncy Castle Licence")
         group.startsWith("net.java.dev.jna") -> managedLicenseByTitle("LGPL 2.1")
         group.startsWith("com.github.mwiede") -> managedLicenseByTitle("BSD-style")
         group.startsWith("org.eclipse.jgit") -> managedLicenseByTitle("Eclipse Distribution License 1.0")
@@ -203,6 +204,12 @@ private fun fallbackLicenseForModule(module: ExternalModule): ManagedLicense? {
         else -> null
     }
 }
+
+private fun canonicalLicenseOverride(module: ExternalModule): ManagedLicense? =
+    when {
+        module.group.startsWith("org.bouncycastle") -> managedLicenseByTitle("Bouncy Castle Licence")
+        else -> null
+    }
 
 private fun findSection(lines: List<String>, title: String): LicenseSectionRange? {
     for (i in 0 until lines.lastIndex) {

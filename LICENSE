@@ -272,8 +272,6 @@ MIT
 
 com.googlecode.plist:dd-plist
 jquery:jquery.min
-org.bouncycastle:bcpg-jdk18on
-org.bouncycastle:bcprov-jdk18on
 org.jsoup:jsoup
 org.slf4j:jul-to-slf4j
 org.slf4j:slf4j-api
@@ -512,3 +510,10 @@ org.slf4j:log4j-over-slf4j
 org.sonatype.plexus:plexus-cipher
 org.tomlj:tomlj
 org.yaml:snakeyaml
+
+------------------------------------------------------------------------------
+Bouncy Castle Licence
+https://www.bouncycastle.org/licence.html
+
+org.bouncycastle:bcpg-jdk18on
+org.bouncycastle:bcprov-jdk18on
