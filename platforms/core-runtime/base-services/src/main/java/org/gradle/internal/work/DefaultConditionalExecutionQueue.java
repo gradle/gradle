@@ -98,7 +98,8 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
         lock.lock();
         try {
             blockedWorkerCount.incrementAndGet();
-            if (!queue.isEmpty()) {
+            // May not be above max workers even after adding 1 if we're at the max unconstrained worker count
+            if (!queue.isEmpty() && workerCount < getCurrentMaxWorkerCount()) {
                 // Start runner to compensate immediately when we already have work to do.
                 startRunner();
             }
