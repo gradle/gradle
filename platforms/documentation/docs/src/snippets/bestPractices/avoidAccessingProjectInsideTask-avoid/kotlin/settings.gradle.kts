@@ -1,0 +1,1 @@
+rootProject.name = "avoid-accessing-project-inside-task-avoid"
