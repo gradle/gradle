@@ -72,18 +72,34 @@ trait InspectsConfigurationReport {
     }
 
     void promptsForRerunToFindMoreConfigurations() {
-        outputContains("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
+        outputContains("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable), and configurations without attributes.")
     }
 
     void promptsForRerunToFindMoreVariants() {
-        outputContains("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable).")
+        outputContains("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable), and variants without attributes.")
     }
 
     void doesNotPromptForRerunToFindMoreConfigurations() {
-        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
+        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable), and configurations without attributes.")
     }
 
     void doesNotPromptForRerunToFindMoreVariants() {
-        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable).")
+        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable), and variants without attributes.")
+    }
+
+    void hasNonSelectableVariantsLegend() {
+        outputContains("(n) Variant not selectable via attributes. Variants without attributes cannot be used for variant-aware dependency resolution.")
+    }
+
+    void doesNotHaveNonSelectableVariantsLegend() {
+        outputDoesNotContain("(n) Variant not selectable via attributes. Variants without attributes cannot be used for variant-aware dependency resolution.")
+    }
+
+    void hasConfigurationsLackingAttributesLegend() {
+        outputContains("(n) Configuration lacks attributes, and may encounter problems when used for variant-aware dependency resolution.")
+    }
+
+    void doesNotHaveConfigurationsLackingAttributesLegend() {
+        outputDoesNotContain("(n) Configuration lacks attributes, and may encounter problems when used for variant-aware dependency resolution.")
     }
 }

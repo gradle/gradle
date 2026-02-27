@@ -56,6 +56,12 @@ In the example above, `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1` h
 
 <<variant_attributes.adoc#variant-attributes,*Attributes*>> are type-safe key-value pairs used by both the _consumer_ and the _producer_ during *variant* selection: `attribute : value`.
 
+[IMPORTANT]
+====
+For a variant to be selectable via variant-aware dependency resolution, it *must* have attributes defined.
+Variants without attributes cannot participate in variant selection and are only accessible through explicit configuration selection or legacy resolution mechanisms.
+====
+
 In the example above, there are two *attributes* of importance for the *variants* of `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1`:
 
 [cols="1,~,~"]
@@ -112,6 +118,9 @@ There are two _types_ of *attributes* Gradle uses to match the available *varian
 
 - *_Consumer_ attributes*: Define the desired characteristics of a *variant* requested by a resolvable configuration.
 - *_Producer_ attributes*: Each *variant* has a set of *attributes* that describe its purpose.
+
+NOTE: Variant-aware dependency resolution requires attributes be present on the producer side.
+On the consumer side, attributes are optional but recommended.
 
 [[sec:variant-aware-matching]]
 == Variant Attribute Matching
@@ -450,9 +459,11 @@ It displays the *capabilities*, *attributes* and *artifacts* for each *variant*.
 
 This task is similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying-reason-dependency-selection,reporting task>>.
 
-By default, `outgoingVariants` prints information about all *variants*.
+By default, `outgoingVariants` prints information about variants with attributes that can be selected during variant-aware dependency resolution.
 It offers the optional parameter `--variant <variantName>` to select a single *variant* to display.
-It also accepts the `--all` flag to include information about legacy and deprecated configurations, or `--no-all` to exclude this information.
+It also accepts the `--all` flag to include information about legacy and deprecated configurations, as well as variants without attributes, or `--no-all` to exclude this information.
+
+NOTE: Configurations without attributes are marked with `(n)` in the report and cannot be selected during variant-aware dependency resolution.
 
 Here is the output of the `outgoingVariants` task on a freshly generated `java-library` project:
 
@@ -579,12 +590,14 @@ By default, `resolvableConfigurations` prints information about all purely resol
 These are configurations that are marked resolvable but *not* marked consumable.
 Though some resolvable configurations are also marked consumable, these are legacy configurations that should *not* have dependencies added in build scripts.
 
+NOTE: Variants without attributes are marked with `(n)` in the report and should *not* initiate variant-aware dependency resolution.
+
 This report offers:
 
 * An optional parameter:
 ** `--configuration <configurationName>` → Selects a single configuration to display.
 * Flags for including or excluding legacy and deprecated configurations:
-** `--all` → Includes information about legacy and deprecated configurations.
+** `--all` → Includes information about legacy and deprecated configurations, and configurations without attributes.
 ** `--no-all` → Excludes this information.
 * Flags for controlling transitive extensions in the extended configurations section:
 ** `--recursive` → Lists configurations that are extended _transitively_ rather than directly.
