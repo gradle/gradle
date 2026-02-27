@@ -314,18 +314,19 @@ public class Maven2Gradle {
             builder.repositories().maven("Custom Maven repository specified via --maven-repo", customMavenRepo);
         }
 
+        // Collect all repository URLs (from settings.xml and POM files) to deduplicate
+        Set<String> allRepos = new LinkedHashSet<>();
+
         // Add repositories from Maven settings.xml (mirrors and profile repositories)
-        Set<String> settingsRepos = getRepositoriesFromMavenSettings();
-        for (String repo : settingsRepos) {
-            builder.repositories().maven("Repository from Maven settings.xml", repo);
+        allRepos.addAll(getRepositoriesFromMavenSettings());
+
+        // Add repositories from POM files
+        for (MavenProject project : projects) {
+            getRepositoriesForModule(project, allRepos);
         }
 
         builder.repositories().mavenLocal(null);
-        Set<String> repoSet = new LinkedHashSet<>();
-        for (MavenProject project : projects) {
-            getRepositoriesForModule(project, repoSet);
-        }
-        for (String repo : repoSet) {
+        for (String repo : allRepos) {
             builder.repositories().maven(null, repo);
         }
     }
