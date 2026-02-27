@@ -176,7 +176,6 @@
 
    END OF TERMS AND CONDITIONS
 
-
 ==============================================================================
 Licenses for included components:
 
@@ -195,9 +194,15 @@ org.sonatype.aether:aether-util
 3-Clause BSD
 https://opensource.org/licenses/BSD-3-Clause
 
+com.esotericsoftware.kryo:kryo
+com.esotericsoftware.minlog:minlog
 com.google.code.findbugs:jsr305
-
 org.hamcrest:hamcrest
+org.ow2.asm:asm
+org.ow2.asm:asm-commons
+org.ow2.asm:asm-tree
+org.ow2.asm:asm-util
+
 BSD 3-Clause License
 
 Copyright (c) 2000-2024, www.hamcrest.org
@@ -275,6 +280,13 @@ ASM: a very small and fast Java bytecode manipulation framework
 MIT
 
 com.googlecode.plist:dd-plist
+jquery:jquery.min
+org.bouncycastle:bcpg-jdk18on
+org.bouncycastle:bcprov-jdk18on
+org.jsoup:jsoup
+org.slf4j:jul-to-slf4j
+org.slf4j:slf4j-api
+
 dd-plist - An open source library to parse and generate property lists
 Copyright (C) 2016 Daniel Dreibrodt
 
@@ -332,7 +344,6 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
 ------------------------------------------------------------------------------
 CDDL
 https://opensource.org/licenses/CDDL-1.0
@@ -343,9 +354,11 @@ com.sun.xml.bind:jaxb-impl
 LGPL 2.1
 https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 
-org.samba.jcifs:jcifs
-
+jcifs:jcifs
+net.java.dev.jna:jna
+net.java.dev.jna:jna-platform
 org.jetbrains.intellij.deps:trove4j
+org.samba.jcifs:jcifs
 
 ------------------------------------------------------------------------------
 License for the GNU Trove library included by the Kotlin embeddable compiler
@@ -358,7 +371,6 @@ The source code for GNU Trove is licensed under the Lesser GNU Public License (L
     even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
     You should have received a copy of the GNU Lesser General Public License along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
 
 Two classes (HashFunctions and PrimeFinder) included in Trove are licensed under the following terms:
 
@@ -375,12 +387,14 @@ Eclipse Distribution License 1.0
 https://www.eclipse.org/org/documents/edl-v10.php
 
 org.eclipse.jgit:org.eclipse.jgit
+org.eclipse.jgit:org.eclipse.jgit.ssh.apache
+org.eclipse.jgit:org.eclipse.jgit.ssh.apache.agent
 
 ------------------------------------------------------------------------------
 BSD-style
 
-com.jcraft:jzlib
 com.github.mwiede:jsch
+com.jcraft:jzlib
 
 Copyright (c) 2002-2015 Atsuhiko Yamanaka, JCraft,Inc.
 All rights reserved.
@@ -421,82 +435,48 @@ https://www.mozilla.org/en-US/MPL/2.0/
 
 org.mozilla:rhino
 
-=== BEGIN GENERATED DISTRIBUTION DEPENDENCY LICENSES ===
 ------------------------------------------------------------------------------
-Generated distribution dependency listing.
-Run :distributions-full:updateLicenseDependencies to regenerate.
-------------------------------------------------------------------------------
+Apache 2.0
+https://www.apache.org/licenses/LICENSE-2.0
 
 com.amazonaws:aws-java-sdk-core
 com.amazonaws:aws-java-sdk-kms
 com.amazonaws:aws-java-sdk-s3
 com.amazonaws:aws-java-sdk-sts
-com.amazonaws:jmespath-java
-com.esotericsoftware.kryo:kryo
-com.esotericsoftware.minlog:minlog
 com.fasterxml.jackson.core:jackson-annotations
 com.fasterxml.jackson.core:jackson-core
 com.fasterxml.jackson.core:jackson-databind
 com.fasterxml.jackson.datatype:jackson-datatype-jdk8
 com.fasterxml.jackson.datatype:jackson-datatype-jsr310
-com.fasterxml.jackson:jackson-bom
 com.github.javaparser:javaparser-core
 com.github.jnr:jnr-constants
-com.github.mwiede:jsch
 com.google.api-client:google-api-client
 com.google.apis:google-api-services-storage
 com.google.code.findbugs:jsr305
 com.google.code.gson:gson
 com.google.errorprone:error_prone_annotations
-com.google.guava:failureaccess
 com.google.guava:guava
 com.google.http-client:google-http-client
 com.google.http-client:google-http-client-apache-v2
 com.google.http-client:google-http-client-gson
 com.google.oauth-client:google-oauth-client
 com.googlecode.jatl:jatl
-com.googlecode.plist:dd-plist
-com.thoughtworks.qdox:qdox
+com.squareup:javapoet
 commons-codec:commons-codec
 commons-io:commons-io
-io.grpc:grpc-context
-io.opencensus:opencensus-api
-io.opencensus:opencensus-contrib-http-util
 it.unimi.dsi:fastutil
 javax.inject:javax.inject
-jcifs:jcifs
 joda-time:joda-time
-net.java.dev.jna:jna
-net.java.dev.jna:jna-platform
 net.rubygrapefruit:native-platform
-net.rubygrapefruit:native-platform-freebsd-amd64-libcpp
-net.rubygrapefruit:native-platform-linux-aarch64
-net.rubygrapefruit:native-platform-linux-aarch64-ncurses5
-net.rubygrapefruit:native-platform-linux-aarch64-ncurses6
-net.rubygrapefruit:native-platform-linux-amd64
-net.rubygrapefruit:native-platform-linux-amd64-ncurses5
-net.rubygrapefruit:native-platform-linux-amd64-ncurses6
-net.rubygrapefruit:native-platform-osx-aarch64
-net.rubygrapefruit:native-platform-osx-amd64
-net.rubygrapefruit:native-platform-windows-aarch64
-net.rubygrapefruit:native-platform-windows-aarch64-min
-net.rubygrapefruit:native-platform-windows-amd64
-net.rubygrapefruit:native-platform-windows-amd64-min
-net.rubygrapefruit:native-platform-windows-i386
-net.rubygrapefruit:native-platform-windows-i386-min
-org.antlr:antlr4-runtime
 org.apache.ant:ant
-org.apache.ant:ant-antlr
 org.apache.ant:ant-launcher
 org.apache.commons:commons-compress
 org.apache.commons:commons-lang3
 org.apache.groovy:groovy
 org.apache.groovy:groovy-ant
 org.apache.groovy:groovy-astbuilder
-org.apache.groovy:groovy-bom
 org.apache.groovy:groovy-datetime
 org.apache.groovy:groovy-dateutil
-org.apache.groovy:groovy-docgenerator
 org.apache.groovy:groovy-groovydoc
 org.apache.groovy:groovy-json
 org.apache.groovy:groovy-nio
@@ -505,31 +485,31 @@ org.apache.groovy:groovy-xml
 org.apache.httpcomponents:httpclient
 org.apache.httpcomponents:httpcore
 org.apache.ivy:ivy
-org.apache.maven:maven-builder-support
 org.apache.maven:maven-model
 org.apache.maven:maven-repository-metadata
 org.apache.maven:maven-settings
 org.apache.maven:maven-settings-builder
+org.apache.sshd:sshd-core
 org.apache.sshd:sshd-osgi
+org.apache.sshd:sshd-scp
 org.apache.sshd:sshd-sftp
-org.bouncycastle:bcpg-jdk18on
-org.bouncycastle:bcprov-jdk18on
-org.bouncycastle:bcutil-jdk18on
-org.codehaus.plexus:plexus-cipher
 org.codehaus.plexus:plexus-interpolation
 org.codehaus.plexus:plexus-sec-dispatcher
 org.codehaus.plexus:plexus-utils
-org.eclipse.jgit:org.eclipse.jgit
-org.eclipse.jgit:org.eclipse.jgit.ssh.apache
-org.eclipse.jgit:org.eclipse.jgit.ssh.apache.agent
 org.fusesource.jansi:jansi
+org.gradle.buildtool.internal:configuration-cache-report
 org.gradle.fileevents:gradle-fileevents
 org.jctools:jctools-core
+org.jetbrains.kotlin:jvm-abi-gen-embeddable
+org.jetbrains.kotlin:kotlin-assignment
 org.jetbrains.kotlin:kotlin-assignment-compiler-plugin-embeddable
 org.jetbrains.kotlin:kotlin-build-tools-impl
 org.jetbrains.kotlin:kotlin-compiler-embeddable
-org.jetbrains.kotlin:kotlin-daemon-embeddable
+org.jetbrains.kotlin:kotlin-gradle-plugin
+org.jetbrains.kotlin:kotlin-gradle-plugin-api
+org.jetbrains.kotlin:kotlin-metadata-jvm
 org.jetbrains.kotlin:kotlin-reflect
+org.jetbrains.kotlin:kotlin-sam-with-receiver
 org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin
 org.jetbrains.kotlin:kotlin-script-runtime
 org.jetbrains.kotlin:kotlin-scripting-common
@@ -539,24 +519,13 @@ org.jetbrains.kotlin:kotlin-scripting-jvm
 org.jetbrains.kotlin:kotlin-scripting-jvm-host
 org.jetbrains.kotlin:kotlin-stdlib
 org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm
-org.jetbrains.kotlinx:kotlinx-serialization-bom
 org.jetbrains.kotlinx:kotlinx-serialization-core
-org.jetbrains.kotlinx:kotlinx-serialization-core-jvm
 org.jetbrains.kotlinx:kotlinx-serialization-json
-org.jetbrains.kotlinx:kotlinx-serialization-json-jvm
 org.jetbrains:annotations
-org.jsoup:jsoup
 org.jspecify:jspecify
-org.junit:junit-bom
 org.objenesis:objenesis
-org.ow2.asm:asm
-org.ow2.asm:asm-commons
-org.ow2.asm:asm-tree
 org.slf4j:jcl-over-slf4j
-org.slf4j:jul-to-slf4j
 org.slf4j:log4j-over-slf4j
-org.slf4j:slf4j-api
+org.sonatype.plexus:plexus-cipher
 org.tomlj:tomlj
 org.yaml:snakeyaml
-
-=== END GENERATED DISTRIBUTION DEPENDENCY LICENSES ===
