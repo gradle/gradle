@@ -204,7 +204,14 @@ The specified repository will also be automatically added to the generated Gradl
 [[migmvn:maven_settings_xml]]
 === Automatic repository detection from Maven settings.xml
 
-Gradle automatically detects and uses repositories configured in your Maven `settings.xml` file (`~/.m2/settings.xml`):
+Gradle automatically detects and uses repositories configured in your Maven settings files:
+
+* **User settings**: `~/.m2/settings.xml` (user's home directory)
+* **Global settings**: `${maven.home}/conf/settings.xml` (Maven installation directory)
+
+These are merged according to Maven's standard behavior, with user settings taking precedence over global settings.
+
+The following configurations are automatically detected:
 
 * **Mirrors** - Any `<mirror>` configurations will be added to the generated build files
 * **Profile repositories** - Repositories from active profiles will be included
