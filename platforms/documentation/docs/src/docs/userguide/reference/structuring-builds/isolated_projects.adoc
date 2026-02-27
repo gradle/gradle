@@ -62,8 +62,9 @@ The feature is off by default.
 You can enable it by setting the `org.gradle.unsafe.isolated-projects` Gradle property to `true`.
 For example:
 
+[source,bash]
 ----
-$ gradle build -Dorg.gradle.unsafe.isolated-projects=true
+$ ./gradlew build -Dorg.gradle.unsafe.isolated-projects=true
 ----
 
 When enabled, Gradle will fail the build whenever build logic attempts to cross project boundaries and access the model of another project.

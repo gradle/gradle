@@ -48,6 +48,7 @@ include::sample[dir="snippets/gradle-types/example/groovy/app",files="build.grad
 ----
 $ ./gradlew demoTask
 ----
+[source,text]
 ----
 include::{snippetsPath}/gradle-types/example/tests/gradleTypes.out[]
 ----

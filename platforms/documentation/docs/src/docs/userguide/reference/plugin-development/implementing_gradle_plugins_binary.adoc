@@ -298,8 +298,12 @@ include::sample[dir="snippets/tasks/customTaskWithFileProperty/kotlin",files="bu
 include::sample[dir="snippets/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q sayGreeting
+$ ./gradlew -q sayGreeting
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/customTaskWithFileProperty/tests/lazyFileProperties.out[]
 ----
 
@@ -336,8 +340,12 @@ include::sample[dir="snippets/customPlugins/customPluginNoConvention/kotlin",fil
 include::sample[dir="snippets/customPlugins/customPluginNoConvention/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPluginNoConvention/tests/customPluginNoConvention.out[]
 ----
 
@@ -362,8 +370,12 @@ include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/k
 include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPluginWithAdvancedConvention/tests/customPluginWithAdvancedConvention.out[]
 ----
 
@@ -572,8 +584,12 @@ include::sample[dir="snippets/customPlugins/customPluginWithConvention/kotlin",f
 include::sample[dir="snippets/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPluginWithConvention/tests/customPluginWithConvention.out[]
 ----
 
@@ -605,9 +621,12 @@ GreetingPluginExtension {
 =====
 ====
 
+[source,bash]
+----
+$ ./gradlew -q hello
+----
 [source,text]
 ----
-$ gradle -q hello
 Custom message
 ----
 
@@ -988,8 +1007,12 @@ include::sample[dir="snippets/developingPlugins/externalLibraries/groovy",files=
 
 The output of the task clearly indicates the classpath of the `classpath` configuration:
 
+[source,bash]
 ----
-$ gradle buildEnvironment
+$ ./gradlew buildEnvironment
+----
+[source,text]
+----
 include::{snippetsPath}/developingPlugins/externalLibraries/tests/buildEnvironment.out[]
 ----
 

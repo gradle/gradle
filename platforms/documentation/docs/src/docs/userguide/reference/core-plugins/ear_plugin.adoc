@@ -52,6 +52,7 @@ _Depends on_: `ear`.
 [[sec:ear_project_layout]]
 == Project layout
 
+[source,text]
 ----
 .
 └── src

@@ -52,7 +52,6 @@ It's also worth bearing in mind that the `test` source set automatically creates
 
 All you need to do in most cases is configure the appropriate compilation and runtime dependencies and add any necessary configuration to the `test` task. The following example shows a simple setup that uses JUnit Platform and changes the maximum heap size for the tests' JVM to 1 gigabyte:
 
-.A basic configuration for the 'test' task
 ====
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-basic-test-config]"]
 include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-basic-test-config]"]
@@ -115,7 +114,6 @@ With Gradle's test filtering you can select tests to run based on:
 
 You can enable filtering either in the build script or via the `--tests` command-line option. Here's an example of some filters that are applied every time the build runs:
 
-.Filtering tests in the build script
 ====
 include::sample[dir="snippets/testing/filtering/kotlin",files="build.gradle.kts[tags=test-filtering]"]
 include::sample[dir="snippets/testing/filtering/groovy",files="build.gradle[tags=test-filtering]"]
@@ -135,54 +133,71 @@ The following two sections look at the specific cases of simple class/method nam
 
 Since 4.7, Gradle has treated a pattern starting with an uppercase letter as a simple class name, or a class name + method name. For example, the following command lines run either all or exactly one of the tests in the `SomeTestClass` test case, regardless of what  package it's in:
 
-```
-# Executes all tests in SomeTestClass
-gradle test --tests SomeTestClass
+[source,bash]
+.Executes all tests in SomeTestClass
+----
+$ ./gradlew test --tests SomeTestClass
+----
 
-# Executes a single specified test in SomeTestClass
-gradle test --tests SomeTestClass.someSpecificMethod
-
-gradle test --tests SomeTestClass.*someMethod*
-```
+[source,bash]
+.Executes a single specified test in SomeTestClass
+----
+$ ./gradlew test --tests SomeTestClass.someSpecificMethod
+$ ./gradlew test --tests SomeTestClass.*someMethod*
+----
 
 [[full_qualified_name_pattern]]
 === Fully-qualified name pattern
 
 Prior to 4.7 or if the pattern doesn't start with an uppercase letter, Gradle treats the pattern as fully-qualified. So if you want to use the test class name irrespective of its package, you would use `--tests *.SomeTestClass`. Here are some more examples:
 
-```
-# specific class
-gradle test --tests org.gradle.SomeTestClass
+[source,bash]
+.specific class
+----
+$ ./gradlew test --tests org.gradle.SomeTestClass
+----
 
-# specific class and method
-gradle test --tests org.gradle.SomeTestClass.someSpecificMethod
+[source,bash]
+.specific class and method
+----
+$ ./gradlew test --tests org.gradle.SomeTestClass.someSpecificMethod
+----
 
-# method name containing spaces
-gradle test --tests "org.gradle.SomeTestClass.some method containing spaces"
+[source,bash]
+.method name containing spaces
+----
+$ ./gradlew test --tests "org.gradle.SomeTestClass.some method containing spaces"
+----
 
-# all classes at specific package (recursively)
-gradle test --tests 'all.in.specific.package*'
+[source,bash]
+.all classes at specific package (recursively)
+----
+$ ./gradlew test --tests 'all.in.specific.package*'
+----
 
-# specific method at specific package (recursively)
-gradle test --tests 'all.in.specific.package*.someSpecificMethod'
+[source,bash]
+.specific method at specific package (recursively)
+----
+$ ./gradlew test --tests 'all.in.specific.package*.someSpecificMethod'
+$ ./gradlew test --tests '*IntegTest'
+$ ./gradlew test --tests '*IntegTest*ui*'
+$ ./gradlew test --tests '*ParameterizedTest.foo*'
+----
 
-gradle test --tests '*IntegTest'
-
-gradle test --tests '*IntegTest*ui*'
-
-gradle test --tests '*ParameterizedTest.foo*'
-
-# the second iteration of a parameterized test
-gradle test --tests '*ParameterizedTest.*[2]'
-```
+[source,bash]
+.the second iteration of a parameterized test
+----
+$ ./gradlew test --tests '*ParameterizedTest.*[2]'
+----
 
 Note that the wildcard '*' has no special understanding of the '.' package separator. It's purely text based. So `--tests *.SomeTestClass` will match any package, regardless of its 'depth'.
 
 You can also combine filters defined at the command line with <<command_line_interface.adoc#sec:continuous_build, continuous build>> to re-execute a subset of tests immediately after every change to a production or test source file. The following executes all tests in the 'com.mypackage.foo' package or subpackages whenever a change triggers the tests to run:
 
-```
-gradle test --continuous --tests "com.mypackage.foo.*"
-```
+[source,bash]
+----
+$ ./gradlew test --continuous --tests "com.mypackage.foo.*"
+----
 
 [[test_reporting]]
 == Test reporting
@@ -199,15 +214,17 @@ NOTE: To aggregate test results across multiple subprojects, see the <<test_repo
 
 Unlike with many of the testing configuration options, there are several project-level convention properties that affect the test reports. For example, you can change the destination of the test results and reports like so:
 
-.Changing the default test report and results directories
 ====
 include::sample[dir="snippets/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-report-dirs]"]
 include::sample[dir="snippets/java/customDirs/groovy",files="build.gradle[tags=custom-report-dirs]"]
 ====
 
-.Output of **`gradle -q showDirs`**
+[source,bash]
 ----
-> gradle -q showDirs
+$ ./gradlew -q showDirs
+----
+[source,text]
+----
 include::{snippetsPath}/java/customDirs/tests/javaCustomReportDirs.out[]
 ----
 
@@ -215,7 +232,6 @@ Follow the link to the convention properties for more details.
 
 There is also a standalone link:{groovyDslPath}/org.gradle.api.tasks.testing.TestReport.html[TestReport] task type that you can use to generate a custom HTML test report. All it requires are a value for `destinationDir` and the test results you want included in the report. Here is a sample which generates a combined report for the unit tests from all subprojects:
 
-.Creating a unit test report for subprojects
 ====
 include::sample[dir="snippets/testing/testReport/kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=test-report];build.gradle.kts[tags=test-report]"]
 include::sample[dir="snippets/testing/testReport/groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=test-report];build.gradle[tags=test-report]"]
@@ -239,7 +255,6 @@ It is common for CI servers and other tooling to observe test results via these 
 By default, the files are written to `layout.buildDirectory.dir("test-results/$testTaskName")` with a file per test class.
 The location can be changed for all test tasks of a project, or individually per test task.
 
-.Changing JUnit XML results location for all test tasks
 ====
 include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-location-convention]"]
 include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-location-convention]"]
@@ -247,7 +262,6 @@ include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gra
 
 With the above configuration, the XML files will be written to `layout.buildDirectory.dir("junit-xml/$testTaskName")`.
 
-.Changing JUnit XML results location for a particular test task
 ====
 include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-location-task]"]
 include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-location-task]"]
@@ -262,7 +276,6 @@ The location of the XML files for other test tasks will be unchanged.
 The content of the XML files can also be configured to convey the results differently, by configuring the
 link:{javadocPath}/org/gradle/api/tasks/testing/JUnitXmlReport.html[JUnitXmlReport] options.
 
-.Configuring how the results are conveyed
 ====
 include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-content]"]
 include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-content]"]
@@ -374,7 +387,6 @@ For dividing test classes based upon their purpose, see the incubating <<jvm_tes
 
 JUnit 4.8 introduced the concept of categories for grouping JUnit 4 tests classes and methods.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:useJUnit(org.gradle.api.Action)[Test.useJUnit(org.gradle.api.Action)] allows you to specify the JUnit categories you want to include and exclude. For example, the following configuration includes tests in `CategoryA` and excludes those in `CategoryB` for the `test` task:
 
-.JUnit Categories
 ====
 include::sample[dir="snippets/testing/junit-categories/kotlin",files="build.gradle.kts[tags=test-categories]"]
 include::sample[dir="snippets/testing/junit-categories/groovy",files="build.gradle[tags=test-categories]"]
@@ -382,7 +394,6 @@ include::sample[dir="snippets/testing/junit-categories/groovy",files="build.grad
 
 http://junit.org/junit5/docs/current/user-guide[JUnit Platform] introduced http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] to replace categories. You can specify the included/excluded tags via link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform-org.gradle.api.Action-[Test.useJUnitPlatform(org.gradle.api.Action)], as follows:
 
-.JUnit Platform Tags
 ====
 include::sample[dir="snippets/testing/junitplatform-tagging/kotlin",files="build.gradle.kts[tags=test-tags]"]
 include::sample[dir="snippets/testing/junitplatform-tagging/groovy",files="build.gradle[tags=test-tags]"]
@@ -390,7 +401,6 @@ include::sample[dir="snippets/testing/junitplatform-tagging/groovy",files="build
 
 The TestNG framework uses the concept of test groups for a similar effect.footnote:[The TestNG documentation contains more details about test groups: https://testng.org/#_test_groups[].] You can configure which test groups to include or exclude during the test execution via the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:useTestNG(org.gradle.api.Action)[Test.useTestNG(org.gradle.api.Action)] setting, as seen here:
 
-.Grouping TestNG tests
 ====
 include::sample[dir="snippets/testing/testng-groups/kotlin",files="build.gradle.kts[tags=test-config]"]
 include::sample[dir="snippets/testing/testng-groups/groovy",files="build.gradle[tags=test-config]"]
@@ -402,14 +412,16 @@ include::sample[dir="snippets/testing/testng-groups/groovy",files="build.gradle[
 http://junit.org/junit5[JUnit 5] is the latest version of the well-known JUnit test framework.
 Unlike its predecessor, JUnit 5 is modularized and composed of several modules:
 
-    JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
+[source,text]
+----
+JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
+----
 
 The JUnit Platform serves as a foundation for launching testing frameworks on the JVM. JUnit Jupiter is the combination of the new http://junit.org/junit5/docs/current/user-guide/#writing-tests[programming model]
  and http://junit.org/junit5/docs/current/user-guide/#extensions[extension model] for writing tests and extensions in JUnit 5. JUnit Vintage provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
 
 The following code enables JUnit Platform support in `build.gradle`:
 
-.Enabling JUnit Platform to run your tests
 ====
 include::sample[dir="snippets/testing/junitplatform-jupiter/kotlin",files="build.gradle.kts[tags=enabling-junit-platform]"]
 include::sample[dir="snippets/testing/junitplatform-jupiter/groovy",files="build.gradle[tags=enabling-junit-platform]"]
@@ -422,7 +434,6 @@ See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--
 
 To enable JUnit Jupiter support in Gradle, all you need to do is add the following dependency:
 
-.JUnit Jupiter dependencies
 ====
 include::sample[dir="snippets/testing/junitplatform-jupiter/kotlin",files="build.gradle.kts[tags=jupiter-dependencies]"]
 include::sample[dir="snippets/testing/junitplatform-jupiter/groovy",files="build.gradle[tags=jupiter-dependencies]"]
@@ -435,7 +446,6 @@ You can then put your test cases into _src/test/java_ as normal and execute them
 
 If you want to run JUnit 3/4 tests on JUnit Platform, or even mix them with Jupiter tests, you should add extra JUnit Vintage Engine dependencies:
 
-.JUnit Vintage dependencies
 ====
 include::sample[dir="snippets/testing/junitplatform-mix/kotlin",files="build.gradle.kts[tags=vintage-dependencies]"]
 include::sample[dir="snippets/testing/junitplatform-mix/groovy",files="build.gradle[tags=vintage-dependencies]"]
@@ -453,7 +463,6 @@ You can also write and plug in your own `TestEngine` implementation as documente
 By default, all test engines on the test runtime classpath will be used.
 To control specific test engine implementations explicitly, you can add the following setting to your build script:
 
-.Filter specific engines
 ====
 include::sample[dir="snippets/testing/junitplatform-engine/kotlin",files="build.gradle.kts[tags=filter-engine]"]
 include::sample[dir="snippets/testing/junitplatform-engine/groovy",files="build.gradle[tags=filter-engine]"]
@@ -466,7 +475,6 @@ TestNG allows explicit control of the execution order of tests when you use a _t
 
 While preserving the order of tests is the default behavior when directly working with _testng.xml_ files, the https://javadoc.io/doc/org.testng/testng/latest/org/testng/TestNG.html[TestNG API] that is used by Gradle's TestNG integration executes tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] The ability to preserve test execution order was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
 
-.Preserving order of TestNG tests
 ====
 include::sample[dir="snippets/testing/testng-preserveorder/kotlin",files="build.gradle.kts[tags=test-config]"]
 include::sample[dir="snippets/testing/testng-preserveorder/groovy",files="build.gradle[tags=test-config]"]
@@ -476,7 +484,6 @@ The `groupByInstance` property controls whether tests should be grouped by insta
 
 Note that you typically only have more than one instance of a test if you're using a data provider to parameterize it. Also, grouping tests by instances was introduced with TestNG version 6.1. Setting the `groupByInstances` property to `true` for an older TestNG version will cause the build to fail.
 
-.Grouping TestNG tests by instances
 ====
 include::sample[dir="snippets/testing/testng-groupbyinstances/kotlin",files="build.gradle.kts[tags=test-config]"]
 include::sample[dir="snippets/testing/testng-groupbyinstances/groovy",files="build.gradle[tags=test-config]"]
@@ -488,7 +495,6 @@ include::sample[dir="snippets/testing/testng-groupbyinstances/groovy",files="bui
 TestNG supports http://testng.org/doc/documentation-main.html#parameters[parameterizing test methods], allowing a particular test method to be executed multiple times with different inputs. Gradle includes the parameter values in its reporting of the test method execution.
 
 Given a parameterized test method named `aTestMethod` that takes two parameters, it will be reported with the name `aTestMethod(toStringValueOfParam1, toStringValueOfParam2)`. This makes it easy to identify the parameter values for a particular iteration.
-
 
 [[sec:configuring_java_integration_tests]]
 == Configuring integration tests
@@ -509,7 +515,6 @@ You may also need to perform some additional configuration depending on what for
 
 Let's start with a practical example that implements the first three steps in a build script, centered around a new source set `intTest`:
 
-.Setting up working integration tests
 ====
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=practical-integ-test-source-set]"]
 include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=practical-integ-test-source-set]"]
@@ -539,7 +544,6 @@ There are a couple of other facets of the example you should take note of:
 
 Creating and configuring a source set automatically sets up the compilation stage, but it does nothing with respect to running the integration tests. So the last piece of the puzzle is a custom test task that uses the information from the new source set to configure its runtime classpath and the test classes:
 
-.Defining a working integration test task
 ====
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=integ-test-task]"]
 include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=integ-test-task]"]
@@ -662,7 +666,6 @@ You can however, setup module patching for tests like this:
 * Add a `module-info.java` to your test source set that is a copy of the main `module-info.java` with additional dependencies needed for testing (e.g. `requires org.junit.jupiter.api`).
 * Configure both the `testCompileJava` and `test` tasks with arguments to patch the main classes with the test classes as shown below.
 
-.Patch module for testing using command line arguments
 ====
 include::sample[dir="snippets/testing/patch-module/kotlin",files="build.gradle.kts[tags=patchArgs]"]
 include::sample[dir="snippets/testing/patch-module/groovy",files="build.gradle[tags=patchArgs]"]
@@ -676,13 +679,15 @@ You will most likely see invalid compilation errors in the IDE.
 
 If you want to skip the tests when running a build, you have a few options. You can either do it via <<command_line_interface.adoc#sec:excluding_tasks_from_the_command_line,command line arguments>> or <<controlling_task_execution.adoc#sec:skipping_tasks,in the build script>>. To do it on the command line, you can use the `-x` or `--exclude-task` option like so:
 
-    gradle build -x test
+[source,bash]
+----
+$ ./gradlew build -x test
+----
 
 This excludes the `test` task and any other task that it _exclusively_ depends on, i.e. no other task depends on the same task. Those tasks will not be marked "SKIPPED" by Gradle, but will simply not appear in the list of tasks executed.
 
 Skipping a test via the build script can be done a few ways. One common approach is to make test execution conditional via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(java.lang.String,org.gradle.api.specs.Spec)[Task.onlyIf(String, org.gradle.api.specs.Spec)] method. The following sample skips the `test` task if the project has a property called `mySkipTests`:
 
-.Skipping the unit tests based on a project property
 ====
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=skip-tests-condition]"]
 include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=skip-tests-condition]"]
@@ -697,11 +702,17 @@ In well-defined builds, you can rely on Gradle to only run tests if the tests th
 
 You can always use the `--rerun` <<command_line_interface.adoc#sec:builtin_task_options,built-in task option>> to force a task to rerun.
 
-    gradle test --rerun
+[source,bash]
+----
+$ ./gradlew test --rerun
+----
 
 Alternatively, if <<build_cache.adoc#sec:build_cache_enable,build caching>> is not enabled, you can also force tests to run by cleaning the output of the relevant `Test` task — say `test` — and running the tests again, like so:
 
-    gradle cleanTest test
+[source,bash]
+----
+$ ./gradlew cleanTest test
+----
 
 `cleanTest` is based on a task rule provided by the <<base_plugin.adoc#sec:base_tasks,Base Plugin>>. You can use it for _any_ task.
 
@@ -714,15 +725,18 @@ When debugging for tests is enabled, Gradle will start the test process suspende
 
 You can also enable debugging in the DSL, where you can also configure other properties:
 
-    test {
-        debugOptions {
-            enabled = true
-            host = 'localhost'
-            port = 4455
-            server = true
-            suspend = true
-        }
+[source,properties]
+----
+test {
+    debugOptions {
+        enabled = true
+        host = 'localhost'
+        port = 4455
+        server = true
+        suspend = true
     }
+}
+----
 
 With this configuration the test JVM will behave just like when passing the `--debug-jvm` argument but it will listen on port 4455.
 
@@ -736,7 +750,6 @@ To debug the test process remotely via network,  the `host` needs to be set to t
 Test fixtures are commonly used to setup the code under test, or provide utilities aimed at facilitating the tests of a component.
 Java projects can enable test fixtures support by applying the `java-test-fixtures` plugin, in addition to the `java` or `java-library` plugins:
 
-.Applying the Java test fixtures plugin
 ====
 include::sample[dir="snippets/java/fixtures/kotlin",files="lib/build.gradle.kts[tags=use-plugin]"]
 include::sample[dir="snippets/java/fixtures/groovy",files="lib/build.gradle[tags=use-plugin]"]
@@ -768,7 +781,6 @@ include::{snippetsPath}/java/fixtures/groovy/lib/src/testFixtures/java/com/acme/
 
 Similarly to the link:java_library_plugin.html[Java Library Plugin], test fixtures expose an API and an implementation configuration:
 
-.Declaring test fixture dependencies
 ====
 include::sample[dir="snippets/java/fixtures/kotlin",files="lib/build.gradle.kts[tags=test_fixtures_deps]"]
 include::sample[dir="snippets/java/fixtures/groovy",files="lib/build.gradle[tags=test_fixtures_deps]"]
@@ -783,7 +795,6 @@ Test fixtures are not limited to a single project.
 It is often the case that a dependent project tests also needs the test fixtures of the dependency.
 This can be achieved very easily using the `testFixtures` keyword:
 
-.Adding a dependency on test fixtures of another project
 ====
 include::sample[dir="snippets/java/fixtures/kotlin",files="build.gradle.kts[tags=consumer_dependencies]"]
 include::sample[dir="snippets/java/fixtures/groovy",files="build.gradle[tags=consumer_dependencies]"]
@@ -796,7 +807,6 @@ By convention, test fixtures will be published with an artifact having the `test
 For both Maven and Ivy, an artifact with that classifier is simply published alongside the regular artifacts.
 However, if you use the `maven-publish` or `ivy-publish` plugin, test fixtures are published as additional variants in {metadata-file-spec}[Gradle Module Metadata] and you can directly depend on test fixtures of external libraries in another Gradle project:
 
-.Adding a dependency on test fixtures of an external library
 ====
 include::sample[dir="snippets/java/fixtures/kotlin",files="build.gradle.kts[tags=external-test-fixtures-dependency]"]
 include::sample[dir="snippets/java/fixtures/groovy",files="build.gradle[tags=external-test-fixtures-dependency]"]
@@ -804,9 +814,12 @@ include::sample[dir="snippets/java/fixtures/groovy",files="build.gradle[tags=ext
 
 It's worth noting that if the external project is _not_ publishing Gradle Module Metadata, then resolution will fail with an error indicating that such a variant cannot be found:
 
-.Output of **`gradle dependencyInsight --configuration functionalTestClasspath --dependency gson`**
+[source,bash]
 ----
-> gradle dependencyInsight --configuration functionalTestClasspath --dependency gson
+$ ./gradlew dependencyInsight --configuration functionalTestClasspath --dependency gson
+----
+[source,text]
+----
 include::{snippetsPath}/java/fixtures/tests/dependencyInsight.out[]
 ----
 
@@ -815,7 +828,6 @@ That's because by convention, for projects that use the `java-test-fixtures` plu
 
 NOTE: If you publish your library and use test fixtures, but do not want to publish the fixtures, you can deactivate publishing of the _test fixtures variants_ as shown below.
 
-.Disable publishing of test fixtures variants
 ====
 include::sample[dir="snippets/java/fixtures/kotlin/lib",files="build.gradle.kts[tags=disable-test-fixtures-publishing]"]
 include::sample[dir="snippets/java/fixtures/groovy/lib",files="build.gradle[tags=disable-test-fixtures-publishing]"]
@@ -851,7 +863,6 @@ This example uses <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin, Java Test 
 
 [.multi-language-sample]
 =====
-.An example non-class-based testing setup
 [source, kotlin]
 ----
 ├── test-engine
@@ -868,7 +879,6 @@ This example uses <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin, Java Test 
 =====
 [.multi-language-sample]
 =====
-.An example non-class-based testing setup
 [source, groovy]
 ----
 ├── test-engine
@@ -903,7 +913,6 @@ These files are idiomatically located in the `src/test/definitions` directory.
 
 [.multi-language-sample]
 =====
-.Example test definitions
 [source, kotlin]
 ----
 └── src
@@ -916,7 +925,6 @@ These files are idiomatically located in the `src/test/definitions` directory.
 =====
 [.multi-language-sample]
 =====
-.Example test definitions
 [source, groovy]
 ----
 └── src
@@ -975,11 +983,17 @@ File path separators are converted into dots (`.`) and the file extension is rem
 
 To run only the tests in `ExampleTests.xml`:
 
-    ./gradlew test --tests "ExampleTests*"
+[source,bash]
+----
+$ ./gradlew test --tests "ExampleTests*"
+----
 
 To run all tests within the `sub` directory:
 
-    ./gradlew test --tests "sub.*"
+[source,bash]
+----
+$ ./gradlew test --tests "sub.*"
+----
 
 ==== Ambiguity with test selection
 
@@ -992,6 +1006,7 @@ Non-class-based test definitions should use a single unambiguous naming conventi
 Our recommendation is to follow link:https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html[Java package naming conventions] for directories and use simple names for the test files.
 
 All of the following file paths appear to be the same test and cannot be filtered individually.
+
 [cols="1,1", options="header"]
 |===
 | File path | Fully qualified name

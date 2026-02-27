@@ -134,8 +134,12 @@ In this case, Gradle will look for a build file for the `app` subproject in the 
 
 You can view the structure of a multi-project build by running the `projects` command:
 
+[source,bash]
 ----
 $ ./gradlew -q projects
+----
+[source,text]
+----
 include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
 ----
 
@@ -146,16 +150,22 @@ The application prints `Hello World` to the console:
 ====
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
 include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
+====
+
 .app/src/main/java/com/example/Hello.java
 [source, java]
 ----
 include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java/com/example/Hello.java[]
 ----
-====
 
 You can run the application by executing the `run` task from the <<application_plugin#application_plugin,Application plugin>> in the project root:
+
+[source,bash]
 ----
 $ ./gradlew -q run
+----
+[source,text]
+----
 include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
 ----
 

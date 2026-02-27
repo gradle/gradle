@@ -378,9 +378,12 @@ If you run a full build as shown above, Gradle will have produced the archive in
 The best way to learn more about what your build is doing behind the scenes is to publish a link:https://scans.gradle.com[Build Scan].
 To do so, run the `build` task again with the `--scan` flag.
 
-[source]
+[source,bash]
 ----
 $ ./gradlew build --scan
+----
+[source,text]
+----
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE

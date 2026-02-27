@@ -64,6 +64,7 @@ _Depends on_: All Checkstyle tasks, including `checkstyleMain` and `checkstyleTe
 
 By default, the Checkstyle plugin expects configuration files to be placed in the root project, but this can be changed.
 
+[source,text]
 ----
 <root>
 └── config

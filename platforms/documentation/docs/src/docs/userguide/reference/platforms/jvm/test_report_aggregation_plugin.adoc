@@ -23,12 +23,14 @@ The Test Report Aggregation plugin (plugin id: `test-report-aggregation`) provid
 To use the Test Report Aggregation plugin, include the following in your build script:
 
 [.multi-language-text.lang-groovy]
+[source,groovy]
 ----
 plugins {
     id 'test-report-aggregation'
 }
 ----
 [.multi-language-text.lang-kotlin]
+[source,kotlin]
 ----
 plugins {
     id("test-report-aggregation")
@@ -56,7 +58,7 @@ _Depends on_: Artifacts of variants matching the below attributes
 +
 Collects variants of direct and transitive project dependencies via the `testReportAggregation` configuration. The following Attributes will be matched:
 
-[source]
+[source,text]
 ----
     - org.gradle.category         = verification   // <1>
     - org.gradle.testsuite.name   = test           // <2>

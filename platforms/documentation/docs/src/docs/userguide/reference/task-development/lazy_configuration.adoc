@@ -66,10 +66,16 @@ include::sample[dir="snippets/providers/propertyAndProvider/groovy",files="build
 <4> Configure the greeting
 <5> Alternative notation to calling Property.set()
 
+====
+[source,bash]
 ----
-$ gradle greeting
+$ ./gradlew greeting
+----
+[source,text]
+----
 include::{snippetsPath}/providers/propertyAndProvider/tests/usePropertyAndProvider.out[]
 ----
+====
 
 The `Greeting` task has a property of type `Property<String>` to represent the configurable greeting and a property of type `Provider<String>` to represent the calculated, read-only, message.
 The message `Provider` is created from the greeting `Property` using the `map()` method; its value is kept up-to-date as the value of the greeting property changes.
@@ -111,10 +117,16 @@ include::sample[dir="snippets/providers/connectProperties/kotlin",files="build.g
 include::sample[dir="snippets/providers/connectProperties/groovy",files="build.gradle[]"]
 ====
 
+====
+[source,bash]
 ----
-$ gradle greeting
+$ ./gradlew greeting
+----
+[source,text]
+----
 include::{snippetsPath}/providers/connectProperties/tests/connectProperties.out[]
 ----
+====
 
 This example calls the link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] method to attach a `Provider` to a `Property` to supply the value of the property.
 In this case, the `Provider` happens to be a `Property` as well, but you can connect any `Provider` implementation, for example one created using `Provider.map()`
@@ -155,16 +167,30 @@ include::sample[dir="snippets/providers/fileAndDirectoryProperty/kotlin",files="
 include::sample[dir="snippets/providers/fileAndDirectoryProperty/groovy",files="build.gradle[]"]
 ====
 
-[.multi-language-text.lang-groovy]
-----
-$ gradle generate
-include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesGroovy.out[]
-----
+====
 [.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
 $ gradle generate
+----
+[source,text]
+----
 include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesKotlin.out[]
 ----
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
+----
+$ gradle generate
+----
+[source,text]
+----
+include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesGroovy.out[]
+----
+=====
+====
 
 This example creates providers that represent locations in the project and build directories through link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.getLayout()] with link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory--[ProjectLayout.getBuildDirectory()] and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.getProjectDirectory()].
 
@@ -189,16 +215,30 @@ include::sample[dir="snippets/providers/implicitTaskInputFileDependency/kotlin",
 include::sample[dir="snippets/providers/implicitTaskInputFileDependency/groovy",files="build.gradle[]"]
 ====
 
-[.multi-language-text.lang-groovy]
-----
-$ gradle consumer
-include::{snippetsPath}/providers/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyGroovy.out[]
-----
+====
 [.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
-$ gradle consumer
+$ ./gradlew consumer
+----
+[source,text]
+----
 include::{snippetsPath}/providers/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyKotlin.out[]
 ----
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
+----
+$ ./gradlew consumer
+----
+[source,text]
+----
+include::{snippetsPath}/providers/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyGroovy.out[]
+----
+=====
+====
 
 In the example above, the task outputs and inputs are connected before any location is defined.
 The setters can be called at any time before the task is executed, and the change will automatically affect all related input and output properties.
@@ -213,16 +253,30 @@ include::sample[dir="snippets/providers/implicitTaskInputDependency/kotlin",file
 include::sample[dir="snippets/providers/implicitTaskInputDependency/groovy",files="build.gradle[]"]
 ====
 
-[.multi-language-text.lang-groovy]
-----
-$ gradle consumer
-include::{snippetsPath}/providers/implicitTaskInputDependency/tests/implicitTaskInputDependencyGroovy.out[]
-----
+====
 [.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
-$ gradle consumer
+$ ./gradlew consumer
+----
+[source,text]
+----
 include::{snippetsPath}/providers/implicitTaskInputDependency/tests/implicitTaskInputDependencyKotlin.out[]
 ----
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
+----
+$ ./gradlew consumer
+----
+[source,text]
+----
+include::{snippetsPath}/providers/implicitTaskInputDependency/tests/implicitTaskInputDependencyGroovy.out[]
+----
+=====
+====
 
 [[working_with_collections]]
 == Working with collections
@@ -249,16 +303,30 @@ include::sample[dir="snippets/providers/listProperty/kotlin",files="build.gradle
 include::sample[dir="snippets/providers/listProperty/groovy",files="build.gradle[]"]
 ====
 
-[.multi-language-text.lang-groovy]
-----
-$ gradle consumer
-include::{snippetsPath}/providers/listProperty/tests/listPropertyGroovy.out[]
-----
+====
 [.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
-$ gradle consumer
+$ ./gradlew consumer
+----
+[source,text]
+----
 include::{snippetsPath}/providers/listProperty/tests/listPropertyKotlin.out[]
 ----
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
+----
+$ ./gradlew consumer
+----
+[source,text]
+----
+include::{snippetsPath}/providers/listProperty/tests/listPropertyGroovy.out[]
+----
+=====
+====
 
 [[working_with_maps]]
 == Working with maps
@@ -274,8 +342,12 @@ include::sample[dir="snippets/providers/mapProperty/kotlin",files="build.gradle.
 include::sample[dir="snippets/providers/mapProperty/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle generate
+$ ./gradlew generate
+----
+[source,text]
+----
 include::{snippetsPath}/providers/mapProperty/tests/mapProperty.out[]
 ----
 
@@ -291,8 +363,12 @@ include::sample[dir="snippets/providers/propertyConvention/kotlin",files="build.
 include::sample[dir="snippets/providers/propertyConvention/groovy",files="build.gradle[tags=conventions]"]
 ====
 
+[source,bash]
 ----
-$ gradle show
+$ ./gradlew show
+----
+[source,text]
+----
 include::{snippetsPath}/providers/propertyConvention/tests/propertyConvention.out[]
 ----
 

@@ -57,6 +57,7 @@ Executing the `wrapper` task generates the necessary Wrapper files in the projec
 $ gradle wrapper
 ----
 
+[source,text]
 ----
 include::{snippetsPath}/wrapper/simple/tests/wrapperCommandLine.out[]
 ----
@@ -146,6 +147,7 @@ The following command-line execution captures those requirements:
 $ gradle wrapper --gradle-version {gradleVersion} --distribution-type all
 ----
 
+[source,text]
 ----
 include::{snippetsPath}/wrapper/simple/tests/wrapperCommandLine.out[]
 ----
@@ -225,6 +227,7 @@ The following console output demonstrates the use of the Wrapper on a Windows ma
 $ gradlew.bat build
 ----
 
+[source,text]
 ----
 include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
@@ -260,6 +263,7 @@ $ ./gradlew wrapper --gradle-version latest   // MacOs, Linux
 ----
 $ gradlew.bat wrapper --gradle-version latest // Windows
 ----
+[source,text]
 ----
 include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
@@ -274,6 +278,7 @@ $ ./gradlew wrapper --gradle-version {gradleVersion} // MacOs, Linux
 ----
 $ gradlew.bat wrapper --gradle-version {gradleVersion} // Windows
 ----
+[source,text]
 ----
 include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
@@ -466,12 +471,15 @@ $ cd gradle/wrapper
 $ curl --location --output gradle-wrapper.jar.sha256 \
        https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
 ----
+[source,text]
 ----
 $ echo " gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
 ----
+[source,text]
 ----
 $ shasum --check gradle-wrapper.jar.sha256
 ----
+[source,text]
 ----
 gradle-wrapper.jar: OK
 ----
@@ -482,12 +490,15 @@ Manually verifying the checksum of the Wrapper JAR on Windows (using PowerShell)
 ----
 > $expected = Invoke-RestMethod -Uri https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
 ----
+[source,text]
 ----
 > $actual = (Get-FileHash gradle\wrapper\gradle-wrapper.jar -Algorithm SHA256).Hash.ToLower()
 ----
+[source,text]
 ----
 > @{$true = 'OK: Checksum match'; $false = "ERROR: Checksum mismatch!`nExpected: $expected`nActual:   $actual"}[$actual -eq $expected]
 ----
+[source,text]
 ----
 OK: Checksum match
 ----

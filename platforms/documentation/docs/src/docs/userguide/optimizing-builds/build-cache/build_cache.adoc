@@ -75,8 +75,12 @@ Task output caching is automatically enabled when you enable the build cache, se
 
 Let us start with a project using the Java plugin which has a few Java source files. We run the build the first time.
 
+[source,bash]
 ----
-> gradle --build-cache compileJava
+$ ./gradlew --build-cache compileJava
+----
+[source,text]
+----
 :compileJava
 :processResources
 :classes
@@ -89,15 +93,23 @@ BUILD SUCCESSFUL
 We see the directory used by the local build cache in the output. Apart from that the build was the same as without the build cache.
 Let's clean and run the build again.
 
+[source,bash]
 ----
-> gradle clean
+$ ./gradlew clean
+----
+[source,text]
+----
 :clean
 
 BUILD SUCCESSFUL
 ----
 
+[source,bash]
 ----
-> gradle --build-cache assemble
+$ ./gradlew --build-cache assemble
+----
+[source,text]
+----
 :compileJava FROM-CACHE
 :processResources
 :classes

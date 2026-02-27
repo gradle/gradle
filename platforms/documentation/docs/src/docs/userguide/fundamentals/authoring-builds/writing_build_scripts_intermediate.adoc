@@ -141,8 +141,12 @@ Extra properties are accessible via:
 include::sample[dir="snippets/tutorial/extraProperties/kotlin",files="build.gradle.kts[tags=extraProperties]"]
 include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
 
+[source,bash]
 ----
 $ gradle -q printProperties
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/extraProperties/tests/extraProperties.out[]
 ----
 ====
@@ -284,11 +288,16 @@ In a Gradle build script, you can refer to project-level properties like `name`,
 ====
 include::sample[dir="snippets/tutorial/projectApi/kotlin",files="build.gradle.kts[tags=project-name]"]
 include::sample[dir="snippets/tutorial/projectApi/groovy",files="build.gradle[tags=project-name]"]
+====
+
+[source,bash]
 ----
 $ gradle -q check
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/projectApi/tests/projectApi.out[]
 ----
-====
 
 This works because of how Gradle evaluates build scripts:
 

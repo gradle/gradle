@@ -465,6 +465,7 @@ NOTE: This example uses incubating APIs.
 
 Running this task, we get the following output:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dot.out[]
 ----
@@ -473,6 +474,7 @@ image::dep-man-adv-3.png[]
 
 Compare this to the output of the `dependencies` task:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dependencies.out[]
 ----

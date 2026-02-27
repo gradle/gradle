@@ -132,6 +132,7 @@ Let's take a look at all the available ways a plugin can be applied:
 |Apply a plugin to a project.
 |<<#sec:plugins_block,The `plugins` block in the build file>>.
 a|
+[source,kotlin]
 ----
 plugins {
   id("org.barfuin.gradle.taskinfo") version "2.1.0"
@@ -142,6 +143,7 @@ plugins {
 |Apply a plugin to multiple projects.
 |<<sec:subprojects_plugins_dsl,The `subprojects` or `allprojects` blocks in the root build file>>. **Not Recommended**
 a|
+[source,kotlin]
 ----
 plugins {
     id("org.barfuin.gradle.taskinfo") version "2.1.0"
@@ -158,6 +160,7 @@ allprojects {
 |Apply a plugin to multiple projects.
 |<<sec:root_plugins_dsl,The `plugins` block in the root build file>>.
 a|
+[source,kotlin]
 ----
 plugins {
     id("com.gradleup.shadow") version "8.3.4" apply false
@@ -169,6 +172,7 @@ plugins {
 |Apply a plugin to multiple projects.
 |<<#sec:buildsrc_plugins_dsl,A convention plugin in the `buildSrc` directory>>. **Recommended**.
 a|
+[source,kotlin]
 ----
 plugins {
     id("my-convention.gradle.taskinfo")
@@ -179,6 +183,7 @@ plugins {
 |Apply a plugin needed _for the build script itself_.
 |<<#sec:applying_plugins_buildscript,The `buildscript` block in the build file itself>>. **Legacy**.
 a|
+[source,kotlin]
 ----
 buildscript {
   repositories {
@@ -197,6 +202,7 @@ apply(plugin = "org.barfuin.gradle.taskinfo")
 Applying a plugin when type-safe accessors are not available.
 |<<sec:script_plugins,The legacy `apply()` method in the build file>>. **Not Recommended**. **Legacy**.
 a|
+[source,kotlin]
 ----
 apply<MyCustomBarfuinTaskInfoPlugin>()
 ----

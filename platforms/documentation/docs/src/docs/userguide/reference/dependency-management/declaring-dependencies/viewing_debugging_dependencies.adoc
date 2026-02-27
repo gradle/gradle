@@ -89,12 +89,12 @@ The following examples display dependencies for the `testRuntimeClasspath` confi
 
 [source,bash]
 ----
-$ gradle -q dependencies --configuration testRuntimeClasspath
+$ ./gradlew -q dependencies --configuration testRuntimeClasspath
 ----
 
 [source,bash]
 ----
-$ gradle -q dependencies --configuration tRC
+$ ./gradlew -q dependencies --configuration tRC
 ----
 
 To view a list of all configurations in a project, including those provided by plugins, run the `resolvableConfigurations` report.
@@ -115,8 +115,12 @@ include::sample[dir="snippets/dependencyManagement/inspectingDependencies-depend
 
 Use the following command to view a dependency tree for the `scm` dependency configuration:
 
+[source,bash]
 ----
-$ gradle -q dependencies --configuration scm
+$ ./gradlew -q dependencies --configuration scm
+----
+[source,text]
+----
 include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependenciesReport/tests/dependencyReport.out[]
 ----
 
@@ -153,8 +157,12 @@ Render information about all variants, not only the selected variant.
 
 The following code snippet demonstrates how to run a dependency insight report for all paths to a dependency named `commons-codec` within the `scm` configuration:
 
+[source,bash]
 ----
-$ gradle -q dependencyInsight --dependency commons-codec --configuration scm
+$ ./gradlew -q dependencyInsight --dependency commons-codec --configuration scm
+----
+[source,text]
+----
 include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencyInsightReport/tests/dependencyInsightReport.out[]
 ----
 

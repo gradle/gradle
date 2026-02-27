@@ -61,6 +61,7 @@ _Depends on_: All CodeNarc tasks, including `codenarcMain` and `codenarcTest`.
 
 The CodeNarc plugin expects the following project layout:
 
+[source,text]
 ----
 <root>
 └── config

@@ -280,8 +280,12 @@ You can now see what happens when we run the `resolveRuntimeClasspath` task, whi
 Gradle transforms the project dependency before the `resolveRuntimeClasspath` task starts.
 Gradle transforms the binary dependencies when it executes the `resolveRuntimeClasspath` task:
 
+[source,bash]
 ----
-$ gradle resolveRuntimeClasspath
+$ ./gradlew resolveRuntimeClasspath
+----
+[source,text]
+----
 include::{snippetsPath}/dependencyManagement/artifactTransforms-minify/tests/artifactTransformMinify.out[]
 ----
 
