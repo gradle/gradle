@@ -16,6 +16,7 @@
 
 package org.gradle.testfixtures
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
@@ -124,7 +125,8 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec imple
         fails('test')
 
         then:
-        testFailed(containsString(SupportedJavaVersionsExpectations.getIncompatibleDaemonJvmVersionErrorMessage("Gradle", jdk.javaVersionMajor)))
+        def expectedJavaVersion = JavaVersion.toVersion(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)
+        testFailed(containsString("java.lang.UnsupportedClassVersionError: org/gradle/testfixtures/ProjectBuilder has been compiled by a more recent version of the Java Runtime (class file version ${expectedJavaVersion.toClassVersion()}.0), this version of the Java Runtime only recognizes class file versions up to ${jdk.javaVersion.toClassVersion()}.0"))
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()

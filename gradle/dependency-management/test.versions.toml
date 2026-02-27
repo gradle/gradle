@@ -11,7 +11,6 @@ commonsMath = "3.6.1!!"
 compileTesting = "0.21.0!!"
 develocityTestAnnotation = "2.0.1!!"
 dockerJavaApi = "3.4.0!!"
-equalsverifier = "2.1.6!!"
 flot = "0.8.1" # performance test reports
 gradleIdeStarter = "0.8.5!!"
 gradleProfiler = "0.24.0-alpha-3!!"
@@ -58,7 +57,6 @@ commonsMath = { group = "org.apache.commons", name = "commons-math3", version.re
 compileTesting = { group = "com.google.testing.compile", name = "compile-testing", version.ref = "compileTesting" }
 develocityTestAnnotation = { group = "com.gradle", name = "develocity-testing-annotations", version.ref = "develocityTestAnnotation" }
 dockerJavaApi = { group = "com.github.docker-java", name = "docker-java-api", version.ref = "dockerJavaApi" }
-equalsverifier = { group = "nl.jqno.equalsverifier", name = "equalsverifier", version.ref = "equalsverifier" }
 flot = { group = "flot", name = "flot", version.ref = "flot" }
 gradleIdeStarter = { group = "org.gradle.buildtool.internal", name = "gradle-ide-starter", version.ref = "gradleIdeStarter" }
 gradleIdeStarterScenarios = { group = "org.gradle.buildtool.internal", name = "gradle-ide-starter-scenarios", version.ref = "gradleIdeStarter" }

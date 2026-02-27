@@ -96,7 +96,11 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
         jdkRepository.reset()
 
         when:
-        def result = version previous withGradleUserHomeDir userHome withTasks 'run' withArguments '-Dorg.gradle.java.installations.auto-download=true' run()
+        def result = version(previous)
+            .withGradleUserHomeDir(userHome)
+            .withTasks('run')
+            .withArguments('-Dorg.gradle.java.installations.auto-download=true', "-Porg.gradle.java.installations.auto-detect=false")
+            .run()
 
         then:
         def previousJavaHome = getPrintedJavaHome(result)
@@ -111,7 +115,11 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
         }
 
         when:
-        result = version current withGradleUserHomeDir userHome withTasks 'run' withArguments '-Dorg.gradle.java.installations.auto-download=true' run()
+        result = version(current)
+            .withGradleUserHomeDir(userHome)
+            .withTasks('run')
+            .withArguments('-Dorg.gradle.java.installations.auto-download=true', "-Porg.gradle.java.installations.auto-detect=false")
+            .run()
 
         then:
         def currentJavaHome = getPrintedJavaHome(result)
