@@ -36,6 +36,7 @@ abstract public class Maven2GradleWorkAction implements WorkAction<Maven2GradleW
         Property<Boolean> getUseIncubatingAPIs();
         Property<Settings> getMavenSettings();
         Property<InsecureProtocolOption> getInsecureProtocolOption();
+        Property<String> getCustomMavenRepo();
     }
 
     @Override
@@ -44,7 +45,7 @@ abstract public class Maven2GradleWorkAction implements WorkAction<Maven2GradleW
         File pom = params.getWorkingDir().file("pom.xml").get().getAsFile();
         try {
             Set<MavenProject> mavenProjects = new MavenProjectsCreator().create(params.getMavenSettings().get(), pom);
-            new Maven2Gradle(mavenProjects, params.getWorkingDir().get(), params.getDsl().get(), params.getUseIncubatingAPIs().get(), params.getInsecureProtocolOption().get()).convert();
+            new Maven2Gradle(mavenProjects, params.getWorkingDir().get(), params.getDsl().get(), params.getUseIncubatingAPIs().get(), params.getInsecureProtocolOption().get(), params.getCustomMavenRepo().getOrNull()).convert();
         } catch (Exception exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }

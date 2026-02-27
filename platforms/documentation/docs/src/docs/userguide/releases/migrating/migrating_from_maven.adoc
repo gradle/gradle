@@ -188,6 +188,39 @@ If your Maven build does not have many plugins or custom steps, you can simply r
 once the migration has completed.
 This will run the tests and produce the required artifacts automatically.
 
+[[migmvn:custom_maven_repository]]
+=== Using a custom Maven repository
+
+If you are behind a corporate firewall and cannot access Maven Central directly, you can specify a custom Maven repository URL during the conversion process using the `--maven-repo` option:
+
+[listing.terminal]
+----
+> gradle init --maven-repo https://your-corporate-repo.company.com/maven2
+----
+
+This will configure Gradle to use your custom repository for resolving Maven dependencies during the conversion process.
+The specified repository will also be automatically added to the generated Gradle build files, ensuring that your build can resolve dependencies using the same repository.
+
+NOTE: If you have Maven settings configured in `~/.m2/settings.xml` with repository mirrors, Gradle will automatically detect and use those repositories as well.
+The `--maven-repo` option takes precedence over any settings in `settings.xml`.
+
+The generated build files will include the custom repository along with `mavenLocal()` as a fallback, ensuring maximum compatibility with your corporate environment:
+
+.Generated repositories configuration
+====
+[source,kotlin]
+----
+repositories {
+    maven {
+        url = uri("https://your-corporate-repo.company.com/maven2")
+        name = "custom-maven-repo"
+    }
+    mavenLocal()
+    mavenCentral()
+}
+----
+====
+
 [[migmvn:migrating_deps]]
 == Migrating dependencies
 

@@ -97,13 +97,27 @@ public class PomProjectInitDescriptor implements BuildConverter {
             dependencies.create("org.apache.maven.resolver:maven-resolver-transport-wagon:" + MAVEN_RESOLVER_VERSION)
         );
         jvmPluginServices.configureAsRuntimeClasspath(config);
-        detachedResolver.getRepositories().mavenCentral();
+        // Configure default repositories - these can be overridden later in generate()
+        configureDefaultRepositories(detachedResolver);
         mavenClasspath = config;
+    }
+
+    private void configureDefaultRepositories(ProjectInternal.DetachedResolver detachedResolver) {
+        // Add mavenLocal first as it helps with corporate scenarios
+        detachedResolver.getRepositories().mavenLocal();
+        // Add Maven Central as fallback
+        detachedResolver.getRepositories().mavenCentral();
     }
 
     @Override
     public void generate(InitSettings initSettings) {
         IncubationLogger.incubatingFeatureUsed("Maven to Gradle conversion");
+
+        // Note: customMavenRepo is passed to Maven2Gradle to be added to GENERATED build files only.
+        // For classpath resolution (Maven artifacts needed for conversion), we use the repos
+        // configured in configureClasspath() which includes mavenLocal + mavenCentral.
+        String customMavenRepo = initSettings.getCustomMavenRepo();
+
         try {
             Settings settings = settingsProvider.buildSettings();
             executor.classLoaderIsolation(config -> config.getClasspath().from(mavenClasspath))
@@ -113,6 +127,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
                         params.getUseIncubatingAPIs().set(initSettings.isUseIncubatingAPIs());
                         params.getMavenSettings().set(settings);
                         params.getInsecureProtocolOption().set(initSettings.getInsecureProtocolOption());
+                        params.getCustomMavenRepo().set(customMavenRepo);
                     });
             GradlePropertiesGenerator.generate(initSettings);
         } catch (SettingsBuildingException exception) {

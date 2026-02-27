@@ -275,6 +275,24 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     /**
+     * Custom Maven repository URL to use for dependency resolution during Maven conversion.
+     * <p>
+     * This property can be set via the command-line option '--maven-repo'.
+     * When set, this repository will be used instead of Maven Central for resolving Maven dependencies
+     * during the 'gradle init' conversion process. This is useful for users behind corporate firewalls
+     * who cannot access Maven Central directly.
+     * <p>
+     * The specified repository will also be added to the generated build files.
+     *
+     * @since 9.6
+     */
+    @Incubating
+    @Input
+    @Optional
+    @Option(option = "maven-repo", description = "Specify a custom Maven repository URL for dependency resolution during Maven project conversion.")
+    public abstract Property<String> getMavenRepo();
+
+    /**
      * Should clarifying comments be added to files?
      * <p>
      * This property can be set via the command-line options '--comments' and '--no-comments'.
@@ -395,6 +413,7 @@ public abstract class InitBuild extends DefaultTask {
 
         boolean useIncubatingAPIs = shouldUseIncubatingAPIs(userQuestions);
         boolean generateComments = getComments().get();
+        String customMavenRepo = getMavenRepo().getOrNull();
 
         List<String> subprojectNames = initializer.getDefaultProjectNames();
         InitSettings initSettings = new InitSettings(
@@ -408,7 +427,8 @@ public abstract class InitBuild extends DefaultTask {
             insecureProtocol.get(),
             getProjectDirectory().get(),
             javaLanguageVersion,
-            generateComments
+            generateComments,
+            customMavenRepo
         );
         return new GenerationSettings(initializer, initSettings);
     }
