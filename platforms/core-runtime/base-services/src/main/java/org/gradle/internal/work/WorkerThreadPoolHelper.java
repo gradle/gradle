@@ -18,8 +18,8 @@ package org.gradle.internal.work;
 
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 
 /**
  * Common code for handling work for {@link WorkerThreadPool} implementations.
@@ -31,7 +31,7 @@ import java.util.LinkedList;
 public final class WorkerThreadPoolHelper<T> {
     private final WorkerLimits workerLimits;
     private final Runnable spawnWorker;
-    private final Deque<T> queue = new LinkedList<>();
+    private final Deque<T> queue = new ArrayDeque<>();
     private int workerCount;
     private int blockedWorkerCount;
 
