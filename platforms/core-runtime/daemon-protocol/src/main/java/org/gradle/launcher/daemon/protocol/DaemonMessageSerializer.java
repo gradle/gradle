@@ -286,7 +286,7 @@ public class DaemonMessageSerializer {
             encoder.writeLong(build.getIdentifier().getLeastSignificantBits());
             encoder.writeBinary(build.getToken());
             encoder.writeLong(build.getStartTime());
-            encoder.writeBoolean(build.isInteractive());
+            encoder.writeBoolean(build.isInteractiveConsole());
             buildActionSerializer.write(encoder, build.getAction());
             GradleLauncherMetaData metaData = build.getBuildClientMetaData();
             encoder.writeString(metaData.getAppName());
@@ -298,11 +298,11 @@ public class DaemonMessageSerializer {
             UUID uuid = new UUID(decoder.readLong(), decoder.readLong());
             byte[] token = decoder.readBinary();
             long timestamp = decoder.readLong();
-            boolean interactive = decoder.readBoolean();
+            boolean interactiveConsole = decoder.readBoolean();
             BuildAction buildAction = buildActionSerializer.read(decoder);
             GradleLauncherMetaData metaData = new GradleLauncherMetaData(decoder.readString());
             BuildActionParameters buildActionParameters = buildActionParametersSerializer.read(decoder);
-            return new Build(uuid, token, buildAction, metaData, timestamp, interactive, buildActionParameters);
+            return new Build(uuid, token, buildAction, metaData, timestamp, interactiveConsole, buildActionParameters);
         }
     }
 

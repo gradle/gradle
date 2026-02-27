@@ -117,7 +117,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
 
     private CancellableOperationManager createCancellableOperationManager(BuildRequestMetaData requestContext, BuildCancellationToken cancellationToken) {
         final CancellableOperationManager cancellableOperationManager;
-        if (requestContext.isInteractive()) {
+        if (requestContext.isInteractiveConsole()) {
             if (!(System.in instanceof DisconnectableInputStream)) {
                 System.setIn(new DisconnectableInputStream(System.in));
             }
@@ -215,7 +215,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     }
 
     private String determineExitHint(BuildRequestMetaData requestContext) {
-        if (requestContext.isInteractive()) {
+        if (requestContext.isInteractiveConsole()) {
             if (operatingSystem.isWindows()) {
                 return " (ctrl-d then enter to exit)";
             } else {

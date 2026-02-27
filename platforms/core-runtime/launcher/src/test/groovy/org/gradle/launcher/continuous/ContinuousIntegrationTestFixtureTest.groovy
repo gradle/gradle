@@ -128,7 +128,7 @@ Waiting for changes to input files... (ctrl-d then enter to exit)
         def gradleHandle = Stub(GradleHandle)
         gradleExecuter.withStdinPipe() >> gradleExecuter
         gradleExecuter.withTasks(_) >> gradleExecuter
-        gradleExecuter.withForceInteractive(_) >> gradleExecuter
+        gradleExecuter.withForceInteractiveConsole(_) >> gradleExecuter
         gradleExecuter.withArgument(_) >> gradleExecuter
         gradleExecuter.start() >> gradleHandle
         gradleHandle.getErrorOutput() >> ''

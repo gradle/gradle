@@ -283,8 +283,8 @@ public class ProviderConnection {
     ) {
         try {
             BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> executor = createExecutor(providerParameters, parameters);
-            boolean interactive = providerParameters.getStandardInput() != null;
-            ClientBuildRequestContext context = new ClientBuildRequestContext(new GradleLauncherMetaData(), providerParameters.getStartTime(), interactive, cancellationToken, buildEventConsumer);
+            boolean interactiveConsole = providerParameters.getStandardInput() != null;
+            ClientBuildRequestContext context = new ClientBuildRequestContext(new GradleLauncherMetaData(), providerParameters.getStartTime(), interactiveConsole, cancellationToken, buildEventConsumer);
             BuildActionResult result = executor.execute(action, new ConnectionOperationParameters(parameters.daemonParams, parameters.tapiSystemProperties, providerParameters), context);
             throwFailure(result);
             return payloadSerializer.deserialize(result.getResult());

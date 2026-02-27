@@ -58,6 +58,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean enableProblemReportGeneration = true;
     private boolean daemonJvmCriteriaConfigured = false;
     private Option.Value<Boolean> parallelToolingModelBuilding = Option.Value.defaultValue(false);
+    private boolean nonInteractive = false;
 
     public StartParameterInternal() {
     }
@@ -340,6 +341,14 @@ public class StartParameterInternal extends StartParameter {
 
     public void setParallelToolingModelBuilding(Option.Value<Boolean> parallelToolingModelBuilding) {
         this.parallelToolingModelBuilding = parallelToolingModelBuilding;
+    }
+
+    public boolean isNonInteractive() {
+        return nonInteractive;
+    }
+
+    public void setNonInteractive(boolean nonInteractive) {
+        this.nonInteractive = nonInteractive;
     }
 
     public BuildLayoutConfiguration toBuildLayoutConfiguration() {

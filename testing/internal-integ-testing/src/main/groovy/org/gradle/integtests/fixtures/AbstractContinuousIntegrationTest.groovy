@@ -147,7 +147,7 @@ ${result.error}
         errorOutputBuildMarker = 0
         executer.withStdinPipe()
             .withTasks(tasks)
-            .withForceInteractive(true)
+            .withForceInteractiveConsole(true)
             .withArgument("--full-stacktrace")
         if (!withoutContinuousArg) {
             executer.withArgument("--continuous")

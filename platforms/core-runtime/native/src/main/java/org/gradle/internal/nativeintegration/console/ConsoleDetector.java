@@ -27,5 +27,5 @@ public interface ConsoleDetector {
     @Nullable
     ConsoleMetaData getConsole();
 
-    boolean isConsoleInput();
+    boolean isInteractiveConsole();
 }
