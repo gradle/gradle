@@ -24,7 +24,8 @@ import org.gradle.internal.work.WorkerThreadPoolHelper;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -47,7 +48,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final Condition operationsComplete = lock.newCondition();
     private QueueState queueState = QueueState.Working;
     private int pendingOperations;
-    private final LinkedList<Throwable> failures = new LinkedList<>();
+    private final List<Throwable> failures = new ArrayList<>();
     @GuardedBy("lock")
     private final WorkerThreadPoolHelper<T> helper;
 

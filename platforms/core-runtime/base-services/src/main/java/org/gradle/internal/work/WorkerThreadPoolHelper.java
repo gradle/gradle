@@ -18,8 +18,8 @@ package org.gradle.internal.work;
 
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -33,7 +33,7 @@ public final class WorkerThreadPoolHelper<T> {
     private final WorkerLimits workerLimits;
     private final Runnable spawnWorker;
     private final AtomicInteger blockedWorkerCount = new AtomicInteger();
-    private final Deque<T> queue = new LinkedList<>();
+    private final Deque<T> queue = new ArrayDeque<>();
     private int workerCount;
 
     public WorkerThreadPoolHelper(WorkerLimits workerLimits, Runnable spawnWorker) {
