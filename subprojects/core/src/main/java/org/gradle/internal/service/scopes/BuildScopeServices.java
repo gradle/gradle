@@ -150,6 +150,7 @@ import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
@@ -162,9 +163,7 @@ import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.initialization.BuildLoader;
-import org.gradle.initialization.BuildOperationFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
-import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.DefaultToolchainManagement;
@@ -177,7 +176,6 @@ import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
-import org.gradle.initialization.SettingsLoaderFactory;
 import org.gradle.initialization.SettingsPreparer;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.TaskExecutionPreparer;
@@ -259,7 +257,6 @@ import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.plugin.management.internal.PluginHandler;
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -300,7 +297,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(FileSystemOperations.class, DefaultFileSystemOperations.class);
         registration.add(ArchiveOperations.class, DefaultArchiveOperations.class);
         registration.add(IProjectFactory.class, ProjectFactory.class);
-        registration.add(SettingsLoaderFactory.class, DefaultSettingsLoaderFactory.class);
+        registration.add(SettingsPreparer.class, DefaultSettingsPreparer.class);
         registration.add(ResolvedBuildLayout.class);
         registration.add(NodeValidator.class, DefaultNodeValidator.class);
         registration.add(TaskNodeFactory.class);
@@ -679,17 +676,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             ),
             buildOperationRunner
         );
-    }
-
-    @Provides
-    protected SettingsPreparer createSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory, BuildOperationRunner buildOperationRunner, BuildOperationProgressEventEmitter emitter, BuildDefinition buildDefinition) {
-        return new BuildOperationFiringSettingsPreparer(
-            new DefaultSettingsPreparer(
-                settingsLoaderFactory
-            ),
-            buildOperationRunner,
-            emitter,
-            buildDefinition.getFromBuild());
     }
 
     @Provides
