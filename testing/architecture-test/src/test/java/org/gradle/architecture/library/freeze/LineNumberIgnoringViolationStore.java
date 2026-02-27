@@ -52,6 +52,7 @@ public class LineNumberIgnoringViolationStore implements ViolationStore {
         List<String> violationsWithoutLineNumbers = violations.stream()
             .map(it -> it.replaceAll("\\.(java|kt):\\d+", ".$1:0"))
             .collect(toList());
+        violationsWithoutLineNumbers.forEach(System.err::println);
         delegate.save(rule, violationsWithoutLineNumbers);
     }
 
