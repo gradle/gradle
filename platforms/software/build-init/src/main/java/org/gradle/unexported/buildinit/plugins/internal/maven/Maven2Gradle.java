@@ -54,6 +54,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multi-module builds. <br>
@@ -71,8 +73,9 @@ public class Maven2Gradle {
     private final Directory workingDir;
     private final BuildInitDsl dsl;
     private final InsecureProtocolOption insecureProtocolOption;
+    private final String customMavenRepo;
 
-    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
+    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption, String customMavenRepo) {
         assert !mavenProjects.isEmpty(): "No Maven projects provided.";
 
         this.scriptBuilderFactory = new BuildScriptBuilderFactory(new DocumentationRegistry());
@@ -82,6 +85,7 @@ public class Maven2Gradle {
         this.workingDir = workingDir;
         this.dsl = dsl;
         this.insecureProtocolOption = insecureProtocolOption;
+        this.customMavenRepo = customMavenRepo;
     }
 
     public void convert() {
@@ -173,6 +177,10 @@ public class Maven2Gradle {
             boolean testsJarTaskGenerated = packageTests(this.rootProject, scriptBuilder);
             configurePublishing(scriptBuilder, packagesSources(this.rootProject), testsJarTaskGenerated, packagesJavadocs(this.rootProject));
 
+            // Add custom Maven repository first if specified
+            if (!isNullOrEmpty(customMavenRepo)) {
+                scriptBuilder.repositories().maven("Custom Maven repository specified via --maven-repo", customMavenRepo);
+            }
             scriptBuilder.repositories().mavenLocal(null);
             Set<String> repoSet = new LinkedHashSet<>();
             getRepositoriesForModule(this.rootProject, repoSet);
@@ -300,6 +308,10 @@ public class Maven2Gradle {
     }
 
     private void repositoriesForProjects(Set<MavenProject> projects, BuildScriptBuilder builder) {
+        // Add custom Maven repository first if specified
+        if (!isNullOrEmpty(customMavenRepo)) {
+            builder.repositories().maven("Custom Maven repository specified via --maven-repo", customMavenRepo);
+        }
         builder.repositories().mavenLocal(null);
         Set<String> repoSet = new LinkedHashSet<>();
         for (MavenProject project : projects) {
