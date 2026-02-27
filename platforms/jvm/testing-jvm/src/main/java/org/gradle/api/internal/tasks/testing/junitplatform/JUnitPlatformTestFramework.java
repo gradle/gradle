@@ -73,8 +73,7 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
         validateOptions();
         return new JUnitPlatformTestDefinitionProcessorFactory(new JUnitPlatformSpec(
             filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
-            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get(), projectLayout.getProjectDirectory().getAsFile()
-        ));
+            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get()));
     }
 
     @Override
