@@ -143,7 +143,6 @@ dependencies {
 
     testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)
-    testImplementation(projects.platformNative)
     testImplementation(projects.testingBase)
     testImplementation(libs.jsoup)
     testImplementation(libs.log4jToSlf4j)

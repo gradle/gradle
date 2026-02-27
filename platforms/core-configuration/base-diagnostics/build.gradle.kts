@@ -34,7 +34,6 @@ dependencies {
 
     implementation(libs.commonsLang)
 
-    testFixturesApi(testFixtures(projects.platformNative))
     testFixturesApi(testFixtures(projects.logging))
 
     testFixturesImplementation(projects.baseServices)
