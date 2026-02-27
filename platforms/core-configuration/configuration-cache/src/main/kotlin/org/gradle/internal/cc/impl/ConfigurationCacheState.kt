@@ -301,7 +301,7 @@ class ConfigurationCacheState(
         val builds = mutableMapOf<BuildState, BuildToStore>()
         host.visitBuilds { state ->
             val gradle = state.mutableModel
-            val hasScheduledWork = gradle.taskGraph.hasScheduledWork()
+            val hasScheduledWork = gradle.taskGraph.hasScheduledWork() || gradle.isContributesToBuildscriptClasspath
             builds[state] = BuildToStore(state, hasScheduledWork, hasChildren = gradle.isRootBuild)
             if (hasScheduledWork && state is StandAloneNestedBuild) {
                 // Also require the owner of a buildSrc build
