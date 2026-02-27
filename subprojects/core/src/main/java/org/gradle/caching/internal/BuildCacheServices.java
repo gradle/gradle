@@ -46,6 +46,7 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
@@ -159,7 +160,8 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
                 TemporaryFileProvider temporaryFileProvider,
                 BuildCacheEntryPacker packer,
                 OriginMetadataFactory originMetadataFactory,
-                StringInterner stringInterner
+                StringInterner stringInterner,
+                ExecutorFactory executorFactory
             ) {
                 return new DefaultBuildCacheControllerFactory(
                     startParameter,
@@ -168,7 +170,8 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
                     originMetadataFactory,
                     stringInterner,
                     temporaryFileProvider,
-                    packer
+                    packer,
+                    executorFactory
                 );
             }
         });
