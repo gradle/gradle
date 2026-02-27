@@ -44,20 +44,6 @@ private data class LicenseSectionRange(
     val modulesEnd: Int
 )
 
-private val MANAGED_LICENSES = listOf(
-    ManagedLicense("Apache 2.0", "https://www.apache.org/licenses/LICENSE-2.0"),
-    ManagedLicense("Eclipse Public License 1.0", "https://opensource.org/licenses/EPL-1.0"),
-    ManagedLicense("3-Clause BSD", "https://opensource.org/licenses/BSD-3-Clause"),
-    ManagedLicense("MIT", "https://opensource.org/licenses/MIT"),
-    ManagedLicense("Bouncy Castle Licence", "https://www.bouncycastle.org/licence.html"),
-    ManagedLicense("CDDL", "https://opensource.org/licenses/CDDL-1.0"),
-    ManagedLicense("LGPL 2.1", "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html"),
-    ManagedLicense("Eclipse Distribution License 1.0", "https://www.eclipse.org/org/documents/edl-v10.php"),
-    ManagedLicense("BSD-style"),
-    ManagedLicense("Eclipse Public License 2.0", "https://www.eclipse.org/legal/epl-2.0/"),
-    ManagedLicense("Mozilla Public License 2.0", "https://www.mozilla.org/en-US/MPL/2.0/")
-)
-
 @DisableCachingByDefault(because = "Simple verification task; not performance critical.")
 abstract class CheckExternalDependenciesInLicenseTask : DefaultTask() {
     @get:Input
@@ -123,19 +109,25 @@ abstract class UpdateLicenseDependenciesTask : DefaultTask() {
             )
         }
 
-        val managedModules = parseExternalModules(externalModules.get())
-            .associateWith { module ->
+        val groupedByTitle = parseExternalModules(externalModules.get())
+            .map { module ->
                 val encodedLicense = pomLicenseByModule.get()[module.ga]
                     ?: error("Missing resolved POM license for ${module.ga}")
-                decodeManagedLicense(encodedLicense)
+                module.ga to decodeManagedLicense(encodedLicense)
             }
-            .entries
             .groupBy(
-                keySelector = { it.value!! },
-                valueTransform = { it.key.ga }
+                keySelector = { (_, license) -> license.title },
+                valueTransform = { (moduleGa, license) -> moduleGa to license.url }
             )
-            .mapValues { (_, modules) -> modules.toSet() }
-        val usedModules = managedModules.values.flatten().toSet()
+            .mapValues { (_, entries) ->
+                val modules = entries.map { it.first }.toSortedSet()
+                val url = entries.firstNotNullOfOrNull { it.second }
+                ManagedLicense(title = entries.first().let { (_, _) -> "" }, url = url) to modules
+            }
+        val managedModules = groupedByTitle.map { (title, licenseAndModules) ->
+            ManagedLicense(title = title, url = licenseAndModules.first.url) to licenseAndModules.second
+        }
+        val usedModules = managedModules.flatMap { it.second }.toSet()
 
         managedModules.forEach { (managedLicense, modules) ->
             val existingSection = findSection(lines, managedLicense.title)
