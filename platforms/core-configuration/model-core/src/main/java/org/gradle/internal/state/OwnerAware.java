@@ -28,7 +28,7 @@ public interface OwnerAware {
      * Notifies this object that it now has an owner associated with it.
      *
      * @param owner The owner object, if any.
-     * @param displayName The display name for this object.
+     * @param displayName The display name for the owner object.
      */
     void attachOwner(@Nullable ModelObject owner, DisplayName displayName);
 }

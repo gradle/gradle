@@ -20,7 +20,6 @@ import org.gradle.api.Describable
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.reporting.Report
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.Describables
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -37,6 +36,7 @@ class ReportContainerIntegTest extends AbstractIntegrationSpec {
             import ${Report.class.name}
             import ${ObjectFactory.class.name}
             import ${Describable.class.name}
+            import ${Describables.class.name}
             import ${DefaultSingleFileReport.class.name}
             import ${SingleDirectoryReport.class.name}
             import ${DelegatingReportContainer.class.name}
@@ -44,18 +44,19 @@ class ReportContainerIntegTest extends AbstractIntegrationSpec {
 
             import ${Inject.class.name}
 
-            class TestReportContainer extends DelegatingReportContainer<Report> {
-
+            abstract class TestReportContainer extends DelegatingReportContainer<Report> {
                 @Inject
-                TestReportContainer(ObjectFactory objectFactory, Describable owner) {
-                    super(DefaultReportContainer.create(objectFactory, Report, factory -> [
-                        factory.instantiateReport(DefaultSingleFileReport, "file1", owner),
-                        factory.instantiateReport(DefaultSingleFileReport, "file2", owner),
-                        factory.instantiateReport(SingleDirectoryReport, "dir1", owner, null),
-                        factory.instantiateReport(SingleDirectoryReport, "dir2", owner, null)
-                    ]))
+                TestReportContainer(ObjectFactory objectFactory) {
+                    super(DefaultReportContainer.create(objectFactory, Report, factory -> {
+                        Describable owner = Describables.of("report container")
+                        return [
+                            factory.instantiateReport(DefaultSingleFileReport, "file1", owner),
+                            factory.instantiateReport(DefaultSingleFileReport, "file2", owner),
+                            factory.instantiateReport(SingleDirectoryReport, "dir1", owner, null),
+                            factory.instantiateReport(SingleDirectoryReport, "dir2", owner, null)
+                        ]
+                    }))
                 }
-
             }
         """
         file("buildSrc/src/main/groovy/TestTask.groovy") << """
@@ -69,14 +70,8 @@ class ReportContainerIntegTest extends AbstractIntegrationSpec {
             import ${Inject.class.name}
 
             abstract class TestTask extends DefaultTask {
-
                 @Nested
-                TestReportContainer reports
-
-                @Inject
-                public TestTask() {
-                    this.reports = getProject().getObjects().newInstance(TestReportContainer, Describables.quoted("Task", getIdentityPath()))
-                }
+                abstract TestReportContainer getReports()
 
                 @Input
                 abstract Property<String> getValue()
@@ -138,7 +133,6 @@ class ReportContainerIntegTest extends AbstractIntegrationSpec {
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/6619") // file1.outputLocation doesn't carry task dependency and cannot be serialized by CC when used as value
     def "task not up to date when enabled set changes but output files stays the same"() {
         given:
         buildFile << """
