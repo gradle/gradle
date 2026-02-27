@@ -183,12 +183,6 @@ Licenses for included components:
 Eclipse Public License 1.0
 https://opensource.org/licenses/EPL-1.0
 
-junit:junit
-org.sonatype.aether:aether-api
-org.sonatype.aether:aether-connector-wagon
-org.sonatype.aether:aether-impl
-org.sonatype.aether:aether-spi
-org.sonatype.aether:aether-util
 
 ------------------------------------------------------------------------------
 3-Clause BSD
@@ -196,8 +190,6 @@ https://opensource.org/licenses/BSD-3-Clause
 
 com.esotericsoftware.kryo:kryo
 com.esotericsoftware.minlog:minlog
-com.google.code.findbugs:jsr305
-org.hamcrest:hamcrest
 org.ow2.asm:asm
 org.ow2.asm:asm-commons
 org.ow2.asm:asm-tree
@@ -244,7 +236,6 @@ Neither the name of Esoteric Software nor the names of its contributors may be u
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 org.ow2.asm:asm
-org.ow2.asm:asm-analysis
 org.ow2.asm:asm-commons
 org.ow2.asm:asm-tree
 org.ow2.asm:asm-util
@@ -308,8 +299,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-org.bouncycastle:bcpg-jdk15on
-org.bouncycastle:bcprov-jdk15on
 Copyright (c) 2000 - 2019 The Legion of the Bouncy Castle Inc. (https://www.bouncycastle.org)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -348,7 +337,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 CDDL
 https://opensource.org/licenses/CDDL-1.0
 
-com.sun.xml.bind:jaxb-impl
 
 ------------------------------------------------------------------------------
 LGPL 2.1
@@ -357,8 +345,6 @@ https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 jcifs:jcifs
 net.java.dev.jna:jna
 net.java.dev.jna:jna-platform
-org.jetbrains.intellij.deps:trove4j
-org.samba.jcifs:jcifs
 
 ------------------------------------------------------------------------------
 License for the GNU Trove library included by the Kotlin embeddable compiler
@@ -394,7 +380,6 @@ org.eclipse.jgit:org.eclipse.jgit.ssh.apache.agent
 BSD-style
 
 com.github.mwiede:jsch
-com.jcraft:jzlib
 
 Copyright (c) 2002-2015 Atsuhiko Yamanaka, JCraft,Inc.
 All rights reserved.
@@ -427,13 +412,11 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Eclipse Public License 2.0
 https://www.eclipse.org/legal/epl-2.0/
 
-org.junit.platform:junit-platform-launcher
 
 ------------------------------------------------------------------------------
 Mozilla Public License 2.0
 https://www.mozilla.org/en-US/MPL/2.0/
 
-org.mozilla:rhino
 
 ------------------------------------------------------------------------------
 Apache 2.0

@@ -92,24 +92,11 @@ fun listedLicenseModules(lines: List<String>): Set<String> =
         .filter { moduleLineRegex.matches(it) }
         .toSet()
 
-fun sectionModules(lines: List<String>, section: LicenseSectionRange): Set<String> =
-    lines.subList(section.modulesStart, section.modulesEnd)
-        .map(String::trim)
-        .filter { moduleLineRegex.matches(it) }
-        .toSet()
-
 fun managedLicenseByTitle(title: String): ManagedLicense =
     managedLicenses.first { it.title == title }
 
 fun managedLicenseForSection(section: LicenseSectionRange): ManagedLicense =
     managedLicenseByTitle(section.title)
-
-fun existingModulesByManagedLicense(lines: List<String>): Map<ManagedLicense, Set<String>> =
-    managedLicenses.mapNotNull { license ->
-        findSection(lines, license.title)?.let { section ->
-            license to sectionModules(lines, section)
-        }
-    }.toMap()
 
 fun resolvePomFile(module: ExternalModule): File? {
     val pomNotation = "${module.group}:${module.name}:${module.version}@pom"
@@ -282,12 +269,21 @@ val checkExternalDependenciesAreListedInLicense by tasks.registering {
     doLast {
         val externalModules = resolveDistributionExternalModules().map { it.ga }.toSet()
         val cleanedLicense = removeLegacyGeneratedBlock(rootDir.resolve("LICENSE").readText())
-        val missingModules = (externalModules - listedLicenseModules(cleanedLicense.lines())).sorted()
-        if (missingModules.isNotEmpty()) {
+        val listedModules = listedLicenseModules(cleanedLicense.lines())
+        val missingModules = (externalModules - listedModules).sorted()
+        val unexpectedModules = (listedModules - externalModules).sorted()
+        if (missingModules.isNotEmpty() || unexpectedModules.isNotEmpty()) {
+            val missingReport = if (missingModules.isEmpty()) "none" else missingModules.joinToString(separator = "\n")
+            val unexpectedReport = if (unexpectedModules.isEmpty()) "none" else unexpectedModules.joinToString(separator = "\n")
             error(
                 """
-                The following external dependencies are missing from LICENSE:
-                ${missingModules.joinToString(separator = "\n")}
+                LICENSE dependency listing does not match used external dependencies.
+
+                Missing from LICENSE:
+                $missingReport
+
+                Listed but not used:
+                $unexpectedReport
 
                 Run :distributions-full:updateLicenseDependencies to update LICENSE automatically.
                 """.trimIndent()
@@ -308,7 +304,6 @@ val updateLicenseDependencies by tasks.registering {
         val headerIndex = lines.indexOf(licenseListHeader)
         require(headerIndex >= 0) { "Could not find '$licenseListHeader' in LICENSE." }
         val legacyAssignments = legacyLicenseAssignments(lines)
-        val existingModulesByLicense = existingModulesByManagedLicense(lines)
 
         val modulesByLicense = resolveDistributionExternalModules().groupBy { module ->
             licenseForModule(module) ?: legacyAssignments[module.ga] ?: fallbackLicenseForModule(module)
@@ -329,12 +324,12 @@ val updateLicenseDependencies by tasks.registering {
         val managedModules = modulesByLicense.filterKeys { it != null }
             .mapKeys { entry -> entry.key!! }
             .mapValues { (_, modules) -> modules.map { it.ga }.toSet() }
+        val usedModules = managedModules.values.flatten().toSet()
 
         val sections = managedLicenses.mapNotNull { license -> findSection(lines, license.title) }
         sections.sortedByDescending { it.modulesStart }.forEach { section ->
             val managedLicense = managedLicenseForSection(section)
-            val merged = (existingModulesByLicense[managedLicense].orEmpty() + managedModules[managedLicense].orEmpty()).sorted()
-            replaceModuleRange(lines, section, merged)
+            replaceModuleRange(lines, section, managedModules[managedLicense].orEmpty().sorted())
         }
 
         val existingTitles = sections.map { it.title }.toSet()
@@ -343,6 +338,12 @@ val updateLicenseDependencies by tasks.registering {
             val insertionIndex = lines.size
             val rendered = missingSections.flatMap { renderManagedSection(it, managedModules[it].orEmpty().sorted()) }
             lines.addAll(insertionIndex, rendered)
+        }
+
+        // Remove stale module entries that can appear inside legacy prose blocks.
+        lines.removeAll { line ->
+            val module = line.trim()
+            moduleLineRegex.matches(module) && module !in usedModules
         }
 
         licenseFile.writeText(lines.joinToString("\n").trimEnd() + "\n")
