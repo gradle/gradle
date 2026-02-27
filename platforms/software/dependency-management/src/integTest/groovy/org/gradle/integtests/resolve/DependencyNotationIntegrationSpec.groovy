@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
+    @ToBeFixedForConfigurationCache(because = "DependencySet (conf.incoming.dependencies or conf.dependencies) is not CC compatible")
     def "understands dependency notations"() {
         when:
         buildFile <<  """
@@ -53,8 +53,10 @@ dependencies {
 }
 
 task checkDeps {
+    def deps = configurations.conf.incoming.dependencies
+    def deps2 = configurations.allowsCollections.dependencies
+
     doLast {
-        def deps = configurations.conf.incoming.dependencies
         assert deps.contains(someDependency)
         assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' && it.name == 'mockito-core' && it.version == '1.8'  }
         assert deps.find { it instanceof ExternalDependency && it.group == 'org.spockframework' && it.name == 'spock-core' && it.version == '1.0'  }
@@ -63,10 +65,9 @@ task checkDeps {
         assert configuredDep.version == '1.1'
         assert configuredDep.transitive == false
 
-        deps = configurations.allowsCollections.dependencies
-        assert deps.size() == 2
-        assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' }
-        assert deps.contains(someDependency)
+        assert deps2.size() == 2
+        assert deps2.find { it instanceof ExternalDependency && it.group == 'org.mockito' }
+        assert deps2.contains(someDependency)
     }
 }
 """
