@@ -88,6 +88,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final NamedEntityInstantiator<Task> taskInstantiator;
     private final BuildOperationRunner buildOperationRunner;
     private final CrossProjectModelAccess crossProjectModelAccess;
+    private final TaskShadowingRegistry taskShadowingRegistry;
 
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
@@ -103,7 +104,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator callbackDecorator,
-        CrossProjectModelAccess crossProjectModelAccess
+        CrossProjectModelAccess crossProjectModelAccess,
+        TaskShadowingRegistry taskShadowingRegistry
     ) {
         super(Task.class, instantiator, project, crossProjectConfigurator.getLazyBehaviorGuard(), callbackDecorator);
         this.taskIdentityFactory = taskIdentityFactory;
@@ -113,6 +115,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationRunner = buildOperationRunner;
         this.crossProjectModelAccess = crossProjectModelAccess;
+        this.taskShadowingRegistry = taskShadowingRegistry;
     }
 
     @Deprecated
@@ -406,7 +409,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException {
         assertCanMutate("register(String, Class, Action)");
-        return registerTask(name, type, configurationAction, NO_ARGS);
+        Class<T> shadowType = taskShadowingRegistry.getShadowType(type);
+        TaskProvider<T> provider = Cast.uncheckedCast(registerTask(name, shadowType, taskShadowingRegistry.maybeWrapAction(configurationAction, type), NO_ARGS));
+        return taskShadowingRegistry.maybeWrapProvider(provider, type);
     }
 
     @Override
@@ -424,7 +429,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Object... constructorArgs) {
         assertCanMutate("register(String, Class, Object...)");
-        return registerTask(name, type, null, constructorArgs);
+        Class<T> shadowType = taskShadowingRegistry.getShadowType(type);
+        TaskProvider<T> provider = Cast.uncheckedCast(registerTask(name, shadowType, null, constructorArgs));
+        return taskShadowingRegistry.maybeWrapProvider(provider, type);
     }
 
     private <T extends Task> TaskProvider<T> registerTask(final String name, final Class<T> type, @Nullable final Action<? super T> configurationAction, final Object... constructorArgs) {
@@ -639,7 +646,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public <S extends Task> TaskCollection<S> withType(Class<S> type) {
         Instantiator instantiator = getInstantiator();
-        return Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
+        Class<S> shadowType = taskShadowingRegistry.getShadowType(type);
+        TaskCollection<S> collection = Cast.uncheckedCast(instantiator.newInstance(DefaultRealizableTaskCollection.class, shadowType, super.withType(shadowType), modelNode, instantiator));
+        return taskShadowingRegistry.maybeWrapCollection(collection, type);
     }
 
     @Deprecated
@@ -901,4 +910,29 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     }
 
+    @Override
+    public TaskProvider<Task> named(String name) throws UnknownTaskException {
+        TaskProvider<Task> provider = super.named(name);
+        return taskShadowingRegistry.maybeWrapProvider(provider, Task.class);
+    }
+
+    @Override
+    public TaskProvider<Task> named(String name, Action<? super Task> configurationAction) throws UnknownTaskException {
+        TaskProvider<Task> provider = super.named(name, configurationAction);
+        return taskShadowingRegistry.maybeWrapProvider(provider, Task.class);
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> named(String name, Class<T> type) throws UnknownTaskException {
+        Class<T> shadowType = taskShadowingRegistry.getShadowType(type);
+        TaskProvider<T> provider = super.named(name, shadowType);
+        return taskShadowingRegistry.maybeWrapProvider(provider, type);
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> named(String name, Class<T> type, Action<? super T> configurationAction) throws UnknownTaskException {
+        Class<T> shadowType = taskShadowingRegistry.getShadowType(type);
+        TaskProvider<T> provider = super.named(name, shadowType, taskShadowingRegistry.maybeWrapAction(configurationAction, type));
+        return taskShadowingRegistry.maybeWrapProvider(provider, type);
+    }
 }

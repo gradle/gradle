@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Project.class)
 public class TaskInstantiator implements NamedEntityInstantiator<Task> {
@@ -39,5 +40,9 @@ public class TaskInstantiator implements NamedEntityInstantiator<Task> {
     @Override
     public <S extends Task> S create(String name, Class<S> type) {
         return taskFactory.create(taskIdentityFactory.create(name, type, project), NO_PARAMS);
+    }
+
+    public <S extends Task> S create(String name, Class<S> type, @Nullable Object[] constructorArgs) {
+        return taskFactory.create(taskIdentityFactory.create(name, type, project), constructorArgs);
     }
 }
