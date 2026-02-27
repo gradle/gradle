@@ -53,6 +53,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.orFailWith
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import org.gradle.features.internal.binding.ProjectFeatureApplicator
+import org.gradle.features.internal.binding.ProjectFeatureBindingDeclaration
 import org.gradle.features.internal.binding.ProjectFeatureImplementation
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import org.gradle.features.internal.binding.TargetTypeInformationChecks
@@ -114,7 +115,7 @@ class ProjectFeatureComponent(
                 (bindingToDefinition.values + bindingByModelType.values).flatten().map {
                     TypeDiscovery.DiscoveredClass(
                         it.definitionPublicType.kotlin,
-                        TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("project feature definition")
+                        TypeDiscovery.DiscoveredClass.DiscoveryTag.ProjectFeatureDefinition(it.projectFeatureOriginMetadata())
                     )
                 }
             }
@@ -218,19 +219,22 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
                 definitionType,
                 FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
             ),
-            metadata = listOf(DefaultProjectFeatureOrigin(
-                delegate.featureName,
-                delegate.pluginClass.name,
-                delegate.registeringPluginClass.name,
-                delegate.registeringPluginId,
-                (delegate.targetDefinitionType as? DefinitionTargetTypeInformation)?.definitionType?.name,
-                (delegate.targetDefinitionType as? BuildModelTargetTypeInformation<*>)?.buildModelType?.name,
-            ))
+            metadata = listOf(projectFeatureOriginMetadata())
         ).let(::schemaResult)
     }
 
     private fun softwareConfiguringFunctionTag(name: String) = SchemaBuildingContextElement.TagContextElement("configuring function for '$name' project feature")
 }
+
+private fun ProjectFeatureInfo<*, *>.projectFeatureOriginMetadata(): DefaultProjectFeatureOrigin = DefaultProjectFeatureOrigin(
+    delegate.featureName,
+    delegate.pluginClass.name,
+    delegate.registeringPluginClass.name,
+    delegate.registeringPluginId,
+    (delegate.targetDefinitionType as? DefinitionTargetTypeInformation)?.definitionType?.name,
+    (delegate.targetDefinitionType as? BuildModelTargetTypeInformation<*>)?.buildModelType?.name,
+    delegate.definitionSafety == ProjectFeatureBindingDeclaration.Safety.SAFE
+)
 
 
 private

@@ -560,6 +560,8 @@ class DataSchemaBuilder(
         private
         val properties = mutableMapOf<KClass<*>, MutableMap<String, DataProperty>>()
 
+        val discoveryTagsByClass by lazy { allDiscoveredTypes.groupBy({ it.kClass }, { it.discoveryTag }) }
+
         private val mutableSyntheticTypes = mutableMapOf<String, DataClass>()
 
         fun getOrRegisterSyntheticType(id: String, produceType: () -> DataClass): DataClass =
@@ -677,7 +679,7 @@ class DataSchemaBuilder(
         when {
             isEnum(kClass) -> {
                 val entryNames = (kClass as KClass<Enum<*>>).java.enumConstants.map { it.name }
-                DefaultEnumClass(kClass.fqName, kClass.java.name, entryNames)
+                DefaultEnumClass(kClass.fqName, kClass.java.name, entryNames, emptyList())
             }
 
             else -> {
@@ -697,7 +699,8 @@ class DataSchemaBuilder(
                         }
                     }
                 }
-                DefaultDataClass(kClass.fqName, kClass.java.name, listOf(), supertypesOf(kClass), properties, functions, emptyList())
+                val metadata = preIndex.discoveryTagsByClass[kClass].orEmpty().mapNotNull { (it as? DiscoveredClass.DiscoveryTag.ProjectFeatureDefinition)?.featureData }
+                DefaultDataClass(kClass.fqName, kClass.java.name, listOf(), supertypesOf(kClass), properties, functions, emptyList(), metadata)
             }
         }
     }

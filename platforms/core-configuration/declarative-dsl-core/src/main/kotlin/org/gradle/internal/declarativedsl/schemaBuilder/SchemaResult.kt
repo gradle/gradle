@@ -199,5 +199,6 @@ private fun discoveryTagDescription(tag: DiscoveryTag, violatingClass: KClass<*>
         "in the supertypes of '${tag.ofType.qualifiedName}'"
 
     is UsedInMember -> "referenced from member '${tag.member}'"
+    is DiscoveryTag.ProjectFeatureDefinition -> "definition of project feature '${tag.featureData.featureName}'"
     is Special -> tag.description
 }
