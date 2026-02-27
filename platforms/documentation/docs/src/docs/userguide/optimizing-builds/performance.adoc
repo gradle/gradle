@@ -620,6 +620,15 @@ If a build file or initialization script lowers these values, Gradle queries rep
 When you don't need the absolute latest release of a dependency every time you build, consider
 removing the custom values for these settings.
 
+Note that when cached dynamic versions expire, this will invalidate Configuration Cache entries including these confgurations, as Gradle will need to re-run the configuration phase and re-resolve the dependencies.
+
+When this happens it is indicated with a message in the build output:
+
+[source,text]
+----
+Calculating task graph as configuration cache cannot be reused because cached version information for org.test:projectA:1.+ has expired.
+----
+
 ==== Find dynamic and changing versions with Build Scan
 
 To locate dynamic dependencies, use a Build Scan:
