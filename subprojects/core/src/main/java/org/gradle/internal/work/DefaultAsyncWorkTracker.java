@@ -19,6 +19,7 @@ package org.gradle.internal.work;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
+import org.gradle.internal.Factories;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.util.internal.CollectionUtils;
@@ -123,23 +124,25 @@ public class DefaultAsyncWorkTracker implements AsyncWorkTracker {
 
     private void waitForItemsAndGatherFailures(Iterable<AsyncWorkCompletion> workItems) {
         // Release worker lease while waiting
-        workerLeaseService.withoutLock(workerLeaseService.getCurrentWorkerLease(), () -> {
-            final List<Throwable> failures = new ArrayList<>();
-            for (AsyncWorkCompletion item : workItems) {
-                try {
-                    item.waitForCompletion();
-                } catch (Throwable t) {
-                    if (Thread.currentThread().isInterrupted()) {
-                        cancel(workItems);
+        workerLeaseService.whileDisallowingProjectLockChanges(Factories.toFactory(() ->
+            workerLeaseService.blocking(() -> {
+                final List<Throwable> failures = new ArrayList<>();
+                for (AsyncWorkCompletion item : workItems) {
+                    try {
+                        item.waitForCompletion();
+                    } catch (Throwable t) {
+                        if (Thread.currentThread().isInterrupted()) {
+                            cancel(workItems);
+                        }
+                        failures.add(t);
                     }
-                    failures.add(t);
                 }
-            }
 
-            if (failures.size() > 0) {
-                throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
-            }
-        });
+                if (failures.size() > 0) {
+                    throw new DefaultMultiCauseException("There were failures while executing asynchronous work:", failures);
+                }
+            })
+        ));
     }
 
     private void cancel(Iterable<AsyncWorkCompletion> workItems) {

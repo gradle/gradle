@@ -19,6 +19,7 @@ package org.gradle.internal.work;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Allows a thread to enlist in resource locking, for example to lock the mutable state of a project.
@@ -77,4 +78,11 @@ public interface WorkerThreadRegistry {
      * Returns {@code true} when this thread is enlisted in resource locking.
      */
     boolean isWorkerThread();
+
+    /**
+     * Set the owning thread pool for the current thread. This will be notified for blocking actions to allow the thread pool to expand if necessary.
+     *
+     * @param threadPool the thread pool that owns the current thread
+     */
+    void setOwningThreadPool(@Nullable WorkerThreadPool threadPool);
 }
