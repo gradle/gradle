@@ -110,7 +110,7 @@ public class PluginResolutionResult {
 
         String message = sb.toString();
         Exception exception = new UnknownPluginException(message);
-        throw new LocationAwareException(exception, request.getScriptDisplayName(), request.getLineNumber());
+        throw new LocationAwareException(exception, null, request.getScriptDisplayName(), request.getLineNumber());
     }
 
     public List<NotFound> getNotFound() {

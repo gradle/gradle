@@ -228,7 +228,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
     def "visitor visits location"() {
         ExceptionContextVisitor visitor = Mock()
         def cause = new RuntimeException()
-        def e = new LocationAwareException(cause, "location", 42)
+        def e = new LocationAwareException(cause, null, "location", 42)
 
         when:
         visit(e, visitor)
@@ -236,7 +236,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         then:
         1 * visitor.visitCause(isFailureFor(cause))
         1 * visitor.endVisiting()
-        1 * visitor.visitLocation("Location line: 42")
+        1 * visitor.visitLocationException(e)
         0 * visitor._
 
         and:
