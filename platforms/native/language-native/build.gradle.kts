@@ -19,7 +19,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.persistentCache)
-    api(projects.platformBase)
+    implementation(projects.platformBase)
     api(projects.platformNative)
     api(projects.scopedPersistentCache)
     api(projects.serialization)

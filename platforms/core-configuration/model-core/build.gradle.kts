@@ -69,9 +69,7 @@ dependencies {
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(projects.distributionsNative) {
-        because("ModelRuleCachingIntegrationTest requires a rules implementation")
-    }
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     jmhImplementation(platform(projects.distributionsDependencies))
 }
