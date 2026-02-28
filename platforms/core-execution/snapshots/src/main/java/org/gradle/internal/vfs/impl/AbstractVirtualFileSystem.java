@@ -56,8 +56,10 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     protected void updateRootUnderLock(UnaryOperator<SnapshotHierarchy> updateFunction) {
-        SnapshotHierarchy currentRoot = root;
-        root = updateFunction.apply(currentRoot);
+        underLock(() -> {
+            SnapshotHierarchy currentRoot = root;
+            root = updateFunction.apply(currentRoot);
+        });
     }
 
     @Override
