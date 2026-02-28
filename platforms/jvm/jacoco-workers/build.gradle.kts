@@ -5,10 +5,12 @@ plugins {
 description = "Implements logic for generating jacoco reports"
 
 dependencies {
+    api(projects.ant)
     api(projects.antWorker)
     api(projects.baseServices)
-    api(projects.core)
     api(projects.coreApi)
+
+    runtimeOnly(projects.core)
     api(projects.internalInstrumentationApi)
     api(libs.jspecify)
 
