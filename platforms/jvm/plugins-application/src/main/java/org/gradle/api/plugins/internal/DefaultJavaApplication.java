@@ -20,21 +20,16 @@ import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaApplication;
-import org.gradle.api.provider.Property;
 
 import java.util.ArrayList;
 
-public class DefaultJavaApplication implements JavaApplication {
-    private final Property<String> mainModule;
+public abstract class DefaultJavaApplication implements JavaApplication {
     private String applicationName;
-    private Property<String> mainClass;
     private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
     private String executableDirectory = "bin";
     private CopySpec applicationDistribution;
 
     public DefaultJavaApplication(ObjectFactory objectFactory, Project project) {
-        this.mainModule = objectFactory.property(String.class);
-        this.mainClass = objectFactory.property(String.class);
         this.applicationDistribution = project.copySpec();
     }
 
@@ -46,16 +41,6 @@ public class DefaultJavaApplication implements JavaApplication {
     @Override
     public void setApplicationName(String applicationName) {
         this.applicationName = applicationName;
-    }
-
-    @Override
-    public Property<String> getMainModule() {
-        return mainModule;
-    }
-
-    @Override
-    public Property<String> getMainClass() {
-        return mainClass;
     }
 
     @Override

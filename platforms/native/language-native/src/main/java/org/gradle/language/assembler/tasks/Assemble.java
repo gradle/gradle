@@ -19,7 +19,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
@@ -59,23 +58,18 @@ import java.util.concurrent.Callable;
 public abstract class Assemble extends DefaultTask {
     private ConfigurableFileCollection source;
     private ConfigurableFileCollection includes;
-    private final Property<NativePlatform> targetPlatform;
-    private final Property<NativeToolChain> toolChain;
     private File objectFileDir;
     private List<String> assemblerArgs;
 
     @Inject
     public Assemble() {
-        ObjectFactory objectFactory = getProject().getObjects();
         source = getProject().files();
         includes = getProject().files();
-        this.targetPlatform = objectFactory.property(NativePlatform.class);
-        this.toolChain = objectFactory.property(NativeToolChain.class);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
-                NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
-                NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
+                NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) getToolChain().get();
+                NativePlatformInternal nativePlatform = (NativePlatformInternal) getTargetPlatform().get();
                 return NativeToolChainInternal.Identifier.identify(nativeToolChain, nativePlatform);
             }
         });
@@ -106,8 +100,8 @@ public abstract class Assemble extends DefaultTask {
         spec.args(getAssemblerArgs());
         spec.setOperationLogger(operationLogger);
 
-        NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
-        NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
+        NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) getToolChain().get();
+        NativePlatformInternal nativePlatform = (NativePlatformInternal) getTargetPlatform().get();
         Compiler<AssembleSpec> compiler = nativeToolChain.select(nativePlatform).newCompiler(AssembleSpec.class);
         WorkResult result = BuildOperationLoggingCompilerDecorator.wrap(compiler).execute(spec);
         setDidWork(result.getDidWork() || cleanedOutputs);
@@ -146,9 +140,7 @@ public abstract class Assemble extends DefaultTask {
      * @since 4.7
      */
     @Internal
-    public Property<NativeToolChain> getToolChain() {
-        return toolChain;
-    }
+    public abstract Property<NativeToolChain> getToolChain();
 
     /**
      * The platform being compiled for.
@@ -156,9 +148,7 @@ public abstract class Assemble extends DefaultTask {
      * @since 4.7
      */
     @Nested
-    public Property<NativePlatform> getTargetPlatform() {
-        return targetPlatform;
-    }
+    public abstract Property<NativePlatform> getTargetPlatform();
 
     /**
      * The directory where object files will be generated.

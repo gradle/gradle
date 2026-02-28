@@ -125,7 +125,6 @@ public abstract class Javadoc extends SourceTask {
 
     @Nullable
     private String executable;
-    private final Property<JavadocTool> javadocTool;
 
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -136,8 +135,8 @@ public abstract class Javadoc extends SourceTask {
             .provider(() -> JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, propertyFactory))
             .flatMap(javaToolchainService::javadocToolFor)
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
-        this.javadocTool = propertyFactory.property(JavadocTool.class).convention(javadocToolConvention);
-        this.javadocTool.finalizeValueOnRead();
+        getJavadocTool().convention(javadocToolConvention);
+        getJavadocTool().finalizeValueOnRead();
     }
 
     @TaskAction
@@ -238,9 +237,7 @@ public abstract class Javadoc extends SourceTask {
      * @since 6.7
      */
     @Nested
-    public Property<JavadocTool> getJavadocTool() {
-        return javadocTool;
-    }
+    public abstract Property<JavadocTool> getJavadocTool();
 
     /**
      * <p>Returns the directory to generate the documentation into.</p>

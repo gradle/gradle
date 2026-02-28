@@ -24,7 +24,6 @@ import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -53,15 +52,9 @@ import java.nio.charset.Charset;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InstallXCTestBundle extends DefaultTask {
-    private final DirectoryProperty installDirectory;
-    private final RegularFileProperty bundleBinaryFile;
-
     public InstallXCTestBundle() {
-        ObjectFactory objectFactory = getProject().getObjects();
-        installDirectory = objectFactory.directoryProperty();
-        bundleBinaryFile = objectFactory.fileProperty();
         // A work around for not being able to skip the task when an input _file_ does not exist
-        dependsOn(bundleBinaryFile);
+        dependsOn(getBundleBinaryFile());
     }
 
     @Inject
@@ -75,8 +68,8 @@ public abstract class InstallXCTestBundle extends DefaultTask {
 
     @TaskAction
     protected void install() throws IOException {
-        File bundleFile = bundleBinaryFile.get().getAsFile();
-        File bundleDir = installDirectory.get().file(bundleFile.getName() + ".xctest").getAsFile();
+        File bundleFile = getBundleBinaryFile().get().getAsFile();
+        File bundleDir = getInstallDirectory().get().file(bundleFile.getName() + ".xctest").getAsFile();
         installToDir(bundleDir, bundleFile);
 
         File runScript = getRunScriptFile().get().getAsFile();
@@ -124,16 +117,14 @@ public abstract class InstallXCTestBundle extends DefaultTask {
      */
     @Internal
     public Provider<RegularFile> getRunScriptFile() {
-        return installDirectory.file(bundleBinaryFile.getLocationOnly().map(SerializableLambdas.transformer(file -> FilenameUtils.removeExtension(file.getAsFile().getName()))));
+        return getInstallDirectory().file(getBundleBinaryFile().getLocationOnly().map(SerializableLambdas.transformer(file -> FilenameUtils.removeExtension(file.getAsFile().getName()))));
     }
 
     /**
      * Returns the bundle binary file property.
      */
     @Internal("covered by getBundleBinary()")
-    public RegularFileProperty getBundleBinaryFile() {
-        return bundleBinaryFile;
-    }
+    public abstract RegularFileProperty getBundleBinaryFile();
 
     @SkipWhenEmpty
     @Nullable
@@ -153,9 +144,7 @@ public abstract class InstallXCTestBundle extends DefaultTask {
      * Returns the install directory property.
      */
     @OutputDirectory
-    public DirectoryProperty getInstallDirectory() {
-        return installDirectory;
-    }
+    public abstract DirectoryProperty getInstallDirectory();
 
     @Inject
     protected abstract ExecOperations getExecOperations();
