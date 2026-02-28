@@ -147,6 +147,7 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
         }
         if (!validationErrors.isEmpty()) {
             throw new LocationAwareException(new IllegalArgumentException(String.join("\n", validationErrors)),
+                scriptPlugin.getBodySource().getFileName(),
                 scriptPlugin.getBodySource().getResource().getLocation().getDisplayName(),
                 pluginRequests.iterator().next().getLineNumber());
         }

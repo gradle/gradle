@@ -46,10 +46,8 @@ public class ContextAwareExceptionHandler {
         }
         visitor.endVisiting();
         if (contextAwareException.getOriginal() instanceof LocationAwareException) {
-            String location = ((LocationAwareException) contextAwareException.getOriginal()).getLocation();
-            if (location != null) {
-                visitor.visitLocation(location);
-            }
+            LocationAwareException original = (LocationAwareException) contextAwareException.getOriginal();
+            visitor.visitLocationException(original);
         }
     }
 

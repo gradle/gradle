@@ -40,7 +40,7 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
 
         val reports = buildEditorReportsFor(
             script,
-            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, 3)),
+            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, script.canonicalPath, 3)),
             true
         )
 
@@ -59,7 +59,7 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
 
         val reports = buildEditorReportsFor(
             script,
-            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, 3)),
+            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, script.canonicalPath, 3)),
             true
         )
 
@@ -80,8 +80,8 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
         val reports = buildEditorReportsFor(
             script,
             listOf(
-                LocationAwareException(java.lang.Exception(null as String?), script.canonicalPath, 1),
-                LocationAwareException(java.lang.Exception(""), script.canonicalPath, 2)
+                LocationAwareException(java.lang.Exception(null as String?), script.canonicalPath, script.canonicalPath, 1),
+                LocationAwareException(java.lang.Exception(""), script.canonicalPath, script.canonicalPath, 2)
             ),
             true
         )

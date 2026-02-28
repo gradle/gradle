@@ -163,7 +163,7 @@ $GET_HELP
     }
 
     def reportsLocationAwareException() {
-        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE, new RuntimeException("<cause>")), LOCATION, 42)
+        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE, new RuntimeException("<cause>")), null, LOCATION, 42)
 
         expect:
         reporter.buildFinished(failure(exception))
@@ -186,7 +186,7 @@ $GET_HELP
     }
 
     def reportsLocationAwareExceptionWithNoMessage() {
-        Throwable exception = new LocationAwareException(new RuntimeException(new IOException()), LOCATION, 42)
+        Throwable exception = new LocationAwareException(new RuntimeException(new IOException()), null, LOCATION, 42)
 
         expect:
         reporter.buildFinished(failure(exception))
@@ -209,7 +209,7 @@ $GET_HELP
     }
 
     def reportsLocationAwareExceptionWithMultipleCauses() {
-        Throwable exception = new LocationAwareException(new DefaultMultiCauseException(MESSAGE, new RuntimeException("<cause1>"), new RuntimeException("<cause2>")), LOCATION, 42)
+        Throwable exception = new LocationAwareException(new DefaultMultiCauseException(MESSAGE, new RuntimeException("<cause1>"), new RuntimeException("<cause2>")), null, LOCATION, 42)
 
         expect:
         reporter.buildFinished(failure(exception))
@@ -235,7 +235,7 @@ $GET_HELP
     def reportsLocationAwareExceptionWithMultipleNestedCauses() {
         def cause1 = new DefaultMultiCauseException("<cause1>", new RuntimeException("<cause1.1>"), new RuntimeException("<cause1.2>"))
         def cause2 = new DefaultMultiCauseException("<cause2>", new RuntimeException("<cause2.1>"))
-        Throwable exception = new LocationAwareException(new DefaultMultiCauseException(MESSAGE, cause1, cause2), LOCATION, 42)
+        Throwable exception = new LocationAwareException(new DefaultMultiCauseException(MESSAGE, cause1, cause2), null, LOCATION, 42)
 
         expect:
         reporter.buildFinished(failure(exception))
@@ -262,7 +262,7 @@ $GET_HELP
     }
 
     def reportsLocationAwareExceptionWhenCauseHasNoMessage() {
-        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE, new RuntimeException()), LOCATION, 42)
+        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE, new RuntimeException()), null, LOCATION, 42)
 
         expect:
         reporter.buildFinished(failure(exception))
@@ -287,7 +287,7 @@ $GET_HELP
     def showsStacktraceOfCauseOfLocationAwareException() {
         configuration.showStacktrace = ShowStacktrace.ALWAYS
 
-        Throwable exception = new LocationAwareException(new GradleException(MESSAGE, new GradleException(FAILURE)), LOCATION, 42)
+        Throwable exception = new LocationAwareException(new GradleException(MESSAGE, new GradleException(FAILURE)), null, LOCATION, 42)
 
         expect:
         reporter.buildFinished(failure(exception))
@@ -315,8 +315,8 @@ Caused by: org.gradle.api.GradleException: $FAILURE
     }
 
     def "report multiple failures and skip help link for NonGradleCauseException"() {
-        def failure1 = new LocationAwareException(new TaskExecutionException(null, new TestNonGradleCauseException()), LOCATION, 42)
-        def failure2 = new LocationAwareException(new TaskExecutionException(null, new TestCompilationFailureException()), LOCATION, 42)
+        def failure1 = new LocationAwareException(new TaskExecutionException(null, new TestNonGradleCauseException()), null, LOCATION, 42)
+        def failure2 = new LocationAwareException(new TaskExecutionException(null, new TestCompilationFailureException()), null, LOCATION, 42)
         def failure3 = new RuntimeException("<error>")
         Throwable exception = new MultipleBuildFailures([failure1, failure2, failure3])
 
@@ -595,6 +595,119 @@ $GET_HELP
 """
     }
     // endregion Duplicate Exception Branch Filtering
+
+    def "appends clickable URI when path needs encoding"() {
+        given:
+        def path = new File(File.separator + "path" + File.separator + pathSegment + File.separator + "build.gradle")
+        def displayName = "build file '${path.absolutePath}'"
+        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE, new RuntimeException("<cause>")), path.absolutePath, displayName, 42)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        output.value.contains("* Where:")
+        output.value.contains("Build file '${path.absolutePath}' line: 42")
+        output.value.contains("  " + BuildExceptionReporter.formatClickableLink(path.absolutePath, 42))
+
+        where:
+        description        | pathSegment
+        "space"            | "dir with spaces"
+        "unicode"          | "dïr"
+        "hash"             | "dir#name"
+        "percent"          | "dir%name"
+        "square bracket"   | "dir[0]"
+    }
+
+    def "does not append clickable URI when path needs no encoding"() {
+        def normalPath = new File(File.separator + "path" + File.separator + "to" + File.separator + "build.gradle")
+        def locationNormal = "build file '${normalPath.absolutePath}'"
+        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE), normalPath.absolutePath, locationNormal, 42)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+
+        output.value.contains("Build file '${normalPath.absolutePath}' line: 42")
+        !output.value.contains("file:")
+    }
+
+    def "does not append clickable URI when source path is null"() {
+        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE), null, LOCATION, 42)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+
+        !output.value.contains("file:")
+    }
+
+    def "reports location when sourcePath is null but sourceDisplayName is present"() {
+        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE), null, LOCATION, 42)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        output.value.contains("* Where:")
+        output.value.contains("$LOCATION line: 42")
+        !output.value.contains("Clickable link:")
+    }
+
+    def "reports null location when sourceDisplayName is null but sourcePath is present"() {
+        def normalPath = new File(File.separator + "path" + File.separator + "to" + File.separator + "build.gradle")
+        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE), normalPath.absolutePath, null, 42)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        // When sourceDisplayName is null, getLocation() returns null, which gets printed as "null"
+        output.value.contains("* Where:")
+        output.value.contains("null")
+        output.value.contains("* What went wrong:")
+        output.value.contains(MESSAGE)
+        !output.value.contains("Clickable link:")
+    }
+
+    def "reports null location when both sourcePath and sourceDisplayName are null"() {
+        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE), null, null, 42)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        // When both are null, getLocation() returns null, which gets printed as "null"
+        output.value.contains("* Where:")
+        output.value.contains("null")
+        output.value.contains("* What went wrong:")
+        output.value.contains(MESSAGE)
+        !output.value.contains("Clickable link:")
+    }
+
+    def "includes line number in clickable URI when path needs encoding"() {
+        given:
+        def path = new File(File.separator + "path" + File.separator + pathSegment + File.separator + "build.gradle")
+        def displayName = "build file '${path.absolutePath}'"
+        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE), path.absolutePath, displayName, 100)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        output.value.contains("Build file '${path.absolutePath}' line: 100")
+        output.value.contains("  " + BuildExceptionReporter.formatClickableLink(path.absolutePath, 100))
+
+        where:
+        description        | pathSegment
+        "space"            | "dir with spaces"
+        "unicode"          | "dïr"
+        "hash"             | "dir#name"
+        "percent"          | "dir%name"
+        "square bracket"   | "dir[0]"
+    }
+
+    def "does not include line number in clickable URI when line number is null"() {
+        def pathWithSpaces = new File(File.separator + "path" + File.separator + "with spaces" + File.separator + "build.gradle")
+        def locationWithSpaces = "build file '${pathWithSpaces.absolutePath}'"
+        Throwable exception = new LocationAwareException(new RuntimeException(MESSAGE), pathWithSpaces.absolutePath, locationWithSpaces, null)
+
+        expect:
+        reporter.buildFinished(failure(exception))
+        output.value.contains("Build file '${pathWithSpaces.absolutePath}'")
+        def expectedLink = BuildExceptionReporter.formatClickableLink(pathWithSpaces.absolutePath, null)
+        output.value.contains("  " + expectedLink)
+        !output.value.contains(":null")
+    }
+
     def failure(Throwable failure) {
         failureFactory.create(failure)
     }
