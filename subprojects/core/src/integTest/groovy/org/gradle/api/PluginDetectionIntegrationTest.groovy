@@ -17,7 +17,6 @@ package org.gradle.api
 
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
 
@@ -66,7 +65,6 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         detectedBy << JAVA_PLUGIN_IDS + JAVA_PLUGIN_IDS.reverse()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "unqualified ids from classpath are detectable"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")
@@ -74,11 +72,37 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         pluginBuilder.publishTo(executer, file("plugin.jar"))
 
         buildFile << """
+            import org.gradle.api.services.BuildServiceParameters
+
+            // wrapping loader into a service to ensure it is closed after the build and it's CC-compatible
+            public abstract class LoaderService implements BuildService<LoaderService.Params>, AutoCloseable {
+                interface Params extends BuildServiceParameters {
+                    RegularFileProperty getPluginJar()
+                }
+
+                private final URLClassLoader loader;
+
+                public LoaderService() throws URISyntaxException {
+                    loader = new URLClassLoader([getParameters().getPluginJar().get().asFile.toURL()] as URL[], getClass().getClassLoader());
+                }
+
+                public URLClassLoader getLoader() {
+                    return loader;
+                }
+
+                @Override
+                public void close() {
+                    loader.close();
+                }
+            }
+
             def operations = []
 
-            def loader = new URLClassLoader([file("plugin.jar").toURL()] as URL[], getClass().classLoader)
-            def pluginClass = loader.loadClass("${pluginBuilder.packageName}.TestPlugin")
-            def ruleSourceClass = loader.loadClass("${pluginBuilder.packageName}.TestRuleSource")
+            def loaderService = gradle.sharedServices.registerIfAbsent("loader", LoaderService){
+                getParameters().pluginJar.set(file("plugin.jar"))
+            }.get()
+            def pluginClass = loaderService.getLoader().loadClass("${pluginBuilder.packageName}.TestPlugin")
+            def ruleSourceClass = loaderService.getLoader().loadClass("${pluginBuilder.packageName}.TestRuleSource")
 
             plugins.withType(pluginClass) {
                 operations << 'withType'
@@ -100,8 +124,6 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
             operations << "applied"
 
             task verify { doLast { assert operations == ['applying', 'withType', 'withId', 'withPlugin', 'applied'] } }
-
-            gradle.buildFinished { loader.close() }
         """
 
         expect:
