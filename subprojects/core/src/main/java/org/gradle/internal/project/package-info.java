@@ -14,31 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
-
-import org.gradle.api.initialization.ProjectDescriptor;
-import org.gradle.util.Path;
-import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
-
-/**
- * Internal counterpart of {@link ProjectDescriptor}.
- */
-public interface ProjectDescriptorInternal extends ProjectDescriptor {
-
-    Path absolutePath(String path);
-
-    boolean isExplicitName();
-
-    @Override
-    @Nullable
-    ProjectDescriptorInternal getParent();
-
-    Set<ProjectDescriptorInternal> children();
-
-    void setPath(Path path);
-
-    Path path();
-
-}
+@org.jspecify.annotations.NullMarked
+package org.gradle.internal.project;

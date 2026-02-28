@@ -23,7 +23,6 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
@@ -44,6 +43,7 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
+import org.gradle.internal.project.ImmutableProjectDescriptor
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -319,8 +319,8 @@ class DefaultProjectSpec extends Specification {
         _ * container.displayName >> Describables.of(name)
         _ * container.identity >> identity
 
-        def descriptor = Mock(ProjectDescriptor) {
-            getName() >> name
+        def descriptor = Mock(ImmutableProjectDescriptor) {
+            getIdentity() >> identity
             getProjectDir() >> new File("project")
             getBuildFile() >> new File("build file")
         }
