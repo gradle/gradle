@@ -197,8 +197,8 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
-    public boolean areChangesDisallowed() {
-        return ((DomainObjectCollectionInternal<T>) delegate).areChangesDisallowed();
+    public boolean areChangesAllowed() {
+        return ((DomainObjectCollectionInternal<T>) delegate).areChangesAllowed();
     }
 
     @Internal

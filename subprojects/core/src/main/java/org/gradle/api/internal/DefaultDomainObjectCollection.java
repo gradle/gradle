@@ -500,8 +500,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     @Override
-    public boolean areChangesDisallowed() {
-        return changesDisallowed;
+    public boolean areChangesAllowed() {
+        return !changesDisallowed;
     }
 
     protected class IteratorImpl implements Iterator<T> {
