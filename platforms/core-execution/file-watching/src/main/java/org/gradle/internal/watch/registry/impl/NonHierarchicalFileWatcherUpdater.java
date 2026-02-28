@@ -70,8 +70,19 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
             .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
                 String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
-                decrement(previousWatchedRoot, changedWatchedDirectories);
-                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
+                //   Can cause NPE:
+                //   Root cause of the NPE:
+                //
+                //  In the new CAS-based VFS, when afterBuildStarted captures the current root via currentRoot(), a concurrent thread (e.g., the file watcher thread) can:
+                //  1. Do a CAS to remove a snapshot from the state
+                //  2. Call updateNotifyingListeners → handleVirtualFileSystemContentsChanged([snapshot], []) → removes snapshot from watchedDirectoryForSnapshot
+                //
+                //  Then afterBuildStarted's updateVfsOnBuildStarted(currentRoot, ...) processes the old captured root (which still has that snapshot), and when it invalidates it via invalidateMovedDirectoriesOnBuildStarted, it
+                //   tries to remove the snapshot from watchedDirectoryForSnapshot again — but remove() returns null. decrement(null, ...) puts a null key in the map, and new File(null) throws NPE at line 151.
+                if (previousWatchedRoot != null) {
+                    decrement(previousWatchedRoot, changedWatchedDirectories);
+                    snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
+                }
             });
         addedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)

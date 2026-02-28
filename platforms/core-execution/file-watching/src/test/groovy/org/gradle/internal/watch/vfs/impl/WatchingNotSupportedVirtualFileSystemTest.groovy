@@ -36,14 +36,14 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
         when:
         watchingNotSupportedVfs.afterBuildStarted(watchMode, VfsLogging.NORMAL, buildOperationRunner)
         then:
-        watchingNotSupportedVfs.root == emptySnapshotHierarchy
+        watchingNotSupportedVfs.currentRoot() == emptySnapshotHierarchy
 
         when:
-        watchingNotSupportedVfs.updateRootUnderLock { root -> nonEmptySnapshotHierarchy }
+        watchingNotSupportedVfs.replaceRoot(nonEmptySnapshotHierarchy)
         watchingNotSupportedVfs.beforeBuildFinished(watchMode, VfsLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         watchingNotSupportedVfs.afterBuildFinished()
         then:
-        watchingNotSupportedVfs.root == emptySnapshotHierarchy
+        watchingNotSupportedVfs.currentRoot() == emptySnapshotHierarchy
 
         where:
         watchMode << WatchMode.values().toList()
