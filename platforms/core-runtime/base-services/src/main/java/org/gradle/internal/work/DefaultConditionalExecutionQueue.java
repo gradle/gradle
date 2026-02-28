@@ -22,8 +22,6 @@ import org.gradle.internal.concurrent.ManagedExecutor;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
-import java.util.Deque;
-import java.util.LinkedList;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -34,27 +32,27 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 // TODO This class, DefaultBuildOperationQueue and ExecutionPlan have many of the same
 // behavior and concerns - we should look for a way to generalize this pattern.
-public class DefaultConditionalExecutionQueue<T> implements ConditionalExecutionQueue<T> {
+public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, ConditionalExecutionQueue<T> {
     public static final int KEEP_ALIVE_TIME_MS = 2000;
 
     private enum QueueState {
         Working, Stopped
     }
 
-    private final WorkerLimits workerLimits;
     private final WorkerLeaseService workerLeaseService;
     private final ManagedExecutor executor;
-    private final Deque<ConditionalExecution<T>> queue = new LinkedList<ConditionalExecution<T>>();
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
     private QueueState queueState = QueueState.Working;
     @GuardedBy("lock")
-    private int workerCount;
+    private final WorkerThreadPoolHelper<ConditionalExecution<T>> helper;
 
     public DefaultConditionalExecutionQueue(String displayName, WorkerLimits workerLimits, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
-        this.workerLimits = workerLimits;
         this.workerLeaseService = workerLeaseService;
         this.executor = executorFactory.create(displayName);
+        this.helper = new WorkerThreadPoolHelper<>(workerLimits, () -> {
+            Future<?> ignored = executor.submit(new ExecutionRunner());
+        });
 
         executor.setKeepAlive(KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS);
     }
@@ -67,12 +65,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
 
         lock.lock();
         try {
-            // expand the thread pool until we hit max workers
-            if (workerCount < getMaxWorkerCount()) {
-                expand(true);
-            }
-
-            queue.add(execution);
+            helper.submitWork(execution);
             workAvailable.signalAll();
         } finally {
             lock.unlock();
@@ -80,29 +73,20 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     }
 
     @Override
-    public void expand() {
-        expand(false);
-    }
-
-    private int getMaxWorkerCount() {
-        return workerLimits.getMaxWorkerCount();
-    }
-
-    /**
-     * Expanding the thread pool is necessary when work items submit other work.  We want to avoid a starvation scenario where
-     * the thread pool is full of work items that are waiting on other queued work items.  The queued work items cannot execute
-     * because the thread pool is already full with their parent work items.  We use expand() to allow the thread pool to temporarily
-     * expand when work items have to wait on other work.  The thread pool will shrink below max workers again once the queue is
-     * drained.
-     */
-    private void expand(boolean force) {
+    public void notifyBlockingWorkStarting() {
         lock.lock();
         try {
-            // Only expand the thread pool if there is work in the queue or we know that work is about to be submitted (i.e. force == true)
-            if (force || !queue.isEmpty()) {
-                Future<?> ignored = executor.submit(new ExecutionRunner());
-                workerCount++;
-            }
+            helper.notifyBlockingWorkStarting();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void notifyBlockingWorkFinished() {
+        lock.lock();
+        try {
+            helper.notifyBlockingWorkFinished();
         } finally {
             lock.unlock();
         }
@@ -127,12 +111,14 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private class ExecutionRunner implements Runnable {
         @Override
         public void run() {
+            workerLeaseService.setOwningThreadPool(DefaultConditionalExecutionQueue.this);
             try {
                 ConditionalExecution<?> operation;
                 while ((operation = waitForNextOperation()) != null) {
                     runBatch(operation);
                 }
             } finally {
+                workerLeaseService.setOwningThreadPool(null);
                 shutDown();
             }
         }
@@ -140,21 +126,17 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         private @Nullable ConditionalExecution<?> waitForNextOperation() {
             lock.lock();
             try {
-                // Wait for work to be submitted if the queue is empty and our worker count is under max workers
-                // This attempts to keep up to max workers threads alive once they've been started.
-                while (queueState == QueueState.Working && queue.isEmpty() && workerCount <= getMaxWorkerCount()) {
+                while (queueState == QueueState.Working && helper.shouldWorkerKeepWaiting()) {
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
-
+                return helper.pollWork();
             } finally {
                 lock.unlock();
             }
-
-            return getReadyExecution();
         }
 
         /**
@@ -167,23 +149,16 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
                     ConditionalExecution<?> operation = firstOperation;
                     while (operation != null) {
                         runExecution(operation);
-                        operation = getReadyExecution();
+
+                        lock.lock();
+                        try {
+                            operation = helper.pollWork();
+                        } finally {
+                            lock.unlock();
+                        }
                     }
                 }
             });
-        }
-
-        /**
-         * Gets the next ConditionalExecution object that is ready to be executed.
-         */
-        @Nullable
-        private ConditionalExecution<?> getReadyExecution() {
-            lock.lock();
-            try {
-                return queue.pollFirst();
-            } finally {
-                lock.unlock();
-            }
         }
 
         /**
@@ -200,7 +175,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         private void shutDown() {
             lock.lock();
             try {
-                workerCount--;
+                helper.notifyWorkerFinished();
             } finally {
                 lock.unlock();
             }

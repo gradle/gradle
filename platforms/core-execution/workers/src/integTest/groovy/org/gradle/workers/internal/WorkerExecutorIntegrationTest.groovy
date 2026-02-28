@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -179,6 +180,164 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         then:
         noExceptionThrown()
+    }
+
+    def "workers that inform of blocking allow other workers to proceed when started during blocking work"() {
+        def maxWorkers = 2
+        buildFile << """
+            import java.util.concurrent.CountDownLatch
+            import java.util.concurrent.Semaphore
+            import java.util.concurrent.atomic.AtomicReference
+            import ${WorkerLeaseService.class.name}
+
+            class Coordinator {
+                static CountDownLatch blockingWorkStarted = new CountDownLatch(${maxWorkers})
+                static CountDownLatch blockingWorkBeganBlocking = new CountDownLatch(${maxWorkers})
+                static CountDownLatch unblockingWorkStarted = new CountDownLatch(1)
+                static AtomicReference<WorkerLeaseService> workerLeaseService = new AtomicReference<>()
+            }
+
+            Coordinator.workerLeaseService.set(gradle.services.get(WorkerLeaseService))
+
+            abstract class TaskUnderTest extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                def go() {
+                    logger.lifecycle("Submitting blocking work.")
+                    for (int i = 0; i < ${maxWorkers}; i++) {
+                        workerExecutor.noIsolation().submit(BlockingWork) {
+                        }
+                    }
+                    logger.lifecycle("Waiting for blocking work to start.")
+                    // Wait for all blocking work to block before starting the unblocking work to ensure we have exhausted the worker pool,
+                    // and that without expanding the worker pool, the unblocking work won't be able to start.
+                    Coordinator.blockingWorkBeganBlocking.await()
+                    logger.lifecycle("Submitting unblocking work.")
+                    workerExecutor.noIsolation().submit(UnblockingWork) {
+                    }
+                    // Implicitly waits afterwards
+                    logger.lifecycle("Waiting for all work to finish.")
+                }
+            }
+
+            abstract class BlockingWork implements WorkAction<WorkParameters.None> {
+                void execute() {
+                    def workerLeaseService = Coordinator.workerLeaseService.get()
+                    System.out.println("Blocking work started.")
+                    Coordinator.blockingWorkStarted.countDown()
+                    // Await all blocking work started before blocking, to ensure we won't expand the pool before we've exhausted it.
+                    // Release worker lease while we wait, but not via "blocking" since that would expand the pool
+                    workerLeaseService.withoutLock(workerLeaseService.getCurrentWorkerLease()) {
+                        Coordinator.blockingWorkStarted.await()
+                    }
+                    workerLeaseService.blocking {
+                        System.out.println("Blocking work in blocking block.")
+                        Coordinator.blockingWorkBeganBlocking.countDown()
+                        System.out.println("Blocking work awaiting unlocking work.")
+                        Coordinator.unblockingWorkStarted.await()
+                    }
+                    System.out.println("Blocking work finished.")
+                }
+            }
+
+            abstract class UnblockingWork implements WorkAction<WorkParameters.None> {
+                void execute() {
+                    Coordinator.unblockingWorkStarted.countDown()
+                    System.out.println("Unblocking work finished.")
+                }
+            }
+
+            task run(type: TaskUnderTest)
+        """
+
+        when:
+        succeeds("run", "--max-workers=${maxWorkers}")
+
+        then:
+        noExceptionThrown()
+        output.count("Blocking work finished.") == maxWorkers
+        outputContains("Unblocking work finished.")
+    }
+
+    def "workers that inform of blocking allow other workers to proceed when started before blocking work"() {
+        def maxWorkers = 2
+        buildFile << """
+            import java.util.concurrent.CountDownLatch
+            import java.util.concurrent.Semaphore
+            import java.util.concurrent.atomic.AtomicReference
+            import ${WorkerLeaseService.class.name}
+
+            class Coordinator {
+                static CountDownLatch blockingWorkStarted = new CountDownLatch(${maxWorkers})
+                static CountDownLatch unblockingWorkSubmitted = new CountDownLatch(1)
+                static CountDownLatch unblockingWorkStarted = new CountDownLatch(1)
+                static AtomicReference<WorkerLeaseService> workerLeaseService = new AtomicReference<>()
+            }
+
+            Coordinator.workerLeaseService.set(gradle.services.get(WorkerLeaseService))
+
+            abstract class TaskUnderTest extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                def go() {
+                    logger.lifecycle("Submitting blocking work.")
+                    for (int i = 0; i < ${maxWorkers}; i++) {
+                        workerExecutor.noIsolation().submit(BlockingWork) {
+                        }
+                    }
+                    // Wait for all blocking work to block before starting the unblocking work to ensure we have exhausted the worker pool,
+                    // and that without expanding the worker pool, the unblocking work won't be able to start.
+                    Coordinator.blockingWorkStarted.await()
+                    // This work will sit in queue since the blocking work will occupy all workers
+                    // It should start as soon as the blocking work enters its blocking section.
+                    logger.lifecycle("Submitting unblocking work.")
+                    workerExecutor.noIsolation().submit(UnblockingWork) {
+                    }
+                    Coordinator.unblockingWorkSubmitted.countDown()
+                    // Implicitly waits afterwards
+                    logger.lifecycle("Waiting for all work to finish.")
+                }
+            }
+
+            abstract class BlockingWork implements WorkAction<WorkParameters.None> {
+                void execute() {
+                    def workerLeaseService = Coordinator.workerLeaseService.get()
+                    System.out.println("Blocking work started.")
+                    Coordinator.blockingWorkStarted.countDown()
+                    // Await submission of unblocking work to ensure it is waiting in the queue before we block
+                    // Run without the worker lease but not in "blocking" so we don't affect the worker pool size yet
+                    workerLeaseService.withoutLock(workerLeaseService.getCurrentWorkerLease()) {
+                        Coordinator.unblockingWorkSubmitted.await()
+                    }
+                    workerLeaseService.blocking {
+                        System.out.println("Blocking work awaiting unlocking work in blocking blocks.")
+                        Coordinator.unblockingWorkStarted.await()
+                    }
+                    System.out.println("Blocking work finished.")
+                }
+            }
+
+            abstract class UnblockingWork implements WorkAction<WorkParameters.None> {
+                void execute() {
+                    Coordinator.unblockingWorkStarted.countDown()
+                    System.out.println("Unblocking work finished.")
+                }
+            }
+
+            task run(type: TaskUnderTest)
+        """
+
+        when:
+        succeeds("run", "--max-workers=${maxWorkers}")
+
+        then:
+        noExceptionThrown()
+        output.count("Blocking work finished.") == maxWorkers
+        outputContains("Unblocking work finished.")
     }
 
     def "re-uses an existing idle worker daemon"() {
