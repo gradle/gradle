@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -35,6 +36,12 @@ public interface FileWatcherRegistry extends Closeable {
 
     interface ChangeHandler {
         void handleChange(Type type, Path path);
+
+        default void handleChangeBatch(Collection<Map.Entry<Type, Path>> changes) {
+            for (Map.Entry<Type, Path> entry : changes) {
+                handleChange(entry.getKey(), entry.getValue());
+            }
+        }
 
         void stopWatchingAfterError();
     }

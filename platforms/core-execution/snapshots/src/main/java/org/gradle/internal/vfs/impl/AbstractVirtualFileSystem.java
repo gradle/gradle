@@ -135,10 +135,10 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     /**
-     * Invalidates a single path using wrapping the diff listener via {@code listenerWrapper} so subclasses can decorate it (e.g. for logging).
+     * Invalidates multiple paths wrapping the diff listener via {@code listenerWrapper} so subclasses can decorate it (e.g. for logging).
      */
-    protected void invalidateAndNotify(String absolutePath, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {
-        doInvalidate(Collections.singletonList(absolutePath), listenerWrapper);
+    protected void invalidateAndNotify(Iterable<String> absolutePaths, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {
+        doInvalidate(absolutePaths, listenerWrapper);
     }
 
     private void doInvalidate(Iterable<String> locations, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {

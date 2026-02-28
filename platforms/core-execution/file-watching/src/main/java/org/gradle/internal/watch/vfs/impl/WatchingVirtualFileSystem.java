@@ -48,8 +48,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem, Closeable {
@@ -153,9 +156,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         } else {
                             List<String> pathsToInvalidate = watchRegistry.updateVfsOnBuildStarted(currentRoot, watchMode, unsupportedFileSystems);
                             stateInvalidatedAtStartOfBuild = !pathsToInvalidate.isEmpty();
-                            if (!pathsToInvalidate.isEmpty()) {
-                                invalidate(pathsToInvalidate);
-                            }
+                            invalidate(pathsToInvalidate);
                         }
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, currentRoot());
                         if (vfsLogging == VfsLogging.VERBOSE) {
@@ -253,9 +254,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                             // We'll clean this up further after the daemon has finished with the build, see afterBuildFinished()
                             try {
                                 List<String> pathsToInvalidate = watchRegistry.updateVfsBeforeBuildFinished(currentRoot, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
-                                if (!pathsToInvalidate.isEmpty()) {
-                                    invalidate(pathsToInvalidate);
-                                }
+                                invalidate(pathsToInvalidate);
                             } catch (Exception ex) {
                                 logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
                                 closeUnderLock();
@@ -386,6 +385,19 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         }
 
         @Override
+        public void handleChangeBatch(Collection<Map.Entry<FileWatcherRegistry.Type, Path>> changes) {
+            java.util.List<Map.Entry<FileWatcherRegistry.Type, Path>> filtered = new java.util.ArrayList<>();
+            for (Map.Entry<FileWatcherRegistry.Type, Path> entry : changes) {
+                if (locationsWrittenByCurrentBuild.shouldWatchLocation(entry.getValue().toString())) {
+                    filtered.add(entry);
+                }
+            }
+            if (!filtered.isEmpty()) {
+                delegate.handleChangeBatch(filtered);
+            }
+        }
+
+        @Override
         public void stopWatchingAfterError() {
             delegate.stopWatchingAfterError();
         }
@@ -394,7 +406,16 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private class InvalidateVfsChangeHandler implements FileWatcherRegistry.ChangeHandler {
         @Override
         public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            invalidateAndNotify(path.toString(), diffListener -> new VfsChangeLoggingNodeDiffListener(type, path, diffListener));
+            invalidateAndNotify(Collections.singletonList(path.toString()), diffListener -> new VfsChangeLoggingNodeDiffListener(type, path, diffListener));
+        }
+
+        @Override
+        public void handleChangeBatch(Collection<Map.Entry<FileWatcherRegistry.Type, Path>> changes) {
+            List<String> paths = new java.util.ArrayList<>(changes.size());
+            for (Map.Entry<FileWatcherRegistry.Type, Path> entry : changes) {
+                paths.add(entry.getValue().toString());
+            }
+            invalidateAndNotify(paths, diffListener -> new BatchVfsChangeLoggingNodeDiffListener(changes, diffListener));
         }
 
         @Override
@@ -407,6 +428,13 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         @Override
         public void handleChange(FileWatcherRegistry.Type type, Path path) {
             fileChangeListeners.broadcastChange(type, path);
+        }
+
+        @Override
+        public void handleChangeBatch(Collection<Map.Entry<FileWatcherRegistry.Type, Path>> changes) {
+            for (Map.Entry<FileWatcherRegistry.Type, Path> entry : changes) {
+                fileChangeListeners.broadcastChange(entry.getKey(), entry.getValue());
+            }
         }
 
         @Override
@@ -428,8 +456,48 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         }
 
         @Override
+        public void handleChangeBatch(Collection<Map.Entry<FileWatcherRegistry.Type, Path>> changes) {
+            handlers.forEach(handler -> handler.handleChangeBatch(changes));
+        }
+
+        @Override
         public void stopWatchingAfterError() {
             handlers.forEach(FileWatcherRegistry.ChangeHandler::stopWatchingAfterError);
+        }
+    }
+
+    private static class BatchVfsChangeLoggingNodeDiffListener implements SnapshotHierarchy.NodeDiffListener {
+        private final Collection<Map.Entry<FileWatcherRegistry.Type, Path>> changes;
+        private final SnapshotHierarchy.NodeDiffListener delegate;
+        private boolean alreadyLogged;
+
+        public BatchVfsChangeLoggingNodeDiffListener(Collection<Map.Entry<FileWatcherRegistry.Type, Path>> changes, SnapshotHierarchy.NodeDiffListener delegate) {
+            this.changes = changes;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void nodeRemoved(FileSystemNode node) {
+            maybeLogVfsChangeMessage();
+            delegate.nodeRemoved(node);
+        }
+
+        @Override
+        public void nodeAdded(FileSystemNode node) {
+            maybeLogVfsChangeMessage();
+            delegate.nodeAdded(node);
+        }
+
+        private void maybeLogVfsChangeMessage() {
+            if (!alreadyLogged) {
+                alreadyLogged = true;
+                if (changes.size() == 1) {
+                    Map.Entry<FileWatcherRegistry.Type, Path> first = changes.iterator().next();
+                    LOGGER.debug("Handling VFS change {} {}", first.getKey(), first.getValue());
+                } else {
+                    LOGGER.debug("Handling {} VFS changes", changes.size());
+                }
+            }
         }
     }
 
