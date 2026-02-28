@@ -40,7 +40,7 @@ public class PartialDirectoryNode extends AbstractIncompleteFileSystemNode {
 
     @Override
     protected Optional<FileSystemNode> withAllChildrenRemoved() {
-        return Optional.of(children.isEmpty() ? this : withoutKnownChildren());
+        return Optional.of(this);
     }
 
     @Override
