@@ -203,4 +203,38 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      */
     @Deprecated
     Collection<T> findAll(Closure spec);
+
+    /**
+     * Disallows further structural modifications to this collection.
+     *
+     * <p>After this method is called, any attempt to add or remove elements — including
+     * via {@link #add}, {@link #addLater}, {@link #addAllLater}, {@link #remove},
+     * {@link #clear}, etc. — will throw {@link IllegalStateException}.</p>
+     *
+     * <p>This method does <em>not</em> force the realization of any pending (lazy) elements.
+     * Pending elements registered via {@link #addLater} or {@link NamedDomainObjectContainer#register}
+     * remain lazy; they will still be realized when first accessed. This method only
+     * prevents new elements from being added or existing elements from being removed.</p>
+     *
+     * <p>Calling this method more than once has no effect.</p>
+     *
+     * @throws IllegalStateException if called from within a lazy configuration action
+     *         (e.g., inside a {@link #configureEach} callback)
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    default void disallowChanges() {
+        throw new UnsupportedOperationException("disallowChanges() is not supported by this collection");
+    }
+
+    /**
+     * Returns {@code false} if {@link DomainObjectCollection#disallowChanges()} has been called on this collection.
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    default boolean areChangesAllowed() {
+        return true;
+    }
 }
