@@ -63,6 +63,11 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
+    public boolean isTrackingSnapshots() {
+        return true;
+    }
+
+    @Override
     protected boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
         Map<String, Integer> changedWatchedDirectories = new HashMap<>();
 

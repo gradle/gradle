@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -159,6 +158,11 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     @Override
     public boolean isWatchingAnyLocations() {
         return !fileWatcherUpdater.getWatchedFiles().isEmpty();
+    }
+
+    @Override
+    public boolean isTrackingSnapshots() {
+        return fileWatcherUpdater.isTrackingSnapshots();
     }
 
     @Override

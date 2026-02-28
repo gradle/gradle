@@ -34,6 +34,13 @@ public interface FileWatcherRegistry extends Closeable {
 
     boolean isWatchingAnyLocations();
 
+    /**
+     * Returns true if the watcher registry needs to track individual snapshots when the VFS contents change.
+     */
+    default boolean isTrackingSnapshots() {
+        return false;
+    }
+
     interface ChangeHandler {
         void handleChange(Type type, Path path);
 

@@ -97,7 +97,22 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
         if (watchRegistry == null) {
             return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
+        } else if (!watchRegistry.isTrackingSnapshots()) {
+            // Hierarchical watchers (like on Windows and macOS) do not need to track individual snapshots.
+            // When invalidating large unwatchable directories, collecting snapshots causes massive memory
+            // allocations and recursive tree walks for data that is instantly thrown away.
+            // Bypassing the collector (using NOOP) prevents these massive allocation and GC spikes.
+            SnapshotHierarchy newRoot = updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
+            try {
+                watchRegistry.virtualFileSystemContentsChanged(Collections.emptyList(), Collections.emptyList(), this::currentRoot);
+                return newRoot;
+            } catch (Exception ex) {
+                logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
+                stopWatchingAndInvalidateHierarchyAfterError();
+                return currentRoot();
+            }
         } else {
+            // Non-hierarchical watchers (like on Linux) must track every snapshot to register individual inotify watches.
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy newRoot = updateFunction.update(diffListener);
             try {

@@ -120,4 +120,11 @@ public interface FileWatcherUpdater {
      * @see FileWatcherUpdater
      */
     FileHierarchySet getWatchedFiles();
+
+    /**
+     * Returns true if the updater needs to track individual snapshots when the VFS contents change.
+     */
+    default boolean isTrackingSnapshots() {
+        return false;
+    }
 }
