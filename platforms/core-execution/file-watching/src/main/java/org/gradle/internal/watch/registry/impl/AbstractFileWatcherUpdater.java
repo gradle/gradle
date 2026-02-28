@@ -34,10 +34,13 @@ import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFileWatcherUpdater.class);
+
+    private final ReentrantLock watcherStateLock = new ReentrantLock();
 
     protected final FileWatcherProbeRegistry probeRegistry;
     protected final WatchableHierarchies watchableHierarchies;
@@ -57,19 +60,29 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
-        probeRegistry.registerProbe(watchableHierarchy);
-        update(root);
+        watcherStateLock.lock();
+        try {
+            watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
+            probeRegistry.registerProbe(watchableHierarchy);
+            update(root);
+        } finally {
+            watcherStateLock.unlock();
+        }
     }
 
     @Override
     public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode, unsupportedFileSystems);
-        newRoot = invalidateMovedDirectoriesOnBuildStarted(newRoot);
-        if (root != newRoot) {
-            update(newRoot);
+        watcherStateLock.lock();
+        try {
+            SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode, unsupportedFileSystems);
+            newRoot = invalidateMovedDirectoriesOnBuildStarted(newRoot);
+            if (root != newRoot) {
+                update(newRoot);
+            }
+            return newRoot;
+        } finally {
+            watcherStateLock.unlock();
         }
-        return newRoot;
     }
 
     @CheckReturnValue
@@ -85,9 +98,14 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
-        boolean contentsChanged = handleVirtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, root);
-        if (contentsChanged) {
-            update(root);
+        watcherStateLock.lock();
+        try {
+            boolean contentsChanged = handleVirtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, root);
+            if (contentsChanged) {
+                update(root);
+            }
+        } finally {
+            watcherStateLock.unlock();
         }
     }
 
@@ -95,31 +113,41 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentBeforeBuildFinished(
-            root,
-            watchedFiles::contains,
-            maximumNumberOfWatchedHierarchies,
-            unsupportedFileSystems,
-            createInvalidator()
-        );
+        watcherStateLock.lock();
+        try {
+            SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentBeforeBuildFinished(
+                root,
+                watchedFiles::contains,
+                maximumNumberOfWatchedHierarchies,
+                unsupportedFileSystems,
+                createInvalidator()
+            );
 
-        if (root != newRoot) {
-            update(newRoot);
+            if (root != newRoot) {
+                update(newRoot);
+            }
+            return newRoot;
+        } finally {
+            watcherStateLock.unlock();
         }
-        return newRoot;
     }
 
     @Override
     public SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root) {
-        SnapshotHierarchy newRoot = WatchableHierarchies.removeUnwatchableContentAfterBuildFinished(
-            root,
-            createInvalidator()
-        );
+        watcherStateLock.lock();
+        try {
+            SnapshotHierarchy newRoot = WatchableHierarchies.removeUnwatchableContentAfterBuildFinished(
+                root,
+                createInvalidator()
+            );
 
-        if (root != newRoot) {
-            update(newRoot);
+            if (root != newRoot) {
+                update(newRoot);
+            }
+            return newRoot;
+        } finally {
+            watcherStateLock.unlock();
         }
-        return newRoot;
     }
 
     @Override
