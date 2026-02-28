@@ -15,6 +15,7 @@ dependencies {
     api(projects.files)
     api(projects.hashing)
     api(projects.snapshots)
+    api(projects.concurrent)
 
     api(libs.jspecify)
 

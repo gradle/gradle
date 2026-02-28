@@ -143,15 +143,11 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
                 cacheableWork.getDisplayName(), cacheKey.getHashCode());
         }
         AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
-        try {
-            result.getExecution().ifSuccessfulOrElse(
-                executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
-                failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
-            );
-            return result;
-        } catch (Exception storeFailure) {
-            return new AfterExecutionResult(Result.failed(storeFailure, result.getDuration()), result.getAfterExecutionOutputState().orElse(null));
-        }
+        result.getExecution().ifSuccessfulOrElse(
+            executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
+            failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
+        );
+        return result;
     }
 
     /**
@@ -169,20 +165,11 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
     }
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
-        try {
-            buildCache.store(cacheKey, work, outputFilesProducedByWork, executionTime);
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Stored cache entry for {} with cache key {}",
-                    work.getDisplayName(), cacheKey.getHashCode());
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(
-                String.format("Failed to store cache entry %s for %s: %s",
-                    cacheKey.getHashCode(),
-                    work.getDisplayName(),
-                    e.getMessage()),
-                e);
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Scheduling async store of cache entry for {} with cache key {}",
+                work.getDisplayName(), cacheKey.getHashCode());
         }
+        buildCache.storeAsync(cacheKey, work, outputFilesProducedByWork, executionTime);
     }
 
     private AfterExecutionResult executeWithoutCache(UnitOfWork work, C context) {

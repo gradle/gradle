@@ -48,6 +48,11 @@ public class NoOpBuildCacheController implements BuildCacheController {
     }
 
     @Override
+    public void storeAsync(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+
+    }
+
+    @Override
     public void close() {
 
     }
