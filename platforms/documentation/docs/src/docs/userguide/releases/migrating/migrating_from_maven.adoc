@@ -188,6 +188,71 @@ If your Maven build does not have many plugins or custom steps, you can simply r
 once the migration has completed.
 This will run the tests and produce the required artifacts automatically.
 
+[[migmvn:custom_maven_repository]]
+=== Using a custom Maven repository
+
+If you are behind a corporate firewall and cannot access Maven Central directly, you can specify a custom Maven repository URL during the conversion process using the `--maven-repo` option:
+
+[listing.terminal]
+----
+> gradle init --maven-repo https://your-corporate-repo.company.com/maven2
+----
+
+This will configure Gradle to use your custom repository for resolving Maven dependencies during the conversion process.
+The specified repository will also be automatically added to the generated Gradle build files, ensuring that your build can resolve dependencies using the same repository.
+
+[[migmvn:maven_settings_xml]]
+=== Automatic repository detection from Maven settings.xml
+
+Gradle automatically detects and uses repositories configured in your Maven settings files:
+
+* **User settings**: `~/.m2/settings.xml` (user's home directory)
+* **Global settings**: `${maven.home}/conf/settings.xml` (Maven installation directory)
+
+These are merged according to Maven's standard behavior, with user settings taking precedence over global settings.
+
+The following configurations are automatically detected:
+
+* **Mirrors** - Any `<mirror>` configurations will be added to the generated build files
+* **Profile repositories** - Repositories from active profiles will be included
+* **Active by default profiles** - Profiles with `<activeByDefault>true</activeByDefault>` are automatically used
+
+For example, if your `settings.xml` contains:
+
+[source,xml]
+----
+<settings>
+  <mirrors>
+    <mirror>
+      <id>corporate-mirror</id>
+      <url>https://your-corporate-repo.company.com/maven2</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
+----
+
+Gradle will automatically add this mirror to your generated build files during conversion.
+
+NOTE: The `--maven-repo` command-line option takes highest precedence, followed by settings.xml repositories, then `mavenLocal()`, and finally `mavenCentral()`.
+
+The generated build files will include the custom repository along with `mavenLocal()` as a fallback, ensuring maximum compatibility with your corporate environment:
+
+.Generated repositories configuration
+====
+[source,kotlin]
+----
+repositories {
+    maven {
+        url = uri("https://your-corporate-repo.company.com/maven2")
+        name = "custom-maven-repo"
+    }
+    mavenLocal()
+    mavenCentral()
+}
+----
+====
+
 [[migmvn:migrating_deps]]
 == Migrating dependencies
 

@@ -54,6 +54,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
  * and generates build.gradle scripts. It also generates settings.gradle for multi-module builds. <br>
@@ -71,8 +73,18 @@ public class Maven2Gradle {
     private final Directory workingDir;
     private final BuildInitDsl dsl;
     private final InsecureProtocolOption insecureProtocolOption;
+    private final String customMavenRepo;
+    private final org.apache.maven.settings.Settings mavenSettings;
 
-    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, boolean useIncubatingAPIs, InsecureProtocolOption insecureProtocolOption) {
+    public Maven2Gradle(
+        Set<MavenProject> mavenProjects,
+        Directory workingDir,
+        BuildInitDsl dsl,
+        boolean useIncubatingAPIs,
+        InsecureProtocolOption insecureProtocolOption,
+        String customMavenRepo,
+        org.apache.maven.settings.Settings mavenSettings
+    ) {
         assert !mavenProjects.isEmpty(): "No Maven projects provided.";
 
         this.scriptBuilderFactory = new BuildScriptBuilderFactory(new DocumentationRegistry());
@@ -82,6 +94,8 @@ public class Maven2Gradle {
         this.workingDir = workingDir;
         this.dsl = dsl;
         this.insecureProtocolOption = insecureProtocolOption;
+        this.customMavenRepo = customMavenRepo;
+        this.mavenSettings = mavenSettings;
     }
 
     public void convert() {
@@ -173,12 +187,7 @@ public class Maven2Gradle {
             boolean testsJarTaskGenerated = packageTests(this.rootProject, scriptBuilder);
             configurePublishing(scriptBuilder, packagesSources(this.rootProject), testsJarTaskGenerated, packagesJavadocs(this.rootProject));
 
-            scriptBuilder.repositories().mavenLocal(null);
-            Set<String> repoSet = new LinkedHashSet<>();
-            getRepositoriesForModule(this.rootProject, repoSet);
-            for (String repo : repoSet) {
-                scriptBuilder.repositories().maven(null, repo);
-            }
+            repositoriesForProjects(Collections.singleton(this.rootProject), scriptBuilder);
 
             List<Dependency> dependencies = getDependencies(this.rootProject, null);
             declareDependencies(dependencies, scriptBuilder);
@@ -256,7 +265,7 @@ public class Maven2Gradle {
     private Set<MavenProject> modules(Set<MavenProject> projects, boolean incReactors) {
         return projects.stream().filter(project -> {
             Optional<MavenProject> parentIsPartOfThisBuild = projects.stream().filter(proj ->
-                project.getParent() == null || (project.getParent() != null && proj.getArtifactId().equals(project.getParent().getArtifactId()) && proj.getGroupId().equals(project.getParent().getGroupId()))
+                project.getParent() == null || (proj.getArtifactId().equals(project.getParent().getArtifactId()) && proj.getGroupId().equals(project.getParent().getGroupId()))
             ).findFirst();
             return parentIsPartOfThisBuild.isPresent() && (incReactors || !"pom".equals(project.getPackaging()));
         }).collect(Collectors.toSet());
@@ -300,6 +309,17 @@ public class Maven2Gradle {
     }
 
     private void repositoriesForProjects(Set<MavenProject> projects, BuildScriptBuilder builder) {
+        // Add custom Maven repository first if specified via --maven-repo
+        if (!isNullOrEmpty(customMavenRepo)) {
+            builder.repositories().maven("Custom Maven repository specified via --maven-repo", customMavenRepo);
+        }
+
+        // Add repositories from Maven settings.xml (mirrors and profile repositories)
+        Set<String> settingsRepos = getRepositoriesFromMavenSettings();
+        for (String repo : settingsRepos) {
+            builder.repositories().maven("Repository from Maven settings.xml", repo);
+        }
+
         builder.repositories().mavenLocal(null);
         Set<String> repoSet = new LinkedHashSet<>();
         for (MavenProject project : projects) {
@@ -308,6 +328,42 @@ public class Maven2Gradle {
         for (String repo : repoSet) {
             builder.repositories().maven(null, repo);
         }
+    }
+
+    private Set<String> getRepositoriesFromMavenSettings() {
+        Set<String> repos = new LinkedHashSet<>();
+
+        // Extract repositories from active profiles
+        if (mavenSettings.getProfiles() != null) {
+            mavenSettings.getProfiles().stream()
+                .filter(profile -> isProfileActive(profile.getId()))
+                .filter(profile -> profile.getRepositories() != null)
+                .flatMap(profile -> profile.getRepositories().stream())
+                .filter(repo -> !repo.getId().equals(RepositorySystem.DEFAULT_REMOTE_REPO_ID))
+                .forEach(repo -> repos.add(repo.getUrl()));
+        }
+
+        // Extract mirrors (these take precedence over repositories)
+        if (mavenSettings.getMirrors() != null) {
+            mavenSettings.getMirrors().stream()
+                .filter(mirror -> mirror.getUrl() != null)
+                .forEach(mirror -> repos.add(mirror.getUrl()));
+        }
+
+        return repos;
+    }
+
+    private boolean isProfileActive(String profileId) {
+        if (mavenSettings.getActiveProfiles() != null && mavenSettings.getActiveProfiles().contains(profileId)) {
+            return true;
+        }
+        // Also check if profile has activeByDefault set
+        if (mavenSettings.getProfiles() != null) {
+            return mavenSettings.getProfiles().stream()
+                .filter(p -> p.getId().equals(profileId))
+                .anyMatch(p -> p.getActivation() != null && p.getActivation().isActiveByDefault());
+        }
+        return false;
     }
 
     private void getRepositoriesForModule(MavenProject module, Set<String> repoSet) {
@@ -358,31 +414,29 @@ public class Maven2Gradle {
         }
 
         List<Dependency> result = new ArrayList<>();
-        if (!compileTimeScope.isEmpty() || !runtimeScope.isEmpty() || !testScope.isEmpty() || !providedScope.isEmpty() || !systemScope.isEmpty()) {
-            if (!compileTimeScope.isEmpty()) {
-                for (org.apache.maven.model.Dependency dep : compileTimeScope) {
-                    createGradleDep("api", result, dep, war);
-                }
+        if (!compileTimeScope.isEmpty()) {
+            for (org.apache.maven.model.Dependency dep : compileTimeScope) {
+                createGradleDep("api", result, dep, war);
             }
-            if (!runtimeScope.isEmpty()) {
-                for (org.apache.maven.model.Dependency dep : runtimeScope) {
-                    createGradleDep("runtimeOnly", result, dep, war);
-                }
+        }
+        if (!runtimeScope.isEmpty()) {
+            for (org.apache.maven.model.Dependency dep : runtimeScope) {
+                createGradleDep("runtimeOnly", result, dep, war);
             }
-            if (!testScope.isEmpty()) {
-                for (org.apache.maven.model.Dependency dep : testScope) {
-                    createGradleDep("testImplementation", result, dep, war);
-                }
+        }
+        if (!testScope.isEmpty()) {
+            for (org.apache.maven.model.Dependency dep : testScope) {
+                createGradleDep("testImplementation", result, dep, war);
             }
-            if (!providedScope.isEmpty()) {
-                for (org.apache.maven.model.Dependency dep : providedScope) {
-                    createGradleDep("providedCompile", result, dep, war);
-                }
+        }
+        if (!providedScope.isEmpty()) {
+            for (org.apache.maven.model.Dependency dep : providedScope) {
+                createGradleDep("providedCompile", result, dep, war);
             }
-            if (!systemScope.isEmpty()) {
-                for (org.apache.maven.model.Dependency dep : systemScope) {
-                    createGradleDep("system", result, dep, war);
-                }
+        }
+        if (!systemScope.isEmpty()) {
+            for (org.apache.maven.model.Dependency dep : systemScope) {
+                createGradleDep("system", result, dep, war);
             }
         }
         return result;
