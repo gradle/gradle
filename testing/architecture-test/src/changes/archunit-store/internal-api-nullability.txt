@@ -720,6 +720,7 @@ Class <org.gradle.api.java.archives.internal.DefaultAttributes> is not annotated
 Class <org.gradle.api.java.archives.internal.DefaultManifest> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultManifest.java:0)
 Class <org.gradle.api.java.archives.internal.DefaultManifestMergeDetails> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultManifestMergeDetails.java:0)
 Class <org.gradle.api.java.archives.internal.DefaultManifestMergeSpec> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultManifestMergeSpec.java:0)
+Class <org.gradle.api.java.archives.internal.ManifestInternal$ManifestWriter> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ManifestInternal.java:0)
 Class <org.gradle.api.java.archives.internal.ManifestInternal> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ManifestInternal.java:0)
 Class <org.gradle.api.plugins.antlr.internal.AntlrExecuter$Antlr2Tool> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (AntlrExecuter.java:0)
 Class <org.gradle.api.plugins.antlr.internal.AntlrExecuter$Antlr3Tool> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (AntlrExecuter.java:0)

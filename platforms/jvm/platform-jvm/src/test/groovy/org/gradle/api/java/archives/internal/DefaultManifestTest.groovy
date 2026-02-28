@@ -25,13 +25,15 @@ import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.java.archives.ManifestMergeSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultManifestTest extends Specification {
+    def static final DEFAULT_MANIFEST_CHARSET = TestUtil.providerFactory().provider { ManifestInternal.DEFAULT_CONTENT_CHARSET }
     def static final MANIFEST_VERSION_MAP = ['Manifest-Version': '1.0']
     def fileResolver = Mock(FileResolver)
-    DefaultManifest gradleManifest = new DefaultManifest(fileResolver)
+    DefaultManifest gradleManifest = newManifest()
 
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -59,7 +61,7 @@ class DefaultManifestTest extends Specification {
         fileResolver.resolve('file') >> manifestFile
 
         when:
-        DefaultManifest manifest = new DefaultManifest('file', fileResolver)
+        DefaultManifest manifest = newManifest().read('file')
 
         then:
         manifest.getAttributes() == fileMap + MANIFEST_VERSION_MAP
@@ -140,7 +142,7 @@ class DefaultManifestTest extends Specification {
     def clear() {
         gradleManifest.attributes(key1: 'value1')
         gradleManifest.attributes('section', key1: 'value1')
-        gradleManifest.from(new DefaultManifest(Mock(FileResolver)))
+        gradleManifest.from(newManifest())
 
         when:
         gradleManifest.clear()
@@ -153,14 +155,14 @@ class DefaultManifestTest extends Specification {
 
     def merge() {
         gradleManifest.attributes(key1: 'value1')
-        gradleManifest.from(new DefaultManifest(fileResolver).attributes(key2: 'value2', key3: 'value3')) {
+        gradleManifest.from(newManifest().attributes(key2: 'value2', key3: 'value3')) {
             eachEntry { details ->
                 if (details.key == 'key3') {
                     details.exclude()
                 }
             }
         }
-        gradleManifest.from(new DefaultManifest(fileResolver).attributes(key4: 'value4', key5: 'value5'), new Action<ManifestMergeSpec>() {
+        gradleManifest.from(newManifest().attributes(key4: 'value4', key5: 'value5'), new Action<ManifestMergeSpec>() {
             @Override
             void execute(ManifestMergeSpec spec) {
                 spec.eachEntry { details ->
@@ -171,7 +173,7 @@ class DefaultManifestTest extends Specification {
                 }
             }
         })
-        gradleManifest.from(new DefaultManifest(fileResolver).attributes(key6: 'value6'))
+        gradleManifest.from(newManifest().attributes(key6: 'value6'))
 
         expect:
         gradleManifest.effectiveManifest.getAttributes() == [key1: 'value1', key2: 'value2', key4: 'value4', key6: 'value6'] + MANIFEST_VERSION_MAP
@@ -179,7 +181,7 @@ class DefaultManifestTest extends Specification {
 
     def writeWithPath() {
         TestFile manifestFile = tmpDir.file('someNonexistentDir').file('someFile')
-        DefaultManifest manifest = new DefaultManifest(fileResolver).attributes(key1: 'value1')
+        DefaultManifest manifest = newManifest().attributes(key1: 'value1')
         fileResolver.resolve('file') >> manifestFile
 
         when:
@@ -207,7 +209,7 @@ class DefaultManifestTest extends Specification {
         """.stripIndent().trim() + '\n'
 
         when:
-        DefaultManifest manifest = new DefaultManifest('file', fileResolver);
+        DefaultManifest manifest = newManifest().read('file')
 
         then:
         manifest.getAttributes().get('Some-Main-Attribute') == 'someValue'
@@ -288,7 +290,7 @@ class DefaultManifestTest extends Specification {
         and:
         // Means 'long russian text'
         String attributeValue = 'com.acme.example.pack.**, длинный.текст.на.русском.языке.**'
-        DefaultManifest gradleManifest = new DefaultManifest(fileResolver)
+        DefaultManifest gradleManifest = newManifest()
         gradleManifest.getAttributes().put('Looong-Name-Of-Manifest-Entry', attributeValue)
 
         when:
@@ -324,7 +326,7 @@ class DefaultManifestTest extends Specification {
         mergedFile.bytes = removeBlankLines(mergedFile.bytes)
 
         and:
-        DefaultManifest gradleManifest = new DefaultManifest(fileResolver)
+        DefaultManifest gradleManifest = newManifest()
         gradleManifest.getAttributes().put('Looong-Name-Of-Manifest-Entry', attributeValue)
         gradleManifest.from('mergedFile')
 
@@ -376,5 +378,9 @@ class DefaultManifestTest extends Specification {
 
     private static Manifest readAntManifest(File file) {
         (Manifest) file.withReader('UTF-8') { new Manifest(it) }
+    }
+
+    private DefaultManifest newManifest() {
+        return new DefaultManifest(fileResolver, DEFAULT_MANIFEST_CHARSET)
     }
 }

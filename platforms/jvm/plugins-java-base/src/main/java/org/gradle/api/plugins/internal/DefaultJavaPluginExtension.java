@@ -71,7 +71,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * multiple components may be created by JVM language plugins in the future.
  */
 @SuppressWarnings("JavadocReference")
-public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
+abstract public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
     private static final Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
     private final SourceSetContainer sourceSets;
 
