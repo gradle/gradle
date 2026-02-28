@@ -30,8 +30,8 @@ import org.gradle.internal.watch.registry.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.CheckReturnValue;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -76,24 +76,23 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
+    public final List<String> updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
         watcherStateLock.lock();
         try {
-            SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode, unsupportedFileSystems);
-            newRoot = invalidateMovedDirectoriesOnBuildStarted(newRoot);
+            CollectingInvalidator collectingInvalidator = new CollectingInvalidator();
+            SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, collectingInvalidator, watchMode, unsupportedFileSystems);
+            newRoot = invalidateMovedDirectoriesOnBuildStarted(newRoot, collectingInvalidator);
             if (root != newRoot) {
                 update(newRoot);
             }
-            return newRoot;
+            return collectingInvalidator.getCollectedPaths();
         } finally {
             watcherStateLock.unlock();
         }
     }
 
-    @CheckReturnValue
-    private SnapshotHierarchy invalidateMovedDirectoriesOnBuildStarted(SnapshotHierarchy root) {
+    private SnapshotHierarchy invalidateMovedDirectoriesOnBuildStarted(SnapshotHierarchy root, WatchableHierarchies.Invalidator invalidator) {
         SnapshotHierarchy newRoot = root;
-        WatchableHierarchies.Invalidator invalidator = createInvalidator();
         for (File movedDirectory : movedDirectoryHandler.stopWatchingMovedDirectories(root)) {
             LOGGER.info("Dropping VFS state for moved directory {}", movedDirectory.getAbsolutePath());
             newRoot = invalidator.invalidate(movedDirectory.getAbsolutePath(), newRoot);
@@ -122,39 +121,41 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected abstract boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     @Override
-    public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+    public List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
         watcherStateLock.lock();
         try {
+            CollectingInvalidator collectingInvalidator = new CollectingInvalidator();
             SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentBeforeBuildFinished(
                 root,
                 watchedFiles::contains,
                 maximumNumberOfWatchedHierarchies,
                 unsupportedFileSystems,
-                createInvalidator()
+                collectingInvalidator
             );
 
             if (root != newRoot) {
                 update(newRoot);
             }
-            return newRoot;
+            return collectingInvalidator.getCollectedPaths();
         } finally {
             watcherStateLock.unlock();
         }
     }
 
     @Override
-    public SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root) {
+    public List<String> updateVfsBeforeAfterFinished(SnapshotHierarchy root) {
         watcherStateLock.lock();
         try {
+            CollectingInvalidator collectingInvalidator = new CollectingInvalidator();
             SnapshotHierarchy newRoot = WatchableHierarchies.removeUnwatchableContentAfterBuildFinished(
                 root,
-                createInvalidator()
+                collectingInvalidator
             );
 
             if (root != newRoot) {
                 update(newRoot);
             }
-            return newRoot;
+            return collectingInvalidator.getCollectedPaths();
         } finally {
             watcherStateLock.unlock();
         }
@@ -170,7 +171,25 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         probeRegistry.triggerWatchProbe(path);
     }
 
-    protected abstract WatchableHierarchies.Invalidator createInvalidator();
+    /**
+     * An {@link WatchableHierarchies.Invalidator} that both threads the root through (so
+     * {@link WatchableHierarchies} can use it for internal consistency checks) and collects
+     * the invalidated paths so callers can apply them to the VFS via
+     * {@link org.gradle.internal.vfs.VirtualFileSystem#invalidate}.
+     */
+    private static class CollectingInvalidator implements WatchableHierarchies.Invalidator {
+        private final List<String> collectedPaths = new ArrayList<>();
+
+        @Override
+        public SnapshotHierarchy invalidate(String absolutePath, SnapshotHierarchy currentRoot) {
+            collectedPaths.add(absolutePath);
+            return currentRoot.invalidate(absolutePath, SnapshotHierarchy.NodeDiffListener.NOOP);
+        }
+
+        public List<String> getCollectedPaths() {
+            return collectedPaths;
+        }
+    }
 
     private void update(SnapshotHierarchy root) {
         FileHierarchySet oldWatchedFiles = watchedFiles;

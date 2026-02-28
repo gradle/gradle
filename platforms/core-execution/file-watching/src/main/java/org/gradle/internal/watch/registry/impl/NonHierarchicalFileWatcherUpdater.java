@@ -66,21 +66,25 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     protected boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
         Map<String, Integer> changedWatchedDirectories = new HashMap<>();
 
-        removedSnapshots.stream()
-            .filter(watchableHierarchies::shouldWatch)
-            .forEach(snapshot -> {
-                String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
-                // A "remove" notification can arrive before the corresponding "add" notification
-                // for the same snapshot when two CAS operations (store then invalidate) complete
-                // in one order but their notifications are dispatched in reverse order.
-                // In that case previousWatchedRoot is null because the snapshot was never registered.
-                // The stale "add" notification that follows is discarded by the root.findSnapshot()
-                // filter above, so no stale tracking entry is left behind.
-                if (previousWatchedRoot != null) {
-                    decrement(previousWatchedRoot, changedWatchedDirectories);
-                    snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
-                }
-            });
+        removedSnapshots.forEach(snapshot -> {
+            String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
+            // A "remove" notification can arrive before the corresponding "add" notification
+            // for the same snapshot when two CAS operations (store then invalidate) complete
+            // in one order but their notifications are dispatched in reverse order.
+            // In that case previousWatchedRoot is null because the snapshot was never registered.
+            // The stale "add" notification that follows is discarded by the root.findSnapshot()
+            // filter above, so no stale tracking entry is left behind.
+            //
+            // We also don't filter by shouldWatch() here: when build lifecycle methods remove
+            // a hierarchy from watchableFiles *before* the VFS invalidation propagates through
+            // virtualFileSystemContentsChanged, shouldWatch() would return false for snapshots
+            // that are still tracked in watchedDirectoryForSnapshot. The null check on
+            // previousWatchedRoot is sufficient to skip untracked snapshots safely.
+            if (previousWatchedRoot != null) {
+                decrement(previousWatchedRoot, changedWatchedDirectories);
+                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
+            }
+        });
         addedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
             .filter(snapshot -> root.findSnapshot(snapshot.getAbsolutePath()).isPresent())
@@ -115,16 +119,6 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         if (!changedWatchDirectories.isEmpty()) {
             updateWatchedDirectories(changedWatchDirectories);
         }
-    }
-
-    @Override
-    protected WatchableHierarchies.Invalidator createInvalidator() {
-        return (location, currentRoot) -> {
-            SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
-            SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
-            diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, () -> invalidatedRoot));
-            return invalidatedRoot;
-        };
     }
 
     @Override

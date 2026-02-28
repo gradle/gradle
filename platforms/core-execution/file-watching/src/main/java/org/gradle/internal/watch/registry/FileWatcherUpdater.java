@@ -20,7 +20,6 @@ import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 
-import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -93,27 +92,27 @@ public interface FileWatcherUpdater {
 
     /**
      * Remove watched hierarchies that have been moved.
+     * Returns the list of VFS paths that should be invalidated by the caller.
      *
      * @see FileWatcherRegistry#updateVfsOnBuildStarted(SnapshotHierarchy, WatchMode, java.util.List)
      */
-    @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
+    List<String> updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.
+     * Returns the list of VFS paths that should be invalidated by the caller.
      *
      * @see FileWatcherRegistry#updateVfsBeforeBuildFinished(SnapshotHierarchy, int, List)
      */
-    @CheckReturnValue
-    SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
+    List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.
+     * Returns the list of VFS paths that should be invalidated by the caller.
      *
      * @see FileWatcherRegistry#updateVfsBeforeBuildFinished(SnapshotHierarchy, int, List)
      */
-    @CheckReturnValue
-    SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root);
+    List<String> updateVfsBeforeAfterFinished(SnapshotHierarchy root);
 
     /**
      * The files actually being watched right now.

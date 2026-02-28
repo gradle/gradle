@@ -87,10 +87,10 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
-        SnapshotHierarchy newRoot = super.updateVfsBeforeBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
+    public List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+        List<String> paths = super.updateVfsBeforeBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
         LOGGER.info("Watched directory hierarchies: {}", watchedHierarchies);
-        return newRoot;
+        return paths;
     }
 
     @Override
@@ -132,11 +132,6 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     @Override
     protected void stopWatchingProbeDirectory(File probeDirectory) {
         // We already stopped watching the hierarchy.
-    }
-
-    @Override
-    protected WatchableHierarchies.Invalidator createInvalidator() {
-        return (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
     public interface FileSystemLocationToWatchValidator {
