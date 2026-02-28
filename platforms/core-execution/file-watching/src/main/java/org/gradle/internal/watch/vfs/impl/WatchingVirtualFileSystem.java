@@ -204,7 +204,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             return;
         }
         SnapshotHierarchy currentRoot = currentRoot();
-        SnapshotHierarchy newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot));
+        SnapshotHierarchy newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, this::currentRoot));
         replaceRoot(newRoot);
     }
 
@@ -325,7 +325,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     new BroadcastingChangeHandler()
                 )));
             SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode, unsupportedFileSystems);
-            watchableHierarchiesRegisteredEarly.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot));
+            watchableHierarchiesRegisteredEarly.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, () -> newRoot));
             watchableHierarchiesRegisteredEarly.clear();
             return newRoot;
         } catch (Exception ex) {

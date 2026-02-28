@@ -60,9 +60,13 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+    public void registerWatchableHierarchy(File watchableHierarchy, Supplier<SnapshotHierarchy> currentRoot) {
         watcherStateLock.lock();
         try {
+            // Evaluate under the lock so we get the VFS state at processing time.
+            // This avoids trying to watch directories (e.g. short-lived test temp dirs)
+            // that were present in a stale snapshot but have since been deleted.
+            SnapshotHierarchy root = currentRoot.get();
             watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
             probeRegistry.registerProbe(watchableHierarchy);
             update(root);

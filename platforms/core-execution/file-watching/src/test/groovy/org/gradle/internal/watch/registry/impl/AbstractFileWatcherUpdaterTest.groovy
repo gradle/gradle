@@ -494,7 +494,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     void registerWatchableHierarchies(Iterable<File> watchableHierarchies) {
         watchableHierarchies.each { watchableHierarchy ->
-            updater.registerWatchableHierarchy(watchableHierarchy, virtualFileSystem.root)
+            updater.registerWatchableHierarchy(watchableHierarchy, { virtualFileSystem.root })
         }
     }
 

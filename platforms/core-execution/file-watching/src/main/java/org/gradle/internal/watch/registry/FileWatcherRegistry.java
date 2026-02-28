@@ -52,10 +52,13 @@ public interface FileWatcherRegistry extends Closeable {
      * Registers a watchable hierarchy.
      *
      * The watcher registry will only watch for changes in watchable hierarchies.
+     * The {@code currentRoot} supplier is evaluated lazily after acquiring the watcher lock,
+     * ensuring the VFS state at processing time is used rather than a stale snapshot captured
+     * before the lock was acquired.
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
+    void registerWatchableHierarchy(File watchableHierarchy, Supplier<SnapshotHierarchy> currentRoot);
 
     /**
      * Updates the watchers after changes to the root.
