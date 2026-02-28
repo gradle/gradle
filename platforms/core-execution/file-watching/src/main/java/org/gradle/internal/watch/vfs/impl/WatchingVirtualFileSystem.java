@@ -72,7 +72,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
      */
     private final Set<File> watchableHierarchiesRegisteredEarly = new LinkedHashSet<>();
 
-    private FileWatcherRegistry watchRegistry;
+    private volatile FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
     private boolean stateInvalidatedAtStartOfBuild;
 
@@ -114,7 +114,8 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         warningLogger = watchMode.loggerForWarnings(LOGGER);
         stateInvalidatedAtStartOfBuild = false;
         reasonForNotWatchingFiles = null;
-        updateRootUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+        SnapshotHierarchy currentRoot = currentRoot();
+        SnapshotHierarchy resultingRoot = buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 if (watchMode.isEnabled()) {
@@ -191,22 +192,20 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                 return BuildOperationDescriptor.displayName(BuildStartedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
                     .details(BuildStartedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
-        }));
+        });
+        replaceRoot(resultingRoot);
         return watchRegistry != null;
     }
 
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy) {
-        updateRootUnderLock(currentRoot -> {
-            if (watchRegistry == null) {
-                watchableHierarchiesRegisteredEarly.add(watchableHierarchy);
-                return currentRoot;
-            }
-            return withWatcherChangeErrorHandling(
-                currentRoot,
-                () -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot)
-            );
-        });
+        if (watchRegistry == null) {
+            watchableHierarchiesRegisteredEarly.add(watchableHierarchy);
+            return;
+        }
+        SnapshotHierarchy currentRoot = currentRoot();
+        SnapshotHierarchy newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot));
+        replaceRoot(newRoot);
     }
 
     @Override
@@ -216,7 +215,8 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         BuildOperationRunner buildOperationRunner,
         int maximumNumberOfWatchedHierarchies
     ) {
-        updateRootUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+        SnapshotHierarchy currentRoot = currentRoot();
+        SnapshotHierarchy resultingRoot = buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 watchableHierarchiesRegisteredEarly.clear();
@@ -291,23 +291,26 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                 return BuildOperationDescriptor.displayName(BuildFinishedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
                     .details(BuildFinishedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
-        }));
+        });
+        replaceRoot(resultingRoot);
+
         // Log problems to daemon log
         warningLogger = LOGGER;
     }
 
     @Override
     public void afterBuildFinished() {
-        updateRootUnderLock(currentRoot ->
-            withWatcherChangeErrorHandling(currentRoot, () -> {
-                FileWatcherRegistry watchRegistry = this.watchRegistry;
-                if (watchRegistry != null) {
-                    return watchRegistry.updateVfsAfterBuildFinished(currentRoot);
-                } else {
-                    // Drop everything if we can't watch the file system
-                    return currentRoot.empty();
-                }
-            }));
+        SnapshotHierarchy currentRoot = currentRoot();
+        SnapshotHierarchy result = withWatcherChangeErrorHandling(currentRoot, () -> {
+            FileWatcherRegistry watchRegistry = this.watchRegistry;
+            if (watchRegistry != null) {
+                return watchRegistry.updateVfsAfterBuildFinished(currentRoot);
+            } else {
+                // Drop everything if we can't watch the file system
+                return currentRoot.empty();
+            }
+        });
+        replaceRoot(result);
     }
 
     /**
@@ -366,9 +369,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private class InvalidateVfsChangeHandler implements FileWatcherRegistry.ChangeHandler {
         @Override
         public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            updateRootUnderLock(root -> updateNotifyingListeners(
-                diffListener -> root.invalidate(path.toString(), new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
-            ));
+            invalidateAndNotify(path.toString(), diffListener -> new VfsChangeLoggingNodeDiffListener(type, path, diffListener));
         }
 
         @Override
@@ -477,7 +478,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
      * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy, WatchMode, List)}}.
      */
     private void stopWatchingAndInvalidateHierarchyAfterError() {
-        updateRootUnderLock(this::stopWatchingAndInvalidateHierarchyAfterError);
+        replaceRoot(stopWatchingAndInvalidateHierarchyAfterError(currentRoot()));
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchyAfterError(SnapshotHierarchy currentRoot) {
@@ -513,10 +514,8 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     @Override
     public void close() {
         LOGGER.debug("Closing VFS, dropping state");
-        updateRootUnderLock(currentRoot -> {
-            closeUnderLock();
-            return currentRoot.empty();
-        });
+        closeUnderLock();
+        replaceRoot(currentRoot().empty());
     }
 
     private void closeUnderLock() {

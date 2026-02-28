@@ -58,11 +58,13 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
         if (watchMode == WatchMode.ENABLED) {
             LOGGER.warn("Watching the file system is not supported.");
         }
-        updateRootUnderLock(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+
+        SnapshotHierarchy emptyRoot = currentRoot().empty();
+        SnapshotHierarchy resultingRoot = buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 context.setResult(BuildStartedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
-                return vfsRoot.empty();
+                return emptyRoot;
             }
 
             @Override
@@ -70,7 +72,8 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
                 return BuildOperationDescriptor.displayName(BuildStartedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
                     .details(BuildStartedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
-        }));
+        });
+        replaceRoot(resultingRoot);
         return false;
     }
 
@@ -85,11 +88,12 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
         BuildOperationRunner buildOperationRunner,
         int maximumNumberOfWatchedHierarchies
     ) {
-        updateRootUnderLock(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+        SnapshotHierarchy emptyRoot = currentRoot().empty();
+        SnapshotHierarchy resultingRoot = buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 context.setResult(BuildFinishedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
-                return vfsRoot.empty();
+                return emptyRoot;
             }
 
             @Override
@@ -97,7 +101,8 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
                 return BuildOperationDescriptor.displayName(BuildFinishedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
                     .details(BuildFinishedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
-        }));
+        });
+        replaceRoot(resultingRoot);
     }
 
     @Override

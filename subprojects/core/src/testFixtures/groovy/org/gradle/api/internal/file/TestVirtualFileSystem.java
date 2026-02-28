@@ -31,10 +31,10 @@ public class TestVirtualFileSystem extends AbstractVirtualFileSystem {
     }
 
     public void setRoot(SnapshotHierarchy newRoot) {
-        updateRootUnderLock(root -> newRoot);
+        replaceRoot(newRoot);
     }
 
     public SnapshotHierarchy getRoot() {
-        return root;
+        return super.currentRoot();
     }
 }
