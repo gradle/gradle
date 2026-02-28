@@ -66,7 +66,6 @@ include::sample[dir="snippets/providers/propertyAndProvider/groovy",files="build
 <4> Configure the greeting
 <5> Alternative notation to calling Property.set()
 
-====
 [source,bash]
 ----
 $ ./gradlew greeting
@@ -75,7 +74,6 @@ $ ./gradlew greeting
 ----
 include::{snippetsPath}/providers/propertyAndProvider/tests/usePropertyAndProvider.out[]
 ----
-====
 
 The `Greeting` task has a property of type `Property<String>` to represent the configurable greeting and a property of type `Provider<String>` to represent the calculated, read-only, message.
 The message `Provider` is created from the greeting `Property` using the `map()` method; its value is kept up-to-date as the value of the greeting property changes.
@@ -117,7 +115,6 @@ include::sample[dir="snippets/providers/connectProperties/kotlin",files="build.g
 include::sample[dir="snippets/providers/connectProperties/groovy",files="build.gradle[]"]
 ====
 
-====
 [source,bash]
 ----
 $ ./gradlew greeting
@@ -126,7 +123,6 @@ $ ./gradlew greeting
 ----
 include::{snippetsPath}/providers/connectProperties/tests/connectProperties.out[]
 ----
-====
 
 This example calls the link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] method to attach a `Provider` to a `Property` to supply the value of the property.
 In this case, the `Provider` happens to be a `Property` as well, but you can connect any `Provider` implementation, for example one created using `Provider.map()`
@@ -423,7 +419,6 @@ include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",file
 include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-declaration]"]
 ====
 
-
 [[unmodifiable_property]]
 == Making a property unmodifiable
 
@@ -437,9 +432,10 @@ This way we avoid errors that result from different consumers, such as the task 
 Lazy properties provide several methods that you can use to disallow changes to their value once the value has been configured.
 The link:{javadocPath}/org/gradle/api/provider/Property.html#finalizeValue--[finalizeValue()] method calculates the _final_ value for the property and prevents further changes to the property.
 
-```
+[source,text]
+----
 libVersioning.version.finalizeValue()
-```
+----
 
 When the property's value comes from a `Provider`, the provider is queried for its current value, and the result becomes the final value for the property.
 This final value replaces the provider and the property no longer tracks the value of the provider.
@@ -448,9 +444,10 @@ Gradle automatically makes the properties of a task final when the task starts e
 
 The link:{javadocPath}/org/gradle/api/provider/HasConfigurableValue.html#finalizeValueOnRead--[finalizeValueOnRead()] method is similar, except that the property's final value is not calculated until the value of the property is queried.
 
-```
+[source,text]
+----
 modifiedFiles.finalizeValueOnRead()
-```
+----
 
 In other words, this method calculates the final value lazily as required, whereas `finalizeValue()` calculates the final value eagerly.
 This method can be used when the value may be expensive to calculate or may not have been configured yet.

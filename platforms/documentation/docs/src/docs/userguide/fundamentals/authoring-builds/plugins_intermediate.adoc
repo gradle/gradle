@@ -285,11 +285,16 @@ plugins {
 <1> for core Gradle plugins or plugins already available to the build script
 <2> for binary Gradle plugins that need to be resolved
 
+====
 [.multi-language-text.lang-kotlin]
+=====
 Where `«plugin id»` and `«plugin version»` are a string.
-
+=====
 [.multi-language-text.lang-groovy]
+=====
 Where `«plugin id»` and `«plugin version»` must be constant, literal strings.
+=====
+====
 
 The `plugins{}` block must also be a top-level statement in the build script.
 It cannot be nested inside another construct (e.g., an if-statement or for-loop).
@@ -497,11 +502,16 @@ include::sample[dir="snippets/tutorial/pluginIntro/groovy", files="build.gradle[
 The `JavaPlugin` symbol in the above sample refers to the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
 This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<default_script_imports.adoc#script-default-imports,Default imports>>).
 
+====
 [.multi-language-text.lang-kotlin]
+=====
 Furthermore, one needs to append the `::class` suffix to identify a class literal in Kotlin instead of `.class` in Java.
-
+=====
 [.multi-language-text.lang-groovy]
+=====
 Furthermore, it is unnecessary to append `.class` to identify a class literal in Groovy as it is in Java.
+=====
+====
 
 You may also see the `apply` method used to include an entire build file:
 

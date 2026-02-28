@@ -103,10 +103,12 @@ dependencies {
 
 If we run `:app:build` again, we see the Java code of `some-logic` is also compiled by Gradle automatically:
 
+[source,bash]
+----
+$ ./gradlew :app:build
+----
 [source,text]
 ----
-$./gradlew :app:build
-
 > Task :app:processResources NO-SOURCE
 > Task :app:processTestResources NO-SOURCE
 > Task :some-logic:compileJava UP-TO-DATE
@@ -197,6 +199,7 @@ This is expressed as `taskY.mustRunAfter(taskX)`.
 ====
 include::sample[dir="snippets/tasks/mustRunAfter/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/tasks/mustRunAfter/groovy",files="build.gradle[]"]
+====
 
 [source,bash]
 ----
@@ -206,7 +209,6 @@ $ ./gradlew -q taskY taskX
 ----
 include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfter.out[]
 ----
-====
 
 The "should run after" ordering rule is similar but less strict, as it will be ignored in two situations:
 
@@ -454,7 +456,7 @@ If you run `./gradlew -q tasks`, you won't find a task named `pingServer1` or `p
 
 You can exclude a task from execution using the `-x` or `--exclude-task` command-line option and provide the task's name to exclude.
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew build -x test
 ----

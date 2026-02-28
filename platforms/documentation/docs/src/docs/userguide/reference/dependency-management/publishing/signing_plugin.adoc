@@ -51,9 +51,9 @@ signing.secretKeyRingFile=/Users/me/.gnupg/secring.gpg
 
 If specifying this information (especially `signing.password`) in the user `gradle.properties` file is not feasible for your environment, you can supply the information via the command line:
 
-[source,text]
+[source,bash]
 ----
-> gradle sign -Psigning.secretKeyRingFile=/Users/me/.gnupg/secring.gpg -Psigning.password=secret -Psigning.keyId=24875D73
+$ ./gradlew sign -Psigning.secretKeyRingFile=/Users/me/.gnupg/secring.gpg -Psigning.password=secret -Psigning.keyId=24875D73
 ----
 
 [[sec:in-memory-keys]]
@@ -101,7 +101,6 @@ include::sample[dir="snippets/signing/gnupg-signatory/groovy",files="build.gradl
 This tells the Signing Plugin to use the `GnupgSignatory` instead of the default link:{javadocPath}/org/gradle/plugins/signing/signatory/pgp/PgpSignatory.html[PgpSignatory]. The `GnupgSignatory` relies on the gpg2 program to sign the artifacts. Of course, this requires that GnuPG is installed.
 
 Without any further configuration the `gpg` (on Windows: `gpg.exe`) executable found on the `PATH` will be used. The password is supplied by the `gpg-agent` and the default key is used for signing.
-
 
 [[sec:sec:gnupg_signatory_configuration]]
 === Gnupg signatory configuration

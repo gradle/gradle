@@ -87,7 +87,6 @@ plugin/     // <1>
 <1> *`plugin/`*: This is the root directory for the Gradle plugin project.
 <2> *`build.gradle`*: The build script for the plugin itself. It specifies dependencies like the Gradle API and Groovy, and it's where you apply the `groovy-gradle-plugin` or `java-gradle-plugin` to make your code a runnable Gradle plugin.
 <3> *`src/main/groovy/org/example/`*: This is the standard source directory for Groovy code, organized by package name.
-
 =====
 ====
 
@@ -775,7 +774,6 @@ When the `active` provider value is:
 Note that the `active` status does not depend on the `requested` status.
 Even if the user requests a feature, it may still not be active due to other build options being used in the build.
 Gradle can also activate a feature by default, even if the user did not specify a preference.
-
 
 [[custom_dependencies_blocks]]
 == Using a custom `dependencies` block

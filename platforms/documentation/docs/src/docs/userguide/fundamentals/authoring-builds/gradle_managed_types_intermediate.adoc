@@ -117,7 +117,7 @@ This task will break the Configuration Cache due to *eager* access:
 
 [source,kotlin]
 ----
-// ❌ Not Configuration Cache compatible
+// Not Configuration Cache compatible
 tasks.register("printVersion") {
     doLast {
         val version = project.version.toString()
@@ -130,7 +130,7 @@ The fix: use a *lazy* `Provider` or a `Property<String>`:
 
 [source,kotlin]
 ----
-// ✅ Configuration Cache compatible
+// Configuration Cache compatible
 tasks.register("printVersion") {
     val version: Property<String> = project.objects.property(String::class.java)
     version.set(project.version.toString())

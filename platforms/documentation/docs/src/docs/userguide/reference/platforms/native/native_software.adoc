@@ -15,7 +15,6 @@
 [[native_software]]
 = Building native software
 
-
 CAUTION: The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed.
 We recommend new projects looking to build C++ applications and libraries use the newer <<building_cpp_projects.adoc#building_cpp_projects,replacement plugins>>.
 
@@ -108,7 +107,6 @@ The following tool chains are unofficially supported. They generally work fine, 
 |
 |===
 
-
 [[sec:tool_chain_installation]]
 == Tool chain installation
 
@@ -116,7 +114,6 @@ NOTE: Note that if you are using GCC then you currently need to install support 
 This restriction will be removed in a future Gradle version.
 
 To build native software, you will need to have a compatible tool chain installed:
-
 
 [[sec:windows]]
 === Windows
@@ -166,7 +163,7 @@ To build either a static or shared native library, you define a library componen
 
 === Example: Defining a library component
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/c/groovy/build.gradle[tag=libraries]
@@ -181,7 +178,7 @@ To build a native executable, you define an executable component in the `compone
 
 === Example: Defining executable components
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/c/groovy/build.gradle[tag=executables]
@@ -388,7 +385,7 @@ You can also add custom check tasks as follows:
 
 === Example: Adding a custom check task
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/custom-check/groovy/build.gradle[tag=custom-check]
@@ -586,7 +583,6 @@ Similarly, settings can be specified to target binaries for a component that are
 include::{snippetsPath}/native-binaries/cpp-lib/groovy/build.gradle[tag=args]
 ----
 
-
 [[native_binaries:windows-resources]]
 == Windows Resources
 
@@ -628,7 +624,6 @@ The example above also demonstrates the mechanism of passing extra command-line 
 == Library Dependencies
 
 Dependencies for native components are binary libraries that export header files. The header files are used during compilation, with the compiled binary dependency being used during linking and execution. Header files should be organized into subdirectories to prevent clashes of commonly named headers. For instance, if your `mylib` project has a `logging.h` header, it will make it less likely the wrong header is used if you include it as `"mylib/logging.h"` instead of `"logging.h"`.
-
 
 [[sec:dependencies_within_the_same_project]]
 === Dependencies within the same project

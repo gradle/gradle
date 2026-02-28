@@ -15,9 +15,7 @@
 [[jacoco_plugin]]
 = The JaCoCo Plugin
 
-
 The JaCoCo plugin provides code coverage metrics for Java code via integration with http://www.eclemma.org/jacoco/[JaCoCo].
-
 
 [[sec:jacoco_getting_started]]
 == Getting Started
@@ -144,7 +142,6 @@ Generates code coverage report for the test task.
 `jacocoTestCoverageVerification` — link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification]::
 +
 Verifies code coverage metrics based on specified rules for the test task.
-
 
 [[sec:jacoco_dependency_management]]
 == Dependency management

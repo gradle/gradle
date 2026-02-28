@@ -82,14 +82,14 @@ Imagine that our project is growing and requires a custom library to function.
 Let's create this imaginary `lib`.
 First, create a `lib` folder:
 
-[source,text]
+[source,bash]
 ----
-mkdir lib
+$ mkdir lib
 ----
 
-[source,text]
+[source,bash]
 ----
-cd lib
+$ cd lib
 ----
 
 Create a file called `build.gradle(.kts)` and add the following lines to it:
@@ -203,9 +203,9 @@ Your project should look like this:
 Let's add some code to the `lib` subproject.
 Create a new directory:
 
-[source,text]
+[source,bash]
 ----
-mkdir -p lib/src/main/java/com/gradle
+$ mkdir -p lib/src/main/java/com/gradle
 ----
 
 Create a Java class called `CustomLib` in a file called `CustomLib.java` with the following source code:

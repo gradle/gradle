@@ -172,7 +172,7 @@ The build layout:
     └── 3.txt
 ----
 
-[source, bash]
+[source,bash]
 ----
 $ ./gradlew -q incrementalReverse
 ----
@@ -183,7 +183,7 @@ include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskFirstRun.out[
 
 Naturally, when the task is executed again with no changes, then the entire task is `UP-TO-DATE`, and the task action is not executed:
 
-[source, bash]
+[source,bash]
 ----
 $ ./gradlew incrementalReverse
 ----
@@ -392,9 +392,10 @@ See link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#set-j
 Theoretically, an option for a property type `String` or `List<String>` can accept any arbitrary value.
 Accepted values for such an option can be documented programmatically with the help of the annotation link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues]:
 
-```
+[source,text]
+----
 @OptionValues('file')
-```
+----
 
 This annotation may be assigned to any method that returns a `List` of one of the supported data types.
 You need to specify an option identifier to indicate the relationship between the option and available values.
@@ -404,7 +405,7 @@ NOTE: Passing a value on the command line not supported by the option does not f
 The example below demonstrates the use of multiple options for a single task.
 The task implementation provides a list of available values for the option `output-type`:
 
-[source.multi-language-sample,java]
+[source,java]
 .UrlProcess.java
 ----
 include::{snippetsPath}/tasks/commandLineOption-optionValues/groovy/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]

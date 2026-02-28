@@ -90,7 +90,6 @@ Creates an aggregate Jacoco report aggregating all test suites with a given link
 
 When the project does not apply the `jvm-test-suite` plugin, you must manually register one or more reports:
 
-.Create a reporting container
 ====
 include::sample[dir="samples/incubating/java/jvm-multi-project-with-test-aggregation-standalone/kotlin/test-results",files="build.gradle.kts[tags=create_report]"]
 include::sample[dir="samples/incubating/java/jvm-multi-project-with-test-aggregation-standalone/groovy/test-results",files="build.gradle[tags=create_report]"]

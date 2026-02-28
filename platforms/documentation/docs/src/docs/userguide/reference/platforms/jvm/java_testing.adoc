@@ -133,14 +133,16 @@ The following two sections look at the specific cases of simple class/method nam
 
 Since 4.7, Gradle has treated a pattern starting with an uppercase letter as a simple class name, or a class name + method name. For example, the following command lines run either all or exactly one of the tests in the `SomeTestClass` test case, regardless of what  package it's in:
 
+Executes all tests in `SomeTestClass`:
+
 [source,bash]
-.Executes all tests in SomeTestClass
 ----
 $ ./gradlew test --tests SomeTestClass
 ----
 
+Executes a single specified test in `SomeTestClass`:
+
 [source,bash]
-.Executes a single specified test in SomeTestClass
 ----
 $ ./gradlew test --tests SomeTestClass.someSpecificMethod
 $ ./gradlew test --tests SomeTestClass.*someMethod*
@@ -151,32 +153,37 @@ $ ./gradlew test --tests SomeTestClass.*someMethod*
 
 Prior to 4.7 or if the pattern doesn't start with an uppercase letter, Gradle treats the pattern as fully-qualified. So if you want to use the test class name irrespective of its package, you would use `--tests *.SomeTestClass`. Here are some more examples:
 
+Specific class:
+
 [source,bash]
-.specific class
 ----
 $ ./gradlew test --tests org.gradle.SomeTestClass
 ----
 
+Specific class and method:
+
 [source,bash]
-.specific class and method
 ----
 $ ./gradlew test --tests org.gradle.SomeTestClass.someSpecificMethod
 ----
 
+Method name containing spaces:
+
 [source,bash]
-.method name containing spaces
 ----
 $ ./gradlew test --tests "org.gradle.SomeTestClass.some method containing spaces"
 ----
 
+All classes at specific package (recursively):
+
 [source,bash]
-.all classes at specific package (recursively)
 ----
 $ ./gradlew test --tests 'all.in.specific.package*'
 ----
 
+Specific method at specific package (recursively):
+
 [source,bash]
-.specific method at specific package (recursively)
 ----
 $ ./gradlew test --tests 'all.in.specific.package*.someSpecificMethod'
 $ ./gradlew test --tests '*IntegTest'
@@ -184,8 +191,9 @@ $ ./gradlew test --tests '*IntegTest*ui*'
 $ ./gradlew test --tests '*ParameterizedTest.foo*'
 ----
 
+The second iteration of a parameterized test:
+
 [source,bash]
-.the second iteration of a parameterized test
 ----
 $ ./gradlew test --tests '*ParameterizedTest.*[2]'
 ----

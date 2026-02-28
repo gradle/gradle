@@ -338,7 +338,6 @@ $ ./gradlew updateDaemonJvm
 
 Both of these actions will produce a file like the following one:
 
-====
 .gradle/gradle-daemon-jvm.properties
 [source,properties]
 ----
@@ -354,7 +353,6 @@ toolchainUrl.UNIX.X86_64=https\://example.com/...
 toolchainUrl.WINDOWS.X86_64=https\://example.com/...
 toolchainVersion=17
 ----
-====
 
 If you run the `updateDaemonJvm` task without any arguments, and the properties file does not exist, then the version of the current JVM used by the Daemon will be used.
 
@@ -644,10 +642,8 @@ $ gradle <task> -Dorg.gradle.daemon.performance.enable-monitoring=false
 
 Or you can configure the property in the `gradle.properties` file in the <<directory_layout.adoc#dir:project_root,project root>> or your <<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>> (Gradle User Home):
 
-====
 .gradle.properties
 [source,properties]
 ----
 org.gradle.daemon.performance.enable-monitoring=false
 ----
-====

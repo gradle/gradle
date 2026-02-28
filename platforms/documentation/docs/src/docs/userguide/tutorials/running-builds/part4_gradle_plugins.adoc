@@ -103,10 +103,12 @@ Let's make sure the plugin has been applied by looking at the new tasks that are
 
 Run `./gradlew :app:tasks` in your command line:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -138,10 +140,12 @@ include::sample[dir="snippets/init/upgraded/groovy",files="app/build.gradle[tags
 
 Run `./gradlew :app:tasks` in your command line again, you will see additional tasks now that we have given the plugin additional information about our app:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -165,10 +169,12 @@ image::tutorial/intellij-idea-pub.png[]
 
 To use the plugin, run the `publishToMavenLocal` task by running `./gradlew :app:publishToMavenLocal`:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:publishToMavenLocal
-
+----
+[source,text]
+----
 > Task :app:compileJava FROM-CACHE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE

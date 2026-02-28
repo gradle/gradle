@@ -499,10 +499,12 @@ If you run it on a subproject, it will report the transforms registered only in 
 
 For example, to view the artifact transforms in the `app` subproject, you would run:
 
-[source, text]
+[source, bash]
 ----
 $ ./gradlew :app:artifactTransforms
-
+----
+[source, text]
+----
 > Task :app:artifactTransforms
 
 --------------------------------------------------
@@ -540,10 +542,12 @@ Some artifact transforms are not cacheable.  This can have negative performance 
 
 Because the task only inspects the current project, running it on the root project, where no transforms are registered, will produce empty output:
 
-[source, text]
+[source, bash]
 ----
 $ ./gradlew artifactTransforms
-
+----
+[source, text]
+----
 > Task :artifactTransforms
 
 There are no transforms registered in root project 'gradle'.

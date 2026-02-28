@@ -123,10 +123,12 @@ plugins {
 
 Make sure the plugin is correctly applied by listing the available tasks in the `app` subproject:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 ------------------------------------------------------------
 Tasks runnable from project ':app'
 ------------------------------------------------------------
@@ -164,10 +166,12 @@ public class App {
 
 Next, let's run the task with `./gradlew :app:license`:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:license
-
+----
+[source,text]
+----
 > Task :license-plugin:plugin:compileKotlin UP-TO-DATE
 > Task :license-plugin:plugin:compileJava NO-SOURCE
 > Task :license-plugin:plugin:pluginDescriptors UP-TO-DATE

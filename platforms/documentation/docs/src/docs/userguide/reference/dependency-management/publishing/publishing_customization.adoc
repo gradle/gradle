@@ -32,7 +32,6 @@ To perform such additions or modifications, the `AdhocComponentWithVariants` int
 To utilise these methods, you must make sure that the `SoftwareComponent` you work with is itself an `AdhocComponentWithVariants`, which is the case for the components created by the Java plugins (Java, Java Library, Java Platform).
 Adding a variant is then very simple:
 
-.Adding a variant to an existing software component
 ====
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=add_variant_to_existing_component]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=add_variant_to_existing_component]"]

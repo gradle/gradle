@@ -81,7 +81,6 @@ The attributes of the generated POM file will contain identity values derived fr
 
 Overriding the default identity values is easy: simply specify the `groupId`, `artifactId` or `version` attributes when configuring the link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication].
 
-.Customizing the publication identity
 ====
 include::sample[dir="snippets/maven-publish/customize-identity/kotlin/library",files="build.gradle.kts[tags=customize-identity]"]
 include::sample[dir="snippets/maven-publish/customize-identity/groovy/library",files="build.gradle[tags=customize-identity]"]
@@ -98,7 +97,6 @@ The only Unicode values that are explicitly prohibited are `\`, `/` and any ISO 
 
 The generated POM file can be customized before publishing. For example, when publishing a library to Maven Central you will need to set certain metadata. The Maven Publish Plugin provides a DSL for that purpose. Please see link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPom.html[MavenPom] in the DSL Reference for the complete documentation of available properties and methods. The following sample shows how to use the most common ones:
 
-.Customizing the POM file
 ====
 include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=pom-customization]"]
 include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=pom-customization]"]
@@ -126,7 +124,6 @@ Instead of relying on the conversion, it publishes the resolved versions.
 
 This is done by using the `versionMapping` DSL method which allows to configure the link:{javadocPath}/org/gradle/api/publish/VersionMappingStrategy.html[VersionMappingStrategy]:
 
-.Using resolved versions
 ====
 include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=versions-resolved]"]
 include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=versions-resolved]"]
@@ -143,7 +140,6 @@ This plugin provides <<glossary.adoc#sub:terminology_repository,repositories>> o
 
 Here's a simple example of defining a publishing repository:
 
-.Declaring repositories to publish to
 ====
 include::sample[dir="snippets/maven-publish/quickstart/kotlin",files="build.gradle.kts[tags=repositories]"]
 include::sample[dir="snippets/maven-publish/quickstart/groovy",files="build.gradle[tags=repositories]"]
@@ -195,7 +191,6 @@ include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gra
 
 Similarly, you can use a <<build_environment.adoc#build_environment, project or system property>> to decide which repository to publish to. The following example uses the release repository if the project property `release` is set, such as when a user runs `gradle -Prelease publish`:
 
-.Configuring repository URL based on project property
 ====
 include::sample[dir="snippets/maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=repo-url-from-project-property]"]
 include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gradle[tags=repo-url-from-project-property]"]
@@ -226,7 +221,6 @@ When a project changes the `groupId` or `artifactId` (the _coordinates_) of an a
 
 For this, a project adds an additional `MavenPublication` specifying a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPomRelocation.html[MavenPomRelocation]:
 
-.Specifying a relocation POM
 ====
 include::sample[dir="snippets/maven-publish/specify-relocation/kotlin/library",files="build.gradle.kts[tags=specify-relocation]"]
 include::sample[dir="snippets/maven-publish/specify-relocation/groovy/library",files="build.gradle[tags=specify-relocation]"]
@@ -273,7 +267,6 @@ To verify that relocation information works as expected before publishing it to 
 
 The following example demonstrates how to sign and publish a Java library including sources, Javadoc, and a customized POM:
 
-.Publishing a Java library
 ====
 include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=all]"]
 include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=all]"]
@@ -338,7 +331,6 @@ subprojects {
 ====
 
 This kind of logic must now be wrapped in an `afterEvaluate {}` block.
-
 
 ====
 [.multi-language-sample]

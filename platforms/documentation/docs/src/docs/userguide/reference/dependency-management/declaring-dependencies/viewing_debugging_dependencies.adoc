@@ -36,7 +36,7 @@ The dependency tree shows the selected version of each dependency and provides i
 The `dependencies` task is particularly useful for analyzing transitive dependencies.
 While your build file lists direct dependencies, the task helps you understand which transitive dependencies are resolved during the build.
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew dependencies
 ----
@@ -45,10 +45,12 @@ TIP: To render the graph of dependencies declared in the `buildscript` `classpat
 
 === Understanding output annotations
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:dependencies
-
+----
+[source,text]
+----
 > Task :app:dependencies
 
 ------------------------------------------------------------
