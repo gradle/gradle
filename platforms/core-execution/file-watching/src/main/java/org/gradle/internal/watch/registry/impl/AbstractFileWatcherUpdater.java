@@ -35,6 +35,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
@@ -97,9 +98,14 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
+    public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, Supplier<SnapshotHierarchy> currentRoot) {
         watcherStateLock.lock();
         try {
+            // Evaluate the supplier under the lock to get the VFS state at processing time,
+            // not at notification time. This discards stale add notifications that arrive
+            // out of order due to CAS operations completing in a different order than
+            // their notifications are dispatched.
+            SnapshotHierarchy root = currentRoot.get();
             boolean contentsChanged = handleVirtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, root);
             if (contentsChanged) {
                 update(root);

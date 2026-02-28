@@ -24,6 +24,7 @@ import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * <p>
@@ -81,9 +82,9 @@ public interface FileWatcherUpdater {
     /**
      * Updates the watchers after changes to the root.
      *
-     * @see FileWatcherRegistry#virtualFileSystemContentsChanged(Collection, Collection, SnapshotHierarchy)
+     * @see FileWatcherRegistry#virtualFileSystemContentsChanged(Collection, Collection, Supplier)
      */
-    void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
+    void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, Supplier<SnapshotHierarchy> currentRoot);
 
     /**
      * Trigger armed watch probe at given path.

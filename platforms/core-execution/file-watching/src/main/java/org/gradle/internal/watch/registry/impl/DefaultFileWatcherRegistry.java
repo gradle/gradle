@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.INVALIDATED;
@@ -143,8 +144,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
-        fileWatcherUpdater.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, root);
+    public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, Supplier<SnapshotHierarchy> currentRoot) {
+        fileWatcherUpdater.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, currentRoot);
     }
 
     @Override

@@ -100,7 +100,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy newRoot = updateFunction.update(diffListener);
             return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) ->
-                watchRegistry.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, newRoot)
+                watchRegistry.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, this::currentRoot)
             ));
         }
     }

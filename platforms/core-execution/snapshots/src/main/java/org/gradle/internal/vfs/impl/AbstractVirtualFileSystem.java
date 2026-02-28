@@ -120,11 +120,28 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void invalidate(Iterable<String> locations) {
-        LOGGER.debug("Invalidating VFS paths: {}", locations);
         if (Iterables.isEmpty(locations)) {
             return;
         }
 
+        LOGGER.debug("Invalidating VFS paths: {}", locations);
+        doInvalidate(locations, UnaryOperator.identity());
+    }
+
+    @Override
+    public void invalidateAll() {
+        LOGGER.debug("Invalidating the whole VFS");
+        doInvalidate(Collections.singletonList(VfsRelativePath.ROOT), UnaryOperator.identity());
+    }
+
+    /**
+     * Invalidates a single path using wrapping the diff listener via {@code listenerWrapper} so subclasses can decorate it (e.g. for logging).
+     */
+    protected void invalidateAndNotify(String absolutePath, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {
+        doInvalidate(Collections.singletonList(absolutePath), listenerWrapper);
+    }
+
+    private void doInvalidate(Iterable<String> locations, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {
         while (true) {
             VfsState currentState = state.get();
 
@@ -135,39 +152,12 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
             // accumulating all diff events in a single listener across all locations.
             BufferingDiffListener bufferListener = new BufferingDiffListener();
             for (String location : locations) {
-                final SnapshotHierarchy root = currentRoot;
-                currentRoot = root.invalidate(location, bufferListener);
+                currentRoot = currentRoot.invalidate(location, bufferListener);
                 currentVersionRoot = currentVersionRoot.updateVersion(location);
             }
 
             VfsState newState = new VfsState(currentRoot, currentVersionRoot);
 
-            if (state.compareAndSet(currentState, newState)) {
-                updateNotifyingListeners(diffListener -> {
-                    bufferListener.flushToRealListener(diffListener);
-                    return newState.root;
-                });
-                return;
-            }
-        }
-    }
-
-    @Override
-    public void invalidateAll() {
-        LOGGER.debug("Invalidating the whole VFS");
-        invalidate(Collections.singletonList(VfsRelativePath.ROOT));
-    }
-
-    /**
-     * Invalidates a single path using a CAS loop, wrapping the diff listener via {@code listenerWrapper}
-     * so subclasses can decorate it (e.g. for logging) before it reaches {@link #updateNotifyingListeners}.
-     */
-    protected void invalidateAndNotify(String absolutePath, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {
-        while (true) {
-            VfsState currentState = state.get();
-            BufferingDiffListener bufferListener = new BufferingDiffListener();
-            SnapshotHierarchy newRoot = currentState.root.invalidate(absolutePath, bufferListener);
-            VfsState newState = new VfsState(newRoot, currentState.versionRoot.updateVersion(absolutePath));
             if (state.compareAndSet(currentState, newState)) {
                 updateNotifyingListeners(diffListener -> {
                     bufferListener.flushToRealListener(listenerWrapper.apply(diffListener));

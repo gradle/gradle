@@ -70,15 +70,12 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
             .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
                 String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
-                //   Can cause NPE:
-                //   Root cause of the NPE:
-                //
-                //  In the new CAS-based VFS, when afterBuildStarted captures the current root via currentRoot(), a concurrent thread (e.g., the file watcher thread) can:
-                //  1. Do a CAS to remove a snapshot from the state
-                //  2. Call updateNotifyingListeners → handleVirtualFileSystemContentsChanged([snapshot], []) → removes snapshot from watchedDirectoryForSnapshot
-                //
-                //  Then afterBuildStarted's updateVfsOnBuildStarted(currentRoot, ...) processes the old captured root (which still has that snapshot), and when it invalidates it via invalidateMovedDirectoriesOnBuildStarted, it
-                //   tries to remove the snapshot from watchedDirectoryForSnapshot again — but remove() returns null. decrement(null, ...) puts a null key in the map, and new File(null) throws NPE at line 151.
+                // A "remove" notification can arrive before the corresponding "add" notification
+                // for the same snapshot when two CAS operations (store then invalidate) complete
+                // in one order but their notifications are dispatched in reverse order.
+                // In that case previousWatchedRoot is null because the snapshot was never registered.
+                // The stale "add" notification that follows is discarded by the root.findSnapshot()
+                // filter above, so no stale tracking entry is left behind.
                 if (previousWatchedRoot != null) {
                     decrement(previousWatchedRoot, changedWatchedDirectories);
                     snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
@@ -86,6 +83,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
             });
         addedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
+            .filter(snapshot -> root.findSnapshot(snapshot.getAbsolutePath()).isPresent())
             .forEach(snapshot -> {
                 File directoryToWatchForRoot = SnapshotWatchedDirectoryFinder.getDirectoryToWatch(snapshot);
                 String pathToWatchForRoot = directoryToWatchForRoot.getAbsolutePath();
@@ -124,7 +122,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         return (location, currentRoot) -> {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
-            diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
+            diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, () -> invalidatedRoot));
             return invalidatedRoot;
         };
     }

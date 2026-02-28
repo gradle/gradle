@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public interface FileWatcherRegistry extends Closeable {
 
@@ -59,9 +60,14 @@ public interface FileWatcherRegistry extends Closeable {
     /**
      * Updates the watchers after changes to the root.
      *
+     * The {@code currentRoot} supplier is evaluated lazily after acquiring the watcher lock,
+     * so it always reflects the VFS state at processing time rather than at notification time.
+     * This prevents stale add notifications from being processed when a remove CAS completed
+     * after the add CAS but before the notification was dispatched.
+     *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
+    void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, Supplier<SnapshotHierarchy> currentRoot);
 
     /**
      * Updates the VFS and the watchers when the build started.
