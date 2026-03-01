@@ -333,7 +333,7 @@ p aside {
 /* Typography resets */
 div, dl, dt, dd, ul, ol, li, h1, #toctitle,
 .sidebarblock > .content > .title,
-h4, h5, h6, pre, form, blockquote, th, td {
+h6, pre, form, blockquote, th, td {
     margin: 0;
     padding: 0;
     direction: ltr;
@@ -341,6 +341,12 @@ h4, h5, h6, pre, form, blockquote, th, td {
 
 h2, h3 {
     margin: 0 0 1.25rem 0;
+    padding: 0;
+    direction: ltr;
+}
+
+h4, h5 {
+    margin: 0 0 1rem 0;
     padding: 0;
     direction: ltr;
 }

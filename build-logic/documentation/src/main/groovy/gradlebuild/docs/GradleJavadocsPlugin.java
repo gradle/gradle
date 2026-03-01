@@ -103,14 +103,15 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 "<link id=\"hljs-theme\" rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css\">" +
                     "<script>" +
                     "(function() {" +
-                    "var saved;" +
-                    "try { saved = localStorage.getItem('theme'); } catch(e) {}" +
-                    "var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;" +
-                    "var theme = saved || (prefersDark ? 'dark' : 'light');" +
-                    "document.documentElement.setAttribute('data-theme', theme);" +
-                    "if (theme === 'dark') {" +
-                    "document.getElementById('hljs-theme').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-dark.min.css';" +
+                    "var mql = window.matchMedia('(prefers-color-scheme: dark)');" +
+                    "var hljsEl = document.getElementById('hljs-theme');" +
+                    "function applyTheme(dark) {" +
+                    "var t = dark ? 'dark' : 'light';" +
+                    "document.documentElement.setAttribute('data-theme', t);" +
+                    "if (hljsEl) hljsEl.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-' + t + '.min.css';" +
                     "}" +
+                    "applyTheme(mql.matches);" +
+                    "mql.addEventListener('change', function(e) { applyTheme(e.matches); });" +
                     "})();" +
                     "</script>" +
                     "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js\"></script>" +

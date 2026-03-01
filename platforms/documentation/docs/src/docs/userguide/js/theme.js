@@ -15,27 +15,20 @@
         }
     };
 
-    // Manual toggle — marks an explicit user override
+    // Manual toggle
     btn.addEventListener('click', (e) => {
         e.preventDefault();
         const nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         setTheme(nextTheme);
+    });
+
+    // OS changes always apply and clear any saved preference
+    themeMedia.addEventListener('change', (e) => {
+        setTheme(e.matches ? 'dark' : 'light');
         try {
-            localStorage.setItem('theme-manual-override', 'true');
+            localStorage.removeItem('theme');
         } catch (err) {
             // Ignore storage errors
         }
-    });
-
-    // Follow OS changes only when the user hasn't manually overridden
-    themeMedia.addEventListener('change', (e) => {
-        try {
-            if (localStorage.getItem('theme-manual-override') !== null) {
-                return;
-            }
-        } catch (err) {
-            // If storage is unavailable, fall back to following OS
-        }
-        setTheme(e.matches ? 'dark' : 'light');
     });
 })();
