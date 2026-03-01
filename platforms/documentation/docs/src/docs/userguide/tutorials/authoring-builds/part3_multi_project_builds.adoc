@@ -82,14 +82,14 @@ Imagine that our project is growing and requires a custom library to function.
 Let's create this imaginary `lib`.
 First, create a `lib` folder:
 
-[source,text]
+[source,bash]
 ----
-mkdir lib
+$ mkdir lib
 ----
 
-[source,text]
+[source,bash]
 ----
-cd lib
+$ cd lib
 ----
 
 Create a file called `build.gradle(.kts)` and add the following lines to it:
@@ -203,9 +203,9 @@ Your project should look like this:
 Let's add some code to the `lib` subproject.
 Create a new directory:
 
-[source,text]
+[source,bash]
 ----
-mkdir -p lib/src/main/java/com/gradle
+$ mkdir -p lib/src/main/java/com/gradle
 ----
 
 Create a Java class called `CustomLib` in a file called `CustomLib.java` with the following source code:
@@ -351,10 +351,12 @@ public class App {
 
 Finally, let's run the `app` with the command `./gradlew run`:
 
-[source]
+[source,bash]
 ----
 $ ./gradlew run
-
+----
+[source,text]
+----
 > Configure project :app
 
 > Task :app:processResources NO-SOURCE
@@ -392,19 +394,19 @@ Composite builds allow you to:
 Let's add a plugin to our build.
 First, create a new directory called `license-plugin` in the `gradle` directory:
 
-[source]
+[source,bash]
 ----
-cd gradle
-----
-
-[source]
-----
-mkdir license-plugin
+$ cd gradle
 ----
 
-[source]
+[source,bash]
 ----
-cd license-plugin
+$ mkdir license-plugin
+----
+
+[source,bash]
+----
+$ cd license-plugin
 ----
 
 Once in the `gradle/license-plugin` directory, run `gradle init`.
@@ -555,10 +557,12 @@ includeBuild('gradle/license-plugin')
 
 You can view the structure of the root project by running `./gradlew projects` in the root folder `authoring-tutorial`:
 
-[source]
+[source,bash]
 ----
 $ ./gradlew projects
-
+----
+[source,text]
+----
 ------------------------------------------------------------
 Root project 'authoring-tutorial'
 ------------------------------------------------------------

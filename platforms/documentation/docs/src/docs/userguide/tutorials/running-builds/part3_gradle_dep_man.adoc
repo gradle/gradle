@@ -45,7 +45,7 @@ Each line inside this block tells Gradle two things:
 
 For example:
 
-[source, kotlin]
+[source,kotlin]
 ----
 dependencies {
     implementation("com.google.guava:guava:32.1.2-jre")             // <1>
@@ -148,10 +148,12 @@ Therefore `failureaccess` is a transitive dependency of the project.
 
 You can view your dependency tree in the terminal using the `./gradlew :app:dependencies` command:
 
-[source,kotlin]
+[source,bash]
 ----
 $ ./gradlew :app:dependencies
-
+----
+[source,text]
+----
 > Task :app:dependencies
 
 ------------------------------------------------------------
@@ -214,10 +216,12 @@ To view dependencies using a https://scans.gradle.com/[Build Scan], run the buil
 
 In the `tutorial` directory, enter the command below and follow the prompt to accept the terms:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew build --scan
-
+----
+[source,text]
+----
 BUILD SUCCESSFUL in 423ms
 7 actionable tasks: 7 up-to-date
 
@@ -333,10 +337,12 @@ It is clear the `guava` dependency has been updated to version `30.0` and the tr
 
 Finally, make sure everything is working using the `run` task, either in your terminal or IDE:
 
+[source,bash]
+----
+$ ./gradlew run
+----
 [source,text]
 ----
-./gradlew run
-
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE

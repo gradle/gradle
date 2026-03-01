@@ -180,10 +180,12 @@ def packageApp = tasks.register(Zip, 'packageApp') {
 
 If we run our `packageApp` task, `myApplication.zip` is produced:
 
+[source,bash]
+----
+$ ./gradlew :app:packageApp
+----
 [source,text]
 ----
-$./gradlew :app:packageApp
-
 > Task :app:compileJava
 > Task :app:processResources NO-SOURCE
 > Task :app:classes
@@ -200,8 +202,10 @@ Looking at the newly created ZIP file, we can see that it contains everything ne
 
 [source,bash]
 ----
-> unzip -l ./app/build/dist/myApplication.zip
-
+$ unzip -l ./app/build/dist/myApplication.zip
+----
+[source,text]
+----
 Archive:  ./app/build/dist/myApplication.zip
   Length      Date    Time    Name
 ---------  ---------- -----   ----
@@ -250,10 +254,12 @@ tasks.build {
 
 We see that running `:build` also runs `:packageApp`:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:build
-
+----
+[source,text]
+----
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE
@@ -578,11 +584,10 @@ The `generateReport` task is wired to the `build` task.
 By running the build, we observe that our start script generation task is executed, and it's `UP-TO-DATE` in subsequent builds.
 Gradle's incremental building and caching mechanisms work seamlessly with custom tasks:
 
-[source,text]
+[source,bash]
 ----
-./gradlew :app:build
+$./gradlew :app:build
 ----
-
 [source, text]
 ----
 > Task :buildSrc:checkKotlinGradlePluginConfigurationErrors

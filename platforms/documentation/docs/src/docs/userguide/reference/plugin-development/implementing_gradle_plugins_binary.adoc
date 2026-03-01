@@ -87,7 +87,6 @@ plugin/     // <1>
 <1> *`plugin/`*: This is the root directory for the Gradle plugin project.
 <2> *`build.gradle`*: The build script for the plugin itself. It specifies dependencies like the Gradle API and Groovy, and it's where you apply the `groovy-gradle-plugin` or `java-gradle-plugin` to make your code a runnable Gradle plugin.
 <3> *`src/main/groovy/org/example/`*: This is the standard source directory for Groovy code, organized by package name.
-
 =====
 ====
 
@@ -298,8 +297,12 @@ include::sample[dir="snippets/tasks/customTaskWithFileProperty/kotlin",files="bu
 include::sample[dir="snippets/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q sayGreeting
+$ ./gradlew -q sayGreeting
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/customTaskWithFileProperty/tests/lazyFileProperties.out[]
 ----
 
@@ -336,8 +339,12 @@ include::sample[dir="snippets/customPlugins/customPluginNoConvention/kotlin",fil
 include::sample[dir="snippets/customPlugins/customPluginNoConvention/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPluginNoConvention/tests/customPluginNoConvention.out[]
 ----
 
@@ -362,8 +369,12 @@ include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/k
 include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPluginWithAdvancedConvention/tests/customPluginWithAdvancedConvention.out[]
 ----
 
@@ -572,8 +583,12 @@ include::sample[dir="snippets/customPlugins/customPluginWithConvention/kotlin",f
 include::sample[dir="snippets/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPluginWithConvention/tests/customPluginWithConvention.out[]
 ----
 
@@ -605,9 +620,12 @@ GreetingPluginExtension {
 =====
 ====
 
+[source,bash]
+----
+$ ./gradlew -q hello
+----
 [source,text]
 ----
-$ gradle -q hello
 Custom message
 ----
 
@@ -756,7 +774,6 @@ When the `active` provider value is:
 Note that the `active` status does not depend on the `requested` status.
 Even if the user requests a feature, it may still not be active due to other build options being used in the build.
 Gradle can also activate a feature by default, even if the user did not specify a preference.
-
 
 [[custom_dependencies_blocks]]
 == Using a custom `dependencies` block
@@ -988,8 +1005,12 @@ include::sample[dir="snippets/developingPlugins/externalLibraries/groovy",files=
 
 The output of the task clearly indicates the classpath of the `classpath` configuration:
 
+[source,bash]
 ----
-$ gradle buildEnvironment
+$ ./gradlew buildEnvironment
+----
+[source,text]
+----
 include::{snippetsPath}/developingPlugins/externalLibraries/tests/buildEnvironment.out[]
 ----
 

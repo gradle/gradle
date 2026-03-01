@@ -273,6 +273,7 @@ include::sample[dir="snippets/java-feature-variant/incompatible-variants/groovy/
 
 Dependency resolution will fail with a clear and informative error message:
 
+[source,text]
 ----
 Cannot choose between
    org.gradle.demo:producer:1.0 variant mysqlSupportRuntimeElements and

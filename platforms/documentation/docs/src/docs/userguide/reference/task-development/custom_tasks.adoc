@@ -172,17 +172,23 @@ The build layout:
     └── 3.txt
 ----
 
-[source, text]
+[source,bash]
 ----
-$ gradle -q incrementalReverse
+$ ./gradlew -q incrementalReverse
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskFirstRun.out[]
 ----
 
 Naturally, when the task is executed again with no changes, then the entire task is `UP-TO-DATE`, and the task action is not executed:
 
-[source, text]
+[source,bash]
 ----
-$ gradle incrementalReverse
+$ ./gradlew incrementalReverse
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskNoChange.out[]
 ----
 
@@ -193,12 +199,16 @@ The following example modifies the content of one file and adds another before r
 ====
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
 include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
+====
 
+[source,bash]
 ----
-$ gradle -q updateInputs incrementalReverse
+$ ./gradlew -q updateInputs incrementalReverse
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskUpdatedInputs.out[]
 ----
-====
 
 NOTE: The various mutation tasks (`updateInputs`, `removeInput`, etc) are only present to demonstrate the behavior of incremental tasks.
 They should not be viewed as the kinds of tasks or task implementations you should have in your own build scripts.
@@ -210,12 +220,16 @@ The following example removes one of the existing files before executing the inc
 ====
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
 include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
+====
 
+[source,bash]
 ----
-$ gradle -q removeInput incrementalReverse
+$ ./gradlew -q removeInput incrementalReverse
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedInput.out[]
 ----
-====
 
 Gradle cannot determine which input files are out-of-date when an _output_ file is deleted (or modified).
 In this case, details for _all_ the input files for the given property are returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[`InputChanges.getFileChanges()`].
@@ -226,12 +240,16 @@ However, all the input files are considered to be `ADDED`:
 ====
 include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
 include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
+====
 
+[source,bash]
 ----
-$ gradle -q removeOutput incrementalReverse
+$ ./gradlew -q removeOutput incrementalReverse
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedOutput.out[]
 ----
-====
 
 The last scenario we want to cover concerns what happens when a non-file-based input property is modified.
 In such cases, Gradle cannot determine how the property impacts the task outputs, so the task is executed non-incrementally.
@@ -242,12 +260,14 @@ That project property is used to initialize the task's `inputProperty` property,
 
 Here is the expected output in this case:
 
-====
+[source,bash]
 ----
-$ gradle -q -PtaskInputProperty=changed incrementalReverse
+$ ./gradlew -q -PtaskInputProperty=changed incrementalReverse
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskChangedProperty.out[]
 ----
-====
 
 [[sec:declaring_and_using_command_line_options]]
 == Command Line options
@@ -262,9 +282,10 @@ The task API supports a mechanism for marking a property to automatically genera
 
 To expose a new command line option for a task property, annotate the corresponding setter method of a property with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[Option]:
 
-```
+[source,kotlin]
+----
 @Option(option = "flag", description = "Sets the flag")
-```
+----
 
 An option requires a mandatory identifier.
 You can provide an optional description.
@@ -277,7 +298,7 @@ If multiple interfaces declare the same property but with different option flags
 In the example below, the custom task `UrlVerify` verifies whether a URL can be resolved by making an HTTP call and checking the response code. The URL to be verified is configurable through the property `url`.
 The setter method for the property is annotated with link:{javadocPath}/org/gradle/api/tasks/options/Option.html[@Option]:
 
-[source.multi-language-sample,java]
+[source,java]
 .UrlVerify.java
 ----
 include::{snippetsPath}/tasks/commandLineOption-stringOption/groovy/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
@@ -302,8 +323,12 @@ include::sample[dir="snippets/tasks/commandLineOption-stringOption/kotlin",files
 include::sample[dir="snippets/tasks/commandLineOption-stringOption/groovy",files="build.gradle[tags=task]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q verifyUrl --url=http://www.google.com/
+$ ./gradlew -q verifyUrl --url=http://www.google.com/
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/commandLineOption-stringOption/tests/taskCommandLineOption.out[]
 ----
 
@@ -367,9 +392,10 @@ See link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#set-j
 Theoretically, an option for a property type `String` or `List<String>` can accept any arbitrary value.
 Accepted values for such an option can be documented programmatically with the help of the annotation link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[OptionValues]:
 
-```
+[source,text]
+----
 @OptionValues('file')
-```
+----
 
 This annotation may be assigned to any method that returns a `List` of one of the supported data types.
 You need to specify an option identifier to indicate the relationship between the option and available values.
@@ -379,7 +405,7 @@ NOTE: Passing a value on the command line not supported by the option does not f
 The example below demonstrates the use of multiple options for a single task.
 The task implementation provides a list of available values for the option `output-type`:
 
-[source.multi-language-sample,java]
+[source,java]
 .UrlProcess.java
 ----
 include::{snippetsPath}/tasks/commandLineOption-optionValues/groovy/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
@@ -393,8 +419,12 @@ Command line options using the annotations link:{javadocPath}/org/gradle/api/tas
 You will see <<#sec:declaring_task_option,declared options>> and their <<#sec:documenting_available_task_option_values,available values>> reflected in the console output of the `help` task.
 The output renders options alphabetically, except for boolean disable options, which appear following the enable option:
 
+[source,bash]
 ----
-$ gradle -q help --task processUrl
+$ ./gradlew -q help --task processUrl
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/commandLineOption-optionValues/tests/helpTaskOptions.out[]
 ----
 
@@ -431,8 +461,13 @@ Verification failures are also useful for tasks that need to report a failure ev
 include::sample[dir="snippets/failures/verificationFailure/kotlin",files="build.gradle.kts[tags=verification-failure]"]
 include::sample[dir="snippets/failures/verificationFailure/groovy",files="build.gradle[tags=verification-failure]"]
 ====
+
+[source,bash]
 ----
-$ gradle postProcess --continue
+$ ./gradlew postProcess --continue
+----
+[source,text]
+----
 include::{snippetsPath}/failures/verificationFailure/tests/verificationFailure.out[]
 ----
 <1> *Register Output*: The `process` task writes its output to a log file.
