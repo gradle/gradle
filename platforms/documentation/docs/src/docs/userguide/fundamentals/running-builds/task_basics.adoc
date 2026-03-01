@@ -36,7 +36,7 @@ Each task is independent but can depend on other tasks to run first. Gradle uses
 To run a task, use the Gradle Wrapper from your project’s root directory.
 For example, to run the `build` task:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew build
 ----
@@ -46,7 +46,7 @@ This will run the `build` task and all of its dependencies.
 If you have the `application` plugin applied in your build file, the `run` task should be available.
 You can run your project like this:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew run
 ----
@@ -55,7 +55,6 @@ Example output:
 
 [source,text]
 ----
-
 > Task :app:compileJava
 > Task :app:processResources NO-SOURCE
 > Task :app:classes
@@ -75,7 +74,7 @@ In this example, the output of the `run` task is a `Hello World` statement print
 Gradle plugins and your build script define which tasks are available in a project.
 To see them:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew tasks
 ----
@@ -117,10 +116,12 @@ Gradle knows which tasks depend on which others, and will automatically run them
 
 For example, when you run `./gradlew build`, Gradle also runs tasks like `compileJava`, `test`, and `jar` first — because `build` depends on them:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew build
-
+----
+[source,text]
+----
 > Task :app:compileJava
 > Task :app:processResources NO-SOURCE
 > Task :app:classes

@@ -77,6 +77,7 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
+import java.util.Optional
 import javax.inject.Inject
 
 
@@ -151,6 +152,10 @@ class GenerateProjectAccessors(
         const val CLASSPATH_INPUT_PROPERTY = "classpath"
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
+    }
+
+    override fun getBuildOperationWorkType(): Optional<String> {
+        return Optional.of("GENERATE_PROJECT_ACCESSORS")
     }
 
     override fun execute(executionContext: ExecutionContext): WorkOutput {

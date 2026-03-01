@@ -38,6 +38,7 @@ dependencies {
     implementation(projects.baseAsm)
     implementation(projects.instrumentationReporting)
     implementation(projects.buildOperations)
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.declarativeDslEvaluator)
@@ -147,6 +148,7 @@ dependencies {
     testFixturesImplementation(projects.serviceRegistryImpl)
 
     testFixturesImplementation(testFixtures(projects.hashing))
+    testFixturesImplementation(testFixtures(projects.buildOperations))
 
     testFixturesImplementation(libs.kotlinCompilerEmbeddable)
 
@@ -156,6 +158,8 @@ dependencies {
     testFixturesImplementation(libs.asm)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+    integTestBinDistribution(projects.distributionsFull)
+    integTestSrcDistribution(projects.distributionsFull)
 }
 
 // Relocate kotlin-metadata-jvm

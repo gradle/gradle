@@ -28,9 +28,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.
- *
- * gradle/gradle requires Java >=9 and <=11 to build, see {@link AbstractGradleceptionSmokeTest.GradleBuildJvmSpec}.
- */
+ **/
 @Requires([
     UnitTestPreconditions.Jdk9OrLater,
     IntegTestPreconditions.NotConfigCached,

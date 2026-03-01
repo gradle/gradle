@@ -173,6 +173,7 @@ By adjusting the build configuration to run these two slow tasks earlier and in 
 
 image::performance/parallel-task-fast.png[title="Optimized parallel execution"]
 
+[[sec:configure_tooling_api_actions_parallelism]]
 === Configure Tooling API actions parallelism
 
 By enabling Parallel Execution, you also allow parallelism for Tooling API actions.
@@ -444,7 +445,7 @@ Expensive operations in a plugin’s `apply()` method or a task's constructor ar
 class ExpensivePlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
-        // ❌ BAD: Makes an expensive network call at configuration time
+        // BAD: Makes an expensive network call at configuration time
         def response = new URL("https://example.com/dependencies.json").text
         def dependencies = new groovy.json.JsonSlurper().parseText(response)
 
@@ -464,7 +465,7 @@ class OptimizedPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.tasks.register("fetchDependencies") {
             doLast {
-                // ✅ GOOD: Runs only when the task is executed
+                // GOOD: Runs only when the task is executed
                 def response = new URL("https://example.com/dependencies.json").text
                 def dependencies = new groovy.json.JsonSlurper().parseText(response)
 
@@ -488,7 +489,7 @@ In the example below, the root build script applies `script-a.gradle` to three s
 [source,groovy]
 ----
 subprojects {
-    apply from: "$rootDir/script-a.gradle"  // ❌ Applied to all subprojects unnecessarily
+    apply from: "$rootDir/script-a.gradle"  // Applied to all subprojects unnecessarily
 }
 ----
 
@@ -502,7 +503,7 @@ To optimize this:
 [source,groovy]
 ----
 project(":subproject1") {
-    apply from: "$rootDir/script-a.gradle"  // ✅ Applied only where needed
+    apply from: "$rootDir/script-a.gradle"  // Applied only where needed
 }
 
 project(":subproject2") {
@@ -514,11 +515,11 @@ project(":subproject2") {
 [source,groovy]
 ----
 plugins {
-    id 'com.example.my-custom-plugin' apply false  // ✅ Declare the plugin but don't apply it globally
+    id 'com.example.my-custom-plugin' apply false  // Declare the plugin but don't apply it globally
 }
 
 project(":subproject1") {
-    apply plugin: 'com.example.my-custom-plugin'  // ✅ Apply only where needed
+    apply plugin: 'com.example.my-custom-plugin'  // Apply only where needed
 }
 
 project(":subproject2") {
@@ -582,7 +583,7 @@ To speed up resolution, list the repository hosting most dependencies first, red
 [source,groovy]
 ----
 repositories {
-    mavenCentral()  // ❌ Declared first, but most dependencies are in example.com/repo
+    mavenCentral()  // Declared first, but most dependencies are in example.com/repo
     maven { url "https://example.com/repo" }
 }
 ----
@@ -596,7 +597,7 @@ If using a custom repository, create a *virtual repository* that aggregates mult
 [source,groovy]
 ----
 repositories {
-    maven { url "https://example.com/virtual-repo" } // ✅ Uses an aggregated repository
+    maven { url "https://example.com/virtual-repo" } // Uses an aggregated repository
 }
 ----
 
@@ -638,10 +639,10 @@ This code forces dependency resolution during configuration, slowing down every 
 ----
 task printDeps {
     doFirst {
-        configurations.compileClasspath.files.each { println it } // ✅ Deferring Dependency Resolution
+        configurations.compileClasspath.files.each { println it } // Deferring Dependency Resolution
     }
     doLast {
-        configurations.compileClasspath.files.each { println it } // ❌ Resolving Dependencies During Configuration
+        configurations.compileClasspath.files.each { println it } // Resolving Dependencies During Configuration
     }
 }
 ----
@@ -701,8 +702,8 @@ This example forces a custom dependency version but also introduces expensive lo
 configurations.all {
     resolutionStrategy.eachDependency { details ->
         if (details.requested.group == "com.example" && details.requested.name == "library") {
-            def versionInfo = new URL("https://example.com/version-check").text  // ❌ Remote call during resolution
-            details.useVersion(versionInfo.trim())  // ❌ Dynamically setting a version based on an HTTP response
+            def versionInfo = new URL("https://example.com/version-check").text  // Remote call during resolution
+            details.useVersion(versionInfo.trim())  // Dynamically setting a version based on an HTTP response
         }
     }
 }
@@ -747,8 +748,8 @@ If downloads are slow from *Maven Central*, consider a geographically closer mir
 [source,groovy]
 ----
 dependencies {
-    implementation "com.example:library:1.+" // ❌ Bad
-    implementation "com.example:library:1.2.3" // ✅ Good
+    implementation "com.example:library:1.+" // Bad
+    implementation "com.example:library:1.2.3" // Good
 }
 ----
 
@@ -830,8 +831,9 @@ If you occasionally need reports without modifying the build file, you can make 
 This example disables reports unless the `createReports` property is present:
 
 ====
-.build.gradle.kts
-[source.multi-language-sample,kotlin]
+[.multi-language-sample]
+=====
+[source,kotlin]
 ----
 tasks.withType<Test>().configureEach {
     if (!project.hasProperty("createReports")) {
@@ -840,8 +842,10 @@ tasks.withType<Test>().configureEach {
     }
 }
 ----
-.build.gradle
-[source.multi-language-sample,groovy]
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
 ----
 tasks.withType(Test).configureEach {
     if (!project.hasProperty("createReports")) {
@@ -850,26 +854,23 @@ tasks.withType(Test).configureEach {
     }
 }
 ----
+=====
 ====
 
 To generate reports, pass the property via the command line:
 
-====
-[listing.terminal]
+[source,bash]
 ----
 $ gradle <task> -PcreateReports
 ----
-====
 
 Or define the property in the `gradle.properties` file located in the <<directory_layout.adoc#directory_layout,project root>> or your <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>>:
 
-====
-.gradle.properties
 [source,properties]
+.gradle.properties
 ----
 createReports=true
 ----
-====
 
 === Optimize the compiler
 
@@ -886,16 +887,22 @@ By default, Gradle runs compilation in the same process as the build logic.
 You can offload Java compilation to a separate process using the `fork` option:
 
 ====
+[.multi-language-sample]
+=====
+[source,kotlin]
 .build.gradle.kts
-[source.multi-language-sample,kotlin]
 ----
 <task>.options.isFork = true
 ----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
 .build.gradle
-[source.multi-language-sample,groovy]
 ----
 <task>.options.fork = true
 ----
+=====
 ====
 
 To apply this setting to all `JavaCompile` tasks, use `configureEach`:
@@ -921,22 +928,26 @@ When an `implementation` dependency changes, Gradle does **not** recompile downs
 This helps reduce cascading recompilations:
 
 ====
-.build.gradle.kts
-[source.multi-language-sample,kotlin]
+[.multi-language-sample]
+=====
+[source,kotlin]
 ----
 dependencies {
    api(project("my-utils"))
    implementation("com.google.guava:guava:21.0")
 }
 ----
-.build.gradle
-[source.multi-language-sample,groovy]
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
 ----
 dependencies {
    api project('my-utils')
    implementation 'com.google.guava:guava:21.0'
 }
 ----
+=====
 ====
 
 Switching to `implementation` for internal-only dependencies is one of the most impactful changes you can make to improve build performance in large, modular codebases.
@@ -976,20 +987,24 @@ Incremental compilation is enabled by default in Gradle 4.10 and later.
 To enable it manually in older versions, add the following configuration to your `build.gradle` file:
 
 ====
-.build.gradle.kts
-[source.multi-language-sample,kotlin]
+[.multi-language-sample]
+=====
+[source,kotlin]
 ----
 tasks.withType<JavaCompile>().configureEach {
     options.isIncremental = true
 }
 ----
-.build.gradle
-[source.multi-language-sample,groovy]
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
 ----
 tasks.withType(JavaCompile).configureEach {
     options.incremental = true
 }
 ----
+=====
 ====
 
 === Use Compile Avoidance

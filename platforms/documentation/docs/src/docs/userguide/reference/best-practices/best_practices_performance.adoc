@@ -48,6 +48,7 @@ In special cases (for example, fully offline environments), you can still use `-
 Make sure your Wrapper doesn't point to the `-all` distribution:
 
 `gradle/wrapper/gradle-wrapper.properties`:
+
 [source,properties]
 ----
 distributionUrl=https\://services.gradle.org/distributions/gradle-<version>-all.zip
@@ -58,6 +59,7 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-<version>-all.
 Configure the Wrapper to use the `-bin` distribution:
 
 `gradle/wrapper/gradle-wrapper.properties`:
+
 [source,properties]
 ----
 distributionUrl=https\://services.gradle.org/distributions/gradle-<version>-bin.zip
@@ -133,16 +135,24 @@ When you build your project for the first time, Gradle populates the cache with 
 
 Even if you run `./gradlew clean` to delete the build directory, Gradle can reuse cached outputs in subsequent builds.
 
+[source,bash]
 ----
-> ./gradlew clean
+$ ./gradlew clean
+----
+[source,text]
+----
 :clean
 BUILD SUCCESSFUL
 ----
 
 On subsequent builds, instead of executing the `:compileJava` task again, the outputs of the task will be loaded from the Build Cache:
 
+[source,bash]
 ----
-> ./gradlew compileJava
+$ ./gradlew compileJava
+----
+[source,text]
+----
 include::{snippetsPath}/bestPractices/useBuildCache-do/tests/useBuildCache-do.secondRun.out[]
 ----
 
@@ -195,18 +205,24 @@ include::sample[dir="snippets/bestPractices/useConfigurationCache-do/common",fil
 
 When you build your project for the first time, Gradle stores the outcome of the configuration phase, including the task graph, in the Configuration Cache.
 
+[source,bash]
 ----
-> ./gradlew compileJava
-
+$ ./gradlew compileJava
+----
+[source,text]
+----
 Configuration cache entry stored.
 include::{snippetsPath}/bestPractices/useConfigurationCache-do/tests/useConfigurationCache-do.firstRun.out[]
 ----
 
 On subsequent builds, instead of reconfiguring tasks like `:compileJava`, Gradle loads the task graph from the Configuration Cache and proceeds directly to execution.
 
+[source,bash]
 ----
-> ./gradlew compileJava
-
+$ ./gradlew compileJava
+----
+[source,text]
+----
 Configuration cache entry reused.
 include::{snippetsPath}/bestPractices/useConfigurationCache-do/tests/useConfigurationCache-do.secondRun.out[]
 ----

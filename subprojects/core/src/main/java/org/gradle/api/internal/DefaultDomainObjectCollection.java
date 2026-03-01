@@ -60,6 +60,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
      */
     private ImmutableActionSet<String> beforeContainerChange = ImmutableActionSet.empty();
 
+    private boolean changesDisallowed = false;
+
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator callbackActionDecorator) {
         this(type, store, new DefaultCollectionEventRegister<T>(type, callbackActionDecorator));
     }
@@ -481,6 +483,25 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void beforeCollectionChanges(Action<String> action) {
         beforeContainerChange = beforeContainerChange.add(action);
+    }
+
+    @Override
+    public void disallowChanges() {
+        assertEagerContext("disallowChanges()");
+        if (changesDisallowed) {
+            return;
+        }
+        changesDisallowed = true;
+        beforeContainerChange = beforeContainerChange.add(methodName -> {
+            throw new IllegalStateException(
+                String.format("Cannot call %s on %s as changes to this collection are disallowed.",
+                    methodName, getDisplayName()));
+        });
+    }
+
+    @Override
+    public boolean areChangesAllowed() {
+        return !changesDisallowed;
     }
 
     protected class IteratorImpl implements Iterator<T> {

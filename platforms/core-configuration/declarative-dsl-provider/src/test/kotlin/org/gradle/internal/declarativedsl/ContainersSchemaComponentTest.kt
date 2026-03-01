@@ -21,7 +21,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Namer
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.tasks.Internal
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.schema.DataClass
@@ -38,6 +38,7 @@ import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
 import org.gradle.internal.declarativedsl.ndoc.ContainersSchemaComponent
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.DeclarativeDslSchemaBuildingException
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingIssue
 import org.gradle.internal.declarativedsl.schemaBuilder.basicTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -50,6 +51,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -66,11 +68,6 @@ class ContainersSchemaComponentTest {
         listOf("one", "two", "customFactoryName").forEach { name ->
             assertTrue(schema.analysisSchema.findType { type: DataClass -> type.hasFunctionNamed(name) } != null)
         }
-    }
-
-    @Test
-    fun `ignores container members annotated as @Internal`() {
-        assertFalse(schema.analysisSchema.typeFor<TopLevel>().hasFunctionNamed("internalContainer"))
     }
 
     @Test
@@ -172,7 +169,41 @@ class ContainersSchemaComponentTest {
         }
     }
 
-    private val schema = buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) { gradleDslGeneralSchema() }
+    @Test
+    fun `can import out-projected type argument for container element type`() {
+        val schema = buildEvaluationAndConversionSchema(UsesOutProjectedElementType::class, analyzeEverything) { gradleDslGeneralSchema() }.analysisSchema
+        val typeRefContext = SchemaTypeRefContext(schema)
+        val topLevelType = schema.typeFor<UsesOutProjectedElementType>()
+        topLevelType.singleFunctionNamed("container").function.run {
+            val containerType = typeRefContext.resolveRef((semantics as FunctionSemantics.ConfigureSemantics).configuredType) as DataClass
+            val elementFactory = containerType.singleFunctionNamed("charSequence").function
+            val elementType = typeRefContext.resolveRef((elementFactory.semantics as FunctionSemantics.ConfigureSemantics).configuredType) as DataClass
+            assertEquals(CharSequence::class.qualifiedName, elementType.name.qualifiedName)
+        }
+        assertTrue(topLevelType.properties.none { it.name == "container" })
+    }
+
+    @Test
+    fun `reports an error on an in-projected NDOC`() {
+        val schema = buildEvaluationAndConversionSchema(UsesInProjectedElementType::class, analyzeEverything) { gradleDslGeneralSchema() }
+        schema.analysisSchemaBuildingFailures.single().run {
+            assertInstanceOf<SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage>(issue)
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.ClassContext && it.qualifiedName == UsesInProjectedElementType::class.qualifiedName })
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.MemberContext && it.memberSignature == "container" })
+        }
+    }
+
+    @Test
+    fun `reports an error on an star-projected NDOC`() {
+        val schema = buildEvaluationAndConversionSchema(UsesStarProjectedElementType::class, analyzeEverything) { gradleDslGeneralSchema() }
+        schema.analysisSchemaBuildingFailures.single().run {
+            assertInstanceOf<SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage>(issue)
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.ClassContext && it.qualifiedName == UsesStarProjectedElementType::class.qualifiedName })
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.MemberContext && it.memberSignature == "container" })
+        }
+    }
+
+    private val schema by lazy { buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) { gradleDslGeneralSchema() } }
 
     class TopLevel {
         val containerOne: NamedDomainObjectContainer<One> = container(One::class.java)
@@ -180,10 +211,6 @@ class ContainersSchemaComponentTest {
         fun getContainerTwo(): NamedDomainObjectContainer<Two> = containerTwo
 
         private val containerTwo = container(Two::class.java)
-
-        @Suppress("unused")
-        @get:Internal
-        val internalContainer: NamedDomainObjectContainer<One> = container(One::class.java)
     }
 
     class One(private val name: String) : Named {
@@ -247,5 +274,21 @@ private fun <T : Any> container(type: Class<T>): NamedDomainObjectContainer<T> =
 private class Hidden
 
 private interface UsesHiddenContainerElement {
+    @Suppress("unused")
     val container: NamedDomainObjectContainer<Hidden>
+}
+
+private interface UsesOutProjectedElementType {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<out CharSequence>
+}
+
+private interface UsesInProjectedElementType {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<in CharSequence>
+}
+
+private interface UsesStarProjectedElementType {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<*>
 }

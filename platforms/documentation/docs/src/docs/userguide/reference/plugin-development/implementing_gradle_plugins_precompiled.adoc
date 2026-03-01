@@ -209,8 +209,12 @@ include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main
 include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=task]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/plugins/greeting/tests/greeting.out[]
 ----
 

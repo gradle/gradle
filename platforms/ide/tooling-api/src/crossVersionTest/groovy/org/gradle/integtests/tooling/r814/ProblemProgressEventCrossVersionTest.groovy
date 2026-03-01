@@ -16,11 +16,9 @@
 
 package org.gradle.integtests.tooling.r814
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 @ToolingApiVersion(">=8.14")
 @TargetGradleVersion(">=8.14")
@@ -179,6 +177,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         someDataView.otherData.otherName == "otherName"
 
         where:
-        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+        isolationMode << ["noIsolation", "classLoaderIsolation", "processIsolation"]
     }
 }

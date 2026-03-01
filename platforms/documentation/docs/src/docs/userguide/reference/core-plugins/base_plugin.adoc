@@ -20,8 +20,8 @@ The Base Plugin provides some tasks and conventions that are common to most buil
 [[sec:base_plugin_usage]]
 == Usage
 
+Applying the Base Plugin:
 
-.Applying the Base Plugin
 ====
 include::sample[dir="snippets/base/basePlugin/kotlin",files="build.gradle.kts[tags=apply-base-plugin]"]
 include::sample[dir="snippets/base/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
@@ -76,7 +76,6 @@ Instead, task dependencies should be declared directly on the `assemble` task.
 The Base Plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[`base` extension] to the project.
 This allows to configure the following properties inside a dedicated DSL block.
 
-.Using the `base` extension
 ====
 include::sample[dir="snippets/files/archivesChangedBaseName/kotlin",files="build.gradle.kts[tags=base-plugin-config]"]
 include::sample[dir="snippets/files/archivesChangedBaseName/groovy",files="build.gradle[tags=base-plugin-config]"]

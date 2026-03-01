@@ -39,12 +39,10 @@ Conceptually a project is either a platform, with no binaries, _or_ produces bin
 
 To use the Java Platform plugin, include the following in your build script:
 
-.Using the Java Platform plugin
 ====
 include::sample[dir="snippets/java-platform/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
 include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
-
 
 [[sec:java_platform_separation]]
 == API and runtime separation
@@ -55,7 +53,6 @@ While many users will only care about declaring constraints for _compile time_ d
 For this purpose, the plugin exposes two <<dependency_configurations.adoc#sub:what-are-dependency-configurations,configurations>> that can be used to declare dependencies: `api` and `runtime`.
 The `api` configuration should be used to declare constraints and dependencies which should be used when compiling against the platform, whereas the `runtime` configuration should be used to declare constraints or dependencies which are visible at runtime.
 
-.Declaring API and runtime constraints
 ====
 include::sample[dir="snippets/java-platform/quickstart/kotlin",files="build.gradle.kts[tags=constraints]"]
 include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.gradle[tags=constraints]"]
@@ -75,7 +72,6 @@ If a dependency brings in `org:foo:1.0`, then we would select `org:foo:1.1` to s
 By default, in order to avoid the common mistake of adding a dependency in a platform instead of a constraint, Gradle will fail if you try to do so.
 If, for some reason, you also want to add _dependencies_ in addition to constraints, you need to enable it explicitly:
 
-.Allowing declaration of dependencies
 ====
 include::sample[dir="snippets/java-platform/quickstart/kotlin",files="build.gradle.kts[tags=allow-dependencies]"]
 include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.gradle[tags=allow-dependencies]"]
@@ -86,7 +82,6 @@ include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.grad
 
 If you have a multi-project build and want to publish a platform that links to subprojects, you can do it by declaring constraints on the subprojects which belong to the platform, as in the example below:
 
-.Declaring constraints on subprojects
 ====
 include::sample[dir="snippets/java-platform/multiproject/kotlin/platform",files="build.gradle.kts[tags=project-constraints]"]
 include::sample[dir="snippets/java-platform/multiproject/groovy/platform",files="build.gradle[tags=project-constraints]"]
@@ -101,7 +96,6 @@ Sometimes the platform you define is an extension of another existing platform.
 
 In order to have your platform include the constraints from that third party platform, it needs to be imported as a `platform` _dependency_:
 
-.Importing a platform
 ====
 include::sample[dir="snippets/java-platform/quickstart/kotlin",files="build.gradle.kts[tags=platform]"]
 include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.gradle[tags=platform]"]
@@ -112,7 +106,6 @@ include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.grad
 
 Publishing Java platforms is done by applying the `maven-publish` plugin and configuring a Maven publication that uses the `javaPlatform` component:
 
-.Publishing as a BOM
 ====
 include::sample[dir="snippets/java-platform/multiproject/kotlin/platform",files="build.gradle.kts[tags=publishing]"]
 include::sample[dir="snippets/java-platform/multiproject/groovy/platform",files="build.gradle[tags=publishing]"]
@@ -126,7 +119,6 @@ This will generate a BOM file for the platform, with a `<dependencyManagement>` 
 Because a Java Platform is a special kind of component, a dependency on a Java platform has to be declared using the `platform` or `enforcedPlatform` keyword, as explained in the <<platforms.adoc#sec:bom-import,managing transitive dependencies>> section.
 For example, if you want to share dependency versions between subprojects, you can define a platform module which would declare all versions:
 
-.Recommend versions in a platform module
 ====
 include::sample[dir="snippets/java-platform/recommender/kotlin/platform",files="build.gradle.kts[tags=define-platform]"]
 include::sample[dir="snippets/java-platform/recommender/groovy/platform",files="build.gradle[tags=define-platform]"]
@@ -134,7 +126,6 @@ include::sample[dir="snippets/java-platform/recommender/groovy/platform",files="
 
 And then have subprojects depend on the platform to get recommendations:
 
-.Get recommendations from a platform
 ====
 include::sample[dir="snippets/java-platform/recommender/kotlin/consumer",files="build.gradle.kts[tags=get-recommendations]"]
 include::sample[dir="snippets/java-platform/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]

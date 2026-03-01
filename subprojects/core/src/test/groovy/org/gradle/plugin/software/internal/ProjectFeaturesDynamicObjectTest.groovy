@@ -17,10 +17,15 @@
 package org.gradle.plugin.software.internal
 
 import org.gradle.api.internal.DynamicObjectAware
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.TargetTypeInformation
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.TargetTypeInformation
 import org.gradle.api.model.ObjectFactory
+import org.gradle.features.internal.binding.ProjectFeatureApplicator
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureImplementation
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal
+import org.gradle.features.internal.binding.ProjectFeaturesDynamicObject
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

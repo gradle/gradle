@@ -99,7 +99,7 @@ A project path has the following pattern: it starts with an optional colon, whic
 The root project, `:`, is the only project in a path not specified by its name.
 The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project:
 
-[source,bash]
+[source,text]
 ----
 :sub-project-1
 ----
@@ -166,7 +166,7 @@ For example, if the project above had common build logic between `sub-project-1`
 └── sub-project-3
     └── build.gradle(.kts)              // <3>
 ----
-<1> Gradle recognized buildSrc folder
+<1> Gradle recognized `buildSrc` folder
 <2> Contains common build logic from `sub-project-1`, `sub-project-2` and `sub-project-3`
 <3> Applies `shared-build-conventions.gradle(.kts)`
 

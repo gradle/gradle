@@ -25,6 +25,7 @@ import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
@@ -32,7 +33,17 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     private static final SerializableSupplier<ImmutableCollection.Builder<Object>> FACTORY = ImmutableList::builder;
 
     public DefaultListProperty(PropertyHost host, Class<T> elementType) {
-        super(host, List.class, elementType, Cast.uncheckedNonnullCast(FACTORY));
+        super(host, new ValidatingValueCollector<>(List.class, elementType, ValueSanitizers.forType(elementType)), elementType);
+    }
+
+    @Override
+    protected final Class<List<T>> getCollectionType() {
+        return Cast.uncheckedNonnullCast(List.class);
+    }
+
+    @Override
+    protected final Supplier<ImmutableCollection.Builder<T>> getCollectionFactory() {
+        return Cast.uncheckedNonnullCast(FACTORY);
     }
 
     @Override

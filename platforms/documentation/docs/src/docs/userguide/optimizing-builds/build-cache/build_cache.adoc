@@ -75,8 +75,12 @@ Task output caching is automatically enabled when you enable the build cache, se
 
 Let us start with a project using the Java plugin which has a few Java source files. We run the build the first time.
 
+[source,bash]
 ----
-> gradle --build-cache compileJava
+$ ./gradlew --build-cache compileJava
+----
+[source,text]
+----
 :compileJava
 :processResources
 :classes
@@ -89,15 +93,23 @@ BUILD SUCCESSFUL
 We see the directory used by the local build cache in the output. Apart from that the build was the same as without the build cache.
 Let's clean and run the build again.
 
+[source,bash]
 ----
-> gradle clean
+$ ./gradlew clean
+----
+[source,text]
+----
 :clean
 
 BUILD SUCCESSFUL
 ----
 
+[source,bash]
 ----
-> gradle --build-cache assemble
+$ ./gradlew --build-cache assemble
+----
+[source,text]
+----
 :compileJava FROM-CACHE
 :processResources
 :classes
@@ -242,7 +254,6 @@ In this case, the relative path of the input files can be used to identify them.
 
 Note that it is possible to override property annotations from the base class by overriding the getter of the base class and annotating that method.
 
-.Custom cacheable BundleTask
 ====
 include::sample[dir="snippets/buildCache/cacheable-bundle-task/kotlin",files="build.gradle.kts[tags=bundle-task]"]
 include::sample[dir="snippets/buildCache/cacheable-bundle-task/groovy",files="build.gradle[tags=bundle-task]"]
@@ -261,7 +272,6 @@ The declarations via the runtime API have the same effect as the annotations des
 Note that you cannot override file inputs and outputs via the runtime API.
 Input properties can be overridden by specifying the same property name.
 
-.Make the bundle task cacheable
 ====
 include::sample[dir="snippets/buildCache/cacheable-bundle/kotlin",files="build.gradle.kts[tags=bundle-task]"]
 include::sample[dir="snippets/buildCache/cacheable-bundle/groovy",files="build.gradle[tags=bundle-task]"]
@@ -314,7 +324,6 @@ link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html[HttpBuildCache]
 
 With the following configuration, the local build cache will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
 
-.Load from HttpBuildCache
 ====
 include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=http-build-cache]"]
 include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="settings.gradle[tags=http-build-cache]"]
@@ -331,7 +340,6 @@ A `413 Payload Too Large` response may be returned to indicate that the payload 
 
 https://en.wikipedia.org/wiki/Basic_access_authentication[HTTP Basic Authentication] is supported, with credentials being sent preemptively.
 
-.Specifying access credentials
 ====
 include::sample[dir="snippets/buildCache/configure-built-in-caches/kotlin",files="settings.gradle.kts[tags=configure-http-build-cache]"]
 include::sample[dir="snippets/buildCache/configure-built-in-caches/groovy",files="settings.gradle[tags=configure-http-build-cache]"]
@@ -369,7 +377,6 @@ The trust requirement can be disabled by setting link:{groovyDslPath}/org.gradle
 Enabling this option is a security risk, as it allows any cache server to impersonate the intended server.
 It should only be used as a temporary measure or in very tightly controlled network environments.
 
-.Allow untrusted cache server
 ====
 include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=allow-untrusted-server]"]
 include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="settings.gradle[tags=allow-untrusted-server]"]
@@ -390,7 +397,6 @@ Be sure to check that your cache server does support it before enabling.
 
 To enable, set link:{groovyDslPath}/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:useExpectContinue[HttpBuildCache.isUseExpectContinue()] to `true`.
 
-.Use Expect-Continue
 ====
 include::sample[dir="snippets/buildCache/http-build-cache/kotlin",files="settings.gradle.kts[tags=use-expect-continue]"]
 include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="settings.gradle[tags=use-expect-continue]"]
@@ -402,7 +408,6 @@ include::sample[dir="snippets/buildCache/http-build-cache/groovy",files="setting
 The recommended use case for the remote build cache is that your continuous integration server populates it from clean builds while developers only load from it.
 The configuration would then look as follows.
 
-.Recommended setup for CI push use case
 ====
 include::sample[dir="snippets/buildCache/developer-ci-setup/kotlin",files="settings.gradle.kts[tags=developer-ci-setup]"]
 include::sample[dir="snippets/buildCache/developer-ci-setup/groovy",files="settings.gradle[tags=developer-ci-setup]"]
@@ -410,7 +415,6 @@ include::sample[dir="snippets/buildCache/developer-ci-setup/groovy",files="setti
 
 It is also possible to configure the build cache from an <<init_scripts.adoc#sec:using_an_init_script,init script>>, which can be used from the command line, added to your Gradle User Home or be a part of your custom Gradle distribution.
 
-.Init script to configure the build cache
 ====
 include::sample[dir="snippets/buildCache/configure-by-init-script/kotlin",files="init.gradle.kts[]"]
 include::sample[dir="snippets/buildCache/configure-by-init-script/groovy",files="init.gradle[]"]

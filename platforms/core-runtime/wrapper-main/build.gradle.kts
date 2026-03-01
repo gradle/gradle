@@ -17,6 +17,8 @@
 import com.gradleup.gr8.EmbeddedJarTask
 import com.gradleup.gr8.Gr8Task
 import gradlebuild.basics.launcherDebuggingIsEnabled
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.jar.Attributes
 
 plugins {
@@ -48,15 +50,16 @@ dependencies {
     integTestImplementation(testLibs.jetty)
     integTestImplementation(testFixtures(projects.buildProcessServices))
 
+    integTestNormalizedDistribution(projects.distributionsFull)
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
+
+    crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(projects.launcher)
     crossVersionTestImplementation(projects.logging)
     crossVersionTestImplementation(projects.persistentCache)
-    crossVersionTestImplementation(projects.launcher)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
 
-    integTestNormalizedDistribution(projects.distributionsFull)
     crossVersionTestNormalizedDistribution(projects.distributionsFull)
-
-    integTestDistributionRuntimeOnly(projects.distributionsFull)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
@@ -102,9 +105,22 @@ tasks.named<EmbeddedJarTask>("gr8EmbeddedJar") {
 // Before introducing gr8, wrapper jar is generated as build/libs/gradle-wrapper.jar and used in promotion build
 // After introducing gr8, wrapper jar is generated as build/libs/gradle-wrapper-executable.jar and processed
 //   by gr8, then the processed `gradle-wrapper.jar` need to be copied back to build/libs for promotion build
-val copyGr8OutputJarAsGradleWrapperJar by tasks.registering(Copy::class) {
-    from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
-    into(layout.buildDirectory.dir("libs"))
+val copyGr8OutputJarAsGradleWrapperJar by tasks.registering {
+    // Declare file inputs and outputs
+    // We use a custom task to not have Copy "own" its output directory when copying a single file
+    val source = tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() }
+    val target = layout.buildDirectory.dir("libs").map { it.file("gradle-wrapper.jar") }
+
+    inputs.file(source)
+    outputs.file(target)
+    // Do the copy with a simple JDK copy action
+    doLast {
+        Files.copy(
+            source.get().asFile.toPath(),
+            target.get().asFile.toPath(),
+            StandardCopyOption.REPLACE_EXISTING
+        )
+    }
 }
 
 val debuggableJar by tasks.registering(Jar::class) {

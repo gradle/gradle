@@ -16,10 +16,11 @@
 
 package org.gradle.ide.sync
 
-
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/5093")
 class IsolatedProjectsParallelSyncTest extends AbstractIdeSyncTest {
 
     @Rule
@@ -36,7 +37,7 @@ class IsolatedProjectsParallelSyncTest extends AbstractIdeSyncTest {
         server.expectConcurrent("configure-a", "configure-b")
 
         expect:
-        ideaSync(IDEA_COMMUNITY_VERSION)
+        ideaSync(IDEA_VERSION)
     }
 
     private void simpleProject() {

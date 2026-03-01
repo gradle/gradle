@@ -34,7 +34,7 @@ TIP: Not to be confused with the `GRADLE_HOME`, the optional installation direct
 
 It is roughly structured as follows:
 
-[listing]
+[source,text]
 ----
 ├── caches              // <1>
 │   ├── 4.8         // <2>
@@ -228,7 +228,7 @@ While the former are usually checked into source control, the latter are transie
 
 The anatomy of a typical project root directory looks as follows:
 
-[listing,subs=+macros]
+[source,text]
 ----
 ├── .gradle                 // <1>
 │   ├── 4.8             // <2>

@@ -21,13 +21,14 @@ import groovy.transform.CompileStatic
 import org.gradle.performance.results.BuildDisplayInfo
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.buildops.BuildOperationMeasurement
 
 import java.util.function.Function
 
 @CompileStatic
 class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final GradleInvocationSpec invocation
-    final ImmutableList<String> measuredBuildOperations
+    final ImmutableList<BuildOperationMeasurement> buildOperationMeasurements
     final boolean measureGarbageCollection
     final boolean crossVersion
 
@@ -40,11 +41,12 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         Integer warmUpCount,
         Integer invocationCount,
         ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators,
-        ImmutableList<String> measuredBuildOperations, boolean measureGarbageCollection
+        ImmutableList<BuildOperationMeasurement> buildOperationMeasurements,
+        boolean measureGarbageCollection
     ) {
         super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, buildMutators)
         this.crossVersion = crossVersion
-        this.measuredBuildOperations = measuredBuildOperations
+        this.buildOperationMeasurements = buildOperationMeasurements
         this.measureGarbageCollection = measureGarbageCollection
         this.invocation = invocation
     }
@@ -71,7 +73,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         Integer warmUpCount
         Integer invocationCount
         final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
-        final List<String> measuredBuildOperations = []
+        final List<BuildOperationMeasurement> buildOperationMeasurements = []
         boolean measureGarbageCollection
         boolean crossVersion
 
@@ -111,9 +113,9 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             this
         }
 
-        GradleBuilder measuredBuildOperations(List<String> measuredBuildOperations) {
-            this.measuredBuildOperations.clear()
-            this.measuredBuildOperations.addAll(measuredBuildOperations)
+        GradleBuilder buildOperationMeasurements(List<BuildOperationMeasurement> measuredBuildOperations) {
+            this.buildOperationMeasurements.clear()
+            this.buildOperationMeasurements.addAll(measuredBuildOperations)
             this
         }
 
@@ -141,7 +143,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
                 warmUpCount,
                 invocationCount,
                 ImmutableList.copyOf(buildMutators),
-                ImmutableList.copyOf(measuredBuildOperations),
+                ImmutableList.copyOf(buildOperationMeasurements),
                 measureGarbageCollection
             )
         }

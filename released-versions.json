@@ -1,11 +1,11 @@
 {
   "latestReleaseSnapshot": {
-    "version": "9.4.0-20260131023227+0000",
-    "buildTime": "20260131023227+0000"
+    "version": "9.4.0-20260227015025+0000",
+    "buildTime": "20260227015025+0000"
   },
   "latestRc": {
-    "version": "9.4.0-milestone-5",
-    "buildTime": "20260123123336+0000"
+    "version": "9.4.0-rc-2",
+    "buildTime": "20260227092055+0000"
   },
   "finalReleases": [
     {

@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
@@ -52,25 +51,25 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
 
     }
 
-    @ToBeFixedForConfigurationCache(because = "testkit jar generated eagerly")
     def "gradle testkit jar is generated only when requested"() {
         setup:
         testCode()
 
         def version = distribution.version.version
         def generatedJarsDirectory = "user-home/caches/$version/generated-gradle-jars"
+        def testKitJar = file("$generatedJarsDirectory/gradle-test-kit-${version}.jar")
 
         when:
         succeeds("classes")
 
         then:
-        file(generatedJarsDirectory).assertIsEmptyDir()
+        testKitJar.assertDoesNotExist()
 
         when:
         succeeds("testClasses")
 
         then:
-        file("$generatedJarsDirectory/gradle-test-kit-${version}.jar").assertExists()
+        testKitJar.assertExists()
     }
 
     @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])

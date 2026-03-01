@@ -73,7 +73,6 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ExcludeMetadata
 import org.gradle.internal.component.model.GraphVariantSelector
-import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.internal.exceptions.DefaultMultiCauseException
@@ -1189,16 +1188,16 @@ class DependencyGraphBuilderTest extends Specification {
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
         ComponentSelector componentSelector = newSelector(DefaultModuleIdentifier.newId(dependencyId.group, dependencyId.name), new DefaultMutableVersionConstraint(dependencyId.version))
-        List<ExcludeMetadata> excludeRules = []
+        ImmutableList.Builder<ExcludeMetadata> excludeRules = ImmutableList.builder()
         if (args.exclude) {
             ComponentGraphResolveState excluded = args.exclude.component
-            excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.metadata.moduleVersionId.group, excluded.metadata.moduleVersionId.name))
+            excludeRules.add(new DefaultExclude(moduleIdentifierFactory.module(excluded.metadata.moduleVersionId.group, excluded.metadata.moduleVersionId.name)))
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(
             componentSelector,
             "default",
-            [] as List<IvyArtifactName>,
-            excludeRules,
+            ImmutableList.of(),
+            excludeRules.build(),
             force,
             false,
             transitive,

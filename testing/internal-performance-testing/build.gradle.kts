@@ -27,17 +27,16 @@ dependencies {
 
     api(projects.baseServices)
     api(projects.coreApi)
-    api(projects.internalIntegTesting)
+    api(projects.internalDistributionTesting)
     api(projects.internalTesting)
     api(projects.stdlibJavaExtensions)
-    api(projects.persistentCache)
     api(projects.reportRendering)
     api(projects.time)
     api(projects.toolingApi)
 
-    api(testLibs.gradleProfiler) {
-        because("Consumers need to instantiate BuildMutators")
-    }
+    api(testLibs.gradleProfiler) { because("Consumers need to instantiate BuildMutators") }
+    api(testLibs.gradleProfilerBuildAction)
+    api(testLibs.gradleProfilerBuildOperationsMeasuring)
     api(libs.guava)
     api(libs.groovy)
     api(libs.jacksonAnnotations)
@@ -51,18 +50,20 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.core)
+    implementation(projects.internalIntegTesting)
     implementation(projects.projectFeaturesApi)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(testLibs.commonsMath)
     implementation(libs.groovyJson)
-    implementation(testLibs.hikariCP)
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
+    implementation(libs.slf4jApi)
+    implementation(testLibs.commonsMath)
+    implementation(testLibs.hikariCP)
     implementation(testLibs.jettyUtil)
     implementation(testLibs.joptSimple)
-    implementation(libs.slf4jApi)
+    implementation(testLibs.junit5JupiterApi)
 
     runtimeOnly(libs.jclToSlf4j)
     runtimeOnly(testLibs.jetty)

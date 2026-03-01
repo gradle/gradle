@@ -23,58 +23,57 @@ import spock.lang.Subject
 
 @Subject(ProgressBar)
 class ProgressBarTest extends Specification {
-    public static final String INCOMPLETE_CHAR = '.'
-    public static final String COMPLETE_CHAR = '#'
-    public static final String SUFFIX = ']'
-    public static final String PREFIX = '['
-    public static final int PROGRESS_BAR_WIDTH = 10
-    public static final String BUILD_PHASE = 'EXECUTING'
+
+    private static final String BUILD_PHASE = 'EXECUTING'
 
     ProgressBar progressBar
-    ProgressBar unicodeProgressBar
-    ProgressBar taskbarProgressBar
-    ConsoleMetaData taskbarConsoleMetaData
-    ConsoleMetaData unicodeConsoleMetaData
-
-    def setup() {
-        unicodeConsoleMetaData = Stub(ConsoleMetaData){
-            supportsUnicode() >> true
-        }
-        progressBar = new ProgressBar(Stub(ConsoleMetaData), PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10)
-        unicodeProgressBar = new ProgressBar(unicodeConsoleMetaData, '│', PROGRESS_BAR_WIDTH, '│', ' ' as char, ' ' as char, BUILD_PHASE, 0, 10)
-
-        // Create a console metadata that supports taskbar progress
-        taskbarConsoleMetaData = Stub(ConsoleMetaData) {
-            supportsTaskbarProgress() >> true
-        }
-        taskbarProgressBar = new ProgressBar(taskbarConsoleMetaData, PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10)
-    }
 
     private getProgress() {
         progressBar.formatProgress(false, 0).collect { it.text }.join("")
     }
 
-    private getUnicodeProgress() {
-        unicodeProgressBar.formatProgress(false, 0).collect { it.text }.join("")
+    private init(boolean unicode, int totalProgress = 10, boolean taskbarProgress = false) {
+        if (unicode) {
+            def consoleMetaData = Stub(ConsoleMetaData) {
+                supportsUnicode() >> true
+                supportsTaskbarProgress() >> taskbarProgress
+            }
+            progressBar = ProgressBar.getUnicodeProgressBar(consoleMetaData, BUILD_PHASE, totalProgress)
+        } else {
+            def consoleMetaData = Stub(ConsoleMetaData)
+            progressBar = ProgressBar.getAsciiProgressBar(consoleMetaData, BUILD_PHASE, totalProgress)
+        }
     }
 
-    def "formats progress bar"() {
+    def "formats progress bar (#id)"() {
+        given:
+        init(unicode)
+
         expect:
-        progress == "[..........] 0% EXECUTING"
+        progress == rendering
+
+        where:
+        unicode            | rendering
+        true               | "│···············│ 0% EXECUTING"
+        false              | "[...............] 0% EXECUTING"
+        id = unicode ? "unicode" : "ascii"
     }
 
-    def "fills completed progress as work completes"() {
-        when:
-        progressBar.update(false)
-
-        then:
-        progress == "[#.........] 10% EXECUTING"
+    def "fills completed progress as work completes (#id)"() {
+        given:
+        init(unicode)
 
         when:
         progressBar.update(false)
 
         then:
-        progress == "[##........] 20% EXECUTING"
+        progress == rendering10
+
+        when:
+        progressBar.update(false)
+
+        then:
+        progress == rendering20
 
         when:
         8.times {
@@ -82,23 +81,32 @@ class ProgressBarTest extends Specification {
         }
 
         then:
-        progress == "[##########] 100% EXECUTING"
+        progress == rendering100
+
+        where:
+        unicode            | rendering10                          | rendering20                         | rendering100
+        true               | "│█▌·············│ 10% EXECUTING"    | "│███············│ 20% EXECUTING"   | "│███████████████│ 100% EXECUTING"
+        false              | "[#..............] 10% EXECUTING"    | "[###............] 20% EXECUTING"   | "[###############] 100% EXECUTING"
+        id = unicode ? "unicode" : "ascii"
     }
 
-    def "gracefully handles excessively reported progress"() {
+    def "gracefully handles excessively reported progress (#id)"() {
+        given:
+        init(unicode)
+
         when:
         10.times {
             progressBar.update(false)
         }
 
         then:
-        progress == "[##########] 100% EXECUTING"
+        progress == rendering100
 
         when:
         progressBar.update(false)
 
         then:
-        progress == "[#########.] 110% EXECUTING"
+        progress == rendering110
 
         when:
         9.times {
@@ -106,125 +114,137 @@ class ProgressBarTest extends Specification {
         }
 
         then:
-        progress == "[#########.] 200% EXECUTING"
+        progress == rendering200
+
+        where:
+        unicode            | rendering100                         | rendering110                        | rendering200
+        true               | "│███████████████│ 100% EXECUTING"   | "│██████████████·│ 110% EXECUTING"  | "│██████████████·│ 200% EXECUTING"
+        false              | "[###############] 100% EXECUTING"   | "[##############.] 110% EXECUTING"  | "[##############.] 200% EXECUTING"
+        id = unicode ? "unicode" : "ascii"
     }
 
-    def "fills completed progress as work added"() {
+    def "fills completed progress as work added (#id)"() {
+        given:
+        init(unicode)
+
         when:
         progressBar.update(false)
         progressBar.update(false)
 
         then:
-        progress == "[##........] 20% EXECUTING"
+        progress == rendering20
 
         when:
         progressBar.moreProgress(10)
 
         then:
-        progress == "[#.........] 10% EXECUTING"
+        progress == rendering10
+
+        where:
+        unicode            | rendering10                          | rendering20
+        true               | "│█▌·············│ 10% EXECUTING"    | "│███············│ 20% EXECUTING"
+        false              | "[#..............] 10% EXECUTING"    | "[###............] 20% EXECUTING"
+        id = unicode ? "unicode" : "ascii"
     }
 
-    def "formats successful progress green"() {
+    def "formats successful progress green (#id)"() {
+        given:
+        init(unicode)
+
         expect:
         progressBar.formatProgress(false, 0)[1].style == StyledTextOutput.Style.SuccessHeader
+
+        where:
+        unicode            | _
+        true               | _
+        false              | _
+        id = unicode ? "unicode" : "ascii"
     }
 
-    def "formats failed progress red"() {
+    def "formats failed progress red (#id)"() {
+        given:
+        init(unicode)
+
         when:
         progressBar.update(true)
         progressBar.update(false)
 
         then:
         progressBar.formatProgress(false, 0)[1].style == StyledTextOutput.Style.FailureHeader
+
+        where:
+        unicode            | _
+        true               | _
+        false              | _
+        id = unicode ? "unicode" : "ascii"
     }
 
-    def "formats unicode progress bar"() {
-        expect:
-        unicodeProgress == "│··········│ 0% EXECUTING"
-    }
-
-    def "fills unicode progress with block characters"() {
-        when:
-        unicodeProgressBar.update(false)
-
-        then:
-        // 1/10 = 10% should show one full block (█)
-        unicodeProgress == "│\u2588·········│ 10% EXECUTING"
-
-        when:
-        unicodeProgressBar.update(false)
-
-        then:
-        // 2/10 = 20% should show two full blocks
-        unicodeProgress == "│\u2588\u2588········│ 20% EXECUTING"
-
-        when:
-        8.times {
-            unicodeProgressBar.update(false)
-        }
-
-        then:
-        // 10/10 = 100% should show all blocks filled
-        unicodeProgress == "│\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588│ 100% EXECUTING"
-    }
-
-    def "unicode progress shows finer granularity"() {
+    def "unicode progress shows finer granularity (#id)"() {
         given:
-        def fineGrainedProgressBar = new ProgressBar(unicodeConsoleMetaData, '│', 10, '│', ' ' as char, ' ' as char, BUILD_PHASE, 0, 80)
+        init(unicode, 80)
 
         when:
-        fineGrainedProgressBar.update(false) // 1/80 = 1.25%
+        progressBar.update(false) // 1/80 = 1.25%
 
         then:
-        // Should show a partial block character instead of empty
-        def result = fineGrainedProgressBar.formatProgress(false, 0).collect { it.text }.join("")
-        result == "│▏·········│ 1% EXECUTING"
+        progress == rendering
+
+        where:
+        unicode            | rendering
+        true               | "│▏··············│ 1% EXECUTING"
+        false              | "[...............] 1% EXECUTING"
+        id = unicode ? "unicode" : "ascii"
     }
 
-    def "unicode progress formats successful progress green"() {
-        expect:
-        unicodeProgressBar.formatProgress(false, 0)[1].style == StyledTextOutput.Style.SuccessHeader
-    }
+    def "emits taskbar progress sequence when supported (#id)"() {
+        given:
+        init(unicode, 10, true)
 
-    def "unicode progress formats failed progress red"() {
-        when:
-        unicodeProgressBar.update(true)
-        unicodeProgressBar.update(false)
-
-        then:
-        unicodeProgressBar.formatProgress(false, 0)[1].style == StyledTextOutput.Style.FailureHeader
-    }
-
-    def "emits taskbar progress sequence when supported"() {
-        when:
-        taskbarProgressBar.update(false)
-        def result = taskbarProgressBar.formatProgress(false, 0).collect { it.text }.join("")
-
-        then:
-        // Should contain OSC 9;4 sequence: ESC ] 9 ; 4 ; 1 ; 10 BEL
-        // ESC = \u001B, BEL = \u0007
-        result.contains('\u001B]9;4;1;10\u0007')
-        result.contains('[#.........] 10% EXECUTING')
-    }
-
-    def "emits error state in taskbar progress when failing"() {
-        when:
-        taskbarProgressBar.update(true) // Mark as failing
-        def result = taskbarProgressBar.formatProgress(false, 0).collect { it.text }.join("")
-
-        then:
-        // Should contain OSC 9;4 with state 2 (error): ESC ] 9 ; 4 ; 2 ; 10 BEL
-        result.contains('\u001B]9;4;2;10\u0007')
-    }
-
-    def "does not emit taskbar progress when not supported"() {
         when:
         progressBar.update(false)
-        def result = progressBar.formatProgress(false, 0).collect { it.text }.join("")
 
         then:
-        // Should NOT contain OSC 9;4 sequence
-        !result.contains('\u001B]9;4;')
-        result == '[#.........] 10% EXECUTING'
+        progress == rendering
+
+        where:
+        unicode            | rendering
+        true               | "\u001B]9;4;1;10\u0007│█▌·············│ 10% EXECUTING" // Should contain OSC 9;4 with state 1: ESC ] 9 ; 4 ; 2 ; 10 BEL
+        false              | "[#..............] 10% EXECUTING"
+        id = unicode ? "unicode" : "ascii"
+    }
+
+    def "emits error state in taskbar progress when failing (#id)"() {
+        given:
+        init(unicode, 10, true)
+
+        when:
+        progressBar.update(true) // Mark as failing
+
+        then:
+        progress == rendering
+
+        where:
+        unicode            | rendering
+        true               | "\u001B]9;4;2;10\u0007│█▌·············│ 10% EXECUTING" // Should contain OSC 9;4 with state 2 (error): ESC ] 9 ; 4 ; 2 ; 10 BEL
+        false              | "[#..............] 10% EXECUTING"
+        id = unicode ? "unicode" : "ascii"
+    }
+
+    def "does not emit taskbar progress when not supported (#id)"() {
+        given:
+        init(unicode, 10, false)
+
+        when:
+        progressBar.update(false)
+
+        then:
+        !progress.contains('\u001B]9;4;') // Should NOT contain OSC 9;4 sequence
+        progress == rendering
+
+        where:
+        unicode            | rendering
+        true               | "│█▌·············│ 10% EXECUTING"
+        false              | "[#..............] 10% EXECUTING"
+        id = unicode ? "unicode" : "ascii"
     }
 }

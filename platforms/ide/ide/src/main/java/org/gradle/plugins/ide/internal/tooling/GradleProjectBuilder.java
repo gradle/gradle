@@ -37,9 +37,11 @@ import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport
  */
 public class GradleProjectBuilder implements GradleProjectBuilderInternal {
 
+    private static final String MODEL_NAME = GradleProject.class.getName();
+
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.GradleProject");
+        return modelName.equals(MODEL_NAME);
     }
 
     @Override

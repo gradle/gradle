@@ -259,7 +259,7 @@ import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.plugin.management.internal.PluginHandler;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -312,6 +312,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(ScriptClassPathResolver.class, DefaultScriptClassPathResolver.class);
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
+        registration.add(BuildLogicBuilder.class, DefaultBuildLogicBuilder.class);
 
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);
@@ -635,15 +636,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             buildRegistry,
             publicBuildPath,
             buildQueue);
-    }
-
-    @Provides
-    protected BuildLogicBuilder createBuildLogicBuilder(
-        BuildState currentBuild,
-        ScriptClassPathResolver scriptClassPathResolver,
-        BuildLogicBuildQueue buildQueue
-    ) {
-        return new DefaultBuildLogicBuilder(currentBuild, scriptClassPathResolver, buildQueue);
     }
 
     @Provides

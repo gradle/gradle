@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -48,11 +47,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Resolution state for a given module.
@@ -340,14 +339,14 @@ public class ModuleResolveState implements CandidateModule {
         return dependencyAttributes;
     }
 
-    Set<EdgeState> getIncomingEdges() {
-        Set<EdgeState> incoming = new LinkedHashSet<>();
+    void visitIncomingEdges(Consumer<? super EdgeState> visitor) {
         if (selected != null) {
-            for (NodeState nodeState : selected.getNodes()) {
-                incoming.addAll(nodeState.getIncomingEdges());
+            for (NodeState node : selected.getNodes()) {
+                for (EdgeState incomingEdge : node.getIncomingEdges()) {
+                    visitor.accept(incomingEdge);
+                }
             }
         }
-        return incoming;
     }
 
     VirtualPlatformState getPlatformState() {
@@ -502,14 +501,12 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Get all edges targeting this module, including those which were not successfully
+     * Visit all edges targeting this module, including those which were not successfully
      * attached to a node.
      */
-    public Set<? extends DependencyGraphEdge> getAllIncomingEdges() {
-        Set<EdgeState> allEdges = new LinkedHashSet<>();
-        allEdges.addAll(getIncomingEdges());
-        allEdges.addAll(getUnattachedEdges());
-        return allEdges;
+    public void visitAllIncomingEdges(Consumer<? super EdgeState> visitor) {
+        visitIncomingEdges(visitor);
+        getUnattachedEdges().forEach(visitor);
     }
 
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.evaluator.runner
 
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
@@ -23,17 +24,22 @@ import org.gradle.internal.declarativedsl.language.SingleFailureResult
 import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTraceElement
 
 
-sealed interface EvaluationResult<out R : StepResult> {
-    class Evaluated<R : StepResult>(val stepResult: R) : EvaluationResult<R>
+sealed interface EvaluationResult<out Success : StepResult, out Partial : StepResult> {
+    class Evaluated<out Success : StepResult>(val stepResult: Success) : EvaluationResult<Success, Nothing>
 
-    class NotEvaluated<R : StepResult>(
+    class NotEvaluated<out Partial : StepResult>(
         val stageFailures: List<StageFailure>,
         // This could have been a supertype's property, but always distinguishing between a successful result and a failing one is useful.
-        val partialStepResult: R
-    ) : EvaluationResult<R> {
+        val partialStepResult: Partial
+    ) : EvaluationResult<Nothing, Partial> {
+        init {
+            check(stageFailures.isNotEmpty()) { "Stage failures must not be empty." }
+        }
+
         sealed interface StageFailure {
             data class NoSchemaAvailable(val scriptContext: DeclarativeScriptContext) : StageFailure
-            object NoParseResult : StageFailure
+            data class SchemaBuildingFailures(val failures: List<SchemaBuildingFailure>) : StageFailure
+
             data class FailuresInLanguageTree(val failures: List<SingleFailureResult>) : StageFailure
             data class FailuresInResolution(val errors: List<ResolutionError>) : StageFailure
             data class DocumentCheckFailures(val failures: List<DocumentCheckFailure>) : StageFailure
@@ -43,7 +49,7 @@ sealed interface EvaluationResult<out R : StepResult> {
 }
 
 
-val <R : StepResult> EvaluationResult<R>.stepResultOrPartialResult
+val <Common : StepResult, Success: Common, Partial : Common> EvaluationResult<Success, Partial>.stepResultOrPartialResult: Common
     get() = when (this) {
         is EvaluationResult.Evaluated -> stepResult
         is EvaluationResult.NotEvaluated -> partialStepResult

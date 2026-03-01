@@ -285,16 +285,24 @@ include::sample[dir="snippets/configurationCache/sharedObjects/groovy",files="bu
 
 Without Configuration Cache, reference equality is preserved in both cases:
 
+[source,bash]
 ----
-❯ ./gradlew --no-configuration-cache checkEquality
+$ ./gradlew --no-configuration-cache checkEquality
+----
+[source,text]
+----
 include::{snippetsPath}/configurationCache/sharedObjects/tests/sharingObjectsWithoutConfigurationCache.out[]
 ----
 
 With Configuration Cache enabled, only user-defined object references remain identical.
 List references are different, although the lists themselves remain equal:
 
+[source,bash]
 ----
-❯ ./gradlew --configuration-cache checkEquality
+$ ./gradlew --configuration-cache checkEquality
+----
+[source,text]
+----
 include::{snippetsPath}/configurationCache/sharedObjects/tests/sharingObjectsWithConfigurationCache.out[]
 ----
 
@@ -500,16 +508,16 @@ To encrypt the Configuration Cache using a user-specified encryption key, Gradle
 
 You can generate a Base64-encoded AES-compatible key using the following command:
 
-[source,text]
+[source,bash]
 ----
-❯ openssl rand -base64 16
+$ openssl rand -base64 16
 ----
 
 This command works on Linux and macOS, and on Windows if using a tool like Cygwin.
 
 Once generated, set the Base64-encoded key as the value of the `GRADLE_ENCRYPTION_KEY` environment variable:
 
-[source,text]
+[source,bash]
 ----
-❯ export GRADLE_ENCRYPTION_KEY="your-generated-key-here"
+$ export GRADLE_ENCRYPTION_KEY="your-generated-key-here"
 ----

@@ -100,17 +100,17 @@ Consult the manual for the IDE of your choice to learn more about how Gradle can
 
 Gradle can be invoked in the command line once <<installation.adoc#installation, installed>>:
 
-[source,text]
+[source,bash]
 ----
 $ gradle build
 ----
 
-[source,text]
+[source,bash]
 ----
 $ gradle test
 ----
 
-[source,text]
+[source,bash]
 ----
 $ gradle clean build
 ----
@@ -121,7 +121,7 @@ Most projects do not use the installed version of Gradle but rather the Gradle W
 
 The wrapper is a script that invokes a declared version of Gradle and is *the recommended way to execute a Gradle build*:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew build
 ----

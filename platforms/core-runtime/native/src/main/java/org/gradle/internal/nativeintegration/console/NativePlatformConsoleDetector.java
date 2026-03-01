@@ -45,13 +45,13 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
 
         boolean isStdoutATerminal = terminals.isTerminal(Stdout);
         boolean isStderrATerminal = terminals.isTerminal(Stderr);
-        boolean disableUnicodeSupport = !isWindowsWithUnicodeCodePage();
+        boolean disableUnicodeSupportDetection = isWindowsWithNonUnicodeCodePage();
 
         try {
             if (isStdoutATerminal) {
-                return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stdout), disableUnicodeSupport);
+                return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stdout), disableUnicodeSupportDetection);
             } else if (isStderrATerminal) {
-                return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stderr), disableUnicodeSupport);
+                return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stderr), disableUnicodeSupportDetection);
             } else {
                 return null;
             }
@@ -62,12 +62,9 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
         }
     }
 
-    static boolean isWindowsWithUnicodeCodePage() {
-        if (!OperatingSystem.current().isWindows()) {
-            return false;
-        }
+    static boolean isWindowsWithNonUnicodeCodePage() {
         //see https://learn.microsoft.com/en-us/windows/win32/intl/code-page-identifiers (e.g. code page 65001 is UTF-8)
-        return Kernel32.GetConsoleOutputCP() == WINDOWS_UTF8_CODEPAGE_ID;
+        return OperatingSystem.current().isWindows() && Kernel32.GetConsoleOutputCP() != WINDOWS_UTF8_CODEPAGE_ID;
     }
 
     @Override

@@ -17,13 +17,10 @@
 package org.gradle.caching.internal.packaging
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -43,7 +40,6 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
     ]
 
     @Issue("https://github.com/gradle/gradle/issues/9877")
-    @ToBeFixedForConfigurationCache(skip =  INVESTIGATE)
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon because of explicit encoding")
     def "can store and load files having non-ascii characters in file name when default file encoding is set to #fileEncoding"() {
         def fileName = NON_ASCII_NAME + ".txt"
@@ -58,11 +54,12 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
             }
 
             task createFile {
+                def output = file("dir/$fileName")
                 dependsOn printCharsetProperties
                 outputs.dir("dir")
                 outputs.cacheIf { true }
                 doLast {
-                    file("dir/$fileName").text = "output"
+                    output.text = "output"
                 }
             }
         """
@@ -86,7 +83,6 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
         fileEncoding << DEFAULT_ENCODINGS
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon because of explicit encoding")
     def "can store and load files having non-ascii characters in property name when default file encoding is set to #fileEncoding"() {
         def outputFile = file("output.txt")
@@ -100,12 +96,13 @@ class BuildCacheEntryPackingIntegrationTest extends DaemonIntegrationSpec implem
             }
 
             task createFile {
+                def output = file("output.txt")
                 dependsOn printCharsetProperties
-                outputs.file("output.txt")
+                outputs.file(output)
                     .withPropertyName("$NON_ASCII_NAME")
                 outputs.cacheIf { true }
                 doLast {
-                    file("output.txt").text = "output"
+                    output.text = "output"
                 }
             }
         """

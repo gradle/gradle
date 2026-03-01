@@ -52,7 +52,6 @@ import org.gradle.process.CommandLineArgumentProvider
 
 fun Project.addDependenciesAndConfigurations(prefix: String) {
     configurations {
-        getByName("${prefix}TestImplementation") { extendsFrom(configurations["testImplementation"]) }
         val platformImplementation = findByName("platformImplementation")
 
         val distributionRuntimeOnly = bucket("${prefix}TestDistributionRuntimeOnly", "Declare the distribution that is required to run tests")
@@ -94,7 +93,7 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
             "${prefix}TestImplementation"(testLibs.findLibrary("junitJupiter").get())
             "${prefix}TestRuntimeOnly"(testLibs.findLibrary("junitPlatform").get())
             "${prefix}TestRuntimeOnly"(testLibs.findLibrary("junit5Vintage").get())
-            "${prefix}TestImplementation"(project(":internal-integ-testing"))
+            "${prefix}TestImplementation"(project(":internal-distribution-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
             // Add the agent JAR to the test runtime classpath so the InProcessGradleExecuter can find the module and spawn daemons.
             // This doesn't apply the agent to the test process.
