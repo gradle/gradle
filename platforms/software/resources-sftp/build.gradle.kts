@@ -8,12 +8,15 @@ dependencies {
     api(projects.concurrent)
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
-    api(projects.coreApi)
+    api(projects.credentialsApi)
     api(projects.resources)
 
     api(libs.jsch)
 
-    implementation(projects.core)
+    runtimeOnly(projects.core)
+    runtimeOnly(projects.coreApi)
+
+    implementation(projects.credentials)
 
     implementation(libs.commonsIo)
     implementation(libs.guava)

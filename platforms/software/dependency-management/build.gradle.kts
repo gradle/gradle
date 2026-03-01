@@ -19,6 +19,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.credentialsApi)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)
     api(projects.execution)
@@ -56,6 +57,8 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(projects.buildDiscoveryImpl)
+    implementation(projects.credentials)
+    implementation(projects.credentialsImpl)
     implementation(projects.fileOperations)
     implementation(projects.time)
     implementation(projects.baseAsm)

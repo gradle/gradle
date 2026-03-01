@@ -364,6 +364,27 @@
     "crossVersionTests": false
   },
   {
+    "name": "credentials",
+    "path": "platforms/software/credentials",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "credentials-api",
+    "path": "platforms/software/credentials-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "credentials-impl",
+    "path": "platforms/software/credentials-impl",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-logging",
     "path": "platforms/core-runtime/daemon-logging",
     "unitTests": false,

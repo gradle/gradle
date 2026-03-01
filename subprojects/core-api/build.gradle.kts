@@ -6,8 +6,9 @@ description = "Public and internal 'core' Gradle APIs that are required by other
 
 dependencies {
     compileOnly(libs.jetbrainsAnnotations)
-
+    
     api(projects.antApi)
+    api(projects.credentialsApi)
     api(projects.stdlibJavaExtensions)
     api(projects.buildCacheSpi)
     api(projects.buildDiscovery)
