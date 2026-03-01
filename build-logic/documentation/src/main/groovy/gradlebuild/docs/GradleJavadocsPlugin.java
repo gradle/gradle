@@ -100,26 +100,28 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
 
             options.addBooleanOption("-allow-script-in-comments", true);
             options.setHeader(
-                "<script>" +
+                "<link id=\"hljs-theme\" rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css\">" +
+                    "<script>" +
                     "(function() {" +
-                    "const saved = localStorage.getItem('theme');" +
-                    "const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;" +
-                    "document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));" +
+                    "var saved = localStorage.getItem('theme');" +
+                    "var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;" +
+                    "var theme = saved || (prefersDark ? 'dark' : 'light');" +
+                    "document.documentElement.setAttribute('data-theme', theme);" +
+                    "if (theme === 'dark') {" +
+                    "document.getElementById('hljs-theme').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-dark.min.css';" +
+                    "}" +
                     "})();" +
-                "</script>" +
-                "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css\" media=\"(prefers-color-scheme: light)\">" +
-                "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-dark.min.css\" media=\"(prefers-color-scheme: dark)\">" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js\"></script>" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/xml.min.js\"></script>" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js\"></script>" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/groovy.min.js\"></script>" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/java.min.js\"></script>" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/properties.min.js\"></script>" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/text.min.js\"></script>" +
-                "<script>hljs.highlightAll();</script>" +
-                "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans\" rel=\"stylesheet\">" +
-                "<link href=\"https://fonts.cdnfonts.com/css/dejavu-serif\" rel=\"stylesheet\">" +
-                "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans-mono\" rel=\"stylesheet\">"
+                    "</script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/xml.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/groovy.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/java.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/properties.min.js\"></script>" +
+                    "<script>hljs.highlightAll();</script>" +
+                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans\" rel=\"stylesheet\">" +
+                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-serif\" rel=\"stylesheet\">" +
+                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans-mono\" rel=\"stylesheet\">"
             );
 
             // TODO: This would be better to model as separate options

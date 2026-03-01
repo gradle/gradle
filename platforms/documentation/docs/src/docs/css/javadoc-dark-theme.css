@@ -29,6 +29,7 @@
 
     /* Snippet/Code colors */
     --snippet-background-color: #2d2d2d;
+    --snippet-text-color: var(--block-text-color);
     --snippet-highlight-color: #5e462b;
 
     /* Borders and Tables */
