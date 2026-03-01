@@ -280,8 +280,12 @@ You can now see what happens when we run the `resolveRuntimeClasspath` task, whi
 Gradle transforms the project dependency before the `resolveRuntimeClasspath` task starts.
 Gradle transforms the binary dependencies when it executes the `resolveRuntimeClasspath` task:
 
+[source,bash]
 ----
-$ gradle resolveRuntimeClasspath
+$ ./gradlew resolveRuntimeClasspath
+----
+[source,text]
+----
 include::{snippetsPath}/dependencyManagement/artifactTransforms-minify/tests/artifactTransformMinify.out[]
 ----
 
@@ -495,10 +499,12 @@ If you run it on a subproject, it will report the transforms registered only in 
 
 For example, to view the artifact transforms in the `app` subproject, you would run:
 
-[source, text]
+[source, bash]
 ----
 $ ./gradlew :app:artifactTransforms
-
+----
+[source, text]
+----
 > Task :app:artifactTransforms
 
 --------------------------------------------------
@@ -536,10 +542,12 @@ Some artifact transforms are not cacheable.  This can have negative performance 
 
 Because the task only inspects the current project, running it on the root project, where no transforms are registered, will produce empty output:
 
-[source, text]
+[source, bash]
 ----
 $ ./gradlew artifactTransforms
-
+----
+[source, text]
+----
 > Task :artifactTransforms
 
 There are no transforms registered in root project 'gradle'.

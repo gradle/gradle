@@ -24,11 +24,8 @@ A multi-project build is the standard in Gradle.
 There are four key concepts to understand Gradle projects:
 
 1. **Root project**: The top-level project in a build that contains the `settings.gradle(.kts)` file and typically aggregates all subprojects.
-
 2. **Subprojects**: Individual modules (components) that are part of a multi-project build and are included by the root project via the `settings.gradle(.kts)` file.
-
 3. **Settings file**: A `settings.gradle(.kts)` configuration file used to define the structure of a multi-project build, including which subprojects are part of it and optionally how they're named or located.
-
 4. **Build scripts**: `build.gradle(.kts)` files that define how a project is built (applying plugins, declaring dependencies, configuring tasks, etc...) executed per project (subprojects can each have one).
 
 Let's take a look at an example:
@@ -134,8 +131,12 @@ In this case, Gradle will look for a build file for the `app` subproject in the 
 
 You can view the structure of a multi-project build by running the `projects` command:
 
+[source,bash]
 ----
 $ ./gradlew -q projects
+----
+[source,text]
+----
 include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
 ----
 
@@ -146,16 +147,22 @@ The application prints `Hello World` to the console:
 ====
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
 include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
+====
+
 .app/src/main/java/com/example/Hello.java
 [source, java]
 ----
 include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java/com/example/Hello.java[]
 ----
-====
 
 You can run the application by executing the `run` task from the <<application_plugin#application_plugin,Application plugin>> in the project root:
+
+[source,bash]
 ----
 $ ./gradlew -q run
+----
+[source,text]
+----
 include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
 ----
 

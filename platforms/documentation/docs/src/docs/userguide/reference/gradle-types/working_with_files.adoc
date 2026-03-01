@@ -105,7 +105,7 @@ Let's say you're working on a multi-project build in the directory: `dev/project
 The build script above is at: `AcmeHealth/subprojects/AcmePatientRecordLib/build.gradle`.
 The absolute file path will resolve to: `dev/projects/AcmeHealth/shared/config.xml`:
 
-[source, text]
+[source,text]
 ----
 dev
 ├── projects
@@ -161,8 +161,12 @@ include::sample[dir="snippets/files/fileCollections/kotlin",files="build.gradle.
 include::sample[dir="snippets/files/fileCollections/groovy",files="build.gradle[tags=closure]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q list
+$ ./gradlew -q list
+----
+[source,text]
+----
 include::{snippetsPath}/files/fileCollections/tests/fileCollectionsWithClosure.out[]
 ----
 
@@ -198,8 +202,12 @@ include::sample[dir="snippets/files/fileCollections/kotlin",files="build.gradle.
 include::sample[dir="snippets/files/fileCollections/groovy",files="build.gradle[tags=filtering-file-collections]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q filterTextFiles
+$ ./gradlew -q filterTextFiles
+----
+[source,text]
+----
 include::{snippetsPath}/files/fileCollections/tests/fileCollectionsFiltering.out[]
 ----
 
@@ -919,8 +927,12 @@ include::sample[dir="snippets/files/archiveNaming/kotlin",files="build.gradle.kt
 include::sample[dir="snippets/files/archiveNaming/groovy",files="build.gradle[tags=zip-task]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q myZip
+$ ./gradlew -q myZip
+----
+[source,text]
+----
 include::{snippetsPath}/files/archiveNaming/tests/archiveNaming.out[]
 ----
 
@@ -941,8 +953,12 @@ include::sample[dir="snippets/files/archiveNaming/kotlin",files="build.gradle.kt
 include::sample[dir="snippets/files/archiveNaming/groovy",files="build.gradle[tags=zip-task-with-custom-base-name]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q myCustomZip
+$ ./gradlew -q myCustomZip
+----
+[source,text]
+----
 include::{snippetsPath}/files/archiveNaming/tests/zipWithCustomName.out[]
 ----
 
@@ -954,8 +970,12 @@ include::sample[dir="snippets/files/archivesChangedBaseName/kotlin",files="build
 include::sample[dir="snippets/files/archivesChangedBaseName/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q echoNames
+$ ./gradlew -q echoNames
+----
+[source,text]
+----
 include::{snippetsPath}/files/archivesChangedBaseName/tests/zipWithArchivesBaseName.out[]
 ----
 

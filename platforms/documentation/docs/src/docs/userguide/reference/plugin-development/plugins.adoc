@@ -101,8 +101,12 @@ include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gr
 include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[tag=no-script-plugin]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPlugin/tests/customPlugin.out[]
 ----
 
@@ -118,8 +122,12 @@ include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gr
 include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[tag=script-plugin]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hi
+$ ./gradlew -q hi
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPlugin/tests/customPluginScript.out[]
 ----
 
@@ -173,8 +181,12 @@ include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="app/build.gr
 include::sample[dir="snippets/plugins/greetingPlugin/groovy",files="app/build.gradle[tag=use-plugin]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/plugins/greetingPlugin/tests/greeting.out[]
 ----
 

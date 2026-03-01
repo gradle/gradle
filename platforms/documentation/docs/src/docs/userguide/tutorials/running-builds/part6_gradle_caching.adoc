@@ -60,9 +60,12 @@ Let's start by turning on the local Build Cache for your app.
 
 Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:clean :app:build
+----
+[source,text]
+----
 > Task :app:clean
 > Task :app:compileJava
 > Task :app:processResources NO-SOURCE
@@ -96,10 +99,12 @@ org.gradle.caching=true
 
 Run the build task to populate the local Build Cache:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:build
-
+----
+[source,text]
+----
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE
@@ -124,10 +129,12 @@ However, in the background, the local build cache has been populated.
 
 Let's run the clean and build again:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:clean :app:build
-
+----
+[source,text]
+----
 > Task :app:clean
 > Task :app:compileJava FROM-CACHE
 > Task :app:processResources NO-SOURCE

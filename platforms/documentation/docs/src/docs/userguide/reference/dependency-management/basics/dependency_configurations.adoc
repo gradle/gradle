@@ -170,10 +170,12 @@ To focus on the information about one dependency configuration, provide the opti
 
 The following example show dependencies in the `implementation` dependency configuration of a Java project:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew -q app:dependencies --configuration implementation
-
+----
+[source,text]
+----
 ------------------------------------------------------------
 Project ':app'
 ------------------------------------------------------------

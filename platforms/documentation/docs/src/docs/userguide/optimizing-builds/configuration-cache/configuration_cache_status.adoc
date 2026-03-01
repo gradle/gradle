@@ -200,11 +200,14 @@ include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.g
 ====
 
 Running the task with the Configuration Cache enabled produces the following error:
+
+[source,text]
 ----
 include::{snippetsPath}/configurationCache/topLevel/tests-groovy/notSupported.out[]
 ----
 
 To prevent the task from failing, convert the referenced top-level method to a static method within a class:
+
 ====
 include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=workaround]"]
 ====
@@ -218,6 +221,7 @@ include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.g
 ====
 
 To make the Kotlin version of this task compatible with the Configuration Cache, make the following changes:
+
 ====
 include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=workaround]"]
 ====

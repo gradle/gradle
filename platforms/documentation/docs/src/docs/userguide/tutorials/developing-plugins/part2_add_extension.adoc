@@ -53,28 +53,32 @@ Gradle handles the magic of injecting the values into your plugin's logic.
 
 First, let's rename our plugin class from the generic "Hello World" example.
 
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 Rename the file `plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt` to `plugin/src/main/kotlin/org/example/SlackPlugin.kt`.
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 Rename the file `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy` to `plugin/src/main/groovy/org/example/SlackPlugin.groovy`.
-----
+=====
+====
 
 TIP: Most modern IDEs, like IntelliJ IDEA, can automatically handle both the file and class name updates for you.
 
 Next, we'll update the class name.
 The `abstract` keyword is important here because it allows Gradle to use its dependency injection framework to provide the plugin with services it needs, like the `ObjectFactory`.
 
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 Change `class PluginTutorialPlugin: Plugin<Project> {}` to `abstract class SlackPlugin: Plugin<Project> {}`.
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 Change `class PluginTutorialPlugin implements Plugin<Project> {}` to `abstract class SlackPlugin implements Plugin<Project> {}`.
-----
+=====
+====
 
 ====
 include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-plugin]"]
