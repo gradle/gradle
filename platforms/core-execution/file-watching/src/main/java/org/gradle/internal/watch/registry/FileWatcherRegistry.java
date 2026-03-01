@@ -103,14 +103,6 @@ public interface FileWatcherRegistry extends Closeable {
     List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
 
     /**
-     * Updates the watchers after the build finished.
-     *
-     * This removes content we can't track using file system events, i.e. stuff accessed via symlinks.
-     * Returns the list of VFS paths that the caller should invalidate via {@link org.gradle.internal.vfs.VirtualFileSystem#invalidate}.
-     */
-    List<String> updateVfsAfterBuildFinished(SnapshotHierarchy root);
-
-    /**
      * Get statistics about the received changes.
      */
     FileWatchingStatistics getAndResetStatistics();

@@ -88,7 +88,6 @@ class WatchingVirtualFileSystemTest extends Specification {
         when:
         watchingVirtualFileSystem.afterBuildFinished()
         then:
-        1 * watcherRegistry.updateVfsAfterBuildFinished(_) >> []
         0 * _
 
         when:
@@ -119,7 +118,6 @@ class WatchingVirtualFileSystemTest extends Specification {
         when:
         watchingVirtualFileSystem.afterBuildFinished()
         then:
-        1 * watcherRegistry.updateVfsAfterBuildFinished(_) >> []
         0 * _
 
         when:
@@ -168,9 +166,7 @@ class WatchingVirtualFileSystemTest extends Specification {
 
         when:
         watchingVirtualFileSystem.afterBuildFinished()
-
         then:
-        1 * watcherRegistry.updateVfsAfterBuildFinished(_) >> []
         0 * _
 
         when:
@@ -200,7 +196,6 @@ class WatchingVirtualFileSystemTest extends Specification {
         when:
         watchingVirtualFileSystem.afterBuildFinished()
         then:
-        1 * watcherRegistry.updateVfsAfterBuildFinished(_) >> []
         0 * _
 
         when:
@@ -240,7 +235,6 @@ class WatchingVirtualFileSystemTest extends Specification {
         when:
         watchingVirtualFileSystem.afterBuildFinished()
         then:
-        1 * watcherRegistry.updateVfsAfterBuildFinished(_) >> []
         0 * _
 
         when:

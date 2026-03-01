@@ -143,11 +143,6 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchableContentAfterBuildFinished(SnapshotHierarchy root, Invalidator invalidator) {
-        return root;
-    }
-
-    @CheckReturnValue
     private static SnapshotHierarchy removeIndirectlySymlinkedRoots(SnapshotHierarchy root, Invalidator invalidator) {
         Map<String, Boolean> symlinkCache = new HashMap<>();
         return root.rootSnapshots()

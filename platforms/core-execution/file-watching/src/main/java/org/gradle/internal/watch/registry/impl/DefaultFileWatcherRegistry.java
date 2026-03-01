@@ -185,11 +185,6 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
         return fileWatcherUpdater.updateVfsBeforeBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
     }
 
-    @Override
-    public List<String> updateVfsAfterBuildFinished(SnapshotHierarchy root) {
-        return fileWatcherUpdater.updateVfsBeforeAfterFinished(root);
-    }
-
     private static Type convertType(FileWatchEvent.ChangeType type) {
         switch (type) {
             case CREATED:

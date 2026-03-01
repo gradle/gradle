@@ -259,7 +259,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                             replaceRoot(currentRoot.empty());
                             stoppedWatchingDuringTheBuild = true;
                         } else {
-                            // We'll clean this up further after the daemon has finished with the build, see afterBuildFinished()
                             try {
                                 List<String> pathsToInvalidate = watchRegistry.updateVfsBeforeBuildFinished(currentRoot, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
                                 invalidate(pathsToInvalidate);
@@ -327,21 +326,9 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     @Override
     public void afterBuildFinished() {
-        SnapshotHierarchy currentRoot = currentRoot();
-        FileWatcherRegistry watchRegistry = this.watchRegistry;
-        if (watchRegistry != null) {
-            try {
-                List<String> pathsToInvalidate = watchRegistry.updateVfsAfterBuildFinished(currentRoot);
-                if (!pathsToInvalidate.isEmpty()) {
-                    invalidate(pathsToInvalidate);
-                }
-            } catch (Exception ex) {
-                logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
-                stopWatchingAndInvalidateHierarchyAfterError();
-            }
-        } else {
+        if (watchRegistry == null) {
             // Drop everything if we can't watch the file system
-            replaceRoot(currentRoot.empty());
+            replaceRoot(currentRoot().empty());
         }
     }
 
