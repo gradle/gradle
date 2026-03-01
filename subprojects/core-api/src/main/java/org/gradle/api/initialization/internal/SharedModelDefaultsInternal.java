@@ -32,4 +32,10 @@ public interface SharedModelDefaultsInternal extends SharedModelDefaults {
      * blocks is finished during project evaluation time.
      */
     void clearProjectLayout();
+
+    /**
+     * Processes all registered defaults.  This should be called after all settings evaluated hooks have been applied
+     * but before build script evaluation starts.
+     */
+    void processRegistrations();
 }
