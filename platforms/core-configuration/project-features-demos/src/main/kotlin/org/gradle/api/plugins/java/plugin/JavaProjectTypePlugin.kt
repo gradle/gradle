@@ -49,9 +49,6 @@ class JavaProjectTypePlugin : Plugin<Project> {
             builder.bindProjectType("javaLibrary") { definition: JavaProjectType, model ->
                 val services = objectFactory.newInstance(Services::class.java)
 
-                definition.sources.maybeCreate("main")
-                definition.sources.maybeCreate("test")
-
                 definition.sources.all { source ->
                     // Should be TaskRegistrar with some sort of an implicit namer for the context
                     val compileTask = services.taskRegistrar.register(

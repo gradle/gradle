@@ -48,9 +48,6 @@ class GroovyProjectTypePlugin : Plugin<Project> {
             builder.bindProjectType("groovyLibrary") { definition: GroovyProjectType, model ->
                 val services = objectFactory.newInstance(Services::class.java)
 
-                definition.sources.maybeCreate("main")
-                definition.sources.maybeCreate("test")
-
                 definition.sources.all { source ->
                     val compileTask = services.taskRegistrar.register(
                         "compile" + capitalize(source.name) + "Groovy",
