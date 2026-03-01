@@ -32,12 +32,6 @@ class JavaProjectTypePluginIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle.dcl') << """
             javaLibrary {
                 javaVersion = 11
-                sources {
-                    javaSources("main") {
-                    }
-                    javaSources("test") {
-                    }
-                }
             }
         """
 

@@ -32,12 +32,6 @@ class GroovyProjectTypePluginIntegrationTest extends AbstractIntegrationSpec {
         file('build.gradle.dcl') << """
             groovyLibrary {
                 javaVersion = 11
-                sources {
-                    groovySources("main") {
-                    }
-                    groovySources("test") {
-                    }
-                }
             }
         """
 

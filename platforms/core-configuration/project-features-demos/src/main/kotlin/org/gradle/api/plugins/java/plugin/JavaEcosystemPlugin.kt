@@ -18,9 +18,15 @@ package org.gradle.api.plugins.java.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
+import org.gradle.api.plugins.java.JavaProjectType
 import org.gradle.features.annotations.RegistersProjectFeatures
 
 @RegistersProjectFeatures(JavaProjectTypePlugin::class)
 class JavaEcosystemPlugin : Plugin<Settings> {
-    override fun apply(target: Settings) = Unit
+    override fun apply(target: Settings) {
+        target.defaults.add("javaLibrary", JavaProjectType::class.java) { definition ->
+            definition.sources.register("main")
+            definition.sources.register("test")
+        }
+    }
 }
