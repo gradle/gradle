@@ -23,6 +23,7 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.model.ObjectFactoryFactory
+import org.gradle.api.provider.Property
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.api.internal.plugins.PluginManagerInternal
@@ -165,10 +166,44 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         thrown(IllegalStateException)
     }
 
+    def "apply() is idempotent and calls apply action exactly once even when called multiple times"() {
+        def applyAction = Mock(ProjectFeatureApplyAction)
+
+        when:
+        _ * boundProjectTypeImplementation.pluginClass >> plugin.class
+        _ * boundProjectTypeImplementation.definitionImplementationType >> Foo
+        _ * boundProjectTypeImplementation.buildModelImplementationType >> Bar
+        _ * boundProjectTypeImplementation.applyActionFactory >> applyActionFactory
+        _ * applyActionFactory.create(_) >> applyAction
+        _ * modelDefaultsApplicator.applyDefaultsTo(target, _, _, plugin, boundProjectTypeImplementation)
+        _ * objectFactoryFactory.createObjectFactory(_) >> featureObjectFactory
+        _ * featureObjectFactory.newInstance(Foo) >> foo
+        _ * typeAnnotationMetadataStore.getTypeAnnotationMetadata(Foo) >> Mock(TypeAnnotationMetadata) {
+            _ * it.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
+        }
+        _ * boundProjectTypeImplementation.definitionPublicType >> Foo
+        _ * pluginManager.pluginContainer >> plugins
+        _ * plugins.getPlugin(plugin.class) >> plugin
+
+        def featureApplication = applicator.createFeatureApplicationFor(target as DynamicObjectAware, boundProjectTypeImplementation)
+
+        then:
+        featureApplication.definitionInstance == foo
+
+        when:
+        featureApplication.apply()
+        featureApplication.apply()
+
+        then:
+        1 * applyAction.apply(_, foo, _, _)
+    }
+
     private interface DefinitionWithExtensions extends DynamicObjectAware, ExtensionAware, Definition<TestBuildModel> {}
     private interface TestBuildModel extends BuildModel {}
     private interface DynamicAwareProjectMockType extends ProjectInternal, DynamicObjectAware {}
-    private interface Foo extends Definition<Bar>, DynamicObjectAware {}
+    protected interface Foo extends Definition<Bar>, DynamicObjectAware {
+        Property<String> getBaz()
+    }
     private static class Bar implements BuildModel {}
 
     private class Services implements ServiceLookup {
