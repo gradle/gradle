@@ -1,27 +1,39 @@
-<!--
-  ~ Copyright 2025 the original author or authors.
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~      http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
-
+<!-- Layout -->
 <div class="layout">
+
+    <!-- Header -->
     <header class="site-layout__header site-header" itemscope="itemscope" itemtype="https://schema.org/WPHeader">
         <nav class="site-header__navigation" itemscope="itemscope" itemtype="https://schema.org/SiteNavigationElement">
             <div class="site-header__navigation-header">
                 <a target="_top" class="logo" href="https://docs.gradle.org" title="Gradle Docs">
-                    <svg width="139px" height="43px" viewBox="0 0 278 86" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                        <title>Gradle</title>
-                        <path class="cls-1" d="M155,56.32V70.27a18.32,18.32,0,0,1-5.59,2.83,21.82,21.82,0,0,1-6.36.89,21.08,21.08,0,0,1-7.64-1.31A17.12,17.12,0,0,1,129.59,69a16.14,16.14,0,0,1-3.73-5.58,18.78,18.78,0,0,1-1.31-7.08,19.58,19.58,0,0,1,1.26-7.14A15.68,15.68,0,0,1,135,40a20.39,20.39,0,0,1,7.45-1.29,22,22,0,0,1,3.92.33,20.43,20.43,0,0,1,3.39.92,15.16,15.16,0,0,1,2.85,1.42A17.3,17.3,0,0,1,155,43.25l-1.84,2.91a1.72,1.72,0,0,1-1.12.84,2,2,0,0,1-1.5-.34L149,45.75a10.49,10.49,0,0,0-1.75-.79,14.33,14.33,0,0,0-2.17-.54,15.29,15.29,0,0,0-2.78-.22,11.91,11.91,0,0,0-4.61.86,9.66,9.66,0,0,0-3.52,2.46,10.9,10.9,0,0,0-2.24,3.84,14.88,14.88,0,0,0-.79,5,15.23,15.23,0,0,0,.85,5.28,11.06,11.06,0,0,0,2.38,3.94A10.15,10.15,0,0,0,138.05,68a14.28,14.28,0,0,0,8.25.44,17.1,17.1,0,0,0,2.94-1.09V61.14h-4.35a1.3,1.3,0,0,1-1-.35,1.15,1.15,0,0,1-.35-.85V56.32Zm10.47-2.93a10.53,10.53,0,0,1,2.72-3.45,5.77,5.77,0,0,1,3.72-1.25,4.5,4.5,0,0,1,2.72.74l-.38,4.41a1.18,1.18,0,0,1-.34.61,1,1,0,0,1-.61.18,6.76,6.76,0,0,1-1.06-.12,8.22,8.22,0,0,0-1.38-.12,5,5,0,0,0-1.74.28,4.37,4.37,0,0,0-1.37.83,5.55,5.55,0,0,0-1.07,1.3,12.26,12.26,0,0,0-.87,1.74V73.61H160V49.14h3.45a1.94,1.94,0,0,1,1.27.32,1.9,1.9,0,0,1,.48,1.16Zm11.36-.84A14.49,14.49,0,0,1,187,48.69a9.92,9.92,0,0,1,3.84.7,8.06,8.06,0,0,1,2.86,2,8.38,8.38,0,0,1,1.78,3,11.64,11.64,0,0,1,.61,3.82V73.61h-2.68a2.64,2.64,0,0,1-1.28-.25,1.72,1.72,0,0,1-.72-1l-.52-1.77a20.25,20.25,0,0,1-1.82,1.47,10.86,10.86,0,0,1-1.83,1.06,10.36,10.36,0,0,1-2,.66,12,12,0,0,1-2.4.22,9.64,9.64,0,0,1-2.86-.41,6.28,6.28,0,0,1-2.27-1.26,5.6,5.6,0,0,1-1.48-2.07,7.38,7.38,0,0,1-.52-2.89,5.7,5.7,0,0,1,.31-1.85,5.3,5.3,0,0,1,1-1.75,8.25,8.25,0,0,1,1.83-1.57,11.17,11.17,0,0,1,2.75-1.29,23.28,23.28,0,0,1,3.81-.9,36.77,36.77,0,0,1,5-.41V58.16a5.35,5.35,0,0,0-1.05-3.64,3.83,3.83,0,0,0-3-1.18,7.3,7.3,0,0,0-2.38.33,9.39,9.39,0,0,0-1.65.75l-1.3.75a2.52,2.52,0,0,1-1.3.34,1.7,1.7,0,0,1-1.05-.32,2.61,2.61,0,0,1-.69-.76Zm13.5,10.61a31.66,31.66,0,0,0-4.3.45,11,11,0,0,0-2.79.82,3.57,3.57,0,0,0-1.5,1.17,2.89,2.89,0,0,0,.47,3.67,3.93,3.93,0,0,0,2.39.67,7,7,0,0,0,3.14-.66,9.52,9.52,0,0,0,2.59-2Zm32.53-25V73.61h-3.6a1.39,1.39,0,0,1-1.48-1.07l-.5-2.36a12.4,12.4,0,0,1-3.4,2.74,9.17,9.17,0,0,1-4.47,1,7.95,7.95,0,0,1-6.55-3.26A11.61,11.61,0,0,1,201,66.79a19.71,19.71,0,0,1-.66-5.34,16.77,16.77,0,0,1,.74-5.06,12.21,12.21,0,0,1,2.13-4,9.88,9.88,0,0,1,3.31-2.69,9.64,9.64,0,0,1,4.34-1,8.63,8.63,0,0,1,3.51.64,9,9,0,0,1,2.6,1.74V38.17ZM217,55.39a5.94,5.94,0,0,0-2.18-1.72,6.54,6.54,0,0,0-2.54-.5,5.68,5.68,0,0,0-2.41.5A4.87,4.87,0,0,0,208,55.19a7.19,7.19,0,0,0-1.17,2.57,14.83,14.83,0,0,0-.4,3.69,16.34,16.34,0,0,0,.34,3.63,7.14,7.14,0,0,0,1,2.44,3.79,3.79,0,0,0,1.58,1.36,5,5,0,0,0,2.07.41,6,6,0,0,0,3.13-.76A9.19,9.19,0,0,0,217,66.36Zm17.67-17.22V73.61h-5.89V38.17ZM245.1,62.11a11.37,11.37,0,0,0,.67,3.26,6.54,6.54,0,0,0,1.38,2.27,5.39,5.39,0,0,0,2,1.33,7.26,7.26,0,0,0,2.61.44,8.21,8.21,0,0,0,2.47-.33,11.51,11.51,0,0,0,1.81-.74c.52-.27,1-.52,1.36-.74a2.31,2.31,0,0,1,1.13-.33,1.21,1.21,0,0,1,1.1.55L261.36,70a9.45,9.45,0,0,1-2.19,1.92,12.18,12.18,0,0,1-2.54,1.24,14,14,0,0,1-2.7.66,18.78,18.78,0,0,1-2.65.19,12.93,12.93,0,0,1-4.75-.85,10.65,10.65,0,0,1-3.82-2.5,11.8,11.8,0,0,1-2.55-4.1,15.9,15.9,0,0,1-.93-5.67,13.55,13.55,0,0,1,.81-4.71,11.34,11.34,0,0,1,2.33-3.84,11,11,0,0,1,3.69-2.59,12.31,12.31,0,0,1,4.93-1,11.86,11.86,0,0,1,4.27.74,9.25,9.25,0,0,1,3.36,2.16,9.84,9.84,0,0,1,2.21,3.48,13,13,0,0,1,.8,4.71,3.82,3.82,0,0,1-.29,1.8,1.19,1.19,0,0,1-1.1.46Zm11.23-3.55A7.28,7.28,0,0,0,256,56.4a5.16,5.16,0,0,0-1-1.77,4.44,4.44,0,0,0-1.63-1.21,5.68,5.68,0,0,0-2.3-.44,5.46,5.46,0,0,0-4,1.45,7.13,7.13,0,0,0-1.87,4.13ZM112.26,14a13.72,13.72,0,0,0-19.08-.32,1.27,1.27,0,0,0-.41.93,1.31,1.31,0,0,0,.38.95l1.73,1.73a1.31,1.31,0,0,0,1.71.12,7.78,7.78,0,0,1,4.71-1.57,7.87,7.87,0,0,1,5.57,13.43C96,40.2,81.41,9.66,48.4,25.37a4.48,4.48,0,0,0-2,6.29l5.66,9.79a4.49,4.49,0,0,0,6.07,1.67l.14-.08-.11.08,2.51-1.41a57.72,57.72,0,0,0,7.91-5.89,1.37,1.37,0,0,1,1.8-.06h0a1.29,1.29,0,0,1,0,2A59.79,59.79,0,0,1,62.11,44l-.09.05-2.51,1.4a7,7,0,0,1-3.47.91,7.19,7.19,0,0,1-6.23-3.57l-5.36-9.24C34.17,40.81,27.93,54.8,31.28,72.5a1.31,1.31,0,0,0,1.29,1.06h6.09A1.3,1.3,0,0,0,40,72.42a8.94,8.94,0,0,1,17.73,0A1.3,1.3,0,0,0,59,73.56h5.94a1.31,1.31,0,0,0,1.3-1.14,8.93,8.93,0,0,1,17.72,0,1.3,1.3,0,0,0,1.29,1.14h5.87a1.3,1.3,0,0,0,1.3-1.28c.14-8.28,2.37-17.79,8.74-22.55C123.15,33.25,117.36,19.12,112.26,14ZM89.79,38.92l-4.2-2.11h0a2.64,2.64,0,1,1,4.2,2.12Z"/>
+                    <svg id="uuid-06b7001f-24eb-477d-8018-3d7a496e2e67" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 861.23 182">
+                        <defs>
+                            <style>
+                                .uuid-c4ef6137-78ae-4f6b-bfaf-8afe736e8da4 {
+                                  fill: url(#uuid-12c727c2-4593-4d4f-8601-3ad61755bfdb);
+                                }
+                            </style>
+                            <linearGradient id="uuid-12c727c2-4593-4d4f-8601-3ad61755bfdb" x1="31.76" y1="930.11" x2="205.2" y2="693.59" gradientTransform="translate(0 906.82) scale(1 -1)" gradientUnits="userSpaceOnUse">
+                                <stop offset="0" stop-color="#209bc4"></stop>
+                                <stop offset="1" stop-color="#4dc9c0"></stop>
+                            </linearGradient>
+                        </defs>
+                        <path class="cls-1" d="M745.95,137.39h-24.36V0h24.36v137.39Z"></path>
+                        <path class="cls-1" d="M678.98,0h24.36v88.68c0,26.83-21.88,48.72-48.72,48.72s-48.91-21.88-48.91-48.72c0-32.92,22.07-49.1,43.58-49.1,11.04,0,21.88,4.19,29.69,12.56V0ZM654.62,115.13c13.32,0,24.36-11.8,24.36-26.45s-11.04-26.64-24.36-26.64-24.55,11.8-24.55,26.64,11.04,26.45,24.55,26.45Z"></path>
+                        <path class="cls-1" d="M591.83,88.3v41.67c0,4-3.24,7.23-7.23,7.23-2.09,0-4.19-1.14-5.52-2.85l-9.71-12.18c-7.8,9.9-19.6,15.03-31.59,15.03-21.5,0-43.58-16.18-43.58-49.1,0-27.02,21.88-48.72,48.91-48.72s48.72,21.69,48.72,48.91ZM567.48,88.3v-.19c0-14.65-11.04-26.64-24.36-26.64s-24.55,11.99-24.55,26.64,11.04,26.64,24.55,26.64,24.17-11.8,24.36-26.45Z"></path>
+                        <path class="cls-1" d="M457.94,52.52c7.61-8.37,18.27-12.75,29.11-12.94v22.65c-17.51,0-27.97,7.04-27.97,22.65v52.52h-24.36V47c0-4,3.42-7.42,7.42-7.42,2.09,0,4,.76,5.52,2.28l10.28,10.66Z"></path>
+                        <path class="cls-1" d="M345.84,64.27h73.07v3.25c0,47.44-30.99,69.63-62.55,69.63s-66.76-24.1-66.76-68.48S322.51,0,355.6,0c26.78,0,53.75,15.88,63.32,50.31h-27.16c-7.84-17.79-22.95-26.4-37.68-26.4-19.7,0-38.64,15.49-38.64,44.76s21.81,44.38,42.47,44.38c15.3,0,30.03-8.42,34.81-26.4h-46.87v-22.38Z"></path>
+                        <path class="cls-1" d="M834.29,102.3c-4.38,7.94-13.21,12.07-22.06,12.07-11.23,0-22.83-6.66-25.12-20.74h71.55v-2.85c-.95-34.82-24.74-51.19-48.34-51.19s-47.95,16.94-47.95,48.72,25.5,49.1,50.43,49.1c18.04,0,35.92-9,43.71-27.84l-22.21-7.26ZM810.9,61.47c8.75,0,17.51,4.76,21.31,14.08h-43.01c4.19-9.32,12.94-14.08,21.69-14.08Z"></path>
+                        <path class="uuid-c4ef6137-78ae-4f6b-bfaf-8afe736e8da4" d="M234.5,11.51c-14.98-14.98-39.16-15.38-54.64-.92-.74.68-1.17,1.65-1.17,2.66-.02,1.02.37,2,1.09,2.72l4.96,4.95c1.32,1.31,3.41,1.46,4.9.34,3.88-2.93,8.62-4.5,13.49-4.49,12.45,0,22.54,10.08,22.54,22.51,0,5.96-2.37,11.68-6.59,15.9-31.13,31.26-72.91-56.09-167.44-11.15-6.43,2.98-9.22,10.6-6.23,17.02.15.33.32.65.5.97l16.21,28c3.52,6.06,11.25,8.19,17.38,4.78l.4-.23-.31.23,7.19-4.03c8.02-4.96,15.6-10.6,22.65-16.85,1.43-1.34,3.63-1.41,5.15-.17,1.58,1.29,1.82,3.61.53,5.19-.16.19-.34.37-.53.53-7.36,6.62-15.29,12.59-23.68,17.85l-.26.14-7.19,4c-3.03,1.72-6.45,2.61-9.94,2.6-7.34.02-14.14-3.87-17.84-10.21l-15.35-26.43C10.88,88.18-6.99,128.2,2.61,178.82c.34,1.76,1.89,3.04,3.69,3.03h17.44c1.93.07,3.6-1.34,3.84-3.26,1.83-14,14.67-23.87,28.7-22.05,11.51,1.5,20.58,10.55,22.08,22.05.23,1.84,1.78,3.23,3.64,3.26h17.01c1.88,0,3.48-1.39,3.72-3.26,1.76-13.99,14.55-23.91,28.57-22.15,11.59,1.46,20.72,10.57,22.18,22.15.23,1.86,1.82,3.26,3.69,3.26h16.81c2.03,0,3.69-1.63,3.72-3.66.4-23.68,6.79-50.88,25.03-64.49,62.97-47.13,46.39-87.55,31.79-102.19ZM170.16,82.81v-.03l-12.03-6.03c-.02-4.17,3.36-7.56,7.53-7.58,4.18-.02,7.57,3.35,7.59,7.52,0,2.42-1.14,4.69-3.09,6.12Z"></path>
+                        <path class="cls-1" d="M308.36,167.02c6.39-3.5,4.92-13.8-4.72-13.84h-11.27v28.45h12.78c10.5,0,11.68-12.25,3.22-14.61ZM304.29,176.87h-6.47v-18.93h5.41c2.28,0,3.46,1.63,3.46,3.54,0,2.12-2.73,3.62-5.82,4.27-.77.12-1.34.77-1.34,1.55,0,.85.69,1.59,1.55,1.63,4.48.25,7.33,1.63,7.33,4.44,0,1.95-1.3,3.42-4.11,3.5Z"></path>
+                        <path class="cls-1" d="M372.77,153.18h5.41v18.44c0,6.88-5.45,10.18-10.99,10.18s-11.52-3.5-11.52-10.22v-18.4h5.45v18.4c0,3.74,2.93,5.66,5.86,5.66s5.78-1.87,5.78-5.66v-18.4Z"></path>
+                        <rect class="cls-1" x="420.2" y="153.18" width="5.45" height="28.45"></rect>
+                        <polygon class="cls-1" points="473.43 176.87 486.7 176.87 486.7 181.63 467.98 181.63 467.98 153.18 473.43 153.18 473.43 176.87"></polygon>
+                        <path class="cls-1" d="M538.24,153.18h-11.4v28.45h12.33v-.04c14.65-1.3,14.49-28.41-.94-28.41ZM538.08,176.87h-5.78v-18.93h5.57c8.75,0,8.67,18.93.2,18.93Z"></path>
+                        <polygon class="cls-1" points="644.38 153.18 665.02 153.18 665.02 157.94 657.41 157.94 657.41 181.63 651.99 181.63 651.99 157.94 644.38 157.94 644.38 153.18"></polygon>
+                        <path class="cls-1" d="M717.36,152.82c-7.16,0-14.37,4.88-14.37,14.61s7.2,14.57,14.37,14.57,14.37-4.88,14.37-14.57-7.16-14.61-14.37-14.61ZM717.36,176.95c-4.44,0-8.87-3.17-8.87-9.52s4.44-9.52,8.87-9.52,8.87,3.17,8.87,9.52-4.44,9.52-8.87,9.52Z"></path>
+                        <path class="cls-1" d="M786.01,152.82c-7.16,0-14.37,4.88-14.37,14.61s7.2,14.57,14.37,14.57,14.37-4.88,14.37-14.57-7.16-14.61-14.37-14.61ZM786.01,176.95c-4.44,0-8.87-3.17-8.87-9.52s4.44-9.52,8.87-9.52,8.87,3.17,8.87,9.52-4.44,9.52-8.87,9.52Z"></path>
+                        <polygon class="cls-1" points="847.96 176.87 861.23 176.87 861.23 181.63 842.51 181.63 842.51 153.18 847.96 153.18 847.96 176.87"></polygon>
                     </svg>
                 </a>
                 <div class="site-header__doc-type sr-only">User Manual</div>
@@ -41,108 +53,153 @@
                                 <path d="m12 22c5.5228475 0 10-4.4771525 10-10s-4.4771525-10-10-10-10 4.4771525-10 10 4.4771525 10 10 10zm0-1.5v-17c4.6944204 0 8.5 3.80557963 8.5 8.5 0 4.6944204-3.8055796 8.5-8.5 8.5z"/>
                             </svg>
                         </a>
-                        <script type="text/javascript">
-                            const lightThemeStyle = document.getElementById("light-theme-style");
-                            const darkThemeStyle = document.getElementById("dark-theme-style");
-                            const btn = document.querySelector(".theme-toggle");
-                            const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
-
-                            function enableLightTheme() {
-                              lightThemeStyle.disabled = false;
-                              darkThemeStyle.disabled = true;
-                              document.body.classList.remove("dark-theme");
-                              document.body.classList.add("light-theme");
-                              localStorage.setItem("theme", "light");
-                            }
-
-                            function enableDarkTheme() {
-                              lightThemeStyle.disabled = true;
-                              darkThemeStyle.disabled = false;
-                              document.body.classList.remove("light-theme");
-                              document.body.classList.add("dark-theme");
-                              localStorage.setItem("theme", "dark");
-                            }
-
-                            // Check for stored theme preference on page load
-                            const currentTheme = localStorage.getItem("theme");
-                            if (currentTheme === "dark") {
-                              enableDarkTheme();
-                            } else if (currentTheme === "light") {
-                              enableLightTheme();
-                            } else if (prefersDarkScheme.matches) {
-                              // If no stored theme, check system preference
-                              enableDarkTheme();
-                            } else {
-                              enableLightTheme();
-                            }
-
-                            // Add click event listener to the toggle button
-                            btn.addEventListener("click", () => {
-                              if (darkThemeStyle.disabled) {
-                                enableDarkTheme();
-                              } else {
-                                enableLightTheme();
-                              }
-                            });
-                        </script>
                     </li>
                     <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
                         <span class="site-header__navigation-link">
-                            Community
+                            Build Tool
                         </span>
                         <div class="site-header__navigation-submenu">
-                            <div class="site-header__navigation-submenu-item" itemprop="name">
-                                <a target="_top" class="site-header__navigation-submenu-item-link" href="https://gradle.org/" itemprop="url">
-                                    <span class="site-header__navigation-submenu-item-link-text">Community Home</span>
+                            <div class="site-header__navigation-submenu-item">
+                                <a target="_top" class="site-header__navigation-submenu-item-link" href="https://gradle.org/releases">
+                                    <span class="site-header__navigation-submenu-item-link-text">Releases</span>
                                 </a>
                             </div>
-                            <div class="site-header__navigation-submenu-item" itemprop="name">
-                                <a target="_top" class="site-header__navigation-submenu-item-link" href="https://discuss.gradle.org/" itemprop="url">
-                                    <span class="site-header__navigation-submenu-item-link-text">Community Forums</span>
+                            <div class="site-header__navigation-submenu-item">
+                                <a target="_top" class="site-header__navigation-submenu-item-link" href="https://gradle.org/features">
+                                    <span class="site-header__navigation-submenu-item-link-text">Features</span>
                                 </a>
                             </div>
-                            <div class="site-header__navigation-submenu-item" itemprop="name">
-                                <a target="_top" class="site-header__navigation-submenu-item-link" href="https://plugins.gradle.org" itemprop="url">
-                                    <span class="site-header__navigation-submenu-item-link-text">Community Plugins</span>
+                            <div class="site-header__navigation-submenu-item">
+                                <a target="_top" class="site-header__navigation-submenu-item-link" href="https://gradle.org/whats-new/gradle-9">
+                                    <span class="site-header__navigation-submenu-item-link-text">9.0.0 Highlights</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item">
+                                <a target="_top" class="site-header__navigation-submenu-item-link" href="https://gradle.org/whats-new/gradle-8">
+                                    <span class="site-header__navigation-submenu-item-link-text">8.0.0 Highlights</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item">
+                                <a target="_top" class="site-header__navigation-submenu-item-link" href="https://gradle.org/maven-and-gradle">
+                                    <span class="site-header__navigation-submenu-item-link-text">Gradle vs Maven</span>
                                 </a>
                             </div>
                         </div>
                     </li>
-                    <li class="site-header__navigation-item" itemprop="name">
-                        <a target="_top" class="site-header__navigation-link" href="https://dpeuniversity.gradle.com/" itemprop="url">DPE University</a>
+                    <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
+                        <span class="site-header__navigation-link">
+                            Learn
+                        </span>
+                        <div class="site-header__navigation-submenu">
+                            <div class="site-header__navigation-submenu-item" itemprop="name">
+                                <a class="site-header__navigation-submenu-item-link" href="https://docs.gradle.org/">
+                                    <span class="site-header__navigation-submenu-item-link-text">User Manual</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item" itemprop="name">
+                                <a class="site-header__navigation-submenu-item-link" href="https://dpeuniversity.gradle.com/">
+                                    <span class="site-header__navigation-submenu-item-link-text">DPE University</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item">
+                                <a class="site-header__navigation-submenu-item-link" href="https://www.youtube.com/channel/UCvClhveoEjokKIuBAsSjEwQ">
+                                    <span class="site-header__navigation-submenu-item-link-text">YouTube Channel</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item">
+                                <a class="site-header__navigation-submenu-item-link" href="https://gradle.com/training/">
+                                    <span class="site-header__navigation-submenu-item-link-text">Events and Webinars</span>
+                                </a>
+                            </div>
+                        </div>
                     </li>
-                    <li class="site-header__navigation-item" itemprop="name">
-                        <a target="_top" class="site-header__navigation-link" href="https://gradle.org/training/" itemprop="url">Events</a>
+                    <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
+                        <span class="site-header__navigation-link">
+                            Support
+                        </span>
+                        <div class="site-header__navigation-submenu">
+                            <div class="site-header__navigation-submenu-item">
+                                <a class="site-header__navigation-submenu-item-link" href="https://gradle.org/slack-invite">
+                                    <span class="site-header__navigation-submenu-item-link-text">Community Slack</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item">
+                                <a class="site-header__navigation-submenu-item-link" href="https://discuss.gradle.org/">
+                                    <span class="site-header__navigation-submenu-item-link-text">Community Forums</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item">
+                                <a class="site-header__navigation-submenu-item-link" href="https://gradle.org/services">
+                                    <span class="site-header__navigation-submenu-item-link-text">Professional Services</span>
+                                </a>
+                            </div>
+                        </div>
                     </li>
                     <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
                         <span class="site-header__navigation-link">
                             News
                         </span>
                         <div class="site-header__navigation-submenu">
-                            <div class="site-header__navigation-submenu-item" itemprop="name">
-                                <a class="site-header__navigation-submenu-item-link" href="https://newsletter.gradle.org" itemprop="url">
+                            <div class="site-header__navigation-submenu-item">
+                                <a class="site-header__navigation-submenu-item-link" href="https://newsletter.gradle.org/">
                                     <span class="site-header__navigation-submenu-item-link-text">Newsletter</span>
                                 </a>
                             </div>
-                            <div class="site-header__navigation-submenu-item" itemprop="name">
-                                <a class="site-header__navigation-submenu-item-link" href="https://blog.gradle.org" itemprop="url">
-                                    <span class="site-header__navigation-submenu-item-link-text">Blog</span>
-                                </a>
-                            </div>
                             <div class="site-header__navigation-submenu-item">
-                                <a class="site-header__navigation-submenu-item-link" href="https://twitter.com/gradle">
-                                    <span class="site-header__navigation-submenu-item-link-text">Twitter</span>
+                                <a class="site-header__navigation-submenu-item-link" href="https://blog.gradle.org/">
+                                    <span class="site-header__navigation-submenu-item-link-text">Blog</span>
                                 </a>
                             </div>
                         </div>
                     </li>
-                    <li class="site-header__navigation-item" itemprop="name">
-                        <a target="_top" class="site-header__navigation-link" href="https://gradle.com/develocity" itemprop="url">Develocity</a>
+                    <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
+                        <span class="site-header__navigation-link">
+                            Gradle Technologies
+                        </span>
+                        <div class="site-header__navigation-submenu">
+                            <div class="site-header__navigation-submenu-item">
+                                <a class="site-header__navigation-submenu-item-link" href="https://gradle.com/develocity/">
+                                    <span class="site-header__navigation-submenu-item-link-text">Develocity®</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item">
+                                <a class="site-header__navigation-submenu-item-link" href="https://scans.gradle.com/">
+                                    <span class="site-header__navigation-submenu-item-link-text">Build Scan®</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item">
+                                <a class="site-header__navigation-submenu-item-link" href="https://dpe.org/">
+                                    <span class="site-header__navigation-submenu-item-link-text">DPE.org</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item">
+                                <a class="site-header__navigation-submenu-item-link" href="https://gradle.com/careers">
+                                    <span class="site-header__navigation-submenu-item-link-text">Careers</span>
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="site-header__navigation-item site-header__navigation-submenu-section" tabindex="0">
+                        <span class="site-header__navigation-link">
+                            About
+                        </span>
+                        <div class="site-header__navigation-submenu">
+                            <div class="site-header__navigation-submenu-item" itemprop="name">
+                                <a class="site-header__navigation-submenu-item-link" href="https://gradle.org/contact">
+                                    <span class="site-header__navigation-submenu-item-link-text">Contact Us</span>
+                                </a>
+                            </div>
+                            <div class="site-header__navigation-submenu-item" itemprop="name">
+                                <a class="site-header__navigation-submenu-item-link" href="https://gradle.org/fellowship">
+                                    <span class="site-header__navigation-submenu-item-link-text">Gradle Fellowship</span>
+                                </a>
+                            </div>
+                        </div>
                     </li>
                     <li class="site-header__navigation-item">
                         <a class="site-header__navigation-link" title="Gradle on GitHub" href="https://github.com/gradle/gradle">
                             <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <title>Github</title>
+                                <title>GitHub</title>
                                 <path d="M10 0C4.477 0 0 4.477 0 10c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.026A9.578 9.578 0 0 1 10 4.836c.85.004 1.705.114 2.504.337 1.909-1.294 2.747-1.026 2.747-1.026.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C17.137 18.163 20 14.418 20 10c0-5.523-4.478-10-10-10" fill-rule="evenodd";/>
                             </svg>
                         </a>
@@ -152,6 +209,7 @@
         </nav>
     </header>
 
+    <!-- Main -->
     <main class="main-content">
         <!-- Primary Navigation -->
         <nav class="docs-navigation">
