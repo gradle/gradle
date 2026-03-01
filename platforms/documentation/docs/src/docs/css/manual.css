@@ -633,7 +633,7 @@ textarea { height: auto; min-height: 50px; }
 select { width: 100%; }
 
 /* SVG fill — theme-aware */
-path, .cls-1 {
+.cls-1 {
     fill: var(--text-color);
     transition: fill 0.3s ease;
 }

@@ -103,7 +103,8 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 "<link id=\"hljs-theme\" rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css\">" +
                     "<script>" +
                     "(function() {" +
-                    "var saved = localStorage.getItem('theme');" +
+                    "var saved;" +
+                    "try { saved = localStorage.getItem('theme'); } catch(e) {}" +
                     "var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;" +
                     "var theme = saved || (prefersDark ? 'dark' : 'light');" +
                     "document.documentElement.setAttribute('data-theme', theme);" +

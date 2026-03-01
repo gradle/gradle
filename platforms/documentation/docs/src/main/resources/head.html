@@ -55,5 +55,7 @@
     if (typeof hljs !== 'undefined') {
       hljs.addPlugin(asciidocCalloutPlugin);
       hljs.highlightAll();
+    } else {
+      console.error('Highlight.js (hljs) is not available; syntax highlighting has been skipped.');
     }
 </script>
