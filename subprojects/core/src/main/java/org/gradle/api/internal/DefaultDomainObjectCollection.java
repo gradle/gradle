@@ -492,10 +492,14 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             return;
         }
         changesDisallowed = true;
-        beforeContainerChange = beforeContainerChange.add(methodName -> {
-            throw new IllegalStateException(
-                String.format("Cannot call %s on %s as changes to this collection are disallowed.",
-                    methodName, getDisplayName()));
+        // This should be an anonymous type for configuration cache safety
+        beforeContainerChange = beforeContainerChange.add(new Action<String>() {
+            @Override
+            public void execute(String methodName) {
+                throw new IllegalStateException(
+                    String.format("Cannot call %s on %s as changes to this collection are disallowed.",
+                        methodName, DefaultDomainObjectCollection.this.getDisplayName()));
+            }
         });
     }
 

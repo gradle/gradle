@@ -70,7 +70,7 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
     @Override
     public void processRegistrations() {
         if (processed) {
-            throw new IllegalStateException("Cannot process shared model defaults twice.");
+            return;
         }
 
         registrations.forEach(registration -> {
