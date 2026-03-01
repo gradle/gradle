@@ -170,7 +170,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                 NamedDomainObjectContainer<?> ndoc = Cast.uncheckedCast(propertyValue);
                 Class<?> elementType = ((AbstractNamedDomainObjectContainer<?>) ndoc).getType();
                 if (Definition.class.isAssignableFrom(elementType)) {
-                    ndoc.configureEach(element -> bindNestedDefinition(element, rootDefinitionContext, applyActionContext, projectFeature));
+                    ndoc.all(element -> bindNestedDefinition(element, rootDefinitionContext, applyActionContext, projectFeature));
                 }
             }
         });
