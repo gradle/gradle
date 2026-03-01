@@ -50,11 +50,11 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
 
         where:
         testCase                                           | modelDefault                 | buildConfiguration    | expectedValues
-        "top-level property has default and is set"        | setId("default")             | setId("test")         | expected("id":"test", "foo.bar":"bar")
+        "top-level property has default and is set"        | setId("default")             | setId("test")         | expected("id":"test", "foo.bar":"null")
         "top-level property has default, nested is set"    | setId("default")             | setFooBar("baz")      | expected("id":"default", "foo.bar":"baz")
-        "nested property has default and is set"           | setFooBar("default")         | setFooBar("baz")      | expected("id":"<no id>", "foo.bar":"baz")
-        "nested property has default, top-level is set"    | setFooBar("default")         | setId("test")         | expected("id": "test", "foo.bar":"default")
-        "no defaults, top-level property is set"           | ""                           | setId("test")         | expected("id":"test", "foo.bar":"bar")
+        "nested property has default and is set"           | setFooBar("default")         | setFooBar("baz")      | expected("id":"null", "foo.bar":"baz")
+        "nested property has default, top-level is set"    | setFooBar("default")         | setId("test")         | expected("id":"test", "foo.bar":"default")
+        "no defaults, top-level property is set"           | ""                           | setId("test")         | expected("id":"test", "foo.bar":"null")
         "everything has default and nothing set"           | setAll("default", "default") | ""                    | expected("id":"default", "foo.bar":"default")
         "everything has default and is set"                | setAll("default", "default") | setAll("test", "baz") | expected("id":"test", "foo.bar":"baz")
     }

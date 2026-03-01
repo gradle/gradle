@@ -53,8 +53,6 @@ class ProjectPluginThatProvidesMultipleProjectTypesBuilder extends ProjectTypePl
                         builder.bindProjectType("testProjectType", ${definition.publicTypeClassName}.class, (context, definition, model) -> {
                             Services services = context.getObjectFactory().newInstance(Services.class);
                             System.out.println("Binding " + ${definition.publicTypeClassName}.class.getSimpleName());
-                            definition.getId().convention("<no id>");
-                            definition.getFoo().getBar().convention("bar");
                             model.getId().set(definition.getId());
                             services.getTaskRegistrar().register("printTestProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
                                 task.doLast("print restricted extension content", t -> {
@@ -66,8 +64,6 @@ class ProjectPluginThatProvidesMultipleProjectTypesBuilder extends ProjectTypePl
                         builder.bindProjectType("anotherProjectType", ${anotherProjectTypeDefinition.publicTypeClassName}.class, (context, definition, model) -> {
                             Services services = context.getObjectFactory().newInstance(Services.class);
                             System.out.println("Binding " + ${anotherProjectTypeDefinition.publicTypeClassName}.class.getSimpleName());
-                            definition.getFoo().convention("foo");
-                            definition.getBar().getBaz().convention("baz");
                             model.getId().set(definition.getId());
                             services.getTaskRegistrar().register("printAnotherProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
                                 task.doLast("print restricted extension content", t -> {

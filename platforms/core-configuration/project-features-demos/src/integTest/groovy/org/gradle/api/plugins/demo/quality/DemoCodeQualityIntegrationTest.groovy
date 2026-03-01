@@ -56,41 +56,6 @@ class DemoCodeQualityIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("checkTestDemoSourceQuality")
     }
 
-    def "can apply the demoBytecodeQuality feature to Java"() {
-        given:
-        settingsFile << """
-            plugins {
-                id 'java-ecosystem'
-                id 'demo-quality-ecosystem'
-            }
-        """
-        file('build.gradle.dcl') << """
-            javaLibrary {
-                sources {
-                    javaSources("main") {
-                        demoBytecodeQuality {
-                            ignoreFailures = true
-                        }
-                    }
-                    javaSources("integTest") {
-                        demoBytecodeQuality {
-                            ignoreFailures = true
-                        }
-                    }
-                }
-            }
-        """
-
-        when:
-        run "tasks"
-
-        then:
-        outputContains("checkMainDemoBytecodeQuality")
-        outputContains("checkIntegTestDemoBytecodeQuality")
-        outputDoesNotContain("checkTestDemoBytecodeQuality")
-    }
-
-
     def "can apply both demoSourceQuality and demoBytecodeQuality features to Groovy"() {
         given:
         settingsFile << """

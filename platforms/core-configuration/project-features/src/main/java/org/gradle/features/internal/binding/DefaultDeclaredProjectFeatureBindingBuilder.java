@@ -25,6 +25,9 @@ import org.gradle.util.Path;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -35,6 +38,7 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<OwnDefinition extends D
     private final Class<OwnBuildModel> buildModelType;
     private final Path path;
     private final ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> applyActionFactory;
+    private final Map<Class<?>, Class<?>> nestedBuildModelTypesToImplementationTypes = new LinkedHashMap<>();
 
     @Nullable private Class<?> dslImplementationType;
     @Nullable private Class<?> buildModelImplementationType;
@@ -64,6 +68,7 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<OwnDefinition extends D
         TargetTypeInformation<?> targetDefinitionType,
         Class<OwnBuildModel> buildModelType,
         @Nullable Class<? extends OwnBuildModel> buildModelImplementationType,
+        Map<Class<?>, Class<?>> nestedBuildModelTypesToImplementationTypes,
         ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> projectFeatureApplyActionFactory
     ) {
         return new ProjectFeatureBindingDeclaration<OwnDefinition, OwnBuildModel>() {
@@ -108,6 +113,11 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<OwnDefinition extends D
             }
 
             @Override
+            public Map<Class<?>, Class<?>> getNestedBuildModelTypes() {
+                return Collections.unmodifiableMap(nestedBuildModelTypesToImplementationTypes);
+            }
+
+            @Override
             public String getName() {
                 return Objects.requireNonNull(path.getName());
             }
@@ -123,6 +133,12 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<OwnDefinition extends D
     @Override
     public DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withBuildModelImplementationType(Class<? extends OwnBuildModel> implementationType) {
         this.buildModelImplementationType = implementationType;
+        return this;
+    }
+
+    @Override
+    public <NestedBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withNestedBuildModelImplementationType(Class<NestedBuildModel> nestedBuildModelType, Class<? extends NestedBuildModel> nestedBuildModelImplementationType) {
+        nestedBuildModelTypesToImplementationTypes.put(nestedBuildModelType, nestedBuildModelImplementationType);
         return this;
     }
 
@@ -157,6 +173,7 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<OwnDefinition extends D
             targetDefinitionType,
             buildModelType,
             Cast.uncheckedCast(buildModelImplementationType),
+            nestedBuildModelTypesToImplementationTypes,
             applyActionFactory
         );
     }

@@ -20,16 +20,21 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -40,17 +45,22 @@ public class ProjectFeatureSupportInternal {
     public interface ProjectFeatureDefinitionContext {
         Object getBuildModel();
 
-        Map<ProjectFeatureImplementation<?, ?>, Object> childrenDefinitions();
+        // Child features that have been bound to this definition
+        Map<ProjectFeatureImplementation<?, ?>, ProjectFeatureApplicator.FeatureApplication<?, ?>> childFeatures();
+        // Implicit nested definitions discovered while inspecting the definition
+        List<Definition<?>> nestedDefinitions();
 
-        ChildDefinitionAdditionResult getOrAddChildDefinition(ProjectFeatureImplementation<?, ?> feature, Supplier<Object> definition);
+        <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> ChildDefinitionAdditionResult<OwnDefinition, OwnBuildModel> getOrAddChildDefinition(ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> feature, Supplier<ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel>> definition);
 
-        final class ChildDefinitionAdditionResult {
+        void addNestedDefinition(Definition<?> definition);
+
+        final class ChildDefinitionAdditionResult<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
             public final boolean isNew;
-            public final Object definition;
+            public final ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel> featureApplication;
 
-            public ChildDefinitionAdditionResult(boolean isNew, Object definition) {
+            public ChildDefinitionAdditionResult(boolean isNew, ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel> featureApplication) {
                 this.isNew = isNew;
-                this.definition = definition;
+                this.featureApplication = featureApplication;
             }
         }
 
@@ -66,7 +76,8 @@ public class ProjectFeatureSupportInternal {
         private final ProjectFeatureDeclarations projectFeatureDeclarations;
         private final ObjectFactory objectFactory;
         protected final Object buildModel;
-        private final Map<ProjectFeatureImplementation<?, ?>, Object> childrenDefinitions = new LinkedHashMap<>();
+        private final Map<ProjectFeatureImplementation<?, ?>, ProjectFeatureApplicator.FeatureApplication<?, ?>> childFeatures = new LinkedHashMap<>();
+        private final List<Definition<?>> nestedDefinitions = new ArrayList<>();
 
         public static class Factory {
             private final ProjectFeatureApplicator projectFeatureApplicator;
@@ -108,18 +119,32 @@ public class ProjectFeatureSupportInternal {
         }
 
         @Override
-        public Map<ProjectFeatureImplementation<?, ?>, Object> childrenDefinitions() {
-            return Collections.unmodifiableMap(childrenDefinitions);
+        public Map<ProjectFeatureImplementation<?, ?>, ProjectFeatureApplicator.FeatureApplication<?, ?>> childFeatures() {
+            return Collections.unmodifiableMap(childFeatures);
         }
 
         @Override
-        public ChildDefinitionAdditionResult getOrAddChildDefinition(ProjectFeatureImplementation<?, ?> feature, Supplier<Object> computeDefinition) {
-            if (childrenDefinitions.containsKey(feature)) {
-                return new ChildDefinitionAdditionResult(false, childrenDefinitions.get(feature));
+        public List<Definition<?>> nestedDefinitions() {
+            return Collections.unmodifiableList(nestedDefinitions);
+        }
+
+        @Override
+        public void addNestedDefinition(Definition<?> definition) {
+            nestedDefinitions.add(definition);
+        }
+
+        @Override
+        public <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
+        ChildDefinitionAdditionResult<OwnDefinition, OwnBuildModel> getOrAddChildDefinition(
+            ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> feature,
+            Supplier<ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel>> featureApplicationSupplier
+        ) {
+            if (childFeatures.containsKey(feature)) {
+                return new ChildDefinitionAdditionResult<>(false, Cast.uncheckedCast(childFeatures.get(feature)));
             }
-            Object definition = computeDefinition.get();
-            childrenDefinitions.put(feature, definition);
-            return new ChildDefinitionAdditionResult(true, definition);
+            ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel> featureApplication = featureApplicationSupplier.get();
+            childFeatures.put(feature, featureApplication);
+            return new ChildDefinitionAdditionResult<>(true, featureApplication);
         }
 
         @Override
@@ -201,5 +226,28 @@ public class ProjectFeatureSupportInternal {
             objectFactory.newInstance(ProjectFeaturesDynamicObject.class, dslObjectToInitialize, context),
             ExtensibleDynamicObject.Location.BeforeConventionNotInherited
         );
+    }
+
+    /**
+     * Walks the feature graph of an object and applies all features that are bound to it or any of its nested definitions.
+     */
+    public static void walkAndApplyFeatures(Object definition) {
+        walkAndApplyFeatures(definition, new HashSet<>());
+    }
+
+    private static void walkAndApplyFeatures(Object definition, Set<Object> seen) {
+        if (seen.add(definition)) {
+            ProjectFeatureDefinitionContext context = ProjectFeatureSupportInternal.tryGetContext(definition);
+
+            if (context != null) {
+                // Apply any features directly applied to this definition
+                context.childFeatures().values().forEach(child -> {
+                    child.apply();
+                    walkAndApplyFeatures(child.getDefinitionInstance(), seen);
+                });
+                // Apply any features applied to implicitly nested definitions discovered by inspecting this definition
+                context.nestedDefinitions().forEach(nested -> walkAndApplyFeatures(nested, seen));
+            }
+        }
     }
 }

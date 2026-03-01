@@ -24,7 +24,7 @@ class ProjectTypeDefinitionThatRegistersANestedBindingLocationClassBuilder exten
     @Override
     String getBuildModelMapping() {
         return """
-                context.registerBuildModel(definition.getFoo())
+                context.getBuildModel(definition.getFoo())
                     .getBarProcessed().set(definition.getFoo().getBar().map(it -> it.toUpperCase()));
             """
     }

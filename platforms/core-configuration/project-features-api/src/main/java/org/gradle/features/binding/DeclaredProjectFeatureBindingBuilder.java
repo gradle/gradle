@@ -53,6 +53,17 @@ public interface DeclaredProjectFeatureBindingBuilder<OwnDefinition extends Defi
     DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withBuildModelImplementationType(Class<? extends OwnBuildModel> implementationType);
 
     /**
+     * Specify the implementation type to use when creating instances of the nested build model object.
+     *
+     * @param nestedBuildModelType the public type of the nested build model object
+     * @param nestedBuildModelImplementationType the implementation type to use
+     * @param <NestedBuildModel> the type of the nested build model object
+     *
+     * @since 9.5.0
+     */
+    <NestedBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withNestedBuildModelImplementationType(Class<NestedBuildModel> nestedBuildModelType, Class<? extends NestedBuildModel> nestedBuildModelImplementationType);
+
+    /**
      * Indicates that the definition object is not safe.  A safe definition is one that:
      * <ul>
      *     <li>Is implemented as an interface only (i.e. not an abstract class)</li>

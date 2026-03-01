@@ -41,7 +41,13 @@ import org.gradle.features.internal.builders.features.ProjectFeatureThatBindsWit
 import org.gradle.features.internal.builders.features.ProjectFeatureWithNoBuildModelPluginClassBuilder
 import org.gradle.features.internal.builders.settings.KotlinSettingsPluginClassBuilder
 import org.gradle.features.internal.builders.settings.SettingsPluginClassBuilder
+import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionWithDeeplyNestedNdocClassBuilder
+import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionWithNdocContainingDefinitionsClassBuilder
 import org.gradle.features.internal.builders.types.ProjectTypePluginClassBuilder
+import org.gradle.features.internal.builders.types.ProjectTypePluginWithDeeplyNestedNdocClassBuilder
+import org.gradle.features.internal.builders.types.ProjectTypePluginThatReadsValuesEagerlyClassBuilder
+import org.gradle.features.internal.builders.types.ProjectTypePluginWithDefinitionNdocClassBuilder
+import org.gradle.features.internal.builders.types.ProjectTypePluginWithDefinitionNdocThatReadsValuesEagerlyClassBuilder
 import org.gradle.features.internal.builders.types.ProjectTypeThatBindsWithClassBuilder
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -203,7 +209,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def anotherProjectType = new ProjectTypePluginClassBuilder(anotherProjectTypeDefinition)
             .name("anotherProjectType")
             .projectTypePluginClassName("AnotherProjectTypePlugin")
-            .withoutConventions()
         def anotherFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
             .withPublicClassName("AnotherFeatureDefinition")
         def anotherProjectFeature = new ProjectFeaturePluginClassBuilder(anotherFeatureDefinition)
@@ -409,6 +414,63 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
         return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    // For testing eager-read in apply action (issue #36673)
+    PluginBuilder withProjectTypeThatReadsValuesEagerlyInApplyAction() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginThatReadsValuesEagerlyClassBuilder(projectTypeDefinition)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+        return withProjectType(projectTypeDefinition, projectType, settingsBuilder)
+    }
+
+    // For testing NDOC<Definition> auto-registration (issues #36548, #36673)
+    PluginBuilder withProjectTypeWithDefinitionThatHasNdocContainingDefinitions() {
+        def projectTypeDefinition = new ProjectTypeDefinitionWithNdocContainingDefinitionsClassBuilder()
+        def projectType = new ProjectTypePluginWithDefinitionNdocClassBuilder(projectTypeDefinition)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+        return withProjectType(projectTypeDefinition, projectType, settingsBuilder)
+    }
+
+    // For testing eager reads from NDOC element definitions (issues #36548, #36673)
+    PluginBuilder withProjectTypeWithDefinitionNdocThatReadsValuesEagerly() {
+        def projectTypeDefinition = new ProjectTypeDefinitionWithNdocContainingDefinitionsClassBuilder()
+        def projectType = new ProjectTypePluginWithDefinitionNdocThatReadsValuesEagerlyClassBuilder(projectTypeDefinition)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+        return withProjectType(projectTypeDefinition, projectType, settingsBuilder)
+    }
+
+    // For testing a feature that binds to NDOC element definitions (issue #36548)
+    PluginBuilder withProjectTypeAndFeatureThatBindsToNdocElement() {
+        def projectTypeDefinition = new ProjectTypeDefinitionWithNdocContainingDefinitionsClassBuilder()
+        def projectType = new ProjectTypePluginWithDefinitionNdocClassBuilder(projectTypeDefinition)
+        def featureDefinition = new ProjectFeatureDefinitionClassBuilder()
+            .withPublicClassName("SourceFeatureDefinition")
+        def featurePlugin = new ProjectFeaturePluginClassBuilder(featureDefinition)
+            .name("sourceFeature")
+            .bindingTypeClassName(projectTypeDefinition.publicTypeClassName + ".Source")
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(featurePlugin.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, featureDefinition, featurePlugin, settingsBuilder)
+    }
+
+    // For testing a feature that binds to a Definition in an NDOC nested inside a plain (non-Definition) type
+    PluginBuilder withProjectTypeAndFeatureThatBindsToDeeplyNestedNdocElement() {
+        def projectTypeDefinition = new ProjectTypeDefinitionWithDeeplyNestedNdocClassBuilder()
+        def projectType = new ProjectTypePluginWithDeeplyNestedNdocClassBuilder(projectTypeDefinition)
+        def featureDefinition = new ProjectFeatureDefinitionClassBuilder()
+            .withPublicClassName("SourceFeatureDefinition")
+        def featurePlugin = new ProjectFeaturePluginClassBuilder(featureDefinition)
+            .name("sourceFeature")
+            .bindingTypeClassName(projectTypeDefinition.publicTypeClassName + ".Group.Source")
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(featurePlugin.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, featureDefinition, featurePlugin, settingsBuilder)
     }
 
     PluginBuilder withKotlinProjectFeaturePluginThatBindsWithClass() {

@@ -24,6 +24,8 @@ import org.gradle.features.binding.Definition;
 import org.gradle.features.binding.TargetTypeInformation;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Map;
+
 /**
  * Represents a resolved project feature implementation including the public model type and the plugin that exposes it.
  *
@@ -48,6 +50,8 @@ public interface ProjectFeatureImplementation<OwnDefinition extends Definition<O
     Class<OwnBuildModel> getBuildModelType();
 
     Class<? extends OwnBuildModel> getBuildModelImplementationType();
+
+    Map<Class<?>, Class<?>> getNestedBuildModelTypes();
 
     Class<? extends Plugin<Project>> getPluginClass();
 
