@@ -1,53 +1,51 @@
-@media (prefers-color-scheme: dark) {
-    :root {
-        /* Text colors - shifting to light grays/whites */
-        --body-text-color: #e0e0e0;
-        --block-text-color: #cccccc;
-        --title-color: #a9c6d9;
+[data-theme="dark"] {
+    /* Text colors - shifting to light grays/whites */
+    --body-text-color: #e0e0e0;
+    --block-text-color: #cccccc;
+    --title-color: #a9c6d9;
 
-        /* Background colors - deep charcoals and blacks */
-        --body-background-color: #121212;
-        --section-background-color: #1e1e1e;
-        --detail-background-color: #181818;
+    /* Background colors - deep charcoals and blacks */
+    --body-background-color: #121212;
+    --section-background-color: #1e1e1e;
+    --detail-background-color: #181818;
 
-        /* Navigation bar - darkened blue to maintain brand feel */
-        --navbar-background-color: #2a3f4d;
-        --navbar-text-color: #ffffff;
-        --subnav-background-color: #2d333b;
+    /* Navigation bar - darkened blue to maintain brand feel */
+    --navbar-background-color: #2a3f4d;
+    --navbar-text-color: #ffffff;
+    --subnav-background-color: #2d333b;
 
-        /* Selected states - using a slightly muted orange for dark mode */
-        --selected-background-color: #c97a16;
-        --selected-text-color: #121212;
-        --selected-link-color: #8ab4f8;
+    /* Selected states - using a slightly muted orange for dark mode */
+    --selected-background-color: #c97a16;
+    --selected-text-color: #121212;
+    --selected-link-color: #8ab4f8;
 
-        /* Table row stripes */
-        --even-row-color: #181818;
-        --odd-row-color: #242424;
+    /* Table row stripes */
+    --even-row-color: #181818;
+    --odd-row-color: #242424;
 
-        /* Link colors - brighter blues/golds for visibility on dark backgrounds */
-        --link-color: #8ab4f8;
-        --link-color-active: #ffb74d;
+    /* Link colors - brighter blues/golds for visibility on dark backgrounds */
+    --link-color: #8ab4f8;
+    --link-color-active: #ffb74d;
 
-        /* Snippet/Code colors */
-        --snippet-background-color: #2d2d2d;
-        --snippet-highlight-color: #5e462b;
+    /* Snippet/Code colors */
+    --snippet-background-color: #2d2d2d;
+    --snippet-highlight-color: #5e462b;
 
-        /* Borders and Tables */
-        --border-color: #333333;
-        --table-border-color: #444444;
+    /* Borders and Tables */
+    --border-color: #333333;
+    --table-border-color: #444444;
 
-        /* Search input adjustments */
-        --search-input-background-color: #252526;
-        --search-input-text-color: #ffffff;
-        --search-input-placeholder-color: #888888;
-        --search-tag-highlight-color: #4d4d00;
+    /* Search input adjustments */
+    --search-input-background-color: #252526;
+    --search-input-text-color: #ffffff;
+    --search-input-placeholder-color: #888888;
+    --search-tag-highlight-color: #4d4d00;
 
-        /* Clipboard and UI elements */
-        --copy-icon-brightness: 150%;
-        --copy-button-background-color-active: rgba(255, 255, 255, 0.1);
+    /* Clipboard and UI elements */
+    --copy-icon-brightness: 150%;
+    --copy-button-background-color-active: rgba(255, 255, 255, 0.1);
 
-        /* Invalid tags - darker red background */
-        --invalid-tag-background-color: #4d0000;
-        --invalid-tag-text-color: #ffcccc;
-    }
+    /* Invalid tags - darker red background */
+    --invalid-tag-background-color: #4d0000;
+    --invalid-tag-text-color: #ffcccc;
 }

@@ -7,10 +7,17 @@
 <link id="hljs-theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css">
 <script>
     (function() {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = prefersDark ? 'dark' : 'light';
+        var theme;
+        try {
+            theme = localStorage.getItem('theme');
+        } catch (err) {
+            // Ignore storage errors
+        }
+        if (!theme) {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
         document.documentElement.setAttribute('data-theme', theme);
-        if (prefersDark) {
+        if (theme === 'dark') {
             document.getElementById('hljs-theme').href =
                 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-dark.min.css';
         }
@@ -32,10 +39,8 @@
     const asciidocCalloutPlugin = {
       'before:highlightElement': ({ el }) => {
         // Matches the <i class="conum"...></i><b>(1)</b> pattern
-        // Captures the number inside the parentheses
-        const calloutPattern = /<i class="conum" data-value="(\d+)"><\/i><b>\((\d+)\)<\/b>/g;
-
-        el.innerHTML = el.innerHTML.replace(calloutPattern, (match, val1, val2) => {
+        const calloutPattern = /<i class="conum" data-value="(\d+)"><\/i><b>\(\d+\)<\/b>/g;
+        el.innerHTML = el.innerHTML.replace(calloutPattern, (match, val1) => {
           // We stash it as a unique string highlight.js will ignore
           return `___CONUM_${val1}___`;
         });
@@ -47,7 +52,6 @@
         });
       }
     };
-
     // Ensure this runs after hljs is loaded but before highlightAll
     if (typeof hljs !== 'undefined') {
       hljs.addPlugin(asciidocCalloutPlugin);
