@@ -38,7 +38,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * <p>Example shows a basic way of removing certain transitive dependencies from one of our dependencies.</p>
  *
- * <pre class='autoTested'>{@code
+ * <pre class='autoTested'>
  * plugins {
  *     id 'java'
  * }
@@ -60,7 +60,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *     }
  *     implementation("jaxen:jaxen:1.1.3")
  * }
- * }</pre>
+ * </pre>
  *
  * @since 1.8
  */
