@@ -323,13 +323,11 @@ The order of the constructor parameters and their names are not significant and 
 
 Here is an example that shows a task type that receives an `WorkerExecutor` via its constructor:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .Download.java
 ----
 include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
-====
 
 [[property_injection]]
 === Property injection
@@ -344,10 +342,8 @@ The method body is discarded. The name of the property is not significant and ca
 
 Here is an example that shows a task type that receives two services via property getter methods:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .Download.java
 ----
 include::{snippetsPath}/plugins/propertyServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
-====

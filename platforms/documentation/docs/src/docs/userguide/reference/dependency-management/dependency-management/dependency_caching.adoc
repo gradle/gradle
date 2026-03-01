@@ -251,6 +251,7 @@ For this you need to follow the <<sec:cache-copy,instructions above>>.
 
 Then set the `GRADLE_RO_DEP_CACHE` environment variable to point to the directory containing the cache:
 
+[source,text]
 ----
 $GRADLE_RO_DEP_CACHE
    |-- modules-2 : the read-only dependency cache, should be mounted with read-only privileges

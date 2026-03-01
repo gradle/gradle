@@ -60,13 +60,11 @@ This happens sometime between the completion of the last task that uses the buil
 
 Here is an example of a service that takes parameters and is closeable:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .WebServer.java
 ----
 include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/WebServer.java[]
 ----
-====
 
 Note that you should *not* implement the link:{javadocPath}/org/gradle/api/services/BuildService.html#getParameters--[BuildService.getParameters()] method, as Gradle will provide an implementation of this.
 
@@ -89,25 +87,21 @@ You can access the registry of shared build services via `Project.getGradle().ge
 
 Here is an example of a plugin that registers the previous service when the task property consuming the service is annotated with `@ServiceReference`:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .DownloadPlugin.java
 ----
 include::{snippetsPath}/plugins/buildServiceUsingServiceReference/groovy/buildSrc/src/main/java/DownloadPlugin.java[]
 ----
-====
 
 As you can see, there is no need to assign the build service provider returned by `registerIfAbsent()` to the task, the service is automatically injected into all matching properties that were annotated with `@ServiceReference`.
 
 Here is an example of a task that consumes the previous service via a property annotated with `@ServiceReference`:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .Download.java
 ----
 include::{snippetsPath}/plugins/buildServiceUsingServiceReference/groovy/buildSrc/src/main/java/Download.java[]
 ----
-====
 
 Automatic matching of registered build services with service reference properties is done by type and (optionally) by name (for properties that declare the name of the service they expect).
 In case multiple services would match the requested service type (i.e. multiple services were registered for the same type, and a service name was not provided in the `@ServiceReference` annotation),
@@ -117,13 +111,11 @@ Read on to compare that to when the task property consuming the service is inste
 
 === Registering a build service to be consumed via `@Internal` task properties
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .DownloadPlugin.java
 ----
 include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/DownloadPlugin.java[]
 ----
-====
 
 In this case, the plugin registers the service and receives a `Provider<WebService>` back.
 This provider can be connected to task properties to pass the service to the task.
@@ -132,13 +124,11 @@ None of that is needed when the task property consuming the service is annotated
 
 Here is an example of a task that consumes the previous service via a property annotated with `@Internal`:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .Download.java
 ----
 include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/Download.java[]
 ----
-====
 
 Note that using a service with any annotation other than `@ServiceReference` or `@Internal` is currently not supported.
 For example, it is currently impossible to mark a service as an input to a task.
@@ -155,13 +145,11 @@ To do this, pass the build service `Provider` as a parameter of the consuming ac
 
 For example, to pass a `MyServiceType` service to Worker API action, you might add a property of type `Property<MyServiceType>` to the action's parameters object and then connect the `Provider<MyServiceType>` that you receive when registering the service to this property:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .Download.java
 ----
 include::{snippetsPath}/plugins/buildServiceFromWorkAction/groovy/buildSrc/src/main/java/Download.java[]
 ----
-====
 
 Currently, it is impossible to use a build service with a worker API action that uses ClassLoader or process isolation modes.
 
@@ -182,25 +170,21 @@ or invoking link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:us
 A build service can be used to receive events as tasks are executed.
 To do this, create and register a build service that implements link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[OperationCompletionListener]:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .TaskEventsService.java
 ----
 include::{snippetsPath}/plugins/buildServiceListener/groovy/buildSrc/src/main/java/TaskEventsService.java[tags=build-service]
 ----
-====
 <1> Implement the `OperationCompletionListener` interface and the `BuildService` interface.
 <2> Check if the finish event is a link:{javadocPath}/org/gradle/tooling/events/task/TaskFinishEvent.html[TaskFinishEvent].
 
 Then, in the plugin, you can use the methods on the link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html[BuildEventsListenerRegistry] service to start receiving events:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .TaskEventsPlugin.java
 ----
 include::{snippetsPath}/plugins/buildServiceListener/groovy/buildSrc/src/main/java/TaskEventsPlugin.java[]
 ----
-====
 <1> Use <<service_injection.adoc#service_injection,service injection>> to obtain an instance of the `BuildEventsListenerRegistry`.
 <2> Register the build service as usual.
 <3> Use the service `Provider` to subscribe to the build service to build events.

@@ -79,7 +79,7 @@ To publish, run:
 
 [source,bash]
 ----
-./gradlew publish
+$ ./gradlew publish
 ----
 
 This will generate and install the plugin JAR and associated metadata (like `pom.xml`) into the specified Maven repository.

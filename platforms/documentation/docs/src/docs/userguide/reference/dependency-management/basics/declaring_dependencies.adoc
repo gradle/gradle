@@ -149,13 +149,14 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/g
 
 Running the `dependencies` task on the `app` project yields the following:
 
-====
+[source,bash]
 ----
 $ ./gradlew app:dependencies
-
+----
+[source,text]
+----
 include::{snippetsPath}/dependencyManagement/declaringDependencies-basic/tests/basicJavaDepTests.out[]
 ----
-====
 
 We can clearly see that for the `implementation` configuration, the `com.google.guava:guava:30.0-jre` dependency has been added.
 As for the `runtimeOnly` configuration, the `org.org.apache.commons:commons-lang3:3.14.0` dependency has been added.

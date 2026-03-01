@@ -49,14 +49,16 @@ It allows you to programmatically:
 
 The `gradle init` command created a sample functional test for you:
 
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 It's available at `src/functionalTest/kotlin/org/example/PluginTutorialPluginFunctionalTest.kt`.
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 It's available at `src/functionalTest/groovy/org/example/PluginTutorialPluginFunctionalTest.groovy`.
-----
+=====
+====
 
 It uses the `GradleRunner` class to execute a build and then asserts that the build's output contains the expected "Hello World" message.
 We're going to re-use this same structure for our test.
@@ -65,14 +67,16 @@ We're going to re-use this same structure for our test.
 
 First, let's update the name of the test file to match our plugin.
 
+====
 [.multi-language-text.lang-kotlin]
-----
-Rename the file `PluginTutorialPluginFunctionalTest.kt` to `SlackPluginFunctionalTest.kt`.
-----
+=====
+Rename the file `PluginTutorialPluginFunctionalTest.kt` to `SlackPluginFunctionalTest.kt`
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 Rename the file `PluginTutorialPluginFunctionalTest.groovy` to `SlackPluginFunctionalTest.groovy`.
-----
+=====
+====
 
 Now, update the test file to look like this:
 
@@ -107,17 +111,19 @@ This makes our test suites more organized and reliable.
 The functional test uses an environment variable named `SLACK_TOKEN`.
 Before you run the test, you must set this variable in your terminal.
 
-[source,text]
+[source,bash]
 ----
 $ export SLACK_TOKEN="xoxb-..."
 ----
 
 Now you can run the `functionalTest` task to execute your test.
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :functionalTest
-
+----
+[source,text]
+----
 > Task :plugin:functionalTest
 
 BUILD SUCCESSFUL in 4s
