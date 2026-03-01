@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFileWatcherUpdater.class);
 
-    private final ReentrantLock watcherStateLock = new ReentrantLock();
+    protected final ReentrantLock watcherStateLock = new ReentrantLock();
 
     protected final FileWatcherProbeRegistry probeRegistry;
     protected final WatchableHierarchies watchableHierarchies;
@@ -187,7 +187,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         }
     }
 
-    private void update(SnapshotHierarchy root) {
+    protected void update(SnapshotHierarchy root) {
         FileHierarchySet oldWatchedFiles = watchedFiles;
         watchedFiles = resolveWatchedFiles(watchableHierarchies, root);
         if (!watchedFiles.equals(oldWatchedFiles)) {

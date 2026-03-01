@@ -37,9 +37,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -65,6 +68,36 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     @Override
     public boolean isTrackingSnapshots() {
         return true;
+    }
+
+    @Override
+    public List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+        watcherStateLock.lock();
+        try {
+            List<String> collectedPaths = new ArrayList<>();
+            SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
+            SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentBeforeBuildFinished(
+                root,
+                watchedFiles::contains,
+                maximumNumberOfWatchedHierarchies,
+                unsupportedFileSystems,
+                (absolutePath, currentRoot) -> {
+                    collectedPaths.add(absolutePath);
+                    return currentRoot.invalidate(absolutePath, diffListener);
+                }
+            );
+            // Handle snapshot tracking cleanup inline (within the lock) so the caller
+            // can use invalidateWithoutNotifyingWatcher instead of invalidate, avoiding
+            // a redundant virtualFileSystemContentsChanged -> resolveWatchedFiles cycle.
+            diffListener.publishSnapshotDiff((removed, added) ->
+                handleVirtualFileSystemContentsChanged(removed, Collections.emptyList(), newRoot));
+            if (root != newRoot) {
+                update(newRoot);
+            }
+            return collectedPaths;
+        } finally {
+            watcherStateLock.unlock();
+        }
     }
 
     @Override
