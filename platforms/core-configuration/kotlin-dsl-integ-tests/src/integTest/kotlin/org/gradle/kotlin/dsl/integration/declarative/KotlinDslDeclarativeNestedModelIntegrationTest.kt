@@ -16,11 +16,12 @@
 
 package org.gradle.kotlin.dsl.integration.declarative
 
-import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.ProjectTypeBinding
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
+import org.gradle.features.registration.TaskRegistrar
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
 import org.junit.Assert
@@ -50,14 +51,15 @@ class KotlinDslDeclarativeNestedModelIntegrationTest : AbstractDeclarativeKotlin
                 import ${ProjectTypeBindingBuilder::class.java.name}
                 import ${Definition::class.java.name}
                 import ${BuildModel::class.java.name}
-                import org.gradle.api.internal.plugins.features.dsl.bindProjectType
+                import org.gradle.features.dsl.bindProjectType
 
                 @${BindsProjectType::class.java.simpleName}(MyPlugin.Binding::class)
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
                     class Binding : ${ProjectTypeBinding::class.java.simpleName} {
                         override fun bind(builder: ${ProjectTypeBindingBuilder::class.java.simpleName}) {
                             builder.bindProjectType("mySoftwareType") { definition: MyExtension, model ->
-                                project.tasks.register("printFoo") {
+                                val services = objectFactory.newInstance(Services::class.java)
+                                services.taskRegistrar.register("printFoo") {
                                     val nestedFoo = definition.myNested.foo
                                     val moreNestedFoo = definition.myNested.moreNested.foo
                                     doFirst {
@@ -65,6 +67,11 @@ class KotlinDslDeclarativeNestedModelIntegrationTest : AbstractDeclarativeKotlin
                                     }
                                 }
                             }
+                        }
+
+                        interface Services {
+                            @get:Inject
+                            val taskRegistrar: ${TaskRegistrar::class.java.name}
                         }
                     }
 

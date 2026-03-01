@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.collect-failed-tasks")
     id("gradlebuild.cache-miss-monitor")
+    id("gradlebuild.ci-reporting")
 }
 
 description = "Provides plugins that are used by Gradle subprojects"

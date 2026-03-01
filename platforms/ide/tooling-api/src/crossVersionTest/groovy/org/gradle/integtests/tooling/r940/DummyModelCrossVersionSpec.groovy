@@ -18,8 +18,8 @@ package org.gradle.integtests.tooling.r940
 
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
@@ -39,7 +39,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
  */
 @ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.4.0')
-class DummyModelCrossVersionSpec extends ToolingApiSpecification {
+class DummyModelCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
 
     def setup() {
         settingsFile.delete()

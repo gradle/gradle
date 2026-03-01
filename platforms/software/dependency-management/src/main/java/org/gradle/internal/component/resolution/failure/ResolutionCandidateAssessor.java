@@ -36,6 +36,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -213,14 +214,14 @@ public final class ResolutionCandidateAssessor {
         private final Attribute<T> attribute;
 
         @Nullable
-        private final T requested;
+        private final String requested;
         @Nullable
-        private final T provided;
+        private final String provided;
 
         private AssessedAttribute(Attribute<T> attribute, @Nullable T requested, @Nullable T provided) {
             this.attribute = attribute;
-            this.requested = requested;
-            this.provided = provided;
+            this.requested = Objects.toString(requested);
+            this.provided = Objects.toString(provided);
         }
 
         public Attribute<T> getAttribute() {
@@ -228,12 +229,12 @@ public final class ResolutionCandidateAssessor {
         }
 
         @Nullable
-        public T getRequested() {
+        public String getRequested() {
             return requested;
         }
 
         @Nullable
-        public T getProvided() {
+        public String getProvided() {
             return provided;
         }
 

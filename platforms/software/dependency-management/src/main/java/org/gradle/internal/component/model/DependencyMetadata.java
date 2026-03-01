@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -65,21 +66,21 @@ public interface DependencyMetadata {
     /**
      * Returns a view of the excludes filtered for this dependency in this configuration.
      */
-    List<ExcludeMetadata> getExcludes();
+    ImmutableList<ExcludeMetadata> getExcludes();
 
     /**
      * Returns the artifacts referenced by this dependency, if any.
      * When a dependency references artifacts, those artifacts are used in place of the default artifacts of the target component.
      * In most cases, it makes sense for this set to be empty, and for all of the artifacts of the target component to be included.
      */
-    List<IvyArtifactName> getArtifacts();
+    ImmutableList<IvyArtifactName> getArtifacts();
 
     /**
      * Returns a copy of this dependency with the given target.
      */
     DependencyMetadata withTarget(ComponentSelector target);
 
-    DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts);
+    DependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts);
 
     /**
      * Is the target component of this dependency considered 'changing'.

@@ -403,16 +403,16 @@ When the `license` plugin is applied to the `app` project, the `greeting` task b
 
 To view the task in the root directory, run:
 
-[source]
+[source,bash]
 ----
 $ ./gradlew tasks --all
-
+----
+[source,text]
+----
 ------------------------------------------------------------
 Tasks runnable from root project 'authoring-tutorial'
 ------------------------------------------------------------
-
 ...
-
 Other tasks
 -----------
 app:greeting
@@ -423,10 +423,12 @@ lib:task3
 
 Finally, run the `greeting` task using `./gradlew greeting` or:
 
-[source]
+[source,bash]
 ----
 $ ./gradlew :app:greeting
-
+----
+[source,text]
+----
 > Task :app:greeting
 Hello from plugin 'com.tutorial.greeting'
 ----

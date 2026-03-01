@@ -29,6 +29,6 @@ public class SystemPropertiesCommandLineConverter extends AbstractPropertiesComm
 
     @Override
     protected String getPropertyOptionDescription() {
-        return "Set system property of the JVM (e.g. -Dmyprop=myvalue).";
+        return "Sets a JVM system property (for example, -Dmyprop=myvalue).";
     }
 }

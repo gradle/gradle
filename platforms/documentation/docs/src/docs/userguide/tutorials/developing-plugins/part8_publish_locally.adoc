@@ -61,7 +61,9 @@ Publish the plugin:
 [source,bash]
 ----
 ./gradlew :plugin:publishAllPublicationsToLocalRepoRepository
-
+----
+[source,text]
+----
 > Task :plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
 > Task :plugin:pluginDescriptors UP-TO-DATE
 > Task :plugin:processResources UP-TO-DATE

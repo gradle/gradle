@@ -43,10 +43,12 @@ NOTE: This tutorial primarily uses macOS and the command line for examples, but 
 
 To test the Gradle installation, run Gradle from the command-line:
 
-[source,text]
+[source,bash]
 ----
 $ gradle
-
+----
+[source,text]
+----
 Welcome to Gradle 8.13.
 
 Directory '/' does not contain a Gradle build.
@@ -58,12 +60,12 @@ If Gradle is not installed, please refer to the <<installation.adoc#installation
 
 Create a new directory called `tutorial` and `cd` into it:
 
-[source,text]
+[source,bash]
 ----
 $ mkdir tutorial
 ----
 
-[source,text]
+[source,bash]
 ----
 $ cd tutorial
 ----
@@ -153,14 +155,14 @@ From now on, you will never invoke Gradle directly; instead, you will use the Gr
 
 Use the wrapper by entering the following command:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew build
 ----
 
 In Windows, the command is:
 
-[source,text]
+[source,shell]
 ----
 $ gradlew.bat build
 ----
@@ -186,11 +188,11 @@ The Gradle Wrapper is designed to be committed to source control so that anyone 
 
 In this case, we invoked Gradle through the wrapper to build our project, so we can see that the `app` directory now includes a new `build` folder:
 
-[source,text]
+[source,bash]
 ----
 $ cd app
 ----
-[source,text]
+[source,bash]
 ----
 $ ls -al
 ----

@@ -49,6 +49,7 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestRepor
 import org.gradle.api.internal.tasks.testing.report.generic.JunitXmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModelResultsProvider;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
+import org.gradle.api.internal.tasks.testing.results.SynchronizedTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.invocation.Gradle;
@@ -588,7 +589,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             false
         ))) {
             TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
-            TestListenerInternal resultProcessorDelegate = reporterAsListener;
+            // Note: We don't have concurrency that requires a synchronized listener, but plugins that replace the test executer may.
+            // KGP is known to be one such plugin, see their `TCServiceMessagesClient`.
+            // This wrapper does not guarantee correctness from other parts of the system, but it restores previous behavior.
+            // It is recommended that plugins handle synchronization themselves and migrate to the new TestEventReporter APIs.
+            TestListenerInternal resultProcessorDelegate = new SynchronizedTestListenerInternal(reporterAsListener);
             if (failFast) {
                 resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
             }

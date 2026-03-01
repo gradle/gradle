@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.id.UUIDGenerator
 import spock.lang.Issue
@@ -98,7 +97,6 @@ dependencies { compile 'groupA:artifactA:1.2' }
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2861")
-    @ToBeFixedForConfigurationCache
     def "uses properties from active profile to resolve dependency with placeholders in dependency management"() {
         given:
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').publish()
@@ -142,7 +140,12 @@ dependencies { compile 'groupA:artifactA:1.2' }
             }
             configurations { compile }
             dependencies { compile 'groupA:artifactA:1.2' }
-            task libs { doLast { assert configurations.compile.files*.name == ['artifactA-1.2.jar', 'artifactB-1.4.jar'] } }
+            task libs {
+                inputs.files(configurations.compile)
+                doLast {
+                    assert inputs.files*.name == ['artifactA-1.2.jar', 'artifactB-1.4.jar']
+                }
+            }
         """
 
         when:

@@ -34,9 +34,12 @@ include::sample[dir="snippets/configurationCache/problemsGroovy/groovy",files="b
 
 Running the task fails with the following output:
 
-[soure,text]
+[source,bash]
 ----
-❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+$ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+----
+[source,text]
+----
 ...
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/fail.out[]
 Configuration Cache entry discarded with 1 problem.
@@ -70,12 +73,22 @@ At this stage, you can either ignore the problems (<<configuration_cache_enablin
 
 To continue using the Configuration Cache while observing problems, run:
 
+[source,bash]
+----
+$ ./gradlew --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
+----
 [source,text]
 ----
-❯ ./gradlew --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/store.out[]
 Configuration Cache entry stored with 1 problem.
-❯ ./gradlew --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
+----
+
+[source,bash]
+----
+$ ./gradlew --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
+----
+[source,text]
+----
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/load.out[]
 Configuration Cache entry reused with 1 problem.
 ----
@@ -96,20 +109,34 @@ include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="bu
 
 After fixing these issues, running the task twice successfully reuses the Configuration Cache:
 
+[source,bash]
+----
+$ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+----
 [source,text]
 ----
-❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixed/tests/store.out[]
 Configuration Cache entry stored.
-❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+----
+
+[source,bash]
+----
+$ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+----
+[source,text]
+----
 include::{snippetsPath}/configurationCache/problemsFixed/tests/load.out[]
 Configuration Cache entry reused.
 ----
 
 If a build input changes (e.g., a system property value), the Configuration Cache entry becomes invalid, requiring a new configuration phase:
 
+[source,bash]
 ----
-❯ ./gradlew --configuration-cache someTask -DsomeDestination=another
+$ ./gradlew --configuration-cache someTask -DsomeDestination=another
+----
+[source,text]
+----
 include::{snippetsPath}/configurationCache/problemsFixed/tests/store-another.out[]
 Configuration Cache entry stored.
 ----
@@ -126,11 +153,22 @@ include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",file
 
 Now, the cache entry remains reusable even when changing the system property:
 
+[source,bash]
 ----
-❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+$ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+----
+[source,text]
+----
 include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/store.out[]
 Configuration Cache entry stored.
-❯ ./gradlew --configuration-cache someTask -DsomeDestination=another
+----
+
+[source,bash]
+----
+$ ./gradlew --configuration-cache someTask -DsomeDestination=another
+----
+[source,text]
+----
 include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/load-another.out[]
 Configuration Cache entry reused.
 ----
@@ -141,7 +179,7 @@ With these fixes in place, this task is fully compatible with the Configuration 
 
 To ease migration, you can treat configuration cache problems as warnings instead of failures:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew --configuration-cache-problems=warn
 ----
@@ -164,7 +202,7 @@ Instead, we recommend explicitly marking problematic tasks as <<configuration_ca
 By default, Gradle allows up to 512 warnings before failing the build.
 You can lower this limit:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew -Dorg.gradle.configuration-cache.max-problems=5
 ----
@@ -223,8 +261,12 @@ include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/m
 
 When running without the integrity check, you may encounter cryptic failure messages, possibly accompanied by induced configuration cache problems:
 
+[source,bash]
 ----
-❯ gradle --configuration-cache greet
+$ ./gradlew --configuration-cache greet
+----
+[source,text]
+----
 ...
 * What went wrong:
 Index 4 out of bounds for length 3
@@ -235,8 +277,12 @@ It might be really hard to connect an invalid index error to a serialization iss
 
 Rerunning the build with the integrity check enabled provides a much more precise diagnostic, helping you pinpoint the source of the issue faster:
 
+[source,bash]
 ----
-❯ gradle --configuration-cache -Dorg.gradle.configuration-cache.integrity-check=true greet
+$ ./gradlew --configuration-cache -Dorg.gradle.configuration-cache.integrity-check=true greet
+----
+[source,text]
+----
 ...
 include::{snippetsPath}/configurationCache/integrityChecks/tests/fail.out[]
 ----

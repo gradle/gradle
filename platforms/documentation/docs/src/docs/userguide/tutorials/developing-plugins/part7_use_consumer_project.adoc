@@ -123,21 +123,21 @@ You can now test your plugin by running a task in the `consumer` project.
 
 From the `consumer` directory, you can run your custom task:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew sendTestSlackMessage
 ----
 
 Or, from the root directory, you can run the same task using its full path:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :consumer:sendTestSlackMessage
 ----
 
 You can also run a standard lifecycle task like `build`, which will automatically trigger the `FlowAction` to send a Slack notification at the end of the build.
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :consumer:build
 ----

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.common
 
-import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.features.binding.BuildModel
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.schemaBuilder.SupertypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery

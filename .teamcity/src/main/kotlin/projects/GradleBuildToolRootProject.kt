@@ -29,4 +29,9 @@ class GradleBuildToolRootProject(
             subProject(UtilProject)
             subProject(UtilPerformanceProject)
         }
+
+        params {
+            param("enableIsolatedProjects", "false") // TODO: remove as soon as CI is compatible with enabling IP
+            param("env.GRADLE_OPTS", "-Dorg.gradle.unsafe.isolated-projects=false")
+        }
     })

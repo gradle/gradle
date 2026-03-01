@@ -35,7 +35,6 @@ include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=
 
 The only mandatory configuration for the plugin is the specification of the main class (i.e. entry point) of the application.
 
-.Configure the application main class
 ====
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=mainClass-conf]"]
 include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=mainClass-conf]"]
@@ -47,7 +46,6 @@ Since Gradle 4.9, the command line arguments can be passed with `--args`. For ex
 
 If your application requires a specific set of JVM settings or system properties, you can configure the `applicationDefaultJvmArgs` property. These JVM arguments are applied to the `run` task and also considered in the generated start scripts of your distribution.
 
-.Configure default JVM settings
 ====
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=application-defaultjvmargs]"]
 include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=application-defaultjvmargs]"]
@@ -55,7 +53,6 @@ include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=
 
 If your application's start scripts should be in a different directory than `bin`, you can configure the `executableDir` property.
 
-.Configure custom directory for start scripts
 ====
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=executableDir-conf]"]
 include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=executableDir-conf]"]
@@ -73,7 +70,6 @@ Please refer to the <<java_library_plugin.adoc#sec:java_library_modular,Java Lib
 
 Second, you need to tell Gradle the name of the module you want to run in addition to the main class name like this:
 
-.Configure the modular application's main module
 ====
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=mainModule-conf]"]
 include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=mainModule-conf]"]
@@ -110,7 +106,6 @@ A distribution of the application can be created, by way of the <<distribution_p
 
 Static files to be added to the distribution can be simply added to `src/dist`. More advanced customization can be done by configuring the link:{javadocPath}/org/gradle/api/file/CopySpec.html[CopySpec] exposed by the main distribution.
 
-.Include output from other tasks in the application distribution
 ====
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=distribution-spec]"]
 include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=distribution-spec]"]

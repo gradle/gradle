@@ -42,7 +42,7 @@ Let's get started by creating our project.
 
 First, create a new directory called `plugin-tutorial` and navigate into it:
 
-[source,text]
+[source,bash]
 ----
 $ mkdir plugin-tutorial
 $ cd plugin-tutorial
@@ -175,14 +175,17 @@ include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/buil
 == Step 4: Review the Plugin Code
 
 The plugin code is a simple "Hello, World!" example that `gradle init` generated for us.
+
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 You can find it at `plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt`:
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 You can find it at `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy`:
-----
+=====
+====
 
 ====
 include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt[]"]

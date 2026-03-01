@@ -91,6 +91,10 @@ dependencies {
     testImplementation(testFixtures(projects.toolingApi))
     testImplementation(testFixtures(projects.versionControl))
 
+    testRuntimeOnly(projects.distributionsCore) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
+
     integTestImplementation(projects.buildOption)
     integTestImplementation(libs.jansi)
     integTestImplementation(testLibs.ansiControlSequenceUtil)
@@ -133,17 +137,17 @@ dependencies {
         because("Groovy compiler bug leaks internals")
     }
 
-    testRuntimeOnly(projects.distributionsCore) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
-    }
     integTestImplementation(projects.launcher) {
         because("Daemon fixtures need DaemonRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Need access to java platforms")
     }
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
+
     crossVersionTestImplementation(testLibs.jettyWebApp)
+    crossVersionTestImplementation(projects.internalIntegTesting)
+
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 packageCycles {

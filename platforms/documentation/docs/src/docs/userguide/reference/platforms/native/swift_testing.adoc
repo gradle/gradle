@@ -54,7 +54,7 @@ The `xctest` script block behave similarly to a `application` or `library` scrip
 The link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] task has many configuration options.
 We cover a significant number of them in the rest of the chapter.
 
-[sec:swift_test_execution]]
+[[sec:swift_test_execution]]
 == Test execution
 
 Gradle executes tests in a separate (‘forked’) process.
@@ -74,6 +74,7 @@ See link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html
 
 [[sec:swift_test_filtering]]
 == Test filtering
+
 It’s a common requirement to run subsets of a test suite, such as when you’re fixing a bug or developing a new test case.
 Gradle provides filtering to do this.
 You can select tests to run based on:
@@ -84,7 +85,6 @@ You can select tests to run based on:
 You can enable filtering either in the build script or via the `--tests` command-line option.
 Here’s an example of some filters that are applied every time the build runs:
 
-.Filter tests on every build
 ====
 include::sample[dir="snippets/swift/testFiltering/kotlin",files="build.gradle.kts[tags=test-filtering]"]
 include::sample[dir="snippets/swift/testFiltering/groovy",files="build.gradle[tags=test-filtering]"]
@@ -109,7 +109,8 @@ The following section looks at the specific cases of simple class/method names.
 Gradle support simple class name, or a class name + method name test filtering.
 For example, the following command lines run either all or exactly one of the tests in the `SomeTestClass` test case:
 
-```
+[source,text]
+----
 # Executes all tests in SomeTestClass
 gradle xcTest --tests SomeTestClass
 # or `gradle xcTest --tests TestBundle.SomeTestClass` on macOS
@@ -117,17 +118,19 @@ gradle xcTest --tests SomeTestClass
 # Executes a single specified test in SomeTestClass
 gradle xcTest --tests TestBundle.SomeTestClass.someSpecificMethod
 # or `gradle xcTest --tests TestBundle.SomeTestClass.someSpecificMethod` on macOS
-```
+----
 
 You can also combine filters defined at the command line with <<command_line_interface.adoc#sec:continuous_build,continuous build>> to re-execute a subset of tests immediately after every change to a production or test source file.
 The following executes all tests in the ‘SomeTestClass’ test class whenever a change triggers the tests to run:
 
-```
-gradle test --continuous --tests SomeTestClass
-```
+[source,bash]
+----
+$ ./gradlew test --continuous --tests SomeTestClass
+----
 
 [[sec:swift_test_reporting]]
 == Test reporting
+
 The link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] task generates the following results by default:
 
 - An HTML test report
@@ -140,7 +143,6 @@ There is also a standalone link:{groovyDslPath}/org.gradle.api.tasks.testing.Tes
 All it requires are a value for `destinationDir` and the test results you want included in the report.
 Here is a sample which generates a combined report for the unit tests from all subprojects:
 
-.Combine test reports from all subprojects
 ====
 include::sample[dir="snippets/swift/testReport/kotlin",files="buildSrc/src/main/kotlin/myproject.xctest-conventions.gradle.kts[tags=test-report];build.gradle.kts[tags=test-report]"]
 include::sample[dir="snippets/swift/testReport/groovy",files="buildSrc/src/main/groovy/myproject.xctest-conventions.gradle[tags=test-report];build.gradle[tags=test-report]"]

@@ -16,11 +16,12 @@
 
 package org.gradle.integtests.tooling.r940
 
+
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
@@ -46,7 +47,7 @@ import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelB
 
 @ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.4.0')
-class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSpecification {
+class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
 
     TestFile initScriptFile
     KotlinModelCollector modelCollector

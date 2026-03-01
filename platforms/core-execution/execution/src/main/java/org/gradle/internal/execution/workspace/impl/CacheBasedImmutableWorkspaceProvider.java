@@ -28,6 +28,7 @@ import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.Closeable;
 import java.io.File;
@@ -71,13 +72,16 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             }
 
             @Override
-            public <T> ConcurrentResult<T> getOrCompute(Supplier<T> action) {
+            public <T> ConcurrentResult<T> getOrCompute(WorkerLeaseService workerLeaseService, Supplier<T> action) {
                 CompletableFuture<T> thisOperationFuture = new CompletableFuture<>();
                 CompletableFuture<T> runningOperationFuture = Cast.uncheckedCast(workspaceResults.putIfAbsent(path, thisOperationFuture));
 
                 if (runningOperationFuture != null) {
                     // If it's already running, wait for it to finish
-                    return ConcurrentResult.producedByOtherThread(runningOperationFuture.join());
+                    T result = workerLeaseService.whileDisallowingProjectLockChanges(() ->
+                        workerLeaseService.blocking(runningOperationFuture::join)
+                    );
+                    return ConcurrentResult.producedByOtherThread(result);
                 }
 
                 try {

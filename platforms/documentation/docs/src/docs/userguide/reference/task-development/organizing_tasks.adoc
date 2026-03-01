@@ -80,10 +80,12 @@ tasks.named('run') {
 
 If we now look at the `app:tasks` list, we can see the three tasks are available:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -159,10 +161,12 @@ We also add a description that will show up in the task list that helps distingu
 
 Now, if run './gradlew :app:tasks', we can see that our new `qualityCheck` lifecycle task is available:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -180,10 +184,12 @@ tasksAll - Show additional tasks.
 
 If we run it, we can see that it runs checkstyle but not the tests:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:qualityCheck
-
+----
+[source,text]
+----
 > Task :buildSrc:checkKotlinGradlePluginConfigurationErrors
 > Task :buildSrc:generateExternalPluginSpecBuilders UP-TO-DATE
 > Task :buildSrc:extractPrecompiledScriptPluginPlugins UP-TO-DATE
@@ -271,10 +277,12 @@ You could hide the CI tasks if you wanted to by updating `displayGroups`.
 
 Currently, the root project exposes no tasks:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :tasks
-
+----
+[source,text]
+----
 > Task :tasks
 
 ------------------------------------------------------------
@@ -334,10 +342,12 @@ So we can now ask Gradle to show us the tasks for the root project and, by defau
 
 It should be clear what a user should run locally:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :tasks
-
+----
+[source,text]
+----
 > Task :tasks
 
 ------------------------------------------------------------
@@ -355,10 +365,12 @@ qualityCheckApp - Runs checks on app (globally)
 
 If we run the `:checkAll` task, we see that it compiles all the code and runs the code quality checks (including `spotbug`):
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :checkAll
-
+----
+[source,text]
+----
 > Task :buildSrc:checkKotlinGradlePluginConfigurationErrors
 > Task :buildSrc:generateExternalPluginSpecBuilders UP-TO-DATE
 > Task :buildSrc:extractPrecompiledScriptPluginPlugins UP-TO-DATE

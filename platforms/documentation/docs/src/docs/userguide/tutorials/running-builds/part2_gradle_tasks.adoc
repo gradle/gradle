@@ -39,7 +39,7 @@ A task might be responsible for compilation, copying and moving files, creating 
 
 In the `tutorial` directory, enter the command below to list all the available tasks in the project:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew tasks
 ----
@@ -80,7 +80,7 @@ For example, the `build` task you ran in <<part1_gradle_init.adoc#part1_begin,pa
 If you want to list the tasks available in a specific subproject, you can use `./gradlew :<subproject name>:tasks`.
 To list the tasks in the `app` subproject:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
 ----
@@ -132,7 +132,7 @@ include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tag
 
 If this task is defined in the `build.gradle(.kts)` file for the app subproject, you can run it with:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:copyTask
 ----
@@ -204,11 +204,11 @@ BUILD SUCCESSFUL in 966ms
 
 Run the following command in your terminal:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew build
 ----
-
+[source,text]
 ----
 > Task :app:compileJava
 > Task :app:processResources
@@ -235,11 +235,11 @@ The `jar` tasks is a dependency of the `build` task.
 The `jar` task creates an executable JAR file of the app.
 Let's run it by itself:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew jar
 ----
-
+[source,text]
 ----
 > Task :app:compileJava
 > Task :app:processResources
@@ -256,7 +256,7 @@ Invoke the `run` task and check the output:
 ----
 $ ./gradlew run
 ----
-
+[source,text]
 ----
 > Task :app:compileJava
 > Task :app:processResources

@@ -17,12 +17,12 @@
 package org.gradle.performance.generator
 
 import groovy.transform.CompileStatic
-import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.ProjectTypeBinding
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
+import org.gradle.features.annotations.RegistersProjectFeatures
 
 import static org.gradle.test.fixtures.dsl.GradleDsl.DECLARATIVE
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
@@ -298,6 +298,7 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
+            import org.gradle.api.plugins.PluginManager;
             import ${ProjectTypeBinding.class.name};
             import ${ProjectTypeBindingBuilder.class.name};
             import ${BindsProjectType.class.name};
@@ -315,15 +316,23 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
                             "javaApplication",
                             JavaApplication.class,
                             (context, definition, model) -> {
+                                Services services = context.getObjectFactory().newInstance(Services.class);
                                 model.getJavaVersion().convention(definition.getJavaVersion());
                                 model.getMainClass().convention(definition.getMainClass());
                                 model.getDependencies().getImplementation().bundle(definition.getDependencies().getImplementation().getDependencies());
                                 model.getDependencies().getRuntimeOnly().bundle(definition.getDependencies().getRuntimeOnly().getDependencies());
                                 model.getDependencies().getCompileOnly().bundle(definition.getDependencies().getCompileOnly().getDependencies());
 
-                                context.getProject().getPlugins().apply(ApplicationPlugin.class);
+                                services.getPluginManager().apply(ApplicationPlugin.class);
                             }
-                        ).withUnsafeDefinition();
+                        )
+                        .withUnsafeDefinition()
+                        .withUnsafeApplyAction();
+                    }
+
+                    interface Services {
+                        @javax.inject.Inject
+                        PluginManager getPluginManager();
                     }
                 }
 

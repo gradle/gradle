@@ -73,6 +73,9 @@ class KnownProblemIds {
         // dependency resolution failures
         'dependency-variant-resolution': 'Dependency variant resolution',
 
+        // DCL
+        'scripts:dcl-schema': 'DCL Schema issues',
+
         // groups from integration tests
         'generic': 'Generic',
         'sample-problems': 'Sample Problems',
@@ -173,6 +176,23 @@ class KnownProblemIds {
 
         'dependency-variant-resolution:unknown-resolution-failure': ['Unknown resolution failure'],
 
+        // DCL schema building issues:
+        // The messages might be reworded, keeping them as a wildcard for now
+        'scripts:dcl-schema:declaration-visible-and-hidden': ['.*'],
+        'scripts:dcl-schema:declaration-hidden-type-used-in-definition': ['.*'],
+        'scripts:dcl-schema:illegal-usage-of-type-parameter-bound-by-class': ['.*'],
+        'scripts:dcl-schema:illegal-variance-in-parameterized-type-usage': ['.*'],
+        'scripts:dcl-schema:non-classifiable-type': ['.*'],
+        'scripts:dcl-schema:unit-adding-function-with-lambda': ['.*'],
+        'scripts:dcl-schema:unrecognized-member': ['.*'],
+        'scripts:dcl-schema:unsupported-generic-container-type': ['.*'],
+        'scripts:dcl-schema:unsupported-map-factory': ['.*'],
+        'scripts:dcl-schema:unsupported-nullable-read-only-property': ['.*'],
+        'scripts:dcl-schema:unsupported-nullable-type': ['.*'],
+        'scripts:dcl-schema:unsupported-pair-factory': ['.*'],
+        'scripts:dcl-schema:unsupported-type-parameter-as-container-type': ['.*'],
+        'scripts:dcl-schema:unsupported-vararg-type': ['.*'],
+
         // integration test problems
         'deprecation:some-indirect-deprecation': ['Some indirect deprecation has been deprecated.'],
         'deprecation:some-invocation-feature': ['Some invocation feature has been deprecated.'],
@@ -193,6 +213,6 @@ class KnownProblemIds {
         'generic:type11': ['inner'],
         'generic:type12': ['outer'],
         'sample-problems:prototype-project': ['Project is a prototype'],
-        'scripts:multiple-scripts': ['Multiple scripts']
+        'scripts:multiple-scripts': ['Multiple scripts'],
     ]
 }

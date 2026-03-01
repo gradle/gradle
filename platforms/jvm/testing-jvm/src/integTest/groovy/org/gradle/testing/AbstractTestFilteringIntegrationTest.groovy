@@ -94,6 +94,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments("test", "--tests=Ok2*")
 
         then:
+        outputDoesNotContain("Filtering non-class-based tests is an incubating feature.")
+
         GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
         testResult.testPath("", "").onlyRoot().assertChildCount(1, 0)
         testResult.testPath("Ok2", "").onlyRoot().assertChildCount(1, 0)
@@ -479,7 +481,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         createTestABC()
 
         when:
-        succeedsWithTestTaskArguments('test', '--info')
+        succeedsWithTestTaskArguments('test')
 
         then:
         executedAndNotSkipped(":test")

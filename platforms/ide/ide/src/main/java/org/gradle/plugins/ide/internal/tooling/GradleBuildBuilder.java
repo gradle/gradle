@@ -33,6 +33,7 @@ import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.jspecify.annotations.NullMarked;
@@ -51,7 +52,8 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 @NullMarked
 public class GradleBuildBuilder implements BuildScopeModelBuilder {
-    public static final String GRADLE_BUILD_MODEL_NAME = "org.gradle.tooling.model.gradle.GradleBuild";
+
+    public static final String GRADLE_BUILD_MODEL_NAME = GradleBuild.class.getName();
 
     private final BuildStateRegistry buildStateRegistry;
     private final BuildIncludeListener failedIncludedBuildsRegistry;
@@ -203,7 +205,8 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
             }
         }
     }
-    static protected BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
+
+    private static BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
         DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().asString());
         BasicGradleProject converted = new BasicGradleProject()
             .setName(project.getName())
@@ -219,7 +222,8 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
         }
         return converted;
     }
-    static protected void addProjects(BuildState target, DefaultGradleBuild model) {
+
+    private static void addProjects(BuildState target, DefaultGradleBuild model) {
         Map<ProjectState, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
 
         ProjectState rootProject = target.getProjects().getRootProject();

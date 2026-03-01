@@ -28,7 +28,7 @@ import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.junit.Assume.assumeFalse
 import static org.junit.Assume.assumeTrue
 
-@TargetVersions("5.0+")
+@TargetVersions("6.0+")
 class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpec {
 
     private static final GradleVersion GRADLE_7_1 = GradleVersion.version("7.1")
@@ -104,6 +104,8 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         """
         def pluginBuildScript = file("plugin/build.gradle.kts")
         pluginBuildScript.text = """
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
             plugins {
                 `kotlin-dsl`
                 `maven-publish`
@@ -117,10 +119,28 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
                 }
             }
         """
+
+        if (distribution.version >= GradleVersion.version("8.2")) {
+            pluginBuildScript.text = """
+                import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+                ${pluginBuildScript.text}
+
+                java {
+                    targetCompatibility = JavaVersion.VERSION_1_8
+                }
+
+                tasks.withType<KotlinCompile>().configureEach {
+                    compilerOptions {
+                        jvmTarget = JvmTarget.JVM_1_8
+                    }
+                }
+            """
+        }
+
         if (kotlinVersion != null) {
             pluginBuildScript.text = """
                 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-                import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
                 ${pluginBuildScript.text}
 

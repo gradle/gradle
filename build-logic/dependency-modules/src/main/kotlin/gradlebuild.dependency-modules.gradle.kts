@@ -178,10 +178,28 @@ class CapabilitySpec {
     fun ConfigurationContainer.forceUpgrade(to: String, version: String) = all {
         resolutionStrategy.dependencySubstitution {
             all {
-                if (providedBy.contains(requested.toString())) {
-                    useTarget("$to:$version", "Forceful upgrade of capability $name")
-                }
+                forceUpgradeIfProvided(this, to, version)
             }
+        }
+    }
+
+    private fun forceUpgradeIfProvided(substitution: DependencySubstitution, to: String, version: String) {
+        val r = substitution.requested as? ModuleComponentSelector ?: return
+        val group = r.group
+        val module = r.module
+        val expectedLength = group.length + 1 + module.length
+
+        val isProvided = providedBy.any {
+            // This method is called very often during dependency resolution.
+            // This implementation avoids allocating new strings.
+            it.length == expectedLength &&
+                it[group.length] == ':' &&
+                it.startsWith(group) &&
+                it.startsWith(module, group.length + 1)
+        }
+
+        if (isProvided) {
+            substitution.useTarget("$to:$version", "Forceful upgrade of capability $module")
         }
     }
 }

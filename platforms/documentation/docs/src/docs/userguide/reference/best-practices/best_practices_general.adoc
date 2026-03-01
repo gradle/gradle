@@ -614,7 +614,8 @@ Running the `projects` report shows that Gradle assigns an implicit name to the 
 Unfortunately that name varies based on where the project currently lives.
 For example, if the project is checked out into a directory named `some-directory-name`, the output of `./gradlew projects` will look like this:
 
-```
+[source,text]
+----
 > Task :projects
 
 Projects:
@@ -622,7 +623,7 @@ Projects:
 ------------------------------------------------------------
 Root project 'some-directory-name'
 ------------------------------------------------------------
-```
+----
 
 ==== Do This Instead
 

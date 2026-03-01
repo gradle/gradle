@@ -18,9 +18,10 @@
 
 package org.gradle.integtests.resolve.artifactreuse
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -38,7 +39,8 @@ abstract class AbstractCacheReuseCrossVersionIntegrationTest extends CrossVersio
      *  2. Think about improving this test so that we don't have to manually fix things ;)
      */
     void setup() {
-        assert DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION == new UnderDevelopmentGradleDistribution().artifactCacheLayoutVersion
+        def currentVersion = IntegrationTestBuildContext.INSTANCE.getVersion()
+        assert DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION == CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(currentVersion).get()
         requireOwnGradleUserHomeDir()
         server.start()
     }

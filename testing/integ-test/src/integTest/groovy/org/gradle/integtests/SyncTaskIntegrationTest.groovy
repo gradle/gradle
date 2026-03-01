@@ -16,9 +16,10 @@
 package org.gradle.integtests
 
 import groovy.test.NotYetImplemented
+import org.gradle.api.tasks.FsOpsFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
@@ -38,12 +39,12 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             someOtherEmptyDir {}
         }
 
-        buildFile '''
+        buildFile """
             task sync(type: Sync) {
                 into 'dest'
                 from 'source'
             }
-        '''.stripIndent()
+        """
 
         when:
         run 'sync'
@@ -69,7 +70,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             }
         }
 
-        buildFile '''
+        buildFile """
             task sync(type: Sync) {
                 into 'dest'
                 from 'source'
@@ -79,7 +80,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
                   exclude 'dir1/extra.txt'
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
         run 'sync'
@@ -109,7 +110,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             }
         }
 
-        buildFile '''
+        buildFile """
             task sync(type: Sync) {
                 from 'source'
                 into 'dest'
@@ -118,7 +119,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
                     exclude 'somePreservedDir/also-not-preserved.txt'
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
         run 'sync'
@@ -144,7 +145,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             file 'preserved.txt'
         }
 
-        buildFile '''
+        buildFile """
             task sync(type: Sync) {
                 from 'source'
                 into 'dest'
@@ -152,7 +153,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
                     include 'preserved.txt'
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
         run 'sync'
@@ -182,12 +183,12 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         defaultSourceFileTree()
         file('dest').create {}
 
-        buildFile '''
+        buildFile """
             task sync(type: Sync) {
                 from 'source'
                 into 'dest'
             }
-        '''.stripIndent()
+        """
 
         when:
         run 'sync'
@@ -211,7 +212,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             preserved { file('some-preserved-file.txt') }
         }
 
-        buildFile '''
+        buildFile """
             task sync(type: Sync) {
                 from 'source'
                 into 'dest'
@@ -219,7 +220,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
                     include 'preserved'
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
         run 'sync'
@@ -229,12 +230,12 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         file('dest/preserved').exists()
 
         when:
-        buildFile '''
+        buildFile """
             task sync(type: Sync) {
                 from 'source'
                 into 'dest'
             }
-        '''.stripIndent()
+        """
         run 'sync'
 
         then:
@@ -265,7 +266,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
                   ${preserved}
                 }
             }
-        """.stripIndent()
+        """
 
         when:
         run 'sync'
@@ -286,7 +287,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             nonPreservedDir {}
         }
 
-        buildFile '''
+        buildFile """
             task sync(type: Sync) {
                 from 'source'
                 into 'dest'
@@ -294,7 +295,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
                     include 'preservedDir'
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
         run 'sync'
@@ -312,14 +313,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             file 'extra1.txt'
             extraDir { file 'extra2.txt' }
         }
-        buildFile '''
+        buildFile """
             task syncIt() {
                 project.sync {
                     from 'source'
                     into 'dest'
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
         run 'syncIt'
@@ -347,7 +348,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             }
 
         }
-        buildFile '''
+        buildFile """
             task syncIt() {
                 project.sync {
                     from 'source'
@@ -359,7 +360,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
                     }
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
         run 'syncIt'
@@ -375,8 +376,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         )
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def "sync single files"() {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [".*using project.sync method"], because = "legacy Project.sync at execution time")
+    def "sync single files using #syncMethod method"() {
         given:
         file('source').create {
             file 'file1.txt'
@@ -385,19 +386,22 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         file('dest').create {
             file 'extra.txt'
         }
-        buildFile '''
+        buildFile """
+            ${FsOpsFixture.injectFsOps()}
             task syncIt {
                 doLast {
-                    project.sync {
+                    ${syncMethod} {
                         from 'source'
                         into 'dest'
                     }
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
-        expectTaskGetProjectDeprecations()
+        if (syncMethod == "project.sync") {
+            expectTaskGetProjectDeprecations()
+        }
         run 'syncIt'
 
         then:
@@ -406,11 +410,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             'file2.txt',
         )
         !file('dest/extra.txt').exists()
+
+        where:
+        syncMethod << ["project.sync", "fsOps.sync"]
     }
 
     @Requires(UnitTestPreconditions.Windows)
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def "sync fails when unable to clean-up files"() {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [".*using project.sync method"], because = "legacy Project.sync at execution time")
+    def "sync fails when unable to clean-up files using #syncMethod method"() {
         given:
         file('source').create {
             file 'file1.txt'
@@ -421,23 +428,29 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         }
         // Intentionally hold open a file
         def ins = new FileInputStream(file("dest/extra.txt"))
-        buildFile '''
+        buildFile """
+            ${FsOpsFixture.injectFsOps()}
             task syncIt {
                 doLast {
-                    project.sync {
+                    ${syncMethod} {
                         from 'source'
                         into 'dest'
                     }
                 }
             }
-        '''.stripIndent()
+        """
 
         expect:
-        expectTaskGetProjectDeprecations()
+        if (syncMethod == "project.sync") {
+            expectTaskGetProjectDeprecations()
+        }
         fails 'syncIt'
 
         cleanup:
         ins.close()
+
+        where:
+        syncMethod << ["project.sync", "fsOps.sync"]
     }
 
     @Requires(UnitTestPreconditions.FilePermissions)
@@ -478,12 +491,12 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         given:
         def uppercaseFile = file('FILE.TXT')
         def lowercaseFile = file('file.txt').createFile()
-        buildFile << '''
+        buildFile << """
             task syncIt(type: Sync) {
                 from providers.systemProperty("capitalize").map { "FILE.TXT" }.orElse("file.txt")
                 into buildDir
             }
-        '''
+        """
         and:
         run 'syncIt'
         file('build/file.txt').assertExists()
@@ -503,7 +516,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FLAKY)
     @Issue("https://github.com/gradle/gradle/issues/9586")
     def "change in case of input folder will sync properly"() {
         given:
@@ -515,12 +527,12 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
                 file('nestedDirFile2.txt').createFile()
             }
         }
-        buildFile << '''
+        buildFile << """
             task syncIt(type: Sync) {
                 from providers.systemProperty("capitalize").map { "DIR" }.orElse("dir")
                 into buildDir
             }
-        '''
+        """
         and:
         executer.withArgument("--no-problems-report")
         run 'syncIt'
@@ -548,8 +560,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         )
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def "sync from file tree"() {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [".*using project.sync method"], because = "legacy Project.sync at execution time")
+    def "sync from file tree using #syncMethod method"() {
         given:
         file('source').create {
             file 'file1.txt'
@@ -561,19 +573,23 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             dir1 { file 'extra2.txt' }
             dir2 { file 'extra3.txt' }
         }
-        buildFile '''
+        buildFile """
+        ${FsOpsFixture.injectFsOps()}
         task syncIt {
+            def source = fileTree(dir: 'source', excludes: ['**/ignore/**'], includes: ['*', '*/*'])
             doLast {
-                project.sync {
-                    from fileTree(dir: 'source', excludes: ['**/ignore/**'], includes: ['*', '*/*'])
+                ${syncMethod} {
+                    from source
                     into 'dest'
                 }
             }
         }
-        '''.stripIndent()
+        """
 
         when:
-        expectTaskGetProjectDeprecations()
+        if (syncMethod == "project.sync") {
+            expectTaskGetProjectDeprecations()
+        }
         run 'syncIt'
 
         then:
@@ -585,10 +601,13 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         !file('dest/extra1.txt').exists()
         !file('dest/dir1/extra2.txt').exists()
         !file('dest/dir2/extra3.txt').exists()
+
+        where:
+        syncMethod << ["project.sync", "fsOps.sync"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def "sync from file collection"() {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [".*using project.sync method"], because = "legacy Project.sync at execution time")
+    def "sync from file collection using #syncMethod method"() {
         given:
         file('source').create {
             file 'file1.txt'
@@ -600,21 +619,25 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             dir1 { file 'extra2.txt' }
             dir2 { file 'extra3.txt' }
         }
-        buildFile '''
+        buildFile """
+            ${FsOpsFixture.injectFsOps()}
             task syncIt {
+                def source = files('source')
                 doLast {
-                    project.sync {
-                        from files('source')
+                    ${syncMethod} {
+                        from source
                         into 'dest'
                         exclude '**/ignore/**'
                         exclude '*/*/*/**'
                     }
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
-        expectTaskGetProjectDeprecations()
+        if (syncMethod == "project.sync") {
+            expectTaskGetProjectDeprecations()
+        }
         run 'syncIt'
 
         then:
@@ -626,10 +649,13 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         !file('dest/extra1.txt').exists()
         !file('dest/dir1/extra2.txt').exists()
         !file('dest/dir2/extra3.txt').exists()
+
+        where:
+        syncMethod << ["project.sync", "fsOps.sync"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def "sync from composite file collection"() {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [".*using project.sync method"], because = "legacy Project.sync at execution time")
+    def "sync from composite file collection using #syncMethod method"() {
         given:
         file('source').create {
             file 'file1.txt'
@@ -645,24 +671,30 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             dir1 { file 'extra2.txt' }
         }
         file('f.jar').touch()
-        buildFile '''
+        buildFile """
+            ${FsOpsFixture.injectFsOps()}
             configurations { compile }
             dependencies { compile files('f.jar') }
             task syncIt {
+                def sourceFiles = files('source')
+                def sourceFileTree = fileTree('source2') { exclude '**/ignore/**' }
+                def configurationsFiles = configurations.compile
                 doLast {
-                    project.sync {
-                        from files('source')
-                        from fileTree('source2') { exclude '**/ignore/**' }
-                        from configurations.compile
+                    ${syncMethod} {
+                        from sourceFiles
+                        from sourceFileTree
+                        from configurationsFiles
                         into 'dest'
                         include { fte -> fte.relativePath.segments.length < 3 && (fte.file.directory || fte.file.name.contains('f')) }
                     }
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
-        expectTaskGetProjectDeprecations()
+        if (syncMethod == "project.sync") {
+            expectTaskGetProjectDeprecations()
+        }
         run 'syncIt'
 
         then:
@@ -676,6 +708,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         !file('ignore/file5.txt').exists()
         !file('dest/extra1.txt').exists()
         !file('dest/dir1/extra2.txt').exists()
+
+        where:
+        syncMethod << ["project.sync", "fsOps.sync"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5748")
@@ -686,14 +721,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             file 'extra.txt'
         }
 
-        buildFile '''
+        buildFile """
             task sync(type: Sync) {
                 into 'dest'
                 into ('.') {
                     from 'source/dir1'
                 }
             }
-        '''.stripIndent()
+        """
 
         when:
         run 'sync'

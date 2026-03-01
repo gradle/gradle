@@ -94,7 +94,7 @@ abstract class JvmCompilation {
 
         // Need to use afterEvaluate since source/target compatibility are not lazy
         afterEvaluate {
-            tasks.withType<JavaCompile>().configureEach {
+            javaCompile.configure {
                 if (!useRelease().get()) {
                     val version = targetJvmVersion.get().toString()
                     sourceCompatibility = version

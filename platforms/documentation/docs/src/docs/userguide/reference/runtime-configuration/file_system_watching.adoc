@@ -114,7 +114,7 @@ This produces the following output at the start and end of the build:
 ----
 $ ./gradlew assemble --watch-fs -Dorg.gradle.vfs.verbose=true
 ----
-
+[source,text]
 ----
 Received 3 file system events since last build while watching 1 locations
 Virtual file system retained information about 2 files, 2 directories and 0 missing files since last build
