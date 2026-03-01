@@ -20,10 +20,10 @@ import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 
-import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * <p>
@@ -74,16 +74,16 @@ public interface FileWatcherUpdater {
     /**
      * Registers a watchable hierarchy.
      *
-     * @see FileWatcherRegistry#registerWatchableHierarchy(File, SnapshotHierarchy)
+     * @see FileWatcherRegistry#registerWatchableHierarchy(File, Supplier)
      */
-    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
+    void registerWatchableHierarchy(File watchableHierarchy, Supplier<SnapshotHierarchy> currentRoot);
 
     /**
      * Updates the watchers after changes to the root.
      *
-     * @see FileWatcherRegistry#virtualFileSystemContentsChanged(Collection, Collection, SnapshotHierarchy)
+     * @see FileWatcherRegistry#virtualFileSystemContentsChanged(Collection, Collection, Supplier)
      */
-    void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
+    void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, Supplier<SnapshotHierarchy> currentRoot);
 
     /**
      * Trigger armed watch probe at given path.
@@ -92,27 +92,27 @@ public interface FileWatcherUpdater {
 
     /**
      * Remove watched hierarchies that have been moved.
+     * Returns the list of VFS paths that should be invalidated by the caller.
      *
      * @see FileWatcherRegistry#updateVfsOnBuildStarted(SnapshotHierarchy, WatchMode, java.util.List)
      */
-    @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
+    List<String> updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.
+     * Returns the list of VFS paths that should be invalidated by the caller.
      *
      * @see FileWatcherRegistry#updateVfsBeforeBuildFinished(SnapshotHierarchy, int, List)
      */
-    @CheckReturnValue
-    SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
+    List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.
+     * Returns the list of VFS paths that should be invalidated by the caller.
      *
      * @see FileWatcherRegistry#updateVfsBeforeBuildFinished(SnapshotHierarchy, int, List)
      */
-    @CheckReturnValue
-    SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root);
+    List<String> updateVfsBeforeAfterFinished(SnapshotHierarchy root);
 
     /**
      * The files actually being watched right now.
@@ -120,4 +120,11 @@ public interface FileWatcherUpdater {
      * @see FileWatcherUpdater
      */
     FileHierarchySet getWatchedFiles();
+
+    /**
+     * Returns true if the updater needs to track individual snapshots when the VFS contents change.
+     */
+    default boolean isTrackingSnapshots() {
+        return false;
+    }
 }

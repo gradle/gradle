@@ -45,7 +45,7 @@ import java.util.List;
  * The build root directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
  *
  * This is the lifecycle for the watchable hierarchies:
- * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, SnapshotHierarchy)},
+ * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, java.util.function.Supplier)},
  *   each call augmenting the collection. The watchers will be updated accordingly.
  * - When updating the watches, we watch watchable hierarchies registered for this build or old watched directories from previous builds instead of
  *   directories inside them.
@@ -87,10 +87,10 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
-        SnapshotHierarchy newRoot = super.updateVfsBeforeBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
+    public List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+        List<String> paths = super.updateVfsBeforeBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
         LOGGER.info("Watched directory hierarchies: {}", watchedHierarchies);
-        return newRoot;
+        return paths;
     }
 
     @Override
@@ -132,11 +132,6 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     @Override
     protected void stopWatchingProbeDirectory(File probeDirectory) {
         // We already stopped watching the hierarchy.
-    }
-
-    @Override
-    protected WatchableHierarchies.Invalidator createInvalidator() {
-        return (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
     public interface FileSystemLocationToWatchValidator {

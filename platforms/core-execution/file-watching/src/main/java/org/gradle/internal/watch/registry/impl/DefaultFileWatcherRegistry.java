@@ -30,13 +30,18 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.INVALIDATED;
@@ -75,45 +80,63 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                 while (consumeEvents) {
                     FileWatchEvent nextEvent = fileEvents.take();
                     if (!stopping) {
-                        nextEvent.handleEvent(new FileWatchEvent.Handler() {
-                            @Override
-                            public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
-                                fileWatchingStatistics.eventReceived();
-                                fileWatcherUpdater.triggerWatchProbe(absolutePath);
-                                handler.handleChange(convertType(type), Paths.get(absolutePath));
-                            }
+                        List<FileWatchEvent> events = new ArrayList<>();
+                        events.add(nextEvent);
+                        fileEvents.drainTo(events);
 
-                            @Override
-                            public void handleUnknownEvent(String absolutePath) {
-                                LOGGER.error("Received unknown event for {}", absolutePath);
-                                fileWatchingStatistics.unknownEventEncountered();
-                                handler.stopWatchingAfterError();
-                            }
+                        List<Map.Entry<Type, Path>> batch = new ArrayList<>();
+                        boolean[] shouldAbort = new boolean[1];
 
-                            @Override
-                            public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
-                                if (absolutePath == null) {
-                                    LOGGER.info("Overflow detected (type: {}), invalidating all watched files", type);
-                                    fileWatcherUpdater.getWatchedFiles().visitRoots(watchedRoot ->
-                                        handler.handleChange(OVERFLOW, Paths.get(watchedRoot)));
-                                } else {
-                                    LOGGER.info("Overflow detected (type: {}) for watched path '{}', invalidating", type, absolutePath);
-                                    handler.handleChange(OVERFLOW, Paths.get(absolutePath));
+                        for (FileWatchEvent event : events) {
+                            event.handleEvent(new FileWatchEvent.Handler() {
+                                @Override
+                                public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
+                                    fileWatchingStatistics.eventReceived();
+                                    fileWatcherUpdater.triggerWatchProbe(absolutePath);
+                                    batch.add(new SimpleEntry<>(convertType(type), Paths.get(absolutePath)));
                                 }
-                            }
 
-                            @Override
-                            public void handleFailure(Throwable failure) {
-                                LOGGER.error("Error while receiving file changes", failure);
-                                fileWatchingStatistics.errorWhileReceivingFileChanges(failure);
-                                handler.stopWatchingAfterError();
-                            }
+                                @Override
+                                public void handleUnknownEvent(String absolutePath) {
+                                    LOGGER.error("Received unknown event for {}", absolutePath);
+                                    fileWatchingStatistics.unknownEventEncountered();
+                                    handler.stopWatchingAfterError();
+                                    shouldAbort[0] = true;
+                                }
 
-                            @Override
-                            public void handleTerminated() {
-                                consumeEvents = false;
+                                @Override
+                                public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
+                                    if (absolutePath == null) {
+                                        LOGGER.info("Overflow detected (type: {}), invalidating all watched files", type);
+                                        fileWatcherUpdater.getWatchedFiles().visitRoots(watchedRoot ->
+                                            batch.add(new SimpleEntry<>(OVERFLOW, Paths.get(watchedRoot))));
+                                    } else {
+                                        LOGGER.info("Overflow detected (type: {}) for watched path '{}', invalidating", type, absolutePath);
+                                        batch.add(new SimpleEntry<>(OVERFLOW, Paths.get(absolutePath)));
+                                    }
+                                }
+
+                                @Override
+                                public void handleFailure(Throwable failure) {
+                                    LOGGER.error("Error while receiving file changes", failure);
+                                    fileWatchingStatistics.errorWhileReceivingFileChanges(failure);
+                                    handler.stopWatchingAfterError();
+                                    shouldAbort[0] = true;
+                                }
+
+                                @Override
+                                public void handleTerminated() {
+                                    consumeEvents = false;
+                                    shouldAbort[0] = true;
+                                }
+                            });
+                            if (shouldAbort[0]) {
+                                break;
                             }
-                        });
+                        }
+                        if (!batch.isEmpty() && !shouldAbort[0]) {
+                            handler.handleChangeBatch(batch);
+                        }
                     }
                 }
             } catch (InterruptedException e) {
@@ -138,27 +161,32 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, root);
+    public boolean isTrackingSnapshots() {
+        return fileWatcherUpdater.isTrackingSnapshots();
     }
 
     @Override
-    public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
-        fileWatcherUpdater.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, root);
+    public void registerWatchableHierarchy(File watchableHierarchy, Supplier<SnapshotHierarchy> currentRoot) {
+        fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, currentRoot);
     }
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
+    public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, Supplier<SnapshotHierarchy> currentRoot) {
+        fileWatcherUpdater.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, currentRoot);
+    }
+
+    @Override
+    public List<String> updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
         return fileWatcherUpdater.updateVfsOnBuildStarted(root, watchMode, unsupportedFileSystems);
     }
 
     @Override
-    public SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+    public List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
         return fileWatcherUpdater.updateVfsBeforeBuildFinished(root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
     }
 
     @Override
-    public SnapshotHierarchy updateVfsAfterBuildFinished(SnapshotHierarchy root) {
+    public List<String> updateVfsAfterBuildFinished(SnapshotHierarchy root) {
         return fileWatcherUpdater.updateVfsBeforeAfterFinished(root);
     }
 

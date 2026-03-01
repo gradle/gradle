@@ -16,7 +16,9 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.Iterables;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.VfsRelativePath;
@@ -24,10 +26,12 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -35,51 +39,46 @@ import java.util.stream.Stream;
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualFileSystem.class);
 
-    private final ReentrantLock updateLock = new ReentrantLock();
-
-    // Mutable state, changes need to be guarded by updateLock
-    protected volatile SnapshotHierarchy root;
-    private volatile VersionHierarchyRoot versionHierarchyRoot;
+    private final AtomicReference<VfsState> state;
 
     protected AbstractVirtualFileSystem(SnapshotHierarchy root) {
-        this.root = root;
-        this.versionHierarchyRoot = VersionHierarchyRoot.empty(0, root.getCaseSensitivity());
+        VersionHierarchyRoot initialVersionRoot = VersionHierarchyRoot.empty(0, root.getCaseSensitivity());
+        this.state = new AtomicReference<>(new VfsState(root, initialVersionRoot));
     }
 
-    protected void underLock(Runnable runnable) {
-        updateLock.lock();
-        try {
-            runnable.run();
-        } finally {
-            updateLock.unlock();
+    protected SnapshotHierarchy currentRoot() {
+        return state.get().root;
+    }
+
+    protected void replaceRoot(SnapshotHierarchy newRoot) {
+        while (true) {
+            VfsState currentState = state.get();
+            VfsState newState = new VfsState(newRoot, currentState.versionRoot);
+
+            if (state.compareAndSet(currentState, newState)) {
+                return;
+            }
         }
-    }
-
-    protected void updateRootUnderLock(UnaryOperator<SnapshotHierarchy> updateFunction) {
-        underLock(() -> {
-            SnapshotHierarchy currentRoot = root;
-            root = updateFunction.apply(currentRoot);
-        });
     }
 
     @Override
     public Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath) {
-        return root.findSnapshot(absolutePath);
+        return state.get().root.findSnapshot(absolutePath);
     }
 
     @Override
     public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
-        return root.findMetadata(absolutePath);
+        return state.get().root.findMetadata(absolutePath);
     }
 
     @Override
     public Stream<FileSystemLocationSnapshot> findRootSnapshotsUnder(String absolutePath) {
-        return root.rootSnapshotsUnder(absolutePath);
+        return state.get().root.rootSnapshotsUnder(absolutePath);
     }
 
     @Override
     public FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier) {
-        long versionBefore = versionHierarchyRoot.getVersion(absolutePath);
+        long versionBefore = state.get().versionRoot.getVersion(absolutePath);
         FileSystemLocationSnapshot snapshot = snapshotSupplier.get();
         storeIfUnchanged(absolutePath, versionBefore, snapshot);
         return snapshot;
@@ -87,7 +86,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public <T> T storeWithAction(String baseLocation, StoringAction<T> storingAction) {
-        long versionBefore = versionHierarchyRoot.getVersion(baseLocation);
+        long versionBefore = state.get().versionRoot.getVersion(baseLocation);
         return storingAction.snapshot(snapshot -> {
             storeIfUnchanged(snapshot.getAbsolutePath(), versionBefore, snapshot);
             return snapshot;
@@ -95,60 +94,119 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     private void storeIfUnchanged(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
-        long versionAfter = versionHierarchyRoot.getVersion(absolutePath);
-        // Only update VFS if no changes happened in between
-        // The version in sub-locations may be smaller than the version we queried at the root when using a `StoringAction`.
-        AtomicBoolean updated = new AtomicBoolean(false);
-        if (versionBefore >= versionAfter) {
-            updateRootUnderLock(root -> {
-                // Check again, now under lock
-                long versionAfterUnderLock = versionHierarchyRoot.getVersion(absolutePath);
-                if (versionBefore >= versionAfterUnderLock) {
-                    updated.set(true);
-                    return updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener));
-                } else {
-                    return root;
-                }
-            });
-        }
-        if (!updated.get()) {
-            LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
+        // The Lock-Free CAS Loop
+        while (true) {
+            VfsState currentState = state.get();
+            long versionAfter = currentState.versionRoot.getVersion(absolutePath);
+
+            if (versionBefore < versionAfter) {
+                LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
+                return;
+            }
+
+            BufferingDiffListener bufferListener = new BufferingDiffListener();
+            SnapshotHierarchy newRoot = currentState.root.store(absolutePath, snapshot, bufferListener);
+
+            VfsState newState = new VfsState(newRoot, currentState.versionRoot);
+            if (state.compareAndSet(currentState, newState)) {
+                updateNotifyingListeners(diffListener -> {
+                    bufferListener.flushToRealListener(diffListener);
+                    return newState.root;
+                });
+                return;
+            }
         }
     }
 
     @Override
     public void invalidate(Iterable<String> locations) {
+        if (Iterables.isEmpty(locations)) {
+            return;
+        }
+
         LOGGER.debug("Invalidating VFS paths: {}", locations);
-        updateRootUnderLock(root -> {
-            SnapshotHierarchy result = root;
-            VersionHierarchyRoot newVersionHierarchyRoot = versionHierarchyRoot;
-            for (String location : locations) {
-                SnapshotHierarchy currentRoot = result;
-                result = updateNotifyingListeners(diffListener -> currentRoot.invalidate(location, diffListener));
-                newVersionHierarchyRoot = newVersionHierarchyRoot.updateVersion(location);
-            }
-            versionHierarchyRoot = newVersionHierarchyRoot;
-            return result;
-        });
+        doInvalidate(locations, UnaryOperator.identity());
     }
 
     @Override
     public void invalidateAll() {
         LOGGER.debug("Invalidating the whole VFS");
-        invalidate(Collections.singletonList(VfsRelativePath.ROOT));
+        doInvalidate(Collections.singletonList(VfsRelativePath.ROOT), UnaryOperator.identity());
     }
 
     /**
-     * Runs a single update on a {@link SnapshotHierarchy} and notifies the currently active listeners after the update.
+     * Invalidates multiple paths wrapping the diff listener via {@code listenerWrapper} so subclasses can decorate it (e.g. for logging).
      */
+    protected void invalidateAndNotify(Iterable<String> absolutePaths, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {
+        doInvalidate(absolutePaths, listenerWrapper);
+    }
+
+    private void doInvalidate(Iterable<String> locations, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {
+        while (true) {
+            VfsState currentState = state.get();
+
+            SnapshotHierarchy currentRoot = currentState.root;
+            VersionHierarchyRoot currentVersionRoot = currentState.versionRoot;
+
+            // Apply all invalidations to the current state in memory,
+            // accumulating all diff events in a single listener across all locations.
+            BufferingDiffListener bufferListener = new BufferingDiffListener();
+            for (String location : locations) {
+                currentRoot = currentRoot.invalidate(location, bufferListener);
+                currentVersionRoot = currentVersionRoot.updateVersion(location);
+            }
+
+            VfsState newState = new VfsState(currentRoot, currentVersionRoot);
+
+            if (state.compareAndSet(currentState, newState)) {
+                updateNotifyingListeners(diffListener -> {
+                    bufferListener.flushToRealListener(listenerWrapper.apply(diffListener));
+                    return newState.root;
+                });
+                return;
+            }
+        }
+    }
+
     protected abstract SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction);
 
     public interface UpdateFunction {
-        /**
-         * Runs a single update on a {@link SnapshotHierarchy}, notifying the diffListener about changes.
-         *
-         * @return updated ${@link SnapshotHierarchy}.
-         */
         SnapshotHierarchy update(SnapshotHierarchy.NodeDiffListener diffListener);
+    }
+
+    private static class VfsState {
+        final SnapshotHierarchy root;
+        final VersionHierarchyRoot versionRoot;
+
+        VfsState(SnapshotHierarchy root, VersionHierarchyRoot versionRoot) {
+            this.root = root;
+            this.versionRoot = versionRoot;
+        }
+    }
+
+    private static class BufferingDiffListener implements SnapshotHierarchy.NodeDiffListener {
+
+        // Stores the sequence of events as executable commands
+        private final List<Consumer<SnapshotHierarchy.NodeDiffListener>> bufferedEvents = new ArrayList<>();
+
+        @Override
+        public void nodeAdded(FileSystemNode node) {
+            // We don't fire the event; we just record what *would* happen
+            bufferedEvents.add(realListener -> realListener.nodeAdded(node));
+        }
+
+        @Override
+        public void nodeRemoved(FileSystemNode node) {
+            bufferedEvents.add(realListener -> realListener.nodeRemoved(node));
+        }
+
+        public void flushToRealListener(SnapshotHierarchy.NodeDiffListener realListener) {
+            if (bufferedEvents.isEmpty()) {
+                return;
+            }
+            for (Consumer<SnapshotHierarchy.NodeDiffListener> event : bufferedEvents) {
+                event.accept(realListener);
+            }
+        }
     }
 }

@@ -20,21 +20,35 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 
-import javax.annotation.CheckReturnValue;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public interface FileWatcherRegistry extends Closeable {
 
     boolean isWatchingAnyLocations();
 
+    /**
+     * Returns true if the watcher registry needs to track individual snapshots when the VFS contents change.
+     */
+    default boolean isTrackingSnapshots() {
+        return false;
+    }
+
     interface ChangeHandler {
         void handleChange(Type type, Path path);
+
+        default void handleChangeBatch(Collection<Map.Entry<Type, Path>> changes) {
+            for (Map.Entry<Type, Path> entry : changes) {
+                handleChange(entry.getKey(), entry.getValue());
+            }
+        }
 
         void stopWatchingAfterError();
     }
@@ -51,46 +65,50 @@ public interface FileWatcherRegistry extends Closeable {
      * Registers a watchable hierarchy.
      *
      * The watcher registry will only watch for changes in watchable hierarchies.
+     * The {@code currentRoot} supplier is evaluated lazily after acquiring the watcher lock,
+     * ensuring the VFS state at processing time is used rather than a stale snapshot captured
+     * before the lock was acquired.
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
+    void registerWatchableHierarchy(File watchableHierarchy, Supplier<SnapshotHierarchy> currentRoot);
 
     /**
      * Updates the watchers after changes to the root.
      *
+     * The {@code currentRoot} supplier is evaluated lazily after acquiring the watcher lock,
+     * so it always reflects the VFS state at processing time rather than at notification time.
+     * This prevents stale add notifications from being processed when a remove CAS completed
+     * after the add CAS but before the notification was dispatched.
+     *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
+    void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, Supplier<SnapshotHierarchy> currentRoot);
 
     /**
-     * Updates the VFS and the watchers when the build started.
+     * Updates the watchers when the build started.
      *
      * For example, this method checks if watched hierarchies are where we left them after the previous build.
+     * Returns the list of VFS paths that the caller should invalidate via {@link org.gradle.internal.vfs.VirtualFileSystem#invalidate}.
      */
-    @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
+    List<String> updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
 
     /**
-     * Updates the VFS and the watchers before the build finishes.
+     * Updates the watchers before the build finishes.
      *
      * For example, this removes everything from the root which can't be kept after the current build finished.
      * This is anything which is not within a watchable hierarchy or in a cache directory.
-     *
-     * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
+     * Returns the list of VFS paths that the caller should invalidate via {@link org.gradle.internal.vfs.VirtualFileSystem#invalidate}.
      */
-    @CheckReturnValue
-    SnapshotHierarchy updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
+    List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
 
     /**
-     * Updates the VFS and the watchers after the build finished.
+     * Updates the watchers after the build finished.
      *
      * This removes content we can't track using file system events, i.e. stuff accessed via symlinks.
-     *
-     * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
+     * Returns the list of VFS paths that the caller should invalidate via {@link org.gradle.internal.vfs.VirtualFileSystem#invalidate}.
      */
-    @CheckReturnValue
-    SnapshotHierarchy updateVfsAfterBuildFinished(SnapshotHierarchy root);
+    List<String> updateVfsAfterBuildFinished(SnapshotHierarchy root);
 
     /**
      * Get statistics about the received changes.

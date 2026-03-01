@@ -66,7 +66,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
             def diffListener = new SnapshotCollectingDiffListener()
             def newRoot = updateFunction.update(diffListener)
             diffListener.publishSnapshotDiff { removed, added ->
-                updater.virtualFileSystemContentsChanged(removed, added, newRoot)
+                updater.virtualFileSystemContentsChanged(removed, added, { newRoot })
             }
             return newRoot
         }
@@ -494,7 +494,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     void registerWatchableHierarchies(Iterable<File> watchableHierarchies) {
         watchableHierarchies.each { watchableHierarchy ->
-            updater.registerWatchableHierarchy(watchableHierarchy, virtualFileSystem.root)
+            updater.registerWatchableHierarchy(watchableHierarchy, { virtualFileSystem.root })
         }
     }
 
@@ -503,12 +503,14 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     SnapshotHierarchy buildStarted(WatchMode watchMode = WatchMode.DEFAULT, List<File> unsupportedFileSystems = []) {
-        virtualFileSystem.root = updater.updateVfsOnBuildStarted(virtualFileSystem.root, watchMode, unsupportedFileSystems)
+        def pathsToInvalidate = updater.updateVfsOnBuildStarted(virtualFileSystem.root, watchMode, unsupportedFileSystems)
+        virtualFileSystem.invalidate(pathsToInvalidate)
         return virtualFileSystem.root
     }
 
     void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE, List<File> unsupportedFileSystems = []) {
-        virtualFileSystem.root = updater.updateVfsBeforeBuildFinished(virtualFileSystem.root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems)
+        def pathsToInvalidate = updater.updateVfsBeforeBuildFinished(virtualFileSystem.root, maximumNumberOfWatchedHierarchies, unsupportedFileSystems)
+        virtualFileSystem.invalidate(pathsToInvalidate)
     }
 
     TestFile addSnapshotInWatchableHierarchy(TestFile projectRootDirectory) {

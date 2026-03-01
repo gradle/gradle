@@ -127,7 +127,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         return caseSensitivity;
     }
 
-    private enum EmptySnapshotHierarchy implements SnapshotHierarchy {
+    public enum EmptySnapshotHierarchy implements SnapshotHierarchy {
         CASE_SENSITIVE(CaseSensitivity.CASE_SENSITIVE),
         CASE_INSENSITIVE(CaseSensitivity.CASE_INSENSITIVE);
 
