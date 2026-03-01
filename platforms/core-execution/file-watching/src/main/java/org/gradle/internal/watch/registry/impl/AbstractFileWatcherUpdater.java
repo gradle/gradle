@@ -143,6 +143,21 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
+    public List<String> updateVfsAfterBuildFinished(SnapshotHierarchy root) {
+        watcherStateLock.lock();
+        try {
+            CollectingInvalidator collectingInvalidator = new CollectingInvalidator();
+            SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentAfterBuildFinished(root, collectingInvalidator);
+            if (root != newRoot) {
+                update(newRoot);
+            }
+            return collectingInvalidator.getCollectedPaths();
+        } finally {
+            watcherStateLock.unlock();
+        }
+    }
+
+    @Override
     public FileHierarchySet getWatchedFiles() {
         return watchedFiles;
     }

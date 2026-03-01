@@ -119,12 +119,17 @@ public class WatchableHierarchies {
         newRoot = removeWatchedHierarchiesOverLimit(newRoot, isWatchedHierarchy, maximumNumberOfWatchedHierarchies, invalidator);
         newRoot = removeUnwatchableFileSystems(newRoot, unsupportedFileSystems, invalidator);
         newRoot = removeUnwatchedSnapshots(newRoot, invalidator);
+        watchableHierarchiesSinceLastBuildFinish.clear();
+        return newRoot;
+    }
+
+    @CheckReturnValue
+    public SnapshotHierarchy removeUnwatchableContentAfterBuildFinished(SnapshotHierarchy root, Invalidator invalidator) {
+        SnapshotHierarchy newRoot = root;
         // We are not being notified about changes to content accessed via symlinks.
-        // Do this here (before build finishes) rather than after, to avoid I/O contention
-        // with the next build's worker threads.
+        // Do this after build finishes to not block reporting build results to the client.
         newRoot = removeIndirectlySymlinkedRoots(newRoot, invalidator);
         newRoot = removeDirectSymlinks(newRoot, invalidator);
-        watchableHierarchiesSinceLastBuildFinish.clear();
         return newRoot;
     }
 

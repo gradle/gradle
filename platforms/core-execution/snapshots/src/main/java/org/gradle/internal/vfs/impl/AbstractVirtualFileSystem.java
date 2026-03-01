@@ -135,6 +135,29 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     /**
+     * Invalidates paths from the VFS without notifying the file watcher.
+     * Use this when the file watcher state has already been updated separately,
+     * and triggering another watcher notification cycle would be redundant and costly.
+     */
+    protected void invalidateWithoutNotifyingWatcher(List<String> paths) {
+        if (paths.isEmpty()) {
+            return;
+        }
+        while (true) {
+            VfsState currentState = state.get();
+            SnapshotHierarchy newRoot = currentState.root;
+            VersionHierarchyRoot newVersionRoot = currentState.versionRoot;
+            for (String path : paths) {
+                newRoot = newRoot.invalidate(path, SnapshotHierarchy.NodeDiffListener.NOOP);
+                newVersionRoot = newVersionRoot.updateVersion(path);
+            }
+            if (state.compareAndSet(currentState, new VfsState(newRoot, newVersionRoot))) {
+                return;
+            }
+        }
+    }
+
+    /**
      * Invalidates multiple paths wrapping the diff listener via {@code listenerWrapper} so subclasses can decorate it (e.g. for logging).
      */
     protected void invalidateAndNotify(Iterable<String> absolutePaths, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {

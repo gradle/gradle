@@ -329,6 +329,16 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         if (watchRegistry == null) {
             // Drop everything if we can't watch the file system
             replaceRoot(currentRoot().empty());
+        } else {
+            try {
+                List<String> pathsToInvalidate = watchRegistry.updateVfsAfterBuildFinished(currentRoot());
+                // Use invalidateWithoutNotifyingWatcher to avoid a redundant watcher update cycle:
+                // the file watcher state was already updated inside updateVfsAfterBuildFinished.
+                invalidateWithoutNotifyingWatcher(pathsToInvalidate);
+            } catch (Exception ex) {
+                logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
+                stopWatchingAndInvalidateHierarchyAfterError();
+            }
         }
     }
 

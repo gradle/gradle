@@ -107,6 +107,14 @@ public interface FileWatcherUpdater {
     List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
 
     /**
+     * Remove content from the root which should be cleaned up after the build finishes (e.g. symlinked content).
+     * Returns the list of VFS paths that should be invalidated by the caller without notifying the watcher.
+     *
+     * @see FileWatcherRegistry#updateVfsAfterBuildFinished(SnapshotHierarchy)
+     */
+    List<String> updateVfsAfterBuildFinished(SnapshotHierarchy root);
+
+    /**
      * The files actually being watched right now.
      *
      * @see FileWatcherUpdater

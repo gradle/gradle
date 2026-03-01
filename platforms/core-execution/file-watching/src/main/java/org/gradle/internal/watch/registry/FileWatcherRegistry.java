@@ -103,6 +103,14 @@ public interface FileWatcherRegistry extends Closeable {
     List<String> updateVfsBeforeBuildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems);
 
     /**
+     * Cleans up content that cannot be trusted after the build finishes (e.g. content accessed via symlinks).
+     * This runs asynchronously after the build result has been sent to the client.
+     * Returns the list of VFS paths that the caller should invalidate without notifying the watcher,
+     * since the watcher state is already updated inside this method.
+     */
+    List<String> updateVfsAfterBuildFinished(SnapshotHierarchy root);
+
+    /**
      * Get statistics about the received changes.
      */
     FileWatchingStatistics getAndResetStatistics();
