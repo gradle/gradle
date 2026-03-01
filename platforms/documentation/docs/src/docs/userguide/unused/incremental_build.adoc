@@ -99,15 +99,21 @@ include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/groovy/buildSrc/s
 include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/groovy/buildSrc/src/main/java/org/example/TemplateData.java[]
 ----
 
-.Output of `gradle processTemplates`
+[source,bash]
 ----
-> gradle processTemplates
+$ ./gradlew processTemplates
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotations.out[]
 ----
 
-.Output of `gradle processTemplates` (run again)
+[source,bash]
 ----
-> gradle processTemplates
+$ ./gradlew processTemplates
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotationsUpToDateWithoutCC.out[]
 ----
 ====
@@ -397,17 +403,19 @@ It lacks equivalents for
 
 Let’s take the template processing example from before and see how it would look as an ad-hoc task that uses the runtime API:
 
-.Ad-hoc task
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
+====
 
-.Output of **`gradle processTemplatesAdHoc`**
+[source,bash]
 ----
-> gradle processTemplatesAdHoc
+$ ./gradlew processTemplatesAdHoc
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/incrementalAdHocTask.out[]
 ----
-====
 
 As before, there’s much to talk about. To begin with, you should really write a custom task class for this as it’s a non-trivial implementation that has several configuration options. In this case, there are no task properties to store the root source folder, the location of the output directory or any of the other settings. That’s deliberate to highlight the fact that the runtime API doesn’t require the task to have any state. In terms of incremental build, the above ad-hoc task will behave the same as the custom task class.
 
@@ -417,7 +425,6 @@ Each method corresponds to one of the incremental build annotations, for example
 
 The files that a task removes can be specified through `destroyables.register()`.
 
-.Ad-hoc task declaring a destroyable
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=adhoc-destroyable-task]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=adhoc-destroyable-task]"]
@@ -434,17 +441,19 @@ You can learn about all the options provided by the builder in its API documenta
 
 Let’s say we don’t want to run the `processTemplates` task if there are no source files, regardless of whether it’s a clean build or not. After all, if there are no source files, there’s nothing for the task to do. The builder allows us to configure this like so:
 
-.Using skipWhenEmpty() via the runtime API
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task-skip-when-empty]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task-skip-when-empty]"]
+====
 
-.Output of **`gradle clean processTemplatesAdHocSkipWhenEmpty`**
+[source,bash]
 ----
-> gradle clean processTemplatesAdHocSkipWhenEmpty
+$ ./gradlew clean processTemplatesAdHocSkipWhenEmpty
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/incrementalAdHocTaskNoSource.out[]
 ----
-====
 
 The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` method. Invoking this method is equivalent to annotating to the property with <<#skip-when-empty,`@SkipWhenEmpty`>>.
 
@@ -458,7 +467,6 @@ For example, imagine that the `ProcessTemplates` task also needs to read `src/he
 You'd want Gradle to know about this input file, so that it can re-execute the task whenever the contents of this file change.
 With the runtime API you can do just that:
 
-.Using runtime API with custom task type
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=custom-class-runtime-api]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=custom-class-runtime-api]"]
@@ -475,39 +483,42 @@ Once you declare a task’s formal inputs and outputs, Gradle can then infer thi
 
 We’ll look at this feature next and also some other features that come from Gradle knowing things about inputs and outputs.
 
-
 [[sec:inferred_task_dependencies]]
 === Inferred task dependencies
 
 Consider an archive task that packages the output of the `processTemplates` task. A build author will see that the archive task obviously requires `processTemplates` to run first and so may add an explicit `dependsOn`. However, if you define the archive task like so:
 
-.Inferred task dependency via task outputs
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=inferred-task-dep-via-outputs]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-outputs]"]
+====
 
-.Output of **`gradle clean packageFiles`**
+[source,bash]
 ----
-> gradle clean packageFiles
+$ ./gradlew clean packageFiles
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/inferredTaskDep.out[]
 ----
-====
 
 Gradle will automatically make `packageFiles` depend on `processTemplates`. It can do this because it’s aware that one of the inputs of packageFiles requires the output of the processTemplates task. We call this an inferred task dependency.
 
 The above example can also be written as
 
-.Inferred task dependency via a task argument
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=inferred-task-dep-via-task]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-task]"]
+====
 
-.Output of **`gradle clean packageFiles2`**
+[source,bash]
 ----
-> gradle clean packageFiles2
+$ ./gradlew clean packageFiles2
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/inferredTaskDep2.out[]
 ----
-====
 
 This is because the `from()` method can accept a task object as an argument. Behind the scenes, `from()` uses the `project.files()` method to wrap the argument, which in turn exposes the task’s formal outputs as a file collection. In other words, it’s a special case!
 
@@ -595,7 +606,6 @@ Have you ever wondered how the `from()` method of the `Copy` task works? It’s 
 
 The implementation is quite simple and you can use the same technique for your own tasks to improve their APIs. Write your methods so that they add files directly to the appropriate annotated property. As an example, here’s how to add a `sources()` method to the custom `ProcessTemplates` class we introduced earlier:
 
-.Declaring a method to add task inputs
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=custom-task-class]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=custom-task-class]"]
@@ -605,19 +615,21 @@ include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/gr
 ----
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
 ----
+====
 
-.Output of `gradle processTemplates`
+[source,bash]
 ----
-> gradle processTemplates
+$ ./gradlew processTemplates
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildCustomMethods.out[]
 ----
-====
 
 In other words, as long as you add values and files to formal task inputs and outputs during the configuration phase, they will be treated as such regardless from where in the build you add them.
 
 If we want to support tasks as arguments as well and treat their outputs as the inputs, we can use the `TaskProvider` directly like so:
 
-.Declaring a method to add a task as an input
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=task-arg-method]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=task-arg-method]"]
@@ -627,13 +639,16 @@ include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/gr
 ----
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=task-arg-method]
 ----
+====
 
-.Output of `gradle processTemplates2`
+[source,bash]
 ----
-> gradle processTemplates2
+$ ./gradlew processTemplates2
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildCustomMethodsWithTaskArg.out[]
 ----
-====
 
 This technique can make your custom task easier to use and result in cleaner build files.
 As an added benefit, our use of `TaskProvider` means that our custom method can set up an inferred task dependency.
@@ -649,63 +664,71 @@ Unfortunately, this approach breaks down when you want the files in a task’s `
 
 As an example, imagine you want to use the output of a Java compilation task — via the `destinationDir` property — as the input of a custom task that instruments a set of files containing Java bytecode. This custom task, which we’ll call `Instrument`, has a `classFiles` property annotated with `@InputFiles`. You might initially try to configure the task like so:
 
-.Failed attempt at setting up an inferred task dependency
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=failed-inferred-task-dep]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=failed-inferred-task-dep]"]
+====
 
-.Output of **`gradle clean badInstrumentClasses`**
+[source,bash]
 ----
-> gradle clean badInstrumentClasses
+$ ./gradlew clean badInstrumentClasses
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildBadInputFilesConfig.out[]
 ----
-====
 
 There’s nothing obviously wrong with this code, but you can see from the console output that the compilation task is missing. In this case you would need to add an explicit task dependency between `instrumentClasses` and `compileJava` via `dependsOn`. The use of `fileTree()` means that Gradle can’t infer the task dependency itself.
 
 One solution is to use the `TaskOutputs.files` property, as demonstrated by the following example:
 
-.Setting up an inferred task dependency between output dir and input files
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep]"]
+====
 
-.Output of **`gradle clean instrumentClasses`**
+[source,bash]
 ----
-> gradle clean instrumentClasses
+$ ./gradlew clean instrumentClasses
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildInputFilesConfig.out[]
 ----
-====
 
 Alternatively, you can get Gradle to access the appropriate property itself by using one of `project.files()`, `project.layout.files()` or `project.objects.fileCollection()` in place of `project.fileTree()`:
 
-.Setting up an inferred task dependency with `layout.files()`
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-files]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-files]"]
+====
 
-.Output of **`gradle clean instrumentClasses2`**
+[source,bash]
 ----
-> gradle clean instrumentClasses2
+$ ./gradlew clean instrumentClasses2
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildInputFilesConfigUsingTask.out[]
 ----
-====
 
 Remember that `files()`, `layout.files()` and `objects.fileCollection()` can take tasks as arguments, whereas `fileTree()` cannot.
 
 The downside of this approach is that all file outputs of the source task become the input files of the target — `instrumentClasses` in this case. That’s fine as long as the source task only has a single file-based output, like the `JavaCompile` task. But if you have to link just one output property among several, then you need to explicitly tell Gradle which task generates the input files using the `builtBy` method:
 
-.Setting up an inferred task dependency with builtBy()
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-builtby]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-builtby]"]
+====
 
-.Output of **`gradle clean instrumentClassesBuiltBy`**
+[source,bash]
 ----
-> gradle clean instrumentClassesBuiltBy
+$ ./gradlew clean instrumentClassesBuiltBy
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/inferredTaskDependencyWithBuiltBy.out[]
 ----
-====
 
 You can of course just add an explicit task dependency via `dependsOn`, but the above approach provides more semantic meaning, explaining why `compileJava` has to run beforehand.
 
@@ -719,23 +742,28 @@ Or sometimes you have a task which should always run.
 That’s where the `doNotTrackState()` method on `Task` comes in.
 One can use this to disable up-to-date checks completely for a task, like so:
 
-.Ignoring up-to-date checks
 ====
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=disable-up-to-date-checks]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=disable-up-to-date-checks]"]
+====
 
-.Output of `gradle clean alwaysInstrumentClasses`
+[source,bash]
 ----
-> gradle clean alwaysInstrumentClasses
+$ ./gradlew clean alwaysInstrumentClasses
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildUpToDateWhen.out[]
 ----
 
-.Output of `gradle alwaysInstrumentClasses`
+[source,bash]
 ----
-> gradle alwaysInstrumentClasses
+$ ./gradlew alwaysInstrumentClasses
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/incrementalBuildUpToDateWhenAgain.out[]
 ----
-====
 
 If you are writing your own task that always should run, then you can also use the `@link:{javadocPath}/org/gradle/api/tasks/UntrackedTask.html[UntrackedTask]` annotation on the task class instead of calling `Task.doNotTrackState()`.
 
@@ -749,7 +777,6 @@ Alternatively, you can use the runtime API method `link:{groovyDslPath}/org.grad
 
 For example, let's say you want to implement a task which clones a Git repository.
 
-.Task for Git clone
 ====
 [source,java]
 .buildSrc/src/main/java/org/example/GitClone.java
@@ -782,7 +809,6 @@ Nonetheless, this file is part of the runtime classpath for the `test` task and 
 Therefore, the `test` would be never up-to-date or pulled from the build cache.
 In order to benefit from incremental builds again, you are able tell Gradle to ignore this file on the runtime classpath at the project level by using link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:normalization(org.gradle.api.Action)[Project.normalization(org.gradle.api.Action)] (in the _consuming_ project):
 
-.Runtime classpath normalization
 ====
 include::sample[dir="snippets/tasks/inputNormalization/kotlin",files="build.gradle.kts[tags=ignore-build-info-properties]"]
 include::sample[dir="snippets/tasks/inputNormalization/groovy",files="build.gradle[tags=ignore-build-info-properties]"]

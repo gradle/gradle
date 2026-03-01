@@ -166,12 +166,13 @@ The edges indicate how one *variant* relies on another.
 
 The `dependencies` task can be used to _partially_ visualize the structure of a dependency graph:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew app:dependencies
-
-[...]
-
+----
+[source,text]
+----
+...
 runtimeClasspath - Runtime classpath of source set 'main'.
 \--- com.fasterxml.jackson.core:jackson-databind:2.17.2
      +--- com.fasterxml.jackson.core:jackson-annotations:2.17.2
@@ -465,6 +466,7 @@ NOTE: This example uses incubating APIs.
 
 Running this task, we get the following output:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dot.out[]
 ----
@@ -473,6 +475,7 @@ image::dep-man-adv-3.png[]
 
 Compare this to the output of the `dependencies` task:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dependencies.out[]
 ----

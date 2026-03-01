@@ -105,7 +105,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingClas
 
 To generate or update the lock state, add the `--write-locks` argument while invoking whatever tasks that would trigger the locked configurations to be resolved:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew dependencies --write-locks
 ----
@@ -191,7 +191,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSing
 
 With the above configuration, the generated `gradle.lockfile` will look like this:
 
-[listing]
+[source,text]
 .gradle.lockfile
 ----
 include::{snippetsPath}/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy/gradle.lockfile[]
@@ -279,6 +279,7 @@ In order to update only specific modules of a configuration, you can use the `--
 It takes a comma (`,`) separated list of module notations.
 In this mode, the existing lock state is still used as input to resolution, filtering out the modules targeted by the update:
 
+[source,bash]
 ----
 $ ./gradlew dependencies --update-locks org.apache.commons:commons-lang3,org.slf4j:slf4j-api
 ----

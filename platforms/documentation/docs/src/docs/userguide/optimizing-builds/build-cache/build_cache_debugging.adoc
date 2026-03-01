@@ -32,11 +32,14 @@ Run a build twice without enabling the Gradle build cache.
 The expected outcome is that all actionable tasks that produce file outputs are up-to-date.
 You should see something like this on the command-line:
 
-[listing]
+====
+[source,bash]
 ----
 $ ./gradlew clean --quiet <1>
 $ ./gradlew assemble <2>
-
+----
+[source,text]
+----
 BUILD SUCCESSFUL
 4 actionable tasks: 4 executed
 
@@ -45,6 +48,7 @@ $ ./gradlew assemble <3>
 BUILD SUCCESSFUL
 4 actionable tasks: 4 up-to-date
 ----
+====
 <1> Make sure we start without any leftover results by running `clean` first.
 <2> We are assuming your build is represented by running the `assemble` task in these examples, but you can substitute whatever tasks make sense for your build.
 <3> Run the build again without running `clean`.
@@ -66,21 +70,29 @@ These are the default settings.
 
 This would look something like this on the command-line:
 
-[listing]
+====
+[source,bash]
 ----
 $ rm -rf ~/.gradle/caches/build-cache-1 <1>
 $ ./gradlew clean --quiet <2>
 $ ./gradlew assemble --build-cache <3>
-
+----
+[source,text]
+----
 BUILD SUCCESSFUL
 4 actionable tasks: 4 executed
-
+----
+[source,bash]
+----
 $ ./gradlew clean --quiet <4>
 $ ./gradlew assemble --build-cache <5>
-
+----
+[source,text]
+----
 BUILD SUCCESSFUL
 4 actionable tasks: 1 executed, 3 from cache
 ----
+====
 <1> We want to start with an empty local cache.
 <2> Clean the project to remove any unwanted leftovers from previous builds.
 <3> Build it once to let it populate the cache.
@@ -108,23 +120,31 @@ For the following example let's assume we have a checkout in `\~/checkout-1` and
 
 WARNING: Like with the previous test, you should have no `remote` cache configured, and storing in the `local` cache should be enabled.
 
-[listing]
+====
+[source,bash]
 ----
 $ rm -rf ~/.gradle/caches/build-cache-1 <1>
 $ cd ~/checkout-1 <2>
 $ ./gradlew clean --quiet <3>
 $ ./gradlew assemble --build-cache <4>
-
+----
+[source,text]
+----
 BUILD SUCCESSFUL
 4 actionable tasks: 4 executed
-
+----
+[source,bash]
+----
 $ cd ~/checkout-2 <5>
 $ ./gradlew clean --quiet <6>
 $ ./gradlew clean assemble --build-cache <7>
-
+----
+[source,text]
+----
 BUILD SUCCESSFUL
 4 actionable tasks: 1 executed, 3 from cache
 ----
+====
 <1> Remove all entries in the local cache first.
 <2> Go to the first checkout directory.
 <3> Clean the project to remove any unwanted leftovers from previous builds.
@@ -176,13 +196,13 @@ From most coarse grained to most fine grained, the items we will use to compare 
 
 If you want information about the build cache key and individual input property hashes, use <<build_environment.adoc#sec:gradle_configuration_properties,`-Dorg.gradle.caching.debug=true`>>:
 
-[listing]
+[source,bash]
 ----
 $ ./gradlew :compileJava --build-cache -Dorg.gradle.caching.debug=true
-
-.
-.
-.
+----
+[source,text]
+----
+...
 Appending implementation to build cache key: org.gradle.api.tasks.compile.JavaCompile_Decorated@470c67ec713775576db4e818e7a4c75d
 Appending additional implementation to build cache key: org.gradle.api.tasks.compile.JavaCompile_Decorated@470c67ec713775576db4e818e7a4c75d
 Appending input value fingerprint for 'options' to build cache key: e4eaee32137a6a587e57eea660d7f85d
@@ -191,9 +211,7 @@ Appending input value fingerprint for 'options.debug' to build cache key: f6d7ed
 Appending input value fingerprint for 'options.debugOptions' to build cache key: a91a8430ae47b11a17f6318b53f5ce9c
 Appending input value fingerprint for 'options.debugOptions.debugLevel' to build cache key: f6bd6b3389b872033d462029172c8612
 Appending input value fingerprint for 'options.encoding' to build cache key: f6bd6b3389b872033d462029172c8612
-.
-.
-.
+...
 Appending input file fingerprints for 'options.sourcepath' to build cache key: 5fd1e7396e8de4cb5c23dc6aadd7787a - RELATIVE_PATH{EMPTY}
 Appending input file fingerprints for 'stableSources' to build cache key: f305ada95aeae858c233f46fc1ec4d01 - RELATIVE_PATH{.../src/main/java=IGNORED / DIR, .../src/main/java/Hello.java='Hello.java' / 9c306ba203d618dfbe1be83354ec211d}
 Appending output property name to build cache key: destinationDir

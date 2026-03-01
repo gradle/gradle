@@ -267,16 +267,30 @@ include::sample[dir="snippets/initScripts/customLogger/kotlin",files="customLogg
 include::sample[dir="snippets/initScripts/customLogger/groovy",files="customLogger.init.gradle[]"]
 ====
 
+====
 [.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
 $ ./gradlew -I customLogger.init.gradle.kts build
+----
+[source,text]
+----
 include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
 ----
+=====
 [.multi-language-text.lang-groovy]
+=====
+[source,bash]
 ----
 $ ./gradlew -I customLogger.init.gradle build
+----
+[source,text]
+----
 include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
 ----
+=====
+====
 
 Your logger can implement any of the listener interfaces listed below.
 When you register a logger, only the logging for the interfaces it implements is replaced.

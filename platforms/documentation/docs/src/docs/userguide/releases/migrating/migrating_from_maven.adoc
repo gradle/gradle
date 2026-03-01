@@ -402,9 +402,12 @@ include::sample[dir="snippets/mavenMigration/multiModule/groovy",files="settings
 <1> Sets the name of the overall project
 <2> Configures two subprojects as part of this build
 +
-.Output of **`gradle projects`**
+[source,bash]
 ----
-> gradle projects
+$ ./gradlew projects
+----
+[source,text]
+----
 include::{snippetsPath}/mavenMigration/multiModule/tests/projects.out[]
 ----
  2. Replace cross-module dependencies with <<declaring_dependencies_basics.adoc#sec:project-dependencies,project dependencies>>.
@@ -463,14 +466,21 @@ include::sample[dir="snippets/mavenMigration/profiles/groovy",files="build.gradl
 
 With this setup in place, you can activate one of the profiles by passing a value for the project property you're using -- `buildProfile` in this case:
 
-.Output of **`gradle greeting`**
+[source,bash]
 ----
-> gradle greeting
+$ ./gradlew gradle greeting
+----
+[source,text]
+----
 include::{snippetsPath}/mavenMigration/profiles/tests/greeting-default.out[]
 ----
-.Output of **`gradle -PbuildProfile=test greeting`**
+
+[source,bash]
 ----
-> gradle -PbuildProfile=test greeting
+$ ./gradlew -PbuildProfile=test greeting
+----
+[source,text]
+----
 include::{snippetsPath}/mavenMigration/profiles/tests/greeting-test.out[]
 ----
 

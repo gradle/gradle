@@ -157,8 +157,12 @@ include::sample[dir="snippets/artifacts/generatedFileDependencies/kotlin",files=
 include::sample[dir="snippets/artifacts/generatedFileDependencies/groovy",files="build.gradle[tags=generated-file-dependencies]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q list
+$ ./gradlew -q list
+----
+[source,text]
+----
 include::{snippetsPath}/artifacts/generatedFileDependencies/tests/generatedFileDependencies.out[]
 ----
 
@@ -212,7 +216,11 @@ include::sample[dir="snippets/dependencyManagement/inspectingDependencies-depend
 
 In this example, the link:{javadocPath}/org/gradle/api/artifacts/DependencyConstraint.html#because(java.lang.String)[`because()`] method provides a reason for including the `asm` library, which helps explain its purpose in the context of the build:
 
+[source,bash]
 ----
-$ gradle -q dependencyInsight --dependency asm
+$ ./gradlew -q dependencyInsight --dependency asm
+----
+[source,text]
+----
 include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencyReason/tests/dependencyReasonReport.out[]
 ----
