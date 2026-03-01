@@ -147,7 +147,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         watcherStateLock.lock();
         try {
             CollectingInvalidator collectingInvalidator = new CollectingInvalidator();
-            SnapshotHierarchy newRoot = WatchableHierarchies.removeUnwatchableContentAfterBuildFinished(
+            SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentAfterBuildFinished(
                 root,
                 collectingInvalidator
             );
