@@ -26,7 +26,6 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -49,10 +48,11 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
     private final Deque<ConditionalExecution<T>> queue = new LinkedList<>();
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
-    private final AtomicInteger blockedWorkerCount = new AtomicInteger();
     private QueueState queueState = QueueState.Working;
     @GuardedBy("lock")
     private int workerCount;
+    @GuardedBy("lock")
+    private int blockedWorkerCount;
 
     public DefaultConditionalExecutionQueue(String displayName, WorkerLimits workerLimits, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.workerLimits = workerLimits;
@@ -88,8 +88,9 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
         workerCount++;
     }
 
+    @GuardedBy("lock")
     private int getCurrentMaxWorkerCount() {
-        int maxWorkersWithCompensation = workerLimits.getMaxWorkerCount() + blockedWorkerCount.get();
+        int maxWorkersWithCompensation = workerLimits.getMaxWorkerCount() + blockedWorkerCount;
         return Math.min(maxWorkersWithCompensation, workerLimits.getMaxUnconstrainedWorkerCount());
     }
 
@@ -97,7 +98,7 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
     public void notifyBlockingWorkStarting() {
         lock.lock();
         try {
-            blockedWorkerCount.incrementAndGet();
+            blockedWorkerCount++;
             // May not be above max workers even after adding 1 if we're at the max unconstrained worker count
             if (!queue.isEmpty() && workerCount < getCurrentMaxWorkerCount()) {
                 // Start runner to compensate immediately when we already have work to do.
@@ -110,7 +111,14 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
 
     @Override
     public void notifyBlockingWorkFinished() {
-        blockedWorkerCount.decrementAndGet();
+        lock.lock();
+        try {
+            blockedWorkerCount--;
+            // Trigger workers to see if one should exit.
+            workAvailable.signalAll();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
