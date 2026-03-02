@@ -18,10 +18,10 @@ package org.gradle.internal.cc.impl
 
 import spock.lang.Issue
 
-class ConfigurationCacheBuildScriptClasspathIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @Issue("https://github.com/gradle/gradle/issues/36177")
-    def "can use a project from included build in buildscript classpath when the project is an input for work"() {
+    def "can use a project from included build in buildscript classpath when the project is an input for transform"() {
         buildFile("included/build.gradle", """
             plugins {
                 id("java-library")
@@ -63,7 +63,7 @@ class ConfigurationCacheBuildScriptClasspathIntegrationTest extends AbstractConf
         file("build/included-1.0.jar.foo").exists()
     }
 
-    def "can use a project from included build logic build as an input for work"() {
+    def "can use a project from included build logic build as an input for transform"() {
         buildFile("build-logic/settings.gradle", """
             include(":lib")
         """)
