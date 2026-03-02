@@ -15,23 +15,27 @@
  */
 package org.gradle.cli;
 
+import org.jspecify.annotations.NullMarked;
+
 /**
- * Categories used to group CLI options in the help output.
+ * Categories for build options. Used in the help output.
  */
-public enum HelpCategory {
-    BUILTIN("Built-in"),
-    EXECUTION("Execution"),
+@NullMarked
+public enum OptionCategory {
+    HELP("Help"),
+    LOGGING("Logging"),
     CONFIGURATION("Configuration"),
+    EXECUTION("Execution"),
     PERFORMANCE("Performance"),
     SECURITY("Security"),
     DIAGNOSTICS("Diagnostics"),
-    LOGGING("Logging"),
+    DAEMON("Daemon"),
     DEVELOCITY("Develocity"),
     OTHER("");
 
     private final String displayName;
 
-    HelpCategory(String displayName) {
+    OptionCategory(String displayName) {
         this.displayName = displayName;
     }
 

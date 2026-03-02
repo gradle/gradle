@@ -29,7 +29,7 @@ public class CommandLineOption {
     private final Set<CommandLineOption> groupWith = new HashSet<CommandLineOption>();
     private boolean deprecated;
 
-    private HelpCategory category = HelpCategory.OTHER;
+    private OptionCategory category = OptionCategory.OTHER;
 
     public CommandLineOption(Iterable<String> options) {
         for (String option : options) {
@@ -117,12 +117,12 @@ public class CommandLineOption {
         this.groupWith.remove(this);
     }
 
-    public CommandLineOption hasCategory(HelpCategory category) {
-        this.category = category == null ? HelpCategory.OTHER : category;
+    public CommandLineOption hasCategory(OptionCategory category) {
+        this.category = category == null ? OptionCategory.OTHER : category;
         return this;
     }
 
-    public HelpCategory getCategory() {
-        return category == null ? HelpCategory.OTHER : category;
+    public OptionCategory getCategory() {
+        return category == null ? OptionCategory.OTHER : category;
     }
 }

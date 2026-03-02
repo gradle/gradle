@@ -375,12 +375,12 @@ class CommandLineParserTest extends Specification {
         expect:
         parser.printUsage(outstr)
         outstr.toString().readLines() == [
-            '',
-            '-a, --long-option                   this is option a',
-            '--another-long-option               this is a long option',
-            '-B',
-            '-b',
-            '-y, -z, --end-option, --last-option this is the last option'
+            '--                                     Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.',
+            '  --another-long-option                this is a long option',
+            '  -B',
+            '  -b',
+            '  --end-option, --last-option, -y, -z  this is the last option',
+            '  --long-option, -a                    this is option a'
         ]
     }
 
@@ -394,11 +394,11 @@ class CommandLineParserTest extends Specification {
         expect:
         parser.printUsage(outstr)
         outstr.toString().readLines() == [
-            '',
-            '-a, --long-option this is option a [deprecated]',
-            '-b                [deprecated]',
-            '-c                option c [incubating]',
-            '-d                [incubating]'
+            '--                   Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.',
+            '  -b                 [deprecated]',
+            '  -c                 option c [incubating]',
+            '  -d                 [incubating]',
+            '  --long-option, -a  this is option a [deprecated]'
         ]
     }
 
@@ -701,12 +701,12 @@ class CommandLineParserTest extends Specification {
         expect:
         parser.printUsage(outstr)
         outstr.toString().readLines() == [
-            '',
-            '--a-option       this is option --a-option',
-            '--no-a-option    Disables option --a-option',
-            '--a-option-other this is option --a-option-other',
-            '--c-option',
-            '--no-c-option'
+            '--                  Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.',
+            '  --a-option        this is option --a-option',
+            '  --no-a-option     Disables option --a-option',
+            '  --a-option-other  this is option --a-option-other',
+            '  --c-option',
+            '  --no-c-option'
         ]
     }
 
@@ -721,7 +721,7 @@ class CommandLineParserTest extends Specification {
         expect:
         parser.printUsage(outstr)
         def usage = outstr.toString()
-        usage.contains('-a, --long-option')
+        usage.contains('--long-option, -a')
         usage.contains('--another-long-option')
         usage.contains('-y') || usage.contains('-z')
         usage.contains('this is option a')
@@ -729,18 +729,18 @@ class CommandLineParserTest extends Specification {
     }
 
     def "groups options by category"() {
-        parser.option('exec1', 'e1').hasDescription('exec option 1').hasCategory(org.gradle.cli.HelpCategory.EXECUTION)
-        parser.option('exec2').hasDescription('exec option 2').hasCategory(org.gradle.cli.HelpCategory.EXECUTION)
-        parser.option('log1').hasDescription('log option 1').hasCategory(org.gradle.cli.HelpCategory.LOGGING)
+        parser.option('exec1', 'e1').hasDescription('exec option 1').hasCategory(OptionCategory.EXECUTION)
+        parser.option('exec2').hasDescription('exec option 2').hasCategory(OptionCategory.EXECUTION)
+        parser.option('log1').hasDescription('log option 1').hasCategory(OptionCategory.LOGGING)
         def outstr = new StringWriter()
 
         expect:
         parser.printUsage(outstr)
         def usage = outstr.toString()
-        usage.contains('Execution:')
-        usage.contains('Logging:')
-        // Execution section should come before Logging section
-        usage.indexOf('Execution:') < usage.indexOf('Logging:')
+        usage.contains('Execution')
+        usage.contains('Logging')
+        // Execution section should come after Logging section
+        usage.indexOf('Logging') < usage.indexOf('Execution')
         // options exist in output
         usage.contains('--exec1') || usage.contains('--e1')
         usage.contains('--exec2')
@@ -748,8 +748,8 @@ class CommandLineParserTest extends Specification {
     }
 
     def "options within same category are ordered alphabetically"() {
-        parser.option('b-option').hasDescription('b').hasCategory(org.gradle.cli.HelpCategory.EXECUTION)
-        parser.option('a-option').hasDescription('a').hasCategory(org.gradle.cli.HelpCategory.EXECUTION)
+        parser.option('b-option').hasDescription('b').hasCategory(OptionCategory.EXECUTION)
+        parser.option('a-option').hasDescription('a').hasCategory(OptionCategory.EXECUTION)
         def outstr = new StringWriter()
 
         expect:
@@ -764,9 +764,9 @@ class CommandLineParserTest extends Specification {
     }
 
     def "opposite boolean options are adjacent within their category"() {
-        parser.option('a-option').hasDescription('this is option --a-option').hasCategory(org.gradle.cli.HelpCategory.CONFIGURATION)
-        parser.option('no-a-option').hasDescription('Disables option --a-option').hasCategory(org.gradle.cli.HelpCategory.CONFIGURATION)
-        parser.option('log1').hasDescription('log option 1').hasCategory(org.gradle.cli.HelpCategory.LOGGING)
+        parser.option('a-option').hasDescription('this is option --a-option').hasCategory(OptionCategory.CONFIGURATION)
+        parser.option('no-a-option').hasDescription('Disables option --a-option').hasCategory(OptionCategory.CONFIGURATION)
+        parser.option('log1').hasDescription('log option 1').hasCategory(OptionCategory.LOGGING)
         def outstr = new StringWriter()
 
         expect:
@@ -780,3 +780,4 @@ class CommandLineParserTest extends Specification {
         idxOff == idxOn + 1
     }
 }
+

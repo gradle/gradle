@@ -16,8 +16,7 @@
 
 package org.gradle.initialization;
 
-import org.gradle.cli.HelpCategory;
-
+import org.gradle.cli.OptionCategory;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
@@ -54,8 +53,8 @@ public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfigura
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.PERFORMANCE;
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 
@@ -82,8 +81,8 @@ public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfigura
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.PERFORMANCE;
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 }

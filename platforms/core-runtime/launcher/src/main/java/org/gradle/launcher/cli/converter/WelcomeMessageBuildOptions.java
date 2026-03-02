@@ -18,11 +18,11 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
+import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.EnumBuildOption;
 import org.gradle.internal.buildoption.Origin;
-import org.gradle.cli.HelpCategory;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,8 +50,8 @@ public class WelcomeMessageBuildOptions extends BuildOptionSet<WelcomeMessageCon
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 }

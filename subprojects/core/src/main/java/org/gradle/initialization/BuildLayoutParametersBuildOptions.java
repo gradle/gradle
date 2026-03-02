@@ -18,12 +18,12 @@ package org.gradle.initialization;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.BasicFileResolver;
+import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
-import org.gradle.cli.HelpCategory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -58,8 +58,8 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -77,8 +77,8 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 }

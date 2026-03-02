@@ -16,8 +16,7 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import org.gradle.cli.HelpCategory;
-
+import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -74,8 +73,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.PERFORMANCE;
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
 
         @Override
@@ -96,8 +95,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.DIAGNOSTICS;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
 
         @Override
@@ -118,8 +117,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
 
         @Override
@@ -136,8 +135,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
 
         @Override
@@ -167,8 +166,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
     }
 
@@ -185,8 +184,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.DIAGNOSTICS;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -203,8 +202,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.DIAGNOSTICS;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -232,8 +231,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.DIAGNOSTICS;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -250,8 +249,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.DIAGNOSTICS;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -268,8 +267,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.DIAGNOSTICS;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -289,8 +288,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.DIAGNOSTICS;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -306,8 +305,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.DIAGNOSTICS;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -324,8 +323,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
         }
     }
 
@@ -340,8 +339,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
         }
     }
 
@@ -356,8 +355,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
         }
     }
 
@@ -372,8 +371,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
         }
     }
 
@@ -394,8 +393,8 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 }

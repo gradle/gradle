@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.BasicFileResolver;
+import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -35,7 +36,6 @@ import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
-import org.gradle.cli.HelpCategory;
 
 import java.io.File;
 import java.time.Duration;
@@ -110,6 +110,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setProjectCacheDir(resolver.transform(value));
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     public static class RerunTasksOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -123,8 +128,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
     }
 
@@ -139,8 +144,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.DIAGNOSTICS;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -166,8 +171,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
     }
 
@@ -180,6 +185,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setOffline(true);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     public static class RefreshDependenciesOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -190,6 +200,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setRefreshDependencies(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -204,8 +219,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
     }
 
@@ -220,8 +235,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
     }
 
@@ -239,8 +254,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.PERFORMANCE;
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 
@@ -258,8 +273,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
     }
 
@@ -278,8 +293,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -294,8 +309,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
     }
 
@@ -314,8 +329,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -332,8 +347,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.EXECUTION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 
@@ -350,8 +365,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.PERFORMANCE;
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 
@@ -368,8 +383,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.LOGGING;
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
         }
     }
 
@@ -394,8 +409,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.PERFORMANCE;
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 
@@ -412,8 +427,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.LOGGING;
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
         }
     }
 
@@ -422,9 +437,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         public BuildScanOption() {
             super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION,
-                "Generates a Build Scan (powered by Develocity).\n" +
-                    "                                   Build Scan and Develocity are registered trademarks of Gradle, Inc.\n" +
-                    "                                   For more information, please visit https://gradle.com/develocity/product/build-scan/.",
+                "Generates a Build Scan (powered by Develocity).",
                 "Disables the creation of a Build Scan."));
         }
 
@@ -438,8 +451,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.DEVELOCITY;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DEVELOCITY;
         }
     }
 
@@ -456,8 +469,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.SECURITY;
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
         }
     }
 
@@ -483,8 +496,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.SECURITY;
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
         }
     }
 
@@ -510,8 +523,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.SECURITY;
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
         }
     }
 
@@ -527,8 +540,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.SECURITY;
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
         }
     }
 
@@ -547,8 +560,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.SECURITY;
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
         }
     }
 
@@ -567,8 +580,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.SECURITY;
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
         }
     }
 
@@ -593,6 +606,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCache(Option.Value.value(value));
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 
@@ -635,6 +653,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(Value value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheProblems(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -859,6 +882,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setPropertyUpgradeReportEnabled(true);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
+        }
     }
 
     public static class ProblemReportGenerationOption extends BooleanBuildOption<StartParameterInternal> {
@@ -874,6 +902,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.enableProblemReportGeneration(value);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
+        }
     }
 
     public static class TaskGraphOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -887,6 +920,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setTaskGraph(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 

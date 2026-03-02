@@ -16,8 +16,6 @@
 
 package org.gradle.internal.logging;
 
-import org.gradle.cli.HelpCategory;
-
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
@@ -25,6 +23,7 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.OptionCategory;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
@@ -88,8 +87,8 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.LOGGING;
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
         }
 
         @Override
@@ -151,8 +150,8 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.LOGGING;
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
         }
 
         @Override
@@ -200,8 +199,8 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.LOGGING;
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
         }
 
         @Override
@@ -227,8 +226,8 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.LOGGING;
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
         }
 
         @Override
@@ -262,8 +261,8 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.LOGGING;
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 }

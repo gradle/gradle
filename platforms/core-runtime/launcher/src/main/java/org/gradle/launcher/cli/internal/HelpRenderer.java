@@ -17,7 +17,7 @@
 package org.gradle.launcher.cli.internal;
 
 import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.HelpCategory;
+import org.gradle.cli.OptionCategory;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
@@ -77,48 +77,7 @@ public final class HelpRenderer {
         metaData.describeCommand(out, "[option...]", "[task...]");
         out.println();
         out.println();
-        
-        StringWriter usageWriter = new StringWriter();
-        PrintWriter usageOut = new PrintWriter(usageWriter);
-        parser.printUsage(usageOut);
-        usageOut.flush();
-
-        String usage = usageWriter.toString();
-        String[] lines = usage.split("\r?\n");
-
-        String[] movePrefixes = new String[]{"-?, -h, --help", "-D, --system-prop", "-P, --project-prop", "-V, --show-version", "-v, --version"};
-
-        StringWriter reordered = new StringWriter();
-        PrintWriter reorderedOut = new PrintWriter(reordered);
-
-        for (String line : lines) {
-            String trimmed = line.trim();
-            for (String p : movePrefixes) {
-                if (trimmed.startsWith(p)) {
-                    reorderedOut.println(line);
-                    break;
-                }
-            }
-        }
-
-        reorderedOut.println();
-
-        for (String line : lines) {
-            String trimmed = line.trim();
-            boolean matched = false;
-            for (String p : movePrefixes) {
-                if (trimmed.startsWith(p)) {
-                    matched = true;
-                    break;
-                }
-            }
-            if (!matched) {
-                reorderedOut.println(line);
-            }
-        }
-
-        reorderedOut.flush();
-        out.print(reordered.toString());
+        parser.printUsage(out);
         out.println();
 
         out.flush();
@@ -134,9 +93,9 @@ public final class HelpRenderer {
         new StartParameterConverter().configure(parser);
         new BuildOptionBackedConverter<>(new DaemonBuildOptions()).configure(parser);
         // Built-in options: -h/--help/-?, -v/--version, -V/--show-version
-        parser.option("h", "?", "help").hasDescription("Shows this help message.");
-        parser.option("v", "version").hasDescription("Prints version information and exits.");
-        parser.option("V", "show-version").hasDescription("Prints version information and continues.");
+        parser.option("h", "?", "help").hasDescription("Shows this help message.").hasCategory(OptionCategory.HELP);
+        parser.option("v", "version").hasDescription("Prints version information and exits.").hasCategory(OptionCategory.HELP);
+        parser.option("V", "show-version").hasDescription("Prints version information and continues.").hasCategory(OptionCategory.HELP);
         return parser;
     }
 }

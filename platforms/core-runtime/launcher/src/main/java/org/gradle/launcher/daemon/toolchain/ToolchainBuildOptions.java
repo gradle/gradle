@@ -16,9 +16,8 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
-import org.gradle.cli.HelpCategory;
-
 import org.gradle.StartParameter;
+import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
@@ -139,8 +138,8 @@ public class ToolchainBuildOptions {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -152,8 +151,8 @@ public class ToolchainBuildOptions {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -165,8 +164,8 @@ public class ToolchainBuildOptions {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -178,8 +177,8 @@ public class ToolchainBuildOptions {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -191,8 +190,8 @@ public class ToolchainBuildOptions {
         }
 
         @Override
-        protected HelpCategory getHelpCategory() {
-            return HelpCategory.CONFIGURATION;
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 }
