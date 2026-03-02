@@ -125,7 +125,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     @Nullable
     public static Describable getDisplayNameForNext() {
         ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
-        if (details == null) {
+        if (details == null || details.services == null) {
             return null;
         }
         return details.displayName;
@@ -152,7 +152,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     @NonNull
     private static ObjectCreationDetails getDetails() {
         ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
-        if (details == null) {
+        if (details == null || details.services == null) {
             // something has gone wrong
             throw new IllegalStateException(String.format("No object creation details have been provided for this context (clz: %s, cl: %s)", System.identityHashCode(AsmBackedClassGenerator.class), AsmBackedClassGenerator.class.getClassLoader()));
         }
@@ -1914,18 +1914,24 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     private static class ObjectCreationDetails {
-        final InstanceGenerator instantiator;
-        final ServiceLookup services;
+        InstanceGenerator instantiator;
+        ServiceLookup services;
         @Nullable
-        final Describable displayName;
+        Describable displayName;
         PropertyRoleAnnotationHandler roleHandler;
+    }
 
-        ObjectCreationDetails(InstanceGenerator instantiator, ServiceLookup services, @Nullable Describable displayName, PropertyRoleAnnotationHandler roleHandler) {
-            this.instantiator = instantiator;
-            this.services = services;
-            this.displayName = displayName;
-            this.roleHandler = roleHandler;
+    /**
+     * Returns the thread-local ObjectCreationDetails, creating it on first access.
+     * The returned instance is reused across all instantiations on this thread.
+     */
+    private static ObjectCreationDetails getOrCreateDetails() {
+        ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
+        if (details == null) {
+            details = new ObjectCreationDetails();
+            SERVICES_FOR_NEXT_OBJECT.set(details);
         }
+        return details;
     }
 
     private static class NoOpBuilder implements ClassGenerationVisitor {
@@ -2056,12 +2062,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-            ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
-            SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, displayName, roleHandler));
+            ObjectCreationDetails details = getOrCreateDetails();
+            // Save previous state for re-entrant construction
+            InstanceGenerator prevInstantiator = details.instantiator;
+            ServiceLookup prevServices = details.services;
+            Describable prevDisplayName = details.displayName;
+            PropertyRoleAnnotationHandler prevRoleHandler = details.roleHandler;
+            details.instantiator = nested;
+            details.services = services;
+            details.displayName = displayName;
+            details.roleHandler = roleHandler;
             try {
                 return constructor.newInstance(params);
             } finally {
-                SERVICES_FOR_NEXT_OBJECT.set(previous);
+                details.instantiator = prevInstantiator;
+                details.services = prevServices;
+                details.displayName = prevDisplayName;
+                details.roleHandler = prevRoleHandler;
             }
         }
     }
@@ -2079,14 +2096,25 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-            ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
-            SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, displayName, roleHandler));
+            ObjectCreationDetails details = getOrCreateDetails();
+            // Save previous state for re-entrant construction
+            InstanceGenerator prevInstantiator = details.instantiator;
+            ServiceLookup prevServices = details.services;
+            Describable prevDisplayName = details.displayName;
+            PropertyRoleAnnotationHandler prevRoleHandler = details.roleHandler;
+            details.instantiator = nested;
+            details.services = services;
+            details.displayName = displayName;
+            details.roleHandler = roleHandler;
             try {
                 Object instance = constructor.newInstance();
                 initMethod.invoke(instance);
                 return instance;
             } finally {
-                SERVICES_FOR_NEXT_OBJECT.set(previous);
+                details.instantiator = prevInstantiator;
+                details.services = prevServices;
+                details.displayName = prevDisplayName;
+                details.roleHandler = prevRoleHandler;
             }
         }
     }
