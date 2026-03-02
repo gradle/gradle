@@ -43,7 +43,7 @@ import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.isDclEnabledForScriptTarget
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import java.lang.reflect.Modifier
 import kotlin.reflect.KVisibility
 

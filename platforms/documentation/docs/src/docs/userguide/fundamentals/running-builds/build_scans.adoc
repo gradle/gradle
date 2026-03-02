@@ -46,9 +46,9 @@ image::build-scan-2.png[]
 
 To enable a Build Scan on a Gradle command, add `--scan` to the command line option:
 
-[source,text]
+[source,bash]
 ----
- ./gradlew build --scan
+$ ./gradlew build --scan
 ----
 
 You may be prompted to agree to the terms to use Build Scan.

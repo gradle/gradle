@@ -28,79 +28,82 @@ To see a list of available tasks, run gradle tasks
 USAGE: gradle [option...] [task...]
 
 -?, -h, --help                    Shows this help message.
--D, --system-prop                 Set system property of the JVM (e.g. -Dmyprop=myvalue).
--P, --project-prop                Set project property for the build script (e.g. -Pmyprop=myvalue).
--V, --show-version                Print version info and continue.
--v, --version                     Print version info and exit.
+-D, --system-prop                 Sets a JVM system property (for example, -Dmyprop=myvalue).
+-P, --project-prop                Sets a project property for the build script (for example, -Pmyprop=myvalue).
+-V, --show-version                Prints version information and continues.
+-v, --version                     Prints version information and exits.
 
 
 Execution:
--a, --no-rebuild                  Do not rebuild project dependencies.
---configure-on-demand             Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds. [incubating]
+-a, --no-rebuild                  Disables rebuilding of project dependencies.
+--configure-on-demand             Configures necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds. [incubating]
 --no-configure-on-demand          Disables the use of configuration on demand. [incubating]
---continue                        Continue task execution after a task failure.
---no-continue                     Stop task execution after a task failure.
---daemon                          Uses the Gradle daemon to run the build. Starts the daemon if not running.
---no-daemon                       Do not use the Gradle daemon to run the build. Useful occasionally if you have configured Gradle to always run with the daemon by default.
+--continue                        Continues task execution after a task failure.
+--no-continue                     Stops task execution after a task failure.
+--daemon                          Uses the Gradle daemon to run the build. Starts the daemon if it is not running.
+--no-daemon                       Runs the build without the Gradle daemon. Useful occasionally if you have configured Gradle to always run with the daemon by default.
 --foreground                      Starts the Gradle daemon in the foreground.
--m, --dry-run                     Run the builds with all task actions disabled.
---priority                        Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are 'normal' (default) or 'low'
---rerun-tasks                     Ignore previously cached task results.
---status                          Shows status of running and recently stopped Gradle daemon(s).
+-m, --dry-run                     Runs the build with all task actions disabled.
+--priority                        Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Supported values are 'normal' (default) or 'low'.
+--rerun-tasks                     Ignores previously cached task results.
+--status                          Shows the status of running and recently stopped Gradle daemons.
 --stop                            Stops the Gradle daemon if it is running.
 -t, --continuous                  Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.
 
 Configuration:
 --configuration-cache             Enables the configuration cache. Gradle will try to reuse the build configuration from previous builds.
 --no-configuration-cache          Disables the configuration cache.
---configuration-cache-problems    Configures how the configuration cache handles problems (fail or warn). Defaults to fail.
--g, --gradle-user-home            Specifies the Gradle user home directory. Defaults to ~/.gradle
--I, --init-script                 Specify an initialization script.
---include-build                   Include the specified build in the composite.
---offline                         Execute the build without accessing network resources.
--p, --project-dir                 Specifies the start directory for Gradle. Defaults to current directory.
---problems-report                 (Experimental) enables HTML problems report
---no-problems-report              (Experimental) disables HTML problems report
---project-cache-dir               Specify the project-specific cache directory. Defaults to .gradle in the root project directory.
---property-upgrade-report         (Experimental) Runs build with experimental property upgrade report.
--U, --refresh-dependencies        Refresh the state of dependencies.
--x, --exclude-task                Specify a task to be excluded from execution.
+--configuration-cache-problems    Configures how the configuration cache handles problems (fail or warn). Supported values are 'warn', or 'fail' (default).
+-g, --gradle-user-home            Specifies the Gradle user home directory. Default is ~/.gradle.
+-I, --init-script                 Specifies an initialization script.
+--include-build                   Includes the specified build in the composite.
+--offline                         Runs the build without accessing network resources.
+-p, --project-dir                 Specifies the start directory for Gradle. Default is the current directory.
+--problems-report                 Enables the HTML problems report. [incubating]
+--no-problems-report              Disables the HTML problems report. [incubating]
+--project-cache-dir               Specifies the project-specific cache directory. Default is .gradle in the root project directory.
+--property-upgrade-report         Runs the build with the experimental property upgrade report. [incubating]
+--task-graph                      Prints the task graph instead of executing tasks.
+-U, --refresh-dependencies        Refreshes the state of dependencies.
+-x, --exclude-task                Specifies a task to exclude from execution.
 
 Performance:
 --build-cache                     Enables the Gradle build cache. Gradle will try to reuse outputs from previous builds.
 --no-build-cache                  Disables the Gradle build cache.
---max-workers                     Configure the number of concurrent workers Gradle is allowed to use.
---parallel                        Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.
---no-parallel                     Disables parallel execution to build projects.
---watch-fs                        Enables watching the file system for changes, allowing data about the file system to be re-used for the next build.
---no-watch-fs                     Disables watching the file system.
+--max-workers                     Configures the maximum number of concurrent workers Gradle is allowed to use.
+--parallel                        Builds projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.
+--no-parallel                     Disables parallel project execution.
+--watch-fs                        Enables file system watching. Reuses file system data for subsequent builds.
+--no-watch-fs                     Disables file system watching.
 
 Security:
 --export-keys                     Exports the public keys used for dependency verification.
--F, --dependency-verification     Configures the dependency verification mode. Values are 'strict', 'lenient' or 'off'.
--M, --write-verification-metadata Generates checksums for dependencies used in the project (comma-separated list)
---refresh-keys                    Refresh the public keys used for dependency verification.
---update-locks                     Perform a partial update of the dependency lock, letting passed in module notations change version. [incubating]
---write-locks                     Persists dependency resolution for locked configurations, ignoring existing locking information if it exists
+-F, --dependency-verification     Configures the dependency verification mode. Supported values are 'strict', 'lenient', or 'off'.
+-M, --write-verification-metadata Generates checksums for dependencies used in the project. Accepts a comma-separated list.
+--refresh-keys                    Refreshes the public keys used for dependency verification.
+--update-locks                    Performs a partial update of the dependency lock. Allows passed-in module notations to change version. [incubating]
+--write-locks                     Persists dependency resolution for locked configurations. Ignores existing locking information if it exists.
 
 Diagnostics:
---profile                         Profile build execution time and generates a report in the <build_dir>/reports/profile directory.
+--profile                         Profiles build execution time. Generates a report in the <build_dir>/reports/profile directory.
 
 Logging:
---console                         Specifies which type of console output to generate. Values are 'plain', 'colored', 'auto' (default), 'rich' or 'verbose'.
---console-unicode                 Specifies which character types are allowed in console output to generate. Values are 'auto' (default), 'disable' or 'enable'.
--d, --debug                       Log in debug mode (includes normal stacktrace).
--i, --info                        Set log level to info.
--q, --quiet                       Log errors only.
--S, --full-stacktrace             Print out the full (very verbose) stacktrace for all exceptions.
--s, --stacktrace                  Print out the stacktrace for all exceptions.
--w, --warn                        Set log level to warn.
---warning-mode                    Specifies which mode of warnings to generate. Values are 'all', 'fail', 'summary'(default) or 'none'
+--console                         Specifies which type of console output to generate. Supported values are 'plain', 'colored', 'auto' (default), 'rich', or 'verbose'.
+--console-unicode                 Specifies which character types are allowed in the console output. Supported values are 'auto' (default), 'disable', or 'enable'.
+-d, --debug                       Sets log level to debug. Includes the normal stacktrace.
+-i, --info                        Sets the log level to info.
+-q, --quiet                       Logs errors only.
+-S, --full-stacktrace             Prints the full (very verbose) stacktrace for all exceptions.
+-s, --stacktrace                  Prints the stacktrace for all exceptions.
+-w, --warn                        Sets the log level to warn.
+--warning-mode                    Specifies which mode of warnings to generate. Supported values are 'all', 'fail', 'summary' (default), or 'none'.
 
 Develocity:
---scan                            Generate a Build Scan (powered by Develocity).
+--scan                            Generates a Build Scan (powered by Develocity).
                                    Build Scan and Develocity are registered trademarks of Gradle, Inc.
                                    For more information, please visit https://gradle.com/develocity/product/build-scan/.
 --no-scan                         Disables the creation of a Build Scan.
+
+
 '''
 }

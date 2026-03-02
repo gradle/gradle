@@ -17,8 +17,8 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.Action;
-import org.gradle.plugin.software.internal.ModelDefault;
-import org.gradle.plugin.software.internal.ModelDefault.Visitor;
+import org.gradle.features.internal.binding.ModelDefault;
+import org.gradle.features.internal.binding.ModelDefault.Visitor;
 
 public class ActionBasedDefault<T> implements ModelDefault<Visitor<Action<? super T>>> {
     private final Action<? super T> action;

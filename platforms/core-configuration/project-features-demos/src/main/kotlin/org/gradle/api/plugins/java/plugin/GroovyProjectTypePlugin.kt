@@ -19,15 +19,16 @@ package org.gradle.api.plugins.java.plugin
 import org.apache.commons.lang3.StringUtils.capitalize
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.ProjectTypeBinding
-import org.gradle.api.internal.plugins.features.dsl.bindProjectType
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.binding.ProjectTypeBindingBuilder
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.dsl.bindProjectType
 import org.gradle.api.plugins.internal.java.DefaultGroovyProjectType
 import org.gradle.api.plugins.java.GroovyClasses
 import org.gradle.api.plugins.java.GroovyProjectType
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.compile.GroovyCompile
+import org.gradle.features.dsl.bindProjectType
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject
 

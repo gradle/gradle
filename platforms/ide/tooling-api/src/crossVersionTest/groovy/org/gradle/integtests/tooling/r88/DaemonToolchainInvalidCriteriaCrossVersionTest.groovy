@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.tooling.r88
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.util.internal.ToBeImplemented
 
 @TargetGradleVersion(">=8.8")
 class DaemonToolchainInvalidCriteriaCrossVersionTest extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
@@ -67,10 +67,15 @@ class DaemonToolchainInvalidCriteriaCrossVersionTest extends ToolingApiSpecifica
         e.cause.message.contains("Value '-1' given for toolchainVersion is an invalid Java version")
     }
 
-    @NotYetImplemented
+    @ToBeImplemented
+    @TargetGradleVersion(">=8.13")
     def "Given unexpected toolchain vendor When execute any task Then fails with expected exception message"() {
         given:
-        writeJvmCriteria("17", "unexpectedVendor")
+        def properties = new Properties()
+        properties.put("toolchainVersion", "17")
+        properties.put("toolchainVendor", "unexpectedVendor")
+        buildPropertiesFile.writeProperties(properties)
+        requireDaemons()
 
         when:
         withConnection {
@@ -78,15 +83,21 @@ class DaemonToolchainInvalidCriteriaCrossVersionTest extends ToolingApiSpecifica
         }
 
         then:
-        def e= thrown(GradleConnectionException)
-        e.cause.message.contains("Option toolchainVendor doesn't accept value 'unexpectedVendor'. Possible values are " +
-            "[ADOPTIUM, ADOPTOPENJDK, AMAZON, APPLE, AZUL, BELLSOFT, GRAAL_VM, HEWLETT_PACKARD, IBM, JETBRAINS, MICROSOFT, ORACLE, SAP, TENCENT, UNKNOWN]")
+        def e = thrown(GradleConnectionException)
+        e.cause.message.contains("Cannot find a Java installation on your machine")
+        e.cause.message.contains("vendor=vendor matching('unexpectedVendor')")
     }
 
-    @NotYetImplemented
+    @ToBeImplemented
+    @TargetGradleVersion(">=8.13")
     def "Given unexpected toolchain implementation When execute any task Then fails with expected exception message"() {
         given:
-        writeJvmCriteria("17", "amazon", "unknownImplementation")
+        def properties = new Properties()
+        properties.put("toolchainVersion", "17")
+        properties.put("toolchainVendor", "amazon")
+        properties.put("toolchainImplementation", "unknownImplementation")
+        buildPropertiesFile.writeProperties(properties)
+        requireDaemons()
 
         when:
         withConnection {
@@ -94,7 +105,8 @@ class DaemonToolchainInvalidCriteriaCrossVersionTest extends ToolingApiSpecifica
         }
 
         then:
-        def e= thrown(GradleConnectionException)
-        e.cause.message.contains("Option toolchainImplementation doesn't accept value 'unknownImplementation'. Possible values are [VENDOR_SPECIFIC, J9]")
+        def e = thrown(GradleConnectionException)
+        e.cause.message.contains("Cannot find a Java installation on your machine")
+        e.cause.message.contains("implementation=vendor-specific")
     }
 }

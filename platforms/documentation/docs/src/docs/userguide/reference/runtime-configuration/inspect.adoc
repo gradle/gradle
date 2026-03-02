@@ -45,7 +45,7 @@ In Gradle 4.3 and above, you can create a Build Scan using the `--scan` command 
 
 [source,bash]
 ----
-$ gradle build --scan
+$ ./gradlew build --scan
 ----
 
 For older Gradle versions, the
@@ -106,7 +106,7 @@ use the `--profile` command-line option:
 
 [source,bash]
 ----
-$ gradle --profile <tasks>
+$ ./gradlew --profile <tasks>
 ----
 
 Each profile report has a timestamp in its name to avoid overwriting existing ones.

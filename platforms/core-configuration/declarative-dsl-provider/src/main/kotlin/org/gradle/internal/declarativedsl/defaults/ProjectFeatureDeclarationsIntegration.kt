@@ -24,9 +24,9 @@ import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDefinitionRegistrar
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsRepository
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsResolutionResults
-import org.gradle.plugin.software.internal.ProjectFeatureImplementation
-import org.gradle.plugin.software.internal.ModelDefault
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureImplementation
+import org.gradle.features.internal.binding.ModelDefault
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 
 
 internal

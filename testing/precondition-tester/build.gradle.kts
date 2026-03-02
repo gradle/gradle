@@ -62,6 +62,13 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
+configurations.integTestImplementation {
+    extendsFrom(configurations.testImplementation)
+}
+configurations.crossVersionTestImplementation {
+    extendsFrom(configurations.testImplementation)
+}
+
 tasks {
     test {
         setupPreconditionTesting()

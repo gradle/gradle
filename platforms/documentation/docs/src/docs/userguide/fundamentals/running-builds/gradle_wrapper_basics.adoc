@@ -90,7 +90,9 @@ The following console output demonstrates the use of the wrapper on a Windows ma
 [source,bash]
 ----
 $ gradlew.bat build
-
+----
+[source,text]
+----
 include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
 

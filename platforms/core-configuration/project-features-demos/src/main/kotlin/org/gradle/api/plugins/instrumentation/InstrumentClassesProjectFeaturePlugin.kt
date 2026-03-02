@@ -21,16 +21,17 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.internal.plugins.BindsProjectFeature
-import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
-import org.gradle.api.internal.plugins.ProjectFeatureBinding
-import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefinition
+import org.gradle.features.annotations.BindsProjectFeature
+import org.gradle.features.binding.ProjectFeatureBindingBuilder
+import org.gradle.features.binding.ProjectFeatureBinding
+import org.gradle.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.api.plugins.java.HasJavaSources.JavaSources
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject
 

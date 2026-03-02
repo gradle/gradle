@@ -17,5 +17,10 @@ dependencies {
     implementation(projects.declarativeDslToolingModels)
     implementation(projects.stdlibJavaExtensions)
 
+    crossVersionTestImplementation(projects.declarativeDslCore)
+    crossVersionTestImplementation(projects.declarativeDslEvaluator)
+    crossVersionTestImplementation(projects.declarativeDslToolingModels)
+    crossVersionTestImplementation(projects.internalIntegTesting)
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
 }

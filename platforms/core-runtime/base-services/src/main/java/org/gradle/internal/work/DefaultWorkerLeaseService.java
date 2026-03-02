@@ -217,6 +217,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @Override
     public void blocking(Runnable action) {
+        blocking(Factories.toFactory(action));
+    }
+
+    @Override
+    public <T extends @Nullable Object> T blocking(Factory<T> action) {
         Registries registries = getRegistries();
         if (registries.getProjectLockRegistry().mayAttemptToChangeLocks()) {
             final Collection<? extends ResourceLock> projectLocks = registries.getProjectLockRegistry().getResourceLocksByCurrentThread();
@@ -225,13 +230,12 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
                 List<ResourceLock> locks = new ArrayList<ResourceLock>(projectLocks.size() + 1);
                 locks.addAll(projectLocks);
                 locks.addAll(workerLeaseLockRegistry.getResourceLocksByCurrentThread());
-                withoutLocks(locks, action);
-                return;
+                return withoutLocks(locks, action);
             }
         }
         // Else, release only the worker lease
         List<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
-        withoutLocks(locks, action);
+        return withoutLocks(locks, action);
     }
 
     @Override

@@ -74,10 +74,12 @@ org.gradle.console=verbose
 
 Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:clean :app:build
-
+----
+[source,text]
+----
 > Task :app:clean
 > Task :app:compileJava
 > Task :app:processResources NO-SOURCE
@@ -103,10 +105,12 @@ This was done successfully.
 
 Run the build again to view the _incremental build_ optimization in action:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:build
-
+----
+[source,text]
+----
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE

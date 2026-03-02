@@ -67,16 +67,30 @@ include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradl
 The following command executes the `test` task and `testBoth` task specified above.
 Because Gradle only configures the tasks that are required to run (i.e., the requested task and its dependencies), the `configured` task will not be configured or executed:
 
-[source.multi-language-sample,kotlin]
+====
+[.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
-> gradle test testBoth
+$ ./gradlew test testBoth
+----
+[source,text]
+----
 include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
 ----
-[source.multi-language-sample,groovy]
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
 ----
-> gradle test testBoth
+$ ./gradlew test testBoth
+----
+[source,text]
+----
 include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
 ----
+=====
+====
 
 [[sec:initialization]]
 === Phase 1. Initialization

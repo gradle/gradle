@@ -38,6 +38,7 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.messaging)
     implementation(projects.projectFeaturesApi)
+    implementation(projects.problemsApi)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
     implementation(libs.guava)

@@ -22,6 +22,15 @@ import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslToolingModelsCrossVersionTest
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
+import org.gradle.features.annotations.BindsProjectFeature
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureBinding
+import org.gradle.features.binding.ProjectFeatureBindingBuilder
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
@@ -236,13 +245,13 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-            import org.gradle.api.internal.plugins.Definition;
-            import org.gradle.api.internal.plugins.BuildModel;
+            import ${Definition.class.name};
+            import ${BuildModel.class.name};
 
             import java.util.ArrayList;
             import javax.inject.Inject;
 
-            public abstract class TestSoftwareTypeExtension implements Definition<TestSoftwareTypeExtension.Model> {
+            public abstract class TestSoftwareTypeExtension implements ${Definition.class.simpleName}<TestSoftwareTypeExtension.Model> {
                 private final Foo foo;
 
                 @Inject
@@ -279,11 +288,11 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
                     """ : ""}
                 }
 
-                public interface Feature extends Definition<BuildModel.None> {
+                public interface Feature extends ${Definition.class.simpleName}<${BuildModel.class.name}.None> {
                     abstract Property<String> getSomeFeatureProperty();
                 }
 
-                static class Model implements BuildModel { }
+                static class Model implements ${BuildModel.class.simpleName} { }
             }
         """
 
@@ -317,18 +326,18 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
-            import org.gradle.api.internal.plugins.BindsProjectType;
-            import org.gradle.api.internal.plugins.BindsProjectFeature;
-            import org.gradle.api.internal.plugins.ProjectTypeBinding;
-            import org.gradle.api.internal.plugins.ProjectFeatureBinding;
-            import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder;
-            import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder;
+            import ${BindsProjectType.class.name};
+            import ${BindsProjectFeature.class.name};
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectFeatureBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
+            import ${ProjectFeatureBindingBuilder.class.name};
 
-            @BindsProjectType(SoftwareTypeImplPlugin.TypeBinding.class)
-            @BindsProjectFeature(SoftwareTypeImplPlugin.FeatureBinding.class)
+            @${BindsProjectType.class.simpleName}(SoftwareTypeImplPlugin.TypeBinding.class)
+            @${BindsProjectFeature.class.simpleName}(SoftwareTypeImplPlugin.FeatureBinding.class)
             abstract public class SoftwareTypeImplPlugin implements Plugin<Project> {
-                static class TypeBinding implements ProjectTypeBinding {
-                    public void bind(ProjectTypeBindingBuilder builder) {
+                static class TypeBinding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                         builder.bindProjectType("testSoftwareType", TestSoftwareTypeExtension.class, (context, definition, model) -> {
                             Services services = context.getObjectFactory().newInstance(Services.class);
                             services.getProject().getTasks().register("printConfiguration", DefaultTask.class, task -> {
@@ -351,8 +360,8 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
                     }
                 }
 
-                static class FeatureBinding implements ProjectFeatureBinding {
-                    public void bind(ProjectFeatureBindingBuilder builder) {
+                static class FeatureBinding implements ${ProjectFeatureBinding.class.simpleName} {
+                    public void bind(${ProjectFeatureBindingBuilder.class.simpleName} builder) {
                         builder.bindProjectFeatureToBuildModel("feature", TestSoftwareTypeExtension.Feature.class, TestSoftwareTypeExtension.Model.class, (context, definition, model, parent) -> {
                             System.out.println("Configuring feature with property: " + definition.getSomeFeatureProperty().get());
                         });
@@ -379,14 +388,14 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
-            import org.gradle.api.internal.plugins.BindsProjectType;
-            import org.gradle.api.internal.plugins.ProjectTypeBinding;
-            import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder;
+            import ${BindsProjectType.class.name};
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
 
-            @BindsProjectType(AnotherSoftwareTypeImplPlugin.Binding.class)
+            @${BindsProjectType.class.simpleName}(AnotherSoftwareTypeImplPlugin.Binding.class)
             abstract public class AnotherSoftwareTypeImplPlugin implements Plugin<Project> {
-                static class Binding implements ProjectTypeBinding {
-                    public void bind(ProjectTypeBindingBuilder builder) {
+                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                         builder.bindProjectType("anotherSoftwareType", TestSoftwareTypeExtension.class, (context, definition, model) -> { })
                             .withUnsafeDefinition();
                     }
@@ -409,10 +418,10 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
-            import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
+            import ${RegistersProjectFeatures.class.name};
 
             @SuppressWarnings("UnstableApiUsage")
-            @RegistersSoftwareTypes({SoftwareTypeImplPlugin.class, AnotherSoftwareTypeImplPlugin.class})
+            @${RegistersProjectFeatures.class.simpleName}({SoftwareTypeImplPlugin.class, AnotherSoftwareTypeImplPlugin.class})
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) {

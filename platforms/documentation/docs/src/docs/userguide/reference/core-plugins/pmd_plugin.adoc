@@ -22,7 +22,6 @@ The PMD plugin performs quality checks on your project's Java source files using
 
 To use the PMD plugin, include the following in your build script:
 
-.Using the PMD plugin
 ====
 include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=use-pmd-plugin]"]
 include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=use-pmd-plugin]"]

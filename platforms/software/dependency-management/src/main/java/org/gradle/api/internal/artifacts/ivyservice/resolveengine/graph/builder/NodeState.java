@@ -532,8 +532,7 @@ public class NodeState implements DependencyGraphNode {
     private EdgeState createEdge(DependencyMetadata dependency) {
         Try<SubstitutionResult> trySubstitution = resolveState.getDependencySubstitutionApplicator().applySubstitutions(
             dependency.getSelector(),
-            // TODO: Ideally DependencyMetadata would already provide an ImmutableList of artifacts
-            ImmutableList.copyOf(dependency.getArtifacts())
+            dependency.getArtifacts()
         );
 
         if (!trySubstitution.isSuccessful()) {
@@ -1367,7 +1366,7 @@ public class NodeState implements DependencyGraphNode {
         }
 
         @Override
-        public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+        public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts) {
             return makeNonTransitive(dependencyMetadata.withTargetAndArtifacts(target, artifacts));
         }
 

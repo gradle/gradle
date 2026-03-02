@@ -33,6 +33,7 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 
 import java.time.Duration
@@ -100,7 +101,8 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
             Thread.sleep(1500)
             return delegateResult
         })
-        def step1 = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate1)
+        def workerLeaseService = new TestWorkerLeaseService()
+        def step1 = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, workerLeaseService, delegate1)
         def thread1 = new Thread({
             thread1Result.set(step1.execute(work, context))
         }, "test-thread-1")
@@ -111,7 +113,7 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
             delegateCalls.incrementAndGet()
             return delegateResult
         })
-        def step2 = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate2)
+        def step2 = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, workerLeaseService, delegate2)
         def thread2 = new Thread({
             work1Started.await()
             work2Started.countDown()

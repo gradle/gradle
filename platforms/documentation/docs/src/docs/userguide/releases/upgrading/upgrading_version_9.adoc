@@ -36,19 +36,87 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
-[[changes_9.4.0]]
-== Upgrading from 9.3.0 and earlier
+[[changes_9.5.0]]
+== Upgrading from 9.4.0 and earlier
 
 === Potential breaking changes
 
+==== Plugins requested by precompiled settings plugins are now resolved in the build that compiles them
+
+When a precompiled settings plugin (`*.settings.gradle.kts`) declares a plugin in a `plugins {}` block, that
+plugin request is now resolved against the dependencies of the build that compiles the plugin.
+
+Previously, if a precompiled settings plugin was never applied, it could contain an invalid plugin request
+without being detected:
+
+.buildSrc/src/main/kotlin/my-precompiled-plugin.settings.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.example.invalid.plugin") // a plugin that does not exist in the dependencies
+}
+----
+
+If such a plugin was published, the invalid request would only fail later, when the plugin was used by a
+consuming build. Gradle now validates these plugin requests during compilation and fails the build if the
+requested plugin cannot be resolved. This behavior now matches that of precompiled script plugins targeting `Project`.
+
+Avoid invalid plugin requests in unused precompiled settings plugins.
+
+==== Calling `.values()` on environment variables or system properties now tracked by Configuration Cache
+
+Gradle <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, tracks>> accesses to environment variables and system properties during configuration time to record them as inputs to the Configuration Cache, so the cache entry is invalidated when those variables change.
+
+Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` records **all** environment variables or system properties respectively as inputs to the Configuration Cache, similarly to how `.forEach()` calls are tracked in previous versions.
+If your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, you may experience more frequent Configuration Cache invalidations.
+
+==== Dependency lockfiles are generated with a platform-independent line ending
+
+Dependency lockfiles now use a platform independent line ending (`\n`) instead of the system default.
+Existing lockfiles written with Windows line endings can still be read, but new lockfiles generated will only use platform independent line endings.
+
+During the next lock update using Gradle 9.5.0 or above, if the lockfiles were previously generated with Windows line endings, all line endings will be changed, regardless of whether dependencies have changed.
+
+==== Upgrade to Kotlin 2.3.10
+
+The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.10[Kotlin 2.3.10].
+
+[[changes_9.4.0]]
+== Upgrading from 9.3.1 and earlier
+
+=== Potential breaking changes
+
+==== `ProjectBuilder` now enforces consistent build-scoped locations
+
+link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[`ProjectBuilder`] allows you to configure a specific project directory for tests.
+While `project.projectDir` and `project.rootDir` have always respected this setting, `project.layout.settingsDirectory` previously did not.
+This discrepancy could cause file resolution to inadvertently escape the project directory.
+
+Gradle now anchors the settings search directly to the configured project directory.
+This ensures that `layout.settingsDirectory`, `projectDir`, and `rootDir` all point to the same consistent location.
+Projects created via `ProjectBuilder` are now better isolated from the host build environment.
+
+If your tests specifically relied on `layout.settingsDirectory` pointing to an external location, they will need to be adjusted.
+Even if you do not use `settingsDirectory` directly, you may still observe changes in file resolution.
+Previously, dependency management files could be "leaked" into the test from the host build environment; this is no longer the case.
+
+For more details see link:https://github.com/gradle/gradle/issues/32928[the related issue].
+
 ==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
 
-The `java-gradle-plugin` now attaches the `gradleApi()` dependency to the `compileOnlyApi` scope instead of the `api` scope.
+The `gradleApi()` dependency is now added to the `compileOnlyApi` scope instead of the `api` scope.
+This prevents the `gradleApi()` from leaking into the runtime classpath of other dependents of the plugin project.
 
-For most plugin projects, this change should be transparent and without any side effects:
+This might break projects that were implicitly relying on the `gradleApi()` being on the compilation or runtime classpath.
+If this is the case, add a `gradleApi()` dependency to the appropriate scope to restore the previous behavior.
 
-- Your plugin still has full access to Gradle types (like `Project`, `Task`, etc.) during build time.
-- Gradle will no longer leak its own API as a transitive runtime dependency of your plugin.
+For most plugin projects, this change should be transparent as:
+
+- at compilation time, the plugin project will get the `gradleApi()`
+- the default test source set will also automatically get the `gradleApi()` dependency on the compilation and runtime classpaths
+
+If any additional test source set is used (e.g., integration tests), the `plugin` extension offers the `plugins.testSourceSet` method to register the source set for automatic management.
+If this cannot be done, a regular declaration of the `gradleApi()` dependency on the test source can be used as well.
 
 ==== Stricter validation for published plugins
 
@@ -184,14 +252,14 @@ plugins {
 [[deprecate_version_in_precompiled_settings_script_plugins]]
 ==== Deprecation of `version` in precompiled Settings script plugins
 
-The use of `version` within <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> is now deprecated and will become an error in Gradle 10.0.0.
+The use of `version` within <<implementing_gradle_plugins_precompiled.adoc#settings_pre_compiled_plugins, precompiled Settings script plugins>> is now deprecated and will become an error in Gradle 10.0.0.
 
-In precompiled Settings scripts, `version` has no effect.
+In precompiled scripts, `version` has no effect.
 The plugin version is already fixed by the script's own build file; declaring it again inside the script is ignored and causes confusion about which version is actually in use.
 
 To fix this, remove the `.version()` or `version "..."` call from the `plugins {}` block:
 
-.my-settings-plugin.gradle.kts
+.my-plugin.settings.gradle.kts
 [source,kotlin]
 ----
 plugins {
@@ -201,6 +269,48 @@ plugins {
     id("org.gradle.test-retry")
 }
 ----
+
+==== Deprecation of `Dependencies.getProject()` method
+
+The `getProject()` method on `Dependencies` has been deprecated and will be removed in Gradle 10.0.0.
+
+`Dependencies` is used to configure dependencies in test suites.
+Previously, `getProject()` was used by Gradle internally to reference the current project.
+While never intended for public use, it could be used unintentionally in build scripts.
+
+For example, the following configuration accidentally invokes the deprecated method because `project.path` resolves against the `Dependencies` object rather than the top-level `Project` object:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project(project.path)) // `project.path` accesses `Dependencies.getProject()`
+            }
+        }
+    }
+}
+----
+
+The configuration above may now fail to compile with an error in 9.5.0 if `-Werror` is set.
+
+To depend on the current project, use the `project()` method without arguments. 
+This syntax is the idiomatic way to reference the project in both test suites and standard `dependencies {}` blocks:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project())
+            }
+        }
+    }
+}
+----
+
 
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
@@ -875,4 +985,3 @@ Instead, you should specify these settings as <<build_environment.adoc#sec:gradl
 ----
 -Dorg.gradle.java.installations.auto-detect=false
 ----
-

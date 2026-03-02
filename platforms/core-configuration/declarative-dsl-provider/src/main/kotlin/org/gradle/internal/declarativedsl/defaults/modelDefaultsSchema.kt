@@ -34,7 +34,7 @@ import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguring
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefineModelDefaults
 import org.gradle.internal.declarativedsl.evaluator.defaults.DEFAULTS_BLOCK_NAME
 import org.gradle.internal.declarativedsl.software.projectFeaturesComponent
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 
 
 internal

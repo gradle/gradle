@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -24,7 +25,7 @@ import spock.lang.Issue
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender')
-    @ToBeFixedForConfigurationCache
+    @UnsupportedWithConfigurationCache(because = "https://github.com/nebula-plugins/nebula-dependency-recommender-plugin/issues/147")
     def 'nebula recommender plugin'() {
         when:
         buildFile << """

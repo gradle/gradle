@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.gcs.maven
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
 import org.gradle.integtests.resource.gcs.AbstractGcsDependencyResolutionTest
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsModule
 
@@ -60,11 +60,7 @@ task retrieve(type: Sync) {
         then:
         fails 'retrieve'
         and:
-        failure.assertHasDescription(
-            GradleContextualExecuter.configCache
-                ? "Configuration cache state could not be cached"
-                : "Execution failed for task ':retrieve'."
-        )
+        assertResolutionTaskFailed(":retrieve")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.gradle:test:1.85.')
             .assertHasCause("Could not get resource '${module.pom.uri}'.")
@@ -88,11 +84,7 @@ repositories {
         fails 'retrieve'
         then:
         //TODO would be good to have a reference of the wrong configured repository in the error message
-        failure.assertHasDescription(
-            GradleContextualExecuter.configCache
-                ? "Configuration cache state could not be cached"
-                : "Execution failed for task ':retrieve'."
-        )
+        assertResolutionTaskFailed(":retrieve")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
             .assertHasCause("Authentication scheme 'all'(Authentication) is not supported by protocol 'gcs'")
     }
@@ -106,11 +98,7 @@ repositories {
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription(
-            GradleContextualExecuter.configCache
-                ? "Configuration cache state could not be cached"
-                : "Execution failed for task ':retrieve'."
-        )
+        assertResolutionTaskFailed(":retrieve")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause(
             """Could not find org.gradle:test:1.85.
@@ -144,11 +132,7 @@ Required by:
         expect:
         fails 'retrieve'
         and:
-        failure.assertHasDescription(
-            GradleContextualExecuter.configCache
-                ? "Configuration cache state could not be cached"
-                : "Execution failed for task ':retrieve'."
-        )
+        assertResolutionTaskFailed(":retrieve")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'gcs'")
     }

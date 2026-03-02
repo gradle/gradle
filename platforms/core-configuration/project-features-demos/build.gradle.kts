@@ -42,7 +42,6 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
-    implementation(projects.projectFeatures)
 
     implementation(libs.commonsLang)
 

@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getProjectFeatureDeclarations()",
+            "acceptation": "Removing unused internal service getter",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }

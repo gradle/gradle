@@ -332,7 +332,7 @@ For more information on the configuration cache, see the [user manual](https://d
 
 ### Remote build cache
 
-Gradle, Inc runs a set of remote build cache nodes to speed up local builds when developing Gradle. By default, the build is [configured](https://github.com/gradle/gradle-org-conventions-plugin#what-it-does) to use the build cache node in the EU region.
+Gradle Technologies runs a set of remote build cache nodes to speed up local builds when developing Gradle. By default, the build is [configured](https://github.com/gradle/gradle-org-conventions-plugin#what-it-does) to use the build cache node in the EU region.
 
 The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can use a different build cache node by specifying `-Ddevelocity.edge.discovery=false -DcacheNode=us` for a build cache node in the US or `-Ddevelocity.edge.discovery=false -DcacheNode=au` for a build cache node in Australia.
 

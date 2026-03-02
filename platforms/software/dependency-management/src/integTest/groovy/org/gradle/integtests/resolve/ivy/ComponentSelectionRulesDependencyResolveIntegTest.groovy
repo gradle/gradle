@@ -17,10 +17,8 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Assume
 import spock.lang.Issue
-
 
 class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
     boolean isWellBehaved(boolean mavenCompatible, boolean gradleCompatible = true) {
@@ -116,7 +114,6 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         chosenModule
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible)
@@ -136,8 +133,9 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
             }
 
             task checkLenient {
+                def avArtifacts = configurations.conf.getIncoming().artifactView { lenient = true }.artifacts
                 doLast {
-                    def artifacts = configurations.conf.getIncoming().artifactView { lenient = true }.artifacts.artifacts
+                    def artifacts = avArtifacts.artifacts
                     assert artifacts.size() == 0
                     assert candidates == ${candidates}
                 }
@@ -255,7 +253,6 @@ Required by:
 """)
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "uses '#rule' rule to reject candidate for static version #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
@@ -274,8 +271,9 @@ Required by:
             }
 
             task checkLenient {
+                def avArtifacts = configurations.conf.getIncoming().artifactView { lenient = true }.artifacts
                 doLast {
-                    def artifacts = configurations.conf.getIncoming().artifactView { lenient = true }.artifacts.artifacts
+                    def artifacts = avArtifacts.artifacts
                     assert artifacts.size() == 0
                     assert candidates == ${candidates}
                 }
@@ -372,7 +370,6 @@ Required by:
         selector << ["1.1", "1.+"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can control selection of components by module rule #rule for #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
@@ -398,11 +395,14 @@ Required by:
                 }
             }
 
-            tasks.checkDeps.doLast {
-                def artifacts = configurations.conf.incoming.artifacts.artifacts
-                assert artifacts.size() == 2
-                assert artifacts[0].id.componentIdentifier.version == '${chosen}'
-                assert candidates == ${candidates}
+            tasks.checkDeps {
+                def artifactCollection = configurations.conf.incoming.artifacts
+                doLast {
+                    def artifacts = artifactCollection.artifacts
+                    assert artifacts.size() == 2
+                    assert artifacts[0].id.componentIdentifier.version == '${chosen}'
+                    assert candidates == ${candidates}
+                }
             }
         """
 

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.settings
 
-import groovy.test.NotYetImplemented
+import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
@@ -355,7 +355,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Neither the foo() method is available in Groovy, nor can the x or y values remain undefined")
     def "can configure defaults for named domain object container elements"() {
         given:
-        withProjectTypeWithNdoc().prepareToExecute()
+        withProjectTypeWithNdoc(false).prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaultsForNdoc()
 
@@ -372,7 +372,6 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         outputContains("Foo(name = two, x = 2, y = 22)")
     }
 
-    @NotYetImplemented
     def "can configure build-level defaults in a settings plugin"() {
         given:
         withSettingsPluginThatConfiguresModelDefaults().prepareToExecute()
@@ -386,7 +385,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
 
         then:
         outputContains("definition id = test")
-        outputContains("definition foo.bar = plugin")
+        outputContains("definition foo.bar = settings")
     }
 
     private static String[] expected(Map<String, String> expectations) {

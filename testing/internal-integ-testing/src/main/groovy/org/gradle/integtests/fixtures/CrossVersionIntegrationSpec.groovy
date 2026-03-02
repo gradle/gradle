@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -96,6 +97,12 @@ abstract class CrossVersionIntegrationSpec extends Specification {
         if (gradleUserHomeDir) {
             executer.withGradleUserHomeDir(gradleUserHomeDir)
         }
+
+        if (!dist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
+            Jvm jvm = AvailableJavaHomes.getAvailableJdk { dist.daemonWorksWith(it.javaMajorVersion) }
+            executer.withJavaHome(jvm.javaHome.absolutePath)
+        }
+
         executer.inDirectory(testDirectory)
         executers << executer
         return executer

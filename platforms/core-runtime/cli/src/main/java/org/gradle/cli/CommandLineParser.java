@@ -225,7 +225,7 @@ public class CommandLineParser {
         }
 
         final String delimiterKey = "--";
-        final String delimiterValue = "Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.";
+        final String delimiterValue = "Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.";
 
         int max = 0;
         for (Map<String, String> section : grouped.values()) {

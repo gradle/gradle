@@ -110,6 +110,7 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
 
     private List<String> expectedDeprecations = []
     private boolean stackTraceChecksOn = true
+    private boolean checkJdkWarnings = true
 
     private ExecutionResult result
     private ExecutionFailure failure
@@ -491,6 +492,7 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
         stderr.reset()
         expectedDeprecations.clear()
         stackTraceChecksOn = true
+        checkJdkWarnings = true
     }
 
     def shouldCheckForDeprecationWarnings() {
@@ -536,7 +538,7 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
             Collections.emptyList(),
             !stackTraceChecksOn,
             shouldCheckForDeprecationWarnings(),
-            true
+            checkJdkWarnings
         ).execute(result)
     }
 
@@ -550,6 +552,10 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
 
     boolean withStackTraceChecksDisabled() {
         stackTraceChecksOn = false
+    }
+
+    boolean withJdkWarningsCheckDisabled() {
+        checkJdkWarnings = false
     }
 
     void expectDocumentedDeprecationWarning(String message) {

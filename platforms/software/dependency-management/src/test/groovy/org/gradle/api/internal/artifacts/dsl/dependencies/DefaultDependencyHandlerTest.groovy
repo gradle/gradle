@@ -225,6 +225,19 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createProjectDependencyFromMap(projectFinder, [:]) >> projectDependency
     }
 
+    void "creates a project dependency on the current project"() {
+        ProjectDependency projectDependency = Mock()
+
+        when:
+        def result = dependencyHandler.project()
+
+        then:
+        result == projectDependency
+
+        and:
+        1 * dependencyFactory.createProjectDependency() >> projectDependency
+    }
+
     void "cannot create project dependency for configuration from same project"() {
         Configuration other = Mock()
 
