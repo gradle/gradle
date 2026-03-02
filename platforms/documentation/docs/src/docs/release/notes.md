@@ -93,14 +93,16 @@ plugins {
 
 ### Domain Object Collections can be made immutable
 
-You can now make domain object collections immutable with `disallowChanges()` and you can check on the mutability of a collection with `areChangesAllowed()`.  This allows plugin and build authors to ensure that the contents of a collection are now final and cannot be further modified.  
-Note that this does not prevent modifications to the individual elements, only that elements cannot be added or removed once this call is invoked.  
-Note also that this does not realize any lazy items previously added to the collection.  
-These will still be realized only when the collection is accessed.
+Plugin and build authors can now lock domain object collections to prevent further modifications using the new `disallowChanges()` method. 
+You can also verify the status of a collection using `areChangesAllowed()`.
+- Once `disallowChanges()` is called, elements can no longer be added to or removed from the collection.
+- Invoking this method does not force the realization of lazy items previously added to the collection. 
+- This lock applies only to the collection itself. Individual objects within the collection can still be modified.
 
 ```kotlin
 val myCollection = objects.domainObjectContainer(MyType::class)
 val main = MyType("main")
+
 myCollection.areChangesAllowed()  // returns true
 myCollection.add(main)
 myCollection.add(MyType("test"))
