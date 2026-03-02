@@ -68,8 +68,10 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import javax.inject.Inject;
@@ -392,7 +394,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             boolean requiresServicesMethod = (extensible || serviceInjection) && !providesOwnServicesImplementation;
             boolean requiresToString = !providesOwnToStringImplementation;
             ClassBuilderImpl builder = new ClassBuilderImpl(
-                new AsmClassGenerator(type, suffix),
+                new AsmClassGenerator(type, suffix, ClassWriter.COMPUTE_MAXS),
                 decorate,
                 factoryId,
                 extensible,
@@ -795,7 +797,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _INVOKEVIRTUAL(generatedType, "getAsDynamicObject", RETURN_DYNAMIC_OBJECT);
                 _CHECKCAST(EXTENSIBLE_DYNAMIC_OBJECT_TYPE);
                 _INVOKEVIRTUAL(EXTENSIBLE_DYNAMIC_OBJECT_TYPE, "getExtensions", RETURN_EXTENSION_CONTAINER);
-                _ARETURN();
             }});
         }
 
@@ -987,6 +988,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _PUTFIELD(generatedType, fieldName, fieldType);
                 // return var
                 visitLabel(returnValue);
+                _F_APPEND(fieldType.getInternalName());
                 emit(epilogue);
                 _ALOAD(1);
             }});
@@ -1063,6 +1065,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // new Object[] { args }
                 visitLabel(notArray);
+                _F_FULL(
+                    new Object[]{generatedType.getInternalName(), STRING_TYPE.getInternalName(), OBJECT_TYPE.getInternalName()},
+                    new Object[]{DYNAMIC_OBJECT_TYPE.getInternalName(), STRING_TYPE.getInternalName()}
+                );
                 _ICONST_1();
                 _ANEWARRAY(OBJECT_TYPE);
                 _DUP();
@@ -1071,6 +1077,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _AASTORE();
 
                 visitLabel(end);
+                _F_FULL(
+                    new Object[]{generatedType.getInternalName(), STRING_TYPE.getInternalName(), OBJECT_TYPE.getInternalName()},
+                    new Object[]{DYNAMIC_OBJECT_TYPE.getInternalName(), STRING_TYPE.getInternalName(), OBJECT_ARRAY_TYPE.getInternalName()}
+                );
 
                 _INVOKEINTERFACE(DYNAMIC_OBJECT_TYPE, "invokeMethod", getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_ARRAY_TYPE));
             }});
@@ -1346,6 +1356,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _LDC(true);
                     _IRETURN_OF(BOOLEAN_TYPE);
                     visitLabel(label);
+                    _F_SAME();
                     _LDC(false);
                     _IRETURN_OF(BOOLEAN_TYPE);
                 } else {
@@ -1377,6 +1388,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _IFNULL(useNull);
                     _INVOKEINTERFACE(MODEL_OBJECT_TYPE, "getTaskThatOwnsThisObject", getMethodDescriptor(getType(Task.class)));
                     visitLabel(useNull);
+                    _F_SAME1(OBJECT_TYPE.getInternalName());
                 }
                 _ARETURN();
             }});
@@ -1516,6 +1528,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                         _INVOKESPECIAL(superclassType, getterName, methodDescriptor, type.isInterface());
                         _GOTO(finish);
                         visitLabel(useConvention);
+                        _F_SAME();
                     }
                     // else { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__);  }
                     _ALOAD(0);
@@ -1533,6 +1546,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _UNBOX(returnType);
 
                     visitLabel(finish);
+                    if (hasMappingField) {
+                        _F_SAME1(toFrameType(returnType));
+                    }
                 } else {
                     // GENERATE super.<getter>()
                     _ALOAD(0);
@@ -1692,6 +1708,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // Generate: if (...) { return ... }
                 visitLabel(label1);
+                _F_SAME1(DESCRIBABLE_TYPE.getInternalName());
                 _ALOAD(0);
                 _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME, RETURN_DESCRIBABLE);
                 _DUP();
@@ -1702,6 +1719,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // Generate: return super.toString()
                 visitLabel(label2);
+                _F_FULL(
+                    new Object[]{generatedType.getInternalName()},
+                    new Object[]{DESCRIBABLE_TYPE.getInternalName(), generatedType.getInternalName(), DESCRIBABLE_TYPE.getInternalName()}
+                );
                 _ALOAD(0);
                 _INVOKESPECIAL(OBJECT_TYPE, "toString", RETURN_STRING);
                 _ARETURN();
@@ -1863,9 +1884,29 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _IFNULL(label);
                 _ARETURN();
                 visitLabel(label);
+                _F_SAME1(fieldType.getInternalName());
                 _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, runtimeGetterName, getterDescriptor);
                 _ARETURN();
             }});
+        }
+
+        private static Object toFrameType(Type type) {
+            switch (type.getSort()) {
+                case Type.BOOLEAN:
+                case Type.BYTE:
+                case Type.CHAR:
+                case Type.SHORT:
+                case Type.INT:
+                    return Opcodes.INTEGER;
+                case Type.LONG:
+                    return Opcodes.LONG;
+                case Type.FLOAT:
+                    return Opcodes.FLOAT;
+                case Type.DOUBLE:
+                    return Opcodes.DOUBLE;
+                default:
+                    return type.getInternalName();
+            }
         }
 
         private final static class ReturnTypeEntry {

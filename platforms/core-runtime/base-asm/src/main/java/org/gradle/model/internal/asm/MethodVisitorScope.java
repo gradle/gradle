@@ -35,7 +35,10 @@ import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.F_APPEND;
+import static org.objectweb.asm.Opcodes.F_FULL;
 import static org.objectweb.asm.Opcodes.F_SAME;
+import static org.objectweb.asm.Opcodes.F_SAME1;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.GOTO;
@@ -154,6 +157,27 @@ public class MethodVisitorScope extends MethodVisitor {
      */
     public void _F_SAME() {
         super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);
+    }
+
+    /**
+     * @see org.objectweb.asm.Opcodes#F_SAME1
+     */
+    public void _F_SAME1(Object stackType) {
+        super.visitFrame(F_SAME1, 0, new Object[0], 1, new Object[]{stackType});
+    }
+
+    /**
+     * @see org.objectweb.asm.Opcodes#F_FULL
+     */
+    public void _F_FULL(Object[] locals, Object[] stack) {
+        super.visitFrame(F_FULL, locals.length, locals, stack.length, stack);
+    }
+
+    /**
+     * @see org.objectweb.asm.Opcodes#F_APPEND
+     */
+    public void _F_APPEND(Object... additionalLocals) {
+        super.visitFrame(F_APPEND, additionalLocals.length, additionalLocals, 0, new Object[0]);
     }
 
     public void _INVOKESPECIAL(Type owner, String name, String descriptor) {
