@@ -31,8 +31,12 @@ public class AsmClassGenerator {
     private final Class<?> targetType;
 
     public AsmClassGenerator(Class<?> targetType, String classNameSuffix) {
+        this(targetType, classNameSuffix, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+    }
+
+    public AsmClassGenerator(Class<?> targetType, String classNameSuffix, int classWriterFlags) {
         this.targetType = targetType;
-        visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+        visitor = new ClassWriter(classWriterFlags);
         generatedTypeName = targetType.getName() + classNameSuffix;
         generatedType = Type.getType("L" + DOT_PATTERN.matcher(generatedTypeName).replaceAll("/") + ";");
     }
