@@ -33,9 +33,26 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.WeakHashMap;
 
 public class JavaPropertyReflectionUtil {
+    private static final ClassValue<ConcurrentMap<String, Method>> GETTER_CACHE = new ClassValue<ConcurrentMap<String, Method>>() {
+        @Override
+        protected ConcurrentMap<String, Method> computeValue(Class<?> type) {
+            return new ConcurrentHashMap<>();
+        }
+    };
+    private static final Method NULL_METHOD;
+    static {
+        try {
+            NULL_METHOD = JavaPropertyReflectionUtil.class.getDeclaredMethod("findGetterMethod", Class.class, String.class);
+        } catch (java.lang.NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     private static final WeakHashMap<Class<?>, Set<String>> PROPERTY_CACHE = new WeakHashMap<Class<?>, Set<String>>();
 
@@ -65,19 +82,29 @@ public class JavaPropertyReflectionUtil {
 
     @Nullable
     public static Method findGetterMethod(Class<?> target, String property) {
+        ConcurrentMap<String, Method> classCache = GETTER_CACHE.get(target);
+        Method method = classCache.get(property);
+        if (method != null) {
+            return NULL_METHOD.equals(method) ? null : method;
+        }
+
+        Method found = null;
         Method[] methods = target.getMethods();
         String getter = toMethodName("get", property);
         String iser = toMethodName("is", property);
-        for (Method method : methods) {
-            String methodName = method.getName();
-            if (getter.equals(methodName) && PropertyAccessorType.of(method) == PropertyAccessorType.GET_GETTER) {
-                return method;
+        for (Method m : methods) {
+            String methodName = m.getName();
+            if (getter.equals(methodName) && PropertyAccessorType.of(m) == PropertyAccessorType.GET_GETTER) {
+                found = m;
+                break;
             }
-            if (iser.equals(methodName) && PropertyAccessorType.of(method) == PropertyAccessorType.IS_GETTER) {
-                return method;
+            if (iser.equals(methodName) && PropertyAccessorType.of(m) == PropertyAccessorType.IS_GETTER) {
+                found = m;
+                break;
             }
         }
-        return null;
+        classCache.put(property, found == null ? NULL_METHOD : found);
+        return found;
     }
 
     /**

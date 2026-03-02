@@ -525,10 +525,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private class GeneratedConstructorImpl implements GeneratedConstructor<Object> {
             private final Constructor<?> constructor;
             private final InstantiationStrategy strategy;
+            private final Class<?>[] parameterTypes;
 
             public GeneratedConstructorImpl(Constructor<?> constructor) {
                 this.constructor = constructor;
                 this.strategy = createUsingConstructor(constructor);
+                this.parameterTypes = constructor.getParameterTypes();
             }
 
             @Override
@@ -538,7 +540,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
             @Override
             public boolean requiresService(Class<?> serviceType) {
-                for (Class<?> parameterType : constructor.getParameterTypes()) {
+                for (Class<?> parameterType : parameterTypes) {
                     if (parameterType.isAssignableFrom(serviceType)) {
                         return true;
                     }
@@ -558,7 +560,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
             @Override
             public Class<?>[] getParameterTypes() {
-                return constructor.getParameterTypes();
+                return parameterTypes;
             }
 
             @Override

@@ -158,8 +158,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
     @SuppressWarnings("unused")
     public static ManagedObjectFactory getFactoryForNext() {
-        ObjectCreationDetails details = getDetails();
-        return new ManagedObjectFactory(details.services, details.instantiator, details.roleHandler);
+        return getDetails().factory;
     }
 
     @NonNull
@@ -1964,17 +1963,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     private static class ObjectCreationDetails {
-        final InstanceGenerator instantiator;
         final ServiceLookup services;
         @Nullable
         final Describable displayName;
-        PropertyRoleAnnotationHandler roleHandler;
+        final ManagedObjectFactory factory;
 
         ObjectCreationDetails(InstanceGenerator instantiator, ServiceLookup services, @Nullable Describable displayName, PropertyRoleAnnotationHandler roleHandler) {
-            this.instantiator = instantiator;
             this.services = services;
             this.displayName = displayName;
-            this.roleHandler = roleHandler;
+            this.factory = new ManagedObjectFactory(services, instantiator, roleHandler);
         }
     }
 

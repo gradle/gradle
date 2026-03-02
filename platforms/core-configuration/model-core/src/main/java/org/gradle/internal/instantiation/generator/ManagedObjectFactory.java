@@ -84,21 +84,13 @@ public class ManagedObjectFactory {
     private static ManagedPropertyName displayNameFor(ModelObject owner, String propertyName) {
         if (owner.getModelIdentityDisplayName() instanceof ManagedPropertyName) {
             ManagedPropertyName root = (ManagedPropertyName) owner.getModelIdentityDisplayName();
-            return new ManagedPropertyName(root.ownerDisplayName, root.propertyName + "." + propertyName);
+            return new ManagedPropertyName(root.owner, root.propertyName + "." + propertyName);
         } else {
-            return new ManagedPropertyName(cachedOwnerDisplayNameOf(owner), propertyName);
+            return new ManagedPropertyName(owner, propertyName);
         }
     }
 
-    private static Cached<String> cachedOwnerDisplayNameOf(ModelObject owner) {
-        return Cached.of(() -> {
-            Describable ownerModelIdentityDisplayName = owner.getModelIdentityDisplayName();
-            if (ownerModelIdentityDisplayName != null) {
-                return ownerModelIdentityDisplayName.getDisplayName();
-            }
-            return null;
-        });
-    }
+
 
     private ManagedObjectRegistry getManagedObjectRegistry() {
         ManagedObjectRegistry managedObjectRegistry = (ManagedObjectRegistry) serviceLookup.find(ManagedObjectRegistry.class);
@@ -109,11 +101,11 @@ public class ManagedObjectFactory {
     }
 
     private static class ManagedPropertyName implements DisplayName {
-        private final Cached<String> ownerDisplayName;
+        private final ModelObject owner;
         private final String propertyName;
 
-        public ManagedPropertyName(Cached<String> ownerDisplayName, String propertyName) {
-            this.ownerDisplayName = ownerDisplayName;
+        public ManagedPropertyName(ModelObject owner, String propertyName) {
+            this.owner = owner;
             this.propertyName = propertyName;
         }
 
@@ -129,8 +121,9 @@ public class ManagedObjectFactory {
 
         @Override
         public String getDisplayName() {
-            if (ownerDisplayName.get() != null) {
-                return ownerDisplayName.get() + " property '" + propertyName + "'";
+            Describable ownerModelIdentityDisplayName = owner.getModelIdentityDisplayName();
+            if (ownerModelIdentityDisplayName != null) {
+                return ownerModelIdentityDisplayName.getDisplayName() + " property '" + propertyName + "'";
             } else {
                 return "property '" + propertyName + "'";
             }
