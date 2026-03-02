@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.TextUtil
+import org.jspecify.annotations.Nullable
 import org.junit.Assume
 
 import static org.gradle.tooling.internal.consumer.DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION
@@ -36,7 +38,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         }
     }
 
-    def createProject(Jvm daemonJvm, String targetGradleVersion, String action) {
+    def createProject(Jvm daemonJvm, @Nullable String targetGradleVersion, String action) {
         buildFile << """
             plugins {
                 id("java-library")
@@ -93,13 +95,13 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             public class ToolingApiCompatibilityClient {
                 public static void main(String[] args) {
                     try {
-                        doRun();
+                        new ToolingApiCompatibilityClient().doRun();
                         System.exit(0);
                     } catch (org.gradle.tooling.GradleConnectionException e) {
                         // Earlier versions of Gradle can sometimes fail to connect to the just started Gradle daemon.
                         // The failure will be the "tried to connect to 100 daemons" error
                         // If we're testing against a version that has this problem, we can ignore it.
-                        boolean allowUnusable = ${GradleVersion.version(targetGradleVersion) < GradleVersion.version("6.0")};
+                        boolean allowUnusable = ${targetGradleVersion != null && GradleVersion.version(targetGradleVersion) < GradleVersion.version("6.0")};
                         if (allowUnusable && e.getCause() != null && e.getCause().getClass().getSimpleName().equals("NoUsableDaemonFoundException")) {
                             System.out.println("Daemon registry is in a bad state and we cannot connect to the daemon.");
                             System.exit(0);
@@ -113,9 +115,13 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                     }
                 }
 
-                private static void doRun() throws Exception {
+                private void doRun() throws Exception {
                     GradleConnector connector = GradleConnector.newConnector();
-                    connector.useGradleVersion("${targetGradleVersion}");
+                    if (${targetGradleVersion != null}) {
+                        connector.useGradleVersion("${targetGradleVersion}");
+                    } else {
+                        connector.useInstallation(new File("${TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)}"));
+                    }
 
                     ProjectConnection connection = null;
                     ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -253,5 +259,78 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                 .run();
             assert result.contains("Build action result");
         """
+    }
+
+    def "can fetch tooling models on client JDK from current Gradle"() {
+        given:
+        testProject.file("settings.gradle") << """
+            println('Hello from ' + gradle.gradleVersion + ' on ' + JavaVersion.current().majorVersion)
+        """
+        createProject(Jvm.current(), null, """
+            Class<?> modelClass;
+            if (${withSideloadedModel}) {
+                String modelUrl = System.getProperty("sideloadedClass");
+                ClassLoader cl = new java.net.URLClassLoader(new java.net.URL[]{ new java.net.URL(modelUrl) }, getClass().getClassLoader());
+                modelClass = cl.loadClass("${model}");
+            } else {
+                modelClass = getClass().getClassLoader().loadClass("${model}");
+            }
+
+            Object model = connection.model(modelClass)
+                .setStandardOutput(out)
+                .setStandardError(err)
+                .setJavaHome(javaHome)
+                .get();
+
+            if (${executesScripts}) {
+                assert out.toString().contains("Hello from ${GradleVersion.current().version} on ${clientJdkVersion.majorVersion}");
+            }
+        """)
+        if (withGradleApi) {
+            buildFile << """
+                dependencies {
+                    implementation(gradleApi())
+                }
+            """
+        }
+        if (withSideloadedModel) {
+            buildFile << """
+                Class<?> clazz = ${model}.class
+                URL location = clazz.protectionDomain.codeSource.location
+                tasks.run {
+                    systemProperties(["sideloadedClass": location.toString()])
+                }
+            """
+        }
+
+        when:
+        withInstallations(AvailableJavaHomes.getAvailableJvms())
+        succeeds("run")
+
+        then:
+        output.contains("BUILD SUCCESSFUL")
+
+        where:
+        model                                                                 | executesScripts | withGradleApi | withSideloadedModel
+        "org.gradle.tooling.model.GradleProject"                              | true            | false         | false
+        "org.gradle.tooling.model.build.BuildEnvironment"                     | false           | false         | false
+        "org.gradle.tooling.model.build.Help"                                 | false           | false         | false
+        "org.gradle.tooling.model.cpp.CppProject"                             | true            | false         | false
+        "org.gradle.tooling.model.dsl.GradleDslBaseScriptModel"               | false           | false         | false
+        "org.gradle.tooling.model.eclipse.EclipseProject"                     | true            | false         | false
+        "org.gradle.tooling.model.eclipse.HierarchicalEclipseProject"         | true            | false         | false
+        "org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies"  | true            | false         | false
+        "org.gradle.tooling.model.eclipse.RunEclipseAutoBuildTasks"           | true            | false         | false
+        "org.gradle.tooling.model.eclipse.RunEclipseSynchronizationTasks"     | true            | false         | false
+        "org.gradle.tooling.model.gradle.BuildInvocations"                    | true            | false         | false
+        "org.gradle.tooling.model.gradle.GradleBuild"                         | true            | false         | false
+        "org.gradle.tooling.model.gradle.ProjectPublications"                 | true            | false         | false
+        "org.gradle.tooling.model.idea.BasicIdeaProject"                      | true            | false         | false
+        "org.gradle.tooling.model.idea.IdeaProject"                           | true            | false         | false
+        "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"           | true            | false         | false
+        // These models are not available by default in the tooling API jar but are still technically public API
+        "org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel"    | true            | true          | false
+        "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel"         | true            | false         | true
+        "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel" | false           | false         | true
     }
 }
