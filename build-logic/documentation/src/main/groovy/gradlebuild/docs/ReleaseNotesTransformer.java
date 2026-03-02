@@ -153,10 +153,10 @@ public class ReleaseNotesTransformer extends FilterReader {
 
         head.appendElement("link")
             .attr("rel", "stylesheet")
-            .attr("href", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css");
+            .attr("href", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css");
 
         head.appendElement("script")
-            .attr("src", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js");
+            .attr("src", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js");
 
         head.appendElement("script")
             .append("hljs.highlightAll();");
