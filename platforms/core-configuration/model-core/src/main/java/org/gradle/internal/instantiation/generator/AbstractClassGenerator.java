@@ -269,8 +269,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         for (Method method : classDetails.getAllMethods()) {
+            PropertyAccessorType accessorType = classDetails.getAccessorType(method);
             for (ClassValidator validator : validators) {
-                validator.validateMethod(method, PropertyAccessorType.of(method));
+                validator.validateMethod(method, accessorType);
             }
         }
 
@@ -650,16 +651,19 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected static class PropertyMetadata {
         private final String name;
-        private final List<MethodMetadata> getters = new ArrayList<>();
-        private final List<MethodMetadata> overridableGetters = new ArrayList<>();
-        private final List<Method> overridableSetters = new ArrayList<>();
-        private final List<Method> setters = new ArrayList<>();
-        private final List<Method> setMethods = new ArrayList<>();
+        private final String fieldName;
+        private final List<MethodMetadata> getters = new ArrayList<>(2);
+        private final List<MethodMetadata> overridableGetters = new ArrayList<>(2);
+        private final List<Method> overridableSetters = new ArrayList<>(1);
+        private final List<Method> setters = new ArrayList<>(1);
+        private final List<Method> setMethods = new ArrayList<>(1);
         private MethodMetadata mainGetter;
         private Field backingField;
+        private byte readableWithoutSetterOfPropertyType; // 0 = not computed, 1 = true, 2 = false
 
         private PropertyMetadata(String name) {
             this.name = name;
+            this.fieldName = "__" + name + "__";
         }
 
         @Override
@@ -671,12 +675,30 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return name;
         }
 
+        public String getFieldName() {
+            return fieldName;
+        }
+
         public boolean isReadOnly() {
             return isReadable() && !isWritable();
         }
 
         public boolean isReadableWithoutSetterOfPropertyType() {
-            return isReadable() && setters.stream().noneMatch(method -> method.getParameterTypes()[0].equals(getType()));
+            if (readableWithoutSetterOfPropertyType == 0) {
+                boolean result = isReadable() && !hasSetterOfPropertyType();
+                readableWithoutSetterOfPropertyType = result ? (byte) 1 : (byte) 2;
+            }
+            return readableWithoutSetterOfPropertyType == 1;
+        }
+
+        private boolean hasSetterOfPropertyType() {
+            Class<?> propertyType = getType();
+            for (Method method : setters) {
+                if (method.getParameterTypes()[0].equals(propertyType)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public boolean isReadable() {

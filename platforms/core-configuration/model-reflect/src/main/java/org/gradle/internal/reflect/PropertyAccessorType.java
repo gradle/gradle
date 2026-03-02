@@ -145,7 +145,7 @@ public enum PropertyAccessorType {
     }
 
     public static boolean takesNoParameter(Method method) {
-        return method.getParameterTypes().length == 0;
+        return method.getParameterCount() == 0;
     }
 
     public static boolean takesSingleParameter(Method method) {
