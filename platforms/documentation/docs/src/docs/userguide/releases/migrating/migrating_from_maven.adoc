@@ -193,9 +193,9 @@ This will run the tests and produce the required artifacts automatically.
 
 If you are behind a corporate firewall and cannot access Maven Central directly, you can specify a custom Maven repository URL during the conversion process using the `--maven-repo` option:
 
-[listing.terminal]
+[source,bash]
 ----
-> gradle init --maven-repo https://your-corporate-repo.company.com/maven2
+$ gradle init --maven-repo https://your-corporate-repo.company.com/maven2
 ----
 
 This will configure Gradle to use your custom repository for resolving Maven dependencies during the conversion process.
