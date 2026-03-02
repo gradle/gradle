@@ -358,6 +358,19 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         }
 
         @Override
+        public void handleChanges(List<FileWatcherRegistry.FileChange> changes) {
+            List<FileWatcherRegistry.FileChange> filtered = new ArrayList<>();
+            for (FileWatcherRegistry.FileChange change : changes) {
+                if (locationsWrittenByCurrentBuild.shouldWatchLocation(change.getPath().toString())) {
+                    filtered.add(change);
+                }
+            }
+            if (!filtered.isEmpty()) {
+                delegate.handleChanges(filtered);
+            }
+        }
+
+        @Override
         public void stopWatchingAfterError() {
             delegate.stopWatchingAfterError();
         }
@@ -369,6 +382,20 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             updateWatchedRootUnderLock(root -> updateNotifyingListeners(
                 diffListener -> root.invalidate(path.toString(), new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
             ));
+        }
+
+        @Override
+        public void handleChanges(List<FileWatcherRegistry.FileChange> changes) {
+            updateWatchedRootUnderLock(root -> {
+                SnapshotHierarchy result = root;
+                for (FileWatcherRegistry.FileChange change : changes) {
+                    SnapshotHierarchy previous = result;
+                    result = updateNotifyingListeners(diffListener -> previous.invalidate(
+                        change.getPath().toString(), new VfsChangeLoggingNodeDiffListener(change.getType(), change.getPath(), diffListener)
+                    ));
+                }
+                return result;
+            });
         }
 
         @Override
@@ -399,6 +426,11 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         @Override
         public void handleChange(FileWatcherRegistry.Type type, Path path) {
             handlers.forEach(handler -> handler.handleChange(type, path));
+        }
+
+        @Override
+        public void handleChanges(List<FileWatcherRegistry.FileChange> changes) {
+            handlers.forEach(handler -> handler.handleChanges(changes));
         }
 
         @Override
