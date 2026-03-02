@@ -119,6 +119,23 @@ public class InstantiationBenchmark {
         bh.consume(injectOnlyInstantiator.newInstance(ObjectWithConstructorArg.class, "hello"));
     }
 
+    // --- Direct constructor call baselines ---
+
+    @Benchmark
+    public void directPlainObject(Blackhole bh) {
+        bh.consume(new PlainObject());
+    }
+
+    @Benchmark
+    public void directObjectWithConstructorArg(Blackhole bh) {
+        bh.consume(new ObjectWithConstructorArg("hello"));
+    }
+
+    @Benchmark
+    public void directMultipleConstructorArgs(Blackhole bh) {
+        bh.consume(new ObjectWithMultipleArgs("hello", 42));
+    }
+
     // --- Test types ---
 
     public static class PlainObject {
