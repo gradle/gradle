@@ -178,7 +178,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
-    private final Property<JavaLauncher> javaLauncher;
 
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
@@ -204,8 +203,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
-        javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
-        javaLauncher.finalizeValueOnRead();
+        getJavaLauncher().convention(createJavaLauncherConvention());
+        getJavaLauncher().finalizeValueOnRead();
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
@@ -1322,9 +1321,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 6.7
      */
     @Nested
-    public Property<JavaLauncher> getJavaLauncher() {
-        return javaLauncher;
-    }
+    public abstract Property<JavaLauncher> getJavaLauncher();
 
     @Override
     boolean testsAreNotFiltered() {

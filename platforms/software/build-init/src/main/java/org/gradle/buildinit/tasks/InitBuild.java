@@ -90,14 +90,10 @@ public abstract class InitBuild extends DefaultTask {
     private static final int DEFAULT_JAVA_VERSION = 21;
 
     private String type;
-    private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
-    private final Property<Boolean> useIncubatingAPIs = getProject().getObjects().property(Boolean.class);
     private String testFramework;
     private String projectName;
     private String packageName;
-    private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
-    private final Property<String> javaVersion = getProject().getObjects().property(String.class);
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
@@ -158,9 +154,7 @@ public abstract class InitBuild extends DefaultTask {
     @Input
     @Optional
     @Option(option = "split-project", description = "Split functionality across multiple subprojects?")
-    public Property<Boolean> getSplitProject() {
-        return splitProject;
-    }
+    public abstract Property<Boolean> getSplitProject();
 
     /**
      * The desired DSL of build scripts to create, defaults to 'kotlin'.
@@ -190,9 +184,7 @@ public abstract class InitBuild extends DefaultTask {
     @Input
     @Optional
     @Option(option = "incubating", description = "Allow the generated build to use new features and APIs.")
-    public Property<Boolean> getUseIncubating() {
-        return useIncubatingAPIs;
-    }
+    public abstract Property<Boolean> getUseIncubating();
 
     /**
      * Java version to be used by generated Java projects.
@@ -208,9 +200,7 @@ public abstract class InitBuild extends DefaultTask {
     @Optional
     @Incubating
     @Option(option = "java-version", description = "Provides java version to use in the project.")
-    public Property<String> getJavaVersion() {
-        return javaVersion;
-    }
+    public abstract Property<String> getJavaVersion();
 
     /**
      * The directory of the generated project, defaults to the directory the project is generated in.
@@ -270,9 +260,7 @@ public abstract class InitBuild extends DefaultTask {
      */
     @Input
     @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
-    public Property<InsecureProtocolOption> getInsecureProtocol() {
-        return insecureProtocol;
-    }
+    public abstract Property<InsecureProtocolOption> getInsecureProtocol();
 
     /**
      * Should clarifying comments be added to files?
@@ -405,7 +393,7 @@ public abstract class InitBuild extends DefaultTask {
             dsl,
             packageName,
             testFramework,
-            insecureProtocol.get(),
+            getInsecureProtocol().get(),
             getProjectDirectory().get(),
             javaLanguageVersion,
             generateComments
@@ -495,7 +483,7 @@ public abstract class InitBuild extends DefaultTask {
             return null;
         }
 
-        String version = javaVersion.getOrNull();
+        String version = getJavaVersion().getOrNull();
         if (isNullOrEmpty(version)) {
             return JavaLanguageVersion.of(userQuestions.askIntQuestion("Enter target Java version", MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API, DEFAULT_JAVA_VERSION));
         }
@@ -525,8 +513,8 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private ModularizationOption getModularizationOption(UserQuestions userQuestions, BuildInitializer initializer) {
-        if (splitProject.isPresent()) {
-            return splitProject.get() ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
+        if (getSplitProject().isPresent()) {
+            return getSplitProject().get() ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
         }
         return userQuestions.choice("Select application structure", initializer.getModularizationOptions())
             .renderUsing(ModularizationOption::getDisplayName)
@@ -534,8 +522,8 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private boolean shouldUseIncubatingAPIs(UserQuestions userQuestions) {
-        if (this.useIncubatingAPIs.isPresent()) {
-            return this.useIncubatingAPIs.get();
+        if (this.getUseIncubating().isPresent()) {
+            return this.getUseIncubating().get();
         }
         return userQuestions.askBooleanQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
     }
