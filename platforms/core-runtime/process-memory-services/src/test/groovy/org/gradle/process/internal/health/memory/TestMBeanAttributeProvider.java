@@ -17,11 +17,11 @@
 package org.gradle.process.internal.health.memory;
 
 import com.google.common.base.Objects;
-import org.gradle.util.GroovyNullMarked;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
-@GroovyNullMarked
+@NullMarked
 public class TestMBeanAttributeProvider implements MBeanAttributeProvider {
 
     public static final class AttributeKey {
