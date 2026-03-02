@@ -29,7 +29,7 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
     }
-    def watchingNotSupportedVfs = new WatchingNotSupportedVirtualFileSystem(nonEmptySnapshotHierarchy)
+    def watchingNotSupportedVfs = new WatchingNotSupportedVirtualFileSystem(nonEmptySnapshotHierarchy, path -> false)
     def buildOperationRunner = new TestBuildOperationRunner()
 
     def "invalidates the virtual file system before and after the build (watch mode: #watchMode.description)"() {

@@ -22,7 +22,7 @@ import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 public class TestVirtualFileSystem extends AbstractVirtualFileSystem {
 
     public TestVirtualFileSystem(SnapshotHierarchy root) {
-        super(root);
+        super(root, path -> false);
     }
 
     @Override

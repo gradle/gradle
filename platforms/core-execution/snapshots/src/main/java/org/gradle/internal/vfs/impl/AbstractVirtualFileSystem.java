@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -39,23 +40,53 @@ import java.util.stream.Stream;
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualFileSystem.class);
 
-    private final AtomicReference<VfsState> state;
+    /**
+     * State for project files and other watched locations. Subject to file-event invalidations.
+     */
+    private final AtomicReference<VfsState> watchedState;
 
-    protected AbstractVirtualFileSystem(SnapshotHierarchy root) {
+    /**
+     * State for global cache paths (Gradle user home caches). These are Gradle-managed and
+     * never invalidated by file events, so they can be updated independently without
+     * contending with watched-path stores and invalidations.
+     */
+    private final AtomicReference<VfsState> globalCacheState;
+
+    private final Predicate<String> globalCacheFilter;
+
+    protected AbstractVirtualFileSystem(SnapshotHierarchy root, Predicate<String> globalCacheFilter) {
         VersionHierarchyRoot initialVersionRoot = VersionHierarchyRoot.empty(0, root.getCaseSensitivity());
-        this.state = new AtomicReference<>(new VfsState(root, initialVersionRoot));
+        this.watchedState = new AtomicReference<>(new VfsState(root, initialVersionRoot));
+        this.globalCacheState = new AtomicReference<>(new VfsState(root.empty(), initialVersionRoot));
+        this.globalCacheFilter = globalCacheFilter;
     }
 
+    private AtomicReference<VfsState> stateFor(String absolutePath) {
+        return globalCacheFilter.test(absolutePath) ? globalCacheState : watchedState;
+    }
+
+    /**
+     * Returns the current root of the watched state.
+     * The watcher infrastructure only operates on watched paths, never global cache paths.
+     */
     protected SnapshotHierarchy currentRoot() {
-        return state.get().root;
+        return watchedState.get().root;
     }
 
+    /**
+     * Replaces the watched root and clears the global cache state.
+     * Called when disabling watching or after errors — conservative clear of all state.
+     */
     protected void replaceRoot(SnapshotHierarchy newRoot) {
         while (true) {
-            VfsState currentState = state.get();
-            VfsState newState = new VfsState(newRoot, currentState.versionRoot);
-
-            if (state.compareAndSet(currentState, newState)) {
+            VfsState current = watchedState.get();
+            if (watchedState.compareAndSet(current, new VfsState(newRoot, current.versionRoot))) {
+                break;
+            }
+        }
+        while (true) {
+            VfsState current = globalCacheState.get();
+            if (globalCacheState.compareAndSet(current, new VfsState(newRoot.empty(), current.versionRoot))) {
                 return;
             }
         }
@@ -63,40 +94,43 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath) {
-        return state.get().root.findSnapshot(absolutePath);
+        return stateFor(absolutePath).get().root.findSnapshot(absolutePath);
     }
 
     @Override
     public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
-        return state.get().root.findMetadata(absolutePath);
+        return stateFor(absolutePath).get().root.findMetadata(absolutePath);
     }
 
     @Override
     public Stream<FileSystemLocationSnapshot> findRootSnapshotsUnder(String absolutePath) {
-        return state.get().root.rootSnapshotsUnder(absolutePath);
+        return stateFor(absolutePath).get().root.rootSnapshotsUnder(absolutePath);
     }
 
     @Override
     public FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier) {
-        long versionBefore = state.get().versionRoot.getVersion(absolutePath);
+        AtomicReference<VfsState> stateRef = stateFor(absolutePath);
+        long versionBefore = stateRef.get().versionRoot.getVersion(absolutePath);
         FileSystemLocationSnapshot snapshot = snapshotSupplier.get();
-        storeIfUnchanged(absolutePath, versionBefore, snapshot);
+        storeIfUnchanged(stateRef, absolutePath, versionBefore, snapshot);
         return snapshot;
     }
 
     @Override
     public <T> T storeWithAction(String baseLocation, StoringAction<T> storingAction) {
-        long versionBefore = state.get().versionRoot.getVersion(baseLocation);
+        AtomicReference<VfsState> stateRef = stateFor(baseLocation);
+        long versionBefore = stateRef.get().versionRoot.getVersion(baseLocation);
         return storingAction.snapshot(snapshot -> {
-            storeIfUnchanged(snapshot.getAbsolutePath(), versionBefore, snapshot);
+            storeIfUnchanged(stateRef, snapshot.getAbsolutePath(), versionBefore, snapshot);
             return snapshot;
         });
     }
 
-    private void storeIfUnchanged(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
+    private void storeIfUnchanged(AtomicReference<VfsState> stateRef, String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
+        boolean isGlobalCache = stateRef == globalCacheState;
         // The Lock-Free CAS Loop
         while (true) {
-            VfsState currentState = state.get();
+            VfsState currentState = stateRef.get();
             long versionAfter = currentState.versionRoot.getVersion(absolutePath);
 
             if (versionBefore < versionAfter) {
@@ -104,11 +138,20 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
                 return;
             }
 
+            // Global cache paths are never watched — skip buffering and watcher notification.
+            if (isGlobalCache) {
+                SnapshotHierarchy newRoot = currentState.root.store(absolutePath, snapshot, SnapshotHierarchy.NodeDiffListener.NOOP);
+                if (stateRef.compareAndSet(currentState, new VfsState(newRoot, currentState.versionRoot))) {
+                    return;
+                }
+                continue;
+            }
+
             BufferingDiffListener bufferListener = new BufferingDiffListener();
             SnapshotHierarchy newRoot = currentState.root.store(absolutePath, snapshot, bufferListener);
 
             VfsState newState = new VfsState(newRoot, currentState.versionRoot);
-            if (state.compareAndSet(currentState, newState)) {
+            if (stateRef.compareAndSet(currentState, newState)) {
                 updateNotifyingListeners(diffListener -> {
                     bufferListener.flushToRealListener(diffListener);
                     return newState.root;
@@ -125,33 +168,52 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
         }
 
         LOGGER.debug("Invalidating VFS paths: {}", locations);
-        doInvalidate(locations, UnaryOperator.identity());
+
+        // Partition locations by state. In practice all file-event invalidations go to
+        // watchedState, but route correctly in case global cache paths appear.
+        List<String> watchedLocations = new ArrayList<>();
+        List<String> globalLocations = new ArrayList<>();
+        for (String location : locations) {
+            if (globalCacheFilter.test(location)) {
+                globalLocations.add(location);
+            } else {
+                watchedLocations.add(location);
+            }
+        }
+        if (!watchedLocations.isEmpty()) {
+            doInvalidate(watchedState, watchedLocations, UnaryOperator.identity());
+        }
+        if (!globalLocations.isEmpty()) {
+            doInvalidate(globalCacheState, globalLocations, UnaryOperator.identity());
+        }
     }
 
     @Override
     public void invalidateAll() {
         LOGGER.debug("Invalidating the whole VFS");
-        doInvalidate(Collections.singletonList(VfsRelativePath.ROOT), UnaryOperator.identity());
+        doInvalidate(watchedState, Collections.singletonList(VfsRelativePath.ROOT), UnaryOperator.identity());
+        doInvalidate(globalCacheState, Collections.singletonList(VfsRelativePath.ROOT), UnaryOperator.identity());
     }
 
     /**
      * Invalidates paths from the VFS without notifying the file watcher.
      * Use this when the file watcher state has already been updated separately,
      * and triggering another watcher notification cycle would be redundant and costly.
+     * In practice these paths are always in the watched state.
      */
     protected void invalidateWithoutNotifyingWatcher(List<String> paths) {
         if (paths.isEmpty()) {
             return;
         }
         while (true) {
-            VfsState currentState = state.get();
+            VfsState currentState = watchedState.get();
             SnapshotHierarchy newRoot = currentState.root;
             VersionHierarchyRoot newVersionRoot = currentState.versionRoot;
             for (String path : paths) {
                 newRoot = newRoot.invalidate(path, SnapshotHierarchy.NodeDiffListener.NOOP);
                 newVersionRoot = newVersionRoot.updateVersion(path);
             }
-            if (state.compareAndSet(currentState, new VfsState(newRoot, newVersionRoot))) {
+            if (watchedState.compareAndSet(currentState, new VfsState(newRoot, newVersionRoot))) {
                 return;
             }
         }
@@ -161,15 +223,29 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
      * Invalidates multiple paths wrapping the diff listener via {@code listenerWrapper} so subclasses can decorate it (e.g. for logging).
      */
     protected void invalidateAndNotify(Iterable<String> absolutePaths, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {
-        doInvalidate(absolutePaths, listenerWrapper);
+        // In practice all file-event invalidations are in the watched state.
+        doInvalidate(watchedState, absolutePaths, listenerWrapper);
     }
 
-    private void doInvalidate(Iterable<String> locations, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {
+    private void doInvalidate(AtomicReference<VfsState> stateRef, Iterable<String> locations, UnaryOperator<SnapshotHierarchy.NodeDiffListener> listenerWrapper) {
+        // Global cache paths are never watched — skip watcher notification.
+        boolean isGlobalCache = stateRef == globalCacheState;
         while (true) {
-            VfsState currentState = state.get();
+            VfsState currentState = stateRef.get();
 
             SnapshotHierarchy currentRoot = currentState.root;
             VersionHierarchyRoot currentVersionRoot = currentState.versionRoot;
+
+            if (isGlobalCache) {
+                for (String location : locations) {
+                    currentRoot = currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
+                    currentVersionRoot = currentVersionRoot.updateVersion(location);
+                }
+                if (stateRef.compareAndSet(currentState, new VfsState(currentRoot, currentVersionRoot))) {
+                    return;
+                }
+                continue;
+            }
 
             // Apply all invalidations to the current state in memory,
             // accumulating all diff events in a single listener across all locations.
@@ -181,7 +257,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
             VfsState newState = new VfsState(currentRoot, currentVersionRoot);
 
-            if (state.compareAndSet(currentState, newState)) {
+            if (stateRef.compareAndSet(currentState, newState)) {
                 updateNotifyingListeners(diffListener -> {
                     bufferListener.flushToRealListener(listenerWrapper.apply(diffListener));
                     return newState.root;

@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.function.Predicate;
 
 /**
  * A {@link VirtualFileSystem} which is not able to register any watches.
@@ -40,8 +41,8 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingNotSupportedVirtualFileSystem.class);
 
-    public WatchingNotSupportedVirtualFileSystem(SnapshotHierarchy root) {
-        super(root);
+    public WatchingNotSupportedVirtualFileSystem(SnapshotHierarchy root, Predicate<String> globalCacheFilter) {
+        super(root, globalCacheFilter);
     }
 
     @Override

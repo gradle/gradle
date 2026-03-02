@@ -85,7 +85,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         WatchableFileSystemDetector watchableFileSystemDetector,
         FileChangeListeners fileChangeListeners
     ) {
-        super(root);
+        super(root, locationsWrittenByCurrentBuild.getImmutableLocations()::contains);
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.fileSystemWatchingDocumentationIndex = fileSystemWatchingDocumentationIndex;
         this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;

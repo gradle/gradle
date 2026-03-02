@@ -17,6 +17,7 @@
 package org.gradle.internal.watch.vfs.impl
 
 import net.rubygrapefruit.platform.NativeException
+import org.gradle.internal.file.FileHierarchySet
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
@@ -38,7 +39,9 @@ class WatchingVirtualFileSystemTest extends Specification {
         empty() >> emptySnapshotHierarchy
     }
     def documentationIndex = Mock(FileSystemWatchingDocumentationIndex)
-    def locationsUpdatedByCurrentBuild = Mock(FileWatchingFilter)
+    def locationsUpdatedByCurrentBuild = Mock(FileWatchingFilter) {
+        getImmutableLocations() >> FileHierarchySet.empty()
+    }
     def buildOperationRunner = new TestBuildOperationRunner()
     def watchableFileSystemDetector = Mock(WatchableFileSystemDetector)
     def fileChangeListeners = Mock(FileChangeListeners)
