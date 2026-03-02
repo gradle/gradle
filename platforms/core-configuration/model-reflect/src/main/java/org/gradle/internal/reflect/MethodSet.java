@@ -65,11 +65,11 @@ public class MethodSet implements Iterable<Method> {
 
     static class MethodKey {
         private final Method method;
-        private final Class<?>[] parameterTypes;
+        private final int parameterCount;
 
         private MethodKey(Method method) {
             this.method = method;
-            this.parameterTypes = method.getParameterTypes(); // avoid clone
+            this.parameterCount = method.getParameterCount();
         }
 
         @Override
@@ -81,14 +81,15 @@ public class MethodSet implements Iterable<Method> {
             }
 
             MethodKey that = (MethodKey) obj;
-            return Objects.equals(method.getName(), that.method.getName())
+            return parameterCount == that.parameterCount
+                && Objects.equals(method.getName(), that.method.getName())
                 && Objects.equals(method.getReturnType(), that.method.getReturnType())
-                && Arrays.equals(parameterTypes, that.parameterTypes);
+                && Arrays.equals(method.getParameterTypes(), that.method.getParameterTypes());
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(method.getName(), parameterTypes.length);
+            return Objects.hash(method.getName(), parameterCount);
         }
     }
 }

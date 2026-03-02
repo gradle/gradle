@@ -519,6 +519,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(VOID_TYPE, STRING_TYPE);
+        private static final String RETURN_OBJECT_FROM_STRING_OBJECT_ARRAY = getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_ARRAY_TYPE);
+        private static final String RETURN_OBJECT_FROM_TYPE_CLASS = getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE, CLASS_TYPE);
+        private static final String RETURN_VOID_FROM_CLASS_STRING_STRING = getMethodDescriptor(VOID_TYPE, CLASS_TYPE, STRING_TYPE, STRING_TYPE);
+        private static final Type TASK_TYPE = getType(Task.class);
+        private static final String RETURN_TASK = getMethodDescriptor(TASK_TYPE);
+        private static final String RETURN_VOID_FROM_OBJECT_ARRAY = getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE);
+        private static final String RETURN_INT = getMethodDescriptor(INT_TYPE);
+        private static final String RETURN_JAVA_LANG_REFLECT_TYPE = getMethodDescriptor(JAVA_LANG_REFLECT_TYPE);
         private static final Type DEPRECATION_HOLDER_TYPE = Type.getType(AsmBackedClassGenerator.class);
         private static final Type DEPRECATED_ANNOTATION_TYPE = getType(Deprecated.class);
 
@@ -1082,7 +1090,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     new Object[]{DYNAMIC_OBJECT_TYPE.getInternalName(), STRING_TYPE.getInternalName(), OBJECT_ARRAY_TYPE.getInternalName()}
                 );
 
-                _INVOKEINTERFACE(DYNAMIC_OBJECT_TYPE, "invokeMethod", getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_ARRAY_TYPE));
+                _INVOKEINTERFACE(DYNAMIC_OBJECT_TYPE, "invokeMethod", RETURN_OBJECT_FROM_STRING_OBJECT_ARRAY);
             }});
         }
 
@@ -1127,7 +1135,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 } else {
                     // get(<type>, <annotation>)
                     _LDC(getType(annotation));
-                    _INVOKEINTERFACE(SERVICE_LOOKUP_TYPE, "get", getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE, CLASS_TYPE));
+                    _INVOKEINTERFACE(SERVICE_LOOKUP_TYPE, "get", RETURN_OBJECT_FROM_TYPE_CLASS);
                 }
 
                 // (<type>)<service>
@@ -1146,7 +1154,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _LDC(serviceType);
                     _LDC(getterName);
                     _LDC(type.getName());
-                    _INVOKESTATIC(INSTRUMENTED_EXECUTION_ACCESS_TYPE, "disallowedAtExecutionInjectedServiceAccessed", getMethodDescriptor(VOID_TYPE, CLASS_TYPE, STRING_TYPE, STRING_TYPE));
+                    _INVOKESTATIC(INSTRUMENTED_EXECUTION_ACCESS_TYPE, "disallowedAtExecutionInjectedServiceAccessed", RETURN_VOID_FROM_CLASS_STRING_STRING);
                 }};
             } else {
                 return BytecodeFragment.NO_OP;
@@ -1375,7 +1383,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }});
 
             // GENERATE getTaskThatOwnsThisObject() { ... }
-            publicMethod("getTaskThatOwnsThisObject", getMethodDescriptor(getType(Task.class)), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+            publicMethod("getTaskThatOwnsThisObject", RETURN_TASK, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 if (Task.class.isAssignableFrom(type)) {
                     // return this
                     _ALOAD(0);
@@ -1386,7 +1394,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _DUP();
                     Label useNull = new Label();
                     _IFNULL(useNull);
-                    _INVOKEINTERFACE(MODEL_OBJECT_TYPE, "getTaskThatOwnsThisObject", getMethodDescriptor(getType(Task.class)));
+                    _INVOKEINTERFACE(MODEL_OBJECT_TYPE, "getTaskThatOwnsThisObject", RETURN_TASK);
                     visitLabel(useNull);
                     _F_SAME1(OBJECT_TYPE.getInternalName());
                 }
@@ -1423,7 +1431,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // Generate: void initFromState(Object[] state) { }
             // See ManagedTypeFactory for how it's used.
-            addMethod(ACC_PUBLIC | ACC_SYNTHETIC, "initFromState", getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {
+            addMethod(ACC_PUBLIC | ACC_SYNTHETIC, "initFromState", RETURN_VOID_FROM_OBJECT_ARRAY, methodVisitor -> new MethodVisitorScope(methodVisitor) {
 
                 {
                     // for each property
@@ -1488,7 +1496,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }});
 
             // Generate: int getFactoryId() { return <factory-id-field> }
-            publicMethod("getFactoryId", getMethodDescriptor(INT_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+            publicMethod("getFactoryId", RETURN_INT, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _GETSTATIC(generatedType, FACTORY_ID_FIELD, INT_TYPE);
                 _IRETURN();
             }});
@@ -1532,7 +1540,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     }
                     // else { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__);  }
                     _ALOAD(0);
-                    _INVOKEINTERFACE(CONVENTION_AWARE_TYPE, "getConventionMapping", getMethodDescriptor(CONVENTION_MAPPING_TYPE));
+                    _INVOKEINTERFACE(CONVENTION_AWARE_TYPE, "getConventionMapping", RETURN_CONVENTION_MAPPING);
 
                     _ALOAD(0);
                     _INVOKESPECIAL(superclassType, getterName, methodDescriptor, type.isInterface());
@@ -1829,7 +1837,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         @Override
         public void addNameProperty() {
             addField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_FINAL, NAME_FIELD, STRING_TYPE);
-            addGetter("getName", STRING_TYPE, getMethodDescriptor(STRING_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+            addGetter("getName", STRING_TYPE, RETURN_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _GETFIELD(generatedType, NAME_FIELD, STRING_TYPE);
             }});
@@ -1864,7 +1872,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                         _INVOKEVIRTUAL(CLASS_TYPE, "getDeclaredMethod", GET_DECLARED_METHOD_DESCRIPTOR);
 
                         // <method>.getGenericReturnType()
-                        _INVOKEVIRTUAL(METHOD_TYPE, "getGenericReturnType", getMethodDescriptor(JAVA_LANG_REFLECT_TYPE));
+                        _INVOKEVIRTUAL(METHOD_TYPE, "getGenericReturnType", RETURN_JAVA_LANG_REFLECT_TYPE);
                         _PUTSTATIC(generatedType, returnType.fieldName, JAVA_REFLECT_TYPE_DESCRIPTOR);
                     }
                     _RETURN();
@@ -1935,7 +1943,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     private static String propFieldName(PropertyMetadata property) {
-        return propFieldName(property.getName());
+        return property.getFieldName();
     }
 
     public static String propFieldName(String name) {
