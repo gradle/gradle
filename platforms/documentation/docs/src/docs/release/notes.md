@@ -91,6 +91,27 @@ plugins {
 }
 ```
 
+### Domain Object Collections can be made immutable
+
+You can now make domain object collections immutable with `disallowChanges()` and you can check on the mutability of a collection with `areChangesAllowed()`.  This allows plugin and build authors to ensure that the contents of a collection are now final and cannot be further modified.  
+Note that this does not prevent modifications to the individual elements, only that elements cannot be added or removed once this call is invoked.  
+Note also that this does not realize any lazy items previously added to the collection.  
+These will still be realized only when the collection is accessed.
+
+```kotlin
+val myCollection = objects.domainObjectContainer(MyType::class)
+val main = MyType("main")
+myCollection.areChangesAllowed()  // returns true
+myCollection.add(main)
+myCollection.add(MyType("test"))
+
+myCollection.disallowChanges()    // the collection is now immutable
+myCollection.areChangesAllowed()  // returns false
+main.setFoo("bar")                // individual elements can still be modified
+myCollection.add(MyType("other")) // this will fail
+myCollection.remove(main)         // this will fail
+```
+
 ## Tooling integration improvements
 
 Tooling API clients can now directly access Gradle help and version information the same way as the Gradle CLI.
