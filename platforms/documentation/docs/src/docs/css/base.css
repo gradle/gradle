@@ -1,4 +1,7 @@
-/* Lato (bold, regular) */
+/*
+ * Gradle Markdown Theme
+ */
+
 @font-face {
     font-display: swap;
     font-family: Lato;
@@ -1555,7 +1558,6 @@ div.example code.filename {
         flex: 0.2 1 auto;
     }
 }
-
 
 @supports (-moz-appearance:meterbar) and (background-blend-mode:difference,normal) {
     /* Firefox only */
