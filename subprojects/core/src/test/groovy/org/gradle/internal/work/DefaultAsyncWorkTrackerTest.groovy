@@ -16,7 +16,7 @@
 
 package org.gradle.internal.work
 
-
+import org.gradle.internal.Factory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.operations.BuildOperationRef
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -304,7 +304,8 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         then:
         _ * workerLeaseService.currentWorkerLease >> workerLease
         1 * workerLeaseService.runAsIsolatedTask(_) >> { Runnable runnable -> runnable.run() }
-        1 * workerLeaseService.withoutLock(workerLease, _) >> { locks, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.whileDisallowingProjectLockChanges(_) >> { Factory<?> factory -> factory.create() }
+        1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         0 * workerLeaseService._
     }
 
@@ -335,7 +336,8 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         then:
         _ * workerLeaseService.currentWorkerLease >> workerLease
         1 * workerLeaseService.runAsIsolatedTask()
-        1 * workerLeaseService.withoutLock(workerLease, _) >> { locks, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.whileDisallowingProjectLockChanges(_) >> { Factory<?> factory -> factory.create() }
+        1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         0 * workerLeaseService._
     }
 
@@ -365,7 +367,8 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
         then:
         _ * workerLeaseService.currentWorkerLease >> workerLease
-        1 * workerLeaseService.withoutLock(workerLease, _) >> { locks, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.whileDisallowingProjectLockChanges(_) >> { Factory<?> factory -> factory.create() }
+        1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         0 * workerLeaseService._
     }
 
@@ -396,7 +399,8 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
         then:
         _ * workerLeaseService.currentWorkerLease >> workerLease
-        1 * workerLeaseService.withoutLock(workerLease, _) >> { locks, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.whileDisallowingProjectLockChanges(_) >> { Factory<?> factory -> factory.create() }
+        1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         0 * workerLeaseService._
     }
 
@@ -415,7 +419,8 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         then:
         _ * workerLeaseService.currentWorkerLease >> workerLease
         1 * workerLeaseService.runAsIsolatedTask()
-        1 * workerLeaseService.withoutLock(workerLease, _) >> { locks, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.whileDisallowingProjectLockChanges(_) >> { Factory<?> factory -> factory.create() }
+        1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         0 * workerLeaseService._
     }
 
