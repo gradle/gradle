@@ -490,7 +490,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
 
             task resolve(type: Copy) {
-                from configurations.runtimeClasspath.files
+                from configurations.runtimeClasspath
                 into "build/resolved"
             }
         """
@@ -524,7 +524,9 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
 
         def verifyExpectedOperation = {
-            def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
+            def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType){
+                it.details.configurationName == "runtimeClasspath"
+            }
             assert ops.size() == 1
             def op = ops[0]
             def maven1Id = repoId('maven1', op.details)
