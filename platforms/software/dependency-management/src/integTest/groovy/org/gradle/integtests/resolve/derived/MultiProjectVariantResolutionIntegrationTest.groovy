@@ -50,9 +50,6 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                     @InputFiles
                     abstract ConfigurableFileCollection getArtifacts()
 
-                    @Internal
-                    List<String> expectations = []
-
                     @TaskAction
                     void assertThat() {
                         logger.lifecycle 'Found files: {}', artifacts.files*.name
@@ -190,44 +187,24 @@ Artifacts
     }
 
     def 'consumer resolves jar variant of producer'() {
-        file('consumer/build.gradle') << '''
-            tasks.resolve {
-                expectations = [ 'producer-jar.txt' ]
-            }
-        '''
         expect:
         succeeds(':consumer:resolve')
         outputContains("Found files: [producer-jar.txt]")
     }
 
     def 'consumer resolves javadoc variant of producer'() {
-        file('consumer/build.gradle') << '''
-            tasks.resolveJavadoc {
-                expectations = [ 'producer-javadoc.txt' ]
-            }
-        '''
         expect:
         succeeds(':consumer:resolveJavadoc')
         outputContains("Found files: [producer-javadoc.txt]")
     }
 
     def 'consumer resolves other variant of producer'() {
-        file('consumer/build.gradle') << '''
-            tasks.resolveOther {
-                expectations = [ 'producer-other.txt' ]
-            }
-        '''
         expect:
         succeeds(':consumer:resolveOther')
         outputContains("Found files: [producer-other.txt]")
     }
 
     def 'consumer resolves all variants of producer'() {
-        file('consumer/build.gradle') << '''
-            tasks.resolveAll {
-                expectations = [ 'producer-jar.txt', 'producer-javadoc.txt', 'producer-other.txt' ]
-            }
-        '''
         expect:
         succeeds(':consumer:resolveAll')
         outputContains("Found files: [producer-jar.txt, producer-javadoc.txt, producer-other.txt]")
@@ -246,11 +223,6 @@ Artifacts
         file('producer/build.gradle') << '''
             dependencies {
                 jarElements project(":direct")
-            }
-        '''
-        file('consumer/build.gradle') << '''
-            tasks.resolve {
-                expectations = ['producer-jar.txt', 'direct-jar.txt', 'transitive-jar.txt']
             }
         '''
         expect:
@@ -273,11 +245,6 @@ Artifacts
                 jarElements project(":direct")
             }
         '''
-        file('consumer/build.gradle') << '''
-            tasks.resolveJavadoc {
-                expectations = ['producer-javadoc.txt', 'direct-javadoc.txt', 'transitive-javadoc.txt']
-            }
-        '''
         expect:
         succeeds(':consumer:resolveJavadoc')
         outputContains("Found files: [producer-javadoc.txt, direct-javadoc.txt, transitive-javadoc.txt]")
@@ -298,11 +265,6 @@ Artifacts
                 jarElements project(":direct")
             }
         '''
-        file('consumer/build.gradle') << '''
-            tasks.resolveOther {
-                expectations = ['producer-other.txt', 'direct-other.txt', 'transitive-other.txt']
-            }
-        '''
         expect:
         succeeds(':consumer:resolveOther')
         outputContains("Found files: [producer-other.txt, direct-other.txt, transitive-other.txt]")
@@ -321,11 +283,6 @@ Artifacts
         file('producer/build.gradle') << '''
             dependencies {
                 otherElements project(":direct")
-            }
-        '''
-        file('consumer/build.gradle') << '''
-            tasks.resolveOther {
-                expectations = ['producer-other.txt']
             }
         '''
         expect:
