@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends AbstractDependencyResolutionTest {
@@ -105,9 +104,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         mavenRepo.module("org.test", "maven", "1.0")
             .dependsOn("org.test", "replaced", "1.0")
             .publish()
-        if (GradleContextualExecuter.isConfigCache()) {
-            mavenRepo.module("org.test", "ignore-me", "1.0").publish() // Will never get resolved, but needs to exist in the repo since the confs will be resolved + serialized with CC
-        }
+        mavenRepo.module("org.test", "ignore-me", "1.0").publish() // Will never get resolved, but needs to exist in the repo since the confs will be resolved + serialized with CC
 
         file("child1/build.gradle") << """
             dependencies {
@@ -203,6 +200,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         mavenRepo.module("org.test", "maven", "1.0")
             .dependsOn("org.test", "replaced", "1.0")
             .publish()
+        mavenRepo.module("org.test", "ignore-me", "1.0").publish() // Will never get resolved, but needs to exist in the repo since the confs will be resolved + serialized with CC
 
         file("child1/build.gradle") << """
             dependencies {
