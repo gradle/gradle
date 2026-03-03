@@ -25,11 +25,13 @@ import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.concurrent.CompletableFuture;
+
 @ServiceScope(Scope.Project.class)
 public interface MutableTransformWorkspaceServices extends ReservedFileSystemLocation {
     MutableWorkspaceProvider getWorkspaceProvider();
 
     ExecutionHistoryStore getExecutionHistoryStore();
 
-    Cache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache();
+    Cache<Identity, CompletableFuture<DeferredResult<TransformExecutionResult.TransformWorkspaceResult>>> getIdentityCache();
 }

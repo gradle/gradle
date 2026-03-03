@@ -30,6 +30,7 @@ import org.gradle.operations.execution.ExecuteDeferredWorkProgressDetails;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceResult> implements DeferredExecutionAwareStep<C, R> {
 
@@ -47,22 +48,35 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
     }
 
     @Override
-    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, DeferredResult<T>> cache) {
+    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, CompletableFuture<DeferredResult<T>>> cache) {
         Identity identity = context.getIdentity();
-        DeferredResult<T> cacheResult = cache.getIfPresent(identity);
-        if (cacheResult != null) {
+        CompletableFuture<DeferredResult<T>> existingFuture = cache.getIfPresent(identity);
+        if (existingFuture != null && existingFuture.isDone()) {
+            DeferredResult<T> cacheResult = existingFuture.join();
             emitExecuteDeferredProgressDetails(work, context.getIdentity(), cacheResult);
             return Deferrable.completed(cacheResult.getResult());
-        } else {
-            return Deferrable.deferred(() -> {
-                DeferredResult<T> maybeExecutedResult = cache.get(
-                    identity,
-                    () -> executeInCache(work, context)
-                );
-                emitExecuteDeferredProgressDetails(work, context.getIdentity(), maybeExecutedResult);
-                return maybeExecutedResult.getResult();
-            });
         }
+        return Deferrable.deferred(() -> {
+            boolean[] isCreator = new boolean[1];
+            CompletableFuture<DeferredResult<T>> future = cache.get(identity, k -> {
+                isCreator[0] = true;
+                return new CompletableFuture<>();
+            });
+            if (isCreator[0]) {
+                try {
+                    future.complete(executeInCache(work, context));
+                    // Re-trigger CrossBuildCacheRetainingDataFromPreviousBuild.markAccessedInCurrentBuild now that the future is complete,
+                    // since Cross-build cache evaluates the retention filter immediately on access.
+                    cache.get(identity, k -> future);
+                } catch (Throwable e) {
+                    future.completeExceptionally(e);
+                    throw e;
+                }
+            }
+            DeferredResult<T> result = future.join();
+            emitExecuteDeferredProgressDetails(work, context.getIdentity(), result);
+            return result.getResult();
+        });
     }
 
     // TODO: Move this logic in a step around IdentityCacheStep
