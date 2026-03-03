@@ -23,6 +23,8 @@ import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.Identity;
+
+import java.util.concurrent.CompletableFuture;
 import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -57,7 +59,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
     }
 
     @Override
-    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, DeferredResult<T>> cache) {
+    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, CompletableFuture<DeferredResult<T>>> cache) {
         return delegate.executeDeferred(work, createIdentityContext(work, context), cache);
     }
 
