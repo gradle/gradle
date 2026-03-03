@@ -209,6 +209,7 @@
             <option value="$PROJECT_DIR$/platforms/core-runtime/stdlib-java-extensions" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/time" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/tooling-api-provider" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/tracing" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/versioned-cache" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/wrapper-main" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/wrapper-shared" />

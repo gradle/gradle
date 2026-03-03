@@ -82,6 +82,7 @@ val core = platform("core") {
         subproject("logging-api")
         subproject("messaging")
         subproject("native")
+        subproject("tracing")
         subproject("process-memory-services")
         subproject("process-services")
         subproject("report-rendering")

@@ -1050,6 +1050,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "observability",
+    "path": "platforms/core-runtime/observability",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "normalization-java",
     "path": "platforms/jvm/normalization-java",
     "unitTests": true,
