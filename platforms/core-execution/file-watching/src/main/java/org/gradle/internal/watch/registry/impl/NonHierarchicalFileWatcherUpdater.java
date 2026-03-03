@@ -166,6 +166,12 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         }
     }
 
+    @Override
+    public SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root) {
+        // Nothing to do
+        return root;
+    }
+
     private static void decrement(String path, Map<String, Integer> changedWatchedDirectories) {
         changedWatchedDirectories.compute(path, (key, value) -> zeroToNull(nullToZero(value) - 1));
     }
