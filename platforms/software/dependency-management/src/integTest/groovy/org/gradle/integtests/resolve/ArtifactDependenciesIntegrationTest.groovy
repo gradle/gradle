@@ -372,6 +372,7 @@ abstract class CheckArtifacts extends DefaultTask {
             println "artifact\${i}.name=\${artifact.id.name.name}"
             println "artifact\${i}.type=\${artifact.id.name.type}"
             println "artifact\${i}.extension=\${artifact.id.name.extension}"
+            if (artifact.id.name.classifier == 'null') { throw new NullPointerException("classifer can't be 'null'") }
             println "artifact\${i}.classifier=\${artifact.id.name.classifier}"
         }
     }

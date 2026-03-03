@@ -95,6 +95,7 @@ task resolve {
             def attributesAsMap = [:]
             attrs.keySet().each { attributesAsMap[it.name] = String.valueOf(attrs.getAttribute(it)) }
             println "attributes: " + attributesAsMap.sort()
+            println "attributes size: " + attrs.keySet().size()
         }
     }
 }
@@ -107,6 +108,10 @@ task resolve {
         outputContains("org.gradle.dependency.bundling:external")
         outputContains("org.gradle.docstype:sources")
         outputContains("org.gradle.usage:java-runtime")
+        outputContains("org.gradle.status:release")
+        outputContains("org.gradle.libraryelements:jar")
+        outputContains("artifactType:jar")
+        outputContains("attributes size: 7")
 
         when:
         removeGMM()
@@ -118,6 +123,10 @@ task resolve {
         outputContains("org.gradle.dependency.bundling:external")
         outputContains("org.gradle.docstype:sources")
         outputContains("org.gradle.usage:java-runtime")
+        outputContains("org.gradle.status:release")
+        outputContains("org.gradle.libraryelements:jar")
+        outputContains("artifactType:jar")
+        outputContains("attributes size: 7")
     }
 
     def "javadoc jar attributes match derived variants attributes"() {
