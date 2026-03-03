@@ -35,14 +35,16 @@ Learn the basics of unit testing your plugin to ensure it behaves as expected.
 
 Gradle `init` creates a sample unit test to get you started.
 
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 It's located in `src/test/kotlin/org/example/PluginTutorialPluginTest.kt`.
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 It's located in `src/test/groovy/org/example/PluginTutorialPluginTest.groovy`.
-----
+=====
+====
 
 The original test is simple, it applies the default `org.example.greeting` plugin and verifies that the `greeting` task is available.
 We will update it to test our new plugin.
@@ -51,14 +53,16 @@ We will update it to test our new plugin.
 
 First, let's rename the test file to match our plugin's name.
 
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 Rename the file `PluginTutorialPluginTest.kt` to `SlackPluginTest.kt`.
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 Rename the file `PluginTutorialPluginTest.groovy` to `SlackPluginTest.groovy`.
-----
+=====
+====
 
 Next, update the code to reflect our plugin's ID (`org.example.slack`) and task name (`sendTestSlackMessage`).
 
@@ -77,10 +81,12 @@ This test:
 
 You can now run the `test` task from the command line to make sure everything is working correctly.
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew test
-
+----
+[source,text]
+----
 > Task :plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
 > Task :plugin:processTestResources NO-SOURCE
 > Task :plugin:pluginDescriptors UP-TO-DATE

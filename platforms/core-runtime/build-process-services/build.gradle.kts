@@ -4,6 +4,15 @@ plugins {
 
 description = "Services and types used to setup a build process from a Gradle distribution."
 
+jvmCompile {
+    compilations {
+        named("testFixtures") {
+            // The TAPI cross version tests depend on these test fixtures
+            targetJvmVersion = 8
+        }
+    }
+}
+
 dependencies {
     api(projects.classloaders)
     api(projects.stdlibJavaExtensions)

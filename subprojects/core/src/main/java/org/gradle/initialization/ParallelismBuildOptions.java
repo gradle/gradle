@@ -43,7 +43,7 @@ public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfigura
         public static final String GRADLE_PROPERTY = "org.gradle.parallel";
 
         public ParallelOption() {
-            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("parallel", "Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.", "Disables parallel execution to build projects."));
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("parallel", "Builds projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.", "Disables parallel project execution."));
         }
 
         @Override
@@ -58,7 +58,7 @@ public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfigura
         public static final String HINT = "must be a positive, non-zero, integer";
 
         public MaxWorkersOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Configure the number of concurrent workers Gradle is allowed to use."));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Configures the maximum number of concurrent workers Gradle is allowed to use."));
         }
 
         @Override

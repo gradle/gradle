@@ -65,8 +65,11 @@ dependencies {
     integTestImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    crossVersionTestImplementation(projects.internalIntegTesting)
     crossVersionTestImplementation(testFixtures(projects.toolchainsJvmShared))
+
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 packageCycles {

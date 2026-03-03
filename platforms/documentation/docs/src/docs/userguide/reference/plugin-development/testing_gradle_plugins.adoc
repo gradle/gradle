@@ -44,10 +44,12 @@ include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-pl
 Executing the `verifyUrl` task renders a success message if the HTTP GET call to the configured URL returns with a 200 response code:
 
 [[verify-url-cmd-output]]
-[source,shell]
+[source,bash]
 ----
-$ gradle verifyUrl
-
+$ ./gradlew verifyUrl
+----
+[source,text]
+----
 include::{snippetsPath}/developingPlugins/testingPlugins/tests/verifyUrl.out[]
 ----
 

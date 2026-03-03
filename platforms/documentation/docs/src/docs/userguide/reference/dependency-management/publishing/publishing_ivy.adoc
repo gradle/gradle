@@ -24,7 +24,6 @@ A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.a
 
 To use the Ivy Publish Plugin, include the following in your build script:
 
-.Applying the Ivy Publish Plugin
 ====
 include::sample[dir="snippets/ivy-publish/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
 include::sample[dir="snippets/ivy-publish/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
@@ -93,7 +92,6 @@ At times, the module descriptor file generated from the project information will
 
 The following sample shows how to use the most common aspects of the DSL:
 
-.Customizing the module descriptor file
 ====
 include::sample[dir="snippets/ivy-publish/descriptor-customization/kotlin",files="build.gradle.kts[tags=customize-descriptor]"]
 include::sample[dir="snippets/ivy-publish/descriptor-customization/groovy",files="build.gradle[tags=customize-descriptor]"]
@@ -127,7 +125,6 @@ Instead of relying on the conversion, it publishes the resolved versions.
 
 This is done by using the `versionMapping` DSL method which allows to configure the link:{javadocPath}/org/gradle/api/publish/VersionMappingStrategy.html[VersionMappingStrategy]:
 
-.Using resolved versions
 ====
 include::sample[dir="snippets/ivy-publish/descriptor-customization/kotlin",files="build.gradle.kts[tags=versions-resolved]"]
 include::sample[dir="snippets/ivy-publish/descriptor-customization/groovy",files="build.gradle[tags=versions-resolved]"]
@@ -144,7 +141,6 @@ This plugin provides <<glossary.adoc#sub:terminology_repository,repositories>> o
 
 Here's a simple example of defining a publishing repository:
 
-.Declaring repositories to publish to
 ====
 include::sample[dir="snippets/ivy-publish/quickstart/kotlin",files="build.gradle.kts[tags=repositories]"]
 include::sample[dir="snippets/ivy-publish/quickstart/groovy",files="build.gradle[tags=repositories]"]
@@ -159,7 +155,6 @@ You can define multiple repositories as long as they have unique names within th
 
 You can also configure any authentication details that are required to connect to the repository. See link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository] for more details.
 
-
 [[publishing_ivy:example]]
 == Complete example
 
@@ -167,7 +162,6 @@ The following example demonstrates publishing with a multi-project build.
 Each project publishes a Java component configured to also build and publish Javadoc and source code artifacts.
 The descriptor file is customized to include the project description for each project.
 
-.Publishing a Java module
 ====
 include::sample[dir="snippets/ivy-publish/java-multi-project/kotlin",files="settings.gradle.kts[];buildSrc/build.gradle.kts[];buildSrc/src/main/kotlin/myproject.publishing-conventions.gradle.kts[];project1/build.gradle.kts[];project2/build.gradle.kts[]"]
 include::sample[dir="snippets/ivy-publish/java-multi-project/groovy",files="settings.gradle[];buildSrc/build.gradle[];buildSrc/src/main/groovy/myproject.publishing-conventions.gradle[];project1/build.gradle[];project2/build.gradle[]"]

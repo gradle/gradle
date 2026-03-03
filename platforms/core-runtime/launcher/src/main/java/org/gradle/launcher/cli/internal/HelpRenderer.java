@@ -93,8 +93,8 @@ public final class HelpRenderer {
         new BuildOptionBackedConverter<>(new DaemonBuildOptions()).configure(parser);
         // Built-in options: -h/--help/-?, -v/--version, -V/--show-version
         parser.option("h", "?", "help").hasDescription("Shows this help message.");
-        parser.option("v", "version").hasDescription("Print version info and exit.");
-        parser.option("V", "show-version").hasDescription("Print version info and continue.");
+        parser.option("v", "version").hasDescription("Prints version information and exits.");
+        parser.option("V", "show-version").hasDescription("Prints version information and continues.");
         return parser;
     }
 }

@@ -70,10 +70,37 @@ Gradle <<configuration_cache_requirements.adoc#config_cache:requirements:reading
 Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` records **all** environment variables or system properties respectively as inputs to the Configuration Cache, similarly to how `.forEach()` calls are tracked in previous versions.
 If your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, you may experience more frequent Configuration Cache invalidations.
 
+==== Dependency lockfiles are generated with a platform-independent line ending
+
+Dependency lockfiles now use a platform independent line ending (`\n`) instead of the system default.
+Existing lockfiles written with Windows line endings can still be read, but new lockfiles generated will only use platform independent line endings.
+
+During the next lock update using Gradle 9.5.0 or above, if the lockfiles were previously generated with Windows line endings, all line endings will be changed, regardless of whether dependencies have changed.
+
+==== Upgrade to Kotlin 2.3.10
+
+The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.10[Kotlin 2.3.10].
+
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
 
 === Potential breaking changes
+
+==== `ProjectBuilder` now enforces consistent build-scoped locations
+
+link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[`ProjectBuilder`] allows you to configure a specific project directory for tests.
+While `project.projectDir` and `project.rootDir` have always respected this setting, `project.layout.settingsDirectory` previously did not.
+This discrepancy could cause file resolution to inadvertently escape the project directory.
+
+Gradle now anchors the settings search directly to the configured project directory.
+This ensures that `layout.settingsDirectory`, `projectDir`, and `rootDir` all point to the same consistent location.
+Projects created via `ProjectBuilder` are now better isolated from the host build environment.
+
+If your tests specifically relied on `layout.settingsDirectory` pointing to an external location, they will need to be adjusted.
+Even if you do not use `settingsDirectory` directly, you may still observe changes in file resolution.
+Previously, dependency management files could be "leaked" into the test from the host build environment; this is no longer the case.
+
+For more details see link:https://github.com/gradle/gradle/issues/32928[the related issue].
 
 ==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
 
@@ -242,6 +269,48 @@ plugins {
     id("org.gradle.test-retry")
 }
 ----
+
+==== Deprecation of `Dependencies.getProject()` method
+
+The `getProject()` method on `Dependencies` has been deprecated and will be removed in Gradle 10.0.0.
+
+`Dependencies` is used to configure dependencies in test suites.
+Previously, `getProject()` was used by Gradle internally to reference the current project.
+While never intended for public use, it could be used unintentionally in build scripts.
+
+For example, the following configuration accidentally invokes the deprecated method because `project.path` resolves against the `Dependencies` object rather than the top-level `Project` object:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project(project.path)) // `project.path` accesses `Dependencies.getProject()`
+            }
+        }
+    }
+}
+----
+
+The configuration above may now fail to compile with an error in 9.5.0 if `-Werror` is set.
+
+To depend on the current project, use the `project()` method without arguments. 
+This syntax is the idiomatic way to reference the project in both test suites and standard `dependencies {}` blocks:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project())
+            }
+        }
+    }
+}
+----
+
 
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier

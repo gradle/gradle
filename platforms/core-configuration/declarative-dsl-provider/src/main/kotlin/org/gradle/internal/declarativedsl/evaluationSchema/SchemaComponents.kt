@@ -29,6 +29,7 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.AugmentationsProvider
+import org.gradle.internal.declarativedsl.schemaBuilder.CollectingSchemaFailureReporter
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeAugmentationsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeDefaultImportsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeFunctionExtractor
@@ -39,7 +40,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.DefaultImportsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.FilteringTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
-import org.gradle.internal.declarativedsl.schemaBuilder.ThrowingSchemaFailureReporter
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaFailureReporter
 import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -105,11 +106,16 @@ fun buildEvaluationSchema(
     analysisStatementFilter: AnalysisStatementFilter,
     operationGenerationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     schemaComponents: EvaluationSchemaBuilder.() -> Unit
-): EvaluationSchema = DefaultEvaluationSchema(
-    analysisSchema(topLevelReceiverType, DefaultEvaluationSchemaBuilder().apply(schemaComponents)),
-    analysisStatementFilter,
-    operationGenerationId
-)
+): EvaluationSchema {
+    val failureCollector = CollectingSchemaFailureReporter()
+    val analysisSchema = analysisSchema(topLevelReceiverType, DefaultEvaluationSchemaBuilder().apply(schemaComponents), failureCollector)
+    return DefaultEvaluationSchema(
+        analysisSchema,
+        failureCollector.failures,
+        analysisStatementFilter,
+        operationGenerationId
+    )
+}
 
 
 internal
@@ -120,14 +126,16 @@ fun buildEvaluationAndConversionSchema(
     schemaComponents: EvaluationSchemaBuilder.() -> Unit,
 ): EvaluationAndConversionSchema {
     val builder = DefaultEvaluationAndConversionSchemaBuilder().apply(schemaComponents)
-    val analysisSchema = analysisSchema(topLevelReceiverType, builder)
+    val failureCollector = CollectingSchemaFailureReporter()
+    val analysisSchema = analysisSchema(topLevelReceiverType, builder, failureCollector)
 
     return DefaultEvaluationAndConversionSchema(
         analysisSchema,
+        failureCollector.failures,
         analysisStatementFilter,
         operationGenerationId,
         builder.conversionComponentFactories.map { fn ->
-            return@map { scriptTarget ->
+            { scriptTarget ->
                 val resultComponent = fn(scriptTarget)
                 // Re-wrap the services into the "public" schema type
                 object : ConversionSchema {
@@ -167,7 +175,8 @@ interface ObjectConversionComponent {
 private
 fun analysisSchema(
     topLevelReceiverType: KClass<*>,
-    builder: EvaluationSchemaBuilderResult
+    builder: EvaluationSchemaBuilderResult,
+    failureReporter: SchemaFailureReporter
 ): AnalysisSchema {
     val analysisSchema = schemaFromTypes(
         topLevelReceiverType,
@@ -179,7 +188,7 @@ fun analysisSchema(
         typeDiscovery = FilteringTypeDiscovery(CompositeTypeDiscovery(builder.typeDiscoveries), ::isValidTypeForDiscovery),
         defaultImports = CompositeDefaultImportsProvider(builder.defaultImportsProviders).defaultImports(),
         augmentationsProvider = CompositeAugmentationsProvider(builder.augmentationsProviders),
-        failureReporter = ThrowingSchemaFailureReporter
+        failureReporter = failureReporter
     )
     return analysisSchema
 }

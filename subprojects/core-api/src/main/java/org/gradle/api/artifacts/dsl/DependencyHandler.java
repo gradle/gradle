@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -329,6 +330,16 @@ public interface DependencyHandler extends ExtensionAware {
      * @return The dependency.
      */
     Dependency project(Map<String, ?> notation);
+
+    /**
+     * Creates a dependency on the current project.
+     *
+     * @return The dependency.
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    Dependency project();
 
     /**
      * Creates a dependency on the API of the current version of Gradle.

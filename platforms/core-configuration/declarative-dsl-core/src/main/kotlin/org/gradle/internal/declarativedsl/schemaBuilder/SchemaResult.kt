@@ -16,6 +16,8 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
+import org.gradle.declarative.dsl.evaluation.SchemaIssue
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
@@ -43,16 +45,16 @@ import kotlin.reflect.KVariance
  * @see ExtractionResult for the cases when both the positive and negative results need to carry some additional metadata
  */
 sealed class SchemaResult<out T> {
-    data class Result<out T : Any>(val result: T) : SchemaResult<T>()
-    data class Failure(val issue: SchemaBuildingIssue, val context: List<SchemaBuildingContextElement>) : SchemaResult<Nothing>()
+    data class Result<out T>(val result: T) : SchemaResult<T>()
+    data class Failure(val issue: SchemaIssue, val contextElements: List<SchemaBuildingContextElement>) : SchemaResult<Nothing>()
 }
 
-fun <T, R> SchemaResult<T>.flatMap(transform: (T) -> SchemaResult<R>): SchemaResult<R> = when (this) {
+inline fun <T, R> SchemaResult<T>.flatMap(transform: (T) -> SchemaResult<R>): SchemaResult<R> = when (this) {
     is SchemaResult.Failure -> this
     is SchemaResult.Result -> transform(result)
 }
 
-fun <T, R : Any> SchemaResult<T>.map(transform: (T) -> R): SchemaResult<R> = flatMap { schemaResult(transform(it)) }
+inline fun <T, R> SchemaResult<T>.map(transform: (T) -> R): SchemaResult<R> = flatMap { schemaResult(transform(it)) }
 
 inline fun <T> SchemaResult<T>.orFailWith(onFailure: (SchemaResult.Failure) -> Nothing): T = when (this) {
     is SchemaResult.Result -> result
@@ -80,87 +82,122 @@ annotation class LossySchemaBuildingOperation
 @LossySchemaBuildingOperation
 fun <T> SchemaResult<T>.orError(): T = when (this) {
     is SchemaResult.Result -> result
-    is SchemaResult.Failure -> throw IllegalStateException("Unexpected failure: $issue", DeclarativeDslSchemaBuildingException(SchemaFailureMessageFormatter.failureMessage(this)))
+    is SchemaResult.Failure -> throw IllegalStateException("Unexpected failure: $issue", DeclarativeDslSchemaBuildingException(SchemaFailureMessageFormatter.failureMessage(asReportableFailure())))
 }
 
-fun <T : Any> schemaResult(result: T) = SchemaResult.Result(result)
+fun <T> schemaResult(result: T) = SchemaResult.Result(result)
 
 
 sealed interface SchemaBuildingIssue {
-    data object DeclarationBothHiddenAndVisible : SchemaBuildingIssue
-    data class IllegalUsageOfTypeParameterBoundByClass(val typeParameterUsage: KType) : SchemaBuildingIssue
-    data class IllegalVarianceInParameterizedTypeUsage(val parameterizedClass: KClass<*>, val variance: KVariance) : SchemaBuildingIssue
+    data object DeclarationBothHiddenAndVisible : SchemaBuildingIssue, SchemaIssue.DeclarationBothHiddenAndVisible {
+        private fun readResolve(): Any = DeclarationBothHiddenAndVisible
+    }
+
+    data class IllegalUsageOfTypeParameterBoundByClass(override val typeParameterName: String) : SchemaBuildingIssue, SchemaIssue.IllegalUsageOfTypeParameterBoundByClass {
+        constructor(typeParameterUsage: KType?) : this(typeParameterUsage?.toString() ?: "unknown")
+    }
+
+    data class IllegalVarianceInParameterizedTypeUsage(override val varianceKind: String) : SchemaBuildingIssue, SchemaIssue.IllegalVarianceInParameterizedTypeUsage {
+        constructor(variance: KVariance?) : this(variance?.name ?: "unknown")
+    }
 
     data class HiddenTypeUsedInDeclaration(
-        val hiddenClass: KClass<*>,
-        val hiddenBecause: Iterable<DiscoveryTag>,
-        val illegalUsages: Iterable<DiscoveryTag>
-    ) : SchemaBuildingIssue
+        override val hiddenClassName: String,
+        override val hiddenBecause: Iterable<String>,
+        override val illegalUsages: Iterable<String>
+    ) : SchemaBuildingIssue, SchemaIssue.HiddenTypeUsedInDeclaration {
+        constructor(
+            hiddenClass: KClass<*>,
+            hiddenBecauseTags: Iterable<DiscoveryTag>,
+            illegalUsageTags: Iterable<DiscoveryTag>
+        ) : this(
+            hiddenClass.let { it.qualifiedName ?: it.simpleName } ?: "unknown",
+            hiddenBecauseTags.map { discoveryTagDescription(it, hiddenClass) },
+            illegalUsageTags.map { discoveryTagDescription(it, hiddenClass) }
+        )
+    }
 
-    data class UnsupportedPairFactory(val returnType: SupportedTypeProjection.SupportedType) : SchemaBuildingIssue
+    data class UnsupportedPairFactory(override val returnTypeName: String) : SchemaBuildingIssue, SchemaIssue.UnsupportedPairFactory {
+        constructor(returnType: SupportedTypeProjection.SupportedType?) : this(returnType?.toKType()?.toString() ?: "unknown")
+    }
 
-    data class UnsupportedMapFactory(val returnType: SupportedTypeProjection.SupportedType) : SchemaBuildingIssue
+    data class UnsupportedMapFactory(override val returnTypeName: String) : SchemaBuildingIssue, SchemaIssue.UnsupportedMapFactory {
+        constructor(returnType: SupportedTypeProjection.SupportedType?) : this(returnType?.toKType()?.toString() ?: "unknown")
+    }
 
-    data class UnsupportedNullableType(val type: KType) : SchemaBuildingIssue
-    data class UnsupportedVarargType(val type: KType) : SchemaBuildingIssue
-    data class UnsupportedGenericContainerType(val type: KType) : SchemaBuildingIssue
-    data class UnsupportedTypeParameterAsContainerType(val type: KType) : SchemaBuildingIssue
+    data class UnsupportedNullableType(override val typeName: String) : SchemaBuildingIssue, SchemaIssue.UnsupportedNullableType {
+        constructor(type: KType?) : this(type?.toString() ?: "unknown")
+    }
 
-    data object UnsupportedNullableReadOnlyProperty : SchemaBuildingIssue
-    data class NonClassifiableType(val kType: KType) : SchemaBuildingIssue
+    data class UnsupportedVarargType(override val typeName: String) : SchemaBuildingIssue, SchemaIssue.UnsupportedVarargType {
+        constructor(type: KType?) : this(type?.toString() ?: "unknown")
+    }
 
-    data object UnitAddingFunctionWithLambda : SchemaBuildingIssue
+    data class UnsupportedGenericContainerType(override val typeName: String) : SchemaBuildingIssue, SchemaIssue.UnsupportedGenericContainerType {
+        constructor(type: KType?) : this(type?.toString() ?: "unknown")
+    }
 
-    data object UnrecognizedMember : SchemaBuildingIssue
+    data class UnsupportedTypeParameterAsContainerType(override val typeName: String) : SchemaBuildingIssue, SchemaIssue.UnsupportedTypeParameterAsContainerType {
+        constructor(type: KType?) : this(type?.toString() ?: "unknown")
+    }
+
+    class UnsupportedNullableReadOnlyProperty : SchemaBuildingIssue, SchemaIssue.UnsupportedNullableReadOnlyProperty
+    data class NonClassifiableType(override val typeName: String) : SchemaBuildingIssue, SchemaIssue.NonClassifiableType {
+        constructor(kType: KType?) : this(kType?.toString() ?: "unknown")
+    }
+
+    class UnitAddingFunctionWithLambda : SchemaBuildingIssue, SchemaIssue.UnitAddingFunctionWithLambda
+
+    class UnrecognizedMember : SchemaBuildingIssue, SchemaIssue.UnrecognizedMember
 }
 
 object SchemaFailureMessageFormatter {
-    fun failureMessage(failure: SchemaResult.Failure): String =
+    fun failureMessage(failure: SchemaBuildingFailure): String =
         messageForIssue(failure.issue) + (
             failure.context.takeIf { it.isNotEmpty() }
                 ?.let { "\n${contextRepresentation(it)}" }
                 .orEmpty()
             )
 
-    fun contextRepresentation(context: List<SchemaBuildingContextElement>): String =
+    fun contextRepresentation(context: List<SchemaBuildingFailure.FailureContext>): String =
         context.asReversed()
             .joinToString("\n") { "  in ${it.userRepresentation}" }
 
-    fun messageForIssue(schemaBuildingIssue: SchemaBuildingIssue): String =
-        with(schemaBuildingIssue) {
-            when (this) {
-                is SchemaBuildingIssue.HiddenTypeUsedInDeclaration ->
-                    "Type '${hiddenClass.qualifiedName}' is a hidden type and cannot be directly used." +
-                        "\n  Appears as hidden:\n" +
-                        hiddenBecause.joinToString("\n") { "    - ${discoveryTagDescription(it, hiddenClass)}" } +
-                        "\n  Illegal usages:\n" +
-                        illegalUsages.joinToString("\n") { "    - ${discoveryTagDescription(it, hiddenClass)}" }
+    fun messageForIssue(schemaIssue: SchemaIssue): String =
+        when (schemaIssue) {
+            is SchemaIssue.HiddenTypeUsedInDeclaration ->
+                "Type '${schemaIssue.hiddenClassName}' is a hidden type and cannot be directly used." +
+                    "\n  Appears as hidden:\n" +
+                    schemaIssue.hiddenBecause.joinToString("\n") { "    - $it" } +
+                    "\n  Illegal usages:\n" +
+                    schemaIssue.illegalUsages.joinToString("\n") { "    - $it" }
 
-                is SchemaBuildingIssue.IllegalUsageOfTypeParameterBoundByClass -> "Type parameter '$typeParameterUsage' bound by a class cannot be used as a type"
-                is SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage -> "Illegal '${variance}' variance"
-                SchemaBuildingIssue.DeclarationBothHiddenAndVisible ->
-                    "Conflicting annotations: @${VisibleInDefinition::class.simpleName} and @${HiddenInDefinition::class.simpleName} are present"
+            is SchemaIssue.IllegalUsageOfTypeParameterBoundByClass -> "Type parameter '${schemaIssue.typeParameterName}' bound by a class cannot be used as a type"
+            is SchemaIssue.IllegalVarianceInParameterizedTypeUsage -> "Illegal '${schemaIssue.varianceKind}' variance"
+            is SchemaIssue.DeclarationBothHiddenAndVisible ->
+                "Conflicting annotations: @${VisibleInDefinition::class.simpleName} and @${HiddenInDefinition::class.simpleName} are present"
 
-                is SchemaBuildingIssue.NonClassifiableType -> "Illegal type '$kType': has no classifier"
-                SchemaBuildingIssue.UnitAddingFunctionWithLambda -> "An @${Adding::class.simpleName} function with a Unit return type may not accept configuring lambdas"
-                SchemaBuildingIssue.UnrecognizedMember -> "Member not recognized as part of schema"
-                is SchemaBuildingIssue.UnsupportedTypeParameterAsContainerType -> "Using a type parameter as a configured type is not supported"
-                is SchemaBuildingIssue.UnsupportedGenericContainerType -> "Using a parameterized type as a configured type is not supported"
-                is SchemaBuildingIssue.UnsupportedPairFactory -> "Illegal type '${returnType.toKType()}': functions returning Pair types are not supported"
-                is SchemaBuildingIssue.UnsupportedMapFactory -> "Illegal type '${returnType.toKType()}': functions returning Map types are not supported"
-                SchemaBuildingIssue.UnsupportedNullableReadOnlyProperty -> "Unsupported property declaration: nullable read-only property"
-                is SchemaBuildingIssue.UnsupportedNullableType -> "Unsupported usage of a nullable type"
-                is SchemaBuildingIssue.UnsupportedVarargType -> "Unsupported vararg type $type"
-            }
+            is SchemaIssue.NonClassifiableType -> "Illegal type '${schemaIssue.typeName}': has no classifier"
+            is SchemaIssue.UnitAddingFunctionWithLambda -> "An @${Adding::class.simpleName} function with a Unit return type may not accept configuring lambdas"
+            is SchemaIssue.UnrecognizedMember -> "Member not recognized as part of schema"
+            is SchemaIssue.UnsupportedTypeParameterAsContainerType -> "Using a type parameter as a configured type is not supported"
+            is SchemaIssue.UnsupportedGenericContainerType -> "Using a parameterized type as a configured type is not supported"
+            is SchemaIssue.UnsupportedPairFactory -> "Illegal type '${schemaIssue.returnTypeName}': functions returning Pair types are not supported"
+            is SchemaIssue.UnsupportedMapFactory -> "Illegal type '${schemaIssue.returnTypeName}': functions returning Map types are not supported"
+            is SchemaIssue.UnsupportedNullableReadOnlyProperty -> "Unsupported property declaration: nullable read-only property"
+            is SchemaIssue.UnsupportedNullableType -> "Unsupported usage of a nullable type"
+            is SchemaIssue.UnsupportedVarargType -> "Unsupported vararg type ${schemaIssue.typeName}"
+            else -> "Schema issue: $schemaIssue"
         }
 
-    private fun discoveryTagDescription(tag: DiscoveryTag, violatingClass: KClass<*>): String = when (tag) {
-        is ContainerElement -> "as the element of a container '${tag.containerMember}'"
-        is PropertyType -> "as the property type of '${tag.kClass.qualifiedName}.${tag.propertyName}'"
-        is Supertype -> if (tag.ofType == violatingClass && tag.isHidden) "type '${violatingClass.qualifiedName}' is annotated as hidden" else
-            "in the supertypes of '${tag.ofType.qualifiedName}'"
+}
 
-        is UsedInMember -> "referenced from member '${tag.member}'"
-        is Special -> tag.description
-    }
+private fun discoveryTagDescription(tag: DiscoveryTag, violatingClass: KClass<*>): String = when (tag) {
+    is ContainerElement -> "as the element of a container '${tag.containerMember}'"
+    is PropertyType -> "as the property type of '${tag.kClass.qualifiedName}.${tag.propertyName}'"
+    is Supertype -> if (tag.ofType == violatingClass && tag.isHidden) "type '${violatingClass.qualifiedName}' is annotated as hidden" else
+        "in the supertypes of '${tag.ofType.qualifiedName}'"
+
+    is UsedInMember -> "referenced from member '${tag.member}'"
+    is Special -> tag.description
 }

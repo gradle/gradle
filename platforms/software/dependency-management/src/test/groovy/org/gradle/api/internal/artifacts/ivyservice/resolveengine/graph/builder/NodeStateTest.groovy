@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator
@@ -227,7 +228,7 @@ class NodeStateTest extends Specification {
                         DefaultModuleIdentifier.newId("org", dep),
                         DefaultImmutableVersionConstraint.strictly("1.0")
                     )
-                    getArtifacts() >> []
+                    getArtifacts() >> ImmutableList.of()
                 }
             }
         }

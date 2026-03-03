@@ -199,10 +199,12 @@ Running `LicenseTask` is not currently possible.
 
 All you can do for now is make sure `./gradlew build` runs without failing:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew build
-
+----
+[source,text]
+----
 SETTINGS FILE: This is executed during the initialization phase
 
 > Configure project :app
