@@ -133,10 +133,15 @@ abstract class AbstractSmokeTest extends Specification {
 
     @TempDir
     File testProjectDir
-    File buildFile
-    File settingsFile
+
+    @TempDir
+    File freshGradleUserHomeDir
+
     @TempDir
     File buildCacheDir
+
+    File buildFile
+    File settingsFile
 
     def setup() {
         buildFile = new File(testProjectDir, defaultBuildFileName)
@@ -174,6 +179,17 @@ abstract class AbstractSmokeTest extends Specification {
             jvmArgs,
             testProjectDir
         )
+    }
+
+    protected SmokeTestGradleRunner runnerWithGradleUserHome(File gradleUserHomeDir, String... tasks) {
+        List<String> args = tasks.toList()
+        args.add("-g")
+        args.add(gradleUserHomeDir.absolutePath)
+        runner(*args)
+    }
+
+    protected SmokeTestGradleRunner runnerWithFreshGradleUserHome(String... tasks) {
+        runnerWithGradleUserHome(freshGradleUserHomeDir, *tasks)
     }
 
     private List<String> configurationCacheParameters() {
