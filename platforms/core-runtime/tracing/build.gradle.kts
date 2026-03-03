@@ -20,6 +20,15 @@ plugins {
 
 description = "Daemon tracing tools and services"
 
+jvmCompile {
+    compilations {
+        named("main") {
+            // We use the JFR APIs that are only available in Java 11 and later.
+            usesFutureStdlib = true
+        }
+    }
+}
+
 dependencies {
     api(projects.buildOperations)
     api(projects.serviceProvider)
