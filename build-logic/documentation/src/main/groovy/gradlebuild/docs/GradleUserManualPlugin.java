@@ -175,7 +175,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());
             attributes.put("gradleVersion90", "9.0.0");
-            attributes.put("gradleVersion8", "8.14.3");
+            attributes.put("gradleVersion8", "8.14.4");
             attributes.put("snippetsPath", "snippets");
             // Make sure the 'raw' location of the samples is available in all AsciidoctorTasks to access files with expected outputs in the 'tests' folder for inclusion in READMEs
             attributes.put("samplesPath", extension.getUserManual().getStagingRoot().dir("raw/samples").get().getAsFile());
@@ -257,10 +257,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("icons", "font");
-            configureCodeHighlightingAttributes(attributes);
             attributes.put("toc", "auto");
             attributes.put("toclevels", 2);
-            attributes.put("toc-title", "Contents");
+            attributes.put("toc-title", "On this Page");
             attributes.put("groovyDslPath", "../dsl");
             attributes.put("javadocPath", "../javadoc");
             attributes.put("kotlinDslPath", "../kotlin-dsl");
@@ -300,12 +299,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
     }
 
-    private static void configureCodeHighlightingAttributes(Map<String, Object> attributes) {
-        attributes.put("source-highlighter", "highlight.js");
-        //attributes.put("highlightjs-theme", "atom-one-dark");
-        attributes.put("highlightjs-languages", "java,groovy,kotlin,toml,gradle,properties,text");
-    }
-
     private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension, Project project) {
         task.setGroup("documentation");
         task.dependsOn(extension.getUserManual().getStagedDocumentation());
@@ -317,7 +310,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
 
         Map<String, Object> attributes = new HashMap<>();
-        configureCodeHighlightingAttributes(attributes);
         attributes.put("toc", "macro");
         attributes.put("toclevels", 2);
 
