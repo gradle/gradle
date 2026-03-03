@@ -30,8 +30,13 @@ EC2_INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-ty
 echo "##teamcity[addBuildTag 'ec2-instance-type=$EC2_INSTANCE_TYPE']"
 
 AWS_REGION=$(curl -s "http://169.254.169.254/latest/meta-data/placement/region")
+CLOUD_PROFILE_NAME=$(curl -s "http://169.254.169.254/latest/meta-data/tags/instance/CloudProfileName" 2>/dev/null || true)
 
-if [[ "$AWS_REGION" == us-* ]]; then
+if [[ "$CLOUD_PROFILE_NAME" == "gradle-bt-ci-us-west-2" ]]; then
+  echo "For $CLOUD_PROFILE_NAME switching to user teamcityuswest2 access token with gradle-bt-ci EC2 agents"
+  echo "##teamcity[setParameter name='env.DEVELOCITY_ACCESS_KEY' value='%ge.gradle.org.access.key.us-west-2%;%gbt-td.grdev.net.access.key.us-west-2%']"
+  export DEVELOCITY_ACCESS_KEY="${DEVELOCITY_ACCESS_KEY_US_WEST_2}"
+elif [[ "$AWS_REGION" == us-* ]]; then
   echo "For $AWS_REGION switching to user teamcityus access token"
   echo "##teamcity[setParameter name='env.DEVELOCITY_ACCESS_KEY' value='%ge.gradle.org.access.key.us%;%gbt-td.grdev.net.access.key%']"
   export DEVELOCITY_ACCESS_KEY="${DEVELOCITY_ACCESS_KEY_US}"
