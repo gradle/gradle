@@ -17,10 +17,8 @@
 package org.gradle.features.internal.builders.definitions
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
-
 /**
  * A {@link ProjectTypeDefinitionClassBuilder} for creating a project type definition similar to {@link ProjectTypeDefinitionClassBuilder},
  * but with some different properties and a nested type.
@@ -37,7 +35,6 @@ class AnotherProjectTypeDefinitionClassBuilder extends ProjectTypeDefinitionClas
             package org.gradle.test;
 
             import ${Adding.class.name};
-            import ${HiddenInDefinition.class.name};
 
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
@@ -57,17 +54,8 @@ class AnotherProjectTypeDefinitionClassBuilder extends ProjectTypeDefinitionClas
                 @Nested
                 Bar getBar();
 
-                @${HiddenInDefinition.class.simpleName}
-                default void bar(Action<? super Bar> action) {
-                    action.execute(getBar());
-                }
-
                 abstract interface Bar {
                     Property<String> getBaz();
-                }
-
-                default String propertyValues() {
-                    return "foo = " + getFoo().get() + "\\nbaz = " + getBar().getBaz().get();
                 }
 
                 public interface ModelType extends BuildModel {

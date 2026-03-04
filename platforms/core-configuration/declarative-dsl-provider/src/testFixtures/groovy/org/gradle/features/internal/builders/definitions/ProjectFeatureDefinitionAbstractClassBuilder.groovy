@@ -16,7 +16,6 @@
 
 package org.gradle.features.internal.builders.definitions
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 
@@ -37,7 +36,6 @@ class ProjectFeatureDefinitionAbstractClassBuilder extends ProjectFeatureDefinit
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.Action;
             import org.gradle.api.tasks.Nested;
-            import ${HiddenInDefinition.class.name};
             import javax.inject.Inject;
 
             public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.FeatureModel> {
@@ -47,11 +45,6 @@ class ProjectFeatureDefinitionAbstractClassBuilder extends ProjectFeatureDefinit
 
                 @Nested
                 public abstract Fizz getFizz();
-
-                @${HiddenInDefinition.simpleName}
-                public void fizz(Action<? super Fizz> action) {
-                    action.execute(getFizz());
-                }
 
                 public interface Fizz {
                     ${maybeNestedInjectedServiceDeclaration}

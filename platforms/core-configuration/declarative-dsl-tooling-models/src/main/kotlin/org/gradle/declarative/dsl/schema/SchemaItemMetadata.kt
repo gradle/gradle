@@ -22,7 +22,15 @@ import java.io.Serializable
 @ToolingModelContract(
     subTypes = [
         SchemaMemberOrigin::class,
-            ContainerElementFactory::class
+        ContainerElementFactory::class,
+        ProjectFeatureOrigin::class,
+        ConfigureFromGetterOrigin::class,
+        UnsafeSchemaItem::class,
+        UnsafeNonInterfaceType::class,
+        UnsafeNonAbstractMember::class,
+        UnsafeJavaBeanProperty::class,
+        UnsafeNonPureFunction::class,
+        UnsafeBecauseHasHiddenMembers::class
     ]
 )
 sealed interface SchemaItemMetadata : Serializable
@@ -54,4 +62,14 @@ interface ProjectFeatureOrigin : SchemaMemberOrigin {
 interface ConfigureFromGetterOrigin : SchemaMemberOrigin {
     val javaClassName: String
     val memberName: String
+}
+
+interface UnsafeSchemaItem : SchemaItemMetadata
+
+interface UnsafeNonInterfaceType : UnsafeSchemaItem
+interface UnsafeNonAbstractMember : UnsafeSchemaItem
+interface UnsafeJavaBeanProperty : UnsafeSchemaItem
+interface UnsafeNonPureFunction : UnsafeSchemaItem
+interface UnsafeBecauseHasHiddenMembers : UnsafeSchemaItem {
+    val memberNames: List<String>
 }

@@ -22,9 +22,12 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeJavaBeanProperty
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KType
 import kotlin.reflect.full.allSuperclasses
 
@@ -117,7 +120,11 @@ class DefaultPropertyExtractor(
                         DefaultPropertyMode.of(canRead, canWrite),
                         hasDefaultValue = true,
                         isDirectAccessOnly = isDirectAccessOnly,
-                        isHiddenInDsl = false
+                        isHiddenInDsl = false,
+                        metadata = listOfNotNull(
+                            if (setter != null) DefaultUnsafeJavaBeanProperty else null,
+                            if (!getter.kCallable.isAbstract || setter?.kCallable?.isAbstract == false) SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonAbstractMember else null
+                        )
                     ),
                     metadata = PropertyExtractionMetadata(listOfNotNull(getter, setter), getter.returnType)
                 )
@@ -158,6 +165,10 @@ class DefaultPropertyExtractor(
                 },
                 isHiddenInDsl = false,
                 isDirectAccessOnly = isDirectAccessOnly,
+                metadata = listOfNotNull(
+                    if (property.kCallable is KMutableProperty) DefaultUnsafeJavaBeanProperty else null,
+                    if (!property.kCallable.isAbstract) SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonAbstractMember else null
+                )
             ),
             metadata = PropertyExtractionMetadata(listOf(property), property.returnType)
         )
