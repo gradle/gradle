@@ -80,7 +80,7 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
             new LinkedHashSet<>(getOptions().getExcludeEngines().get()),
             new LinkedHashSet<>(getOptions().getIncludeTags().get()),
             new LinkedHashSet<>(getOptions().getExcludeTags().get()),
-            dryRun.get(), projectLayout.getProjectDirectory().getAsFile()
+            dryRun.get()
         ));
     }
 
