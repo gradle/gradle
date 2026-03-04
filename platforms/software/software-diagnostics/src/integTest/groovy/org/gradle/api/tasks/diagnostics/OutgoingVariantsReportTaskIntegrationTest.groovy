@@ -778,6 +778,7 @@ Secondary Variants (*)
         // Should NOT show archives and default (neither have attributes)
         outputDoesNotContain("Variant archives")
         outputDoesNotContain("Variant default")
+
         and:
         doesNotHaveLegacyLegend()
         hasSecondaryVariantsLegend()
