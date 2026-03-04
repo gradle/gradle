@@ -78,7 +78,28 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         expect:
         succeeds ':outgoingVariants'
         reportsNoProperVariants()
-        promptsForRerunToFindMoreVariants()
+        promptsForRerunToFindMoreVariants(true)
+    }
+
+    def "if both legacy configurations and configuration without attributes present, and --all not specified, task produces empty report and prompts for rerun"() {
+        given:
+        buildFile << """
+            configurations.create("legacy") {
+                description = "My legacy configuration"
+                assert canBeResolved
+                assert canBeConsumed
+            }
+            configurations.create("custom") {
+                description = "My custom configuration without attributes"
+                canBeResolved = false
+                assert canBeConsumed
+            }
+        """
+
+        expect:
+        succeeds ':outgoingVariants'
+        reportsNoProperVariants()
+        promptsForRerunToFindMoreVariants(true)
     }
 
     def "if only legacy configuration present, task reports it if --all flag is set"() {
