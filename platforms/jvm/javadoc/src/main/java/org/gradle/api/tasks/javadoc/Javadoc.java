@@ -132,7 +132,7 @@ public abstract class Javadoc extends SourceTask {
         getJavadocTool().convention(javadocToolConvention);
         getJavadocTool().finalizeValueOnRead();
         this.optionsDestinationDir = getObjectFactory().directoryProperty()
-            .fileProvider(getProviderFactory().provider(options::getDestinationDirectory));
+            .value(options.getDestinationDirectory());
         this.optionsFile = getObjectFactory().fileProperty()
             .fileProvider(getProviderFactory().provider(() -> new File(getTemporaryDir(), "javadoc.options")));
         getFailOnError().convention(true);
