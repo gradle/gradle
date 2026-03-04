@@ -10,7 +10,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
 
-    runtimeOnly(projects.core)
     api(projects.internalInstrumentationApi)
     api(libs.jspecify)
 

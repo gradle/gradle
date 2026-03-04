@@ -10,8 +10,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
 
-    runtimeOnly(projects.core)
-
     implementation(projects.daemonServerWorker)
     implementation(libs.groovy)
     implementation(libs.guava)
