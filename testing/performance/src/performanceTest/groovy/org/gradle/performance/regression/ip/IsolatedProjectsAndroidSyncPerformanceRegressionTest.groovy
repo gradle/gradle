@@ -49,7 +49,7 @@ class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCross
         }
 
         AndroidSyncPerformanceTestFixture.configureStudio(runner)
-        IsolatedProjectsSyncPerformanceTestFixture.configureStudioForIp(runner)
+        IsolatedProjectsSyncPerformanceTestFixture.configureStudio(runner)
 
         when:
         CrossVersionPerformanceResults result = runner.run()
