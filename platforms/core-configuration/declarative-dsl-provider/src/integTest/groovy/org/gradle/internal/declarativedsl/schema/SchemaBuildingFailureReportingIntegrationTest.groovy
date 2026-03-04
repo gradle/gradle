@@ -66,4 +66,171 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         receivedProblem(1).fqid == "scripts:dcl-schema:unsupported-map-factory"
         receivedProblem(2).fqid == "scripts:dcl-schema:unsupported-map-factory"
     }
+
+    def 'unsafe non-interface type in safe definition is reported'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
+            "interface Fizz {",
+            "abstract class Fizz {"
+        )
+        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
+            "Property<String> getBuzz();",
+            "abstract Property<String> getBuzz();"
+        )
+
+        expect:
+        fails().assertHasErrorOutput(
+            "Unsafe declaration in safe definition: non-interface type\n" +
+            "      in schema type 'org.gradle.test.FeatureDefinition.Fizz'\n" +
+            "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+
+        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-non-interface-type"
+    }
+
+    def 'unsafe hidden member in safe definition is reported'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
+            "Property<String> getText();",
+            "Property<String> getText();\n" +
+                "@org.gradle.declarative.dsl.model.annotations.HiddenInDefinition\n" +
+                "Property<String> getHiddenProp();"
+        )
+
+        expect:
+        fails().assertHasErrorOutput(
+            "Unsafe declaration in safe definition: hidden member 'getHiddenProp'\n" +
+            "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+            "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+
+        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+    }
+
+    def 'unsafe java bean property in safe definition is reported'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
+            "Property<String> getText();",
+            "Property<String> getText();\n" +
+                "String getPlainText();\n" +
+                "void setPlainText(String value);"
+        )
+
+        expect:
+        fails().assertHasErrorOutput("Unsafe declaration in safe definition: unsafe property\n" +
+            "      in schema property 'plainText: String'\n" +
+            "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+            "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+
+        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-java-bean-property"
+    }
+
+    def 'unsafe non-abstract member in safe definition is reported'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
+            "Property<String> getText();",
+            "Property<String> getText();\n" +
+                "default String getDefaultValue() { return \"default\"; }"
+        )
+
+        expect:
+        fails().assertHasErrorOutput("Unsafe declaration in safe definition: non-abstract member\n" +
+            "      in schema property 'defaultValue: String'\n" +
+            "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+            "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+
+        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-non-abstract-member"
+    }
+
+    def 'unsafe non-pure function in safe definition is reported'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
+            "Property<String> getText();",
+            "Property<String> getText();\n" +
+                "@org.gradle.declarative.dsl.model.annotations.Adding\n" +
+                "Fizz addFizz();"
+        )
+
+        expect:
+        fails().assertHasErrorOutput(
+            "Unsafe declaration in safe definition: function relying on side effects or custom implementation\n" +
+            "      in schema function 'addFizz(): Fizz'\n" +
+            "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+            "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+
+        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-non-pure-function"
+    }
+
+    def 'unsafe declaration in type used by two safe definitions reports both features'() {
+        given:
+        PluginBuilder pluginBuilder = withMultipleProjectFeaturePlugins()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        pluginBuilder.file("src/main/java/org/gradle/test/SharedType.java") << """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+
+            public interface SharedType {
+                Property<String> getValue();
+
+                @HiddenInDefinition
+                Property<String> getHiddenProp();
+            }
+        """
+
+        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
+            "Property<String> getText();",
+            "Property<String> getText();\n" +
+                "@org.gradle.api.tasks.Nested\n" +
+                "SharedType getShared();"
+        )
+
+        file("plugins/src/main/java/org/gradle/test/AnotherFeatureDefinition.java").replace(
+            "Property<String> getText();",
+            "Property<String> getText();\n" +
+                "@org.gradle.api.tasks.Nested\n" +
+                "SharedType getShared();"
+        )
+
+        expect:
+        fails().assertHasErrorOutput(
+            "Unsafe declaration in safe definition: hidden member 'getHiddenProp'\n" +
+            "      in schema type 'org.gradle.test.SharedType'\n" +
+            "      in safe feature definitions of 'feature', 'anotherFeature' (plugin 'com.example.test-software-ecosystem')"
+        )
+
+        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+    }
 }

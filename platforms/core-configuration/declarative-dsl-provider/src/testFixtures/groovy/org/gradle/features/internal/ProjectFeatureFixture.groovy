@@ -217,6 +217,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def anotherProjectFeature = new ProjectFeaturePluginClassBuilder(anotherFeatureDefinition)
             .bindingTypeClassName(anotherProjectTypeDefinition.publicTypeClassName)
             .projectFeaturePluginClassName("AnotherProjectFeatureImplPlugin")
+            .withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectType(anotherProjectType.projectTypePluginClassName)

@@ -16,7 +16,6 @@
 
 package org.gradle.features.internal.builders.definitions
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 
@@ -28,8 +27,6 @@ class ProjectTypeDefinitionAbstractClassBuilder extends ProjectTypeDefinitionCla
     String getPublicTypeClassContent() {
         return """
             package org.gradle.test;
-
-            import ${HiddenInDefinition.class.name};
 
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
@@ -54,11 +51,6 @@ class ProjectTypeDefinitionAbstractClassBuilder extends ProjectTypeDefinitionCla
                 public Foo getFoo() {
                     isFooConfigured = true; // TODO: get rid of the side effect in the getter
                     return foo;
-                }
-
-                @${HiddenInDefinition.class.simpleName}
-                public void foo(Action<? super Foo> action) {
-                    action.execute(foo);
                 }
 
                 ${maybeInjectedServiceDeclaration}

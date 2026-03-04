@@ -37,6 +37,11 @@ import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
+import org.gradle.declarative.dsl.schema.UnsafeBecauseHasHiddenMembers
+import org.gradle.declarative.dsl.schema.UnsafeNonPureFunction
+import org.gradle.declarative.dsl.schema.UnsafeJavaBeanProperty
+import org.gradle.declarative.dsl.schema.UnsafeNonAbstractMember
+import org.gradle.declarative.dsl.schema.UnsafeNonInterfaceType
 import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 
@@ -90,7 +95,8 @@ data class DefaultDataProperty(
     override val mode: PropertyMode,
     override val hasDefaultValue: Boolean,
     override val isHiddenInDsl: Boolean = false,
-    override val isDirectAccessOnly: Boolean = false
+    override val isDirectAccessOnly: Boolean = false,
+    override val metadata: List<SchemaItemMetadata> = emptyList()
 ) : DataProperty {
     data object DefaultPropertyMode {
         fun of(canRead: Boolean, canWrite: Boolean): PropertyMode = when {
@@ -521,6 +527,40 @@ object SchemaItemMetadataInternal {
             override val javaClassName: String,
             override val memberName: String
         ) : ConfigureFromGetterOrigin
+    }
+
+    object UnsafeSchemaItemInternal {
+        @Serializable
+        @SerialName("unsafeNonInterfaceType")
+        data object DefaultUnsafeNonInterfaceType : UnsafeNonInterfaceType {
+            @Suppress("unused")
+            private fun readResolve(): Any = DefaultUnsafeNonInterfaceType
+        }
+
+        @Serializable
+        @SerialName("unsafeNonAbstractMember")
+        data object DefaultUnsafeNonAbstractMember : UnsafeNonAbstractMember {
+            @Suppress("unused")
+            private fun readResolve(): Any = DefaultUnsafeNonAbstractMember
+        }
+
+        @Serializable
+        @SerialName("unsafeJavaBeanProperty")
+        data object DefaultUnsafeJavaBeanProperty : UnsafeJavaBeanProperty {
+            @Suppress("unused")
+            private fun readResolve(): Any = DefaultUnsafeJavaBeanProperty
+        }
+
+        @Serializable
+        @SerialName("unsafeFunction")
+        data object DefaultUnsafeNonPureFunction : UnsafeNonPureFunction {
+            @Suppress("unused")
+            private fun readResolve(): Any = DefaultUnsafeNonPureFunction
+        }
+
+        @Serializable
+        @SerialName("unsafeBecauseHasHiddenMembers")
+        data class DefaultUnsafeBecauseHasHiddenMembers(override val memberNames: List<String>) : UnsafeBecauseHasHiddenMembers
     }
 }
 

@@ -17,9 +17,7 @@
 package org.gradle.features.internal.builders.definitions
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.test.fixtures.plugin.PluginBuilder
-
 /**
  * A {@link ProjectTypeDefinitionClassBuilder} for creating a project type definition that can declare dependencies.
  */
@@ -45,7 +43,6 @@ class ProjectTypeDefinitionWithDependenciesClassBuilder extends ProjectTypeDefin
             import org.gradle.api.provider.Property;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.artifacts.dsl.DependencyCollector;
-            import ${HiddenInDefinition.class.name};
             import ${Adding.class.name};
             import org.gradle.api.tasks.Nested;
 
@@ -64,11 +61,6 @@ class ProjectTypeDefinitionWithDependenciesClassBuilder extends ProjectTypeDefin
                 @Nested
                 abstract public LibraryDependencies getDependencies();
 
-                @${HiddenInDefinition.class.simpleName}
-                public void dependencies(Action<? super LibraryDependencies> action) {
-                    action.execute(getDependencies());
-                }
-
                 public abstract ListProperty<String> getList();
 
                 @${Adding.class.simpleName}
@@ -80,11 +72,6 @@ class ProjectTypeDefinitionWithDependenciesClassBuilder extends ProjectTypeDefin
                 public Bar getBar() {
                     isBarConfigured = true; // TODO: get rid of the side effect in the getter
                     return bar;
-                }
-
-                @${HiddenInDefinition.class.simpleName}
-                public void bar(Action<? super Bar> action) {
-                    action.execute(getBar());
                 }
 
                 public abstract static class Bar {

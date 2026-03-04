@@ -21,6 +21,7 @@ import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
 import org.gradle.declarative.dsl.model.annotations.ValueFactories
 import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
@@ -29,13 +30,13 @@ import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
-import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
-import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode
 import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultVarargParameter
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultConfigureFromGetterOrigin
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonAbstractMember
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonPureFunction
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
@@ -165,7 +166,11 @@ class DefaultFunctionExtractor(
                     function.name,
                     params,
                     isDirectAccessOnly,
-                    semanticsFromSignature
+                    semanticsFromSignature,
+                    metadata = listOfNotNull(
+                        if (semanticsFromSignature !is FunctionSemantics.Pure) DefaultUnsafeNonPureFunction else null,
+                        if (!function.kCallable.isAbstract) DefaultUnsafeNonAbstractMember else null
+                    )
                 )
             }
         )
@@ -349,11 +354,11 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
 
     override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): List<FunctionExtractionResult> =
         listOf(
-            configuringFunctionsFromKotlinProperties(host, kClass),
-            configuringFunctionsFromGetters(host, kClass)
+            configuringFunctionsFromKotlinProperties(host, kClass, preIndex),
+            configuringFunctionsFromGetters(host, kClass, preIndex)
         ).flatten()
 
-    private fun configuringFunctionsFromGetters(host: SchemaBuildingHost, kClass: KClass<*>): List<FunctionExtractionResult> {
+    private fun configuringFunctionsFromGetters(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): List<FunctionExtractionResult> {
         val functions = host.classMembers(kClass).declarativeMembers.filter {
             it.kind == MemberKind.FUNCTION &&
                 memberIsInSchema(host, kClass, it) && // Only produce configuring functions for members that are already used as properties. TODO: express this in a more explicit way
@@ -375,13 +380,14 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
                 val type = getter.returnTypeRef(host).orFailWith {
                     return@map ExtractionResult.of(it, FunctionExtractionMetadata(listOf(getter)))
                 }
-                val property = DefaultDataProperty(propertyName, type, DefaultPropertyMode.DefaultReadOnly, hasDefaultValue = true, isHiddenInDsl = false, isDirectAccessOnly = false)
+                val property = preIndex.getProperty(kClass, propertyName)
+                    ?: host.schemaBuildingError("Property '$propertyName' is expected to be imported from the getter but does not exist")
                 ExtractionResult.Extracted(configuringFunction(host, kClass, getter.name, propertyName, property), FunctionExtractionMetadata(listOf(getter)))
             }
         }
     }
 
-    private fun configuringFunctionsFromKotlinProperties(host: SchemaBuildingHost, kClass: KClass<*>): List<FunctionExtractionResult> {
+    private fun configuringFunctionsFromKotlinProperties(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): List<FunctionExtractionResult> {
         val properties = host.classMembers(kClass).declarativeMembers
             .filter {
                 it.kind == MemberKind.READ_ONLY_PROPERTY && propertyTypePredicate(it.returnType) &&
@@ -394,14 +400,9 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
                 val type = property.returnTypeRef(host).orFailWith {
                     return@map ExtractionResult.of(it, FunctionExtractionMetadata(listOf(property)))
                 }
-                val dataProperty = DefaultDataProperty(
-                    property.name,
-                    type,
-                    DefaultPropertyMode.DefaultReadOnly,
-                    hasDefaultValue = true,
-                    isHiddenInDsl = false,
-                    isDirectAccessOnly = false
-                )
+
+                val dataProperty = preIndex.getProperty(kClass, property.name)
+                    ?: host.schemaBuildingError("Property '${property.name}' is expected to be imported from the getter but does not exist")
 
                 ExtractionResult.of(
                     schemaResult(configuringFunction(host, kClass, dataProperty.name, dataProperty.name, dataProperty)),
@@ -424,7 +425,7 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
         kClass: KClass<*>,
         originMemberName: String,
         propertyName: String,
-        property: DefaultDataProperty
+        property: DataProperty
     ): DefaultDataMemberFunction {
         val thisTypeRef = host.withTag(SchemaBuildingTags.receiverType(kClass)) {
             @OptIn(LossySchemaBuildingOperation::class) // the receiver should be a valid type to get to this point

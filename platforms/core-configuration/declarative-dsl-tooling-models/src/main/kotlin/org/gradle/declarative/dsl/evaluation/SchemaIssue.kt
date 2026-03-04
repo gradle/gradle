@@ -16,6 +16,8 @@
 
 package org.gradle.declarative.dsl.evaluation
 
+import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
+import org.gradle.declarative.dsl.schema.UnsafeSchemaItem
 import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
@@ -85,4 +87,9 @@ interface SchemaIssue : Serializable {
     interface UnitAddingFunctionWithLambda : SchemaIssue
 
     interface UnrecognizedMember : SchemaIssue
+
+    interface UnsafeDeclarationInSafeFeatureApi : SchemaIssue {
+        val usedInSafeFeatures: List<ProjectFeatureOrigin>
+        val unsafeApiCause: UnsafeSchemaItem
+    }
 }

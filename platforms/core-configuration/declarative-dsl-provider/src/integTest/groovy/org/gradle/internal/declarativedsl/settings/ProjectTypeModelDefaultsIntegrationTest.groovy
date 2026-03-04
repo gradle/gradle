@@ -26,6 +26,7 @@ import org.gradle.internal.declarativedsl.DeclarativeTestUtils
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Uses safe features which don't expose nested model configuring functions for Groovy")
 class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements ProjectFeatureFixture, PolyglotTestFixture {
 
     def setup() {
@@ -60,7 +61,6 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin DSL does accept re-assigning values")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL does accept re-assigning values")
     def "sensible error when defaults are set more than once (#testCase)"() {
         given:
         withProjectType().prepareToExecute()
@@ -284,19 +284,18 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
-    def "can configure build-level defaults in a non-declarative settings file and apply in a declarative project file (#type settings script)"() {
+    def "can configure build-level defaults in a non-declarative settings file and apply in a declarative project file"() {
         given:
         withProjectType().prepareToExecute()
 
-        file("settings.gradle${extension}") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
+        file("settings.gradle.kts") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
             include("declarative")
             include("non-declarative")
         """
 
         file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setId("foo"))
 
-        file("non-declarative/build.gradle${extension}") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
+        file("non-declarative/build.gradle.kts") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
 
         when:
         run(":declarative:printTestProjectTypeDefinitionConfiguration")
@@ -311,16 +310,10 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         then:
         outputContains("definition id = default")
         outputContains("definition foo.bar = bar")
-
-        where:
-        type     | extension
-        "groovy" | ""
-        "kotlin" | ".kts"
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
-    def "can configure build-level defaults in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
+    def "can configure build-level defaults in a declarative settings file and apply in a non-declarative project file"() {
         given:
         withProjectType().prepareToExecute()
 
@@ -329,7 +322,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
             include("declarative")
         """
 
-        file("non-declarative/build.gradle${extension}") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
+        file("non-declarative/build.gradle.kts") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
         file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setId("bar"))
 
         when:
@@ -345,14 +338,8 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         then:
         outputContains("definition id = bar")
         outputContains("definition foo.bar = default")
-
-        where:
-        type     | extension
-        "groovy" | ""
-        "kotlin" | ".kts"
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Neither the foo() method is available in Groovy, nor can the x or y values remain undefined")
     def "can configure defaults for named domain object container elements"() {
         given:
         withProjectTypeWithNdoc(false).prepareToExecute()

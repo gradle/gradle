@@ -36,6 +36,8 @@ import org.gradle.internal.declarativedsl.analysis.DefaultEnumClass
 import org.gradle.internal.declarativedsl.analysis.DefaultExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.DefaultVarargSignature
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeBecauseHasHiddenMembers
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonInterfaceType
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.TypeArgumentInternal
 import org.gradle.internal.declarativedsl.analysis.fqName
@@ -44,6 +46,7 @@ import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement.TagContextElement
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingTags.varargType
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.ProjectFeatureDefinition
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Supertype
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.reflect.KCallable
@@ -150,6 +153,13 @@ object SchemaBuildingTags {
     fun schemaParameter(dataParameter: DataParameter) = TagContextElement("parameter '${dataParameter.name}: ${dataParameter.type}'")
     fun configuredType(dataTypeRef: DataTypeRef) = TagContextElement("configured type '$dataTypeRef'")
     fun schemaTypeConstructor(constructor: DataConstructor) = TagContextElement("$constructor(${constructor.parameters.joinToString { "${it.name}: ${it.type}" }})")
+
+    fun usedInSafeFeatures(featurePluginToFeatureNames: Map<String?, List<String>>) = TagContextElement(
+        "safe feature definition${if (featurePluginToFeatureNames.values.flatten().size > 1) "s" else ""} of " +
+            featurePluginToFeatureNames.entries.joinToString { (pluginId, featureNames) ->
+                featureNames.joinToString { "'$it'" } + if (pluginId != null) " (plugin '${pluginId}')" else ""
+            }
+    )
 }
 
 inline fun <R> SchemaBuildingHost.inContextOf(contextElement: SchemaBuildingContextElement, doBuildSchema: () -> R): R =
@@ -430,6 +440,8 @@ class DataSchemaBuilder(
 
         addAll(checkDiscoveredTypeForIllegalHiddenTypeUsages(host, preIndex.allDiscoveredTypes))
 
+        addAll(checkSafeTypeRequirements(schema, host))
+
         preIndex.types.forEach { type ->
             if (schema.dataClassTypesByFqName[type.fqName] == null) {
                 // Then for some reason this type is not in the schema. For example, it is a parameterized supertype.
@@ -461,10 +473,10 @@ class DataSchemaBuilder(
     }.toList()
 
     private fun validateSchemaInvariants(host: SchemaBuildingHost, schema: AnalysisSchema) {
-        checkAllTypesInScope(host, schema, collectReachableContainerTypes(schema))
+        checkAllTypesInScope(host, schema)
     }
 
-    private fun checkAllTypesInScope(host: SchemaBuildingHost, schema: AnalysisSchema, configurableTypes: Set<DataClass>) {
+    private fun checkAllTypesInScope(host: SchemaBuildingHost, schema: AnalysisSchema) {
         val typeRefContext = SchemaTypeRefContext(schema)
 
         fun checkTypeInScope(dataTypeRef: DataTypeRef) {
@@ -499,56 +511,28 @@ class DataSchemaBuilder(
             }
         }
 
-        configurableTypes.forEach { type ->
-            host.withTag(SchemaBuildingTags.schemaClass(type)) {
-                type.memberFunctions.forEach { function ->
-                    host.withTag(SchemaBuildingTags.schemaFunction(function)) {
-                        validateFunction(function)
-                    }
-                }
-                type.constructors.forEach { constructor ->
-                    host.withTag(SchemaBuildingTags.schemaTypeConstructor(constructor)) {
-                        validateFunction(constructor)
-                    }
-                }
-                type.properties.forEach { property ->
-                    host.withTag(SchemaBuildingTags.schemaProperty(property)) {
-                        checkTypeInScope(property.valueType)
-                    }
-                }
-            }
-
-        }
-    }
-
-    private fun collectReachableContainerTypes(schema: AnalysisSchema) = buildSet {
-        val typeRefContext = SchemaTypeRefContext(schema)
-
-        fun visit(configurableType: DataClass) {
-            if (!add(configurableType))
-                return
-
-            configurableType.memberFunctions.forEach {
-                val semantics = it.semantics
-                if (semantics is FunctionSemantics.ConfigureSemantics) {
-                    when (val configuredType = typeRefContext.maybeResolveRef(semantics.configuredType)) {
-                        is DataClass -> visit(configurableType)
-                        is ParameterizedTypeInstance -> {
-                            val dataClass = schema.dataClassTypesByFqName[configuredType.name] as? DataClass
-                            if (dataClass != null) {
-                                visit(dataClass)
-                            }
+        schema.dataClassTypesByFqName.values.forEach { type ->
+            if (type is DataClass) {
+                host.withTag(SchemaBuildingTags.schemaClass(type)) {
+                    type.memberFunctions.forEach { function ->
+                        host.withTag(SchemaBuildingTags.schemaFunction(function)) {
+                            validateFunction(function)
                         }
-
-                        else -> Unit
+                    }
+                    type.constructors.forEach { constructor ->
+                        host.withTag(SchemaBuildingTags.schemaTypeConstructor(constructor)) {
+                            validateFunction(constructor)
+                        }
+                    }
+                    type.properties.forEach { property ->
+                        host.withTag(SchemaBuildingTags.schemaProperty(property)) {
+                            checkTypeInScope(property.valueType)
+                        }
                     }
                 }
             }
         }
-
-        visit(schema.topLevelReceiverType)
     }
-
 
     private
     val KClass<*>.fqName
@@ -699,7 +683,17 @@ class DataSchemaBuilder(
                         }
                     }
                 }
-                val metadata = preIndex.discoveryTagsByClass[kClass].orEmpty().mapNotNull { (it as? DiscoveredClass.DiscoveryTag.ProjectFeatureDefinition)?.featureData }
+                val metadata = buildList {
+                    addAll(
+                        preIndex.discoveryTagsByClass[kClass].orEmpty().mapNotNull { (it as? ProjectFeatureDefinition)?.featureData }
+                    )
+                    if (!kClass.java.isInterface) {
+                        add(DefaultUnsafeNonInterfaceType)
+                    }
+                    if (host.classMembers(kClass).hiddenMemberNames.isNotEmpty()) {
+                        add(DefaultUnsafeBecauseHasHiddenMembers(host.classMembers(kClass).hiddenMemberNames.toList()))
+                    }
+                }
                 DefaultDataClass(kClass.fqName, kClass.java.name, listOf(), supertypesOf(kClass), properties, functions, emptyList(), metadata)
             }
         }

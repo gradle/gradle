@@ -192,6 +192,11 @@ class KnownProblemIds {
         'scripts:dcl-schema:unsupported-pair-factory': ['.*'],
         'scripts:dcl-schema:unsupported-type-parameter-as-container-type': ['.*'],
         'scripts:dcl-schema:unsupported-vararg-type': ['.*'],
+        'scripts:dcl-schema:unsafe-non-interface-type': ['.*'],
+        'scripts:dcl-schema:unsafe-non-abstract-member': ['.*'],
+        'scripts:dcl-schema:unsafe-java-bean-property': ['.*'],
+        'scripts:dcl-schema:unsafe-non-pure-function': ['.*'],
+        'scripts:dcl-schema:unsafe-because-has-hidden-members': ['.*'],
 
         // integration test problems
         'deprecation:some-indirect-deprecation': ['Some indirect deprecation has been deprecated.'],
