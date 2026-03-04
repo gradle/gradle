@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -115,22 +114,18 @@ public class InitSettings {
         return insecureProtocolOption;
     }
 
-    @Incubating
     public boolean isUseIncubatingAPIs() {
         return useIncubatingAPIs;
     }
 
-    @Incubating
     public boolean isUseTestSuites() {
         return useIncubatingAPIs;
     }
 
-    @Incubating
     public Optional<JavaLanguageVersion> getJavaLanguageVersion() {
         return Optional.ofNullable(javaLanguageVersion);
     }
 
-    @Incubating
     public boolean isWithComments() {
         return comments;
     }
