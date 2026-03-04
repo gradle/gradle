@@ -466,7 +466,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         public DevelocityUrlOption() {
             super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION,
-                "Specify the URL of the Develocity server to use for Build Scans."));
+                "Default URL of the Develocity server to publish Build Scan to. Triggers auto-application of the Develocity plugin if not already applied."));
         }
 
         @Override
@@ -495,7 +495,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         public DevelocityPluginVersionOption() {
             super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION,
-                "Specify the version of the Develocity plugin to auto-apply."));
+                "Version of the Develocity plugin to auto-apply. Used only if --develocity-url or --scan triggers auto-application of the Develocity plugin."));
         }
 
         @Override
