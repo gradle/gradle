@@ -26,11 +26,11 @@ import org.gradle.internal.time.Time;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -38,7 +38,6 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
     private final BlockingQueue<Runnable> workQueue;
     private final String displayName;
     private final ExclusiveCacheAccessCoordinator cacheAccess;
-    private final long batchWindowMillis;
     private final long maximumLockingTimeMillis;
     private boolean closed;
     private boolean workerCompleted;
@@ -49,11 +48,10 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
     public ExclusiveCacheAccessingWorker(String displayName, ExclusiveCacheAccessCoordinator cacheAccess) {
         this.displayName = displayName;
         this.cacheAccess = cacheAccess;
-        this.batchWindowMillis = 200;
         this.maximumLockingTimeMillis = 5000;
         HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
         int queueCapacity = Math.min(4000, heapProportionalCacheSizer.scaleCacheSize(40000));
-        workQueue = new ArrayBlockingQueue<Runnable>(queueCapacity, true);
+        workQueue = new LinkedBlockingQueue<>(queueCapacity);
     }
 
     @Override
@@ -174,24 +172,20 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
                         failureHandler.onExecute(updateOperation);
                     }
                     Runnable otherOperation;
-                    try {
-                        while ((otherOperation = workQueue.poll(batchWindowMillis, TimeUnit.MILLISECONDS)) != null) {
-                            failureHandler.onExecute(otherOperation);
-                            final Class<? extends Runnable> runnableClass = otherOperation.getClass();
-                            if (runnableClass == FlushOperationsCommand.class) {
-                                flushOperations.add((FlushOperationsCommand) otherOperation);
-                            }
-                            if (runnableClass == ShutdownOperationsCommand.class) {
-                                stopSeen = true;
-                            }
-                            if (runnableClass == ShutdownOperationsCommand.class
-                                    || runnableClass == FlushOperationsCommand.class
-                                    || timer.hasExpired()) {
-                                break;
-                            }
+                    while ((otherOperation = workQueue.poll()) != null) {
+                        failureHandler.onExecute(otherOperation);
+                        final Class<? extends Runnable> runnableClass = otherOperation.getClass();
+                        if (runnableClass == FlushOperationsCommand.class) {
+                            flushOperations.add((FlushOperationsCommand) otherOperation);
                         }
-                    } catch (InterruptedException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
+                        if (runnableClass == ShutdownOperationsCommand.class) {
+                            stopSeen = true;
+                        }
+                        if (runnableClass == ShutdownOperationsCommand.class
+                                || runnableClass == FlushOperationsCommand.class
+                                || timer.hasExpired()) {
+                            break;
+                        }
                     }
                 }
             });
