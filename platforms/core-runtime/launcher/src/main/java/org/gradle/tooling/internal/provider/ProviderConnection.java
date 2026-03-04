@@ -27,12 +27,14 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -63,6 +65,7 @@ import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
+import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
@@ -115,11 +118,8 @@ public class ProviderConnection {
     private final PayloadSerializer payloadSerializer;
     private final BuildLayoutFactory buildLayoutFactory;
     private final DaemonClientFactory daemonClientFactory;
-    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor;
     private final ServiceRegistry sharedServices;
     private final FileCollectionFactory fileCollectionFactory;
-    private final GlobalUserInputReceiver userInputReceiver;
-    private final UserInputReader userInputReader;
     private final ShutdownCoordinator shutdownCoordinator;
     private final NotifyDaemonClientExecuter notifyDaemonClientExecuter;
     private final IsolatableSerializerRegistry isolatableSerializerRegistry;
@@ -130,23 +130,17 @@ public class ProviderConnection {
         ServiceRegistry sharedServices,
         BuildLayoutFactory buildLayoutFactory,
         DaemonClientFactory daemonClientFactory,
-        BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor,
         PayloadSerializer payloadSerializer,
         FileCollectionFactory fileCollectionFactory,
-        GlobalUserInputReceiver userInputReceiver,
-        UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
         NotifyDaemonClientExecuter notifyDaemonClientExecuter,
         IsolatableSerializerRegistry isolatableSerializerRegistry
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
-        this.embeddedExecutor = embeddedExecutor;
         this.payloadSerializer = payloadSerializer;
         this.sharedServices = sharedServices;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.userInputReceiver = userInputReceiver;
-        this.userInputReader = userInputReader;
         this.shutdownCoordinator = shutdownCoordinator;
         this.notifyDaemonClientExecuter = notifyDaemonClientExecuter;
         this.isolatableSerializerRegistry = isolatableSerializerRegistry;
@@ -328,7 +322,20 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.captureSystemSources();
-            executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
+            BuildProcessState buildProcessState = new BuildProcessState(
+                true,
+                AgentStatus.disabled(),
+                CurrentGradleInstallation.locate(),
+                Collections.emptySet(),
+                Collections.singleton(sharedServices)
+            );
+            executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(
+                buildProcessState.getServices().get(GlobalUserInputReceiver.class),
+                buildProcessState.getServices().get(UserInputReader.class),
+                standardInput,
+                buildProcessState.getServices().get(BuildExecutor.class)
+            )));
+            stoppable.add(buildProcessState);
         } else {
             ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.get(LoggingManagerFactory.class).createLoggingManager();

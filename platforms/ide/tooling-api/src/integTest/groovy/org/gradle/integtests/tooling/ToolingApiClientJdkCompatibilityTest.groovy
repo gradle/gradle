@@ -266,7 +266,11 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         testProject.file("settings.gradle") << """
             println('Hello from ' + gradle.gradleVersion + ' on ' + JavaVersion.current().majorVersion)
         """
-        createProject(Jvm.current(), null, """
+
+        def daemonJvm = Jvm.current()
+        createProject(daemonJvm, null, """
+            assert System.getProperty("java.version").contains("${clientJdkVersion.majorVersion}");
+
             Class<?> modelClass;
             if (${withSideloadedModel}) {
                 String modelUrl = System.getProperty("sideloadedClass");
@@ -281,9 +285,8 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                 .setStandardError(err)
                 .setJavaHome(javaHome)
                 .get();
-
             if (${executesScripts}) {
-                assert out.toString().contains("Hello from ${GradleVersion.current().version} on ${clientJdkVersion.majorVersion}");
+                assert out.toString().contains("Hello from ${GradleVersion.current().version} on ${daemonJvm.javaVersionMajor}");
             }
         """)
         if (withGradleApi) {
