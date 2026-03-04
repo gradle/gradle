@@ -227,7 +227,9 @@ The `dependencyInsight` task is useful for inspecting specific dependencies and 
 [source,bash]
 ----
 $ ./gradlew dependencyInsight --configuration compileClasspath --dependency com.example:your-library
-
+----
+[source,text]
+----
 > Task :dependencyInsight
 
 com.example:your-library:1.0 (compileClasspath)

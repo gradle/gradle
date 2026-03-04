@@ -429,6 +429,28 @@ class DynamicOwner {
             }
         }
     }
+
+    def "create throws after disallowChanges"() {
+        given:
+        container.disallowChanges()
+
+        when:
+        container.create("foo")
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "register throws after disallowChanges"() {
+        given:
+        container.disallowChanges()
+
+        when:
+        container.register("bar")
+
+        then:
+        thrown(IllegalStateException)
+    }
 }
 
 class TestObject {

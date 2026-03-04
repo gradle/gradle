@@ -393,9 +393,12 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-seconda
 
 The `apiElements` variant represents the public API of a library and is used during dependency resolution when a consuming project requests `java-api` usage:
 
+[source,bash]
 ----
-> ./gradlew outgoingVariants -q
-
+$ ./gradlew outgoingVariants -q
+----
+[source,text]
+----
 include::{snippetsPath}/dependencyManagement/customizingResolution-secondaryVariants/tests/secondaryVariants.out[]
 ----
 
@@ -413,9 +416,12 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-seconda
 
 And we can see our new secondary variant is created for `apiElements`:
 
+[source,bash]
 ----
-> ./gradlew outgoingVariants -q
-
+$ ./gradlew outgoingVariants -q
+----
+[source,text]
+----
 include::{snippetsPath}/dependencyManagement/customizingResolution-secondaryVariants/tests/secondaryVariantsAdded.out[]
 ----
 
@@ -431,9 +437,12 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-seconda
 
 The output reflects this structure, showing `fooFiles` as the primary variant and both secondary variants with their corresponding `FooAttribute` and `FooVariantAttribute` values, which Gradle uses during **artifact selection** to match a consumer's requested attributes:
 
+[source,bash]
 ----
-> ./gradlew outgoingVariants -q
-
+$ ./gradlew outgoingVariants -q
+----
+[source,text]
+----
 include::{snippetsPath}/dependencyManagement/customizingResolution-secondaryVariants/tests/secondaryVariantsNew.out[]
 ----
 
@@ -456,7 +465,7 @@ It also accepts the `--all` flag to include information about legacy and depreca
 
 Here is the output of the `outgoingVariants` task on a freshly generated `java-library` project:
 
-[listing]
+[source,text]
 ----
 > Task :outgoingVariants
 --------------------------------------------------
@@ -593,7 +602,7 @@ This report offers:
 
 Here is the output of the `resolvableConfigurations` task on a freshly generated `java-library` project:
 
-[listing]
+[source,text]
 ----
 > Task :resolvableConfigurations
 --------------------------------------------------

@@ -42,14 +42,16 @@ We'll then register this task in our plugin so users can execute it with a simpl
 
 Let's create the class that will contain our Slack messaging logic.
 
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 Create a new file called `SlackTask.kt` in `src/main/kotlin/org/example/` and add the following code:
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 Create a new file called `SlackTask.groovy` in `src/main/groovy/org/example/` and add the following code:
-----
+=====
+====
 
 ====
 include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackTask.kt[]"]
@@ -77,14 +79,16 @@ include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/buil
 Now that we've defined our custom `SlackTask` class, we need to register it in our plugin's `apply` method.
 This makes it available for users to run with a command like `./gradlew sendTestSlackMessage`.
 
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 Open your plugin implementation file, `SlackPlugin.kt` (in `src/main/kotlin/org/example/`), and modify it to look like this:
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 Open your plugin implementation file, `SlackPlugin.groovy` (in `src/main/groovy/org/example/`), and modify it to look like this:
-----
+=====
+====
 
 ====
 include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-task]"]

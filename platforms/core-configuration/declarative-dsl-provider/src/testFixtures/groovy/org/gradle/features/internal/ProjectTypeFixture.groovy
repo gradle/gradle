@@ -64,8 +64,8 @@ trait ProjectTypeFixture {
         )
     }
 
-    PluginBuilder withProjectTypeWithNdoc() {
-        def definition = new ProjectTypeDefinitionWithNdocClassBuilder()
+    PluginBuilder withProjectTypeWithNdoc(boolean isOutProjected) {
+        def definition = new ProjectTypeDefinitionWithNdocClassBuilder(isOutProjected)
         def projectType = new ProjectTypePluginClassBuilder(definition)
             .withoutConventions()
             .withUnsafeDefinition()
@@ -80,7 +80,7 @@ trait ProjectTypeFixture {
     }
 
     PluginBuilder withProjectTypePluginThatDoesNotExposeProjectTypes() {
-        def definition = new ProjectTypeDefinitionWithNdocClassBuilder()
+        def definition = new ProjectTypeDefinitionWithNdocClassBuilder(false)
         def projectType = new ProjectPluginThatDoesNotExposeProjectTypesBuilder(definition)
             .projectTypePluginClassName("NotAProjectTypePlugin")
             .withoutConventions()

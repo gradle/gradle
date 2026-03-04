@@ -22,7 +22,8 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Ujwal Suresh Vanjare](https://github.com/usv240)
+[Ujwal Suresh Vanjare](https://github.com/usv240),
+[Suvrat Acharya](https://github.com/Suvrat1629)
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -89,6 +90,29 @@ To enable these accessors, ensure your convention plugin build includes the `kot
 plugins {
     `kotlin-dsl`
 }
+```
+
+### Domain Object Collections can be made immutable
+
+Plugin and build authors can now lock domain object collections to prevent further modifications using the new `disallowChanges()` method. 
+You can also verify the status of a collection using `areChangesAllowed()`.
+- Once `disallowChanges()` is called, elements can no longer be added to or removed from the collection.
+- Invoking this method does not force the realization of lazy items previously added to the collection. 
+- This lock applies only to the collection itself. Individual objects within the collection can still be modified.
+
+```kotlin
+val myCollection = objects.domainObjectContainer(MyType::class)
+val main = MyType("main")
+
+myCollection.areChangesAllowed()  // returns true
+myCollection.add(main)
+myCollection.add(MyType("test"))
+
+myCollection.disallowChanges()    // the collection is now immutable
+myCollection.areChangesAllowed()  // returns false
+main.setFoo("bar")                // individual elements can still be modified
+myCollection.add(MyType("other")) // this will fail
+myCollection.remove(main)         // this will fail
 ```
 
 ## Tooling integration improvements

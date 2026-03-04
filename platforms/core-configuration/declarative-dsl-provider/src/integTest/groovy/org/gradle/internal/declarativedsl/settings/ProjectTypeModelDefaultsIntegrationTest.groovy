@@ -355,7 +355,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Neither the foo() method is available in Groovy, nor can the x or y values remain undefined")
     def "can configure defaults for named domain object container elements"() {
         given:
-        withProjectTypeWithNdoc().prepareToExecute()
+        withProjectTypeWithNdoc(false).prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaultsForNdoc()
 

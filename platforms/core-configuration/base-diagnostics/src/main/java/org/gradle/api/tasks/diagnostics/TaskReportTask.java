@@ -66,7 +66,6 @@ import static java.util.Collections.emptyList;
 public abstract class TaskReportTask extends ConventionReportTask {
 
     private boolean detail;
-    private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class);
     private String group;
     private List<String> groups;
     private final Cached<ComputedTaskReportModel> model = Cached.of(this::computeTaskReportModel);
@@ -163,9 +162,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
      */
     @Console
     @Option(option = "types", description = "Show task class types")
-    public Property<Boolean> getShowTypes() {
-        return showTypes;
-    }
+    public abstract Property<Boolean> getShowTypes();
 
     @TaskAction
     void generate() {

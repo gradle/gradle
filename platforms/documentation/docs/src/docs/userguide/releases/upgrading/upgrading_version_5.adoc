@@ -764,6 +764,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
  * Setters for `classes` and `classpath` on `org.gradle.plugin.devel.tasks.ValidateTaskProperties` (removed)
 
  * There should not be setters for lazy properties like link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].  Use `setFrom` instead. For example,
+[source,groovy]
 ----
     validateTaskProperties.getClasses().setFrom(fileCollection)
     validateTaskProperties.getClasspath().setFrom(fileCollection)

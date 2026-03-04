@@ -15,7 +15,7 @@ dependencies {
         val distributionDependencies = versionCatalogs.named("buildLibs")
         distributionDependencies.libraryAliases.forEach { alias ->
             api(distributionDependencies.findLibrary(alias).get().map { module ->
-                if (module.version == "kotlin-stub") {
+                if (module.group == "org.jetbrains.kotlin") {
                     module.copy().apply {
                         version {
                             strictly(kotlinVersion)

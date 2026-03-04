@@ -71,13 +71,13 @@ import org.junit.platform.launcher.TestPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -148,16 +148,16 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
-    private final File baseDefinitionsDir;
+    private final Collection<Path> testDefinitionDirs;
 
     @Nullable
     private TestPlan currentTestPlan;
 
-    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, File baseDefinitionsDir) {
+    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, Collection<Path> testDefinitionDirs) {
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
-        this.baseDefinitionsDir = baseDefinitionsDir;
+        this.testDefinitionDirs = testDefinitionDirs;
     }
 
     public void throwAnyFatalExceptions() {
@@ -567,14 +567,17 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
 
         try {
-            Path rootDirPath = baseDefinitionsDir.toPath().toRealPath();
-            Path testDefPath = ((FileSource) source).getFile().toPath().toRealPath();
-            String relativePath = TextUtil.normaliseFileSeparators(rootDirPath.relativize(testDefPath).toString());
-            return Optional.of(relativePath);
+            Path path = ((FileSource) source).getFile().toPath().toRealPath();
+            for (Path testDefinitionDir : testDefinitionDirs) {
+                if (path.startsWith(testDefinitionDir)) {
+                    String relativePath = TextUtil.normaliseFileSeparators(testDefinitionDir.relativize(path).toString());
+                    return Optional.of(relativePath);
+                }
+            }
         } catch (IOException e) {
             LOGGER.warn("Could not compute relative path to source file for test identifier {}", node, e);
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     private static boolean hasClassSource(TestIdentifier testIdentifier) {

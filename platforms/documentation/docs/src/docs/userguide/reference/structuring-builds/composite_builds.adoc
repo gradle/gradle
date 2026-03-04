@@ -110,8 +110,12 @@ The `--include-build` command-line argument turns the executed build into a comp
 
 For example, the output of `./gradlew run --include-build ../my-utils` run from `my-app`:
 
+[source,bash]
 ----
 $ ./gradlew --include-build ../my-utils run
+----
+[source,text]
+----
 include::{samplesPath}/build-organization/composite-builds/basic/tests/basicCli.out[]
 ----
 
@@ -231,11 +235,21 @@ Executing a task will result in task dependencies being executed, as well as tho
 You can call a task in an included build using a fully qualified path, for example, `:included-build-name:project-name:taskName`.
 Project and task names can be <<command_line_interface.adoc#sec:name_abbreviation,abbreviated>>.
 
+[source,bash]
 ----
 $ ./gradlew :included-build:subproject-a:compileJava
+----
+[source,text]
+----
 > Task :included-build:subproject-a:compileJava
+----
 
+[source,bash]
+----
 $ ./gradlew :i-b:sA:cJ
+----
+[source,text]
+----
 > Task :included-build:subproject-a:compileJava
 ----
 

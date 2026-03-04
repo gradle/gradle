@@ -144,6 +144,7 @@ If `com.other:module` appears elsewhere in the dependency graph, the build will 
 Capabilities are published in Gradle Module Metadata but have no equivalent in POM or Ivy metadata files.
 As a result, when publishing such a component, Gradle warns that this feature is only supported for Gradle consumers:
 
+[source,text]
 ----
 Maven publication 'maven' contains dependencies that cannot be represented in a published pom file.
   - Declares capability com.acme:my-library:1.0

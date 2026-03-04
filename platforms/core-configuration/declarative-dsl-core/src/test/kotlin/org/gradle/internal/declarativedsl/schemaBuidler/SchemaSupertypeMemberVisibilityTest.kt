@@ -104,12 +104,12 @@ class SchemaSupertypeMemberVisibilityTest {
         Assert.assertEquals("""
             |Type '${HiddenSup::class.qualifiedName}' is a hidden type and cannot be directly used.
             |  Appears as hidden:
+            |    - in the supertypes of '${UsesHiddenType::class.qualifiedName}'
             |    - type '${HiddenSup::class.qualifiedName}' is annotated as hidden
             |  Illegal usages:
             |    - referenced from member '${UsesHiddenType::hidden}'
             |    - referenced from member '${UsesHiddenType::boxOfHidden}'
             |    - referenced from member '${UsesHiddenType::moreHidden}'
-            |    - in the supertypes of '${UsesHiddenType::class.qualifiedName}'
         """.trimMargin(), exception.message)
     }
 

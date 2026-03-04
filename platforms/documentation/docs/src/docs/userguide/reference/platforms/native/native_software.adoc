@@ -15,14 +15,12 @@
 [[native_software]]
 = Building native software
 
-
 CAUTION: The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed.
 We recommend new projects looking to build C++ applications and libraries use the newer <<building_cpp_projects.adoc#building_cpp_projects,replacement plugins>>.
 
 The native software plugins add support for building native software components, such as executables or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist for this space of software development, Gradle offers developers its trademark power and flexibility together with dependency management practices more traditionally found in the JVM development space.
 
 The native software plugins make use of the Gradle software model.
-
 
 [[sec:native_features]]
 == Features
@@ -38,7 +36,6 @@ The native software plugins provide:
 * Generate Visual studio solution and project files.
 * Deep integration with various tool chain, including discovery of installed tool chains.
 
-
 [[sec:supported_languages]]
 == Supported languages
 
@@ -50,7 +47,6 @@ The following source languages are currently supported:
 * Objective-C++
 * Assembly
 * Windows resources
-
 
 [[native-binaries:tool-chain-support]]
 == Tool chain support
@@ -111,7 +107,6 @@ The following tool chains are unofficially supported. They generally work fine, 
 |
 |===
 
-
 [[sec:tool_chain_installation]]
 == Tool chain installation
 
@@ -119,7 +114,6 @@ NOTE: Note that if you are using GCC then you currently need to install support 
 This restriction will be removed in a future Gradle version.
 
 To build native software, you will need to have a compatible tool chain installed:
-
 
 [[sec:windows]]
 === Windows
@@ -169,7 +163,7 @@ To build either a static or shared native library, you define a library componen
 
 === Example: Defining a library component
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/c/groovy/build.gradle[tag=libraries]
@@ -184,7 +178,7 @@ To build a native executable, you define an executable component in the `compone
 
 === Example: Defining executable components
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/c/groovy/build.gradle[tag=executables]
@@ -215,13 +209,11 @@ In the following sections, we will demonstrate the usage of the `assembleDepende
 
 === Example: Sample build
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/cunit/groovy/build.gradle[tag=terse-example]
 ----
-
-
 
 [[sec:dependents_report]]
 === Dependent components report
@@ -230,9 +222,12 @@ Gradle provides a report that you can run from the command-line that shows a gra
 
 === Example: Dependent components report
 
-.Output of **`gradle dependentComponents`**
+[source,bash]
 ----
-> gradle dependentComponents
+$ ./gradlew dependentComponents
+----
+[source,text]
+----
 include::{snippetsPath}/native-binaries/cunit/tests/dependentComponentsReport.out[]
 ----
 
@@ -242,9 +237,12 @@ By default, non-buildable binaries and test suites are hidden from the report. T
 
 === Example: Dependent components report
 
-.Output of **`gradle dependentComponents --all`**
+[source,bash]
 ----
-> gradle dependentComponents --all
+$ ./gradlew dependentComponents --all
+----
+[source,text]
+----
 include::{snippetsPath}/native-binaries/cunit/tests/dependentComponentsReportAll.out[]
 ----
 
@@ -252,9 +250,12 @@ Here is the corresponding report for the `operators` component, showing dependen
 
 === Example: Report of components that depends on the operators component
 
-.Output of **`gradle dependentComponents --component operators`**
+[source,bash]
 ----
-> gradle dependentComponents --component operators
+$ ./gradlew dependentComponents --component operators
+----
+[source,text]
+----
 include::{snippetsPath}/native-binaries/cunit/tests/assembleDependentComponentsReport.out[]
 ----
 
@@ -262,9 +263,12 @@ Here is the corresponding report for the `operators` component, showing dependen
 
 === Example: Report of components that depends on the operators component, including test suites
 
-.Output of **`gradle dependentComponents --test-suites --component operators`**
+[source,bash]
 ----
-> gradle dependentComponents --test-suites --component operators
+$ ./gradlew dependentComponents --test-suites --component operators
+----
+[source,text]
+----
 include::{snippetsPath}/native-binaries/cunit/tests/buildDependentComponentsReport.out[]
 ----
 
@@ -283,9 +287,12 @@ For example, to assemble the dependents of the "passing" flavor of the "static" 
 
 === Example: Assemble components that depends on the passing/static binary of the operators component
 
-.Output of **`gradle assembleDependentsOperatorsPassingStaticLibrary --max-workers=1`**
+[source,bash]
 ----
-> gradle assembleDependentsOperatorsPassingStaticLibrary --max-workers=1
+$ ./gradlew assembleDependentsOperatorsPassingStaticLibrary --max-workers=1
+----
+[source,text]
+----
 include::{snippetsPath}/native-binaries/cunit/tests/assembleDependentComponents.out[]
 ----
 
@@ -304,9 +311,12 @@ For example, to build the dependents of the "passing" flavor of the "static" lib
 
 === Example: Build components that depends on the passing/static binary of the operators component
 
-.Output of **`gradle buildDependentsOperatorsPassingStaticLibrary --max-workers=1`**
+[source,bash]
 ----
-> gradle buildDependentsOperatorsPassingStaticLibrary --max-workers=1
+$ ./gradlew buildDependentsOperatorsPassingStaticLibrary --max-workers=1
+----
+[source,text]
+----
 include::{snippetsPath}/native-binaries/cunit/tests/buildDependentComponents.out[]
 ----
 
@@ -318,7 +328,6 @@ You can also build _all_ of the dependents of a component (i.e. of all its binar
 == Tasks
 
 For each link:{javadocPath}/org/gradle/nativeplatform/NativeBinarySpec.html[NativeBinarySpec] that can be produced by a build, a single _lifecycle task_ is constructed that can be used to create that binary, together with a set of other tasks that do the actual work of compiling, linking or assembling the binary.
-
 
 `__${component.name}__Executable`::
   Component Type;;
@@ -376,24 +385,24 @@ You can also add custom check tasks as follows:
 
 === Example: Adding a custom check task
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/custom-check/groovy/build.gradle[tag=custom-check]
 ----
 
-
-
 Now, running `check` or any of the _check tasks_ for the `hello` binaries will run the custom check task:
 
 === Example: Running checks for a given binary
 
-.Output of **`gradle checkHelloSharedLibrary`**
+[source,bash]
 ----
-> gradle checkHelloSharedLibrary
+$ ./gradlew checkHelloSharedLibrary
+----
+[source,text]
+----
 include::{snippetsPath}/native-binaries/custom-check/tests/nativeComponentCustomCheckOutput.out[]
 ----
-
 
 [[sec:working_with_shared_libraries]]
 === Working with shared libraries
@@ -407,12 +416,14 @@ Gradle provides a report that you can run from the command-line that shows some 
 
 === Example: The components report
 
-.Output of **`gradle components`**
+[source,bash]
 ----
-> gradle components
+$ ./gradlew components
+----
+[source,text]
+----
 include::{snippetsPath}/native-binaries/cpp/tests/nativeComponentReport.out[]
 ----
-
 
 [[native_binaries:languages]]
 == Language support
@@ -426,7 +437,6 @@ Presently, Gradle supports building native software from any combination of sour
 * Assembly
 * Windows resources
 
-
 [[sec:cpp_sources]]
 === C++ sources
 
@@ -434,7 +444,7 @@ C++ language support is provided by means of the `'cpp'` plugin.
 
 === Example: The 'cpp' plugin
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/cpp/groovy/build.gradle[tag=apply-plugin]
@@ -446,7 +456,7 @@ While the `cpp` plugin defines these default locations for each link:{groovyDslP
 
 === Example: C++ source set
 
-[source.multi-language-sample,groovy,indent=0]
+[source,groovy,indent=0]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/custom-layout/groovy/build.gradle[tag=cpp-sources]
@@ -461,7 +471,7 @@ C language support is provided by means of the `'c'` plugin.
 
 === Example: The 'c' plugin
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/c/groovy/build.gradle[tag=apply-plugin]
@@ -473,7 +483,7 @@ While the `c` plugin defines these default locations for each link:{groovyDslPat
 
 === Example: C source set
 
-[source.multi-language-sample,groovy,indent=0]
+[source,groovy,indent=0]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/custom-layout/groovy/build.gradle[tag=c-sources]
@@ -488,7 +498,7 @@ Assembly language support is provided by means of the `'assembler'` plugin.
 
 === Example: The 'assembler' plugin
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/assembler/groovy/build.gradle[tag=apply-plugin]
@@ -503,7 +513,7 @@ Objective-C language support is provided by means of the `'objective-c'` plugin.
 
 === Example: The 'objective-c' plugin
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/objective-c/groovy/build.gradle[tag=apply-plugin]
@@ -518,7 +528,7 @@ Objective-C++ language support is provided by means of the `'objective-cpp'` plu
 
 === Example: The 'objective-cpp' plugin
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/objective-cpp/groovy/build.gradle[tag=apply-plugin]
@@ -533,7 +543,7 @@ Each binary to be produced is associated with a set of compiler and linker setti
 
 === Example: Settings that apply to all binaries
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/cpp/groovy/build.gradle[tag=all-binaries]
@@ -545,7 +555,7 @@ It is easy to apply settings to all binaries of a particular type:
 
 === Example: Settings that apply to all shared libraries
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/c/groovy/build.gradle[tag=all-shared-libraries]
@@ -555,7 +565,7 @@ Furthermore, it is possible to specify settings that apply to all binaries produ
 
 === Example: Settings that apply to all binaries produced for the 'main' executable component
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/assembler/groovy/build.gradle[tag=assembler-args]
@@ -567,12 +577,11 @@ Similarly, settings can be specified to target binaries for a component that are
 
 === Example: Settings that apply only to shared libraries produced for the 'main' library component
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/cpp-lib/groovy/build.gradle[tag=args]
 ----
-
 
 [[native_binaries:windows-resources]]
 == Windows Resources
@@ -581,7 +590,7 @@ When using the link:{groovyDslPath}/org.gradle.nativeplatform.toolchain.VisualCp
 
 === Example: The 'windows-resources' plugin
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/windows-resources/groovy/build.gradle[tag=apply-plugin]
@@ -593,7 +602,7 @@ As with other source types, you can configure the location of the windows resour
 
 === Example: Configuring the location of Windows resource sources
 
-[source.multi-language-sample,groovy,indent=0]
+[source,groovy,indent=0]
 .only-dll/build.gradle
 ----
 include::{snippetsPath}/native-binaries/windows-resources/groovy/only-dll/build.gradle[tag=windows-resource-set]
@@ -603,7 +612,7 @@ You are able to construct a resource-only library by providing Windows Resource 
 
 === Example: Building a resource-only dll
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .only-dll/build.gradle
 ----
 include::{snippetsPath}/native-binaries/windows-resources/groovy/only-dll/build.gradle[tag=resource-only-library]
@@ -616,7 +625,6 @@ The example above also demonstrates the mechanism of passing extra command-line 
 
 Dependencies for native components are binary libraries that export header files. The header files are used during compilation, with the compiled binary dependency being used during linking and execution. Header files should be organized into subdirectories to prevent clashes of commonly named headers. For instance, if your `mylib` project has a `logging.h` header, it will make it less likely the wrong header is used if you include it as `"mylib/logging.h"` instead of `"logging.h"`.
 
-
 [[sec:dependencies_within_the_same_project]]
 === Dependencies within the same project
 
@@ -626,7 +634,7 @@ Such a library dependency can be added to a source set associated with the `exec
 
 === Example: Providing a library dependency to the source set
 
-[source.multi-language-sample,groovy,indent=0]
+[source,groovy,indent=0]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/cpp/groovy/build.gradle[tag=source-library]
@@ -636,12 +644,11 @@ Alternatively, a library dependency can be provided directly to the `NativeExecu
 
 === Example: Providing a library dependency to the binary
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/custom-layout/groovy/build.gradle[tag=binary-library]
 ----
-
 
 [[sec:project_dependencies]]
 === Project Dependencies
@@ -650,17 +657,17 @@ For a component produced in a different Gradle project, the notation is similar.
 
 === Example: Declaring project dependencies
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .lib/build.gradle
 ----
 include::{snippetsPath}/native-binaries/multi-project/groovy/lib/build.gradle[]
 ----
-[source.multi-language-sample,groovy]
+
+[source,groovy]
 .exe/build.gradle
 ----
 include::{snippetsPath}/native-binaries/multi-project/groovy/exe/build.gradle[]
 ----
-
 
 [[native_binaries:preCompiledHeaders]]
 == Precompiled Headers
@@ -671,7 +678,7 @@ To configure a precompiled header, first a header file needs to be defined that 
 
 === Example: Creating a precompiled header file
 
-[source.multi-language-sample,c]
+[source,c]
 .src/hello/headers/pch.h
 ----
 include::{snippetsPath}/native-binaries/pre-compiled-headers/groovy/src/hello/headers/pch.h[]
@@ -679,7 +686,7 @@ include::{snippetsPath}/native-binaries/pre-compiled-headers/groovy/src/hello/he
 
 === Example: Including a precompiled header file in a source file
 
-[source.multi-language-sample,cpp]
+[source,cpp]
 .src/hello/cpp/hello.cpp
 ----
 include::{snippetsPath}/native-binaries/pre-compiled-headers/groovy/src/hello/cpp/hello.cpp[]
@@ -689,7 +696,7 @@ Precompiled headers are specified on a source set. Only one precompiled header f
 
 === Example: Configuring a precompiled header
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/pre-compiled-headers/groovy/build.gradle[tag=libraries]
@@ -704,7 +711,6 @@ For each executable or library defined, Gradle is able to build a number of diff
 
 Binaries produced by Gradle can be differentiated on <<#native_binaries:build_type,build type>>, <<#native_binaries:platform,platform>>, and <<#native_binaries:flavor,flavor>>. For each of these 'variant dimensions', it is possible to specify a set of available values as well as target each component at one, some or all of these. For example, a plugin may define a range of support platforms, but you may choose to only target Windows-x86 for a particular component.
 
-
 [[native_binaries:build_type]]
 === Build types
 
@@ -712,7 +718,7 @@ A `build type` determines various non-functional aspects of a binary, such as wh
 
 === Example: Defining build types
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/variants/groovy/build.gradle[tag=build-types]
@@ -724,7 +730,7 @@ For a build type, a Gradle project will typically define a set of compiler/linke
 
 === Example: Configuring debug binaries
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/variants/groovy/build.gradle[tag=build-type-config]
@@ -747,7 +753,7 @@ Sophisticated builds may use the extensibility of Gradle to apply additional att
 
 === Example: Defining platforms
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/variants/groovy/build.gradle[tag=platforms]
@@ -764,7 +770,7 @@ An example of component flavors might differentiate between 'demo', 'paid' and '
 
 === Example: Defining flavors
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/flavors/groovy/build.gradle[tag=flavors]
@@ -781,7 +787,7 @@ For a default component, Gradle will attempt to create a native binary variant f
 
 === Example: Targeting a component at particular platforms
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/variants/groovy/build.gradle[tag=target-platforms]
@@ -800,18 +806,16 @@ If a binary variant cannot be built for any reason, then the link:{javadocPath}/
 
 === Example: Building all possible variants
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/tool-chains/groovy/build.gradle[tag=buildable]
 ----
 
-
 [[native_binaries:tool_chain]]
 == Tool chains
 
 A single build may utilize different tool chains to build variants for different platforms. To this end, the core 'native-binary' plugins will attempt to locate and make available supported tool chains. However, the set of tool chains for a project may also be explicitly defined, allowing additional cross-compilers to be configured as well as allowing the install directories to be specified.
-
 
 [[sec:defining_tool_chains]]
 === Defining tool chains
@@ -824,7 +828,7 @@ The supported tool chain types are:
 
 === Example: Defining tool chains
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/tool-chains/groovy/build.gradle[tag=toolChains]
@@ -865,12 +869,11 @@ Gradle provides a _hook_ that allows the build author to control the exact set o
 
 === Example: Reconfigure tool arguments
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/tool-chains/groovy/build.gradle[tag=withArguments]
 ----
-
 
 [[sec:crosscompiling_with_gcc]]
 === Cross-compiling with GCC
@@ -879,12 +882,11 @@ Cross-compiling is possible with the link:{groovyDslPath}/org.gradle.nativeplatf
 
 === Example: Defining target platforms
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/target-platforms/groovy/build.gradle[tag=targetplatforms]
 ----
-
 
 [[native_binaries:visual_studio]]
 == Visual Studio IDE integration
@@ -902,7 +904,6 @@ The content of the generated visual studio files can be modified via API hooks, 
 
 The Gradle `cunit` plugin provides support for compiling and executing CUnit tests in your native-binary project. For each link:{javadocPath}/org/gradle/nativeplatform/NativeExecutableSpec.html[NativeExecutableSpec] and link:{javadocPath}/org/gradle/nativeplatform/NativeLibrarySpec.html[NativeLibrarySpec] defined in your project, Gradle will create a matching link:{groovyDslPath}/org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec.html[CUnitTestSuiteSpec] component, named `${component.name}Test`.
 
-
 [[sec:cunit_sources]]
 === CUnit sources
 
@@ -912,7 +913,7 @@ Gradle initialises the CUnit test registry and executes the tests, utilising som
 
 === Example: Registering CUnit tests
 
-[source.multi-language-sample,c]
+[source,c]
 .suite_operators.c
 ----
 include::{snippetsPath}/native-binaries/cunit/groovy/src/operatorsTest/c/suite_operators.c[]
@@ -927,7 +928,7 @@ A link:{groovyDslPath}/org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec.h
 
 === Example: Configuring CUnit tests
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/cunit/groovy/build.gradle[tag=configure-test-binary]
@@ -943,15 +944,18 @@ For each link:{groovyDslPath}/org.gradle.nativeplatform.test.cunit.CUnitTestSuit
 
 === Example: Running CUnit tests
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/cunit/groovy/build.gradle[tag=complete-example]
 ----
 
-.Output of `gradle -q runOperatorsTestFailingCUnitExe`
+[source,bash]
 ----
-> gradle -q runOperatorsTestFailingCUnitExe
+$ ./gradlew -q runOperatorsTestFailingCUnitExe
+----
+[source,text]
+----
 include::{snippetsPath}/native-binaries/cunit/tests/completeCUnitExample.out[]
 ----
 
@@ -970,7 +974,6 @@ The current support for CUnit is quite rudimentary. Plans for future integration
 
 The Gradle `google-test` plugin provides support for compiling and executing GoogleTest tests in your native-binary project. For each link:{javadocPath}/org/gradle/nativeplatform/NativeExecutableSpec.html[NativeExecutableSpec] and link:{javadocPath}/org/gradle/nativeplatform/NativeLibrarySpec.html[NativeLibrarySpec] defined in your project, Gradle will create a matching link:{groovyDslPath}/org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec.html[GoogleTestTestSuiteSpec] component, named `${component.name}Test`.
 
-
 [[sec:googletest_sources]]
 === GoogleTest sources
 
@@ -983,7 +986,7 @@ A link:{groovyDslPath}/org.gradle.nativeplatform.test.googletest.GoogleTestTestS
 
 === Example: Registering GoogleTest tests
 
-[source.multi-language-sample,groovy]
+[source,groovy]
 .build.gradle
 ----
 include::{snippetsPath}/native-binaries/google-test/groovy/build.gradle[tag=configure-test-binary]

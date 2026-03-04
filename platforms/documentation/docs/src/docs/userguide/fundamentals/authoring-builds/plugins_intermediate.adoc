@@ -132,6 +132,7 @@ Let's take a look at all the available ways a plugin can be applied:
 |Apply a plugin to a project.
 |<<#sec:plugins_block,The `plugins` block in the build file>>.
 a|
+[source,kotlin]
 ----
 plugins {
   id("org.barfuin.gradle.taskinfo") version "2.1.0"
@@ -142,6 +143,7 @@ plugins {
 |Apply a plugin to multiple projects.
 |<<sec:subprojects_plugins_dsl,The `subprojects` or `allprojects` blocks in the root build file>>. **Not Recommended**
 a|
+[source,kotlin]
 ----
 plugins {
     id("org.barfuin.gradle.taskinfo") version "2.1.0"
@@ -158,6 +160,7 @@ allprojects {
 |Apply a plugin to multiple projects.
 |<<sec:root_plugins_dsl,The `plugins` block in the root build file>>.
 a|
+[source,kotlin]
 ----
 plugins {
     id("com.gradleup.shadow") version "8.3.4" apply false
@@ -169,6 +172,7 @@ plugins {
 |Apply a plugin to multiple projects.
 |<<#sec:buildsrc_plugins_dsl,A convention plugin in the `buildSrc` directory>>. **Recommended**.
 a|
+[source,kotlin]
 ----
 plugins {
     id("my-convention.gradle.taskinfo")
@@ -179,6 +183,7 @@ plugins {
 |Apply a plugin needed _for the build script itself_.
 |<<#sec:applying_plugins_buildscript,The `buildscript` block in the build file itself>>. **Legacy**.
 a|
+[source,kotlin]
 ----
 buildscript {
   repositories {
@@ -197,6 +202,7 @@ apply(plugin = "org.barfuin.gradle.taskinfo")
 Applying a plugin when type-safe accessors are not available.
 |<<sec:script_plugins,The legacy `apply()` method in the build file>>. **Not Recommended**. **Legacy**.
 a|
+[source,kotlin]
 ----
 apply<MyCustomBarfuinTaskInfoPlugin>()
 ----
@@ -279,11 +285,16 @@ plugins {
 <1> for core Gradle plugins or plugins already available to the build script
 <2> for binary Gradle plugins that need to be resolved
 
+====
 [.multi-language-text.lang-kotlin]
+=====
 Where `«plugin id»` and `«plugin version»` are a string.
-
+=====
 [.multi-language-text.lang-groovy]
+=====
 Where `«plugin id»` and `«plugin version»` must be constant, literal strings.
+=====
+====
 
 The `plugins{}` block must also be a top-level statement in the build script.
 It cannot be nested inside another construct (e.g., an if-statement or for-loop).
@@ -491,11 +502,16 @@ include::sample[dir="snippets/tutorial/pluginIntro/groovy", files="build.gradle[
 The `JavaPlugin` symbol in the above sample refers to the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
 This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<default_script_imports.adoc#script-default-imports,Default imports>>).
 
+====
 [.multi-language-text.lang-kotlin]
+=====
 Furthermore, one needs to append the `::class` suffix to identify a class literal in Kotlin instead of `.class` in Java.
-
+=====
 [.multi-language-text.lang-groovy]
+=====
 Furthermore, it is unnecessary to append `.class` to identify a class literal in Groovy as it is in Java.
+=====
+====
 
 You may also see the `apply` method used to include an entire build file:
 

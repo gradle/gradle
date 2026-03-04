@@ -63,7 +63,7 @@ import kotlin.reflect.jvm.kotlinFunction
  * Ensures that they get proper runtime resolution.
  */
 object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionComponent {
-    override fun typeDiscovery(): List<TypeDiscovery> = listOf(FixedTypeDiscovery(null, listOf(TypeDiscovery.DiscoveredClass(Pair::class, listOf(Special("standard library type"))))))
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(FixedTypeDiscovery(null, listOf(TypeDiscovery.DiscoveredClass(Pair::class, Special("standard library type")))))
 
     override fun topLevelFunctionDiscovery(): List<TopLevelFunctionDiscovery> = listOf(
         object : TopLevelFunctionDiscovery {

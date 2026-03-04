@@ -110,6 +110,7 @@ There is a simple workaround for this, based on <<kotlin_dsl.adoc#using_a_groovy
 Create a file, `fabric.gradle`, in the module where you apply the `io.fabric` plugin. This file (known as a script plugin), should have the following contents:
 
 .fabric.gradle
+[source,groovy]
 ----
 include::{snippetsPath}/buildCache/caching-android-projects/groovy/build.gradle[tags=fabricGroovy]
 ----
@@ -117,6 +118,7 @@ include::{snippetsPath}/buildCache/caching-android-projects/groovy/build.gradle[
 And then, in the module’s `build.gradle.kts` file, apply this script plugin:
 
 .build.gradle.kts
+[source,kotlin]
 ----
 include::{snippetsPath}/buildCache/caching-android-projects/kotlin/build.gradle.kts[tags=fabricKotlin]
 ----

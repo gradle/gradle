@@ -20,7 +20,6 @@ The XCTest Plugin provides the tasks, configurations and conventions for integra
 [[sec:xctest_usage]]
 == Usage
 
-.Applying the XCTest Plugin
 ====
 include::sample[dir="snippets/swift/swiftXCTest/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=apply-plugin]"]
@@ -39,7 +38,6 @@ Gradle uses the target machine to decide which tool chain to choose based on ava
 
 The target machine can be configured as follows:
 
-.Configure application target machines
 ====
 include::sample[dir="snippets/swift/swiftXCTest/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
 include::sample[dir="snippets/swift/swiftXCTest/groovy",files="build.gradle[tags=configure-target-machines]"]
@@ -138,7 +136,6 @@ Note this configuration inherit all dependencies declared on the tested componen
 `test__Variant__ExecutableImplementation` (e.g. `testExecutableImplementation`) extends `testImplementation`::
 Used for declaring implementation dependencies for a specific variant of the test component.
 This is where you should declare dependencies of the specific variant.
-
 
 There is no configurations that can be used by consumers for this plugin.
 

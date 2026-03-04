@@ -55,9 +55,12 @@ A task is *created* in the build script using the link:{javadocPath}/org/gradle/
 
 When you run the `hello` task in the command-line using `./gradlew hello`, it prints your message:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew hello
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/hello/tests/hello.out[]
 ----
 
@@ -122,20 +125,24 @@ The `hello` *task* is registered with the new *type* `HelloTask`.
 
 Executing our new `hello` *task* results in the following:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew hello
-
+----
+[source,text]
+----
 > Task :app:hello
 hello from HelloTask
 ----
 
 The Gradle `help` *task* can reveal the specifications of the `hello` task:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew help --task hello
-
+----
+[source,text]
+----
 > Task :help
 Detailed task information for hello
 
@@ -249,12 +256,16 @@ You can declare *tasks* that depend on other *tasks*:
 ====
 include::sample[dir="snippets/tutorial/intro/kotlin", files="build.gradle.kts[]"]
 include::sample[dir="snippets/tutorial/intro/groovy", files="build.gradle[]"]
+====
 
+[source,bash]
 ----
 $ gradle -q intro
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/intro/tests/intro.out[]
 ----
-====
 
 ++++
 <p>
@@ -270,12 +281,16 @@ The dependency of `taskX` to `taskY` may be declared before `taskY` is defined:
 ====
 include::sample[dir="snippets/tutorial/lazyDependsOn/kotlin", files="build.gradle.kts[]"]
 include::sample[dir="snippets/tutorial/lazyDependsOn/groovy", files="build.gradle[]"]
+====
 
+[source,bash]
 ----
-$ gradle -q taskX
+$ ./gradlew -q taskX
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/lazyDependsOn/tests/lazyDependsOn.out[]
 ----
-====
 
 The `hello` *task* from the previous example is updated to include a dependency:
 
@@ -286,10 +301,12 @@ include::sample[dir="snippets/tutorial/dynamicDepends/groovy", files="build.grad
 
 The `hello` *task* now depends on the `assemble` *task*, which means that Gradle must execute the `assemble` *task* *before* it can execute the `hello` *task*:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:hello
-
+----
+[source,text]
+----
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE
@@ -314,12 +331,16 @@ For instance, you can add behavior to an existing *task*:
 ====
 include::sample[dir="snippets/tutorial/helloEnhanced/kotlin", files="build.gradle.kts[]"]
 include::sample[dir="snippets/tutorial/helloEnhanced/groovy", files="build.gradle[]"]
+====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/helloEnhanced/tests/helloEnhanced.out[]
 ----
-====
 
 TIP: The calls `doFirst` and `doLast` can be executed multiple times.
 They add an action to the beginning or the end of the task's actions list.

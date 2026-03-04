@@ -19,11 +19,11 @@ package org.gradle.internal.declarativedsl.evaluator.runner
 import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
 
 
-interface InterpretationSequenceStepRunner<in C : StepContext, out R : StepResult> {
+interface InterpretationSequenceStepRunner<in C : StepContext, out S: StepResult, out R : StepResult> {
     fun runInterpretationSequenceStep(
         scriptIdentifier: String,
         scriptSource: String,
         step: InterpretationSequenceStep,
         stepContext: C
-    ): EvaluationResult<R>
+    ): EvaluationResult<S, R>
 }
