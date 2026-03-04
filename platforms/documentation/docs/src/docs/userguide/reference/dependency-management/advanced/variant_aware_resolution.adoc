@@ -59,7 +59,7 @@ In the example above, `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1` h
 [IMPORTANT]
 ====
 For a variant to be selectable via variant-aware dependency resolution, it *must* have attributes defined.
-Variants without attributes cannot participate in variant selection and are only accessible through explicit configuration selection or legacy resolution mechanisms.
+Variants without attributes cannot participate in variant selection and are only accessible through explicit named configuration selection or legacy resolution mechanisms.
 ====
 
 In the example above, there are two *attributes* of importance for the *variants* of `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1`:
@@ -120,7 +120,7 @@ There are two _types_ of *attributes* Gradle uses to match the available *varian
 - *_Producer_ attributes*: Each *variant* has a set of *attributes* that describe its purpose.
 
 NOTE: Variant-aware dependency resolution requires attributes be present on the producer side.
-On the consumer side, attributes are optional but recommended.
+On the consumer side, attributes should also be declared, but may be omitted in certain scenarios.
 
 [[sec:variant-aware-matching]]
 == Variant Attribute Matching
