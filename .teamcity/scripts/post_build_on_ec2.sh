@@ -23,4 +23,6 @@ if [[ "${BUILD_TYPE_ID:-}" == Gradle_Xperimental* ]]; then
   execute_build_script_from_env "${XPERIMENTAL_EC2_POST_BUILD_SCRIPT:-}"
 elif [[ "${BUILD_TYPE_ID:-}" == Gradle_Master* ]]; then
   execute_build_script_from_env "${MASTER_EC2_POST_BUILD_SCRIPT:-}"
+elif [[ "${BUILD_TYPE_ID:-}" == Gradle_Release* ]]; then
+  execute_build_script_from_env "${RELEASE_EC2_POST_BUILD_SCRIPT:-}"
 fi
