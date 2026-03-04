@@ -126,6 +126,6 @@ public abstract class DefaultTestFilter implements TestFilter {
      * Are there any include or exclude filters at all?
      */
     public boolean hasPatterns() {
-        return !commandLineIncludeTestNames.isEmpty() || !includeTestNames.isEmpty() || !excludeTestNames.isEmpty();
+        return !getCommandLineIncludePatterns().get().isEmpty() || !getIncludePatterns().get().isEmpty() || !getExcludePatterns().get().isEmpty();
     }
 }
