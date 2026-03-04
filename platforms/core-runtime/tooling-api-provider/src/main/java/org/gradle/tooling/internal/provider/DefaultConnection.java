@@ -26,7 +26,6 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
@@ -64,6 +63,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -119,14 +120,12 @@ public class DefaultConnection implements ConnectionVersion4,
             true,
             AgentStatus.disabled(),
             CurrentGradleInstallation.locate(),
-            loggingServices,
-            NativeServices.getInstance()
-        ) {
-            @Override
-            protected void addProviders(ServiceRegistryBuilder builder) {
-                builder.provider(new ConnectionScopeServices());
-            }
-        };
+            Collections.singleton(new ConnectionScopeServices()),
+            Arrays.asList(
+                loggingServices,
+                NativeServices.getInstance()
+            )
+        );
         adapter = buildProcessState.getServices().get(ProtocolToModelAdapter.class);
         connection = buildProcessState.getServices().get(ProviderConnection.class);
     }
