@@ -34,7 +34,7 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZE
 import static org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER;
 
 // Changes to file system layout or file format are allowed, but should be communicated to the DV team
-// See: https://github.com/gradle/dv/issues/59928
+// See: https://github.com/gradle/gradle-private/issues/5037
 @UsedByScanPlugin("artifact-cache")
 public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stoppable {
 
