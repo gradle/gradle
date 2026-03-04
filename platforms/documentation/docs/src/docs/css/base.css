@@ -541,7 +541,7 @@ h3.releaseinfo {
     display: none;
     width: 170px;
     background-color: white;
-    top: 40px;
+    top: 100%;
     left: 7px; /* NOTE: This must match the padding of .site-header__navigation-link */
     padding: 3px 10px 6px 10px;
     z-index: 100;
