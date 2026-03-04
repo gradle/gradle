@@ -81,6 +81,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -113,9 +115,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         true,
         AgentStatus.of(isAgentInstrumentationEnabled()),
         getCurrentInstallation(),
-        newCommandLineProcessLogging(),
-        NativeServicesTestFixture.getInstance(),
-        ValidationServicesFixture.getServices()
+        Collections.emptySet(),
+        Arrays.asList(
+            newCommandLineProcessLogging(),
+            NativeServicesTestFixture.getInstance(),
+            ValidationServicesFixture.getServices()
+        )
     ).getServices();
 
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
