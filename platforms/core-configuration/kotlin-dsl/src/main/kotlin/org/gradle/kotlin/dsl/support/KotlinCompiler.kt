@@ -175,11 +175,11 @@ private class BTCompiler {
     private val buildSession = toolchains.createBuildSession()
 
     @OptIn(ExperimentalCompilerArgument::class)
-    fun compile(sources: List<Path>, destinationDirectory: Path, arguments: (JvmCompilerArguments) -> Unit): CompilationResult {
-        val operation = toolchains.jvm.createJvmCompilationOperation(sources, destinationDirectory)
+    fun compile(sources: List<Path>, destinationDirectory: Path, arguments: (JvmCompilerArguments.Builder) -> Unit): CompilationResult {
+        val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
 
         // compilation operation config
-        operation[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+        operationBuilder[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
         /*operation[JvmCompilationOperation.INCREMENTAL_COMPILATION] = JvmSnapshotBasedIncrementalCompilationConfiguration(
             workingDirectory = Paths.get(destinationDirectory.toString(), "build/kotlin"),
             sourcesChanges = SourcesChanges.ToBeCalculated,
@@ -191,13 +191,15 @@ private class BTCompiler {
         )*/
 
         // implicit compiler arguments
-        operation.compilerArguments.also { args ->
+        operationBuilder.compilerArguments.also { args ->
             args[JvmCompilerArguments.NO_STDLIB] = true
             args[X_USE_FIR_LT] = false
         }
 
         // explicit compiler argument
-        arguments.invoke(operation.compilerArguments)
+        arguments.invoke(operationBuilder.compilerArguments)
+
+        val operation = operationBuilder.build()
 
         return buildSession.executeOperation(operation)
     }
@@ -213,7 +215,7 @@ fun btCompileKotlinScriptToDirectory(
     compilerOptions: KotlinCompilerOptions,
     moduleName: String,
     scriptFile: File,
-    configuration: (JvmCompilerArguments) -> Unit,
+    configuration: (JvmCompilerArguments.Builder) -> Unit,
 ): String {
 
     val retVal = NameUtils.getScriptNameForFile(scriptFile.name).asString()
