@@ -508,13 +508,8 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private boolean shouldUseIncubatingAPIs(UserQuestions userQuestions) {
-<<<<<<< HEAD
-        if (this.getUseIncubating().isPresent()) {
-            return this.getUseIncubating().get();
-=======
         if (getUseIncubating().isPresent()) {
             return getUseIncubating().get();
->>>>>>> b6cc54bb168 (Migrate InitBuild to provider API)
         }
         return userQuestions.askBooleanQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
     }
