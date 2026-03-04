@@ -30,11 +30,13 @@ import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.COMPILER_PLUGINS
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.LANGUAGE_VERSION
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_METADATA_VERSION_CHECK
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_PRERELEASE_CHECK
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_USE_FIR_LT
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JDK_HOME
@@ -170,6 +172,9 @@ fun compileKotlinScriptToDirectory(
 @OptIn(ExperimentalBuildToolsApi::class)
 private class BTCompiler {
 
+    // TODO: this should be done in an isolated classloader and then we can load an
+    //  implementation with a different version than the API we are using, thus making it configurable to users
+    //  supported versions range from -3 major version to +1 major version
     private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
 
     private val buildSession = toolchains.createBuildSession()
@@ -180,6 +185,7 @@ private class BTCompiler {
 
         // compilation operation config
         operationBuilder[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+        // TODO: incremental compilation should make explicit fingerprint checking obsolete
         /*operation[JvmCompilationOperation.INCREMENTAL_COMPILATION] = JvmSnapshotBasedIncrementalCompilationConfiguration(
             workingDirectory = Paths.get(destinationDirectory.toString(), "build/kotlin"),
             sourcesChanges = SourcesChanges.ToBeCalculated,
@@ -194,6 +200,9 @@ private class BTCompiler {
         operationBuilder.compilerArguments.also { args ->
             args[JvmCompilerArguments.NO_STDLIB] = true
             args[X_USE_FIR_LT] = false
+            args[COMPILER_PLUGINS] = listOf<CompilerPlugin>()
+            // TODO: plugins should be specified via ID and classpath
+            // TODO: script handling is purely a matter of using the right plugins
         }
 
         // explicit compiler argument
@@ -202,6 +211,10 @@ private class BTCompiler {
         val operation = operationBuilder.build()
 
         return buildSession.executeOperation(operation)
+
+        // TODO: session should be shared between multiple operations to share caches and such
+        // TODO: session should be closed after no longer needed, for cleanup to happen
+        // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Deamon mode can be enabled
     }
 }
 
@@ -233,7 +246,7 @@ fun btCompileKotlinScriptToDirectory(
         it.also { // apply compiler configuration
             it[X_USE_FIR_LT] = true
             it[JVM_TARGET] = org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.valueOf("JVM_" + compilerOptions.jvmTarget.toKotlinJvmTarget().description) // TODO: ugly conversion
-            it[JDK_HOME] = System.getProperty("java.home") // TODO: might not be necessary
+            it[JDK_HOME] = System.getProperty("java.home") // TODO: might not be necessary, this is default
             it[X_SAM_CONVERSIONS] = "class"
             // TODO: addJvmSdkRoot(...)
             it.also { // apply language version settings
