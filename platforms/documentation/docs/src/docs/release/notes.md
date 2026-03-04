@@ -22,7 +22,8 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Ujwal Suresh Vanjare](https://github.com/usv240)
+[Ujwal Suresh Vanjare](https://github.com/usv240),
+[Suvrat Acharya](https://github.com/Suvrat1629)
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 

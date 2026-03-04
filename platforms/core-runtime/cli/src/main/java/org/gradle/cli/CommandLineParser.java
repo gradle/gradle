@@ -15,15 +15,17 @@
  */
 package org.gradle.cli;
 
+import org.jspecify.annotations.NullMarked;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -182,16 +184,105 @@ public class CommandLineParser {
      *
      * @param out The output stream to write to.
      */
+    @SuppressWarnings("NullAway")
     public void printUsage(Appendable out) {
+        // sort options before grouping
+        Set<CommandLineOption> commandLineOptions = new TreeSet<>(new OptionComparator());
+        commandLineOptions.addAll(optionsByString.values());
+
+        // map options to their categories
+        Map<OptionCategory, List<RenderedCommandLineOption>> categoryToOptions = new EnumMap<>(OptionCategory.class);
+        for (OptionCategory category : OptionCategory.values()) {
+            categoryToOptions.put(category, new ArrayList<>());
+        }
+        for (CommandLineOption option : commandLineOptions) {
+            categoryToOptions.get(option.getCategory()).add(RenderedCommandLineOption.from(option));
+        }
+
+        // calculate padding for option names
+        int padding = 0;
+        for (List<RenderedCommandLineOption> renderedOptions : categoryToOptions.values()) {
+            for (RenderedCommandLineOption renderedOption : renderedOptions) {
+                padding = Math.max(padding, renderedOption.getName().length());
+            }
+        }
+        padding += 3; // two extra spaces before each option + two spaces between the longest option and its description
+
+        // print hint about end signal
         Formatter formatter = new Formatter(out);
-        Set<CommandLineOption> orderedOptions = new TreeSet<CommandLineOption>(new OptionComparator());
-        orderedOptions.addAll(optionsByString.values());
-        Map<String, String> lines = new LinkedHashMap<String, String>();
-        for (CommandLineOption option : orderedOptions) {
-            Set<String> orderedOptionStrings = new TreeSet<String>(new OptionStringComparator());
-            orderedOptionStrings.addAll(option.getOptions());
-            List<String> prefixedStrings = new ArrayList<String>();
-            for (String optionString : orderedOptionStrings) {
+        printOption(formatter, padding, "--", "Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.");
+
+        // print each category and its options
+        for (OptionCategory category : OptionCategory.values()) {
+            List<RenderedCommandLineOption> options = categoryToOptions.get(category);
+            if (options == null || options.isEmpty()) {
+                continue;
+            }
+
+            // print category name
+            String categoryName = category.getDisplayName();
+            if (!categoryName.isEmpty()) {
+                printCategory(formatter, categoryName);
+            }
+
+            // print option name and description
+            for (RenderedCommandLineOption option : options) {
+                String name = option.getName();
+                String description = option.getDescription();
+                // handle multi-line descriptions
+                List<String> lines = Arrays.asList(description.split("\\r?\\n"));
+                for (int i = 0; i < lines.size(); i++) {
+                    if (description == null || description.isEmpty()) {
+                        printOptionName(formatter, "  " + name);
+                    } else {
+                        printOption(formatter, padding, i == 0 ? "  " + name : "", lines.get(i));
+                    }
+                }
+
+            }
+        }
+        formatter.flush();
+    }
+
+    private static void printCategory(Formatter formatter, String categoryName) {
+        formatter.format("%n%s:%n", categoryName);
+    }
+
+    private static void printOptionName(Formatter formatter, String name) {
+        formatter.format("%s%n", name);
+    }
+
+    private static void printOption(Formatter formatter, int padding, String name, String description) {
+        formatter.format("%-" + padding + "s %s%n", name, description);
+    }
+
+    @NullMarked
+    private static class RenderedCommandLineOption {
+        private final String name;
+        private final String description;
+
+        private RenderedCommandLineOption(String name, String description) {
+            this.name = name;
+            this.description = description;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        static RenderedCommandLineOption from(CommandLineOption option) {
+            return new RenderedCommandLineOption(optionName(option), option.getDescription());
+        }
+
+        private static String optionName(CommandLineOption option) {
+            Set<String> optionStrings = new TreeSet<>(new OptionStringComparator());
+            optionStrings.addAll(option.getOptions());
+            List<String> prefixedStrings = new ArrayList<>();
+            for (String optionString : optionStrings) {
                 if (optionString.length() == 1) {
                     prefixedStrings.add("-" + optionString);
                 } else {
@@ -200,46 +291,26 @@ public class CommandLineParser {
             }
 
             String key = join(prefixedStrings, ", ");
-            String value = option.getDescription();
-            if (value == null || value.length() == 0) {
-                value = "";
+            return key;
+        }
+
+        private static String join(Collection<?> things, String separator) {
+            StringBuilder builder = new StringBuilder();
+            boolean first = true;
+
+            if (separator == null) {
+                separator = "";
             }
 
-            lines.put(key, value);
-        }
-        // The "--" delimiter isn't an option, but it's useful to print it in the usage message anyway.
-        lines.put("--", "Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.");
-
-        int max = 0;
-        for (String optionStr : lines.keySet()) {
-            max = Math.max(max, optionStr.length());
-        }
-        for (Map.Entry<String, String> entry : lines.entrySet()) {
-            if (entry.getValue().length() == 0) {
-                formatter.format("%s%n", entry.getKey());
-            } else {
-                formatter.format("%-" + max + "s  %s%n", entry.getKey(), entry.getValue());
+            for (Object thing : things) {
+                if (!first) {
+                    builder.append(separator);
+                }
+                builder.append(thing.toString());
+                first = false;
             }
+            return builder.toString();
         }
-        formatter.flush();
-    }
-
-    private static String join(Collection<?> things, String separator) {
-        StringBuilder builder = new StringBuilder();
-        boolean first = true;
-
-        if (separator == null) {
-            separator = "";
-        }
-
-        for (Object thing : things) {
-            if (!first) {
-                builder.append(separator);
-            }
-            builder.append(thing.toString());
-            first = false;
-        }
-        return builder.toString();
     }
 
     /**
@@ -540,10 +611,10 @@ public class CommandLineParser {
             boolean short1 = option1.length() == 1;
             boolean short2 = option2.length() == 1;
             if (short1 && !short2) {
-                return -1;
+                return 1;
             }
             if (!short1 && short2) {
-                return 1;
+                return -1;
             }
             return new CaseInsensitiveStringComparator().compare(option1, option2);
         }

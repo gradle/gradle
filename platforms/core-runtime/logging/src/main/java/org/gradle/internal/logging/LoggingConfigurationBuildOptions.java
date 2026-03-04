@@ -23,6 +23,7 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.OptionCategory;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
@@ -86,6 +87,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
+        }
+
+        @Override
         public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
             String value = properties.get(property);
 
@@ -144,6 +150,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
+        }
+
+        @Override
         public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
             String value = properties.get(property);
 
@@ -188,6 +199,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
+        }
+
+        @Override
         public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
             String normalized = value.toLowerCase(Locale.ROOT);
             String consoleValue = TextUtil.capitalize(normalized);
@@ -207,6 +223,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         public ConsoleUnicodeOption() {
             super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which character types are allowed in the console output. Supported values are 'auto' (default), 'disable', or 'enable'."));
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
         }
 
         @Override
@@ -237,6 +258,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 }

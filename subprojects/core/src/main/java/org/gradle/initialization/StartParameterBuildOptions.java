@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.BasicFileResolver;
+import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -109,6 +110,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setProjectCacheDir(resolver.transform(value));
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     public static class RerunTasksOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -120,6 +126,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setRerunTasks(true);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
+        }
     }
 
     public static class ProfileOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -130,6 +141,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setProfile(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -153,6 +169,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setContinueOnFailure(value);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
+        }
     }
 
     public static class OfflineOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -163,6 +184,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setOffline(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -175,6 +201,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setRefreshDependencies(true);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     public static class DryRunOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -186,6 +217,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setDryRun(true);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
+        }
     }
 
     public static class ContinuousOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -196,6 +232,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setContinuous(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
     }
 
@@ -211,6 +252,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(int quietPeriodMillis, StartParameterInternal startParameter, Origin origin) {
             startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(quietPeriodMillis));
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
+        }
     }
 
     public static class NoProjectDependenciesRebuildOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -224,6 +270,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setBuildProjectDependencies(false);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
     }
 
@@ -240,6 +291,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 settings.addInitScript(resolver.transform(script));
             }
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     public static class ExcludeTaskOption extends ListBuildOption<StartParameterInternal> {
@@ -250,6 +306,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(List<String> values, StartParameterInternal settings, Origin origin) {
             settings.setExcludedTaskNames(values);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
     }
 
@@ -266,6 +327,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 settings.includeBuild(resolver.transform(includedBuild));
             }
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     public static class ConfigureOnDemandOption extends BooleanBuildOption<StartParameterInternal> {
@@ -278,6 +344,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigureOnDemand(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 
@@ -292,6 +363,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setBuildCacheEnabled(value);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
+        }
     }
 
     public static class BuildCacheDebugLoggingOption extends BooleanBuildOption<StartParameterInternal> {
@@ -304,6 +380,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setBuildCacheDebugLogging(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
         }
     }
 
@@ -326,6 +407,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 : WatchMode.DISABLED
             );
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
+        }
     }
 
     public static class VfsVerboseLoggingOption extends BooleanBuildOption<StartParameterInternal> {
@@ -339,6 +425,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
             startParameter.setVfsVerboseLogging(value);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.LOGGING;
+        }
     }
 
     public static class BuildScanOption extends BooleanBuildOption<StartParameterInternal> {
@@ -346,9 +437,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         public BuildScanOption() {
             super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION,
-                "Generates a Build Scan (powered by Develocity).\n" +
-                    "                                   Build Scan and Develocity are registered trademarks of Gradle, Inc.\n" +
-                    "                                   For more information, please visit https://gradle.com/develocity/product/build-scan/.",
+                "Generates a Build Scan (powered by Develocity).",
                 "Disables the creation of a Build Scan."));
         }
 
@@ -359,6 +448,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
             } else {
                 settings.setNoBuildScan(true);
             }
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DEVELOCITY;
         }
     }
 
@@ -372,6 +466,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setWriteDependencyLocks(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
         }
     }
 
@@ -395,6 +494,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 .collect(Collectors.toList());
             settings.setWriteDependencyVerifications(checksums);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
+        }
     }
 
     public static class DependencyVerificationModeOption extends EnumBuildOption<DependencyVerificationMode, StartParameterInternal> {
@@ -417,6 +521,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(DependencyVerificationMode value, StartParameterInternal settings, Origin origin) {
             settings.setDependencyVerificationMode(value);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
+        }
     }
 
     public static class DependencyLockingUpdateOption extends ListBuildOption<StartParameterInternal> {
@@ -428,6 +537,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(List<String> modulesToUpdate, StartParameterInternal settings, Origin origin) {
             settings.setLockedDependenciesToUpdate(modulesToUpdate);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
         }
     }
 
@@ -444,6 +558,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setRefreshKeys(true);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
+        }
     }
 
     public static class ExportKeysOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -458,6 +577,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setExportKeys(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
         }
     }
 
@@ -482,6 +606,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCache(Option.Value.value(value));
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 
@@ -524,6 +653,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(Value value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheProblems(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -748,6 +882,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setPropertyUpgradeReportEnabled(true);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
+        }
     }
 
     public static class ProblemReportGenerationOption extends BooleanBuildOption<StartParameterInternal> {
@@ -763,6 +902,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.enableProblemReportGeneration(value);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
+        }
     }
 
     public static class TaskGraphOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
@@ -776,6 +920,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setTaskGraph(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
