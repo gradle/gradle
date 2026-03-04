@@ -42,7 +42,7 @@ jvmCompile {
 sourceSets.matching { it.name.endsWith("Test") }.all {
     // the 'test' (with lower case 't') source set is already configured to use test fixtures by the JavaTestFixturesPlugin
     configurations[implementationConfigurationName].dependencies.add(
-        dependencies.testFixtures(project)
+        dependencies.testFixtures(dependencies.project())
     )
 }
 
