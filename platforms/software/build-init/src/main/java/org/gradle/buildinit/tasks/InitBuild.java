@@ -284,7 +284,7 @@ public abstract class InitBuild extends DefaultTask {
      * <p>
      * The specified repository will also be added to the generated build files.
      *
-     * @since 9.6
+     * @since 9.5.0
      */
     @Incubating
     @Input

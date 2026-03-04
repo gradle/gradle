@@ -135,13 +135,6 @@ public class InitSettings {
         return comments;
     }
 
-    /**
-     * Returns the custom Maven repository URL to use for dependency resolution during Maven conversion.
-     *
-     * @return the custom Maven repository URL, or null if not specified
-     * @since 9.6
-     */
-    @Incubating
     @Nullable
     public String getCustomMavenRepo() {
         return customMavenRepo;
