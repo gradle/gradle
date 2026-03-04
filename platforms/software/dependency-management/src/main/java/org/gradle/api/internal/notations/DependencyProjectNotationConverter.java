@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
@@ -40,6 +41,11 @@ public class DependencyProjectNotationConverter implements NotationConverter<Pro
 
     @Override
     public void convert(Project notation, NotationConvertResult<? super ProjectDependency> result) throws TypeConversionException {
+        DeprecationLogger.deprecateAction("Passing a Project object as a dependency notation")
+            .withAdvice("Use project(String) on DependencyHandler or DependencyFactory.createProjectDependency(String) instead.")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_project_notation_in_dependency_handler")
+            .nagUser();
         result.converted(factory.create(((ProjectInternal) notation).getOwner()));
     }
 }

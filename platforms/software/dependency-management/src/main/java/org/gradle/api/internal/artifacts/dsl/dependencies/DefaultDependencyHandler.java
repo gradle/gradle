@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
@@ -232,7 +233,12 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     @Override
-    public Dependency project() {
+    public ProjectDependency project(String projectPath) {
+        return dependencyFactory.createProjectDependency(projectPath);
+    }
+
+    @Override
+    public ProjectDependency project() {
         return dependencyFactory.createProjectDependency();
     }
 

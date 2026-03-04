@@ -21,6 +21,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -60,6 +61,7 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
         SimpleMapInterner stringInterner,
         CapabilityNotationParser capabilityNotationParser,
         ObjectFactory objectFactory,
+        ProjectFinder projectFinder,
         Project project
     ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
@@ -80,6 +82,7 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
             objectFactory,
             projectDependencyFactory,
             attributesFactory,
+            projectFinder,
             project
         );
     }

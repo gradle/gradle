@@ -108,7 +108,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         // convention for synthesizing reports based on existing test suites in "this" project
         project.getPlugins().withId("test-suite-base", plugin -> {
             // Depend on this project for aggregation
-            testAggregation.getDependencies().add(project.getDependencyFactory().create(project));
+            testAggregation.getDependencies().add(project.getDependencyFactory().createProjectDependency());
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
             ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();

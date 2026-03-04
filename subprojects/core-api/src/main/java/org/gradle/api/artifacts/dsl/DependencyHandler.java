@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
@@ -332,6 +333,28 @@ public interface DependencyHandler extends ExtensionAware {
     Dependency project(Map<String, ?> notation);
 
     /**
+     * Creates a dependency on a project with the given path.
+     *
+     * <p>This is the preferred way to declare a project dependency from a {@code DependencyHandler}.
+     * It is equivalent to {@link #project(Map)} with a map containing only the {@code path} key.
+     *
+     * <p>Example:
+     * <pre>
+     * plugins { id("java-library") }
+     * dependencies {
+     *     implementation(project(":some-project"))
+     * }
+     * </pre>
+     *
+     * @param projectPath an absolute or relative project path, e.g. {@code ":other:project"}
+     * @return the project dependency
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    ProjectDependency project(String projectPath);
+
+    /**
      * Creates a dependency on the current project.
      *
      * @return The dependency.
@@ -339,7 +362,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 9.5.0
      */
     @Incubating
-    Dependency project();
+    ProjectDependency project();
 
     /**
      * Creates a dependency on the API of the current version of Gradle.

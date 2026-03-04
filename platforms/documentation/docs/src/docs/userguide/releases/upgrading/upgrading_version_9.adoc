@@ -81,6 +81,40 @@ During the next lock update using Gradle 9.5.0 or above, if the lockfiles were p
 
 The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.10[Kotlin 2.3.10].
 
+=== Deprecations
+
+[[deprecated_project_notation_in_dependency_handler]]
+==== Using a Project object as a dependency notation is now deprecated
+
+Passing a `Project` object as a dependency notation to `DependencyHandler` (or `DependencyFactory`) has been deprecated and will become an error in Gradle 10.
+
+In most cases, a deprecation warning will arise when passing the result of calling `Project.project()` with a project path as an argument:
+
+.build.gradle
+[source,groovy]
+----
+val barProject = project(':bar')
+dependencies {
+    // Deprecated: project.project(':foo') returns a Project object
+    implementation(project.project(':foo'))
+    // or any variable holding a Project object:
+    implementation(barProject)
+}
+----
+
+Replace this with the new `project(String)` method on `DependencyHandler`:
+
+.build.gradle.kts
+[source,kotlin]
+----
+val barProject = project(':bar')
+dependencies {
+    implementation(project(":foo"))
+    // or any variable holding a project path string:
+    implementation(project(barProject.path))
+}
+----
+
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
 
@@ -295,7 +329,7 @@ testing {
 
 The configuration above may now fail to compile with an error in 9.5.0 if `-Werror` is set.
 
-To depend on the current project, use the `project()` method without arguments. 
+To depend on the current project, use the `project()` method without arguments.
 This syntax is the idiomatic way to reference the project in both test suites and standard `dependencies {}` blocks:
 
 [source,kotlin]
