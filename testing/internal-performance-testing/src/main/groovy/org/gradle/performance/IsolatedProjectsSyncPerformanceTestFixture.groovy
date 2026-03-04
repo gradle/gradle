@@ -26,7 +26,7 @@ class IsolatedProjectsSyncPerformanceTestFixture {
     /**
      * Modifies a runner executing android studio sync tests with IP
      */
-    static void configureStudioForIp(PerformanceTestRunner runner) {
+    static void configureStudio(PerformanceTestRunner runner) {
         runner.addInterceptor(new IpStudioExecutionInterceptor())
     }
 

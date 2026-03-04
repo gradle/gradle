@@ -46,7 +46,7 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
         }
 
         AndroidSyncPerformanceTestFixture.configureStudio(runner)
-        IsolatedProjectsSyncPerformanceTestFixture.configureStudioForIp(runner)
+        IsolatedProjectsSyncPerformanceTestFixture.configureStudio(runner)
 
         runner.baseline {
             displayName("vintage")
