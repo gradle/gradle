@@ -90,10 +90,19 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
     }
 
     private
-    fun createSourceRepository() = ivy {
-        val gradleDistRepository = repoLocator.gradleDistRepository
-        name = "Gradle ${gradleDistRepository.name}"
-        url.set(gradleDistRepository.repoBaseUrl)
+    fun createSourceRepositories() {
+        listOfNotNull(
+            // The repository inferred from the project configuration (e.g. wrapper properties)
+            repoLocator.primaryRepository,
+            // The fallback solution if the inferred repository is not available
+            repoLocator.fallbackRepository
+        ).forEach(::createSourceRepository)
+    }
+
+    private
+    fun createSourceRepository(repo: GradleDistRepoDescriptor) = ivy {
+        name = "Gradle ${repo.name}"
+        url.set(repo.repoBaseUrl)
         metadataSources {
             artifact()
         }
