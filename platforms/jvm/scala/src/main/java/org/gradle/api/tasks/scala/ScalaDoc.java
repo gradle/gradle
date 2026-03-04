@@ -59,19 +59,11 @@ public abstract class ScalaDoc extends SourceTask {
 
     private FileCollection classpath;
     private FileCollection scalaClasspath;
-    private ScalaDocOptions scalaDocOptions;
     private String title;
-    private final Property<String> maxMemory;
-    private final Property<JavaLauncher> javaLauncher;
-    private final ConfigurableFileCollection compilationOutputs;
 
     public ScalaDoc() {
-        ObjectFactory objectFactory = getObjectFactory();
-        this.maxMemory = objectFactory.property(String.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
-        this.javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
-        this.compilationOutputs = objectFactory.fileCollection();
-        this.scalaDocOptions = objectFactory.newInstance(ScalaDocOptions.class);
+        getJavaLauncher().convention(javaToolchainService.launcherFor(it -> {}));
     }
 
     /**
@@ -125,9 +117,7 @@ public abstract class ScalaDoc extends SourceTask {
      * @since 7.3
      */
     @Internal
-    public ConfigurableFileCollection getCompilationOutputs() {
-        return compilationOutputs;
-    }
+    public abstract ConfigurableFileCollection getCompilationOutputs();
 
     /**
      * <p>Returns the classpath to use to locate classes referenced by the documented source.</p>
@@ -161,9 +151,7 @@ public abstract class ScalaDoc extends SourceTask {
      * Returns the ScalaDoc generation options.
      */
     @Nested
-    public ScalaDocOptions getScalaDocOptions() {
-        return scalaDocOptions;
-    }
+    public abstract ScalaDocOptions getScalaDocOptions();
 
     /**
      * Configures the ScalaDoc generation options.
@@ -196,18 +184,14 @@ public abstract class ScalaDoc extends SourceTask {
      * @since 6.5
      */
     @Internal
-    public Property<String> getMaxMemory() {
-        return maxMemory;
-    }
+    public abstract Property<String> getMaxMemory();
 
     /**
      * A JavaLauncher used to run the Scaladoc tool.
      * @since 7.2
      */
     @Nested
-    public Property<JavaLauncher> getJavaLauncher() {
-        return javaLauncher;
-    }
+    public abstract Property<JavaLauncher> getJavaLauncher();
 
     @TaskAction
     protected void generate() {
@@ -223,7 +207,7 @@ public abstract class ScalaDoc extends SourceTask {
                 forkOptions.setMaxHeapSize(getMaxMemory().get());
             }
 
-            forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            forkOptions.setExecutable(getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath());
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
             @Nullable

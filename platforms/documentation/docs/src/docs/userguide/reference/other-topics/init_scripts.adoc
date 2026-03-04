@@ -74,16 +74,30 @@ include::sample[dir="snippets/initScripts/configurationInjection/kotlin",files="
 
 This sample uses this feature to configure an additional repository to be used only for specific environments.
 
-[source.multi-language-sample,kotlin]
+====
+[.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
-> gradle --init-script init.gradle.kts -q showRepos
+$ ./gradlew --init-script init.gradle.kts -q showRepos
+----
+[source,text]
+----
 include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
 ----
-[source.multi-language-sample,groovy]
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
 ----
-> gradle --init-script init.gradle -q showRepos
+$ ./gradlew --init-script init.gradle -q showRepos
+----
+[source,text]
+----
 include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
 ----
+=====
+====
 
 [[sec:custom_classpath]]
 == Adding external dependencies
@@ -109,16 +123,30 @@ include::sample[dir="snippets/initScripts/externalDependency/kotlin",files="init
 include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=all];build.gradle[]"]
 ====
 
-[source.multi-language-sample,kotlin]
+====
+[.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
-> gradle --init-script init.gradle.kts -q doNothing
+$ ./gradlew --init-script init.gradle.kts -q doNothing
+----
+[source,text]
+----
 include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
 ----
-[source.multi-language-sample,groovy]
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
 ----
-> gradle --init-script init.gradle -q doNothing
+$ ./gradlew --init-script init.gradle -q doNothing
+----
+[source,text]
+----
 include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
 ----
+=====
+====
 
 [[sec:init_plugins]]
 == Init plugins
@@ -137,16 +165,30 @@ include::sample[dir="snippets/initScripts/plugins/kotlin",files="init.gradle.kts
 include::sample[dir="snippets/initScripts/plugins/groovy",files="init.gradle[tags=init-script-plugin];build.gradle[tag=show-repos-task]"]
 ====
 
-[source.multi-language-sample,kotlin]
+====
+[.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
-> gradle --init-script init.gradle.kts -q showRepositories
+$ ./gradlew --init-script init.gradle.kts -q showRepositories
+----
+[source,text]
+----
 include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
 ----
-[source.multi-language-sample,groovy]
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
 ----
-> gradle --init-script init.gradle -q showRepositories
+$ ./gradlew --init-script init.gradle -q showRepositories
+----
+[source,text]
+----
 include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
 ----
+=====
+====
 
 [[sec:init_script_plugins]]
 == Applying plugins from an init script

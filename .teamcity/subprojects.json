@@ -226,7 +226,7 @@
   {
     "name": "classloaders",
     "path": "platforms/core-runtime/classloaders",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

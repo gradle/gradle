@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.cli.OptionCategory;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
@@ -50,6 +51,11 @@ public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfigura
         public void applyTo(boolean value, ParallelismConfiguration settings, Origin origin) {
             settings.setParallelProjectExecutionEnabled(value);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
+        }
     }
 
     public static class MaxWorkersOption extends StringBuildOption<ParallelismConfiguration> {
@@ -72,6 +78,11 @@ public class ParallelismBuildOptions extends BuildOptionSet<ParallelismConfigura
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, HINT);
             }
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 }

@@ -34,12 +34,10 @@ import org.gradle.internal.work.AbstractConditionalExecution;
 import org.gradle.internal.work.AsyncWorkCompletion;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.ConditionalExecutionQueue;
-import org.gradle.internal.work.DefaultConditionalExecutionQueue;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
-import org.gradle.util.internal.CollectionUtils;
 import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.ProcessWorkerSpec;
 import org.gradle.workers.WorkAction;
@@ -190,18 +188,12 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     /**
-     * Wait for any outstanding work to complete.  Note that if there is uncompleted work associated
-     * with the current build operation, we'll also temporarily expand the thread pool of the execution queue.
-     * This is to avoid a thread starvation scenario (see {@link DefaultConditionalExecutionQueue#expand()}
-     * for further details).
+     * Wait for any outstanding work to complete.
      */
     @Override
     public void await() throws WorkerExecutionException {
         BuildOperationRef currentOperation = buildOperationRunner.getCurrentOperation();
         try {
-            if (asyncWorkTracker.hasUncompletedWork(currentOperation)) {
-                executionQueue.expand();
-            }
             asyncWorkTracker.waitForCompletion(currentOperation, RETAIN_PROJECT_LOCKS);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());
@@ -211,9 +203,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private void await(List<AsyncWorkCompletion> workItems) throws WorkExecutionException {
         BuildOperationRef currentOperation = buildOperationRunner.getCurrentOperation();
         try {
-            if (CollectionUtils.any(workItems, workItem -> !workItem.isComplete())) {
-                executionQueue.expand();
-            }
             asyncWorkTracker.waitForCompletion(currentOperation, workItems, RETAIN_PROJECT_LOCKS);
         } catch (DefaultMultiCauseException e) {
             throw workerExecutionException(e.getCauses());

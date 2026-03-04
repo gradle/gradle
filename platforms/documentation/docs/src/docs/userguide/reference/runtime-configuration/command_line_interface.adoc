@@ -199,7 +199,7 @@ execute `clean` and `build` along with their dependencies:
 
 [source,bash]
 ----
-$ gradle clean build
+$ ./gradlew clean build
 ----
 
 However, the intention implied in the command line order is that `clean` should run first and then `build`. It would be incorrect to execute `clean` _after_ `build`, even if doing so would cause the build to execute faster since `clean` would remove what `build` created.
@@ -217,6 +217,7 @@ You can exclude a task from being executed using the `-x` or `--exclude-task` co
 ----
 $ gradle dist --exclude-task test
 ----
+[source,text]
 ----
 include::{snippetsPath}/tutorial/excludeTasks/tests/excludeTask.out[]
 ----
@@ -234,7 +235,7 @@ You can force Gradle to execute all tasks ignoring <<incremental_build.adoc#incr
 
 [source,bash]
 ----
-$ gradle test --rerun-tasks
+$ ./gradlew test --rerun-tasks
 ----
 
 This will force `test` and _all_ task dependencies of `test` to execute. It is similar to running `gradle clean test`, but without the build's generated output being deleted.
@@ -251,7 +252,7 @@ You can use the `--continue` option to force Gradle to execute every task when a
 
 [source,bash]
 ----
-$ gradle test --continue
+$ ./gradlew test --continue
 ----
 
 When executed with `--continue`, Gradle executes _every_ task in the build if all the dependencies for that task are completed without failure.
@@ -278,8 +279,9 @@ More concretely, you can run the `compileTest` task in the `my-awesome-library` 
 
 [source,bash]
 ----
-$ gradle mAL:cT
+$ ./gradlew mAL:cT
 ----
+[source,text]
 ----
 include::{snippetsPath}/tutorial/nameMatching/tests/nameMatching.out[]
 ----
@@ -294,6 +296,7 @@ When `INFO`, or more <<logging.adoc#logLevels,verbose logging>> is enabled, the 
 
 For example, when executing the `mAL:cT` command on the previous example, the following log messages will be visible:
 
+[source,text]
 ----
 No exact project with name ':mAL' has been found. Checking for abbreviated names.
 Found exactly one project that matches the abbreviated name ':mAL': ':my-awesome-library'.
@@ -311,7 +314,7 @@ It is common in Gradle builds for the `build` task to designate assembling all o
 
 [source,bash]
 ----
-$ gradle build
+$ ./gradlew build
 ----
 
 === Running applications
@@ -320,7 +323,7 @@ It is common for applications to run with the `run` task, which assembles the ap
 
 [source,bash]
 ----
-$ gradle run
+$ ./gradlew run
 ----
 
 === Running all checks
@@ -329,7 +332,7 @@ It is common for _all_ verification tasks, including tests and linting, to be ex
 
 [source,bash]
 ----
-$ gradle check
+$ ./gradlew check
 ----
 
 === Cleaning outputs
@@ -338,7 +341,7 @@ You can delete the contents of the build directory using the `clean` task. Doing
 
 [source,bash]
 ----
-$ gradle clean
+$ ./gradlew clean
 ----
 
 [[sec:command_line_project_reporting]]
@@ -353,7 +356,7 @@ Running the `projects` task gives you a list of the subprojects of the selected 
 
 [source,bash]
 ----
-$ gradle projects
+$ ./gradlew projects
 ----
 
 You also get a project report with https://scans.gradle.com/[Build Scan].
@@ -365,7 +368,7 @@ Running `gradle tasks` gives you a list of the main tasks of the selected projec
 
 [source,bash]
 ----
-$ gradle tasks
+$ ./gradlew tasks
 ----
 
 By default, this report shows only those tasks assigned to a task group.
@@ -397,7 +400,7 @@ You can obtain more information in the task listing using the `--all` option:
 
 [source,bash]
 ----
-$ gradle tasks --all
+$ ./gradlew tasks --all
 ----
 
 The option `--no-all` can limit the report to tasks assigned to a task group.
@@ -406,7 +409,7 @@ If you need to be more precise, you can display only the tasks from a specific g
 
 [source,bash]
 ----
-$ gradle tasks --group="build setup"
+$ ./gradlew tasks --group="build setup"
 ----
 
 [[sec:show_task_details]]
@@ -416,8 +419,9 @@ Running `gradle help --task someTask` gives you detailed information about a spe
 
 [source,bash]
 ----
-$ gradle -q help --task libs
+$ ./gradlew -q help --task libs
 ----
+[source,text]
 ----
 include::{snippetsPath}/tutorial/projectReports/tests/taskHelp.out[]
 ----
@@ -433,7 +437,7 @@ They can be invoked using the `--scan` options:
 
 [source,bash]
 ----
-$ gradle myTask --scan
+$ ./gradlew myTask --scan
 ----
 
 This will give you a link to a web-based report, where you can find <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,dependency information>> like this:
@@ -449,9 +453,8 @@ Below is an example of this report:
 
 [source,bash]
 ----
-$ gradle dependencies
+$ ./gradlew dependencies
 ----
-
 [source,text]
 ----
 > Task :app:dependencies
@@ -492,14 +495,14 @@ Running the `buildEnvironment` task visualises the buildscript dependencies of t
 
 [source,bash]
 ----
-$ gradle buildEnvironment
+$ ./gradlew buildEnvironment
 ----
 
 Running the `dependencyInsight` task gives you an insight into a particular dependency (or dependencies) that match specified input:
 
 [source,bash]
 ----
-$ gradle dependencyInsight --dependency [...] --configuration [...]
+$ ./gradlew dependencyInsight --dependency [...] --configuration [...]
 ----
 
 The `--configuration` parameter restricts the report to a particular configuration such as `compileClasspath`.
@@ -511,8 +514,9 @@ Running the `properties` task gives you a list of the properties of the selected
 
 [source,bash]
 ----
-$ gradle -q api:properties
+$ ./gradlew -q api:properties
 ----
+[source,text]
 ----
 include::{snippetsPath}/tutorial/projectReports/tests/propertyListReport.out[]
 ----
@@ -521,8 +525,9 @@ You can also query a single property with the optional `--property` argument:
 
 [source,bash]
 ----
-$ gradle -q api:properties --property allprojects
+$ ./gradlew -q api:properties --property allprojects
 ----
+[source,text]
 ----
 include::{snippetsPath}/tutorial/projectReports/tests/propertyReport.out[]
 ----
@@ -866,7 +871,7 @@ The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a
 
 [source,bash]
 ----
-$ gradle wrapper --gradle-version=8.1
+$ ./gradlew wrapper --gradle-version=8.1
 ----
 
 You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. +

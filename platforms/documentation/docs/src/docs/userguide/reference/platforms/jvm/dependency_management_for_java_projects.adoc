@@ -24,7 +24,6 @@ For a detailed introduction to dependency management, see <<getting_started_dep_
 Let's have a look at a very simple build script for a JVM-based project.
 It applies the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> which automatically introduces a standard project layout, provides tasks for performing typical work and adequate support for dependency management.
 
-.Dependency declarations for a JVM-based project
 ====
 include::sample[dir="snippets/artifacts/dependencyBasics/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/artifacts/dependencyBasics/groovy",files="build.gradle[]"]
@@ -42,7 +41,6 @@ Modules are usually stored in a repository, such as Maven Central, a corporate M
 
 To define an module dependency, you add it to a <<#sec:configurations_java_tutorial,dependency configuration>>:
 
-.Definition of a module dependency
 ====
 include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=define-dependency]"]
 include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=define-dependency]"]
@@ -84,7 +82,6 @@ Gradle understands different <<supported_repository_types.adoc#repository-types,
 
 By default, Gradle does not define any repositories. You need to define at least one with the help of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}] before you can use module dependencies. One option is use the Maven Central repository:
 
-.Usage of Maven central repository
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-central]"]
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-central]"]

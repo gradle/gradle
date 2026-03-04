@@ -5,7 +5,7 @@
     <properties>
         <mockk.version>1.14.9</mockk.version>
         <bytebuddy.version>1.18.5</bytebuddy.version>
-        <jackson.version>2.21.0</jackson.version>
+        <jackson.version>2.21.1</jackson.version>
         <junit.version>6.0.3</junit.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

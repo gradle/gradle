@@ -55,15 +55,17 @@ Both Eclipse plugins are open to customization and provide a standardized set of
 [[sec:eclipse_usage]]
 == Usage
 
-To use either the Eclipse or the Eclipse WTP plugin, include one of the lines in your build script:
+To use either the Eclipse or the Eclipse WTP plugin, include one of the lines in your build script.
 
-.Using the Eclipse plugin
+Using the Eclipse plugin:
+
 ====
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=use-eclipse-plugin]"]
 include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=use-eclipse-plugin]"]
 ====
 
-.Using the Eclipse WTP plugin
+Using the Eclipse WTP plugin:
+
 ====
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=use-eclipse-wtp-plugin]"]
 include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=use-eclipse-wtp-plugin]"]
@@ -170,18 +172,15 @@ Generates the `.settings/org.eclipse.wst.common.project.facet.core.xml` file.
 | Allows configuring wtp facet information only if `eclipse-wtp` plugin was applied.
 |===
 
-
 [[sec:eclipse_customizing_the_generated_files]]
 == Customizing the generated files
 
 The Eclipse plugins allow you to customize the generated metadata files. The plugins provide a DSL for configuring model objects that model the Eclipse view of the project. These model objects are then merged with the existing Eclipse XML metadata to ultimately generate new metadata. The model objects provide lower level hooks for working with domain objects representing the file content before and after merging with the model configuration. They also provide a very low level hook for working directly with the raw XML for adjustment before it is persisted, for fine tuning and configuration that the Eclipse and Eclipse WTP plugins do not model.
 
-
 [[sec:merging_with_eclipse_files]]
 === Merging
 
 Sections of existing Eclipse files that are also the target of generated content will be amended or overwritten, depending on the particular section. The remaining sections will be left as-is.
-
 
 [[sec:complete_rewrite_of_eclipse_files]]
 ==== Disabling merging with a complete rewrite
@@ -232,7 +231,6 @@ link:{groovyDslPath}/org.gradle.plugins.ide.eclipse.model.EclipseJdt.html[Eclips
   * `whenMerged { link:{javadocPath}/org/gradle/plugins/ide/eclipse/model/Jdt.html[Jdt] arg -&gt; ... }`
   * `withProperties { arg -&gt; }` argument type => link:{javaApi}/java/util/Properties.html[`java.util.Properties`]
 
-
 [[sec:partial-overwrite]]
 ==== Partial overwrite of existing content
 
@@ -246,7 +244,6 @@ include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=modul
 
 The resulting `.classpath` file will only contain Gradle-generated dependency entries, but not any other dependency entries that may have been present in the original file. (In the case of dependency entries, this is also the default behavior.) Other sections of the `.classpath` file will be either left as-is or merged. The same could be done for the natures in the `.project` file:
 
-.Partial Overwrite for Project
 ====
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=project-before-merged]"]
 include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=project-before-merged]"]
@@ -257,7 +254,6 @@ include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=proje
 
 The `whenMerged` hook allows to manipulate the fully populated domain objects. Often this is the preferred way to customize Eclipse files. Here is how you would export all the dependencies of an Eclipse project:
 
-.Export Classpath Entries
 ====
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=module-when-merged]"]
 include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=module-when-merged]"]
@@ -268,7 +264,6 @@ include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=modul
 
 The `withXml` hook allows to manipulate the in-memory XML representation just before the file gets written to disk. Although Groovy's XML support and Kotlin's extension functions make up for a lot, this approach is less convenient than manipulating the domain objects. In return, you get total control over the generated file, including sections not modeled by the domain objects.
 
-.Customizing the XML
 ====
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=wtp-with-xml]"]
 include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=wtp-with-xml]"]
@@ -301,7 +296,6 @@ The following rules apply for the test attribute declaration when generating the
 
 You can customize the test source sets and configurations:
 
-.Customizing test sources
 ====
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=test-sources]"]
 include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=test-sources]"]
@@ -311,7 +305,6 @@ TIP: Consider migrating away from manual definition of additional test source se
 
 You can also customize if a project should expose test sources to upstream project dependencies via the `containsTestFixtures` property.
 
-.Customizing test fixtures
 ====
 include::sample[dir="snippets/ide/eclipse/kotlin",files="build.gradle.kts[tags=test-fixtures]"]
 include::sample[dir="snippets/ide/eclipse/groovy",files="build.gradle[tags=test-fixtures]"]

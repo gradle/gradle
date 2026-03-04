@@ -29,14 +29,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
-
-    /**
-     * The minimum number of parallel operations permitted on the unconstrained executor.
-     */
-    // Chosen since this value is used by kotlinx coroutines for their own IO scheduler:
-    // https://github.com/Kotlin/kotlinx.coroutines/blob/1f521941faad4d2ee9c8236a7d5fa2c62eaa6b7d/kotlinx-coroutines-core/jvm/src/scheduling/Dispatcher.kt#L67
-    public static final int MIN_UNCONSTRAINED_EXECUTOR_PARALLELISM = 64;
-
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
     private final BuildOperationRunner runner;
@@ -63,7 +55,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             true
         );
 
-        int unconstrainedExecutorParallelism = Math.max(MIN_UNCONSTRAINED_EXECUTOR_PARALLELISM, workerLimits.getMaxWorkerCount());
+        int unconstrainedExecutorParallelism = workerLimits.getMaxUnconstrainedWorkerCount();
         this.unconstrainedExecutionContext = new BuildOperationExecutionContext(
             executorFactory.create("Unconstrained build operations", unconstrainedExecutorParallelism),
             unconstrainedExecutorParallelism,

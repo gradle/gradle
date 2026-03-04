@@ -200,11 +200,16 @@ A simple way to handle this is through an `isCI` project property:
 ====
 include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+====
+
+[source,bash]
 ----
 $ ./gradlew performRelease -PisCI=true --quiet
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
-====
 
 Note that running `./gradlew performRelease` yields the same results as long as your `gradle.properties` file includes `isCI=true`:
 
@@ -217,6 +222,9 @@ isCI=true
 [source,bash]
 ----
 $ ./gradlew performRelease --quiet
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
 

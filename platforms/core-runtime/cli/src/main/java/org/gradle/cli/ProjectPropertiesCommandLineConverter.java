@@ -32,4 +32,9 @@ public class ProjectPropertiesCommandLineConverter extends AbstractPropertiesCom
     protected String getPropertyOptionDescription() {
         return "Sets a project property for the build script (for example, -Pmyprop=myvalue).";
     }
+
+    @Override
+    protected OptionCategory getCategory() {
+        return OptionCategory.CONFIGURATION;
+    }
 }

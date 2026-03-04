@@ -1,11 +1,547 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.getConfigDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstyleExtension",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleExtension.getConfigDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getIncrementalAnalysis()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getMaxFailures()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getRulesMinimumPriority()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getThreads()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getJavaLauncher()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveAppendix()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveBaseName()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveClassifier()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveExtension()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveFileName()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveVersion()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getDestinationDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.War",
+            "member": "Method org.gradle.api.tasks.bundling.War.getWebAppDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getDebugOptions()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getForkOptions()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getHeaderOutputDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getRelease()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getProjectReportDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getProjectFeatureDeclarations()",
             "acceptation": "Removing unused internal service getter",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getShowTypes()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getJavadocTool()",
+            "acceptation": "Removing explicit property creation",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getAnalysisFile()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getClassfileBackupDir()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getPublishedCode()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getCompilationOutputs()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getJavaLauncher()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getMaxMemory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getScalaDocOptions()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getJavaLauncher()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.getInsecureProtocol()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.getSplitProject()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.getUseIncubating()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getObjects()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getOutputDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getAnalysisFiles()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getAnalysisMappingFile()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getJavaLauncher()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.ExtractSymbols.getBinaryFile()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.ExtractSymbols.getSymbolFile()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.ExtractSymbols.getTargetPlatform()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.ExtractSymbols.getToolChain()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getExecutableFile()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getInstallDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getInstalledExecutable()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getTargetPlatform()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getToolChain()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.StripSymbols.getBinaryFile()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.StripSymbols.getOutputFile()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.StripSymbols.getTargetPlatform()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.StripSymbols.getToolChain()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getBundleBinaryFile()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getInstallDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.XCTest.getRunScriptFile()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.XCTest.getTestInstallDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.XCTest.getWorkingDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.Ear",
+            "member": "Method org.gradle.plugins.ear.Ear.getAppDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.Ear",
+            "member": "Method org.gradle.plugins.ear.Ear.getGenerateDeploymentDescriptor()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest",
+            "member": "Method org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.getManifestFile()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest",
+            "member": "Method org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.getPackage()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoPluginExtension.getReportsDirectory()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReport",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReport.getReportProjectName()",
+            "acceptation": "Make explicit properties into managed properties",
+            "changes": [
+                "Method is now abstract"
             ]
         }
     ]

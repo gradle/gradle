@@ -24,9 +24,9 @@ By default, Gradle does not use the Configuration Cache.
 
 To enable it at build time, use the `configuration-cache` flag:
 
-[source,text]
+[source,bash]
 ----
-❯ ./gradlew --configuration-cache
+$ ./gradlew --configuration-cache
 ----
 
 To enable the cache persistently, set the `org.gradle.configuration-cache` property in `gradle.properties`:
@@ -38,9 +38,9 @@ org.gradle.configuration-cache=true
 
 If enabled in `gradle.properties`, you can override it and disable the cache at build time using the `no-configuration-cache` flag:
 
-[source,text]
+[source,bash]
 ----
-❯ ./gradlew --no-configuration-cache
+$ ./gradlew --no-configuration-cache
 ----
 
 [[config_cache:usage:ignore_problems]]
@@ -51,9 +51,9 @@ However, when gradually updating plugins or build logic to support the Configura
 
 To change this behavior at build time, use the following flag:
 
-[source,text]
+[source,bash]
 ----
-❯ ./gradlew --configuration-cache-problems=warn
+$ ./gradlew --configuration-cache-problems=warn
 ----
 
 NOTE: This does not guarantee that the build will succeed.
@@ -81,9 +81,9 @@ When Configuration Cache problems are treated as warnings, Gradle will fail the 
 
 You can adjust this limit by specifying the maximum number of allowed problems on the command line:
 
-[source,text]
+[source,bash]
 ----
-❯ ./gradlew -Dorg.gradle.configuration-cache.max-problems=5
+$ ./gradlew -Dorg.gradle.configuration-cache.max-problems=5
 ----
 
 Or configure it in a `gradle.properties` file:
@@ -101,9 +101,9 @@ Enabling parallel storing and loading can improve performance, but not all build
 
 To enable parallel configuration caching at build time, use:
 
-[source,text]
+[source,bash]
 ----
-❯ ./gradlew -Dorg.gradle.configuration-cache.parallel=true
+$ ./gradlew -Dorg.gradle.configuration-cache.parallel=true
 ----
 
 Or persistently in a `gradle.properties` file:
@@ -128,9 +128,9 @@ If there's a miss, caching offers no benefit since the disk state won't be prese
 
 To enable read-only configuration caching at build time, use:
 
-[source,text]
+[source,bash]
 ----
-❯ ./gradlew -Dorg.gradle.configuration-cache.read-only=true
+$ ./gradlew -Dorg.gradle.configuration-cache.read-only=true
 ----
 
 Or set it persistently in `gradle.properties`:
@@ -184,9 +184,9 @@ The Configuration Cache state is stored in a `.gradle/configuration-cache` direc
 
 To manually invalidate the cache, delete this directory:
 
-[source,text]
+[source,bash]
 ----
-❯ rm -rf .gradle/configuration-cache
+$ rm -rf .gradle/configuration-cache
 ----
 
 Gradle periodically checks (at most every 24 hours) whether cached entries are still in use.
