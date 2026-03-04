@@ -8,9 +8,13 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)                 // DefaultPolymorphicDomainObjectContainer
     api(projects.coreApi)              // AuthenticationContainer, CollectionCallbackActionDecorator
-    api(projects.resources)            // Authentication interface
+    api(projects.credentials)          // AuthenticationSchemeRegistry
+    api(projects.credentialsApi)       // Authentication interface
+    api(projects.serviceProvider)      // AbstractGradleModuleServices
     api(libs.inject)
+    api(libs.jspecify)
 
-    testImplementation(projects.credentials)
+    implementation(projects.stdlibJavaExtensions)  // @NullMarked
+
     testImplementation(testFixtures(projects.core))
 }

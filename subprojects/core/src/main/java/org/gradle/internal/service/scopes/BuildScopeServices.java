@@ -187,8 +187,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
-import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
-import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
@@ -757,11 +755,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected BuildOperationLoggerFactory createBuildOperationLoggerFactory() {
         return new DefaultBuildOperationLoggerFactory();
-    }
-
-    @Provides
-    AuthenticationSchemeRegistry createAuthenticationSchemeRegistry() {
-        return new DefaultAuthenticationSchemeRegistry();
     }
 
     @Provides
