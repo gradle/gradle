@@ -121,9 +121,9 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
         private static String buildingTaskGraphDisplayName(GradleInternal gradle) {
             if (gradle.isRootBuild()) {
-                return "Building root build task graph";
+                return "Building task graph of root build";
             } else {
-                return "Building build '" + gradle.getIdentityPath().asString() + "' task graph";
+                return "Building task graph of build '" + gradle.getIdentityPath().asString() + "'";
             }
         }
 
