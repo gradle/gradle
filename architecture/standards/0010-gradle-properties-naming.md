@@ -1,8 +1,8 @@
 # ADR-0010 - Gradle properties naming
 
-## Date
+## Status
 
-2026-02-26
+- PROPOSED on 2026-02-26
 
 ## Context
 
@@ -155,10 +155,6 @@ Examples of properties in this category:
 
 * `org.gradle.caching`
 * `org.gradle.configuration-cache`
-
-## Status
-
-PROPOSED
 
 ## Consequences
 
