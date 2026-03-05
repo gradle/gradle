@@ -74,6 +74,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "core-api",
         "core-flow-services-api",
         "core-kotlin-extensions",
+        "credentials",
+        "credentials-api",
         "daemon-logging",
         "daemon-main",
         "daemon-protocol",
@@ -174,7 +176,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        93
+        94
     }
 
     /**
