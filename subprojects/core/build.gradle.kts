@@ -24,10 +24,7 @@ dependencyAnalysis {
     }
 }
 jvmCompile {
-    addCompilationFrom(testInterceptors) {
-        // By default, test interceptors compile to the same JVM version as the production code.
-        targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
-    }
+    addCompilationFrom(testInterceptors)
 }
 
 val testInterceptorsImplementation: Configuration by configurations.getting {
@@ -248,6 +245,10 @@ dependencies {
     testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.time))
 
+    testRuntimeOnly(projects.distributionsCore) {
+        because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
+    }
+
     integTestImplementation(projects.workers)
     integTestImplementation(projects.dependencyManagement)
     integTestImplementation(projects.launcher)
@@ -261,13 +262,15 @@ dependencies {
     integTestImplementation(testFixtures(projects.fileTemp))
     integTestImplementation(testFixtures(projects.launcher))
 
-    testRuntimeOnly(projects.distributionsCore) {
-        because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
-    }
-
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
     }
+
+    crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(testLibs.spockJUnit4) {
+        because("Required for @org.junit.Rule")
+    }
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 
     annotationProcessor(projects.internalInstrumentationProcessor)

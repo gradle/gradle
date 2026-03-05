@@ -21,14 +21,15 @@ plugins {
 description = "Plugins that add support for generating IDE project files used for importing Gradle projects into IDEs"
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceProvider)
     api(projects.baseIdePlugins)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
     api(projects.ide)
+    api(projects.ideModelImpls)
     api(projects.platformJvm)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
     api(libs.groovy)

@@ -90,7 +90,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
 org:bar:1.3=conf
 org:foo:1.0=conf
 empty=
-""".denormalize()
+"""
 
     }
 
@@ -271,7 +271,7 @@ empty=
         uniqueLockFile.text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
 org:foo:1.0=otherConf
 empty=
-""".denormalize()
+"""
     }
 
     private DefaultDependencyLockingProvider newProvider() {

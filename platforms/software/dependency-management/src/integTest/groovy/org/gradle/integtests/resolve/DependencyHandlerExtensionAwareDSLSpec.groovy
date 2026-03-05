@@ -18,10 +18,8 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class DependencyHandlerExtensionAwareDSLSpec extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
-    @ToBeFixedForConfigurationCache(because = "task uses DependencyHandler API")
     def "can type-safely use DependencyHandler ExtensionAware with the Groovy DSL"() {
         buildFile << """
             dependencies {
@@ -30,8 +28,9 @@ class DependencyHandlerExtensionAwareDSLSpec extends AbstractIntegrationSpec imp
                 }
             }
             tasks.register("assertValue") {
+                def theAnswer = dependencies.extensions["theAnswer"]
                 doLast {
-                    assert dependencies.extensions["theAnswer"]() == 42
+                    assert theAnswer() == 42
                 }
             }
         """
@@ -39,7 +38,6 @@ class DependencyHandlerExtensionAwareDSLSpec extends AbstractIntegrationSpec imp
         succeeds("assertValue")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "can type-safely use DependencyHandler ExtensionAware with the Kotlin DSL"() {
         buildKotlinFile << """
             dependencies {
@@ -50,15 +48,14 @@ class DependencyHandlerExtensionAwareDSLSpec extends AbstractIntegrationSpec imp
 
             tasks {
                 register("assertValue") {
+                    val theAnswer: () -> Int by project.dependencies.extra
                     doLast {
-                        val theAnswer: () -> Int by project.dependencies.extra
                         assert(theAnswer() == 42)
                     }
                 }
             }
         """
         expect:
-        expectTaskGetProjectDeprecations()
         succeeds("assertValue")
     }
 }

@@ -48,7 +48,9 @@ dependencies {
     testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.dependencyManagement))
 
-    integTestImplementation(projects.enterpriseOperations)
+    testRuntimeOnly(projects.distributionsCore) {
+        because("ProjectBuilder tests load services from a Gradle distribution.")
+    }
 
     testFixturesApi(projects.baseServices) {
         because("Test fixtures export the Action class")
@@ -58,10 +60,12 @@ dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(projects.dependencyManagement)
 
-    testRuntimeOnly(projects.distributionsCore) {
-        because("ProjectBuilder tests load services from a Gradle distribution.")
-    }
+    integTestImplementation(projects.enterpriseOperations)
+
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    crossVersionTestImplementation(projects.internalIntegTesting)
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 

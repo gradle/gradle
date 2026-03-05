@@ -23,6 +23,7 @@ import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.OptionCategory;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -123,9 +124,9 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static class BuiltInActionCreator implements CommandLineActionCreator {
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
-            parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
-            parser.option(VERSION, "version").hasDescription("Print version info and exit.");
-            parser.option(VERSION_CONTINUE, "show-version").hasDescription("Print version info and continue.");
+            parser.option(HELP, "?", "help").hasDescription("Shows this help message.").hasCategory(OptionCategory.HELP);
+            parser.option(VERSION, "version").hasDescription("Prints version information and exits.").hasCategory(OptionCategory.HELP);
+            parser.option(VERSION_CONTINUE, "show-version").hasDescription("Prints version information and continues.").hasCategory(OptionCategory.HELP);
         }
 
         @Override

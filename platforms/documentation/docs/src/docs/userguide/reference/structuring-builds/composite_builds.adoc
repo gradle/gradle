@@ -127,6 +127,22 @@ include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",f
 include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="settings.gradle[]"]
 ====
 
+[[command_line_composite]]
+== Defining a Composite Build via `--include-build`
+
+The `--include-build` command-line argument turns the executed build into a composite, substituting dependencies from the included build into the executed build.
+
+For example, the output of `./gradlew run --include-build ../my-utils` run from `my-app`:
+
+[source,bash]
+----
+$ ./gradlew --include-build ../my-utils run
+----
+[source,text]
+----
+include::{samplesPath}/build-organization/composite-builds/basic/tests/basicCli.out[]
+----
+
 [[settings_defined_composite]]
 == Defining a Composite Build via the Settings file
 
@@ -385,16 +401,22 @@ This has specific implications for how configuration is (or is not) shared:
 - *Gradle Properties*: `gradle.properties` files defined in the root build are not visible to included builds. Each included build must define its own properties or properties must be passed via the CLI.
 - *Shared Configuration*: Included builds do not share any configuration with the root build or other included builds. This includes repositories, plugin management, or dependency versions defined in `buildSrc` or version catalogs.
 
-Continuing from the example above where properties are defined in the CLI and in the root `gradle.properties` file:
+[source,bash]
+----
+$ ./gradlew :included-build:subproject-a:compileJava
+----
+[source,text]
+----
+> Task :included-build:subproject-a:compileJava
+----
 
 [source,bash]
 ----
-$ ./gradlew checkAll -PpropertiesMessage="Hello from the root build -P CLI flag" -DsystemMessage="Hello from the root build -D CLI flag"
+$ ./gradlew :i-b:sA:cJ
 ----
-
 [source,text]
 ----
-include::{samplesPath}/build-organization/composite-builds/basic/tests/inheritance.out[]
+> Task :included-build:subproject-a:compileJava
 ----
 
 If you need to share credentials (like repository tokens) or common configuration across a composite build tree, consider using system environment variables or extracting the logic into a shared convention plugin included via `pluginManagement`.

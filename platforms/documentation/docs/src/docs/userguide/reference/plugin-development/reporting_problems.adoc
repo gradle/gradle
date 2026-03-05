@@ -31,7 +31,6 @@ The following example shows how a plugin can report a problem:
 ====
 include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc/src/main/java/org/myorg",files="ProblemReportingPlugin.java[tags=snippet]"]
 ====
-
 <1> Inject the `Problem` service into the plugin.
 <2> Create a `ProblemReporter` for the plugin.
 <3> Report a recoverable problem so the build can continue.

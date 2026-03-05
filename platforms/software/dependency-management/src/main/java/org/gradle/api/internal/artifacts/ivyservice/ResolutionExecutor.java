@@ -525,8 +525,17 @@ public class ResolutionExecutor {
         );
 
         return new LocalComponentDependencyMetadata(
-            selector, null, Collections.emptyList(), Collections.emptyList(),
-            false, false, false, true, false, true, lock.getReason()
+            selector,
+            null,
+            ImmutableList.of(),
+            ImmutableList.of(),
+            false,
+            false,
+            false,
+            true,
+            false,
+            true,
+            lock.getReason()
         );
     }
 

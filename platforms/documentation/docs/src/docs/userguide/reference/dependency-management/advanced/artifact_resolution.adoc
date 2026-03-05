@@ -274,6 +274,7 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-artifact
 
 Running the `resolveConfiguration` task produces:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-files.out[]
 ----
@@ -298,6 +299,7 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-artifact
 
 Running this task, we can see that file metadata is included in the output:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-artifacts.out[]
 ----
@@ -337,6 +339,8 @@ include::sample[dir="snippets/dependencyManagement/artifactViews-simple/groovy",
 
 We can view the available *variants* of this library as well as their corresponding *artifacts* and *attributes* with a custom task called `checkProducerAttributes`.
 Here is an abridged output showing the relevant *variants* of this library, along with their corresponding *artifacts* and *attributes*:
+
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/artifactViews-simple/tests/producer-attributes.out[]
 ----
@@ -351,6 +355,7 @@ include::sample[dir="snippets/dependencyManagement/artifactViews-simple/groovy",
 By default, the application, as the consumer, will consume the expected *variant* when it is run.
 We can verify this with another custom task called `checkResolvedVariant` that prints out the following:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/artifactViews-simple/tests/consumer-attributes.out[]
 ----
@@ -368,6 +373,7 @@ include::sample[dir="snippets/dependencyManagement/artifactViews-simple/groovy",
 
 We run the task `artifactWithAttributeAndView` to see that we get the main *artifact* instead:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/artifactViews-simple/tests/artifactview-attributes.out[]
 ----
@@ -381,6 +387,7 @@ include::sample[dir="snippets/dependencyManagement/artifactViews-simple/groovy",
 
 As expected, the `apiProductionElements` variant is selected along with the `production.jar` artifact:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/artifactViews-simple/tests/artifactview-attributes.out[]
 ----

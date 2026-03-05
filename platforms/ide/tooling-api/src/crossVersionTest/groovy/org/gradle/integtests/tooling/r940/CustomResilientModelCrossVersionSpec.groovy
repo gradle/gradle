@@ -17,9 +17,9 @@
 package org.gradle.integtests.tooling.r940
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
+import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.FetchModelResult
@@ -31,7 +31,7 @@ import static org.gradle.integtests.tooling.r940.CustomResilientModelCrossVersio
 
 @ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.4.0')
-class CustomResilientModelCrossVersionSpec extends ToolingApiSpecification {
+class CustomResilientModelCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
 
     private static final List<String> IP_CONFIGURE_ON_DEMAND_FLAGS = [
         "-Dorg.gradle.internal.isolated-projects.configure-on-demand=true",

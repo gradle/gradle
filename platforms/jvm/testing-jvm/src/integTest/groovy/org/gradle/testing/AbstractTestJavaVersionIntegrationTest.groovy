@@ -34,6 +34,7 @@ abstract class AbstractTestJavaVersionIntegrationTest extends AbstractTestingMul
 
     def "can run test on java #jdk.javaVersionMajor"() {
         Assume.assumeTrue(supportsJavaVersion(jdk.javaVersionMajor))
+        println("Testing ${getTestFramework()} version ${version} with JDK ${jdk.javaVersionMajor}")
 
         given:
         file("src/test/java/SomeTest.java") << """

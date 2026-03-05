@@ -33,6 +33,15 @@ gradleModule {
     }
 }
 
+jvmCompile {
+    compilations {
+        named("testFixtures") {
+            // The TAPI cross version tests depend on these test fixtures
+            targetJvmVersion = 8
+        }
+    }
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -55,7 +64,7 @@ dependencies {
 
     testFixturesImplementation(projects.enterpriseOperations)
     testFixturesImplementation(projects.baseServices)
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalDistributionTesting)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

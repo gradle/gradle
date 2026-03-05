@@ -104,7 +104,6 @@ public abstract class Wrapper extends DefaultTask {
     private DistributionType distributionType = WrapperDefaults.DISTRIBUTION_TYPE;
     private String archivePath = WrapperDefaults.ARCHIVE_PATH;
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
-    private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private boolean distributionUrlConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
 
@@ -135,7 +134,7 @@ public abstract class Wrapper extends DefaultTask {
             unixScript, getBatchScript(),
             getDistributionUrl(),
             getValidateDistributionUrl().get(),
-            networkTimeout.getOrNull()
+            getNetworkTimeout().getOrNull()
         );
     }
 
@@ -495,9 +494,7 @@ public abstract class Wrapper extends DefaultTask {
     @Incubating
     @Optional
     @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations.")
-    public Property<Integer> getNetworkTimeout() {
-        return networkTimeout;
-    }
+    public abstract Property<Integer> getNetworkTimeout();
 
     /**
      * Indicates if this task will validate the distribution url that has been configured.

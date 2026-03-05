@@ -37,7 +37,7 @@ internal fun withAllPotentiallyDeclarativeSupertypes(host: SchemaBuildingHost, k
                 val isHidden = result is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy
                 val tag = TypeDiscovery.DiscoveredClass.DiscoveryTag.Supertype(kClass, isHidden = isHidden)
 
-                listOf(schemaResult(TypeDiscovery.DiscoveredClass(result.superClass, listOf(tag)))) +
+                listOf(schemaResult(TypeDiscovery.DiscoveredClass(result.superClass, tag))) +
                     if (!isHidden) result.typeVariableAssignments.values.flatMap { TypeDiscovery.DiscoveredClass.classesOf(it, tag).map(::schemaResult) }
                     else emptyList()
             }

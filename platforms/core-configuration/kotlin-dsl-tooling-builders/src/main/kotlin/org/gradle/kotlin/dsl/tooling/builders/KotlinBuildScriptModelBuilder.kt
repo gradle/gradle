@@ -53,12 +53,10 @@ import org.gradle.kotlin.dsl.support.KotlinScriptHashing
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
 import java.io.PrintWriter
-import java.io.Serializable
 import java.io.StringWriter
 import java.util.EnumSet
 
@@ -68,30 +66,6 @@ data class KotlinBuildScriptModelParameter(
     val scriptFile: File?,
     val correlationId: String?
 )
-
-
-internal
-data class StandardKotlinBuildScriptModel(
-    private val classPath: List<File>,
-    private val sourcePath: List<File>,
-    private val implicitImports: List<String>,
-    private val editorReports: List<EditorReport>,
-    private val exceptions: List<String>,
-    private val enclosingScriptProjectDir: File?
-) : KotlinBuildScriptModel, Serializable {
-
-    override fun getClassPath() = classPath
-
-    override fun getSourcePath() = sourcePath
-
-    override fun getImplicitImports() = implicitImports
-
-    override fun getEditorReports() = editorReports
-
-    override fun getExceptions() = exceptions
-
-    override fun getEnclosingScriptProjectDir() = enclosingScriptProjectDir
-}
 
 
 internal

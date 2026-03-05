@@ -20,9 +20,10 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.features.annotations.BindsProjectFeature;
+import org.gradle.features.annotations.BindsProjectType;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
-import org.gradle.api.internal.plugins.software.RegistersProjectFeatures;
+import org.gradle.features.annotations.RegistersProjectFeatures;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -33,7 +34,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -42,7 +43,7 @@ import java.util.Optional;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 /**
- * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} or {@link RegistersProjectFeatures} annotations and adds the
+ * A {@link PluginTarget} that inspects the plugin for {@link RegistersProjectFeatures} annotations and adds the
  * specified plugins to {@link ProjectFeatureDeclarations} prior to applying the plugin via the delegate.
  */
 @NullMarked
@@ -68,7 +69,6 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
         TypeToken<?> pluginType = TypeToken.of(plugin.getClass());
         TypeMetadata typeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginType.getRawType());
-        findAndAddProjectTypes(pluginId, typeMetadata);
         findAndAddProjectFeatures(pluginId, typeMetadata);
 
         delegate.applyImperative(pluginId, plugin);
@@ -87,13 +87,6 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
     @Override
     public String toString() {
         return delegate.toString();
-    }
-
-    private void findAndAddProjectTypes(@Nullable String pluginId, TypeMetadata typeMetadata) {
-        Optional<RegistersSoftwareTypes> registersSoftwareType = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareTypes.class);
-        registersSoftwareType.ifPresent(registration -> {
-            addFeatureDeclarations(registration.value(), Cast.uncheckedCast(typeMetadata.getType()), pluginId);
-        });
     }
 
     private void findAndAddProjectFeatures(@Nullable String pluginId, TypeMetadata typeMetadata) {

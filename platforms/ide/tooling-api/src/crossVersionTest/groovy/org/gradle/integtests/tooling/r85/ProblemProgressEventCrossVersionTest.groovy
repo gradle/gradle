@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r85
 
-import groovy.json.JsonSlurper
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
@@ -53,8 +52,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        def problems = listener.problems.collect { new JsonSlurper().parseText(it.descriptor.json) }
-        problems.size() == 0
+        listener.problems.size() == 0
     }
 
     class ProblemProgressListener implements ProgressListener {

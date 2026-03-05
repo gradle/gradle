@@ -35,13 +35,15 @@ class KotlinDslKgpMismatchIntegrationTest : AbstractKotlinIntegrationTest() {
         Assume.assumeTrue(higherKotlinVersions.isNotEmpty())
         val higherKotlinVersion = higherKotlinVersions.last()
 
-        withSettings("""
+        withSettings(
+            """
             dependencyResolutionManagement {
                 repositories {
                     mavenCentral()
                 }
             }
-        """.trimIndent())
+            """.trimIndent()
+        )
 
         withBuildScript(
             """
@@ -52,10 +54,9 @@ class KotlinDslKgpMismatchIntegrationTest : AbstractKotlinIntegrationTest() {
             """
         )
 
-        val result = build("build")
-        result.assertOutputContains(
-            expectedWarningMessage(higherKotlinVersion)
-        )
+        val result = buildAndFail("build")
+        result.assertHasCause("Could not resolve org.jetbrains.kotlin:kotlin-gradle-plugin:$higherKotlinVersion.")
+        result.assertHasErrorOutput("org.jetbrains.kotlin:kotlin-gradle-plugin:{strictly $embeddedKotlinVersion}")
     }
 
     @Test
@@ -70,20 +71,22 @@ class KotlinDslKgpMismatchIntegrationTest : AbstractKotlinIntegrationTest() {
                 repositories {
                     mavenCentral()
                 }
-                
+
                 dependencies {
                     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$differentKotlinVersion")
                 }
             """
         )
 
-        withSettings("""
+        withSettings(
+            """
             dependencyResolutionManagement {
                 repositories {
                     mavenCentral()
                 }
             }
-        """.trimIndent())
+            """.trimIndent()
+        )
 
         withBuildScript(
             """

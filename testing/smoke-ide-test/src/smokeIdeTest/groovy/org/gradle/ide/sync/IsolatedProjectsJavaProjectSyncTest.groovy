@@ -16,6 +16,9 @@
 
 package org.gradle.ide.sync
 
+import org.gradle.test.fixtures.Flaky
+
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/5093")
 class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncTest {
 
     def "can sync simple java build without problems"() {
@@ -23,7 +26,7 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncTest {
         simpleJavaProject()
 
         when:
-        ideaSync(IDEA_COMMUNITY_VERSION)
+        ideaSync(IDEA_VERSION)
 
         then:
         report.htmlReport().assertHasNoProblems()

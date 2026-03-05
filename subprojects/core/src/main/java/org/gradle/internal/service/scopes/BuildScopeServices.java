@@ -259,7 +259,7 @@ import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.plugin.management.internal.PluginHandler;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;

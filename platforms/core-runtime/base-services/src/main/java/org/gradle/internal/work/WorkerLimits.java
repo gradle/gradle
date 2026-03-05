@@ -33,12 +33,17 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.CrossBuildSession.class)
 public interface WorkerLimits {
-
     /**
      * Returns the maximum number of concurrent workers.
      *
      * @return maximum number of concurrent workers, always &gt;= 1.
      */
     int getMaxWorkerCount();
+
+    /**
+     * Get the maximum parallelism for work that is not constrained by the maximum number of worker leases.
+     * This is used for work that is not CPU-bound.
+     */
+    int getMaxUnconstrainedWorkerCount();
 
 }
