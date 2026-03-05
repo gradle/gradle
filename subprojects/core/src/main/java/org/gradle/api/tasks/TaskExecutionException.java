@@ -16,18 +16,22 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 /**
- * <p>A {@code TaskExecutionException} is thrown when a task fails to execute successfully.</p>
+ * A {@code TaskExecutionException} is thrown when a task fails to execute successfully.
+ * <p>
+ * If the cause of a failure is a {@link VerificationException}, we should <strong>not</strong>
+ * display task provenance information on the console in the failure message.
  */
 @Contextual
 public class TaskExecutionException extends DefaultMultiCauseException {
     private final Task task;
 
     public TaskExecutionException(Task task, Throwable cause) {
-        super(String.format("Execution failed for %s.", task), cause);
+        super(((TaskInternal) task).buildFailureMessage(cause), cause);
         this.task = task;
     }
 
