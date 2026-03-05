@@ -38,13 +38,25 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import javax.inject.Inject
 
-@RegistersProjectFeatures(KotlinBuildLogicProjectTypePlugin::class)
+@RegistersProjectFeatures(
+    KotlinBuildLogicProjectTypePlugin::class,
+    BuildPlatformProjectTypePlugin::class
+)
 open class GradleBuildLogicSoftwareTypesPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
 }
 
+abstract class BaseGradleBuilProjectTypePlugin : Plugin<Project> {
+    override fun apply(target: Project) = Unit
+
+    interface Services {
+        @get:Inject
+        val project: Project
+    }
+}
+
 @BindsProjectType(KotlinBuildLogicProjectTypePlugin.Binding::class)
-open class KotlinBuildLogicProjectTypePlugin : Plugin<Project> {
+open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
@@ -65,18 +77,46 @@ open class KotlinBuildLogicProjectTypePlugin : Plugin<Project> {
             }.withUnsafeDefinition().withUnsafeApplyAction()
         }
     }
+}
 
-    override fun apply(target: Project) = Unit
+@BindsProjectType(BuildPlatformProjectTypePlugin.Binding::class)
+open class BuildPlatformProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
 
-    interface Services {
-        @get:Inject
-        val project: Project
+    class Binding : ProjectTypeBinding {
+        override fun bind(builder: ProjectTypeBindingBuilder) {
+            builder.bindProjectType("buildPlatform", BuildLogicDefinition::class.java) { context, definition, model ->
+                context.objectFactory.newInstance<Services>().project.run {
+                    plugins.apply("java-platform")
+                    group = "gradlebuild"
+
+                    val kotlinVersion = providers.gradleProperty("buildKotlinVersion").getOrElse(embeddedKotlinVersion)
+
+                    val distributionDependencies = project.extensions.getByType<VersionCatalogsExtension>().named("buildLibs")
+                    distributionDependencies.libraryAliases.forEach { alias ->
+                        val constr = distributionDependencies.findLibrary(alias).get().map { module ->
+                            if (module.group == "org.jetbrains.kotlin") {
+                                module.copy().apply {
+                                    version {
+                                        strictly(kotlinVersion)
+                                    }
+                                }
+                            } else {
+                                module
+                            }
+                        }
+                        dependencies.constraints.add("api", constr)
+                    }
+                }
+            }.withUnsafeDefinition().withUnsafeApplyAction()
+        }
     }
 }
 
-interface KotlinBuildLogicDefinition : Definition<BuildModel.None> {
-
+interface BuildLogicDefinition : Definition<BuildModel.None> {
     val description: Property<String>
+}
+
+interface KotlinBuildLogicDefinition : BuildLogicDefinition {
 
     @get:Nested
     val dependencies: BuildLogicDependencies
