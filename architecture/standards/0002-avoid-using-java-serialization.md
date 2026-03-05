@@ -2,7 +2,7 @@
 
 ## Status
 
-- ACCEPTED on 2012-12-01
+- ACCEPTED on 2023-12-01
 
 ## Context
 
