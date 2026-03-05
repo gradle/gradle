@@ -57,8 +57,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Consumer;
 
 import static java.util.Arrays.asList;
@@ -135,7 +135,7 @@ class RuntimeShadedJarCreator {
                 }
             });
         } finally {
-            writer.stop(Duration.ofMinutes(1));
+            writer.stop(Duration.ofMinutes(5));
         }
 
         writeServiceFiles(builder, services);
@@ -149,7 +149,7 @@ class RuntimeShadedJarCreator {
      * The processed and remapped contents of a file that is to be included
      * in the relocated jar.
      */
-    private static class InputFile implements Comparable<InputFile> {
+    private static final class InputFile implements Comparable<InputFile> {
 
         private final int index;
         private final File file;
@@ -213,7 +213,7 @@ class RuntimeShadedJarCreator {
     ) {
         return new MultiProducerSingleConsumerProcessor<>("shaded jar writer", new Consumer<InputFile>() {
             private int index = 0;
-            private final TreeSet<InputFile> allProcessedFiles = new TreeSet<>();
+            private final PriorityQueue<InputFile> allProcessedFiles = new PriorityQueue<>();
             private final Set<String> seenPaths = new HashSet<>();
 
             @Override
@@ -221,7 +221,7 @@ class RuntimeShadedJarCreator {
                 allProcessedFiles.add(processedFile);
 
                 InputFile toProcess;
-                while (!allProcessedFiles.isEmpty() && (toProcess = allProcessedFiles.first()).getIndex() == index) {
+                while (!allProcessedFiles.isEmpty() && (toProcess = allProcessedFiles.peek()).getIndex() == index) {
                     try {
                         progressLogger.progress(progressFormatter.getProgress());
                         toProcess.forEachEntry((name, content) -> {
@@ -234,7 +234,7 @@ class RuntimeShadedJarCreator {
                         }
                         progressFormatter.increment();
                         index++;
-                        allProcessedFiles.remove(toProcess);
+                        allProcessedFiles.poll();
                     } catch (IOException e) {
                         throw new RuntimeException("Failed to write shaded jar", e);
                     }
