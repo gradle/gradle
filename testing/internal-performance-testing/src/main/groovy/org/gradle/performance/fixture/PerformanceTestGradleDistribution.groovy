@@ -30,18 +30,18 @@ import org.gradle.util.internal.GFileUtils
 class PerformanceTestGradleDistribution implements GradleDistribution {
     @Delegate
     final GradleDistribution delegate
-    final File testDir
+    final File workingDirectory
 
     private TestFile gradleHome
 
-    PerformanceTestGradleDistribution(GradleDistribution delegate, File testDir) {
+    PerformanceTestGradleDistribution(GradleDistribution delegate, File workingDirectory) {
         this.delegate = delegate
-        this.testDir = testDir
+        this.workingDirectory = workingDirectory
     }
 
     TestFile getGradleHomeDir() {
         if (!gradleHome) {
-            gradleHome = new TestFile(testDir.parentFile, testDir.name + "-gradle-home")
+            gradleHome = new TestFile(workingDirectory, "gradle-home")
             GFileUtils.copyDirectory(delegate.gradleHomeDir, gradleHome)
             gradleHome.file("bin/gradle").setExecutable(true, true)
         }
