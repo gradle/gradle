@@ -71,7 +71,7 @@ class EdgeState implements DependencyGraphEdge {
     private final boolean isConstraint;
 
     private @Nullable SelectorState selector;
-    private ModuleVersionResolveException targetNodeSelectionFailure;
+    private @Nullable ModuleVersionResolveException targetNodeSelectionFailure;
 
     /**
      * The accumulated exclusions that apply to this edge based on the paths from the root
@@ -241,20 +241,28 @@ class EdgeState implements DependencyGraphEdge {
             // performed selection.
             List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
             if (!unattachedEdges.isEmpty()) {
-                for (EdgeState otherEdge : new ArrayList<>(unattachedEdges)) {
-                    if (!otherEdge.isConstraint()) {
-                        otherEdge.attachToTargetNodes();
-                        if (otherEdge.targetNodeSelectionFailure != null) {
-                            // Copy selection failure
-                            this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
-                            return;
-                        }
+                for (EdgeState unattachedEdge : new ArrayList<>(unattachedEdges)) {
+                    if (!unattachedEdge.isConstraint()) {
+                        unattachedEdge.attachToTargetNodes();
                     }
                 }
             }
+
+            // A constraint by definition attaches to any other nodes in the component it constrains.
             for (NodeState node : targetComponent.getNodes()) {
                 if (node.isSelected() && !node.isRoot()) {
                     targetNodes.add(node);
+                }
+            }
+
+            // If we couldn't attach to any nodes, try to inherit any failures that hard edges have
+            // encountered during selection.
+            if (targetNodes.isEmpty()) {
+                for (EdgeState unattachedEdge : targetComponent.getModule().getUnattachedEdges()) {
+                    if (!unattachedEdge.isConstraint() && unattachedEdge.targetNodeSelectionFailure != null) {
+                        this.targetNodeSelectionFailure = unattachedEdge.targetNodeSelectionFailure;
+                        return;
+                    }
                 }
             }
             return;
