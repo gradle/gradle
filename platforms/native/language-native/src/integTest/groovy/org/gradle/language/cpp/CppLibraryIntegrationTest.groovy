@@ -84,7 +84,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task ':compileDebugCpp'.")
+        failure.assertHasDescription("Execution failed for task ':compileDebugCpp' (registered by plugin class 'org.gradle.language.cpp.plugins.CppBasePlugin').")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
@@ -463,7 +463,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         fails(":consumer:compileDebugCpp")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':consumer:compileDebugCpp'.")
+        failure.assertHasDescription("Execution failed for task ':consumer:compileDebugCpp' (registered by plugin class 'org.gradle.language.cpp.plugins.CppBasePlugin').")
         failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:
@@ -505,7 +505,7 @@ project(':greeter') {
         fails(":consumer:compileDebugCpp")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':consumer:compileDebugCpp'.")
+        failure.assertHasDescription("Execution failed for task ':consumer:compileDebugCpp' (registered by plugin class 'org.gradle.language.cpp.plugins.CppBasePlugin').")
         failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:

@@ -64,7 +64,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "broken"
-            failure.assertHasDescription("Execution failed for task ':broken'.")
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
             failure.assertHasCause("Timeout of task ':broken' must be positive, but was -0.001S")
             result.assertNotOutput("Hello")
         }
@@ -84,7 +84,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "block"
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescription("Execution failed for task ':block' (registered in build file 'build.gradle').")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -107,7 +107,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             fails "block", "foo", "--continue"
             result.assertTaskScheduled(":foo")
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescription("Execution failed for task ':block' (registered in build file 'build.gradle').")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -136,7 +136,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "block"
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescription("Execution failed for task ':block' (registered in build file 'build.gradle').")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -171,7 +171,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "test"
-            failure.assertHasDescription("Execution failed for task ':test'.")
+            failure.assertHasDescription("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -218,7 +218,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "block"
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescription("Execution failed for task ':block' (registered in build file 'build.gradle').")
             failure.assertHasCause("Timeout has been exceeded")
             if (isolationMode == 'process' && failure.output.contains("Caused by:")) {
                 assert failure.output.contains("Error occurred during initialization of VM")
