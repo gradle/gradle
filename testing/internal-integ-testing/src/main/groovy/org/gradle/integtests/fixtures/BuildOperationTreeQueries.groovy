@@ -41,6 +41,10 @@ abstract class BuildOperationTreeQueries {
 
     abstract <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> all(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll())
 
+    <T extends BuildOperationType<?, ?>> List<TestableBuildOperationRecord> buildOps(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        all(type, predicate).collect { new TestableBuildOperationRecord(it) }
+    }
+
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> void none(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
         assert all(type, predicate).isEmpty()
@@ -82,6 +86,10 @@ abstract class BuildOperationTreeQueries {
 
     abstract List<BuildOperationRecord> all(Pattern displayName)
 
+    List<TestableBuildOperationRecord> buildOps(Pattern displayName) {
+        return all(displayName).collect { new TestableBuildOperationRecord(it) }
+    }
+
     @Nonnull
     BuildOperationRecord only(String displayName) {
         return only(Pattern.compile(Pattern.quote(displayName)))
@@ -98,7 +106,7 @@ abstract class BuildOperationTreeQueries {
     @Nullable
     abstract BuildOperationRecord singleOrNone(Pattern displayName)
 
-    abstract List<BuildOperationRecord> parentsOf(BuildOperationRecord child)
+    abstract List<BuildOperationRecord> parentsOf(def child)
 
     void none(String displayName) {
         none(Pattern.compile(Pattern.quote(displayName)))
@@ -289,3 +297,69 @@ abstract class BuildOperationTreeQueries {
         Spec<? super BuildOperationRecord> progressPredicate = Specs.SATISFIES_ALL
     )
 }
+
+class TestableBuildOperationRecord {
+    public final Long id // ignored for equality
+    public final Long parentId
+    public final String displayName
+    public final Map<String, ?> details
+
+    TestableBuildOperationRecord(
+        Long id,
+        String displayName,
+        Long parentId,
+        Map<String, ?> details
+    ) {
+        this.id = id
+        this.parentId = parentId
+        this.displayName = displayName
+        this.details = details ?: [:]
+    }
+
+    TestableBuildOperationRecord(BuildOperationRecord original) {
+        this(original.id, original.displayName, original.parentId, original.details)
+    }
+
+    TestableBuildOperationRecord(
+        String displayName,
+        def parent,
+        Map<String, ?> details
+    ) {
+        this(null, displayName, parent.id, details)
+    }
+
+    @Override
+    boolean equals(Object o) {
+        if (this.is(o)) {
+            return true
+        }
+        if (getClass() != o.getClass()) {
+            return false
+        }
+
+        TestableBuildOperationRecord that = (TestableBuildOperationRecord) o
+
+        if (parentId != that.parentId) {
+            return false
+        }
+        if (displayName != that.displayName) {
+            return false
+        }
+        if (details.subMap(that.details.keySet()) != that.details) {
+            return false
+        }
+
+        return true
+    }
+
+    @Override
+    String toString() {
+        return "BuildOperationDTO{${id ? "id=$id, " : ""}parentId=$parentId, displayName='$displayName', details=$details}"
+    }
+
+    static TestableBuildOperationRecord buildOp(Map params) {
+        new TestableBuildOperationRecord(params.displayName, params.parent, params.details ?: [:])
+    }
+}
+
+

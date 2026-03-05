@@ -106,7 +106,7 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
     }
 
     @Override
-    List<BuildOperationRecord> parentsOf(BuildOperationRecord child) {
+    List<BuildOperationRecord> parentsOf(def child) {
         return getTree().parentsOf(child)
     }
 
