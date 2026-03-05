@@ -22,7 +22,7 @@ description = "Provides a custom CodeNarc rule used by the Gradle build"
 group = "gradlebuild"
 
 dependencies {
-    api(platform(projects.buildPlatform))
+    api(platform(project(":build-platform")))
     compileOnly(localGroovy())
     compileOnly(buildLibs.codenarc) {
         exclude(group = "org.apache.groovy")

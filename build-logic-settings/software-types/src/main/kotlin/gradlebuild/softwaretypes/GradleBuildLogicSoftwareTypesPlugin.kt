@@ -26,6 +26,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.testing.Test
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.annotations.RegistersProjectFeatures
@@ -57,6 +58,9 @@ open class KotlinBuildLogicProjectTypePlugin : Plugin<Project> {
                     for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                         configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
                     }
+                    tasks.getByName("test", Test::class) {
+                        useJUnitPlatform()
+                    }
                 }
             }.withUnsafeDefinition().withUnsafeApplyAction()
         }
@@ -83,13 +87,17 @@ interface BuildLogicDependencies : Dependencies, PlatformDependencyModifiers {
     val implementation: DependencyCollector
     val api: DependencyCollector
     val compileOnly: DependencyCollector
+    val testImplementation: DependencyCollector
+    val testRuntimeOnly: DependencyCollector
 
     @HiddenInDefinition
     fun scopeToCollector(): Map<String, DependencyCollector> =
         mapOf(
             "api" to api,
             "implementation" to implementation,
-            "compileOnly" to compileOnly
+            "compileOnly" to compileOnly,
+            "testImplementation" to testImplementation,
+            "testRuntimeOnly" to testRuntimeOnly
         )
 
     fun catalog(notation: String): ExternalModuleDependency =
