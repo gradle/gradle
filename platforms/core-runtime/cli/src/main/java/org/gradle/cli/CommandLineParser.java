@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * <p>A command-line parser which supports a command/sub-command style command-line interface. Supports the following
@@ -185,7 +186,8 @@ public class CommandLineParser {
      * @param out The output stream to write to.
      */
     @SuppressWarnings("NullAway")
-    public void printUsage(Appendable out) {
+    public void printUsage(Appendable out, int widthHint) {
+
         // sort options before grouping
         Set<CommandLineOption> commandLineOptions = new TreeSet<>(new OptionComparator());
         commandLineOptions.addAll(optionsByString.values());
@@ -210,7 +212,8 @@ public class CommandLineParser {
 
         // print hint about end signal
         Formatter formatter = new Formatter(out);
-        printOption(formatter, padding, "--", "Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.");
+        int descriptionColumnWidth = Math.max(padding + 30, widthHint) - padding;
+        printRenderedOption(formatter, "--", "Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.", descriptionColumnWidth, padding);
 
         // print each category and its options
         for (OptionCategory category : OptionCategory.values()) {
@@ -229,19 +232,50 @@ public class CommandLineParser {
             for (RenderedCommandLineOption option : options) {
                 String name = option.getName();
                 String description = option.getDescription();
-                // handle multi-line descriptions
-                List<String> lines = Arrays.asList(description.split("\\r?\\n"));
-                for (int i = 0; i < lines.size(); i++) {
-                    if (description == null || description.isEmpty()) {
-                        printOptionName(formatter, "  " + name);
-                    } else {
-                        printOption(formatter, padding, i == 0 ? "  " + name : "", lines.get(i));
-                    }
-                }
-
+                printRenderedOption(formatter, "  " + name, description, descriptionColumnWidth, padding);
             }
         }
         formatter.flush();
+    }
+
+    private static void printRenderedOption(Formatter formatter, String name, String description, int descriptionMaxWidth, int padding) {
+        if (description == null || description.isEmpty()) {
+            printOptionName(formatter, name);
+        } else {
+            // handle multi-line descriptions
+            List<String> descriptionLines = Arrays.asList(description.split("\\r?\\n"));
+            // split lines that are too long for the console
+            descriptionLines = descriptionLines.stream().flatMap(n -> splitToLength(n, descriptionMaxWidth).stream()).collect(Collectors.toList());
+            for (int i = 0; i < descriptionLines.size(); i++) {
+                printOption(formatter, padding, i == 0 ? name : "", descriptionLines.get(i));
+            }
+        }
+    }
+
+    public static List<String> splitToLength(String input, int n) {
+        List<String> lines = new ArrayList<>();
+        int start = 0;
+
+        while (start < input.length()) {
+            int end = Math.min(start + n, input.length());
+
+            if (end < input.length()) {
+                int lastSpace = input.lastIndexOf(' ', end);
+                if (lastSpace > start) {
+                    end = lastSpace;
+                }
+            }
+
+            lines.add(input.substring(start, end));
+            start = end;
+
+            // skip whitespace at beginning of next line
+            while (start < input.length() && Character.isWhitespace(input.charAt(start))) {
+                start++;
+            }
+        }
+
+        return lines;
     }
 
     private static void printCategory(Formatter formatter, String categoryName) {
