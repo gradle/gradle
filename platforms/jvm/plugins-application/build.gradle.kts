@@ -21,6 +21,7 @@ plugins {
 description = "Contains the Application plugin, and its supporting classes.  This plugin is used for creating runnable Java application projects."
 
 dependencies {
+    api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
     api(projects.jvmServices)
@@ -30,7 +31,7 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.baseServices)
+    implementation(projects.ant)
     implementation(projects.fileOperations)
     implementation(projects.languageJava)
     implementation(projects.languageJvm)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.AntBuilderAware;
-import org.gradle.util.internal.AntUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +40,7 @@ public class PatternSetAntBuilderDelegate implements AntBuilderAware {
         this.caseSensitive = caseSensitive;
     }
 
+    @SuppressWarnings("rawtypes")
     private static Object logical(Object node, String op, final Action<Object> withNode) {
         GroovyObject groovyObject = (GroovyObject) node;
         groovyObject.invokeMethod(op, new Closure(null, null) {
@@ -69,7 +69,7 @@ public class PatternSetAntBuilderDelegate implements AntBuilderAware {
         Map<String, Object> props = new HashMap<String, Object>(2);
         props.put("casesensitive", caseSensitive);
         for (String filename : filenames) {
-            props.put("name", AntUtil.maskFilename(filename));
+            props.put("name", filename.replaceAll("\\$", "\\$\\$"));
             groovyObject.invokeMethod("filename", props);
         }
         return node;

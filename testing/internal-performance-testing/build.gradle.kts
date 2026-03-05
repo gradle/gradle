@@ -26,8 +26,9 @@ dependencies {
     reports(variantOf(testLibs.flot) { classifier("min"); artifactType("js") })
 
     api(projects.baseServices)
-    api(projects.coreApi)
     api(projects.internalDistributionTesting)
+
+    runtimeOnly(projects.coreApi)
     api(projects.internalTesting)
     api(projects.stdlibJavaExtensions)
     api(projects.reportRendering)

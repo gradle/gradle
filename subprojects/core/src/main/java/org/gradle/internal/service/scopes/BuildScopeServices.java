@@ -64,12 +64,10 @@ import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
-import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
@@ -208,7 +206,6 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
-import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
@@ -440,11 +437,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         return new DefaultClassPathRegistry(
             new DefaultClassPathProvider(moduleRegistry),
             new DependencyClassPathProvider(moduleRegistry, pluginModuleRegistry));
-    }
-
-    @Provides
-    protected IsolatedAntBuilder createIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
-        return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
     }
 
     @Provides

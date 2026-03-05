@@ -47,17 +47,14 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
-import org.gradle.api.internal.project.AntBuilderFactory;
 import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
-import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScopedTaskResolver;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
@@ -211,11 +208,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected TemporaryFileProvider createTemporaryFileProvider() {
         return new DefaultTemporaryFileProvider(() -> project.getLayout().getBuildDirectory().dir("tmp").get().getAsFile());
-    }
-
-    @Provides
-    protected AntBuilderFactory createAntBuilderFactory() {
-        return new DefaultAntBuilderFactory(project, new DefaultAntLoggingAdapterFactory());
     }
 
     @Provides
