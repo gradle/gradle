@@ -1052,8 +1052,9 @@ Starting with Gradle 9.0.0, all link:{groovyDslPath}/org.gradle.api.tasks.bundli
 - Directories have fixed permissions set to `0755`
 - Files have fixed permissions set to `0644`
 
-You can <<sec:setting_file_permissions,further customize>> the link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:dirPermissions-org.gradle.api.Action-[directory permissions]
-or link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:filePermissions-org.gradle.api.Action-[file permissions]
+You can <<sec:setting_file_permissions,further customize>> the link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:dirPermissions-org.gradle.api.Action-[directory permissions],
+link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:filePermissions-org.gradle.api.Action-[file permissions],
+or link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:reproducibleFileTimestamp[file timestamps]
 while keeping the archives reproducible.
 
 [[sec:revert_reproducible_archives]]
@@ -1089,6 +1090,28 @@ We recognize two main cases, where users may want to change the permissions of f
 For such configuration see <<#sec:revert_reproducible_archives,Preserve file system-defined aspects>> section.
 2. Case where the permissions of files and directories in the archive should be set to specific values, for example to set the executable bit on a script file.
 For such configuration see <<#sec:setting_file_permissions,Setting file permissions>> section.
+
+[[sec:reproducible_timestamp]]
+== Timestamp for files inside archives incubating-label:[]
+
+The link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:reproducibleFileTimestamp[`reproducibleFileTimestamp`] property allows you to set a custom timestamp for every entry in the archive.
+Note that the link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:preserveFileTimestamps[`isPreserveFileTimestamps`] property must be `false` (which is the default value) to use a custom timestamp.
+
+The timestamp is specified in milliseconds since the Unix epoch.
+It can be used to complement reproducibility by using a meaningful, verifiable timestamp rather than the default.
+
+For example, the `SOURCE_DATE_EPOCH` environment variable can be set to the Unix timestamp from the most recent git commit using `git log -1 --format=%ct`, and then used in the Gradle build:
+
+====
+include::sample[dir="snippets/reference/gradle-types/archives/kotlin",files="build.gradle.kts[tags=reproducible-timestamp]"]
+include::sample[dir="snippets/reference/gradle-types/archives/groovy",files="build.gradle[tags=reproducible-timestamp]"]
+====
+
+[NOTE]
+====
+Timestamp resolution varies by archive format.
+The exact value stored in the archive file may have lower resolution than the link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:reproducibleFileTimestamp[`reproducibleFileTimestamp`] property.
+====
 
 [[sec:unpacking_archives_example]]
 == Unpacking archives

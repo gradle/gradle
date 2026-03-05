@@ -25,13 +25,18 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
+import org.gradle.api.internal.file.copy.CopyActionUtil;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipCompressor;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.IoActions;
 
 import java.io.File;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.OptionalLong;
 
 public class ZipCopyAction implements CopyAction {
 
@@ -39,14 +44,17 @@ public class ZipCopyAction implements CopyAction {
     private final ZipCompressor compressor;
     private final DocumentationRegistry documentationRegistry;
     private final String encoding;
-    private final boolean preserveFileTimestamps;
+    private final OptionalLong fileTimestampMillis;
 
-    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps) {
+    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps, Provider<Long> reproducibleFileTimestamp) {
         this.zipFile = zipFile;
         this.compressor = compressor;
         this.documentationRegistry = documentationRegistry;
         this.encoding = encoding;
-        this.preserveFileTimestamps = preserveFileTimestamps;
+        this.fileTimestampMillis = CopyActionUtil.computeReproducibleTimestamp(preserveFileTimestamps, reproducibleFileTimestamp.map(ms -> {
+            final Instant utcTime = Instant.ofEpochMilli(ms);
+            return utcTime.minusSeconds(ZoneId.systemDefault().getRules().getOffset(utcTime).getTotalSeconds()).toEpochMilli();
+        }), ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES);
     }
 
     @Override
@@ -124,6 +132,6 @@ public class ZipCopyAction implements CopyAction {
     }
 
     private long getArchiveTimeFor(FileCopyDetails details) {
-        return preserveFileTimestamps ? details.getLastModified() : ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES;
+        return fileTimestampMillis.orElseGet(details::getLastModified);
     }
 }

@@ -17,6 +17,7 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
@@ -30,6 +31,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -238,6 +240,20 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         super.into(destPath, copySpec);
         return this;
     }
+
+    /**
+     * Specifies the reproducible file timestamp used for each entry in the archive in milliseconds from the epoch of 1970-01-01T00:00:00Z.
+     * <p>
+     * If not set, then each archive entry will use the value as determined by the <code>preserveFileTimestamps</code> property.
+     * If set, then each archive entry will use the reproducible file timestamp.
+     *
+     * @return the reproducible file timestamp used for each entry in the archive in milliseconds from the epoch of 1970-01-01T00:00:00Z
+     * @since 9.7.0
+     */
+    @Incubating
+    @Input
+    @Optional
+    public abstract Property<Long> getReproducibleFileTimestamp();
 
     /**
      * Specifies whether file timestamps should be preserved in the archive.

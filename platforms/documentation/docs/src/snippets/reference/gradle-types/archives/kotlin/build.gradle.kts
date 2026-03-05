@@ -1,3 +1,5 @@
+import java.time.Instant
+
 // tag::zip[]
 // tag::tar[]
 plugins {
@@ -58,3 +60,16 @@ tasks.withType<AbstractArchiveTask>().configureEach {
 }
 // end::revert-reproducible[]
 
+tasks.withType<AbstractArchiveTask>().configureEach {
+    isPreserveFileTimestamps = false // Reset to the default value
+}
+
+// tag::reproducible-timestamp[]
+// import java.time.Instant
+
+tasks.withType<AbstractArchiveTask>().configureEach {
+    reproducibleFileTimestamp = providers.environmentVariable("SOURCE_DATE_EPOCH").map {
+        Instant.ofEpochSecond(it.toLong()).toEpochMilli()
+    }
+}
+// end::reproducible-timestamp[]

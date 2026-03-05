@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.DefaultFilePermissions
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream
 import org.gradle.api.internal.file.copy.DefaultZipCompressor
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -45,7 +46,7 @@ class ZipCopyActionTest extends Specification {
 
     def setup() {
         zipFile = tmpDir.getTestDirectory().file("test.zip")
-        visitor = new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipArchiveOutputStream.STORED), new DocumentationRegistry(), encoding, false)
+        visitor = new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipArchiveOutputStream.STORED), new DocumentationRegistry(), encoding, false, Providers.notDefined())
     }
 
     void createsZipFile() {
@@ -87,7 +88,7 @@ class ZipCopyActionTest extends Specification {
     void wrapsFailureToOpenOutputFile() {
         given:
         def invalidZipFile = tmpDir.createDir("test.zip")
-        visitor = new ZipCopyAction(invalidZipFile, new DefaultZipCompressor(false, ZipArchiveOutputStream.STORED), new DocumentationRegistry(), encoding, false)
+        visitor = new ZipCopyAction(invalidZipFile, new DefaultZipCompressor(false, ZipArchiveOutputStream.STORED), new DocumentationRegistry(), encoding, false, Providers.notDefined())
 
         when:
         visitor.execute(new CopyActionProcessingStream() {
@@ -119,7 +120,7 @@ class ZipCopyActionTest extends Specification {
         1 * docRegistry.getDslRefForProperty(Zip.name, "zip64") >> "doc url"
         0 * docRegistry._
 
-        visitor = new ZipCopyAction(zipFile, compressor, docRegistry, encoding, false)
+        visitor = new ZipCopyAction(zipFile, compressor, docRegistry, encoding, false, Providers.notDefined())
 
         when:
         zip(file("file2"))
