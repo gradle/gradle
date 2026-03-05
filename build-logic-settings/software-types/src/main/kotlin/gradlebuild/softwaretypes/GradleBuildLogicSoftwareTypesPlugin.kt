@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
+import org.gradle.api.artifacts.dsl.GradleDependencies
 import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.api.provider.Property
@@ -40,7 +41,8 @@ import javax.inject.Inject
 
 @RegistersProjectFeatures(
     KotlinBuildLogicProjectTypePlugin::class,
-    BuildPlatformProjectTypePlugin::class
+    BuildPlatformProjectTypePlugin::class,
+    LibraryBuildLogicProjectTypePlugin::class
 )
 open class GradleBuildLogicSoftwareTypesPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
@@ -60,7 +62,7 @@ open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin()
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("kotlinBuildLogic", KotlinBuildLogicDefinition::class.java) { context, definition, model ->
+            builder.bindProjectType("kotlinBuildLogic", JvmBuildLogicDefinition::class.java) { context, definition, model ->
                 context.objectFactory.newInstance<Services>().project.run {
                     plugins.apply("org.gradle.kotlin.kotlin-dsl")
                     group = "gradlebuild"
@@ -72,6 +74,28 @@ open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin()
                     }
                     tasks.getByName("test", Test::class) {
                         useJUnitPlatform()
+                    }
+                }
+            }.withUnsafeDefinition().withUnsafeApplyAction()
+        }
+    }
+}
+
+@BindsProjectType(LibraryBuildLogicProjectTypePlugin.Binding::class)
+open class LibraryBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+
+    class Binding : ProjectTypeBinding {
+        override fun bind(builder: ProjectTypeBindingBuilder) {
+            builder.bindProjectType("buildLogicLibrary", JvmBuildLogicDefinition::class.java) { context, definition, model ->
+                context.objectFactory.newInstance<Services>().project.run {
+                    repositories.mavenCentral()
+                    plugins.apply("java-library")
+                    group = "gradlebuild"
+                    afterEvaluate {
+                        description = definition.description.get()
+                    }
+                    for ((scope, collector) in definition.dependencies.scopeToCollector()) {
+                        configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
                     }
                 }
             }.withUnsafeDefinition().withUnsafeApplyAction()
@@ -116,13 +140,13 @@ interface BuildLogicDefinition : Definition<BuildModel.None> {
     val description: Property<String>
 }
 
-interface KotlinBuildLogicDefinition : BuildLogicDefinition {
+interface JvmBuildLogicDefinition : BuildLogicDefinition {
 
     @get:Nested
     val dependencies: BuildLogicDependencies
 }
 
-interface BuildLogicDependencies : Dependencies, PlatformDependencyModifiers {
+interface BuildLogicDependencies : GradleDependencies, PlatformDependencyModifiers {
 
     val implementation: DependencyCollector
     val api: DependencyCollector

@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+buildLogicLibrary {
+    description = "Provides a custom CodeNarc rule used by the Gradle build"
 
-plugins {
-    id("java-library")
-}
-description = "Provides a custom CodeNarc rule used by the Gradle build"
-
-group = "gradlebuild"
-
-dependencies {
-    api(platform(project(":build-platform")))
-    compileOnly(localGroovy())
-    compileOnly(buildLibs.codenarc) {
-        exclude(group = "org.apache.groovy")
-        exclude(group = "org.codehaus.groovy")
+    dependencies {
+        api(platform(project(":build-platform")))
+        compileOnly(localGroovy())
+//        compileOnly(buildLibs.codenarc) {
+        compileOnly("org.codenarc:CodeNarc:3.6.0-groovy-4.0") {
+            exclude(mapOf("group" to "org.apache.groovy"))
+            exclude(mapOf("group" to "org.codehaus.groovy"))
+        }
     }
 }
+
