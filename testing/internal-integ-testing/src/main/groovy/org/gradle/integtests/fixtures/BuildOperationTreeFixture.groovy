@@ -112,7 +112,7 @@ class BuildOperationTreeFixture extends BuildOperationTreeQueries {
     }
 
     @Override
-    List<BuildOperationRecord> parentsOf(BuildOperationRecord child) {
+    List<BuildOperationRecord> parentsOf(def child) {
         def parents = []
         def parentId = child.parentId
         while (parentId != null) {

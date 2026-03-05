@@ -22,11 +22,15 @@ import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 
 import java.util.regex.Pattern
+
+import static org.gradle.integtests.fixtures.TestableBuildOperationRecord.buildOp
 
 class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
@@ -59,73 +63,69 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         and:
         def root = operations.root(RunBuildBuildOperationType)
 
-        def buildSrcOps = operations.all(BuildBuildSrcBuildOperationType)
-        buildSrcOps.size() == 1
-        buildSrcOps[0].displayName == "Build buildSrc"
-        buildSrcOps[0].details.buildPath == ":buildB"
+        def configureOps = operations.buildOps(ConfigureBuildBuildOperationType)
+        def buildSrcOps = operations.buildOps(BuildBuildSrcBuildOperationType)
+        configureOps == [
+            buildOp(displayName: "Configure build", parent: root, details: ["buildPath": ":"]),
+            buildOp(displayName: "Configure build (:buildB)", parent: configureOps[0], details: ["buildPath": ":buildB"]),
+            buildOp(displayName: "Configure build (:buildB:buildSrc)", parent: buildSrcOps[0], details: ["buildPath": ":buildB:buildSrc"])
+        ]
+        buildSrcOps == [
+            buildOp(displayName: "Build buildSrc", parent: configureOps[1], details: ["buildPath": ":buildB"])
+        ]
 
-        def loadOps = operations.all(LoadBuildBuildOperationType)
-        verifyBuildPathOperations(
-            "Load build",
-            loadOps,
-            [
-                [":", root.id],
-                [":buildB", loadOps[0].id],
-                [":buildB:buildSrc", buildSrcOps[0].id]
-            ]
-        )
+        def loadOps = operations.buildOps(LoadBuildBuildOperationType)
+        loadOps == [
+            buildOp(displayName: "Load build", parent: root, details: ["buildPath": ":"]),
+            buildOp(displayName: "Load build (:buildB)", parent: loadOps[0], details: ["buildPath": ":buildB"]),
+            buildOp(displayName: "Load build (:buildB:buildSrc)", parent: buildSrcOps[0], details: ["buildPath": ":buildB:buildSrc"])
+        ]
 
         def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
-        buildIdentifiedEvents.size() == 3
-        buildIdentifiedEvents[0].details.buildPath == ':'
-        buildIdentifiedEvents[1].details.buildPath == ':buildB'
-        buildIdentifiedEvents[2].details.buildPath == ':buildB:buildSrc'
+        buildIdentifiedEvents*.details.buildPath == [':', ':buildB', ':buildB:buildSrc']
 
-        def configureOps = operations.all(ConfigureBuildBuildOperationType)
-        verifyBuildPathOperations(
-            "Configure build",
-            configureOps,
-            [
-                [":", root.id],
-                [":buildB", configureOps[0].id],
-                [":buildB:buildSrc", buildSrcOps[0].id]
+        def treeTaskGraphOps = operations.buildOps(CalculateTreeTaskGraphBuildOperationType)
+        def expectedTreeTaskGraphOps = [
+            buildOp(displayName: "Calculate build tree task graph", parent: buildSrcOps[0]),
+            buildOp(displayName: "Calculate build tree task graph", parent: root)
+        ]
+        if (GradleContextualExecuter.configCache) {
+            expectedTreeTaskGraphOps << buildOp(displayName: "Calculate build tree task graph", parent: operations.only("Load configuration cache state"))
+        }
+        treeTaskGraphOps == expectedTreeTaskGraphOps
+
+        def taskGraphOps = operations.buildOps(CalculateTaskGraphBuildOperationType)
+        def expectedTaskGraphOps = [
+            buildOp(displayName: "Calculate task graph (:buildB:buildSrc)", parent: treeTaskGraphOps[0], details: ["buildPath": ":buildB:buildSrc"]),
+            buildOp(displayName: "Calculate task graph", parent: treeTaskGraphOps[1], details: ["buildPath": ":"]),
+            buildOp(displayName: "Calculate task graph (:buildB)", parent: treeTaskGraphOps[1], details: ["buildPath": ":buildB"])
+        ]
+        if (GradleContextualExecuter.configCache) {
+            expectedTaskGraphOps += [
+                buildOp(displayName: "Calculate task graph", parent: treeTaskGraphOps[2], details: ["buildPath": ":"]),
+                buildOp(displayName: "Calculate task graph (:buildB)", parent: treeTaskGraphOps[2], details: ["buildPath": ":buildB"])
             ]
-        )
-
-        def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
-        verifyTaskGraphOps(
-            operations: treeTaskGraphOps,
-            expectedParents: [buildSrcOps[0].id, root.id],
-            expectedBuildPaths: [
-                [":buildB:buildSrc", treeTaskGraphOps[0].id],
-                [":", treeTaskGraphOps[1].id],
-                [":buildB", treeTaskGraphOps[1].id]
-            ],
-            extraBuildPathsWithCC: [":", ":buildB"]
-        )
+        }
+        taskGraphOps == expectedTaskGraphOps
 
         def runMainTasks = operations.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
-        def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
+        def runTasksOps = operations.buildOps(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 3
-        runTasksOps[0].displayName == "Run tasks (:buildB:buildSrc)"
-        runTasksOps[0].parentId == buildSrcOps[0].id
+        runTasksOps[0] == buildOp(displayName: "Run tasks (:buildB:buildSrc)", parent: buildSrcOps[0])
         // Build operations are run in parallel, so can appear in either order
-        [runTasksOps[1].displayName, runTasksOps[2].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
-        runTasksOps[1].parentId == runMainTasks.id
-        runTasksOps[2].parentId == runMainTasks.id
+        runTasksOps.takeRight(2).sort { it.displayName } == [
+            buildOp(displayName: "Run tasks", parent: runMainTasks),
+            buildOp(displayName: "Run tasks (:buildB)", parent: runMainTasks)
+        ]
 
-        def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
-        verifyBuildPathOperations(
-            "Notify task graph whenReady listeners",
-            graphNotifyOps,
-            [
-                [":buildB:buildSrc", treeTaskGraphOps[0].id],
-                [":buildB", treeTaskGraphOps[1].id],
-                [":", treeTaskGraphOps[1].id]
-            ]
-        )
+        def graphNotifyOps = operations.buildOps(NotifyTaskGraphWhenReadyBuildOperationType)
+        graphNotifyOps == [
+            buildOp(displayName: "Notify task graph whenReady listeners (:buildB:buildSrc)", parent: treeTaskGraphOps[0], details: ["buildPath": ":buildB:buildSrc"]),
+            buildOp(displayName: "Notify task graph whenReady listeners (:buildB)", parent: treeTaskGraphOps[1], details: ["buildPath": ":buildB"]),
+            buildOp(displayName: "Notify task graph whenReady listeners", parent: treeTaskGraphOps[1], details: ["buildPath": ":"])
+        ]
 
         where:
         settings                     | display
@@ -151,82 +151,78 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         and:
         def root = operations.root(RunBuildBuildOperationType)
 
-        def buildSrcOps = operations.all(BuildBuildSrcBuildOperationType)
-        buildSrcOps.size() == 2
-        buildSrcOps[0].displayName == "Build buildSrc"
-        buildSrcOps[0].details.buildPath == ":buildB"
-        buildSrcOps[1].displayName == "Build buildSrc"
-        buildSrcOps[1].details.buildPath == ":"
+        def configureOps = operations.buildOps(ConfigureBuildBuildOperationType)
+        def buildSrcOps = operations.buildOps(BuildBuildSrcBuildOperationType)
+        configureOps == [
+            buildOp(displayName: "Configure build", parent: root, details: ["buildPath": ":"]),
+            buildOp(displayName: "Configure build (:buildB)", parent: configureOps[0], details: ["buildPath": ":buildB"]),
+            buildOp(displayName: "Configure build (:buildB:buildSrc)", parent: buildSrcOps[0], details: ["buildPath": ":buildB:buildSrc"]),
+            buildOp(displayName: "Configure build (:buildSrc)", parent: buildSrcOps[1], details: ["buildPath": ":buildSrc"]),
+        ]
+        buildSrcOps == [
+            buildOp(displayName: "Build buildSrc", parent: configureOps[1], details: ["buildPath": ":buildB"]),
+            buildOp(displayName: "Build buildSrc", parent: configureOps[0], details: ["buildPath": ":"])
+        ]
 
-        def loadOps = operations.all(LoadBuildBuildOperationType)
-        verifyBuildPathOperations(
-            "Load build",
-            loadOps,
-            [
-                [":", root.id],
-                [":buildB", loadOps[0].id],
-                [":buildB:buildSrc", buildSrcOps[0].id],
-                [":buildSrc", buildSrcOps[1].id]
-            ]
-        )
+        def loadOps = operations.buildOps(LoadBuildBuildOperationType)
+        loadOps == [
+            buildOp(displayName: "Load build", parent: root, details: ["buildPath": ":"]),
+            buildOp(displayName: "Load build (:buildB)", parent: loadOps[0], details: ["buildPath": ":buildB"]),
+            buildOp(displayName: "Load build (:buildB:buildSrc)", parent: buildSrcOps[0], details: ["buildPath": ":buildB:buildSrc"]),
+            buildOp(displayName: "Load build (:buildSrc)", parent: buildSrcOps[1], details: ["buildPath": ":buildSrc"])
+        ]
 
         def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
-        buildIdentifiedEvents.size() == 4
-        buildIdentifiedEvents[0].details.buildPath == ':'
-        buildIdentifiedEvents[1].details.buildPath == ':buildB'
-        buildIdentifiedEvents[2].details.buildPath == ':buildB:buildSrc'
-        buildIdentifiedEvents[3].details.buildPath == ':buildSrc'
+        buildIdentifiedEvents*.details.buildPath == [':', ':buildB', ':buildB:buildSrc', ':buildSrc']
 
-        def configureOps = operations.all(ConfigureBuildBuildOperationType)
-        verifyBuildPathOperations(
-            "Configure build",
-            configureOps,
-            [
-                [":", root.id],
-                [":buildB", configureOps[0].id],
-                [":buildB:buildSrc", buildSrcOps[0].id],
-                [":buildSrc", buildSrcOps[1].id]
+        def treeTaskGraphOps = operations.buildOps(CalculateTreeTaskGraphBuildOperationType)
+        def expectedTreeTaskGraphOps = [
+            buildOp(displayName: "Calculate build tree task graph", parent: buildSrcOps[0]),
+            buildOp(displayName: "Calculate build tree task graph", parent: buildSrcOps[1]),
+            buildOp(displayName: "Calculate build tree task graph", parent: root),
+        ]
+        if (GradleContextualExecuter.configCache) {
+            expectedTreeTaskGraphOps << buildOp(displayName: "Calculate build tree task graph", parent: operations.only("Load configuration cache state"))
+        }
+        treeTaskGraphOps == expectedTreeTaskGraphOps
+
+        def taskGraphOps = operations.buildOps(CalculateTaskGraphBuildOperationType)
+        def expectedTaskGraphOps = [
+            buildOp(displayName: "Calculate task graph (:buildB:buildSrc)", parent: treeTaskGraphOps[0], details: ["buildPath": ":buildB:buildSrc"]),
+            buildOp(displayName: "Calculate task graph (:buildSrc)", parent: treeTaskGraphOps[1], details: ["buildPath": ":buildSrc"]),
+            buildOp(displayName: "Calculate task graph", parent: treeTaskGraphOps[2], details: ["buildPath": ":"]),
+            buildOp(displayName: "Calculate task graph (:buildB)", parent: treeTaskGraphOps[2], details: ["buildPath": ":buildB"]),
+        ]
+        if (GradleContextualExecuter.configCache) {
+            expectedTaskGraphOps += [
+                buildOp(displayName: "Calculate task graph", parent: treeTaskGraphOps[3], details: ["buildPath": ":"]),
+                buildOp(displayName: "Calculate task graph (:buildB)", parent: treeTaskGraphOps[3], details: ["buildPath": ":buildB"])
             ]
-        )
-
-        def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
-        verifyTaskGraphOps(
-            operations: treeTaskGraphOps,
-            expectedParents: [buildSrcOps[0].id, buildSrcOps[1].id, root.id],
-            expectedBuildPaths: [
-                [":buildB:buildSrc", treeTaskGraphOps[0].id],
-                [":buildSrc", treeTaskGraphOps[1].id],
-                [":", treeTaskGraphOps[2].id],
-                [":buildB", treeTaskGraphOps[2].id]
-            ],
-            extraBuildPathsWithCC: [":", ":buildB"]
-        )
+        }
+        taskGraphOps == expectedTaskGraphOps
 
         def runMainTasks = operations.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
-        def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
+        def runTasksOps = operations.buildOps(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 4
-        runTasksOps[0].displayName == "Run tasks (:buildB:buildSrc)"
-        runTasksOps[0].parentId == buildSrcOps[0].id
-        runTasksOps[1].displayName == "Run tasks (:buildSrc)"
-        runTasksOps[1].parentId == buildSrcOps[1].id
+        runTasksOps.take(2) == [
+            buildOp(displayName: "Run tasks (:buildB:buildSrc)", parent: buildSrcOps[0]),
+            buildOp(displayName: "Run tasks (:buildSrc)", parent: buildSrcOps[1])
+        ]
         // Build operations are run in parallel, so can appear in either order
-        [runTasksOps[2].displayName, runTasksOps[3].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
-        runTasksOps[2].parentId == runMainTasks.id
-        runTasksOps[3].parentId == runMainTasks.id
+        runTasksOps.takeRight(2).sort { it.displayName } == [
+            buildOp(displayName: "Run tasks", parent: runMainTasks),
+            buildOp(displayName: "Run tasks (:buildB)", parent: runMainTasks)
+        ]
 
-        def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
-        verifyBuildPathOperations(
-            "Notify task graph whenReady listeners",
-            graphNotifyOps,
-            [
-                [":buildB:buildSrc", treeTaskGraphOps[0].id],
-                [":buildSrc", treeTaskGraphOps[1].id],
-                [":buildB", treeTaskGraphOps[2].id],
-                [":", treeTaskGraphOps[2].id]
-            ]
-        )
+        def graphNotifyOps = operations.buildOps(NotifyTaskGraphWhenReadyBuildOperationType)
+        graphNotifyOps == [
+            buildOp(displayName: "Notify task graph whenReady listeners (:buildB:buildSrc)", parent: treeTaskGraphOps[0], details: ["buildPath": ":buildB:buildSrc"]),
+            buildOp(displayName: "Notify task graph whenReady listeners (:buildSrc)", parent: treeTaskGraphOps[1], details: ["buildPath": ":buildSrc"]),
+            buildOp(displayName: "Notify task graph whenReady listeners (:buildB)", parent: treeTaskGraphOps[2], details: ["buildPath": ":buildB"]),
+            buildOp(displayName: "Notify task graph whenReady listeners", parent: treeTaskGraphOps[2], details: ["buildPath": ":"])
+        ]
 
         where:
         settings                     | display
