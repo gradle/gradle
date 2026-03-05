@@ -20,7 +20,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.GradleDependencies
 import org.gradle.api.initialization.Settings
@@ -35,14 +34,17 @@ import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.kotlin.dsl.getByName
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.newInstance
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import javax.inject.Inject
 
 @RegistersProjectFeatures(
     KotlinBuildLogicProjectTypePlugin::class,
-    BuildPlatformProjectTypePlugin::class,
-    LibraryBuildLogicProjectTypePlugin::class
+    JavaPlatformBuildLogicProjectTypePlugin::class,
+    JavaLibraryBuildLogicProjectTypePlugin::class
 )
 open class GradleBuildLogicSoftwareTypesPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
@@ -62,7 +64,7 @@ open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin()
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("kotlinBuildLogic", JvmBuildLogicDefinition::class.java) { context, definition, model ->
+            builder.bindProjectType("kotlinBuildLogic", JavaBuildLogicDefinition::class.java) { context, definition, model ->
                 context.objectFactory.newInstance<Services>().project.run {
                     plugins.apply("org.gradle.kotlin.kotlin-dsl")
                     group = "gradlebuild"
@@ -81,12 +83,12 @@ open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin()
     }
 }
 
-@BindsProjectType(LibraryBuildLogicProjectTypePlugin.Binding::class)
-open class LibraryBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+@BindsProjectType(JavaLibraryBuildLogicProjectTypePlugin.Binding::class)
+open class JavaLibraryBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("buildLogicLibrary", JvmBuildLogicDefinition::class.java) { context, definition, model ->
+            builder.bindProjectType("javaLibraryBuildLogic", JavaBuildLogicDefinition::class.java) { context, definition, model ->
                 context.objectFactory.newInstance<Services>().project.run {
                     repositories.mavenCentral()
                     plugins.apply("java-library")
@@ -103,12 +105,12 @@ open class LibraryBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin(
     }
 }
 
-@BindsProjectType(BuildPlatformProjectTypePlugin.Binding::class)
-open class BuildPlatformProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+@BindsProjectType(JavaPlatformBuildLogicProjectTypePlugin.Binding::class)
+open class JavaPlatformBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("buildPlatform", BuildLogicDefinition::class.java) { context, definition, model ->
+            builder.bindProjectType("javaPlatformBuildLogic", BuildLogicDefinition::class.java) { context, definition, model ->
                 context.objectFactory.newInstance<Services>().project.run {
                     plugins.apply("java-platform")
                     group = "gradlebuild"
@@ -140,7 +142,7 @@ interface BuildLogicDefinition : Definition<BuildModel.None> {
     val description: Property<String>
 }
 
-interface JvmBuildLogicDefinition : BuildLogicDefinition {
+interface JavaBuildLogicDefinition : BuildLogicDefinition {
 
     @get:Nested
     val dependencies: BuildLogicDependencies
