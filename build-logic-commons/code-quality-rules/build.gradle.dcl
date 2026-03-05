@@ -20,7 +20,8 @@ javaLibraryBuildLogic {
     dependencies {
         api(platform(project(":build-platform")))
         compileOnly(localGroovy())
-        //        compileOnly(buildLibs.codenarc) {
+        // FIXME cannot use catalog() + action-taking dependency notation
+        // compileOnly(catalog("buildLibs.codenarc")) {
         compileOnly("org.codenarc:CodeNarc:3.6.0-groovy-4.0") {
             exclude(mapOf("group" to "org.apache.groovy"))
             exclude(mapOf("group" to "org.codehaus.groovy"))
