@@ -463,7 +463,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         then:
         result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer")
         outputDoesNotContain("processing")
-        failure.assertHasDescription("Execution failed for task ':a:tool'.")
+        failure.assertHasDescription("Execution failed for task ':a:tool' (registered in build file 'build.gradle').")
         failure.assertHasFailures(1)
         failure.assertHasCause("broken")
     }

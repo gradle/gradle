@@ -40,13 +40,18 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
      * In vintage mode, the task is expected to fail at execution time.
      *
      * @param taskSelector the qualified name of the task (including leading {@code :})
+     * @param description of where the task was registered, printed in error message
      */
-    void assertResolutionTaskFailed(String taskSelector) {
+    void assertResolutionTaskFailed(String taskSelector, String registeredIn = null) {
         if (GradleContextualExecuter.configCache) {
             failureDescriptionContains("Configuration cache state could not be cached:")
             failureDescriptionContains(taskSelector)
         } else {
-            def description = "Execution failed for task '${taskSelector}'."
+            def description = "Execution failed for task '${taskSelector}'"
+            if (registeredIn) {
+                description += " (registered in ${registeredIn})"
+            }
+            description += "."
             failure.assertHasDescription(description)
         }
     }

@@ -141,10 +141,14 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
-        e.cause.message.contains("Execution failed for task ':broken'.")
+        e.cause.message.contains("Execution failed for task ':broken'")
         failure.output.contains("Running CustomProjectsLoadedAction")
         failure.output.contains("Running CustomBuildFinishedAction")
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        if (targetVersion >= GradleVersion.version("9.5.0")) {
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':broken'.")
+        }
 
         where:
         method                        | callType
@@ -176,13 +180,17 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
-        e.cause.message.contains("Execution failed for task ':broken'.")
+        e.cause.message.contains("Execution failed for task ':broken'")
         failure.output.contains("Running CustomBuildFinishedAction")
         projectsLoadedHandler.getResult() == "loading"
         buildFinishedHandler.wasOnCompleteCalled
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        if (targetVersion >= GradleVersion.version("9.5.0")) {
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':broken'.")
+        }
 
         where:
         method                        | callType
@@ -214,8 +222,12 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
-        e.cause.message.contains("Execution failed for task ':broken'.")
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        e.cause.message.contains("Execution failed for task ':broken'")
+        if (targetVersion >= GradleVersion.version("9.5.0")) {
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':broken'.")
+        }
         failure.output.contains("Running CustomBuildFinishedAction")
         projectsLoadedHandler.getResult() == "loading"
         buildFinishedHandler.getResult() == expectedResult
@@ -288,12 +300,16 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
-        e.cause.message.contains("Execution failed for task ':broken'.")
+        e.cause.message.contains("Execution failed for task ':broken'")
         failure.output.contains("Running CustomBuildFinishedAction")
         failedTasks == [":broken"]
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        if (targetVersion >= GradleVersion.version("9.5.0")) {
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':broken'.")
+        }
 
         where:
         method                        | callType

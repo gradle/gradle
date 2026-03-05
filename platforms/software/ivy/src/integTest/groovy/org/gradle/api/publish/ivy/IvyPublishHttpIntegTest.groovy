@@ -223,7 +223,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
+        failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\' (registered by plugin \'org.gradle.ivy-publish\').')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
         failure.assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
@@ -249,7 +249,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
+        failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\' (registered by plugin \'org.gradle.ivy-publish\').')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
         failure.assertThatCause(CoreMatchers.containsString('Received status code 500 from server: broken'))
 
@@ -260,7 +260,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
 
         and:
-        failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
+        failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\' (registered by plugin \'org.gradle.ivy-publish\').')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
