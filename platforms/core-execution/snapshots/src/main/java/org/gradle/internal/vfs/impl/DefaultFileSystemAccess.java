@@ -42,10 +42,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -63,7 +64,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
-    private final AdaptiveProducerGuard<String> producingSnapshots = new AdaptiveProducerGuard<>();
+    private final ConcurrentHashMapMemorizingGuard<String, Optional<FileSystemLocationSnapshot>> snapshotsGuard = new ConcurrentHashMapMemorizingGuard<>();
 
     public DefaultFileSystemAccess(
         FileHasher hasher,
@@ -109,12 +110,12 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                     case RegularFile:
                         // Avoid snapshotting the same location concurrently
                         // This is only a performance optimization for a common scenario; the VFS handles its own concurrency
-                        return Optional.of(producingSnapshots.guardByKey(location,
-                            () -> virtualFileSystem.findSnapshot(location)
-                                .orElseGet(() -> {
-                                    HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
-                                    return vfsStorer.store(new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata));
-                                })));
+                        return snapshotsGuard.guardByKey(location, true, () -> virtualFileSystem.findSnapshot(location)
+                            .map(Optional::of)
+                            .orElseGet(() -> {
+                                HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
+                                return Optional.of(vfsStorer.store(new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata)));
+                            }));
                     default:
                         throw new IllegalArgumentException("Unknown file type: " + fileMetadata.getType());
                 }
@@ -124,37 +125,27 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
 
     @Override
     public FileSystemLocationSnapshot read(String location) {
-        return readSnapshotFromLocation(location,
-            Optional::of,
-            () -> snapshot(location, SnapshottingFilter.EMPTY)
-        ).orElseThrow(() -> new IllegalStateException("Snapshot not found for " + location));
+        return readSnapshotFromLocation(location, SnapshottingFilter.EMPTY)
+            .orElseThrow(() -> new IllegalStateException("Snapshot not found for " + location));
     }
 
     @Override
     public Optional<FileSystemLocationSnapshot> read(String location, SnapshottingFilter filter) {
-        if (filter.isEmpty()) {
-            return Optional.of(read(location));
-        } else {
-            return readSnapshotFromLocation(location,
-                storedFilteredSnapshot -> filterSnapshot(filter, storedFilteredSnapshot),
-                () -> snapshot(location, filter));
-        }
+        return readSnapshotFromLocation(location, filter);
     }
 
-    private <T> T readSnapshotFromLocation(
-        String location,
-        Function<FileSystemLocationSnapshot, T> snapshotProcessor,
-        Supplier<T> readFromDisk
-    ) {
+    private Optional<FileSystemLocationSnapshot> readSnapshotFromLocation(String location, SnapshottingFilter filter) {
         return virtualFileSystem.findSnapshot(location)
-            .map(snapshotProcessor)
-            // Avoid snapshotting the same location concurrently
-            // This is only a performance optimization for a common scenario; the VFS handles its own concurrency
-            .orElseGet(() -> producingSnapshots.guardByKey(location,
-                () -> virtualFileSystem.findSnapshot(location)
-                    .map(snapshotProcessor)
-                    .orElseGet(readFromDisk)
-            ));
+            .map(storedFilteredSnapshot -> filterSnapshot(filter, storedFilteredSnapshot))
+            .orElseGet(() -> {
+                Supplier<Optional<FileSystemLocationSnapshot>> readFromDisk = () -> virtualFileSystem.findSnapshot(location)
+                    .map(storedFilteredSnapshot -> filterSnapshot(filter, storedFilteredSnapshot))
+                    .orElseGet(() -> snapshot(location, filter));
+
+                // Avoid snapshotting the same location concurrently
+                // This is only a performance optimization for a common scenario; the VFS handles its own concurrency
+                return snapshotsGuard.guardByKey(location, filter.isEmpty(), readFromDisk);
+            });
     }
 
     /**
@@ -244,25 +235,37 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         }
     }
 
-    private static class AdaptiveProducerGuard<T> {
-        private final Set<T> producing = new HashSet<>();
+    private static class ConcurrentHashMapMemorizingGuard<K, V> {
+        private final ConcurrentMap<K, CompletableFuture<V>> cache = new ConcurrentHashMap<>();
 
-        public <V> V guardByKey(T key, Supplier<V> supplier) {
-            synchronized (producing) {
-                while (!producing.add(key)) {
+        public V guardByKey(K key, boolean isMemoizable, Supplier<V> supplier) {
+            while (true) {
+                CompletableFuture<V> currentLock = new CompletableFuture<>();
+                CompletableFuture<V> existingLock = cache.putIfAbsent(key, currentLock);
+
+                if (existingLock == null) {
                     try {
-                        producing.wait();
-                    } catch (InterruptedException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
+                        V result = supplier.get();
+                        currentLock.complete(isMemoizable ? result : null);
+                        return result;
+                    } catch (Exception e) {
+                        currentLock.completeExceptionally(e);
+                        throw e;
+                    } finally {
+                        cache.remove(key, currentLock);
                     }
                 }
-            }
-            try {
-                return supplier.get();
-            } finally {
-                synchronized (producing) {
-                    producing.remove(key);
-                    producing.notifyAll();
+
+                try {
+                    V result = existingLock.get();
+                    if (result != null && isMemoizable) {
+                        return result;
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw UncheckedException.throwAsUncheckedException(e);
+                } catch (Exception e) {
+                    // If the other thread failed, we ignore it and loop to try the operation ourselves.
                 }
             }
         }
