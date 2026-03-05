@@ -36,10 +36,16 @@ import static org.gradle.profiler.buildops.BuildOperationMeasurementKind.TIME_TO
 )
 class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCrossVersionPerformanceTest {
 
-    def "sync with build logic abi change"() {
+    static String cold = "cold"
+    static String warm = "warm"
+
+    def "build logic abi change with #daemon daemon"() {
         given:
-        runner.warmUpRuns = 2
-        runner.runs = 5
+        runner.useDaemon = daemon == warm
+
+        runner.warmUpRuns = 20
+        runner.runs = 20
+
         runner.args << "-Dorg.gradle.unsafe.isolated-projects=true"
 
         runner.measureBuildOperation("org.gradle.initialization.ConfigureBuildBuildOperationType", TIME_TO_LAST_INCLUSIVE)
@@ -56,6 +62,11 @@ class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCross
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        daemon | _
+        cold   | _
+        warm   | _
     }
 
 }

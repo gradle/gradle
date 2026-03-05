@@ -507,7 +507,15 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync with build logic abi change",
+    "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.build logic abi change with cold daemon",
+    "groups" : [ {
+      "testProject" : "android500Kts",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.build logic abi change with warm daemon",
     "groups" : [ {
       "testProject" : "android500Kts",
       "coverage" : {
