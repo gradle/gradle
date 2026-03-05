@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * TODO: Remove with Gradle 9.0
+ */
+@file:Suppress("UnusedImport", "UnusedImports")
+
 package gradlebuild.testing.services
 
 import org.gradle.api.file.DirectoryProperty
@@ -21,9 +26,15 @@ import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.assign
 import org.gradle.util.GradleVersion
 import java.io.StringReader
 import java.util.Properties
+
+/**
+ * TODO: Remove once with Gradle 9.0
+ */
+import org.gradle.kotlin.dsl.assign
 
 
 abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
@@ -97,7 +108,13 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
     }
 
     class IncludeTestClassProvider(private val includeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
+        /**
+         * TODO: Remove once with Gradle 9.0
+         */
+        @Suppress("DEPRECATION")
         override fun configureTest(testTask: Test, sourceSetName: String) {
+            // TODO: Fix for Gradle 10, use failOnNoMatchingTests instead
+            @Suppress("DEPRECATION")
             testTask.filter.isFailOnNoMatchingTests = false
             val classesForSourceSet = includeTestClasses[sourceSetName]
             if (classesForSourceSet == null) {
@@ -110,7 +127,13 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
     }
 
     class ExcludeTestClassProvider(private val excludeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
+        /**
+         * TODO: Remove once with Gradle 9.0
+         */
+        @Suppress("DEPRECATION")
         override fun configureTest(testTask: Test, sourceSetName: String) {
+            // TODO: Fix for Gradle 10, use failOnNoMatchingTests instead
+            @Suppress("DEPRECATION")
             testTask.filter.isFailOnNoMatchingTests = false
             excludeTestClasses[sourceSetName]?.apply { testTask.filter.excludePatterns.addAll(this) }
         }

@@ -1,5 +1,5 @@
 plugins {
-    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.distribution.api-java")
 }
 
 description = "Implements the work to generate scaladoc"

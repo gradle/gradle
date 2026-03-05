@@ -20,6 +20,7 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.reporting.internal.ReportUtilities;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
@@ -58,7 +59,7 @@ public abstract class ReportingExtension {
     public static final String NAME = "reporting";
 
     /**
-     * The default name of the base directory for all reports, relative to {@link org.gradle.api.file.ProjectLayout#getBuildDirectory()} ({@value}).
+     * The default name of the base directory for all reports, relative to {@link ProjectLayout#getBuildDirectory()} ({@value}).
      */
     public static final String DEFAULT_REPORTS_DIR_NAME = "reports";
 
