@@ -24,14 +24,11 @@ import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.FinishRootBuildTreeBuildOperationType
 import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
-
-import java.util.regex.Pattern
 
 import static org.gradle.integtests.fixtures.TestableBuildOperationRecord.buildOp
 import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator
@@ -61,13 +58,13 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         executed ":buildB:jar"
 
         and:
-        List<BuildOperationRecord> allOps = operations.all(ExecuteTaskBuildOperationType)
+        def allOps = operations.all(ExecuteTaskBuildOperationType)
 
         allOps.find { it.details.buildPath == ":buildB" && it.details.taskPath == ":jar" }
         allOps.find { it.details.buildPath == ":" && it.details.taskPath == ":jar" }
 
-        for (BuildOperationRecord operationRecord : allOps) {
-            assertChildrenNotIn(operationRecord, operationRecord, allOps)
+        allOps.each {
+            assert operations.search(it, ExecuteTaskBuildOperationType).isEmpty()
         }
     }
 
@@ -86,7 +83,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         and:
         def root = operations.root(RunBuildBuildOperationType)
 
-        def loadOps = operations.buildOps(LoadBuildBuildOperationType)
+        def loadOps = operations.all(LoadBuildBuildOperationType)
         loadOps == [
             buildOp(displayName: "Load build", parent: root, details: [buildPath: ":"]),
             buildOp(displayName: "Load build (:buildB)", parent: loadOps[0], details: [buildPath: ":buildB"])
@@ -95,13 +92,13 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
         buildIdentifiedEvents*.details.buildPath == [':', ":buildB"]
 
-        def configureOps = operations.buildOps(ConfigureBuildBuildOperationType)
+        def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps == [
             buildOp(displayName: "Configure build", parent: root, details: [buildPath: ":"]),
             buildOp(displayName: "Configure build (:buildB)", parent: configureOps[0], details: [buildPath: ":buildB"])
         ]
 
-        def treeTaskGraphOps = operations.buildOps(CalculateTreeTaskGraphBuildOperationType)
+        def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
         def expectedTreeTaskGraphOps = [
             buildOp(displayName: "Calculate build tree task graph", parent: root),
         ]
@@ -110,7 +107,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         }
         treeTaskGraphOps == expectedTreeTaskGraphOps
 
-        def taskGraphOps = operations.buildOps(CalculateTaskGraphBuildOperationType)
+        def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         def expectedTaskGraphOps = [
             buildOp(displayName: "Calculate task graph", parent: treeTaskGraphOps[0], details: ["buildPath": ":"]),
             buildOp(displayName: "Calculate task graph (:buildB)", parent: treeTaskGraphOps[0], details: ["buildPath": ":buildB"])
@@ -126,14 +123,14 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def runMainTasks = operations.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
-        def runTasksOps = operations.buildOps(Pattern.compile("Run tasks.*"))
+        def runTasksOps = operations.matchingRegex("Run tasks.*")
         // Build operations are run in parallel, so can appear in either order
         runTasksOps.sort { it.displayName } == [
             buildOp(displayName: "Run tasks", parent: runMainTasks),
             buildOp(displayName: "Run tasks (:buildB)", parent: runMainTasks)
         ]
 
-        def graphNotifyOps = operations.buildOps(NotifyTaskGraphWhenReadyBuildOperationType)
+        def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps == [
             buildOp(displayName: "Notify task graph whenReady listeners (:buildB)", parent: treeTaskGraphOps[0], details: [buildPath: ":buildB"]),
             buildOp(displayName: "Notify task graph whenReady listeners", parent: treeTaskGraphOps[0], details: [buildPath: ":"])
@@ -168,7 +165,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         and:
         def root = operations.root(RunBuildBuildOperationType)
 
-        def treeTaskGraphOps = operations.buildOps(CalculateTreeTaskGraphBuildOperationType)
+        def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
         def expectedTreeTaskGraphOps = [
             buildOp(displayName: "Calculate build tree task graph", parent: root),
         ]
@@ -177,7 +174,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         }
         treeTaskGraphOps == expectedTreeTaskGraphOps
 
-        def taskGraphOps = operations.buildOps(CalculateTaskGraphBuildOperationType)
+        def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         def expectedTaskGraphOps = [
             buildOp(displayName: "Calculate task graph", parent: treeTaskGraphOps[0], details: ["buildPath": ":"]),
             buildOp(displayName: "Calculate task graph (:buildB)", parent: treeTaskGraphOps[0], details: ["buildPath": ":buildB"]),
@@ -192,7 +189,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         }
         taskGraphOps == expectedTaskGraphOps
 
-        def graphNotifyOps = operations.buildOps(NotifyTaskGraphWhenReadyBuildOperationType)
+        def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps == [
             buildOp(displayName: "Notify task graph whenReady listeners (:buildB)", parent: treeTaskGraphOps[0], details: [buildPath: ":buildB"]),
             buildOp(displayName: "Notify task graph whenReady listeners (:buildC)", parent: treeTaskGraphOps[0], details: [buildPath: ":buildC"]),
@@ -229,7 +226,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         and:
         def root = operations.root(RunBuildBuildOperationType)
 
-        def treeTaskGraphOps = operations.buildOps(CalculateTreeTaskGraphBuildOperationType)
+        def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
         def expectedTreeTaskGraphOps = [
             buildOp(displayName: "Calculate build tree task graph", parent: operations.first("Run included build logic build for build ':'")),
             buildOp(displayName: "Calculate build tree task graph", parent: root),
@@ -239,10 +236,10 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         }
         treeTaskGraphOps == expectedTreeTaskGraphOps
 
-        def applyRootProjectBuildScript = operations.first(Pattern.compile("Apply build file 'build.gradle' to root project 'buildA'"))
+        def applyRootProjectBuildScript = operations.first("Apply build file 'build.gradle' to root project 'buildA'")
         applyRootProjectBuildScript in operations.parentsOf(treeTaskGraphOps[0])
 
-        def taskGraphOps = operations.buildOps(CalculateTaskGraphBuildOperationType)
+        def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         def expectedTaskGraphOps = [
             buildOp(displayName: "Calculate task graph (:buildB)", parent: treeTaskGraphOps[0], details: ["buildPath": ":buildB"]),
             buildOp(displayName: "Calculate task graph (:buildC)", parent: treeTaskGraphOps[0], details: ["buildPath": ":buildC"]),
@@ -255,7 +252,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         }
         taskGraphOps == expectedTaskGraphOps
 
-        def graphNotifyOps = operations.buildOps(NotifyTaskGraphWhenReadyBuildOperationType)
+        def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps == [
             buildOp(displayName: "Notify task graph whenReady listeners (:buildB)", parent: treeTaskGraphOps[0], details: [buildPath: ":buildB"]),
             buildOp(displayName: "Notify task graph whenReady listeners (:buildC)", parent: treeTaskGraphOps[0], details: [buildPath: ":buildC"]),
@@ -283,7 +280,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         and:
         def root = operations.root(RunBuildBuildOperationType)
 
-        def loadOps = operations.buildOps(LoadBuildBuildOperationType)
+        def loadOps = operations.all(LoadBuildBuildOperationType)
         loadOps == [
             buildOp(displayName: "Load build", parent: root, details: [buildPath: ":"]),
             buildOp(displayName: "Load build (:buildB)", parent: loadOps[0], details: [buildPath: ":buildB"])
@@ -292,13 +289,13 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
         buildIdentifiedEvents*.details.buildPath == [':', ":buildB"]
 
-        def configureOps = operations.buildOps(ConfigureBuildBuildOperationType)
+        def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps == [
             buildOp(displayName: "Configure build", parent: root, details: [buildPath: ":"]),
             buildOp(displayName: "Configure build (:buildB)", parent: configureOps[0], details: [buildPath: ":buildB"])
         ]
 
-        def treeTaskGraphOps = operations.buildOps(CalculateTreeTaskGraphBuildOperationType)
+        def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
         def expectedTreeTaskGraphOps = [
             buildOp(displayName: "Calculate build tree task graph", parent: operations.first("Run included build logic build for build ':'")),
             buildOp(displayName: "Calculate build tree task graph", parent: root),
@@ -308,10 +305,10 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         }
         treeTaskGraphOps == expectedTreeTaskGraphOps
 
-        def applyRootProjectBuildScript = operations.first(Pattern.compile("Apply build file 'build.gradle' to root project 'buildA'"))
+        def applyRootProjectBuildScript = operations.first("Apply build file 'build.gradle' to root project 'buildA'")
         applyRootProjectBuildScript in operations.parentsOf(treeTaskGraphOps[0])
 
-        def taskGraphOps = operations.buildOps(CalculateTaskGraphBuildOperationType)
+        def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         def expectedTaskGraphOps = [
             buildOp(displayName: "Calculate task graph (:buildB)", parent: treeTaskGraphOps[0], details: ["buildPath": ":buildB"]),
             buildOp(displayName: "Calculate task graph", parent: treeTaskGraphOps[1], details: ["buildPath": ":"]),
@@ -329,7 +326,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         runMainTasks.parentId == root.id
 
         // Tasks are run for buildB multiple times, once for buildscript dependency and again for production dependency
-        def runTasksOps = operations.buildOps(Pattern.compile("Run tasks.*"))
+        def runTasksOps = operations.matchingRegex("Run tasks.*")
         runTasksOps.size() == 3
         runTasksOps[0] == buildOp(displayName: "Run tasks (:buildB)", parent: operations.first("Run included build logic build for build ':'"))
         applyRootProjectBuildScript in operations.parentsOf(runTasksOps[0])
@@ -340,7 +337,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         ]
 
         // Task graph ready event sent only once
-        def graphNotifyOps = operations.buildOps(NotifyTaskGraphWhenReadyBuildOperationType)
+        def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps == [
             buildOp(displayName: "Notify task graph whenReady listeners (:buildB)", parent: treeTaskGraphOps[0], details: [buildPath: ":buildB"]),
             buildOp(displayName: "Notify task graph whenReady listeners", parent: treeTaskGraphOps[1], details: [buildPath: ":"])
@@ -483,13 +480,6 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
                 parameters.buildName = flowProviders.buildWorkResult.map { result -> "$buildName" }
             }
         """
-    }
-
-    def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {
-        for (BuildOperationRecord child : op.children) {
-            assert !allOps.contains(child): "Task operation $origin has child $child which is also a task operation"
-            assertChildrenNotIn(origin, child, allOps)
-        }
     }
 
 }

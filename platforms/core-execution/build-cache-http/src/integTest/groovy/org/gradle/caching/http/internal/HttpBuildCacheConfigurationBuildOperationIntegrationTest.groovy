@@ -210,7 +210,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
 
 
     Map<String, ?> result() {
-        buildOperations.result("Finalize build cache configuration")
+        buildOperations.first("Finalize build cache configuration").result
     }
 
 }

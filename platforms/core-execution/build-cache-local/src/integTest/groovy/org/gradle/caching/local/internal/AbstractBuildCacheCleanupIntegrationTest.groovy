@@ -28,6 +28,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 
 abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
     private final static int DEFAULT_RETENTION_PERIOD_DAYS = 7
@@ -283,7 +284,7 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
     }
 
     void assertCacheWasCleanedUpSince(long lastCleanupCheck, boolean exactlyOnce = true) {
-        def buildOperations = operations.all("Clean up ${getBuildCacheName()} ($cacheDir)")
+        def buildOperations = operations.matchingRegex(Pattern.quote("Clean up ${getBuildCacheName()} ($cacheDir)"))
         if (exactlyOnce) {
             assert buildOperations.size() == 1
         } else {
