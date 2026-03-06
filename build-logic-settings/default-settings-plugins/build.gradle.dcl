@@ -21,5 +21,5 @@ kotlinBuildLogic {
         implementation(catalog("buildLibs.develocityConventions"))
         implementation(catalog("buildLibs.foojayConventions"))
     }
-} 
+}
 

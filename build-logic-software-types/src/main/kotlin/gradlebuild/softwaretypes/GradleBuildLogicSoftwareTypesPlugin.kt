@@ -34,15 +34,13 @@ import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
-import org.gradle.kotlin.dsl.getByName
-import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.newInstance
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import javax.inject.Inject
 
 @RegistersProjectFeatures(
     KotlinBuildLogicProjectTypePlugin::class,
+    KotlinDslProjectTypePlugin::class,
     JavaPlatformBuildLogicProjectTypePlugin::class,
     JavaLibraryBuildLogicProjectTypePlugin::class
 )
@@ -131,6 +129,27 @@ open class JavaPlatformBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePl
                             }
                         }
                         dependencies.constraints.add("api", constr)
+                    }
+                }
+            }.withUnsafeDefinition().withUnsafeApplyAction()
+        }
+    }
+}
+
+@BindsProjectType(KotlinDslProjectTypePlugin.Binding::class)
+open class KotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+
+    class Binding : ProjectTypeBinding {
+        override fun bind(builder: ProjectTypeBindingBuilder) {
+            builder.bindProjectType("kotlinDslPlugin", JavaBuildLogicDefinition::class.java) { context, definition, model ->
+                context.objectFactory.newInstance<Services>().project.run {
+                    plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
+                    group = "gradlebuild"
+                    afterEvaluate {
+                        description = definition.description.get()
+                    }
+                    for ((scope, collector) in definition.dependencies.scopeToCollector()) {
+                        configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
                     }
                 }
             }.withUnsafeDefinition().withUnsafeApplyAction()
