@@ -749,7 +749,7 @@ Required by:
                     if (GradleContextualExecuter.isConfigCache()) {
                         'Configuration cache state could not be cached: input property `\$1` of task `:buildC:buildOutputs` of type `org.gradle.api.DefaultTask`: error writing value of type \'org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration\''
                     } else {
-                        "Execution failed for task ':buildC:buildOutputs'."
+                        "Execution failed for task ':buildC:buildOutputs' (registered in build file '../buildC/build.gradle')."
                     }
                 }()
         ) // TODO: messages should become consistent again once https://github.com/gradle/gradle/issues/34745 is addressed

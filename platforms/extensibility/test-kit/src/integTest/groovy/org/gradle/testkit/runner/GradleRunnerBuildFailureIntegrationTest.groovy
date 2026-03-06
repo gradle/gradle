@@ -164,7 +164,7 @@ $t.buildResult.output"""
 
         def failure = OutputScrapingExecutionFailure.from(t.buildResult.output, "")
         failure.assertTasksScheduled(':helloWorld')
-        failure.assertHasDescription("Execution failed for task ':helloWorld'.")
+        failure.assertHasDescription("Execution failed for task ':helloWorld' (registered in build file 'build.gradle').")
         failure.assertHasCause('Unexpected exception')
 
         normaliseLineSeparators(t.message).startsWith(normaliseLineSeparators(expectedMessage))

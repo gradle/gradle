@@ -122,6 +122,7 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
             task.getShowTypes().convention(false);
+            task.getShowProvenance().convention(false);
         }
     }
 

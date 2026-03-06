@@ -18,6 +18,7 @@ package org.gradle.internal.buildevents
 
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
@@ -71,7 +72,7 @@ class BuildExceptionReporterTest extends Specification {
     }
 
     def reportsBuildFailure() {
-        GradleException exception = new GradleException(MESSAGE);
+        GradleException exception = new GradleException(MESSAGE)
 
         expect:
         reporter.buildFinished(failure(exception))
@@ -315,8 +316,8 @@ Caused by: org.gradle.api.GradleException: $FAILURE
     }
 
     def "report multiple failures and skip help link for NonGradleCauseException"() {
-        def failure1 = new LocationAwareException(new TaskExecutionException(null, new TestNonGradleCauseException()), LOCATION, 42)
-        def failure2 = new LocationAwareException(new TaskExecutionException(null, new TestCompilationFailureException()), LOCATION, 42)
+        def failure1 = new LocationAwareException(new TaskExecutionException(Mock(TaskInternal), new TestNonGradleCauseException()), LOCATION, 42)
+        def failure2 = new LocationAwareException(new TaskExecutionException(Mock(TaskInternal), new TestCompilationFailureException()), LOCATION, 42)
         def failure3 = new RuntimeException("<error>")
         Throwable exception = new MultipleBuildFailures([failure1, failure2, failure3])
 
@@ -331,7 +332,7 @@ Caused by: org.gradle.api.GradleException: $FAILURE
 $LOCATION line: 42
 
 * What went wrong:
-Execution failed for null.
+org.gradle.api.tasks.TaskExecutionException (no error message)
 {info}> {normal}org.gradle.internal.buildevents.TestNonGradleCauseException (no error message)
 
 * Try:
@@ -344,7 +345,7 @@ $TRY_SCAN
 $LOCATION line: 42
 
 * What went wrong:
-Execution failed for null.
+org.gradle.api.tasks.TaskExecutionException (no error message)
 {info}> {normal}org.gradle.internal.buildevents.TestCompilationFailureException (no error message)
 
 * Try:
@@ -362,7 +363,7 @@ $INFO_OR_DEBUG
 $TRY_SCAN
 $GET_HELP
 ==============================================================================
-""";
+"""
     }
 
     def reportsBuildFailureWhenShowStacktraceEnabled() {

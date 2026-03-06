@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
@@ -38,6 +39,6 @@ public class TaskInstantiator implements NamedEntityInstantiator<Task> {
 
     @Override
     public <S extends Task> S create(String name, Class<S> type) {
-        return taskFactory.create(taskIdentityFactory.create(name, type, project), NO_PARAMS);
+        return taskFactory.create(taskIdentityFactory.create(name, type, project, UserCodeSource.BY_RULE), NO_PARAMS);
     }
 }

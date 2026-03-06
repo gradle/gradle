@@ -65,7 +65,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         withInstallations(currentJdk, otherJdk).runAndFail(":compileJava")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
+        failureDescriptionStartsWith("Execution failed for task ':compileJava'")
         failureHasCause("Toolchain from `${errorFor}` property on `ForkOptions` does not match toolchain from `javaCompiler` property")
 
         where:
@@ -110,7 +110,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         withInstallations(currentJdk, otherJdk).runAndFail(":compileJava")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
+        failureDescriptionStartsWith("Execution failed for task ':compileJava'")
         failureHasCause("Toolchain from `${errorForProperty}` property on `ForkOptions` does not match toolchain from `javaCompiler` property")
 
         where:
