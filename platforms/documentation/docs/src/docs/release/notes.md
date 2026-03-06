@@ -12,6 +12,16 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
+This patch release includes bug fixes and improvements.
+
+The following issues were resolved:
+
+* TODO
+
+We recommend upgrading to Gradle @version@.
+
+---
+
 Gradle now supports [Java 26](#support-for-java-26).
 
 This release significantly improves [test reporting and execution](#test-reporting-and-execution) by introducing support for non-class-based tests, enabling direct execution of Cucumber features and custom test engines, and capturing richer test metadata directly into HTML reports.
