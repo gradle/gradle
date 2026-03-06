@@ -187,7 +187,7 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY) == wrapper.getArchivePath()
     }
 
-    def "execute with networkTimeout set"() {
+    def "execute with networkTimeout set to non-default value"() {
         given:
         server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
         wrapper.setNetworkTimeout(6000)
@@ -198,6 +198,31 @@ class WrapperTest extends AbstractTaskTest {
 
         then:
         properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == "6000"
+    }
+
+    def "execute without networkTimeout does not write it to properties file"() {
+        given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+
+        when:
+        execute(wrapper)
+        def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
+
+        then:
+        !properties.containsKey(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY)
+    }
+
+    def "execute with networkTimeout set to default value does not write it to properties file"() {
+        given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+        wrapper.setNetworkTimeout(10000)
+
+        when:
+        execute(wrapper)
+        def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
+
+        then:
+        !properties.containsKey(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY)
     }
 
     def "execute with validateDistributionUrl set"() {
