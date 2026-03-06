@@ -13,6 +13,22 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.crossbuild.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.build logic abi change with cold daemon",
+    "groups" : [ {
+      "testProject" : "android500Kts",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.crossbuild.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.build logic abi change with warm daemon",
+    "groups" : [ {
+      "testProject" : "android500Kts",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.clean checkout",
     "groups" : [ {
       "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
@@ -34,22 +50,6 @@
       "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
       "coverage" : {
         "per_day" : [ "linux", "macOs", "windows" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.build logic abi change with cold daemon",
-    "groups" : [ {
-      "testProject" : "android500Kts",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.build logic abi change with warm daemon",
-    "groups" : [ {
-      "testProject" : "android500Kts",
-      "coverage" : {
-        "per_day" : [ "linux" ]
       }
     } ]
   }, {

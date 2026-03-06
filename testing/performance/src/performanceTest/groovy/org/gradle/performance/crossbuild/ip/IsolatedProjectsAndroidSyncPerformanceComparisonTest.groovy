@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.ip
+package org.gradle.performance.crossbuild.ip
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.AndroidSyncPerformanceTestFixture
