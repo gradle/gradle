@@ -15,26 +15,26 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.api.Action
-import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitorUtil
-import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
-import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.GUtil
 
 import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
 import static org.gradle.util.internal.WrapUtil.toList
 import static org.gradle.util.internal.WrapUtil.toSet
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.core.IsInstanceOf.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.core.IsInstanceOf.instanceOf
 
 class AbstractFileCollectionTest extends FileCollectionSpec {
     public final TaskDependencyContainerInternal dependency = Mock(TaskDependencyContainerInternal.class)
@@ -307,37 +307,33 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
 
     void elementsProviderHasNoDependenciesWhenThisHasNoDependencies() {
         def collection = new TestFileCollection()
-        def action = Mock(Action)
-        def elements = collection.elements
+        def elements = elementsOf(collection)
 
         when:
         def producer = elements.producer
-        producer.visitProducerTasks(action)
 
         then:
         producer.known
-        0 * action._
-
-        expect:
+        producer.dependencies == TaskDependencyContainer.EMPTY
         !elements.calculateExecutionTimeValue().hasChangingContent()
     }
 
     void elementsProviderHasSameDependenciesAsThis() {
         def collection = new TestFileCollectionWithDependency(dependency)
-        def action = Mock(Action)
-        def task = Mock(TaskInternal)
+        def context = Mock(TaskDependencyResolveContext)
+        def task = Mock(Object)
         _ * dependency.visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(task) }
 
-        def elements = collection.elements
+        def elements = elementsOf(collection)
 
         when:
         def producer = elements.producer
-        producer.visitProducerTasks(action)
+        producer.dependencies.visitDependencies(context)
 
         then:
         producer.known
-        1 * action.execute(task)
-        0 * action._
+        1 * context.add(task)
+        0 * context._
 
         expect:
         elements.calculateExecutionTimeValue().hasChangingContent()
@@ -368,13 +364,16 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         0 * visitor._
     }
 
+    private static ProviderInternal<Set<FileSystemLocation>> elementsOf(TestFileCollection collection) {
+        collection.elements as ProviderInternal<Set<FileSystemLocation>>
+    }
+
     private void assertHasSameDependencies(FileCollection tree) {
-        final Task task = Mock(Task.class)
-        final Task depTask = Mock(Task.class)
+        final Object depTask = Mock(Object)
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(depTask) }
         0 * dependency._
 
-        assertThat(tree.getBuildDependencies().getDependencies(task), equalTo((Object) toSet(depTask)))
+        assertThat(tree.getBuildDependencies().getDependencies(null), equalTo((Object) toSet(depTask)))
     }
 
     static class TestFileCollection extends AbstractFileCollection {
