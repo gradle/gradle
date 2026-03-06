@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.graph
 
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 
@@ -44,6 +45,23 @@ class ReadIdentities {
 
     private
     val instanceIds = Int2ReferenceOpenHashMap<Any>()
+
+    private
+    val unresolvedIds = IntOpenHashSet()
+
+    fun startDecoding(id: Int) {
+        require(unresolvedIds.add(id)) {
+            // We assume that our codecs can handle whatever user throws at them. If they cannot then this is our fault.
+            // Let's point the user in a right direction.
+            "A circular reference with id=$id is detected when reading the value. This is likely a bug in Gradle. Please report it to Gradle bugtracker."
+        }
+    }
+
+    fun endDecoding(id: Int) {
+        require(unresolvedIds.remove(id)) {
+            "Unmatched decoding for id=$id. This is likely a bug in Gradle. Please report it to Gradle bugtracker."
+        }
+    }
 
     fun getInstance(id: Int): Any? =
         instanceIds.get(id)
