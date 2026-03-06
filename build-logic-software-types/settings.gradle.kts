@@ -1,0 +1,5 @@
+dependencyResolutionManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}

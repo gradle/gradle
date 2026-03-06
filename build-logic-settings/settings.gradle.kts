@@ -28,6 +28,8 @@ dependencyResolutionManagement {
 }
 
 pluginManagement {
+    includeBuild("../build-logic-software-types")
+
     repositories {
         maven {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
@@ -48,6 +50,5 @@ include("architecture-docs")
 include("build-environment")
 include("configuration-cache-compatibility")
 include("default-settings-plugins")
-include("software-types")
 include("version-catalogs")
 rootProject.name = "build-logic-settings"
