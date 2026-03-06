@@ -37,7 +37,10 @@ import static org.gradle.profiler.buildops.BuildOperationMeasurementKind.TIME_TO
 )
 class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCrossBuildPerformanceTest {
 
-    def "sync with build logic abi change"() {
+    static String cold = "cold"
+    static String warm = "warm"
+
+    def "build logic abi change with #daemon daemon"() {
         given:
         runner.measureBuildOperation("org.gradle.initialization.ConfigureBuildBuildOperationType", TIME_TO_LAST_INCLUSIVE)
 
@@ -67,11 +70,16 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
         def ip = result.buildResult("ip")
         println(baseline.getSpeedStatsAgainst("ip", ip))
         !baseline.significantlyFasterThan(ip)
+
+        where:
+        daemon | _
+        cold   | _
+        warm   | _
     }
 
     @Override
     protected void defaultSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
-        builder.warmUpCount(2)
-            .invocationCount(5)
+        builder.warmUpCount(20)
+            .invocationCount(20)
     }
 }
