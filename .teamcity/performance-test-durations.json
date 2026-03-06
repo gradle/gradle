@@ -816,13 +816,25 @@
     "linux" : 136
   } ]
 }, {
-    "scenario" : "org.gradle.performance.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.sync with build logic abi change",
+    "scenario" : "org.gradle.performance.crossbuild.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.build logic abi change with cold daemon",
     "durations" : [ {
         "testProject" : "android500Kts",
         "linux" : 1
     } ]
 }, {
-    "scenario" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync with build logic abi change",
+    "scenario" : "org.gradle.performance.crossbuild.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.build logic abi change with warm daemon",
+    "durations" : [ {
+        "testProject" : "android500Kts",
+        "linux" : 1
+    } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.build logic abi change with cold daemon",
+    "durations" : [ {
+        "testProject" : "android500Kts",
+        "linux" : 1
+    } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.build logic abi change with warm daemon",
     "durations" : [ {
         "testProject" : "android500Kts",
         "linux" : 1
