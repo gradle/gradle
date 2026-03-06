@@ -68,9 +68,10 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Handle;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import javax.inject.Inject;
@@ -78,11 +79,6 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.invoke.CallSite;
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -90,7 +86,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -109,8 +104,6 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ACC_TRANSIENT;
-import static org.objectweb.asm.Opcodes.H_INVOKESPECIAL;
-import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.V1_8;
 import static org.objectweb.asm.Type.BOOLEAN_TYPE;
 import static org.objectweb.asm.Type.INT_TYPE;
@@ -134,7 +127,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     @Nullable
     public static Describable getDisplayNameForNext() {
         ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
-        if (details == null) {
+        if (details == null || details.services == null) {
             return null;
         }
         return details.displayName;
@@ -161,7 +154,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     @NonNull
     private static ObjectCreationDetails getDetails() {
         ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
-        if (details == null) {
+        if (details == null || details.services == null) {
             // something has gone wrong
             throw new IllegalStateException(String.format("No object creation details have been provided for this context (clz: %s, cl: %s)", System.identityHashCode(AsmBackedClassGenerator.class), AsmBackedClassGenerator.class.getClassLoader()));
         }
@@ -401,7 +394,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             boolean requiresServicesMethod = (extensible || serviceInjection) && !providesOwnServicesImplementation;
             boolean requiresToString = !providesOwnToStringImplementation;
             ClassBuilderImpl builder = new ClassBuilderImpl(
-                new AsmClassGenerator(type, suffix),
+                new AsmClassGenerator(type, suffix, ClassWriter.COMPUTE_MAXS),
                 decorate,
                 factoryId,
                 extensible,
@@ -492,12 +485,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type DESCRIBABLE_TYPE = getType(Describable.class);
         private static final Type DISPLAY_NAME_TYPE = getType(DisplayName.class);
         private static final Type INJECT_TYPE = getType(Inject.class);
-        private static final Type RUNNABLE_TYPE = getType(Runnable.class);
-        private static final Type LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class);
-        private static final Type METHOD_HANDLES_TYPE = getType(MethodHandles.class);
-        private static final Type METHOD_HANDLES_LOOKUP_TYPE = getType(MethodHandles.Lookup.class);
-        private static final Type METHOD_TYPE_TYPE = getType(MethodType.class);
-        private static final Type DEPRECATION_LOGGER_TYPE = getType(DeprecationLogger.class);
         private static final Type EXTENSIBLE_DYNAMIC_OBJECT_TYPE = getType(ExtensibleDynamicObject.class);
         private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
         private static final String RETURN_DESCRIBABLE = getMethodDescriptor(DESCRIBABLE_TYPE);
@@ -532,10 +519,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(VOID_TYPE, STRING_TYPE);
-        private static final String LAMBDA_METAFACTORY_METHOD = getMethodDescriptor(getType(CallSite.class), METHOD_HANDLES_LOOKUP_TYPE, STRING_TYPE, METHOD_TYPE_TYPE, METHOD_TYPE_TYPE, getType(MethodHandle.class), METHOD_TYPE_TYPE);
-        private static final String DEPRECATION_LOGGER_WHILE_DISABLED_RUNNABLE_METHOD = getMethodDescriptor(Type.VOID_TYPE, RUNNABLE_TYPE);
-        private static final Handle LAMBDA_BOOTSTRAP_HANDLE = new Handle(H_INVOKESTATIC, LAMBDA_METAFACTORY_TYPE.getInternalName(), "metafactory", LAMBDA_METAFACTORY_METHOD, false);
-        private static final Type RETURN_VOID_METHOD_TYPE = Type.getMethodType(RETURN_VOID);
+        private static final String RETURN_OBJECT_FROM_STRING_OBJECT_ARRAY = getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_ARRAY_TYPE);
+        private static final String RETURN_OBJECT_FROM_TYPE_CLASS = getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE, CLASS_TYPE);
+        private static final String RETURN_VOID_FROM_CLASS_STRING_STRING = getMethodDescriptor(VOID_TYPE, CLASS_TYPE, STRING_TYPE, STRING_TYPE);
+        private static final Type TASK_TYPE = getType(Task.class);
+        private static final String RETURN_TASK = getMethodDescriptor(TASK_TYPE);
+        private static final String RETURN_VOID_FROM_OBJECT_ARRAY = getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE);
+        private static final String RETURN_INT = getMethodDescriptor(INT_TYPE);
+        private static final String RETURN_JAVA_LANG_REFLECT_TYPE = getMethodDescriptor(JAVA_LANG_REFLECT_TYPE);
         private static final Type DEPRECATION_HOLDER_TYPE = Type.getType(AsmBackedClassGenerator.class);
         private static final Type DEPRECATED_ANNOTATION_TYPE = getType(Deprecated.class);
 
@@ -744,22 +735,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         /**
-         * Generates the init method with deprecation logging disabled.
-         *
-         * This is necessary because the initialization work invokes property getters on the decorated instance.
+         * Generates the init method that delegates to the init work method.
          */
         private void generateInitMethod() {
 
-            // private void $gradleInit() { DeprecationLogger.whileDisabled(this::$gradleInitWork) }
-            visitInnerClass(METHOD_HANDLES_LOOKUP_TYPE.getInternalName(), METHOD_HANDLES_TYPE.getInternalName(), "Lookup", ACC_PRIVATE | ACC_SYNTHETIC);
+            // private void $gradleInit() { this.$gradleInitWork(); }
             privateSyntheticMethod(INIT_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
-                _INVOKEDYNAMIC("run", getMethodDescriptor(RUNNABLE_TYPE, generatedType), LAMBDA_BOOTSTRAP_HANDLE, Arrays.asList(
-                    RETURN_VOID_METHOD_TYPE,
-                    new Handle(H_INVOKESPECIAL, generatedType.getInternalName(), INIT_WORK_METHOD, RETURN_VOID, false),
-                    RETURN_VOID_METHOD_TYPE
-                ));
-                _INVOKESTATIC(DEPRECATION_LOGGER_TYPE, "whileDisabled", DEPRECATION_LOGGER_WHILE_DISABLED_RUNNABLE_METHOD);
+                _INVOKEVIRTUAL(generatedType, INIT_WORK_METHOD, RETURN_VOID);
                 _RETURN();
             }});
 
@@ -822,7 +805,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _INVOKEVIRTUAL(generatedType, "getAsDynamicObject", RETURN_DYNAMIC_OBJECT);
                 _CHECKCAST(EXTENSIBLE_DYNAMIC_OBJECT_TYPE);
                 _INVOKEVIRTUAL(EXTENSIBLE_DYNAMIC_OBJECT_TYPE, "getExtensions", RETURN_EXTENSION_CONTAINER);
-                _ARETURN();
             }});
         }
 
@@ -886,13 +868,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE public ConventionMapping getConventionMapping() {
             //     if (mapping == null) {
-            //         mapping = new ConventionAwareHelper(this, getConventionWhileDisabledDeprecationLogger());
+            //         mapping = new ConventionAwareHelper(this);
             //         ineligibleProperties.forEach { mapping.ineligible(it.name) }
             //     }
             //     return mapping;
             // }
             addLazyGetter("getConventionMapping", CONVENTION_MAPPING_TYPE, RETURN_CONVENTION_MAPPING, MAPPING_FIELD, CONVENTION_MAPPING_TYPE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // GENERATE new ConventionAwareHelper(this, getConventionWhileDisabledDeprecationLogger())
+                // GENERATE new ConventionAwareHelper(this)
                 _NEW(CONVENTION_AWARE_HELPER_TYPE);
                 _DUP();
                 _ALOAD(0);
@@ -1014,6 +996,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _PUTFIELD(generatedType, fieldName, fieldType);
                 // return var
                 visitLabel(returnValue);
+                _F_APPEND(fieldType.getInternalName());
                 emit(epilogue);
                 _ALOAD(1);
             }});
@@ -1090,6 +1073,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // new Object[] { args }
                 visitLabel(notArray);
+                _F_FULL(
+                    new Object[]{generatedType.getInternalName(), STRING_TYPE.getInternalName(), OBJECT_TYPE.getInternalName()},
+                    new Object[]{DYNAMIC_OBJECT_TYPE.getInternalName(), STRING_TYPE.getInternalName()}
+                );
                 _ICONST_1();
                 _ANEWARRAY(OBJECT_TYPE);
                 _DUP();
@@ -1098,8 +1085,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _AASTORE();
 
                 visitLabel(end);
+                _F_FULL(
+                    new Object[]{generatedType.getInternalName(), STRING_TYPE.getInternalName(), OBJECT_TYPE.getInternalName()},
+                    new Object[]{DYNAMIC_OBJECT_TYPE.getInternalName(), STRING_TYPE.getInternalName(), OBJECT_ARRAY_TYPE.getInternalName()}
+                );
 
-                _INVOKEINTERFACE(DYNAMIC_OBJECT_TYPE, "invokeMethod", getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_ARRAY_TYPE));
+                _INVOKEINTERFACE(DYNAMIC_OBJECT_TYPE, "invokeMethod", RETURN_OBJECT_FROM_STRING_OBJECT_ARRAY);
             }});
         }
 
@@ -1144,7 +1135,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 } else {
                     // get(<type>, <annotation>)
                     _LDC(getType(annotation));
-                    _INVOKEINTERFACE(SERVICE_LOOKUP_TYPE, "get", getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE, CLASS_TYPE));
+                    _INVOKEINTERFACE(SERVICE_LOOKUP_TYPE, "get", RETURN_OBJECT_FROM_TYPE_CLASS);
                 }
 
                 // (<type>)<service>
@@ -1163,7 +1154,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _LDC(serviceType);
                     _LDC(getterName);
                     _LDC(type.getName());
-                    _INVOKESTATIC(INSTRUMENTED_EXECUTION_ACCESS_TYPE, "disallowedAtExecutionInjectedServiceAccessed", getMethodDescriptor(VOID_TYPE, CLASS_TYPE, STRING_TYPE, STRING_TYPE));
+                    _INVOKESTATIC(INSTRUMENTED_EXECUTION_ACCESS_TYPE, "disallowedAtExecutionInjectedServiceAccessed", RETURN_VOID_FROM_CLASS_STRING_STRING);
                 }};
             } else {
                 return BytecodeFragment.NO_OP;
@@ -1373,6 +1364,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _LDC(true);
                     _IRETURN_OF(BOOLEAN_TYPE);
                     visitLabel(label);
+                    _F_SAME();
                     _LDC(false);
                     _IRETURN_OF(BOOLEAN_TYPE);
                 } else {
@@ -1391,7 +1383,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }});
 
             // GENERATE getTaskThatOwnsThisObject() { ... }
-            publicMethod("getTaskThatOwnsThisObject", getMethodDescriptor(getType(Task.class)), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+            publicMethod("getTaskThatOwnsThisObject", RETURN_TASK, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 if (Task.class.isAssignableFrom(type)) {
                     // return this
                     _ALOAD(0);
@@ -1402,8 +1394,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _DUP();
                     Label useNull = new Label();
                     _IFNULL(useNull);
-                    _INVOKEINTERFACE(MODEL_OBJECT_TYPE, "getTaskThatOwnsThisObject", getMethodDescriptor(getType(Task.class)));
+                    _INVOKEINTERFACE(MODEL_OBJECT_TYPE, "getTaskThatOwnsThisObject", RETURN_TASK);
                     visitLabel(useNull);
+                    _F_SAME1(OBJECT_TYPE.getInternalName());
                 }
                 _ARETURN();
             }});
@@ -1438,7 +1431,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // Generate: void initFromState(Object[] state) { }
             // See ManagedTypeFactory for how it's used.
-            addMethod(ACC_PUBLIC | ACC_SYNTHETIC, "initFromState", getMethodDescriptor(VOID_TYPE, OBJECT_ARRAY_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {
+            addMethod(ACC_PUBLIC | ACC_SYNTHETIC, "initFromState", RETURN_VOID_FROM_OBJECT_ARRAY, methodVisitor -> new MethodVisitorScope(methodVisitor) {
 
                 {
                     // for each property
@@ -1503,7 +1496,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }});
 
             // Generate: int getFactoryId() { return <factory-id-field> }
-            publicMethod("getFactoryId", getMethodDescriptor(INT_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+            publicMethod("getFactoryId", RETURN_INT, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _GETSTATIC(generatedType, FACTORY_ID_FIELD, INT_TYPE);
                 _IRETURN();
             }});
@@ -1543,10 +1536,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                         _INVOKESPECIAL(superclassType, getterName, methodDescriptor, type.isInterface());
                         _GOTO(finish);
                         visitLabel(useConvention);
+                        _F_SAME();
                     }
                     // else { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__);  }
                     _ALOAD(0);
-                    _INVOKEINTERFACE(CONVENTION_AWARE_TYPE, "getConventionMapping", getMethodDescriptor(CONVENTION_MAPPING_TYPE));
+                    _INVOKEINTERFACE(CONVENTION_AWARE_TYPE, "getConventionMapping", RETURN_CONVENTION_MAPPING);
 
                     _ALOAD(0);
                     _INVOKESPECIAL(superclassType, getterName, methodDescriptor, type.isInterface());
@@ -1560,6 +1554,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _UNBOX(returnType);
 
                     visitLabel(finish);
+                    if (hasMappingField) {
+                        _F_SAME1(toFrameType(returnType));
+                    }
                 } else {
                     // GENERATE super.<getter>()
                     _ALOAD(0);
@@ -1719,6 +1716,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // Generate: if (...) { return ... }
                 visitLabel(label1);
+                _F_SAME1(DESCRIBABLE_TYPE.getInternalName());
                 _ALOAD(0);
                 _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME, RETURN_DESCRIBABLE);
                 _DUP();
@@ -1729,6 +1727,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 // Generate: return super.toString()
                 visitLabel(label2);
+                _F_FULL(
+                    new Object[]{generatedType.getInternalName()},
+                    new Object[]{DESCRIBABLE_TYPE.getInternalName(), generatedType.getInternalName(), DESCRIBABLE_TYPE.getInternalName()}
+                );
                 _ALOAD(0);
                 _INVOKESPECIAL(OBJECT_TYPE, "toString", RETURN_STRING);
                 _ARETURN();
@@ -1835,7 +1837,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         @Override
         public void addNameProperty() {
             addField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_FINAL, NAME_FIELD, STRING_TYPE);
-            addGetter("getName", STRING_TYPE, getMethodDescriptor(STRING_TYPE), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+            addGetter("getName", STRING_TYPE, RETURN_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _GETFIELD(generatedType, NAME_FIELD, STRING_TYPE);
             }});
@@ -1870,7 +1872,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                         _INVOKEVIRTUAL(CLASS_TYPE, "getDeclaredMethod", GET_DECLARED_METHOD_DESCRIPTOR);
 
                         // <method>.getGenericReturnType()
-                        _INVOKEVIRTUAL(METHOD_TYPE, "getGenericReturnType", getMethodDescriptor(JAVA_LANG_REFLECT_TYPE));
+                        _INVOKEVIRTUAL(METHOD_TYPE, "getGenericReturnType", RETURN_JAVA_LANG_REFLECT_TYPE);
                         _PUTSTATIC(generatedType, returnType.fieldName, JAVA_REFLECT_TYPE_DESCRIPTOR);
                     }
                     _RETURN();
@@ -1890,9 +1892,29 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _IFNULL(label);
                 _ARETURN();
                 visitLabel(label);
+                _F_SAME1(fieldType.getInternalName());
                 _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, runtimeGetterName, getterDescriptor);
                 _ARETURN();
             }});
+        }
+
+        private static Object toFrameType(Type type) {
+            switch (type.getSort()) {
+                case Type.BOOLEAN:
+                case Type.BYTE:
+                case Type.CHAR:
+                case Type.SHORT:
+                case Type.INT:
+                    return Opcodes.INTEGER;
+                case Type.LONG:
+                    return Opcodes.LONG;
+                case Type.FLOAT:
+                    return Opcodes.FLOAT;
+                case Type.DOUBLE:
+                    return Opcodes.DOUBLE;
+                default:
+                    return type.getInternalName();
+            }
         }
 
         private final static class ReturnTypeEntry {
@@ -1921,7 +1943,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     private static String propFieldName(PropertyMetadata property) {
-        return propFieldName(property.getName());
+        return property.getFieldName();
     }
 
     public static String propFieldName(String name) {
@@ -1941,18 +1963,24 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     private static class ObjectCreationDetails {
-        final InstanceGenerator instantiator;
-        final ServiceLookup services;
+        InstanceGenerator instantiator;
+        ServiceLookup services;
         @Nullable
-        final Describable displayName;
+        Describable displayName;
         PropertyRoleAnnotationHandler roleHandler;
+    }
 
-        ObjectCreationDetails(InstanceGenerator instantiator, ServiceLookup services, @Nullable Describable displayName, PropertyRoleAnnotationHandler roleHandler) {
-            this.instantiator = instantiator;
-            this.services = services;
-            this.displayName = displayName;
-            this.roleHandler = roleHandler;
+    /**
+     * Returns the thread-local ObjectCreationDetails, creating it on first access.
+     * The returned instance is reused across all instantiations on this thread.
+     */
+    private static ObjectCreationDetails getOrCreateDetails() {
+        ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
+        if (details == null) {
+            details = new ObjectCreationDetails();
+            SERVICES_FOR_NEXT_OBJECT.set(details);
         }
+        return details;
     }
 
     private static class NoOpBuilder implements ClassGenerationVisitor {
@@ -2083,12 +2111,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-            ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
-            SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, displayName, roleHandler));
+            ObjectCreationDetails details = getOrCreateDetails();
+            // Save previous state for re-entrant construction
+            InstanceGenerator prevInstantiator = details.instantiator;
+            ServiceLookup prevServices = details.services;
+            Describable prevDisplayName = details.displayName;
+            PropertyRoleAnnotationHandler prevRoleHandler = details.roleHandler;
+            details.instantiator = nested;
+            details.services = services;
+            details.displayName = displayName;
+            details.roleHandler = roleHandler;
             try {
                 return constructor.newInstance(params);
             } finally {
-                SERVICES_FOR_NEXT_OBJECT.set(previous);
+                details.instantiator = prevInstantiator;
+                details.services = prevServices;
+                details.displayName = prevDisplayName;
+                details.roleHandler = prevRoleHandler;
             }
         }
     }
@@ -2106,14 +2145,25 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-            ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
-            SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, displayName, roleHandler));
+            ObjectCreationDetails details = getOrCreateDetails();
+            // Save previous state for re-entrant construction
+            InstanceGenerator prevInstantiator = details.instantiator;
+            ServiceLookup prevServices = details.services;
+            Describable prevDisplayName = details.displayName;
+            PropertyRoleAnnotationHandler prevRoleHandler = details.roleHandler;
+            details.instantiator = nested;
+            details.services = services;
+            details.displayName = displayName;
+            details.roleHandler = roleHandler;
             try {
                 Object instance = constructor.newInstance();
                 initMethod.invoke(instance);
                 return instance;
             } finally {
-                SERVICES_FOR_NEXT_OBJECT.set(previous);
+                details.instantiator = prevInstantiator;
+                details.services = prevServices;
+                details.displayName = prevDisplayName;
+                details.roleHandler = prevRoleHandler;
             }
         }
     }

@@ -83,11 +83,15 @@ public class ClassInspector {
         for (Method method : type.getDeclaredMethods()) {
             classDetails.method(method);
 
+            PropertyAccessorType accessorType = PropertyAccessorType.of(method);
+            if (accessorType != null) {
+                classDetails.putAccessorType(method, accessorType);
+            }
+
             if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers())) {
                 continue;
             }
 
-            PropertyAccessorType accessorType = PropertyAccessorType.of(method);
             if (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER) {
                 String propertyName = accessorType.propertyNameFor(method);
                 classDetails.property(propertyName).addGetter(method);
