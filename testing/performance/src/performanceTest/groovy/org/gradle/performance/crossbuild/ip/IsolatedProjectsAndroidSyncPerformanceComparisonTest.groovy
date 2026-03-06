@@ -42,6 +42,8 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
 
     def "build logic abi change with #daemon daemon"() {
         given:
+        def runner = getRunner() // otherwise, IDEA thinks it's PerformanceTestRunner despite the override
+
         runner.measureBuildOperation("org.gradle.initialization.ConfigureBuildBuildOperationType", TIME_TO_LAST_INCLUSIVE)
 
         runner.addBuildMutator { settings ->
@@ -51,14 +53,41 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
         AndroidSyncPerformanceTestFixture.configureStudio(runner)
         IsolatedProjectsSyncPerformanceTestFixture.configureStudio(runner)
 
+        // 'Moderne' configuration that is used by performance aware teams
         runner.baseline {
-            displayName("vintage")
+            displayName("moderne")
+            invocation {
+                jvmArgs(
+                    "-Dorg.gradle.caching=true",
+                    "-Dorg.gradle.parallel=true",
+                    "-Dorg.gradle.configuration-cache=true",
+                    "-Dorg.gradle.configuration-cache.parallel=true",
+                    "-Dorg.gradle.configureondemand=false",
+                )
+            }
+        }
+
+        // Moderne plus Configure-on-Demand, which is popular in Android world
+        runner.baseline {
+            displayName("moderne-cod")
+            invocation {
+                jvmArgs(
+                    "-Dorg.gradle.caching=true",
+                    "-Dorg.gradle.parallel=true",
+                    "-Dorg.gradle.configuration-cache=true",
+                    "-Dorg.gradle.configuration-cache.parallel=true",
+                    "-Dorg.gradle.configureondemand=true",
+                )
+            }
         }
 
         runner.buildSpec {
             displayName("ip")
             invocation {
-                args("-Dorg.gradle.unsafe.isolated-projects=true")
+                jvmArgs(
+                    "-Dorg.gradle.caching=true",
+                    "-Dorg.gradle.unsafe.isolated-projects=true"
+                )
             }
         }
 
@@ -66,10 +95,15 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
         CrossBuildPerformanceResults result = runner.run()
 
         then:
-        def baseline = buildBaselineResults(result, "vintage")
+        def moderne = buildBaselineResults(result, "moderne")
+        def moderneWithConfigureOnDemand = buildBaselineResults(result, "moderne-cod")
         def ip = result.buildResult("ip")
-        println(baseline.getSpeedStatsAgainst("ip", ip))
-        !baseline.significantlyFasterThan(ip)
+
+        println(moderne.getSpeedStatsAgainst("ip", ip))
+        !moderne.significantlyFasterThan(ip)
+
+        println(moderneWithConfigureOnDemand.getSpeedStatsAgainst("ip", ip))
+        !moderneWithConfigureOnDemand.significantlyFasterThan(ip)
 
         where:
         daemon | _
