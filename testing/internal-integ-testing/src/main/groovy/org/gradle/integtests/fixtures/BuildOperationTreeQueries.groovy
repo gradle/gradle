@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.fixtures
 
+import junit.framework.AssertionFailedError
 import org.gradle.api.Action
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
+import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.BuildOperationTypes
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -33,26 +35,55 @@ abstract class BuildOperationTreeQueries {
 
     abstract List<BuildOperationRecord> getRoots()
 
-    abstract <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll())
+    abstract List<BuildOperationRecord> getRecords()
 
-    abstract <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll())
+    abstract List<BuildOperationRecord> parentsOf(def child)
 
-    abstract <T extends BuildOperationType<?, ?>> boolean isType(BuildOperationRecord record, Class<T> type)
+    abstract BuildOperationRecord withId(Long id)
 
-    abstract <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> all(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll())
+    <T extends BuildOperationType<?, ?>> boolean isType(BuildOperationRecord record, Class<T> type) {
+        assert record.detailsType
+        def detailsType = BuildOperationTypes.detailsType(type)
+        detailsType.isAssignableFrom(record.detailsType)
+    }
 
-    <T extends BuildOperationType<?, ?>> List<TestableBuildOperationRecord> buildOps(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        all(type, predicate).collect { new TestableBuildOperationRecord(it) }
+    @SuppressWarnings("GrUnnecessaryPublicModifier")
+    public <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        def detailsType = BuildOperationTypes.detailsType(type)
+        def roots = getRoots().findAll {
+            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+        }
+        assert roots.size() == 1
+        return roots[0]
+    }
+
+    <T extends BuildOperationType<?, ?>> List<TestableBuildOperationRecord> all(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        typed(type, predicate).collect { new TestableBuildOperationRecord(it) }
+    }
+
+    private <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> typed(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        def detailsType = BuildOperationTypes.detailsType(type)
+        return getRecords().findAll {
+            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+        }
+    }
+
+    @Nullable
+    <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
+        def detailsType = BuildOperationTypes.detailsType(type)
+        return getRecords().find {
+            it.detailsType && detailsType.isAssignableFrom(it.detailsType) && predicate.isSatisfiedBy(it)
+        }
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> void none(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        assert all(type, predicate).isEmpty()
+        assert typed(type, predicate).isEmpty()
     }
 
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord only(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        def records = all(type, predicate)
+        def records = typed(type, predicate)
         assert records.size() == 1
         return records.first()
     }
@@ -60,7 +91,7 @@ abstract class BuildOperationTreeQueries {
     @SuppressWarnings("GrUnnecessaryPublicModifier")
     @Nullable
     public <T extends BuildOperationType<?, ?>> BuildOperationRecord singleOrNone(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        def records = all(type, predicate)
+        def records = typed(type, predicate)
         assert records.size() <= 1
         return records.find()
     }
@@ -72,22 +103,8 @@ abstract class BuildOperationTreeQueries {
 
     @Nullable
     BuildOperationRecord firstMatchingRegex(@Language('regexp') String regex) {
-        first(Pattern.compile(regex))
-    }
-
-    @Nullable
-    abstract BuildOperationRecord first(Pattern displayName)
-
-    abstract List<BuildOperationRecord> all();
-
-    List<BuildOperationRecord> all(String displayName) {
-        return all(Pattern.compile(Pattern.quote(displayName)))
-    }
-
-    abstract List<BuildOperationRecord> all(Pattern displayName)
-
-    List<TestableBuildOperationRecord> buildOps(Pattern displayName) {
-        return all(displayName).collect { new TestableBuildOperationRecord(it) }
+        def pattern = Pattern.compile(regex)
+        return getRecords().find { it.displayName ==~ pattern }
     }
 
     @Nonnull
@@ -95,8 +112,15 @@ abstract class BuildOperationTreeQueries {
         return only(Pattern.compile(Pattern.quote(displayName)))
     }
 
-    @Nonnull
-    abstract BuildOperationRecord only(Pattern displayName)
+    BuildOperationRecord only(Pattern displayName) {
+        def records = records.findAll { it.displayName ==~ displayName }
+        if (records.isEmpty()) {
+            throw new AssertionFailedError("No operations found with display name that matches $displayName")
+        } else if (records.size() > 1) {
+            throw new AssertionFailedError("Multiple operations found with display name that matches $displayName. Expected 1, found ${records.size()}")
+        }
+        return records.first()
+    }
 
     @Nullable
     BuildOperationRecord singleOrNone(String displayName) {
@@ -104,22 +128,32 @@ abstract class BuildOperationTreeQueries {
     }
 
     @Nullable
-    abstract BuildOperationRecord singleOrNone(Pattern displayName)
+    BuildOperationRecord singleOrNone(Pattern displayName) {
+        def records = records.findAll { it.displayName ==~ displayName }
+        assert records.size() <= 1
+        return records.find()
+    }
 
-    abstract List<BuildOperationRecord> parentsOf(def child)
+    void none(Pattern displayName) {
+        def records = records.findAll { it.displayName ==~ displayName }
+        assert records.size() == 0
+    }
 
     void none(String displayName) {
         none(Pattern.compile(Pattern.quote(displayName)))
     }
 
-    abstract void none(Pattern displayName)
+    List<TestableBuildOperationRecord> matchingRegex(@Language('regexp') String regex) {
+        def pattern = Pattern.compile(regex)
+        return records.findAll { it.displayName ==~ pattern }.collect { new TestableBuildOperationRecord(it) }
+    }
 
     Map<String, ?> result(String displayName) {
-        first(displayName).result
+        singleOrNone(displayName).result
     }
 
     String failure(String displayName) {
-        first(displayName).failure
+        singleOrNone(displayName).failure
     }
 
     boolean hasOperation(String displayName) {
@@ -141,11 +175,21 @@ abstract class BuildOperationTreeQueries {
     }
 
     @SuppressWarnings(["GrMethodMayBeStatic", "GrUnnecessaryPublicModifier"])
+    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> search(TestableBuildOperationRecord parent, Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
+        search(withId(parent.id), type, predicate)
+    }
+
+    @SuppressWarnings(["GrMethodMayBeStatic", "GrUnnecessaryPublicModifier"])
     public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> children(BuildOperationRecord parent, Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
         Spec<BuildOperationRecord> parentSpec = {
             it.parentId == parent.id
         }
         return search(parent, type, Specs.intersect(parentSpec, predicate))
+    }
+
+    @SuppressWarnings(["GrMethodMayBeStatic", "GrUnnecessaryPublicModifier"])
+    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> children(TestableBuildOperationRecord parent, Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL) {
+        return children(withId(parent.id), type, predicate)
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")
@@ -162,7 +206,7 @@ abstract class BuildOperationTreeQueries {
     }
 
     List<BuildOperationRecord.Progress> progress(Class<?> clazz) {
-        return all().collect { it.progress(clazz) }.flatten()
+        return getRecords().collect { it.progress(clazz) }.flatten()
     }
 
     void walk(Action<? super BuildOperationRecord> action) {
@@ -254,7 +298,7 @@ abstract class BuildOperationTreeQueries {
 
     int getMaximumConcurrentOperations(Class<BuildOperationType> type) {
         def highWaterPoint = 0
-        def allOperations = all(type)
+        def allOperations = typed(type)
 
         List<TimePoint> points = []
 
@@ -284,7 +328,7 @@ abstract class BuildOperationTreeQueries {
      */
     List<BuildOperationRecord> getOperationsConcurrentWith(Class<BuildOperationType> type, BuildOperationRecord operation) {
         def concurrentOperations = []
-        all(type).each { candidate ->
+        typed(type).each { candidate ->
             if (candidate != operation && candidate.startTime < operation.endTime && candidate.endTime > operation.startTime) {
                 concurrentOperations << candidate
             }
@@ -292,10 +336,40 @@ abstract class BuildOperationTreeQueries {
         return concurrentOperations
     }
 
-    abstract void debugTree(
+    void debugTree(
         Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL,
         Spec<? super BuildOperationRecord> progressPredicate = Specs.SATISFIES_ALL
-    )
+    ) {
+        getRoots().each { debugOpTree(it, 0, predicate, progressPredicate) }
+    }
+
+    protected void debugOpTree(
+        BuildOperationRecord op,
+        int level,
+        Spec<? super BuildOperationRecord> predicate,
+        Spec<? super BuildOperationRecord> progressPredicate
+    ) {
+        if (predicate.isSatisfiedBy(op)) {
+            println "${'  ' * level}(${op.displayName}, id: $op.id${op.detailsType ? ", details type: ${simpleClassName(op.detailsType)}" : ''})${op.details ? " $op.details" : ''}"
+            if (progressPredicate.isSatisfiedBy(op)) {
+                op.progress.each { p ->
+                    def repr = p.hasDetailsOfType(StyledTextOutputEvent) ? p.details.spans*.text.join('') : "$p.detailsType.simpleName ${p.details?.toString() ?: ''}\n"
+                    print "${'  ' * (level + 1)} $repr"
+                }
+            }
+            op.children.each { debugOpTree(it, level + 1, predicate, progressPredicate) }
+        }
+    }
+
+    private static String simpleClassName(Class<?> detailsType) {
+        if (!detailsType) {
+            return null
+        } else {
+            // Class.simpleName returns "" for certain anonymous classes and unhelpful things like "Details" for our op interfaces
+            String clsName = detailsType.interfaces.length == 0 ? detailsType.name : detailsType.interfaces.first().name
+            clsName.substring(clsName.lastIndexOf('.') + 1)
+        }
+    }
 }
 
 class TestableBuildOperationRecord {
@@ -354,7 +428,7 @@ class TestableBuildOperationRecord {
 
     @Override
     String toString() {
-        return "BuildOperationDTO{${id ? "id=$id, " : ""}parentId=$parentId, displayName='$displayName', details=$details}"
+        return "TestableBuildOperationRecord{${id ? "id=$id, " : ""}parentId=$parentId, displayName='$displayName', details=$details}"
     }
 
     static TestableBuildOperationRecord buildOp(Map params) {

@@ -375,7 +375,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         noneSkipped()
         and:
         // Only one store operation, not one per redirect
-        compileJavaStoreOperations().size() == 1
+        assertSingleCompileJavaStoreOperation()
 
         expect:
         withBuildCache().run "clean"
@@ -517,13 +517,12 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         then:
         noneSkipped()
         and:
-        def storeOps = compileJavaStoreOperations()
-        storeOps.size() == 1
-        storeOps.first().failure.contains("response status 401: Unauthorized")
+        def storeOp = assertSingleCompileJavaStoreOperation()
+        storeOp.failure.contains("response status 401: Unauthorized")
     }
 
-    private List<BuildOperationRecord> compileJavaStoreOperations() {
-        buildOperations.all(BuildCacheRemoteStoreBuildOperationType) {
+    private BuildOperationRecord assertSingleCompileJavaStoreOperation() {
+        buildOperations.only(BuildCacheRemoteStoreBuildOperationType) {
             buildOperations.parentsOf(it).any {
                 it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":compileJava"
             }

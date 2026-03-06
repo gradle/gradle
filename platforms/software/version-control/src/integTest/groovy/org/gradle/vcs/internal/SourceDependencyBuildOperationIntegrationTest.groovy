@@ -30,8 +30,6 @@ import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
-import java.util.regex.Pattern
-
 class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     GitFileRepository repo = new GitFileRepository('buildB', temporaryFolder.getTestDirectory())
@@ -116,7 +114,7 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         def runMainTasks = operations.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
-        def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
+        def runTasksOps = operations.matchingRegex("Run tasks.*")
         runTasksOps.size() == 2
         // Build operations are run in parallel, so can appear in either order
         [runTasksOps[0].displayName, runTasksOps[1].displayName].sort() == ["Run tasks", "Run tasks (:${buildName})"]
