@@ -52,13 +52,11 @@ class MapBasedBuildCacheServiceTest extends Specification {
         0 * _
     }
 
-    def "can write to map"() {
+    def "can stream to map"() {
         when:
         cache.store(cacheKey, writer)
         then:
-        1 * writer.writeTo(_) >> { OutputStream output ->
-            output.write(data)
-        }
+        1 * writer.getInputStream() >> new ByteArrayInputStream(data)
         1 * delegate.put(hashCode, _) >> { String key, byte[] value ->
             assert value == data
         }
