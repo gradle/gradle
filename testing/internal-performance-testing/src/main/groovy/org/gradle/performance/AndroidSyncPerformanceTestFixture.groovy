@@ -43,11 +43,10 @@ class AndroidSyncPerformanceTestFixture {
     private static class StudioExecutionInterceptor implements PerformanceTestRunner.ExecutionInterceptor {
         @Override
         void intercept(GradleBuildExperimentSpec.GradleBuilder builder) {
-            File sandboxDir = new File(builder.workingDirectory, "studio-sandbox")
             builder.invocation {
                 buildAction(new AndroidStudioSyncAction())
                 useAndroidStudio(true)
-                studioSandboxDir(sandboxDir)
+                studioSandboxDir(getStudioSandbox(workingDirectory))
                 studioInstallDir(AndroidStudioFinder.findStudioHome())
                 studioJvmArgs(System.getProperty("studioJvmArgs")?.tokenize(",") ?: [])
             }
@@ -55,10 +54,14 @@ class AndroidSyncPerformanceTestFixture {
 
         @Override
         void handleFailure(Throwable failure, BuildExperimentSpec spec) {
-            File studioSandboxDir = new File(spec.workingDirectory, "studio-sandbox")
+            File studioSandboxDir = getStudioSandbox(spec.workingDirectory)
             File logFile = new File(studioSandboxDir, "/logs/idea.log")
             String message = logFile.exists() ? "\n${logFile.text}" : "Android Studio log file '${logFile}' doesn't exist, nothing to print."
             println("[ANDROID STUDIO LOGS] $message")
+        }
+
+        private static File getStudioSandbox(File workingDirectory) {
+            return new File(workingDirectory, "studio-sandbox")
         }
     }
 
