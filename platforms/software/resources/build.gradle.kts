@@ -5,6 +5,7 @@ plugins {
 description = "A set of general-purpose resource abstractions"
 
 dependencies {
+    api(projects.credentialsApi)
     api(projects.stdlibJavaExtensions)
     api(projects.buildOperations)
     api(projects.hashing)

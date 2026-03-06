@@ -14,6 +14,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildCacheSpi)
     api(projects.coreApi)
+    api(projects.credentialsApi)
     api(projects.resourcesHttp)
 
     implementation(projects.core)

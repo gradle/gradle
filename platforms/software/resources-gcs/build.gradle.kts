@@ -6,6 +6,7 @@ description = "Implementation for interacting with Google Cloud Storage (GCS) re
 
 
 dependencies {
+    api(projects.credentialsApi)
     api(projects.serviceProvider)
     api(projects.resources)
 

@@ -37,6 +37,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.baseAsm)
+    implementation(projects.credentialsApi)
     implementation(projects.instrumentationReporting)
     implementation(projects.buildOperations)
     implementation(projects.buildDiscoveryImpl)

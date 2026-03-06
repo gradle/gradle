@@ -29,6 +29,8 @@ dependencies {
     api(projects.buildOperations)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.credentials)
+    api(projects.credentialsApi)
     api(projects.dependencyManagement)
     api(projects.enterpriseOperations)
     api(projects.enterpriseLogging)
@@ -45,6 +47,7 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(projects.baseDiagnostics)
+    implementation(projects.credentialsImpl)
     implementation(projects.fileTemp)
     implementation(projects.logging)
     implementation(projects.modelCore)

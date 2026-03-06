@@ -53,6 +53,7 @@ dependencies {
     api(projects.collections)
     api(projects.concurrent)
     api(projects.coreApi)
+    api(projects.credentialsApi)
     api(projects.declarativeDslApi)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)

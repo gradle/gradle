@@ -285,6 +285,9 @@
             <option value="$PROJECT_DIR$/platforms/software/build-init" />
             <option value="$PROJECT_DIR$/platforms/software/build-init-specs" />
             <option value="$PROJECT_DIR$/platforms/software/build-init-specs-api" />
+            <option value="$PROJECT_DIR$/platforms/software/credentials" />
+            <option value="$PROJECT_DIR$/platforms/software/credentials-api" />
+            <option value="$PROJECT_DIR$/platforms/software/credentials-impl" />
             <option value="$PROJECT_DIR$/platforms/software/dependency-management" />
             <option value="$PROJECT_DIR$/platforms/software/distributions-publishing" />
             <option value="$PROJECT_DIR$/platforms/software/ivy" />

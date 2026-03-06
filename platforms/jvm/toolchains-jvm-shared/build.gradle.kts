@@ -27,6 +27,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)
+    api(projects.credentialsApi)
     api(projects.fileCollections)
     api(projects.fileOperations)
     api(projects.jvmServices)
@@ -36,9 +37,10 @@ dependencies {
     api(projects.resources)
     api(projects.modelCore)
 
+    implementation(projects.credentials)
     implementation(projects.functional)
-
     implementation(projects.logging)
+
     implementation(libs.guava)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)

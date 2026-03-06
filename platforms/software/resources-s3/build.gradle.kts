@@ -6,8 +6,8 @@ description = "Implementation for interacting with S3 repositories"
 
 dependencies {
     api(projects.serviceProvider)
-    api(projects.core)
-    api(projects.coreApi)
+    api(projects.credentials)
+    api(projects.credentialsApi)
     api(projects.resources)
     api(projects.resourcesHttp)
 
@@ -23,6 +23,9 @@ dependencies {
 
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
+
+    runtimeOnly(projects.core)
+    runtimeOnly(projects.coreApi)
 
     runtimeOnly(libs.awsS3Sts) {
         because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
