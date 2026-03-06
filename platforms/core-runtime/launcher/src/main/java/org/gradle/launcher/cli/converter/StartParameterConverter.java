@@ -31,6 +31,8 @@ import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 
+import java.util.Map;
+
 
 public class StartParameterConverter {
     private final BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
@@ -50,23 +52,23 @@ public class StartParameterConverter {
         buildOptionsConverter.configure(parser);
     }
 
-    public StartParameterInternal convert(ParsedCommandLine parsedCommandLine, BuildLayoutResult buildLayout, AllProperties properties, StartParameterInternal startParameter) throws CommandLineArgumentException {
+    public StartParameterInternal convert(ParsedCommandLine parsedCommandLine, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> environmentVariables, StartParameterInternal startParameter) throws CommandLineArgumentException {
         buildLayout.applyTo(startParameter);
 
-        welcomeMessageConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), startParameter.getWelcomeMessageConfiguration());
-        loggingConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), startParameter);
-        parallelConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), startParameter);
+        welcomeMessageConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter.getWelcomeMessageConfiguration());
+        loggingConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
+        parallelConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
 
         startParameter.getSystemPropertiesArgs().putAll(properties.getRequestedSystemProperties());
 
         projectPropertiesCommandLineConverter.convert(parsedCommandLine, startParameter.getProjectPropertiesUntracked());
-        toolchainOptionsConverter.convert(parsedCommandLine, properties.getRequestedSystemProperties(), startParameter);
+        toolchainOptionsConverter.convert(parsedCommandLine, properties.getRequestedSystemProperties(), environmentVariables, startParameter);
 
         if (!parsedCommandLine.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(parsedCommandLine.getExtraArguments());
         }
 
-        buildOptionsConverter.convert(parsedCommandLine, properties.getProperties(), startParameter);
+        buildOptionsConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
 
         return startParameter;
     }
