@@ -20,6 +20,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.dependencyManagement)
     api(projects.enterpriseLogging)
     api(projects.fileCollections)

@@ -45,6 +45,7 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(projects.baseDiagnostics)
+    implementation(projects.domainObjectCollections)
     implementation(projects.fileTemp)
     implementation(projects.logging)
     implementation(projects.modelCore)

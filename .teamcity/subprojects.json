@@ -539,6 +539,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "domain-object-collections",
+    "path": "platforms/core-configuration/domain-object-collections",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "ear",
     "path": "platforms/jvm/ear",
     "unitTests": true,

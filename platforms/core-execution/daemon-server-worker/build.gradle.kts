@@ -65,6 +65,7 @@ dependencies {
     implementation(projects.ant)
     implementation(projects.antImpl)  // WorkerDaemonServer directly references DefaultIsolatedAntBuilder
     implementation(projects.core)
+    implementation(projects.domainObjectCollections)
 
     implementation(libs.guava)
 

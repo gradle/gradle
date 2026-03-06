@@ -11,6 +11,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.fileCollections)
     api(projects.files)
     api(projects.hashing)
