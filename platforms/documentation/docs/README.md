@@ -1,290 +1,551 @@
-The docs project produces the [user manual](http://gradle.org/docs/current/userguide/userguide.html), [DSL reference](http://gradle.org/docs/current/dsl/),
-[javadoc](http://gradle.org/docs/current/javadoc/) and [release notes](http://gradle.org/docs/current/release-notes)
-(as well as some other minor bits).
+# Gradle Documentation Contributor Guide
 
-The following is some help for working with the docs, all file paths are relative to this directory unless specified otherwise.
+> **Purpose:** This guide is for contributors writing or editing documentation for the [gradle/gradle](https://github.com/gradle/gradle) repository. It covers structure, authoring conventions, code samples, and testing.
+>
+> **AI Usage:** This document is structured for both human contributors and AI assistants (e.g., Copilot, Cursor, Claude). It is intended to be ingested as a system prompt or context file to guide AI-assisted documentation contributions. All rules and conventions stated here should be treated as authoritative and followed strictly when generating or editing `.adoc` files, code snippets, or any other documentation artifacts in this repository.
+
+---
+
+## Overview
+
+The `docs` project produces:
+- [Release Notes](http://gradle.org/docs/current/release-notes)
+- [User Manual](http://gradle.org/docs/current/userguide/userguide.html)
+- [DSL Reference](http://gradle.org/docs/current/dsl/)
+- [Javadoc](http://gradle.org/docs/current/javadoc/)
+
+All file paths in this guide are relative to the `docs` project directory unless stated otherwise.
+
+---
 
 ## Release Notes
 
-The release notes are generated from `src/docs/release/notes.md`.
+**Source file:** `src/docs/release/notes.md`
 
-### Schema
+### Heading Schema
 
-Every `h2` tag and `h3` will be listed in the generated TOC.
+| Heading | Behavior |
+|---|---|
+| `h2` | Listed in the generated TOC |
+| `h3` | Listed in TOC; content after the first element is collapsible until next `h3`/`h2` |
+| `h4` | Content is collapsible until the next `h4`, `h3`, or `h2` |
 
-After every `h3` all content after the first element (usually a `p`) will be collapsed/expandable, up until the next `h3`, or `h2`.
+To mark a feature as **incubating**, append `(i)` to the `h3` text:
 
-After every `h4` all content will be collapsed/expandable, up until the next `h4`, `h3` or `h2`.
+```markdown
+## New and Noteworthy
 
-An `h3` may include an incubating marker `(i)` at the end of its text to indicate that the feature is incubating.
+### Some Feature (i)
 
-Here's an example:
+This feature is incubating.
 
-    ## h2 New and Noteworthy
+#### Some Detail
 
-    ### h3 Some feature (i)
+This detail is collapsed by default.
+```
 
-    This is some incubating feature.
+### Generating Release Notes
 
-    #### h4 Some detail
+```bash
+./gradlew :docs:releaseNotes
+```
 
-    This detail about the feature is collapsed. The reader can expand it if they are interested.
-
-### Generating
-
-Run the `:docs:releaseNotes` task to generate the release notes.
+---
 
 ## User Manual
 
-The source for the user manual lives @ `src/docs/userguide`, and is authored in [Asciidoctor](https://asciidoctor.org).
+**Source:** `src/docs/userguide/` — authored in [Asciidoctor](https://asciidoctor.org)
 
-To generate the user manual for the final preview and see all changes, you normally want to run:
+### Build Commands
 
-    ./gradlew stageDocs
+| Goal | Command |
+|---|---|
+| Full preview (recommended) | `./gradlew stageDocs` |
+| Full preview with continuous rebuild | `./gradlew stageDocs -t` |
+| Fast iteration (no DSL ref, no single-page) | `./gradlew stageDocs -PquickDocs` |
+| Fast iteration with continuous rebuild | `./gradlew stageDocs -PquickDocs -t` |
+| Live reload at `http://localhost:8000` | `./gradlew serveDocs -PquickDocs` |
+| User manual only (links may break) | `./gradlew :docs:userguide` |
+| Multi-page HTML manual only | `./gradlew :docs:userguideMultiPage` |
+| Single-page HTML manual only | `./gradlew :docs:userguideSinglePageHtml` |
+| Javadoc only | `./gradlew :docs:javadocAll` |
+| Run all snippet and sample tests | `./gradlew :docs:docsTest` |
 
-That will generate all the docs in the `build/docs` directory.
+The `-PquickDocs` flag skips slow tasks (DSL reference, single-page manual). Rebuild time in quick mode is approximately 30–40 seconds.
 
-For development and fast feedback you should use:
+**Output locations:**
+- Multi-page HTML: `build/working/usermanual/render-multi/` (one `.html` per `.adoc`)
+- Single-page HTML: `build/working/usermanual/render-single-html/userguide_single.html`
+- All staged docs: `build/docs/`
 
-    ./gradlew stageDocs -PquickDocs
+### AsciiDoc References
 
-Alternatively, if you want to serve the docs in a built-in webserver (http://localhost:8000), you can use:
+- [Syntax Quick Reference](https://asciidoctor.org/docs/asciidoc-syntax-quick-reference/)
+- [Asciidoctor User Manual](https://asciidoctor.org/docs/user-manual/)
+- [Asciidoctor Gradle Plugin Reference](https://asciidoctor.org/docs/asciidoctor-gradle-plugin/)
 
-    ./gradlew serveDocs -PquickDocs
+### Linking to DSL and API References
 
-The flag `-PquickDocs` disables some slow documentation tasks, like creating the DSL reference or the single page user manual.
-This will automatically enter continuous build and rebuild the documentation when you make changes. It takes 30-40 seconds to rebuild the documentation in "quick mode".
+Whenever you reference a Gradle API class, method, or annotation in prose, link it to the relevant reference documentation. Three path attributes are available:
 
-If you really want to generate just the user manual, you can run:
-
-    ./gradlew :docs:userguide
-
-But note that the generated documentation might not be fully functional (e.g. links will not work). This will generate:
-
- - A multi-page HTML manual in `build/working/usermanual/render-multi/` for each chapter. There is a 1-1 mapping from `.adoc` file to `.html` file.
- - A single-page HTML manual at `build/working/usermanual/render-single-html/userguide_single.html`
-
-Note that PNG files in the source are generated from ".graphml" files in the same directory.  You can edit these files
-with tools like [yEd](http://www.yworks.com/en/products_yed_about.html) and then generate the associated PNG.
-
-### Authoring with AsciiDoc
-
-To write a chapter in Asciidoctor format, simply place it in `src/docs/userguide` called `<chapter>.adoc`.
-
-You will find these references useful when authoring AsciiDoc:
-
- - [AsciiDoc Syntax Quick Reference](https://asciidoctor.org/docs/asciidoc-syntax-quick-reference/)
- - [Asciidoctor User Manual](https://asciidoctor.org/docs/user-manual/)
- - [Asciidoctor Gradle Plugin Reference](https://asciidoctor.org/docs/asciidoctor-gradle-plugin/)
-
-### Adding new chapters
-
-When adding a new chapter to the manual do the following steps:
-1. Create a file called `<chapter>.adoc` in a suitable subdirectory of `src/docs/userguide` and write the content there.
-2. Add the license text to the top of the file and also add an ID for the chapter title.
-This is required to be able to link directly to the chapter from other chapters, as opposed to linking to a section inside.\
-The ID should preferably match the name of the `adoc` file. 
-For instance, linking to `toolchains.adoc` is possible with `<<toolchains.adoc#toolchains,Text>>`, and the declaration looks like:
-    ```asciidoc
-    [[toolchains]]
-    = Toolchains for JVM projects
-    ```
-3. Include the new chapter file in the [`userguide_single.adoc`](src/docs/userguide/userguide_single.adoc).
-4. Include the relative link to the new chapter in the [`header.html`](src/main/resources/header.html)
-
-### Code Snippets
-
-Snippets and output belong under `src/snippets` and are typically included in the user manual. This is a typical example:
-
-#### Example multi-language sample file listing
-This shows Groovy and Kotlin sample projects under "sample-dir" which is defined as "$projectDir/src/snippets".
-
-```
-platforms/documentation/docs/src/snippets/
-└── initScripts/customLogger/
-    ├── customLogger.out
-    ├── customLogger.sample.conf
-    ├── groovy
-    │   ├── build.gradle
-    │   ├── init.gradle
-    │   └── settings.gradle
-    └── kotlin
-        ├── build.gradle.kts
-        ├── customLogger.init.gradle.kts
-        └── settings.gradle.kts
-```
-
-Note here that there are 2 sample projects under `initScripts/customLogger/`: one for the Groovy DSL and one for Kotlin DSL. Also note that there is only 1 `customLogger.sample.conf` file that tells Exemplar how to execute both groovy and kotlin samples, with 1 `customLogger.out` file proving the output is identical between the two.
-
-#### Example Asciidoctor multi-language sample declaration
+| Attribute | Points to |
+|---|---|
+| `{javadocPath}` | Javadoc (use for Java API classes and annotations) |
+| `{groovyDslPath}` | Groovy DSL reference |
+| `{kotlinDslPath}` | Kotlin DSL reference |
 
 ```asciidoc
-.Customizing what Gradle logs
-====
-include::sample[dir="snippets/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
-include::sample[dir="snippets/initScripts/customLogger/groovy",files="init.gradle[]"]
-====
+link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[`CommandLineArgumentProvider`]
+link:{javadocPath}/org/gradle/api/tasks/CacheableTask.html[`@CacheableTask`]
+link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html[Groovydoc]
+link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[`Project.afterEvaluate()`]
+link:{kotlinDslPath}/gradle/org.gradle.api.tasks/-task-container/index.html[register()]
+link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[`Project.projectDir`]
+```
 
+Always wrap link text in backticks for any code identifier — classes, methods, properties, and annotations alike. This follows the Microsoft Style Guide convention that all code elements use code style.
+
+### Images
+
+Images live in `docs/src/userguide/img/`. Accepted formats are SVG, PNG, and JPEG. Keep file sizes small — avoid large uncompressed images.
+
+To embed an image in an `.adoc` file:
+
+```asciidoc
+image::performance/performance-1.png[]
+```
+
+The path is relative to the `src/docs/img/` directory.
+
+### Anchors
+
+Every heading should have an anchor declared on the line immediately above it. This enables direct linking from other pages. Anchor IDs should use `snake_case`.
+
+| Heading level | Anchor required? |
+|---|---|
+| `=` (page title) | Required |
+| `==` (section) | Required |
+| `===` (subsection) | Recommended |
+| `====` (sub-subsection) | Recommended |
+
+```asciidoc
+[[incremental_build]]
+= Incremental Build
+
+[[sec:task_inputs_outputs]]
+== Task Inputs and Outputs
+```
+
+To link to an anchor from another page:
+
+```asciidoc
+<<incremental_build.adoc#incremental_build,incremental build>>
+<<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>>
+```
+
+To link to an anchor on the **same page**, omit the filename:
+
+```asciidoc
+<<sec:task_inputs_outputs,defined outputs>>
+<<#sec:task_inputs_outputs,defined outputs>>
+```
+
+### Renaming or Deleting a Chapter
+
+When an `.adoc` file is renamed or deleted, you **must** add a redirect entry to the `/redirect` folder so that existing links to the old page continue to work.
+
+### Adding a New Chapter — Checklist
+
+1. Create `<chapter>.adoc` in an appropriate subdirectory of `src/docs/userguide/`.
+2. Add the license header and a chapter ID at the top. The ID should "closely" match the filename:
+   ```asciidoc
+   [[toolchains]]
+   = Toolchains for JVM Projects
+   ```
+3. Add the file to [`src/docs/userguide/userguide_single.adoc`](src/docs/userguide/userguide_single.adoc).
+    ```asciidoc
+    <<toolchains.adoc#toolchains,Toolchains for JVM Projects>>
+    ```
+4. Add a relative link to the chapter in [`src/main/resources/header.html`](src/main/resources/header.html).
+    ```html
+    <li><a href="../userguide/toolchains.html">Toolchains for JVM projects</a></li>
+    ```
+
+---
+
+### Checking for Broken Links
+
+Always run the following after making changes to ensure no internal links are broken:
+
+```bash
+./gradlew :docs:checkDeadInternalLinks
+```
+
+## Code Snippets
+
+**Source:** `src/snippets/` — typically included in the user manual via `include::sample`.
+
+### Directory Structure Convention
+
+Every snippet **should be written in both Groovy and Kotlin DSL**. If any files are shared between the two variants, place them in a `common/` directory. Tests are placed in the `tests/` directory.
+
+```
+src/snippets/
+└── buildlifecycle/buildServices/
+    ├── common/                   # Files shared between Groovy and Kotlin
+    │   └── shared-config.properties
+    ├── groovy/
+    │   ├── build.gradle
+    │   └── settings.gradle
+    ├── kotlin/
+    │   ├── build.gradle.kts
+    │   └── settings.gradle.kts
+    └── tests/
+        ├── buildServices.out         # Shared expected output
+        └── buildServices.sample.conf # Exemplar config (covers both DSLs)
+```
+
+**What belongs in each directory:**
+
+| Directory | Contains                                                                    |
+|-----------|-----------------------------------------------------------------------------|
+| `groovy/` | Groovy DSL source files (`.gradle`)                                         |
+| `kotlin/` | Kotlin DSL source files (`.gradle.kts`)                                     |
+| `common/` | Files shared between both DSLs (e.g. `gradle.properties`, version catalogs) |
+| `tests/`  | Testing instructions and expected outputs (e.g. `*.out`, `*sample.conf`)    |
+
+**What must NOT be in these directories:**
+- Gradle wrapper files (`gradlew`, `gradlew.bat`, `gradle/wrapper/`)
+- Build output directories (`build/`)
+- Any other Gradle infrastructure files
+
+The only exceptions are `gradle.properties` and version catalog files (e.g. `libs.versions.toml`), which are allowed.
+
+### Adding Code Blocks in AsciiDoc
+
+Any code in an `.adoc` file must use a `[source,<language>]` block rather than raw code fences. Optionally add a title (filename or path) on the line before the `----` delimiter.
+
+```asciidoc
+[source,bash,subs="attributes"]
+----
+$ gradle wrapper --gradle-version {gradleVersion} --distribution-type all
+----
+
+[source,text]
+----
+include::{snippetsPath}/wrapper/simple/tests/wrapperCommandLine.out[]
+----
+
+[source,properties]
+----
+systemProp.gradle.wrapperUser=username
+systemProp.gradle.wrapperPassword=password
+----
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.daemon=true
+----
+
+[source,java]
+.buildSrc/src/main/java/org/example/ProcessTemplates.java
+----
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
+----
+```
+
+To show a Gradle task invocation alongside its expected output, pair a `bash` block with a `text` block that includes the corresponding `.out` file from the snippet's `tests/` directory:
+
+```asciidoc
+[source,bash]
+----
+$ ./gradlew processTemplates
+----
+[source,text]
+----
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputAnnotations.out[]
+----
+```
+
+The output can also use text only:
+
+```asciidoc
+[source,bash]
+----
+$ ./gradlew build
+----
+[source,text]
+----
+BUILD SUCCESSFUL
+----
+```
+
+Or it can use a mix:
+
+```asciidoc
+[source,bash]
+----
+$ ./gradlew processTemplates
+----
+[source,text]
+----
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputAnnotations.out[]
+BUILD SUCCESSFUL
+----
+```
+
+Common language identifiers: `bash`, `kotlin`, `groovy`, `java`, `properties`, `text`, `xml`, `toml`.
+Use `subs="attributes"` when the block contains AsciiDoc attribute placeholders like `{gradleVersion}`.
+
+### Including Code in AsciiDoc
+
+There are two ways to include code in a `.adoc` file.
+
+#### Option 1: Reference a tested snippet (preferred)
+
+Always prefer this approach — it ensures the code is tested. Use `include::sample[]` inside an `====` block, with one entry per DSL:
+
+```asciidoc
+====
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/kotlin/app",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/modularizeYourBuild-do/groovy/app",files="build.gradle[tags=do-this]"]
+====
+```
+
+- The `dir` path is relative to `src/snippets/`.
+- Use `tags=...` to include only a tagged region of the file (follows standard Asciidoctor tag syntax).
+- Any code snippet longer than two lines in an `.adoc` file **must** use this format and be located in `/snippets`.
+
+#### Option 2: Inline code (discouraged)
+
+Only use inline code if the snippet is genuinely not testable, and keep it to **3 lines or less**. The most common legitimate use of `[.multi-language-sample]` is showcasing directory structures, where the only difference between variants is the file extensions (`.gradle` vs `.gradle.kts`):
+
+```asciidoc
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+abstract class SamplePlugin : Plugin<Project> {
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+class SamplePlugin implements Plugin<Project> {
+}
+----
+=====
+====
+```
+
+Both Groovy and Kotlin variants must still be provided using `[.multi-language-sample]` blocks. Multiple files within a variant can be shown by stacking titled source blocks inside the same `=====` block:
+
+```asciidoc
+====
+[.multi-language-sample]
+=====
+.settings.gradle.kts
+[source, kotlin]
+----
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            url = uri("<path-to>/convention-plugins/build/repo")
+        }
+    }
+}
+----
+.build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    id("com.myorg.service-conventions") version "1.0"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            url = uri('<path-to>/convention-plugins/build/repo')
+        }
+    }
+}
+----
+.build.gradle
+[source, groovy]
+----
+plugins {
+    id 'com.myorg.service-conventions' version '1.0'
+}
+----
+=====
+====
+```
+
+It is preferred to use `[.multi-language-sample]` blocks to demonstrate directory structures:
+
+```asciidoc
+====
+[.multi-language-sample]
+=====
+.Project structure
+[source, kotlin]
+----
+├── internal-module
+│   └── build.gradle.kts
+├── library-a
+│   ├── build.gradle.kts
+│   └── README.md
+├── library-b
+│   ├── build.gradle.kts
+│   └── README.md
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.Project structure
+[source, groovy]
+----
+├── internal-module
+│   └── build.gradle
+├── library-a
+│   ├── build.gradle
+│   └── README.md
+├── library-b
+│   ├── build.gradle
+│   └── README.md
+└── settings.gradle
+----
+=====
+====
+```` 
+
+#### Language-conditional text
+
+If surrounding prose needs to change based on the reader's DSL selection (e.g., referencing a different filename or package path), use `[.multi-language-text.lang-*]` blocks:
+
+```asciidoc
+====
 [.multi-language-text.lang-kotlin]
-----
-$ gradle -I customLogger.init.gradle.kts build
-include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
-----
+=====
+Create a new file called `SlackTask.kt` in `src/main/kotlin/org/example/` and add the following code:
+=====
 [.multi-language-text.lang-groovy]
-----
-$ gradle -I init.gradle build
-include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
-----
+=====
+Create a new file called `SlackTask.groovy` in `src/main/groovy/org/example/` and add the following code:
+=====
+====
 ```
 
-Let's break down this example to explain:
+Note the distinction from `[.multi-language-sample]`: use `multi-language-text` for **prose that varies by DSL**, and `multi-language-sample` for **code blocks or directory structures**.
 
-* Enclosing `====` around the sample includes groups these samples and collapses them
-* `include::sample`: invokes the `SampleIncludeProcessor` asciidoctor extension, with a `dir` relative to `src/snippets/`, and a list of `files` separated by `;` (only 1 in this example), each with optional `tags=...` (like Asciidoctor's tags mechanism). We write this once for each DSL dialect. This notes to our front-end code to group these 2 samples and show them with selector tabs.
-* `[.multi-language-text.lang-groovy]`: Most times the gradle command is identical between Groovy and Kotlin samples, but in this case we need to use `[.multi-language-text.lang-*]` that our CSS will collapse and switch for the DSL of choice. This is case-sensitive. You can use this construct for any 2 sibling blocks!
+## Testing Docs
 
-It is possible to embed sample sources, commands, and expected output directly in the Asciidoc (or a mixture of embedded and `include`d), but we don't use this for the user manual yet. See the [Exemplar documentation](https://github.com/gradle/exemplar/#configuring-embedded-samples) if you're interested in this.
+### What Gets Tested
 
-## Testing docs 
+The `docs:docsTest` task covers three sources of code:
 
-Currently, `docs` is tested by `docs:docsTest`, which covers three kinds of code: 
+1. **Generated samples** — Output of `gradle init` (via `generate-samples.gradle.kts`).
+2. **Code samples** — Located in `src/samples/`. Published alongside the user manual.
+3. **Code snippets** — Located in `src/snippets/`. Included inline in the user manual.
 
-- The code generated by [Build Init Plugin](https://docs.gradle.org/current/userguide/build_init_plugin.html), i.e. `gradle init` task.
-  - `generate-samples.gradle.kts` registers multiple generator tasks that generate the same sample project code as you manually run `gradle init`.
-  - These sample projects will also be published beside the user manual.
-- The code samples under `platforms/documentation/docs/src/samples`. They are published beside the user manual.
-- [The code snippets](#code-snippets) under `platforms/documentation/docs/src/snippets`, which are typically included in the user manual.
+> **Terminology note:** "Sample" is overloaded. In this codebase, "code samples" refers to `src/samples/`, while "exemplar sample" refers to the unit of testing used by the [Exemplar framework](https://github.com/gradle/exemplar/).
 
-Note: the terminology `sample` could refer to different things depending on the context:
+### Running Specific Tests
 
-- The code samples under `platforms/documentation/docs/src/samples`. We'll call them "code samples."
-- The test unit used by [exemplar framework](https://github.com/gradle/exemplar/blob/9c4415f6237d7d86329fdbb32d80a2f7dd8ae0a9/samples-discovery/src/main/java/org/gradle/exemplar/model/Sample.java#L21). We'll call them "exemplar sample".
-
-The build script of the `docs` subproject (`supprojects/docs/build.gradle`) eventually assembles the three kinds of docs code above to exemplar samples and then tests them with exemplar.
-
-### `org.gradle.samples` plugin
-
-`platforms/documentation/docs/build.gradle` applies `generate-samples.gradle.kts`, which further applies an opinionated plugin called `org.gradle.samples`.
-The source code of this plugin is [here](https://github.com/gradle/guides/blob/ba018cec535d90f75876bfcca29381d213a956cc/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/internal/LegacySamplesDocumentationPlugin.java#L9).
-This plugin adds a [`Samples`](https://github.com/gradle/guides/blob/fa335417efb5656e202e95759ebf8a4e60843f10/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/Samples.java#L8) extension named `samples`.
-
-This `samples` extension is configured in both `platforms/documentation/docs/build.gradle` and `generate-samples.gradle.kts`:
-all docs code to be tested will be assembled into [`samples.publishedSamples`](https://github.com/gradle/guides/blob/fa335417efb5656e202e95759ebf8a4e60843f10/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/Samples.java#L41), as follows:
-
-```
-This graph is generated by [asciiflow.com](https://asciiflow.com/). You can copy-paste it to the website to modify it. 
-
-┌────────────────────────────────────┐
-│ documentation/docs/build.gradle    │
-│ ┌────────────────────────────────┐ │    ┌─────────────────────────────────┐
-│ │ generate-samples.gradle.kts    ├─┼───►│ code generated by init tasks    ├───┐
-│ │                                │ │    │                                 │   │
-│ └────────────────────────────────┘ │    └─────────────────────────────────┘   │
-│                                    │                                          │
-│  samples {                         │    ┌─────────────────────────────────┐   │
-│    ...                             │    │ code snippets in src/snippets   ├───┤
-│    publishedSamples {  ────────────┼─┬─►│                                 │   │
-│      ...                           │ │  └─────────────────────────────────┘   │
-└────────────────────────────────────┘ │                                        │
-                                       │  ┌─────────────────────────────────┐   │
-                                       └─►│ code samples in src/samples     ├───┤
-                                          │                                 │   │
-                                          └─────────────────────────────────┘   │
-                                                                                │
-                                                                                │
-                                        ┌───────────────────────────────────┐   │
-                                        │ org.gradle.samples plugin         │   │
-                                        │ ┌─────────────────────────────┐   │   │
-┌─────────────┐   Install samples to    │ │ Samples.publishedSamples    │   │   │
-│  Exemplar   │   local directory and   │ │                             │   │   │
-│             │   test with exemplar    │ │                             │   │   │
-│             │◄────────────────────────┤ │                             ◄───┼───┘
-│             │                         │ │                             │   │
-└─────────────┘                         │ │                             │   │
-                                        │ └─────────────────────────────┘   │
-                                        │                                   │
-                                        └───────────────────────────────────┘
-```
-
-The elements in `samples.publishedSamples` container will later be installed into a local directory (by default [`docs/build/working/samples/install`](https://github.com/gradle/guides/blob/900650c6fd6c980ae7335d7aab6dea200a693aa0/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/internal/SamplesInternal.java#L46)) as exemplar samples.
-
-After the exemplar examples are installed, `docs:docsTest` will start testing them (see [`BaseSamplesTest`](https://github.com/gradle/gradle/blob/a503d4a36c53e43a8857da3115fa744612c6ad36/subprojects/docs/src/docsTest/java/org/gradle/docs/samples/BaseSamplesTest.java#L66)).
-
-### Code samples
-
-To run the samples tests:
-```
+```bash
+# All sample tests
 ./gradlew :docs:docsTest --tests "org.gradle.docs.samples.*.*"
-```
 
-To run tests for a single sample, let's say from `samples/java/application`:
-```
+# A single sample (e.g., java/application)
 ./gradlew :docs:docsTest --tests "org.gradle.docs.samples.DependencyManagementSnippetsTest.java-application*"
-```
 
-Note that the samples are also used in `samples` subproject, see [`@UsesSample`](https://github.com/gradle/gradle/blob/9ade1a05427aaf04c976a0e85814b44b3435f9f9/subprojects/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/UsesSample.java#L25) and [`Sample`](https://github.com/gradle/gradle/blob/903c5f2cee88c9768077d46025eaafdf65862fc8/subprojects/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/Sample.java#L37).
-
-### Code snippets
-
-As an example, you can run Kotlin and Groovy snippets tests from [`src/snippets/java/toolchain-task/`](src/snippets/java/toolchain-task) using:
-```
+# A specific snippet (both DSLs)
 ./gradlew :docs:docsTest --tests "*.snippet-java-toolchain-task_*"
-```
 
-You can also filter the tests for a specific DSL like this:
-```
+# A specific snippet, Kotlin DSL only
 ./gradlew :docs:docsTest --tests "*.snippet-java-toolchain-task_kotlin_*"
+
+# snippets/buildlifecycle/flowAction/
+./gradlew :docs:docsTest --tests "*.snippet-buildlifecycle-flow-action_*"
+
+# snippets/buildlifecycle/buildServices/
+./gradlew :docs:docsTest --tests "*.snippet-buildlifecycle-build-service_*"
 ```
 
-### Testing with configuration cache
+### Testing with Configuration Cache
 
-It is possible to run samples and snippets with the configuration cache enabled to ensure compatibility.
-You can do that by setting the Gradle property `enableConfigurationCacheForDocsTests` in the command line or in the `gradle.properties` file.
-```
+```bash
 ./gradlew :docs:docsTest --tests "*.snippet-java-toolchain-task_*" -PenableConfigurationCacheForDocsTests=true
 ```
 
+You can also set `enableConfigurationCacheForDocsTests=true` in `gradle.properties`.
+
+---
+
+## Style Guides
+
+All documentation contributions must follow these style guides:
+
+- **User Manual** (`.adoc` files): Follow the [Microsoft Writing Style Guide](https://learn.microsoft.com/en-us/style-guide/welcome/).
+- **Javadoc**: Follow the [Gradle Javadoc Style Guide](https://github.com/gradle/gradle/blob/master/contributing/JavadocStyleGuide.md).
+
+---
+
 ## Groovy DSL Reference
 
-The DSL reference is authored in Docbook syntax, with sources under `src/docs/dsl`.
-Much of the content is extracted from code doc comments.
+**Source:** `src/docs/dsl/` — authored in Docbook syntax. Much content is extracted from code doc comments.
 
-To build it, run:
+### Build
 
 ```bash
 ./gradlew :docs:dslHtml
 ```
 
-The output is available under `build/working/dsl`.
+**Output:** `build/working/dsl/`
 
-### Useful docbook tags
+### Useful Custom Tags
 
-See the [docbook reference](http://docbook.org/tdg/en/html/part2.html) for a list of all available tags.
+**`<apilink>`** — Links to the DSL reference or Javadoc for a class or method.
 
-#### Custom Tags
+Link to a class:
+```xml
+You can use the <apilink class='org.gradle.api.Project' /> interface to do stuff.
+```
 
-##### `<apilink>`
+Link to a method:
+```xml
+<apilink class='org.gradle.api.Project' method="apply(java.util.Map)" />
+```
 
-This is an inline element which adds a link to the API documentation for a particular class or method.
+For the full list of standard Docbook tags, see the [Docbook reference](http://docbook.org/tdg/en/html/part2.html).
 
-    You can use the <apilink class='org.gradle.api.Project' /> interface to do stuff.
+---
 
-The link will point to the DSL reference for the specified class, if available. Otherwise, it will point to the javadoc for the class.
+## Javadoc
 
-To link to a method:
+```bash
+./gradlew :docs:javadocAll
+```
 
-    <apilink class='org.gradle.api.Project' method="apply(java.util.Map)" />
+**Output:** `build/javadoc/`
 
-## Javadocs
+---
 
-To build these, run:
+## Build All Docs
 
-    ./gradlew :docs:javadocAll
-
-The output is available within `build/javadoc`.
-
-## Building all the docs
-
-There is a convenience task to build all the documentation:
-
-    ./gradlew :docs:docs
+```bash
+./gradlew :docs:docs
+```
