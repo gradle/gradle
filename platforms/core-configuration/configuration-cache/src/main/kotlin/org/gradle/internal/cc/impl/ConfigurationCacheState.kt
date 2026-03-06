@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.cache.MarkingStrategy
 import org.gradle.api.file.FileCollection
@@ -25,8 +26,10 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
+import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal.EntryRetention
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.api.services.internal.BuildServiceProvider
@@ -317,6 +320,23 @@ class ConfigurationCacheState(
     }
 
     private
+    fun includedBuildProjectsToTransformInRootBuild(build: BuildState): List<Path> {
+        if (build !is IncludedBuildState) return emptyList()
+        return build.mutableModel.root.taskGraph.collectScheduledWork().scheduledNodes
+            .filterIsInstance<TransformStepNode>()
+            .mapNotNull { node ->
+                val id = node.inputArtifact.id.componentIdentifier
+                (id as? ProjectComponentIdentifier)?.let {
+                    if (it.build.buildPath == build.identityPath.asString()) {
+                        Path.path(it.projectPath)
+                    } else {
+                        null
+                    }
+                }
+            }
+    }
+
+    private
     suspend fun MutableReadContext.readBuildsInTree(rootBuild: ConfigurationCacheBuild): List<CachedBuildState> {
         return readList {
             readBuildState(rootBuild)
@@ -326,20 +346,23 @@ class ConfigurationCacheState(
     private
     suspend fun WriteContext.writeBuildState(build: BuildToStore, buildTreeState: StoredBuildTreeState) {
         val state = build.build
+        val includedBuildProjectsToTransformInRootBuild = includedBuildProjectsToTransformInRootBuild(state)
         when {
-            !build.hasWork && !build.hasChildren -> {
+            build.hasNoWork && includedBuildProjectsToTransformInRootBuild.isEmpty() -> {
                 writeEnum(BuildType.BuildWithNoWork)
                 writeBuildWithNoWork(state)
             }
 
             state is RootBuildState -> {
                 writeEnum(BuildType.RootBuild)
-                writeBuildContent(state, buildTreeState)
+                writeBuildContent(state, buildTreeState) { true }
             }
 
             state is IncludedBuildState -> {
                 writeEnum(BuildType.IncludedBuild)
-                writeIncludedBuild(state, buildTreeState)
+                writeIncludedBuild(state, buildTreeState) {
+                    build.hasWork || it.projectPath in includedBuildProjectsToTransformInRootBuild
+                }
             }
 
             state is StandAloneNestedBuild -> {
@@ -364,7 +387,11 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun WriteContext.writeIncludedBuild(state: IncludedBuildState, buildTreeState: StoredBuildTreeState) {
+    suspend fun WriteContext.writeIncludedBuild(
+        state: IncludedBuildState,
+        buildTreeState: StoredBuildTreeState,
+        shouldStoreProject: (ProjectState) -> Boolean
+    ) {
         val gradle = state.mutableModel
         withGradleIsolate(gradle, userTypesCodec) {
             write(gradle.settings.settingsScript.resource.file)
@@ -375,7 +402,8 @@ class ConfigurationCacheState(
         gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
             writeIncludedBuildStateTo(
                 stateFileFor(state.buildDefinition),
-                buildTreeState
+                buildTreeState,
+                shouldStoreProject,
             )
         }
     }
@@ -402,7 +430,7 @@ class ConfigurationCacheState(
             writeIncludedBuildStateTo(
                 stateFileFor(state.buildDefinition),
                 buildTreeState
-            )
+            ) { true }
         }
     }
 
@@ -457,19 +485,28 @@ class ConfigurationCacheState(
         }
 
     internal
-    suspend fun WriteContext.writeBuildContent(buildState: BuildState, buildTreeState: StoredBuildTreeState) {
+    suspend fun WriteContext.writeBuildContent(
+        buildState: BuildState,
+        buildTreeState: StoredBuildTreeState,
+        shouldStoreProject: (ProjectState) -> Boolean
+    ) {
         val gradle = buildState.mutableModel
         if (buildState.isProjectsCreated) {
             writeBoolean(true)
             val scheduledWork = gradle.taskGraph.collectScheduledWork()
             withDebugFrame({ "Gradle" }) {
                 writeGradleState(gradle)
-                val projects = collectProjects(buildState.projects, scheduledWork.scheduledNodes, gradle.serviceOf())
+                val projects = collectProjects(buildState.projects, scheduledWork.scheduledNodes, gradle.serviceOf(), shouldStoreProject)
                 writeProjects(gradle, projects)
                 writeRequiredBuildServicesOf(buildState, buildTreeState)
             }
-            withDebugFrame({ "Work Graph" }) {
-                writeWorkGraphOf(gradle, scheduledWork)
+            if (scheduledWork.scheduledNodes.isNotEmpty()) {
+                writeBoolean(true)
+                withDebugFrame({ "Work Graph" }) {
+                    writeWorkGraphOf(gradle, scheduledWork)
+                }
+            } else {
+                writeBoolean(false)
             }
             withDebugFrame({ "Flow Scope" }) {
                 writeFlowScopeOf(gradle)
@@ -495,10 +532,15 @@ class ConfigurationCacheState(
             applyProjectStates(projects, gradle)
             readRequiredBuildServicesOf(gradle)
 
-            val workGraph = readWorkGraph(gradle)
+            val workGraph = if (readBoolean()) readWorkGraph(gradle) else null
             readFlowScopeOf(gradle)
             readBuildOutputCleanupRegistrations(gradle)
-            return BuildWithWork(build.state.identityPath, build, gradle.rootProject.name, projects, workGraph)
+
+            return if (workGraph == null) {
+                BuildWithNoWork(build.state.identityPath, gradle.rootProject.name, projects)
+            } else {
+                BuildWithWork(build.state.identityPath, build, gradle.rootProject.name, projects, workGraph)
+            }
         } else {
             return BuildWithNoProjects(build.state.identityPath)
         }
@@ -837,17 +879,30 @@ class ConfigurationCacheState(
     }
 
     private
-    fun collectProjects(projects: BuildProjectRegistry, nodes: List<Node>, relevantProjectsRegistry: RelevantProjectsRegistry): List<CachedProjectState> {
+    fun collectProjects(
+        projects: BuildProjectRegistry,
+        nodes: List<Node>,
+        relevantProjectsRegistry: RelevantProjectsRegistry,
+        shouldStoreProject: (ProjectState) -> Boolean
+    ): List<CachedProjectState> {
         val relevantProjects = relevantProjectsRegistry.relevantProjects(nodes)
-        return projects.allProjects.map { project ->
-            val mutableModel = project.mutableModel
-            if (relevantProjects.contains(project)) {
-                mutableModel.layout.buildDirectory.finalizeValue()
-                ProjectWithWork(project.projectPath, mutableModel.projectDir, mutableModel.buildFile, mutableModel.layout.buildDirectory.asFile.get(), mutableModel.normalization.computeCachedState())
-            } else {
-                ProjectWithNoWork(project.projectPath, mutableModel.projectDir, mutableModel.buildFile)
+        return projects.allProjects
+            .filter(shouldStoreProject)
+            .map { project ->
+                val mutableModel = project.mutableModel
+                if (relevantProjects.contains(project)) {
+                    mutableModel.layout.buildDirectory.finalizeValue()
+                    ProjectWithWork(
+                        project.projectPath,
+                        mutableModel.projectDir,
+                        mutableModel.buildFile,
+                        mutableModel.layout.buildDirectory.asFile.get(),
+                        mutableModel.normalization.computeCachedState()
+                    )
+                } else {
+                    ProjectWithNoWork(project.projectPath, mutableModel.projectDir, mutableModel.buildFile)
+                }
             }
-        }
     }
 
     private
