@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
+import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 
 class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
     def setup() {
@@ -77,7 +78,28 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         expect:
         succeeds ':outgoingVariants'
         reportsNoProperVariants()
-        promptsForRerunToFindMoreVariants()
+        promptsForRerunToFindMoreVariants(true)
+    }
+
+    def "if both legacy configurations and configuration without attributes present, and --all not specified, task produces empty report and prompts for rerun"() {
+        given:
+        buildFile << """
+            configurations.create("legacy") {
+                description = "My legacy configuration"
+                assert canBeResolved
+                assert canBeConsumed
+            }
+            configurations.create("custom") {
+                description = "My custom configuration without attributes"
+                canBeResolved = false
+                assert canBeConsumed
+            }
+        """
+
+        expect:
+        succeeds ':outgoingVariants'
+        reportsNoProperVariants()
+        promptsForRerunToFindMoreVariants(true)
     }
 
     def "if only legacy configuration present, task reports it if --all flag is set"() {
@@ -91,7 +113,7 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        executer.expectExternalDeprecatedMessage('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
+        executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.'))
         run ':outgoingVariants', '--all'
 
         then:
@@ -117,7 +139,6 @@ My custom legacy configuration""")
         """
 
         when:
-        executer.expectExternalDeprecatedMessage('(n) Variant not selectable via attributes. Variants without attributes cannot be used for variant-aware dependency resolution.')
         succeeds ':outgoingVariants', '--all'
 
         then:
@@ -778,6 +799,7 @@ Secondary Variants (*)
         // Should NOT show archives and default (neither have attributes)
         outputDoesNotContain("Variant archives")
         outputDoesNotContain("Variant default")
+
         and:
         doesNotHaveLegacyLegend()
         hasSecondaryVariantsLegend()
@@ -1370,7 +1392,6 @@ Artifacts
         """
 
         when:
-        executer.expectExternalDeprecatedMessage('(n) Variant not selectable via attributes. Variants without attributes cannot be used for variant-aware dependency resolution.')
         succeeds ':outgoingVariants', '--all'
 
         then:

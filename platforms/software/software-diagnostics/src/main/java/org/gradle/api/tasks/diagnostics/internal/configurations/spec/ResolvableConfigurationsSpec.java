@@ -80,4 +80,9 @@ public final class ResolvableConfigurationsSpec extends AbstractConfigurationRep
     public boolean isPurelyCorrectType(ReportConfiguration configuration) {
         return configuration.getType() == ReportConfiguration.Type.RESOLVABLE;
     }
+
+    @Override
+    public boolean isFilterConfigurationsWithoutAttributes() {
+        return false;
+    }
 }
