@@ -18,8 +18,10 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
+import org.gradle.tooling.internal.consumer.Distribution
 
-class ToolingApiConnector {
+class ToolingApiConnector extends GradleConnector {
     GradleConnector connector
     private final OutputStream stdout
     private final OutputStream stderr
@@ -30,8 +32,22 @@ class ToolingApiConnector {
         this.connector = connector
     }
 
+    ToolingApiConnector setDistribution(Distribution distribution) {
+        ((DefaultGradleConnector) connector).distribution = distribution
+        this
+    }
+
+    Distribution getDistribution() {
+        return ((DefaultGradleConnector) connector).distribution
+    }
+
     ProjectConnection connect() {
         new ToolingApiConnection(connector.connect(), stdout, stderr) as ProjectConnection
+    }
+
+    @Override
+    void disconnect() {
+        connector.disconnect()
     }
 
     ToolingApiConnector searchUpwards(boolean searchUpwards) {
@@ -39,24 +55,39 @@ class ToolingApiConnector {
         this
     }
 
-    def methodMissing(String name, args) {
-        connector."$name"(*args)
+    @Override
+    GradleConnector useInstallation(File gradleHome) {
+        connector.useInstallation(gradleHome)
+        this
     }
 
-    void propertyMissing(String name, value) {
-        connector."$name" = value
+    @Override
+    GradleConnector useGradleVersion(String gradleVersion) {
+        connector.useGradleVersion(gradleVersion)
+        this
     }
 
-    def propertyMissing(String name) {
-        connector."$name"
+    @Override
+    GradleConnector useDistribution(URI gradleDistribution) {
+        connector.useDistribution(gradleDistribution)
+        this
     }
 
-    ToolingApiConnector forProjectDirectory(File projectDir) {
+    @Override
+    GradleConnector useBuildDistribution() {
+        connector.useBuildDistribution()
+        this
+    }
+
+    @Override
+    GradleConnector forProjectDirectory(File projectDir) {
         connector.forProjectDirectory(projectDir)
         this
     }
 
-    def disconnect() {
-        connector.disconnect()
+    @Override
+    GradleConnector useGradleUserHomeDir(File gradleUserHomeDir) {
+        connector.useGradleUserHomeDir(gradleUserHomeDir)
+        this
     }
 }
