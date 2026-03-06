@@ -87,7 +87,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant with the requested capability: coordinates 'org:optional-feature'")
+                    assertHasCause("Unable to find a variant of 'org.gradle.test:publishTest:1.9' with the requested capability: coordinates 'org:optional-feature'")
                 }
             }
         }
@@ -278,7 +278,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 withoutModuleMetadata {
                     shouldFail {
                         // documents the current behavior
-                        assertHasCause("Unable to find a variant with the requested capability: coordinates 'org:optional-feature'")
+                        assertHasCause("Unable to find a variant of 'org.gradle.test:publishTest:1.9' with the requested capability: coordinates 'org:optional-feature'")
                     }
                 }
             }
@@ -375,7 +375,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant with the requested capability: coordinates 'org:optional-feature'")
+                    assertHasCause("Unable to find a variant of 'org.gradle.test:publishTest:1.9' with the requested capability: coordinates 'org:optional-feature'")
                 }
             }
         }
@@ -463,7 +463,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant with the requested capability: coordinates 'org:optional-feature'")
+                    assertHasCause("Unable to find a variant of 'org.gradle.test:publishTest:1.9' with the requested capability: coordinates 'org:optional-feature'")
                 }
             }
         }
