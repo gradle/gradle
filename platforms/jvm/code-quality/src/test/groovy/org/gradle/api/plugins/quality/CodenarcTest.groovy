@@ -31,8 +31,8 @@ class CodenarcTest extends Specification {
         codenarc.config.inputFiles.singleFile == project.file("config/file.txt")
     }
 
-    def "has html/xml/text/console"() {
+    def "has html/xml/text/console/baseline/sortable/json/gitlab"() {
         expect:
-        codenarc.reports.names == ['console', 'html', 'text', 'xml'] as Set
+        codenarc.reports.names == ['baseline', 'console', 'gitlab', 'html', 'json', 'sortable', 'text', 'xml'] as Set
     }
 }
