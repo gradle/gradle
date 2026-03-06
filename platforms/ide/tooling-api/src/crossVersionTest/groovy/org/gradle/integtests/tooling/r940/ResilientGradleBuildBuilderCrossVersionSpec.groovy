@@ -114,9 +114,6 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         e.cause.message.contains("Execution failed for task ':buildSrc:compileKotlin'")
         def model = modelCollector.model
 
-        println("FAILURES: ")
-        model.failures.each { println(it)}
-
         if (targetVersion >= GradleVersion.version("9.5.0")) {
             assertFailures(model,
                 "Execution failed for task ':buildSrc:compileKotlin' \\(registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper'\\).",

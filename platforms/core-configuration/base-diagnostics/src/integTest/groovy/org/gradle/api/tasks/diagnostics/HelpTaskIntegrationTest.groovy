@@ -103,7 +103,7 @@ Directory '$sub' does not contain a Gradle build.
 
     def "shows help message when run in a buildSrc directory that does not contain build or settings script"() {
         given:
-        executer.requireOwnGradleUserHomeDir("")
+        executer.requireOwnGradleUserHomeDir()
         settingsFile.createFile()
         def sub = file("buildSrc").createDir()
         sub.file("src/main/java/Thing.java") << "class Thing { }"
