@@ -76,6 +76,7 @@ dependencies {
     testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
     testFixturesImplementation(testFixtures(projects.enterpriseLogging))
+    testFixturesImplementation(testFixtures(projects.launcher))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
