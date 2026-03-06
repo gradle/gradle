@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
@@ -284,7 +283,6 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3522")
-    @ToBeFixedForConfigurationCache(because = "early dependency resolution")
     def "war task doesn't trigger dependency resolution early"() {
         when:
         buildFile << """
@@ -293,8 +291,11 @@ configurations {
 }
 
 task assertUnresolved {
+    def confProvider = provider { configurations.conf.state.toString() }
+    inputs.property("confState", confProvider)
+
     doLast {
-        assert configurations.conf.state == Configuration.State.UNRESOLVED
+        assert confProvider.get() == Configuration.State.UNRESOLVED.toString()
     }
 }
 
