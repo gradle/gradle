@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.performance.results.WritableResultsStore
@@ -43,14 +44,14 @@ class AbstractCrossBuildPerformanceTest extends AbstractPerformanceTest {
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
-    CrossBuildPerformanceTestRunner runner
+    private CrossBuildPerformanceTestRunner runner
 
     def setup() {
         Assume.assumeFalse(Boolean.getBoolean(CROSS_VERSION_ONLY_PROPERTY_NAME))
         runner = new CrossBuildPerformanceTestRunner(
-                new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
-                RESULTS_STORE.reportAlso(dataReporter),
-                buildContext
+            new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
+            RESULTS_STORE.reportAlso(dataReporter),
+            buildContext
         ) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
@@ -73,10 +74,22 @@ class AbstractCrossBuildPerformanceTest extends AbstractPerformanceTest {
         performanceTestIdProvider.setTestSpec(runner)
     }
 
+    @Override
+    CrossBuildPerformanceTestRunner getRunner() {
+        runner
+    }
+
     protected void defaultSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
     }
 
     protected void finalizeSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+    }
+
+    protected static BaselineVersion buildBaselineResults(CrossBuildPerformanceResults results, String name) {
+        def baselineResults = new BaselineVersion(name)
+        baselineResults.results.name = name
+        baselineResults.results.addAll(results.buildResult(name))
+        return baselineResults
     }
 
     static {

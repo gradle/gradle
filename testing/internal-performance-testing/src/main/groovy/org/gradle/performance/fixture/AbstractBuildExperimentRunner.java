@@ -93,9 +93,9 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         System.out.println();
 
         InvocationSpec invocationSpec = experiment.getInvocation();
-        File workingDirectory = invocationSpec.getWorkingDirectory();
-        workingDirectory.mkdirs();
-        copyTemplateTo(experiment, workingDirectory);
+        File projectCheckoutDir = invocationSpec.getProjectCheckoutDirectory();
+        projectCheckoutDir.mkdirs();
+        copyTemplateTo(experiment, projectCheckoutDir);
 
         doRun(testId, experiment, results);
     }
@@ -116,7 +116,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         File outputDir = outputDirFor(testId, experiment);
         InvocationSpec invocationSpec = experiment.getInvocation();
         return new InvocationSettings.InvocationSettingsBuilder()
-            .setProjectDir(invocationSpec.getWorkingDirectory())
+            .setProjectDir(invocationSpec.getProjectCheckoutDirectory())
             .setProfiler(profiler)
             .setBenchmark(true)
             .setOutputDir(outputDir)

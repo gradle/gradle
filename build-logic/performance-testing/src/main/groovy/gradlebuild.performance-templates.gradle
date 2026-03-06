@@ -422,6 +422,14 @@ performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
     }
 }
 
+performanceTest.registerAndroidTestProject("android500Kts", RemoteProject) {
+    setRemoteUriAndRefFromGradleProperty("isolatedProjectsTestbedRef")
+    subdirectory = 'android-500-kts'
+    doLast {
+        setMaxWorkers(outputDirectory, 8)
+    }
+}
+
 performanceTest.registerAndroidTestProject("uberMobileApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/android-build-eval.git'
     subdirectory = 'mobile_app1'

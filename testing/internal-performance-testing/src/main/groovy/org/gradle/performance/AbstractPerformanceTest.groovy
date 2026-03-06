@@ -18,6 +18,7 @@ package org.gradle.performance
 
 import org.gradle.performance.fixture.AbstractBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestRunner
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.DefaultOutputDirSelector
 import org.gradle.performance.results.GradleProfilerReporter
@@ -61,4 +62,7 @@ abstract class AbstractPerformanceTest extends Specification {
             }
         })
     }
+
+    abstract PerformanceTestRunner getRunner()
+
 }
