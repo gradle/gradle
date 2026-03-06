@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+kotlinBuildLogic {
+    description = "Provides plugin for generating architecture documentation"
 
-plugins {
-    `kotlin-dsl`
-}
-
-description = "Provides plugin for generating architecture documentation"
-
-group = "gradlebuild"
-
-dependencies {
-    implementation(project(":build-environment"))
-    implementation(buildLibs.gson)
+    dependencies {
+        implementation(project(":build-environment"))
+        implementation(catalog("buildLibs.gson"))
+    }
 }

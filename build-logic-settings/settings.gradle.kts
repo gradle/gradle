@@ -46,6 +46,11 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("gradlebuild.build-logic-software-types")
+    `kotlin-dsl` apply false
+}
+
 include("architecture-docs")
 include("build-environment")
 include("configuration-cache-compatibility")
