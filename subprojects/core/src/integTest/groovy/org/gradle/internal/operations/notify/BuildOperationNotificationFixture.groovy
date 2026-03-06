@@ -32,7 +32,7 @@ class BuildOperationNotificationFixture extends BuildOperationsFixture {
     }
 
     def op(Class<?> detailsClass, Map<String, String> details = [:]) {
-        def found = all().findAll { op ->
+        def found = records.findAll { op ->
             return op.detailsType != null && detailsClass.isAssignableFrom(op.detailsType) && op.details.subMap(details.keySet()) == details
         }
         assert found.size() == 1
@@ -40,7 +40,7 @@ class BuildOperationNotificationFixture extends BuildOperationsFixture {
     }
 
     def ops(Class<?> detailsClass, Map<String, String> details = [:]) {
-        def found = all().findAll { op ->
+        def found = records.findAll { op ->
             return op.detailsType != null && detailsClass.isAssignableFrom(op.detailsType) && op.details.subMap(details.keySet()) == details
         }
         return found
@@ -85,7 +85,7 @@ class BuildOperationNotificationFixture extends BuildOperationsFixture {
     }
 
     void has(boolean started, Class<?> type, @Nullable Predicate<? super Map<String, ?>> payloadTest) {
-        def typedOps = all().findAll { op ->
+        def typedOps = records.findAll { op ->
             if (started) {
                 if (op.detailsType == null) {
                     return false

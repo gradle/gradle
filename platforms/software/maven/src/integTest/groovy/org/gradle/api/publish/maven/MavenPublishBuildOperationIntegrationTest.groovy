@@ -65,8 +65,9 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
         then:
         def writes1 = buildOperations.all(ExternalResourceWriteBuildOperationType)
         writes1.size() == 20
-        writes1[0].details.location == m1.artifact.uri.toString()
-        writes1[0].result.bytesWritten == m1.artifact.file.length()
+        def firstWrite = buildOperations.first(ExternalResourceWriteBuildOperationType)
+        firstWrite.details.location == m1.artifact.uri.toString()
+        firstWrite.result.bytesWritten == m1.artifact.file.length()
 
         def reads1 = buildOperations.all(ExternalResourceReadBuildOperationType)
         reads1.size() == 1
