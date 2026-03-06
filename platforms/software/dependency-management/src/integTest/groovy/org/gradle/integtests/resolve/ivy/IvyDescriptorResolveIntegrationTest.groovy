@@ -49,22 +49,23 @@ dependencies {
 }
 
 task check {
+    def files = configurations.compile
     doLast {
         configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
             it.children.each { transitive ->
-                assert transitive.moduleGroup == "org.gradle.111"
-                assert transitive.moduleName == "module_111"
-                assert transitive.moduleVersion == "v_111"
+                println "transitive.moduleGroup=\${transitive.moduleGroup}"
+                println "transitive.moduleName=\${transitive.moduleName}"
+                println "transitive.moduleVersion=\${transitive.moduleVersion}"
             }
         }
-        assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'module_111-v_111.jar']
+        println files.collect { it.name }
     }
 }
 """
 
         when:
         executer.withArgument("-Dsys_prop=111")
-        run "checkDeps"
+        run "checkDeps", "check"
 
         then:
         resolve.expectGraph {
@@ -74,6 +75,10 @@ task check {
                 }
             }
         }
+        outputContains("transitive.moduleGroup=org.gradle.111")
+        outputContains("transitive.moduleName=module_111")
+        outputContains("transitive.moduleVersion=v_111")
+        outputContains("[test-1.45.jar, module_111-v_111.jar]")
     }
 
     def "merges values from parent descriptor file that is available locally"() {
@@ -93,8 +98,9 @@ dependencies {
 }
 
 task check {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'dep_module-1.1.jar']
+        println files.collect { it.name }
     }
 }
 """
@@ -106,7 +112,7 @@ task check {
         depModule.jar.expectGet()
 
         when:
-        run "checkDeps"
+        run "checkDeps", "check"
 
         then:
         resolve.expectGraph {
@@ -116,10 +122,11 @@ task check {
                 }
             }
         }
+        outputContains("[test-1.45.jar, dep_module-1.1.jar]")
 
         when:
         server.resetExpectations()
-        run "checkDeps"
+        run "checkDeps", "check"
 
         then:
         resolve.expectGraph {
@@ -129,6 +136,7 @@ task check {
                 }
             }
         }
+        outputContains("[test-1.45.jar, dep_module-1.1.jar]")
     }
 
     def "merges values from parent descriptor file"() {
@@ -149,8 +157,9 @@ dependencies {
 }
 
 task check {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'dep_module-1.1.jar']
+        println files.collect { it.name }
     }
 }
 """
@@ -163,7 +172,7 @@ task check {
         depModule.jar.expectGet()
 
         when:
-        run "checkDeps"
+        run "checkDeps", "check"
 
         then:
         resolve.expectGraph {
@@ -173,10 +182,11 @@ task check {
                 }
             }
         }
+        outputContains("[test-1.45.jar, dep_module-1.1.jar]")
 
         when:
         server.resetExpectations()
-        run "checkDeps"
+        run "checkDeps", "check"
 
         then:
         resolve.expectGraph {
@@ -186,5 +196,6 @@ task check {
                 }
             }
         }
+        outputContains("[test-1.45.jar, dep_module-1.1.jar]")
     }
 }
