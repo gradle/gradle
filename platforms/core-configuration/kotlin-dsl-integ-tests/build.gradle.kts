@@ -1,9 +1,18 @@
 plugins {
     id("gradlebuild.internal.kotlin")
     id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Kotlin DSL Integration Tests"
+
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 8
+        }
+    }
+}
 
 dependencies {
     testImplementation(testFixtures(projects.kotlinDsl))

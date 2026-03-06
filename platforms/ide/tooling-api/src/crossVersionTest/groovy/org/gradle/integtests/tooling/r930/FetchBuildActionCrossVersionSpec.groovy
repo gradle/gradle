@@ -20,11 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
-import org.gradle.tooling.FetchModelResult
-import org.gradle.tooling.model.gradle.BasicGradleProject
-import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.util.GradleVersion
 
 @ToolingApiVersion(">=9.3.0")
@@ -77,7 +72,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        causes == ["No builders are available to build a model of type 'org.gradle.integtests.tooling.r930.FetchBuildActionCrossVersionSpec\$UnknownModel'."]
+        causes == ["No builders are available to build a model of type 'org.gradle.integtests.tooling.r930.UnknownModel'."]
     }
 
     def "can request a custom model"() {
@@ -280,123 +275,5 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
             """
-    }
-
-    static class FetchGradleBuildAction implements BuildAction<Result<List<String>>> {
-        @Override
-        Result<List<String>> execute(BuildController controller) {
-            def result = controller.fetch(null, GradleBuild.class, null, null)
-            def projectNames = null
-            if (result.model != null) {
-                assert result.model instanceof GradleBuild
-                projectNames = result.model.projects.collect { it.name }
-            }
-            def failures = result.failures.stream()
-                .map { it.message }
-                .toList()
-            def causes = result.failures.stream()
-                .flatMap { it.causes.stream() }
-                .map { it.message }
-                .toList()
-            return new Result(projectNames, failures, causes)
-        }
-    }
-
-    static class FetchUnknownModelAction implements BuildAction<List<String>> {
-        @Override
-        List<String> execute(BuildController controller) {
-            def result = controller.fetch(null, UnknownModel.class, null, null)
-            assert result.model === null
-            return result.failures.stream()
-                .flatMap { it.causes.stream() }
-                .map { it.message }
-                .toList()
-        }
-    }
-
-    static class FetchCustomModelAction implements BuildAction<Result<String>> {
-
-        @Override
-        Result execute(BuildController controller) {
-            def result = fetch(controller)
-            def failures = result.failures.stream()
-                .map { it.message }
-                .toList()
-            def causes = result.failures.stream()
-                .flatMap { it.causes.stream() }
-                .map { it.message }
-                .toList()
-            return new Result(result.model?.value, failures, causes)
-        }
-
-        protected FetchModelResult<CustomModel> fetch(BuildController controller) {
-            return controller.fetch(CustomModel.class, null, null)
-        }
-
-        static FetchCustomModelAction withFetchModelCall() {
-            return new FetchCustomModelAction() {
-                @Override
-                FetchModelResult<CustomModel> fetch(BuildController controller) {
-                    return controller.fetch(CustomModel.class)
-                }
-            }
-        }
-
-        static FetchCustomModelAction withFetchTargetModelCall() {
-            return new FetchCustomModelAction() {
-                @Override
-                FetchModelResult<CustomModel> fetch(BuildController controller) {
-                    return controller.fetch(CustomModel.class)
-                }
-            }
-        }
-
-        static FetchCustomModelAction withFetchModelParametersCall() {
-            return new FetchCustomModelAction() {
-                @Override
-                FetchModelResult<CustomModel> fetch(BuildController controller) {
-                    return controller.fetch(CustomModel.class, null, null)
-                }
-            }
-        }
-    }
-
-    static class FetchCustomModelPerProjectAction implements BuildAction<Result<Map<String, String>>> {
-        @Override
-        Result execute(BuildController controller) {
-            def gradleBuildResult = controller.fetch(GradleBuild.class, null, null)
-            assert gradleBuildResult.model instanceof GradleBuild
-            assert gradleBuildResult.failures.isEmpty()
-            def gradleBuild = gradleBuildResult.model as GradleBuild
-            def failures = []
-            def causes = []
-            def values = [:]
-            for (BasicGradleProject project : gradleBuild.projects) {
-                def result = controller.fetch(CustomModel.class, null, null)
-                values[project.name] = result.model?.value
-                failures += result.failures.stream()
-                    .map { it.message }
-                    .toList()
-                causes += result.failures.stream()
-                    .flatMap { it.causes.stream() }
-                    .map { it.message }
-                    .toList()
-            }
-            return new Result(values, failures, causes)
-        }
-    }
-
-    interface UnknownModel {}
-
-    static class Result<T> implements Serializable {
-        T modelValue
-        List<String> failureMessages = []
-        List<String> causes = []
-
-        Result(T modelValue, List<String> failureMessages, List<String> causes) {
-            this.modelValue = modelValue
-            this.failureMessages = failureMessages
-            this.causes = causes
-        }
     }
 }

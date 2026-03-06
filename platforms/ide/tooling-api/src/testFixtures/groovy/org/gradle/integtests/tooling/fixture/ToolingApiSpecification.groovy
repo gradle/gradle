@@ -33,6 +33,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailureWithThrowable
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
@@ -49,6 +50,8 @@ import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.hamcrest.core.IsNot
+import org.junit.Assume
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import spock.lang.Retry
@@ -78,7 +81,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @ToolingApiTest
 @CleanupTestDirectory
 @ToolingApiVersion('>=8.0')
-@TargetGradleVersion('>=4.0')
+// TODO: Gradle 10: remove comments, see https://github.com/gradle/gradle-private/issues/5096 for more information, TL;DR: StackTraceElement can't be serialized across Java 8 & Java 9+
+@TargetGradleVersion('>=5.0') // technically this should be 4.0, and we could get this with reasonable effort to be 4.3 but that would require an unsupported JVM (9), sticking to supported JVMs means Gradle 5 is as low as we can get
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification implements CommonTestFilesFixture, LanguageSpecificTestFileFixture, KotlinDslTestProjectInitiation, ProjectDirectoryCreator {
     /**
@@ -134,6 +138,7 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
     }
 
     def setup() {
+        AvailableJavaHomes.getAvailableJdk { it -> true } // Load info into the test worker about available JDKs before it is discarded below
         // These properties are set on CI. Reset them to allow tests to configure toolchains explicitly.
         System.setProperty("org.gradle.java.installations.auto-download", "false")
         System.setProperty("org.gradle.java.installations.auto-detect", "false")
@@ -203,6 +208,15 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
 
     void multiProjectBuildInRootFolder(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         new BuildTestFixture(projectDir).withBuildInRootDir().multiProjectBuild(projectName, subprojects, cl)
+    }
+
+    GradleExecuter withCompatibleJdk(GradleExecuter gradleExecuter) {
+        if (!targetDist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
+            Jvm jvm = AvailableJavaHomes.getAvailableJdk { it -> targetDist.daemonWorksWith(it.javaMajorVersion) }
+            Assume.assumeThat("Java version available that is supported by " + targetVersion, jvm, IsNot.not(null))
+            gradleExecuter.withJvm(jvm)
+        }
+        return gradleExecuter
     }
 
     void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
