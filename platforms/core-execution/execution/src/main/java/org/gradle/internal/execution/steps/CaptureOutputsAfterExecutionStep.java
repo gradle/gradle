@@ -32,8 +32,11 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -48,6 +51,7 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
     private final AfterExecutionOutputFilter<? super C> outputFilter;
+    private final WorkerLeaseService workerLeaseService;
     private final Step<? super C, ? extends Result> delegate;
 
     public CaptureOutputsAfterExecutionStep(
@@ -55,12 +59,14 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
         AfterExecutionOutputFilter<? super C> outputFilter,
+        WorkerLeaseService workerLeaseService,
         Step<? super C, ? extends Result> delegate
     ) {
         super(buildOperationRunner);
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.outputSnapshotter = outputSnapshotter;
         this.outputFilter = outputFilter;
+        this.workerLeaseService = workerLeaseService;
         this.delegate = delegate;
     }
 
@@ -68,7 +74,13 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
     public AfterExecutionResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
         Optional<ExecutionOutputState> afterExecutionOutputState = context.getCachingState().getCacheKeyCalculatedState()
-            .map(cacheKeyCalculatedState -> captureOutputsAfterExecution(work, context, cacheKeyCalculatedState, result));
+            .map(cacheKeyCalculatedState -> {
+                WorkerLease currentLease = workerLeaseService.getCurrentWorkerLease();
+                return workerLeaseService.withoutLocks(
+                    Collections.singleton(currentLease),
+                    () -> captureOutputsAfterExecution(work, context, cacheKeyCalculatedState, result)
+                );
+            });
 
         return new AfterExecutionResult(result, afterExecutionOutputState.orElse(null));
     }

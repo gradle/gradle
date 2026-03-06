@@ -44,6 +44,7 @@ import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
@@ -64,6 +65,7 @@ public class TestExecutionEngineFactory {
         OverlappingOutputDetector overlappingOutputDetector,
         ValidateStep.ValidationWarningRecorder validationWarningReporter,
         VirtualFileSystem virtualFileSystem,
+        WorkerLeaseService workerLeaseService,
         InternalProblems problems
     ) {
         NoOpBuildOperationProgressEventEmitter progressEventEmitter = new NoOpBuildOperationProgressEventEmitter();
@@ -81,7 +83,7 @@ public class TestExecutionEngineFactory {
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER, workerLeaseService,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,

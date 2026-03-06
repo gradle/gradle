@@ -31,12 +31,10 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
-import org.gradle.internal.execution.history.ExecutionOutputState
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.vfs.FileSystemAccess
 
 import java.time.Duration
-import java.time.temporal.ChronoUnit
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.FROM_CACHE
 

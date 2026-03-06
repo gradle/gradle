@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.SimpleBuildCacheKey
+import org.gradle.internal.Factory
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
@@ -26,6 +27,8 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.internal.work.WorkerLeaseService
 
 import java.time.Duration
 
@@ -38,8 +41,12 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<TestCachingContext> 
     def outputSnapshotter = Mock(OutputSnapshotter)
     def outputFilter = Mock(AfterExecutionOutputFilter)
     def delegateResult = Stub(Result)
+    def workerLeaseService = Stub(WorkerLeaseService) {
+        getCurrentWorkerLease() >> Mock(WorkerLeaseRegistry.WorkerLease)
+        withoutLocks(_, _) >> { Collection locks, Factory factory -> factory.create() }
+    }
 
-    def step = new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildInvocationScopeId, outputSnapshotter, outputFilter, delegate)
+    def step = new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildInvocationScopeId, outputSnapshotter, outputFilter, workerLeaseService, delegate)
 
     def "no state is captured if cache key calculated state is unavailable"() {
         def delegateDuration = Duration.ofMillis(123)
