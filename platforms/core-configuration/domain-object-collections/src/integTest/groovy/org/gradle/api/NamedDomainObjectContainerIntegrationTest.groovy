@@ -16,36 +16,7 @@
 
 package org.gradle.api
 
-import groovy.transform.SelfType
 import spock.lang.Issue
-
-@SelfType(AbstractDomainObjectContainerIntegrationTest)
-trait AbstractNamedDomainObjectContainerIntegrationTest {
-    String getContainerStringRepresentation() {
-        return "SomeType container"
-    }
-
-    String makeContainer() {
-        return "project.objects.domainObjectContainer(SomeType)"
-    }
-
-    static String getContainerType() {
-        return "NamedDomainObjectContainer"
-    }
-
-    def setup() {
-        settingsFile << """
-            class SomeType implements Named {
-                final String name
-
-                SomeType(String name) {
-                    this.name = name
-                }
-            }
-        """
-    }
-}
-
 
 class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
 

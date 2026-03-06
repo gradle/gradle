@@ -118,9 +118,3 @@ abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extend
         succeeds "verify"
     }
 }
-
-class MutatingNamedDomainObjectContainerInHookIntegrationTest extends AbstractMutatingDomainObjectContainerInHookIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-}
-
-class MutatingTaskContainerInHookIntegrationTest extends AbstractMutatingDomainObjectContainerInHookIntegrationTest implements AbstractTaskContainerIntegrationTest {
-}

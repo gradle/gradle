@@ -16,13 +16,12 @@
 
 package org.gradle.api
 
-abstract class MutationFailureFromProviderConfigureDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    def "cannot execute mutation method #mutationMethod.key from Provider.configure"() {
+abstract class MutationFailureFromRegisterDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
+    def "cannot execute mutation method #mutationMethod.key from register"() {
         buildFile << """
-            toBeRealized.configure {
+            testContainer.register("a") {
                 ${mutationMethod.value}
-            }
-            toBeRealized.get()
+            }.get()
         """
 
         expect:
@@ -34,8 +33,3 @@ abstract class MutationFailureFromProviderConfigureDomainObjectContainerIntegrat
     }
 }
 
-class MutationFailureFromProviderConfigureNamedDomainObjectContainerIntegrationTest extends MutationFailureFromProviderConfigureDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-}
-
-class MutationFailureFromProviderConfigureTaskContainerIntegrationTest extends MutationFailureFromProviderConfigureDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
-}

@@ -32,6 +32,7 @@ dependencies {
 
     compileOnly(libs.jspecify)
 
+    testFixturesApi(projects.internalIntegTesting)
     testFixturesImplementation(projects.core)
     testFixturesImplementation(testFixtures(projects.core))
 
@@ -40,5 +41,9 @@ dependencies {
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests use TestUtil which requires runtime service infrastructure")
+    }
+
+    integTestDistributionRuntimeOnly(projects.distributionsCore) {
+        because("Integration tests run full Gradle builds requiring runtime service infrastructure")
     }
 }

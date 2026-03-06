@@ -106,9 +106,3 @@ abstract class AbstractQueryDomainObjectContainerIntegrationTest extends Abstrac
         queryMethod << getQueryMethods()
     }
 }
-
-class QueryNamedDomainObjectContainerIntegrationTest extends AbstractQueryDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-}
-
-class QueryTaskContainerIntegrationTest extends AbstractQueryDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
-}

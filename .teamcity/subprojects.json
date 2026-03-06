@@ -542,7 +542,7 @@
     "name": "domain-object-collections",
     "path": "platforms/core-configuration/domain-object-collections",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

@@ -16,22 +16,21 @@
 
 package org.gradle.api
 
-abstract class QueryAndMutateFromCreateDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    def "can execute query and mutating methods #method.key from create(String)"() {
+abstract class QueryAndMutateFromAllDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
+    def "can execute query and mutating methods #method.key from all"() {
         buildFile << """
-            testContainer.create("a") {
-                ${method.value}
+            testContainer.all {
+                if (it.name == "realized") {
+                    ${method.value}
+                }
             }
         """
+
         expect:
         succeeds "help"
+
         where:
         method << getQueryMethods() + getMutationMethods()
     }
 }
 
-class QueryAndMutateFromCreateNamedDomainObjectContainerIntegrationTest extends QueryAndMutateFromCreateDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-}
-
-class QueryAndMutateFromCreateTaskContainerIntegrationTest extends QueryAndMutateFromCreateDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
-}

@@ -16,10 +16,10 @@
 
 package org.gradle.api
 
-abstract class MutationFailureFromWithTypeConfigureEachDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    def "cannot execute mutation method #mutationMethod.key from withType.configureEach"() {
+abstract class MutationFailureFromProviderConfigureDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
+    def "cannot execute mutation method #mutationMethod.key from Provider.configure"() {
         buildFile << """
-            testContainer.withType(testContainer.type).configureEach {
+            toBeRealized.configure {
                 ${mutationMethod.value}
             }
             toBeRealized.get()
@@ -34,8 +34,3 @@ abstract class MutationFailureFromWithTypeConfigureEachDomainObjectContainerInte
     }
 }
 
-class MutationFailureFromWithTypeConfigureEachNamedDomainObjectContainerIntegrationTest extends MutationFailureFromWithTypeConfigureEachDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-}
-
-class MutationFailureFromWithTypeConfigureEachTaskContainerIntegrationTest extends MutationFailureFromWithTypeConfigureEachDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
-}

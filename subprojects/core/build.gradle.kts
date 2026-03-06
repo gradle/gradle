@@ -253,6 +253,7 @@ dependencies {
         because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
     }
 
+    integTestImplementation(testFixtures(projects.domainObjectCollections))
     integTestImplementation(projects.workers)
     integTestImplementation(projects.dependencyManagement)
     integTestImplementation(projects.launcher)

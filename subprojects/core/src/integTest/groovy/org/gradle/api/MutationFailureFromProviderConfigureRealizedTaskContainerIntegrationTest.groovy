@@ -15,27 +15,6 @@
  */
 
 package org.gradle.api
-
-abstract class MutationFailureFromProviderConfigureRealizedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    def "cannot execute mutation method #mutationMethod.key from Provider.configure (realized)"() {
-        buildFile << """
-            realized.configure {
-                ${mutationMethod.value}
-            }
-            toBeRealized.get()
-        """
-
-        expect:
-        fails "help"
-        failure.assertHasCause(disallowMutationMessage(mutationMethod.key))
-
-        where:
-        mutationMethod << getMutationMethods()
-    }
-}
-
-class MutationFailureFromProviderConfigureRealizedNamedDomainObjectContainerIntegrationTest extends MutationFailureFromProviderConfigureRealizedDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
-}
-
 class MutationFailureFromProviderConfigureRealizedTaskContainerIntegrationTest extends MutationFailureFromProviderConfigureRealizedDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
 }
+

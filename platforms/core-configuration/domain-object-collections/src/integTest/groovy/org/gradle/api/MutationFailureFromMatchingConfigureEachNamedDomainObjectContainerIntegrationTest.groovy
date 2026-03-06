@@ -15,27 +15,6 @@
  */
 
 package org.gradle.api
-
-abstract class MutationFailureFromMatchingConfigureEachDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    def "cannot execute mutation method #mutationMethod.key from matching.configureEach"() {
-        buildFile << """
-            testContainer.matching({ it in testContainer.type }).configureEach {
-                ${mutationMethod.value}
-            }
-            toBeRealized.get()
-        """
-
-        expect:
-        fails "help"
-        failure.assertHasCause(disallowMutationMessage(mutationMethod.key))
-
-        where:
-        mutationMethod << getMutationMethods()
-    }
-}
-
 class MutationFailureFromMatchingConfigureEachNamedDomainObjectContainerIntegrationTest extends MutationFailureFromMatchingConfigureEachDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
 }
 
-class MutationFailureFromMatchingConfigureEachTaskContainerIntegrationTest extends MutationFailureFromMatchingConfigureEachDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
-}
