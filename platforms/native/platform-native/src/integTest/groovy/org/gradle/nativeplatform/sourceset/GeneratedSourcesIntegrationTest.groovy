@@ -33,15 +33,17 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
-        buildFile << """
-class GenerateSources extends DefaultTask {
+        buildFile """
+abstract class GenerateSources extends DefaultTask {
+    @Inject
+    abstract FileSystemOperations getFsOps()
     @InputDirectory File inputDir
     @OutputDirectory File sourceDir
     @OutputDirectory @Optional File headerDir
 
     @TaskAction
     void processInputFiles() {
-        project.copy {
+        fsOps.copy {
             from inputDir
             into sourceDir.parentFile
             filter { String line ->
@@ -64,7 +66,6 @@ task generateCSources(type: GenerateSources) {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "generator task produces c sources and headers"() {
         given:
         def app = new CHelloWorldApp()
@@ -87,11 +88,10 @@ model {
 """
 
         then:
-        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
+
     def "generator task produces sources for dependent source set with headers only"() {
         given:
         // Write sources to src/main, headers to src/input
@@ -122,11 +122,10 @@ model {
 """
 
         then:
-        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
+
     def "generator task produces sources for dependent source set"() {
         given:
         def app = new CHelloWorldApp()
@@ -153,11 +152,10 @@ model {
 """
 
         then:
-        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
+
     def "can have library composed of generated sources"() {
         given:
         def app = new CHelloWorldApp()
@@ -188,11 +186,10 @@ model {
 """
 
         then:
-        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
+
     def "can depend on header-only library composed of generated sources"() {
         given:
         // Write sources to src/main, headers to src/hello
@@ -227,11 +224,10 @@ model {
 """
 
         then:
-        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
+
     def "generator task produces cpp sources"() {
         given:
         def app = new CppHelloWorldApp()
@@ -260,12 +256,10 @@ model {
 """
 
         then:
-        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForConfigurationCache
     def "generator task produces assembler sources"() {
         given:
         def app = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
@@ -297,12 +291,11 @@ model {
 """
 
         then:
-        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
     @RequiresInstalledToolChain(VISUALCPP)
-    @ToBeFixedForConfigurationCache
+
     def "generator task produces windows resources"() {
         given:
         def app = new WindowsResourceHelloWorldApp()
@@ -333,7 +326,6 @@ model {
 """
 
         then:
-        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -364,7 +356,7 @@ model {
         failure.assertHasCause "Could not get unknown property 'sourceDir' for task ':generateSources' of type org.gradle.api.DefaultTask."
     }
 
-    @ToBeFixedForConfigurationCache
+
     def "can explicitly configure source and header directories from generator task"() {
         given:
         def app = new CHelloWorldApp()
@@ -395,11 +387,10 @@ model {
 """
 
         then:
-        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
-    @ToBeFixedForConfigurationCache
+
     def "can configure generator task properties after wiring"() {
         given:
         def app = new CHelloWorldApp()
@@ -430,7 +421,6 @@ lateConfiguredGenerator {
 """
 
         then:
-        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -442,7 +432,7 @@ lateConfiguredGenerator {
         degenerateInputSources()
 
         and:
-        buildFile << """
+        buildFile """
 apply plugin: 'visual-studio'
 apply plugin: 'c'
 
@@ -458,7 +448,6 @@ model {
 """
 
         when:
-        expectTaskGetProjectDeprecations()
         succeeds "visualStudio"
 
         then:
