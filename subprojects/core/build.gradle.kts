@@ -32,6 +32,8 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 }
 
 dependencies {
+    api(projects.ant)
+    api(projects.antApi)
     api(projects.baseAsm)
     api(projects.baseServices)
     api(projects.baseServicesGroovy)
@@ -90,7 +92,6 @@ dependencies {
     api(projects.versionedCache)
     api(projects.workerMain)
 
-    api(libs.ant)
     api(libs.asm)
     api(libs.asmTree)
     api(libs.groovy)
@@ -103,7 +104,6 @@ dependencies {
     implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
     implementation(projects.daemonLogging)
-    implementation(projects.groovyLoader)
     implementation(projects.inputTracking)
     implementation(projects.io)
     implementation(projects.modelGroovy)
@@ -114,13 +114,13 @@ dependencies {
     }
     implementation(projects.projectFeaturesApi)
 
+    implementation(libs.ant)
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.errorProneAnnotations)
     implementation(libs.fastutil)
-    implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
@@ -140,6 +140,7 @@ dependencies {
     runtimeOnly(libs.groovyDatetime)
     runtimeOnly(libs.groovyDoc)
     runtimeOnly(libs.groovyNio)
+    runtimeOnly(projects.groovyLoader)
 
     testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)
@@ -211,6 +212,7 @@ dependencies {
     testFixturesImplementation(projects.normalizationJava)
     testFixturesImplementation(projects.persistentCache)
     testFixturesImplementation(projects.snapshots)
+    testFixturesImplementation(projects.ant)
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.asm)
     testFixturesImplementation(libs.guava)

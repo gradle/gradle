@@ -5,9 +5,9 @@ plugins {
 description = "Implements generation of groovydoc"
 
 dependencies {
+    api(projects.ant)
     api(projects.antWorker)
     api(projects.baseServices)
-    api(projects.core)
     api(projects.coreApi)
 
     implementation(projects.daemonServerWorker)

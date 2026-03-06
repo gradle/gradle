@@ -1,7 +1,28 @@
 [
   {
+    "name": "ant",
+    "path": "platforms/software/ant",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ant-api",
+    "path": "platforms/software/ant-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ant-impl",
+    "path": "platforms/software/ant-impl",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "ant-worker",
-    "path": "platforms/jvm/ant-worker",
+    "path": "platforms/software/ant-worker",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

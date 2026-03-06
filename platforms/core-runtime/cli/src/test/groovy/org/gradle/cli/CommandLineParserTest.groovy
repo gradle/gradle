@@ -373,7 +373,7 @@ class CommandLineParserTest extends Specification {
         def outstr = new StringWriter()
 
         expect:
-        parser.printUsage(outstr)
+        parser.printUsage(outstr, 160)
         outstr.toString().readLines() == [
             '--                                     Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.',
             '  --another-long-option                this is a long option',
@@ -392,7 +392,7 @@ class CommandLineParserTest extends Specification {
         def outstr = new StringWriter()
 
         expect:
-        parser.printUsage(outstr)
+        parser.printUsage(outstr, 160)
         outstr.toString().readLines() == [
             '--                   Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.',
             '  -b                 [deprecated]',
@@ -699,7 +699,7 @@ class CommandLineParserTest extends Specification {
         def outstr = new StringWriter()
 
         expect:
-        parser.printUsage(outstr)
+        parser.printUsage(outstr, 160)
         outstr.toString().readLines() == [
             '--                  Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.',
             '  --a-option        this is option --a-option',
@@ -719,7 +719,7 @@ class CommandLineParserTest extends Specification {
         def outstr = new StringWriter()
 
         expect:
-        parser.printUsage(outstr)
+        parser.printUsage(outstr, 160)
         def usage = outstr.toString()
         usage.contains('--long-option, -a')
         usage.contains('--another-long-option')
@@ -735,7 +735,7 @@ class CommandLineParserTest extends Specification {
         def outstr = new StringWriter()
 
         expect:
-        parser.printUsage(outstr)
+        parser.printUsage(outstr, 160)
         def usage = outstr.toString()
         usage.contains('Execution')
         usage.contains('Logging')
@@ -753,7 +753,7 @@ class CommandLineParserTest extends Specification {
         def outstr = new StringWriter()
 
         expect:
-        parser.printUsage(outstr)
+        parser.printUsage(outstr, 160)
         def lines = outstr.toString().readLines()
         int idxA = lines.findIndexOf { it.contains('--a-option') }
         int idxB = lines.findIndexOf { it.contains('--b-option') }
@@ -770,7 +770,7 @@ class CommandLineParserTest extends Specification {
         def outstr = new StringWriter()
 
         expect:
-        parser.printUsage(outstr)
+        parser.printUsage(outstr, 160)
         def lines = outstr.toString().readLines()
         int idxOn = lines.findIndexOf { it.contains('--a-option') }
         int idxOff = lines.findIndexOf { it.contains('--no-a-option') }
@@ -779,5 +779,24 @@ class CommandLineParserTest extends Specification {
         // ensure they are adjacent (no other option between them)
         idxOff == idxOn + 1
     }
+
+    def "Can print long description to narrow console"() {
+        parser.option('a-option').hasDescription('Option A has a very long description that should be wrapped when printed to a narrow console.')
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr, 20)
+        outstr.toString().readLines() == [
+           '--            Signals the end of built-in',
+           '              options. Parses subsequent',
+           '              parameters as tasks or task',
+           '              options only.',
+           '  --a-option  Option A has a very long',
+           '              description that should be',
+           '              wrapped when printed to a',
+           '              narrow console.',
+        ]
+    }
+
 }
 

@@ -7,6 +7,7 @@ description = "Public and internal 'core' Gradle APIs that are required by other
 dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
+    api(projects.antApi)
     api(projects.stdlibJavaExtensions)
     api(projects.buildCacheSpi)
     api(projects.buildDiscovery)
@@ -18,15 +19,14 @@ dependencies {
     api(projects.declarativeDslApi)
     api(libs.jspecify)
     api(libs.groovy)
-    api(libs.groovyAnt)
     api(libs.guava)
-    api(libs.ant)
     api(libs.inject)
 
     implementation(projects.io)
     implementation(projects.baseServicesGroovy)
     implementation(projects.logging)
 
+    implementation(libs.ant)
     implementation(libs.commonsLang)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
