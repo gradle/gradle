@@ -32,6 +32,14 @@ public abstract class SingleDirectoryReport extends SimpleReport implements Dire
     @Nullable
     private final String relativeEntryPath;
 
+    /**
+     * Creates a single directory report.
+     *
+     * @param name The name of the report
+     * @param owner A {@link Describable} that describes the container that contains and owns this report
+     * @param relativeEntryPath The path of the entry point file relative to the report directory, or null if the entry point is the report directory itself,
+     *   not necessarily the owner itself, only used for naming purposes
+     */
     @Inject
     public SingleDirectoryReport(String name, Describable owner, @Nullable String relativeEntryPath) {
         super(name, Describables.of(name, "report for", owner), OutputType.DIRECTORY);
