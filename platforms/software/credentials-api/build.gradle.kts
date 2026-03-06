@@ -5,9 +5,10 @@ plugins {
 description = "Public API interfaces for Gradle credentials"
 
 dependencies {
-    api(projects.baseServices)  // @NonExtensible (org.gradle.api.NonExtensible)
+    api(projects.baseServices)
     api(libs.jspecify)
 
-    // @ToBeReplacedByLazyProperty — follow the same pattern as core-api for this annotation
-    compileOnly(projects.internalInstrumentationApi)
+    compileOnly(projects.internalInstrumentationApi) {
+        because("Provides @ToBeReplacedByLazyProperty annotation, following the same pattern as core-api")
+    }
 }
