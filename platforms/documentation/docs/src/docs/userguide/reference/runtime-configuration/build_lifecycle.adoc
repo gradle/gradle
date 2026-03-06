@@ -109,7 +109,7 @@ This timeline provides a comprehensive overview of the Gradle build flow **when 
 
 | *Initialization*
 | 1
-| <<init_scripts.adoc,Init Scripts>>
+| <<init_scripts.adoc#init_scripts,Init Scripts>>
 | `~/.gradle/init.d/*.gradle`
 | Global environment setup (e.g., enterprise repos).
 
@@ -211,13 +211,13 @@ This timeline provides a comprehensive overview of the Gradle build flow **when 
 
 |
 | 17b
-| <<graph_resolution.adoc,Dependency Graph Resolution>>*
+| <<graph_resolution.adoc#dependency-graph-resolution,Dependency Graph Resolution>>*
 | Internal (link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`], link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[`ResolvedComponentResult`], link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[`ResolvedVariantResult`])
 | Constructs a dependency graph based on declared dependencies.
 
 |
 | 17c
-| <<artifact_resolution.adoc,Artifact Resolution>>*
+| <<artifact_resolution.adoc#artifact-resolution,Artifact Resolution>>*
 | Internal (link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`], link:{javadocPath}/org/gradle/api/artifacts/ResolvedArtifact.html[`ResolvedArtifact`])
 | Jars are downloaded from repositories. Run Artifact Transforms if needed.
 
@@ -235,7 +235,7 @@ However, any build logic that eagerly accesses a configuration's resolved state,
 
 When the *Configuration Cache is enabled*, *Task Input Snapshotting*, *Dependency Graph Resolution*, and *Artifact Resolution* must be completed during the *Configuration Phase* rather than at execution time, since they are required to fully describe task inputs before the result can be serialized.
 The *Configuration Cache* also fundamentally changes how *Task Input Snapshotting* works.
-You can refer to <<configuration_cache.adoc,Configuration Cache - How It Works>> to learn more.
+You can refer to <<configuration_cache.adoc#config_cache,Configuration Cache - How It Works>> to learn more.
 
 [[task_graph]]
 == Task Graphs
