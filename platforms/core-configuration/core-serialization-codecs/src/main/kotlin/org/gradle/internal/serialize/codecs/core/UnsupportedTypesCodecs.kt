@@ -19,10 +19,10 @@ package org.gradle.internal.serialize.codecs.core
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.LenientConfiguration
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolvedArtifact
@@ -123,7 +123,7 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<DisambiguationRuleChain<*>>())
     bind(unsupported<ArtifactResolutionQuery>())
     bind(unsupported<DependencySet>())
-    bind(unsupported<Dependency>())
+    bind(unsupported<ModuleDependency>()) // Dependency has 2 subtypes: ModuleDependency and FileCollectionDependency; FCDs are serializable
     bind(unsupported<DependencyLockingHandler>())
     bind(unsupported<ResolvedDependency>())
     bind(unsupported<ResolvedArtifact>())
