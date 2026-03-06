@@ -38,6 +38,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
     private val cache: BuildTreeConfigurationCache,
     private val buildRegistry: BuildStateRegistry,
     private val buildModelParameters: BuildModelParameters,
+    private val fastUpToDateCheckState: org.gradle.internal.execution.steps.FastUpToDateCheckLifecycle,
     heapDumpDir: String?,
 ) : BuildTreeWorkController {
 
@@ -47,6 +48,8 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         }
 
     override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): TaskRunResult {
+        fastUpToDateCheckState.resetForBuildStart()
+
         val scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder? = taskSelector?.let { selector ->
             { rootBuildState ->
                 addFinalization(rootBuildState, selector::postProcessExecutionPlan)
@@ -77,8 +80,13 @@ class ConfigurationCacheAwareBuildTreeWorkController(
                 // We don't want to fold the code below here so the "live" graph can be garbage collected before execution.
                 null
             } else {
+                if (workGraph.wasLoadedFromCache) {
+                    fastUpToDateCheckState.setConfigurationCacheHit(true)
+                }
                 maybeDumpHeap("cc-hit")
-                TaskRunResult.ofExecutionResult(workExecutor.execute(workGraph.graph))
+                val runResult = TaskRunResult.ofExecutionResult(workExecutor.execute(workGraph.graph))
+                fastUpToDateCheckState.clearChangedPaths()
+                runResult
             }
         }
         if (executionResult != null) {
@@ -100,7 +108,9 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         return workGraph.withNewWorkGraph { graph ->
             val finalizedGraph = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
             maybeDumpHeap("cc-miss-load")
-            TaskRunResult.ofExecutionResult(workExecutor.execute(finalizedGraph))
+            val runResult = TaskRunResult.ofExecutionResult(workExecutor.execute(finalizedGraph))
+            fastUpToDateCheckState.clearChangedPaths()
+            runResult
         }
     }
 

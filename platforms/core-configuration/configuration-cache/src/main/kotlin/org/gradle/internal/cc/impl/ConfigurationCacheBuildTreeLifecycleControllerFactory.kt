@@ -28,6 +28,7 @@ import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.model.StateTransitionControllerFactory
+import org.gradle.internal.execution.steps.FastUpToDateCheckLifecycle
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
@@ -43,7 +44,8 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor
     private val buildStateRegistry: BuildStateRegistry,
     private val deferredRootBuildGradle: DefaultDeferredRootBuildGradle,
     parameterCarrierFactory: ToolingModelParameterCarrier.Factory,
-    buildOperationRunner: BuildOperationRunner
+    buildOperationRunner: BuildOperationRunner,
+    private val fastUpToDateCheckLifecycle: FastUpToDateCheckLifecycle,
 ) : BuildTreeLifecycleControllerFactory {
 
     private
@@ -85,6 +87,7 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor
             cache,
             buildStateRegistry,
             buildModelParameters,
+            fastUpToDateCheckLifecycle,
             startParameter.configurationCacheHeapDumpDir
         )
 
