@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Action
+import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
@@ -47,7 +48,6 @@ import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
-import org.gradle.nativeplatform.BuildType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyMap
@@ -285,7 +285,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             TypedProjectSchema(
                 extensions = listOf(
                     entry<Project, SourceSetContainer>("sourceSets"),
-                    entry<Project, NamedDomainObjectContainer<BuildType>>("buildTypes")
+                    entry<Project, NamedDomainObjectContainer<Named>>("buildTypes")
                 ),
                 containerElements = listOf(
                     entry<SourceSetContainer, SourceSet>("main")
@@ -357,7 +357,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 }
 
                 val h: Unit = buildTypes {
-                    val container: NamedDomainObjectContainer<BuildType> = this
+                    val container: NamedDomainObjectContainer<Named> = this
                 }
 
                 val k: DependencyConstraint = dependencies.constraints.api("direct:accessor:1.0")

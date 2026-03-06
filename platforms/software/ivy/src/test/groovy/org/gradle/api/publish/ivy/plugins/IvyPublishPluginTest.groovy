@@ -16,15 +16,14 @@
 
 package org.gradle.api.publish.ivy.plugins
 
-
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
 import org.gradle.internal.xml.XmlTransformer
-import org.gradle.platform.base.PlatformBaseSpecification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class IvyPublishPluginTest extends PlatformBaseSpecification {
+class IvyPublishPluginTest extends AbstractProjectBuilderSpec {
     PublishingExtension publishing
 
     def setup() {

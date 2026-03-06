@@ -29,7 +29,6 @@ dependencies {
     }
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.modelReflect))
-    integTestImplementation(testFixtures(projects.platformNative))
     integTestImplementation(testFixtures(projects.scala))
     integTestImplementation(testFixtures(projects.testingBase))
 

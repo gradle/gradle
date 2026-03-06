@@ -26,11 +26,8 @@ dependencies {
     api(projects.internalInstrumentationApi)
     api(projects.jvmServices)
     api(projects.logging)
-    api(projects.modelCore)
-    api(projects.platformBase)
     api(projects.reporting)
     api(projects.reportRendering)
-    api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
@@ -39,6 +36,7 @@ dependencies {
 
     implementation(projects.functional)
     implementation(projects.loggingApi)
+    implementation(projects.modelCore)
 
     implementation(libs.commonsLang)
     implementation(libs.guava)
@@ -47,7 +45,6 @@ dependencies {
 
     implementationResources(variantOf(libs.jquery) { artifactType("js") })
 
-    testFixturesApi(testFixtures(projects.platformNative))
     testFixturesApi(testFixtures(projects.logging))
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.core)
@@ -64,7 +61,6 @@ dependencies {
     }
 
     integTestImplementation(testFixtures(projects.baseDiagnostics))
-    integTestImplementation(testFixtures(projects.platformNative))
 
     integTestImplementation(libs.jsoup)
     integTestImplementation(testLibs.jetty)
