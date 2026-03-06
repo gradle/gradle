@@ -43,6 +43,7 @@ dependencies {
     testFixturesApi(projects.resources)
     testFixturesApi(testFixtures(projects.ide))
     testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(testFixtures(projects.testingBase))
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(projects.native)
     testFixturesImplementation(projects.platformBase)

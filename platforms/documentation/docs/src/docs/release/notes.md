@@ -14,7 +14,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -22,7 +22,8 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Ujwal Suresh Vanjare](https://github.com/usv240)
+[Ujwal Suresh Vanjare](https://github.com/usv240),
+[Suvrat Acharya](https://github.com/Suvrat1629)
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -72,6 +73,47 @@ For Wistia, contact Gradle's Video Team.
 ==========================================================
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+
+
+## New features and usability improvements
+
+### Type-safe Accessors for Precompiled Kotlin Settings Plugins
+
+Gradle now generates type-safe Kotlin accessors for [precompiled convention Settings plugins](userguide/pre_compiled_script_plugin_advanced.html) (`*.settings.gradle.kts`).
+Previously, when writing a convention plugin for `settings.gradle.kts`, you often had to use string-based APIs to configure extensions or plugins.
+Now, as long as the `kotlin-dsl` plugin is applied, Gradle generates accessors that provide IDE autocompletion and compile-time checking for your settings scripts, matching the experience already available for Project-level convention plugins.
+
+To enable these accessors, ensure your convention plugin build includes the `kotlin-dsl` plugin:
+
+```kotlin
+// build-logic/build.gradle.kts
+plugins {
+    `kotlin-dsl`
+}
+```
+
+### Domain Object Collections can be made immutable
+
+Plugin and build authors can now lock domain object collections to prevent further modifications using the new `disallowChanges()` method. 
+You can also verify the status of a collection using `areChangesAllowed()`.
+- Once `disallowChanges()` is called, elements can no longer be added to or removed from the collection.
+- Invoking this method does not force the realization of lazy items previously added to the collection. 
+- This lock applies only to the collection itself. Individual objects within the collection can still be modified.
+
+```kotlin
+val myCollection = objects.domainObjectContainer(MyType::class)
+val main = MyType("main")
+
+myCollection.areChangesAllowed()  // returns true
+myCollection.add(main)
+myCollection.add(MyType("test"))
+
+myCollection.disallowChanges()    // the collection is now immutable
+myCollection.areChangesAllowed()  // returns false
+main.setFoo("bar")                // individual elements can still be modified
+myCollection.add(MyType("other")) // this will fail
+myCollection.remove(main)         // this will fail
+```
 
 ## Tooling integration improvements
 

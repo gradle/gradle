@@ -34,6 +34,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.util.internal.DefaultGradleVersion
 import org.gradle.util.internal.TextUtil
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -77,7 +78,7 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
         logging.captureStandardOutput(LogLevel.INFO)
         val generator = StartScriptGenerator(createUnixStartScriptGenerator(), createWindowsStartScriptGenerator())
         generator.setApplicationName("Gradle")
-        //generator.setGitRef(DefaultGradleVersion.current().getGitRevision()) // TODO uncomment after wrapper upgrade. See #35693
+        generator.setGitRef(DefaultGradleVersion.current().gitRevision ?: "HEAD")
         generator.setOptsEnvironmentVar("GRADLE_OPTS")
         generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE")
         generator.setEntryPoint(ExecutableJar("lib/$launcherJarName"))

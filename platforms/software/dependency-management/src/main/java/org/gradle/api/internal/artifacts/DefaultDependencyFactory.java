@@ -48,6 +48,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final ObjectFactory objectFactory;
     private final ProjectDependencyFactory projectDependencyFactory;
     private final AttributesFactory attributesFactory;
+    @Nullable
+    private final Project project;
 
     public DefaultDependencyFactory(
         Instantiator instantiator,
@@ -55,7 +57,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         NotationParser<Object, Capability> capabilityNotationParser,
         ObjectFactory objectFactory,
         ProjectDependencyFactory projectDependencyFactory,
-        AttributesFactory attributesFactory
+        AttributesFactory attributesFactory,
+        @Nullable Project project
     ) {
         this.instantiator = instantiator;
         this.dependencyNotationParser = dependencyNotationParser;
@@ -63,6 +66,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         this.objectFactory = objectFactory;
         this.projectDependencyFactory = projectDependencyFactory;
         this.attributesFactory = attributesFactory;
+        this.project = project;
     }
 
     @Override
@@ -123,6 +127,22 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         ProjectDependency dependency = dependencyNotationParser.getProjectNotationParser().parseNotation(project);
         injectServices(dependency);
         return dependency;
+    }
+
+    @Override
+    public ProjectDependency createProjectDependency(String projectPath) {
+        if (project == null) {
+            throw new IllegalStateException("This dependency factory is not associated with a project, so project dependencies cannot be created by path.  Use create(Project) instead.");
+        }
+        return create(project.project(projectPath));
+    }
+
+    @Override
+    public ProjectDependency createProjectDependency() {
+        if (project == null) {
+            throw new IllegalStateException("This dependency factory is not associated with a project, so a dependency for the current project cannot be created.  Use create(Project) instead.");
+        }
+        return create(project);
     }
 
     // endregion

@@ -42,12 +42,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         return "assemble"
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "ScalaPluginGoodBehaviourTest",
-        "AntlrPluginIntegrationTest",
-        "PlayApplicationPluginGoodBehaviourIntegrationTest",
-        "PmdPluginIntegrationTest"
-    ])
     void "can apply plugin unqualified"() {
         given:
         applyPluginUnqualified()
@@ -69,12 +63,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         !file("build").exists()
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "ScalaPluginGoodBehaviourTest",
-        "AntlrPluginIntegrationTest",
-        "PlayApplicationPluginGoodBehaviourIntegrationTest",
-        "PmdPluginIntegrationTest",
-    ])
+
     def "plugin can build with empty project"() {
         given:
         applyPlugin()

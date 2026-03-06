@@ -50,7 +50,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         AttributesFactory attributesFactory
     ) {
         this.graphSource = graphSource;
-        this.lazyDesugaredAttributes = Lazy.unsafe().of(() -> desugarAttributes(attributesFactory, requestedAttributes));
+        this.lazyDesugaredAttributes = Lazy.locking().of(() -> desugarAttributes(attributesFactory, requestedAttributes));
     }
 
     @Override

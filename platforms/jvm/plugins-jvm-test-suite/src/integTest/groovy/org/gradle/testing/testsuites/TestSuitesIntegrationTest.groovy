@@ -593,7 +593,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        and: "containing a test which uses Junit 4"
+        and: "containing a test which uses JUnit 4"
         file("src/test/java/org/test/MyTest.java") << """
             package org.test;
 

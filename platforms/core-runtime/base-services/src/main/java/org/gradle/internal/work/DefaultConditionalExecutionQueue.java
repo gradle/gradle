@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 // TODO This class, DefaultBuildOperationQueue and ExecutionPlan have many of the same
 // behavior and concerns - we should look for a way to generalize this pattern.
-public class DefaultConditionalExecutionQueue<T> implements ConditionalExecutionQueue<T> {
+public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, ConditionalExecutionQueue<T> {
     public static final int KEEP_ALIVE_TIME_MS = 2000;
 
     private enum QueueState {
@@ -44,12 +44,15 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private final WorkerLimits workerLimits;
     private final WorkerLeaseService workerLeaseService;
     private final ManagedExecutor executor;
-    private final Deque<ConditionalExecution<T>> queue = new LinkedList<ConditionalExecution<T>>();
+    @GuardedBy("lock")
+    private final Deque<ConditionalExecution<T>> queue = new LinkedList<>();
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition workAvailable = lock.newCondition();
     private QueueState queueState = QueueState.Working;
     @GuardedBy("lock")
     private int workerCount;
+    @GuardedBy("lock")
+    private int blockedWorkerCount;
 
     public DefaultConditionalExecutionQueue(String displayName, WorkerLimits workerLimits, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.workerLimits = workerLimits;
@@ -68,8 +71,8 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         lock.lock();
         try {
             // expand the thread pool until we hit max workers
-            if (workerCount < getMaxWorkerCount()) {
-                expand(true);
+            if (workerCount < getCurrentMaxWorkerCount()) {
+                startRunner();
             }
 
             queue.add(execution);
@@ -79,30 +82,40 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         }
     }
 
+    @GuardedBy("lock")
+    private void startRunner() {
+        Future<?> ignored = executor.submit(new ExecutionRunner());
+        workerCount++;
+    }
+
+    @GuardedBy("lock")
+    private int getCurrentMaxWorkerCount() {
+        int maxWorkersWithCompensation = workerLimits.getMaxWorkerCount() + blockedWorkerCount;
+        return Math.min(maxWorkersWithCompensation, workerLimits.getMaxUnconstrainedWorkerCount());
+    }
+
     @Override
-    public void expand() {
-        expand(false);
-    }
-
-    private int getMaxWorkerCount() {
-        return workerLimits.getMaxWorkerCount();
-    }
-
-    /**
-     * Expanding the thread pool is necessary when work items submit other work.  We want to avoid a starvation scenario where
-     * the thread pool is full of work items that are waiting on other queued work items.  The queued work items cannot execute
-     * because the thread pool is already full with their parent work items.  We use expand() to allow the thread pool to temporarily
-     * expand when work items have to wait on other work.  The thread pool will shrink below max workers again once the queue is
-     * drained.
-     */
-    private void expand(boolean force) {
+    public void notifyBlockingWorkStarting() {
         lock.lock();
         try {
-            // Only expand the thread pool if there is work in the queue or we know that work is about to be submitted (i.e. force == true)
-            if (force || !queue.isEmpty()) {
-                Future<?> ignored = executor.submit(new ExecutionRunner());
-                workerCount++;
+            blockedWorkerCount++;
+            // May not be above max workers even after adding 1 if we're at the max unconstrained worker count
+            if (!queue.isEmpty() && workerCount < getCurrentMaxWorkerCount()) {
+                // Start runner to compensate immediately when we already have work to do.
+                startRunner();
             }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void notifyBlockingWorkFinished() {
+        lock.lock();
+        try {
+            blockedWorkerCount--;
+            // Trigger workers to see if one should exit.
+            workAvailable.signalAll();
         } finally {
             lock.unlock();
         }
@@ -127,12 +140,14 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
     private class ExecutionRunner implements Runnable {
         @Override
         public void run() {
+            workerLeaseService.setOwningThreadPool(DefaultConditionalExecutionQueue.this);
             try {
                 ConditionalExecution<?> operation;
                 while ((operation = waitForNextOperation()) != null) {
                     runBatch(operation);
                 }
             } finally {
+                workerLeaseService.setOwningThreadPool(null);
                 shutDown();
             }
         }
@@ -142,7 +157,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
             try {
                 // Wait for work to be submitted if the queue is empty and our worker count is under max workers
                 // This attempts to keep up to max workers threads alive once they've been started.
-                while (queueState == QueueState.Working && queue.isEmpty() && workerCount <= getMaxWorkerCount()) {
+                while (queueState == QueueState.Working && queue.isEmpty() && workerCount <= getCurrentMaxWorkerCount()) {
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {

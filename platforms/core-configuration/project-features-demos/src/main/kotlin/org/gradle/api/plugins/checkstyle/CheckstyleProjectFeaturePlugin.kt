@@ -19,13 +19,16 @@ package org.gradle.api.plugins.checkstyle
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.BindsProjectFeature
-import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
-import org.gradle.api.internal.plugins.ProjectFeatureBinding
-import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefinition
+import org.gradle.features.annotations.BindsProjectFeature
+import org.gradle.features.binding.ProjectFeatureBindingBuilder
+import org.gradle.features.binding.ProjectFeatureBinding
+import org.gradle.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.api.plugins.java.HasJavaSources
 import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.features.dsl.bindProjectFeatureToDefinition
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import javax.inject.Inject
 
 @BindsProjectFeature(CheckstyleProjectFeaturePlugin.Binding::class)
 class CheckstyleProjectFeaturePlugin : Plugin<Project> {
@@ -46,7 +49,8 @@ class CheckstyleProjectFeaturePlugin : Plugin<Project> {
                 CheckstyleSourceSetDefinition::class,
                 HasJavaSources.JavaSources::class
             ) { definition, buildModel, target ->
-                val checkstyleTask = project.tasks.register("check" + StringUtils.capitalize(target.name) + "Checkstyle", Checkstyle::class.java) { task ->
+                val services = objectFactory.newInstance(Services::class.java)
+                val checkstyleTask = services.taskRegistrar.register("check" + StringUtils.capitalize(target.name) + "Checkstyle", Checkstyle::class.java) { task ->
                     task.group = LifecycleBasePlugin.VERIFICATION_GROUP
                     task.description = "Runs Checkstyle on the ${target.name} source set."
                     task.source(getBuildModel(target).inputSources)
@@ -55,6 +59,11 @@ class CheckstyleProjectFeaturePlugin : Plugin<Project> {
 
                 buildModel.reports = checkstyleTask.map { it.reports }
             }
+        }
+
+        interface Services {
+            @get:Inject
+            val taskRegistrar: TaskRegistrar
         }
     }
 

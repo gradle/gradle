@@ -13,6 +13,7 @@ plugins {
 description = "Kotlin DSL Provider"
 
 dependencies {
+    api(projects.antApi)
     api(projects.buildProcessServices)
     api(projects.baseServices)
     api(projects.classloaders)
@@ -38,6 +39,7 @@ dependencies {
     implementation(projects.baseAsm)
     implementation(projects.instrumentationReporting)
     implementation(projects.buildOperations)
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.declarativeDslEvaluator)
@@ -157,6 +159,8 @@ dependencies {
     testFixturesImplementation(libs.asm)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+    integTestBinDistribution(projects.distributionsFull)
+    integTestSrcDistribution(projects.distributionsFull)
 }
 
 // Relocate kotlin-metadata-jvm

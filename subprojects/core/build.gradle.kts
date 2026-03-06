@@ -24,10 +24,7 @@ dependencyAnalysis {
     }
 }
 jvmCompile {
-    addCompilationFrom(testInterceptors) {
-        // By default, test interceptors compile to the same JVM version as the production code.
-        targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
-    }
+    addCompilationFrom(testInterceptors)
 }
 
 val testInterceptorsImplementation: Configuration by configurations.getting {
@@ -35,6 +32,8 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 }
 
 dependencies {
+    api(projects.ant)
+    api(projects.antApi)
     api(projects.baseAsm)
     api(projects.baseServices)
     api(projects.baseServicesGroovy)
@@ -93,7 +92,6 @@ dependencies {
     api(projects.versionedCache)
     api(projects.workerMain)
 
-    api(libs.ant)
     api(libs.asm)
     api(libs.asmTree)
     api(libs.groovy)
@@ -106,7 +104,6 @@ dependencies {
     implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
     implementation(projects.daemonLogging)
-    implementation(projects.groovyLoader)
     implementation(projects.inputTracking)
     implementation(projects.io)
     implementation(projects.modelGroovy)
@@ -117,13 +114,13 @@ dependencies {
     }
     implementation(projects.projectFeaturesApi)
 
+    implementation(libs.ant)
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.errorProneAnnotations)
     implementation(libs.fastutil)
-    implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
@@ -143,6 +140,7 @@ dependencies {
     runtimeOnly(libs.groovyDatetime)
     runtimeOnly(libs.groovyDoc)
     runtimeOnly(libs.groovyNio)
+    runtimeOnly(projects.groovyLoader)
 
     testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)
@@ -214,6 +212,7 @@ dependencies {
     testFixturesImplementation(projects.normalizationJava)
     testFixturesImplementation(projects.persistentCache)
     testFixturesImplementation(projects.snapshots)
+    testFixturesImplementation(projects.ant)
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.asm)
     testFixturesImplementation(libs.guava)
@@ -248,6 +247,10 @@ dependencies {
     testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.time))
 
+    testRuntimeOnly(projects.distributionsCore) {
+        because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
+    }
+
     integTestImplementation(projects.workers)
     integTestImplementation(projects.dependencyManagement)
     integTestImplementation(projects.launcher)
@@ -261,13 +264,15 @@ dependencies {
     integTestImplementation(testFixtures(projects.fileTemp))
     integTestImplementation(testFixtures(projects.launcher))
 
-    testRuntimeOnly(projects.distributionsCore) {
-        because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
-    }
-
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
     }
+
+    crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(testLibs.spockJUnit4) {
+        because("Required for @org.junit.Rule")
+    }
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 
     annotationProcessor(projects.internalInstrumentationProcessor)

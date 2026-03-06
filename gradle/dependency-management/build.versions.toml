@@ -3,8 +3,8 @@
 asciidoctor = "2.5.13"
 checkstyle = "10.25.0"
 develocity = "4.3.2"
+groovy = "4.0.29"
 javaparser = "3.18.0"
-kotlin = "kotlin-stub" # will be replaced by platfrom
 
 [libraries]
 ant = { module = "org.apache.ant:ant", version = "1.10.15" } # Bump the version brought in transitively by gradle-guides-plugin
@@ -27,6 +27,7 @@ foojayConventions = { module = "org.gradle.toolchains.foojay-resolver-convention
 gradleGuidesPlugin = { group = "org.gradle.guides", name = "gradle-guides-plugin", version = "0.24.0" }
 gson = { module = "com.google.code.gson:gson", version = "2.13.1" }
 guava = { module = "com.google.guava:guava", version = "33.4.6-jre" }
+groovy = { module = "org.apache.groovy:groovy", version.ref = "groovy" }
 ideaExtPlugin = { module = "gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext", version = "1.3" }
 jacksonBom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.16.1" } # CVE-2025-52999 on lower versions
 jakartaXml = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "4.0.2" }
@@ -39,10 +40,10 @@ jhighlight = { module = "com.uwyn:jhighlight", version = "1.0" }
 jmhPlugin = { module = "me.champeau.jmh:jmh-gradle-plugin", version = "0.7.2" }
 jsoup = { module = "org.jsoup:jsoup", version = "1.15.3" }
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
-kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }
-kotlinMetadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin" }
-kotlinSamWithReceiver = { group = "org.jetbrains.kotlin", name = "kotlin-sam-with-receiver", version.ref = "kotlin" }
+kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin"}
+kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable"}
+kotlinMetadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm"}
+kotlinSamWithReceiver = { group = "org.jetbrains.kotlin", name = "kotlin-sam-with-receiver"}
 nullaway = { module = "com.uber.nullaway:nullaway", version = "0.12.10" }
 nullawayPlugin = { module = "net.ltgt.gradle:gradle-nullaway-plugin", version = "2.2.0" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version = "2.0.24" } # Flexmark 0.34.60 brings in a vulnerable version of pdfbox

@@ -193,7 +193,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setTargets(invocationSpec.getTasksToRun())
             .setGradleUserHome(determineGradleUserHome(invocationSpec))
             .setMeasureConfigTime(false)
-            .setMeasuredBuildOperations(experiment.getMeasuredBuildOperations())
+            .setBuildOperationMeasurements(experiment.getBuildOperationMeasurements())
             .setMeasureGarbageCollection(measureGarbageCollection)
             .setBuildLog(invocationSpec.getBuildLog())
             .setStudioInstallDir(invocationSpec.getStudioInstallDir())
@@ -239,7 +239,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             invocationSettings.getBuildCount(),
             invocationSettings.getOutputDir(),
             actualJvmArgs,
-            invocationSettings.getMeasuredBuildOperations(),
+            invocationSettings.getBuildOperationMeasurements(),
             isBuildOperationsTrace
         );
     }

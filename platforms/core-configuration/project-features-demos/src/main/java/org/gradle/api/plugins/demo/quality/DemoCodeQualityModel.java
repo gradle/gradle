@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.demo.quality;
 
-import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.features.binding.BuildModel;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;

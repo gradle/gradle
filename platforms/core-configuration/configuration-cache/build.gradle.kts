@@ -96,6 +96,10 @@ dependencies {
     testImplementation(testLibs.mockitoKotlin)
     testImplementation(testLibs.kotlinxCoroutinesDebug)
 
+    testRuntimeOnly(projects.distributionsCore) {
+        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
+    }
+
     integTestImplementation(projects.cli)
     integTestImplementation(projects.ide)
     integTestImplementation(projects.jvmServices)
@@ -115,14 +119,13 @@ dependencies {
     integTestImplementation(testFixtures(projects.jacoco))
     integTestImplementation(testFixtures(projects.modelReflect))
 
-    crossVersionTestImplementation(projects.cli)
-
-    testRuntimeOnly(projects.distributionsCore) {
-        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
-    }
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
+
+    crossVersionTestImplementation(projects.cli)
+    crossVersionTestImplementation(projects.internalIntegTesting)
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 

@@ -8,6 +8,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.buildState)
+    api(projects.classloaders)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
@@ -22,7 +23,6 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.buildDiscoveryImpl)
-    implementation(projects.classloaders)
     implementation(projects.collections)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)

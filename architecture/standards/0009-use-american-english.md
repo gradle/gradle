@@ -1,8 +1,8 @@
 # ADR-0009 - Use American English
 
-## Date
+## Status
 
-2025-11-24
+- ACCEPTED on 2025-11-24
 
 ## Context
 
@@ -49,10 +49,6 @@ Some legitimate exceptions exist where British English or other variants must be
 * **Third-party APIs and libraries**: When integrating with external APIs that use different spelling conventions
 * **Historical compatibility**: Existing public API methods that are part of Gradle's stable API cannot be renamed due to backward compatibility requirements (though new APIs should use American English)
 * **Proper nouns and quotes**: Names of organizations, products, or quoted text that use different conventions
-
-## Status
-
-ACCEPTED
 
 ## Consequences
 

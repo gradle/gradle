@@ -25,12 +25,16 @@ import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradlePublication;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultProjectPublications;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.model.gradle.ProjectPublications;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
 
 class PublicationsBuilder implements ToolingModelBuilder {
+
+    private static final String MODEL_NAME = ProjectPublications.class.getName();
+
     private final ProjectPublicationRegistry publicationRegistry;
 
     PublicationsBuilder(ProjectPublicationRegistry publicationRegistry) {
@@ -39,7 +43,7 @@ class PublicationsBuilder implements ToolingModelBuilder {
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.gradle.ProjectPublications");
+        return modelName.equals(MODEL_NAME);
     }
 
     @Override
@@ -55,7 +59,7 @@ class PublicationsBuilder implements ToolingModelBuilder {
             ModuleVersionIdentifier id = projectPublication.getCoordinates(ModuleVersionIdentifier.class);
             if (id != null) {
                 gradlePublications.add(new DefaultGradlePublication()
-                        .setId(new DefaultGradleModuleVersion(id))
+                        .setId(new DefaultGradleModuleVersion(id.getGroup(), id.getName(), id.getVersion()))
                         .setProjectIdentifier(projectIdentifier)
                 );
             }

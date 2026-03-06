@@ -168,7 +168,7 @@ class DefaultPropertyExtractor(
 
     private fun checkPropertyModeAndNullability(host: SchemaBuildingHost, isWritable: Boolean, type: CollectedPropertyType): SchemaResult<Unit> {
         if (!isWritable && type.isNullable)
-            return host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedNullableReadOnlyProperty)
+            return host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedNullableReadOnlyProperty())
         return schemaResult(Unit)
     }
 }

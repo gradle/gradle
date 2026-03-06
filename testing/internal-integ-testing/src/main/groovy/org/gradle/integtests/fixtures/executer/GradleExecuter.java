@@ -373,6 +373,20 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning);
 
     /**
+     * Some lines cause false positives for our deprecation detection, and because of their nature
+     * are not easily admitted into the normal expected deprecation warnings mechanism.
+     * <p>
+     * For example: (1) [INFO] The JUnit Vintage engine is deprecated and should only be used temporarily while migrating tests to JUnit Jupiter or another testing framework with native JUnit Platform support.
+     * <p>
+     * They come from frameworks like JUnit and there's nothing Gradle can do about them.  So this
+     * ignore mechanism has been added to allow us to always ignore them as we process output.
+     *
+     * @param lines the exact lines to always ignore when processing output for deprecation warnings
+     * @return {@code this} executer
+     */
+    GradleExecuter ignoreLines(List<String> lines);
+
+    /**
      * Disable deprecation warning checks.
      */
     GradleExecuter noDeprecationChecks();

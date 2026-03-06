@@ -34,4 +34,5 @@ public interface DomainObjectCollectionInternal<T> extends DomainObjectCollectio
      * Provide an action to be executed before any changes are made to the collection.
      */
     void beforeCollectionChanges(Action<String> action);
+
 }

@@ -244,7 +244,7 @@ task checkResolveParentThenChild {
         succeeds 'resolvableConfigurations', '--all'
         outputContains("""
 --------------------------------------------------
-Configuration conf2
+Configuration conf2 (n)
 --------------------------------------------------
 
 Extended Configurations
@@ -268,11 +268,37 @@ Extended Configurations
         succeeds 'resolvableConfigurations', '--all'
         outputContains("""
 --------------------------------------------------
-Configuration conf2
+Configuration conf2 (n)
 --------------------------------------------------
 
 Extended Configurations
     - conf1
+""")
+    }
+
+    def "can extend from multiple configuration providers"() {
+        given:
+        buildFile """
+            def conf1 = configurations.resolvable('conf1')
+            def conf2 = configurations.resolvable('conf2')
+
+            configurations {
+                resolvable('conf3') {
+                    extendsFrom conf1, conf2
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolvableConfigurations', '--all'
+        outputContains("""
+--------------------------------------------------
+Configuration conf3 (n)
+--------------------------------------------------
+
+Extended Configurations
+    - conf1
+    - conf2
 """)
     }
 

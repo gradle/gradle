@@ -232,6 +232,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     @Override
+    public Dependency project() {
+        return dependencyFactory.createProjectDependency();
+    }
+
+    @Override
     public Dependency gradleApi() {
         return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_API);
     }

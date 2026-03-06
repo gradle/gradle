@@ -73,7 +73,7 @@ class JUnitPlatformTestExecutionListenerTest extends Specification {
         testClock.currentTime == startTime
 
         when:
-        JUnitPlatformTestExecutionListener listener = new JUnitPlatformTestExecutionListener(mockResultProcessor, testClock, idGenerator, workingDir)
+        JUnitPlatformTestExecutionListener listener = new JUnitPlatformTestExecutionListener(mockResultProcessor, testClock, idGenerator, [workingDir.toPath()])
         listener.testPlanExecutionStarted(mockTestPlan)
         listener.executionStarted(testIdentifier)
         listener.reportingEntryPublished(testIdentifier, entry)

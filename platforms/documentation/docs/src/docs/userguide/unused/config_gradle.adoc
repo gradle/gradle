@@ -25,6 +25,7 @@ You can adjust JVM options for Gradle in the following ways.
 
 *Option 1:* Changing JVM settings for the build VM:
 ====
+[source,text]
 ----
 org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
 ----
@@ -34,6 +35,7 @@ The `JAVA_OPTS` environment variable controls the command line client, which is 
 
 *Option 2:* Changing JVM settings for the client VM:
 ====
+[source,text]
 ----
 JAVA_OPTS="-Xmx64m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 ----
@@ -77,8 +79,13 @@ A simple way to do this is using the `isCI` project property.
 ====
 include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+====
+
+[source,bash]
 ----
-$ gradle performRelease -PisCI=true --quiet
+$ ./gradlew performRelease -PisCI=true --quiet
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
-====

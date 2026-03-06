@@ -46,6 +46,9 @@ dependencies {
     integTestImplementation(testFixtures(projects.workers))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+
+    crossVersionTestImplementation(projects.internalIntegTesting)
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 

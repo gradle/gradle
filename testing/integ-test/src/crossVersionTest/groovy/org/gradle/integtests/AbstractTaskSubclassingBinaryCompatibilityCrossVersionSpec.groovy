@@ -111,8 +111,16 @@ abstract class AbstractTaskSubclassingBinaryCompatibilityCrossVersionSpec extend
         } else {
             groovyDepConf = apiDepConf
         }
+        def targetCompatibility = "java { sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8 }"
+        if (targetVersion < GradleVersion.version("5.0")) {
+            targetCompatibility = "sourceCompatibility = targetCompatibility = 1.8"
+        }
+
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
+
+            ${targetCompatibility}
+
             dependencies {
                 ${groovyDepConf} localGroovy()
                 ${apiDepConf} gradleApi()
@@ -166,8 +174,16 @@ apply plugin: SomePlugin
         } else {
             groovyDepConf = apiDepConf
         }
+        def targetCompatibility = "java { sourceCompatibility = targetCompatibility = JavaVersion.VERSION_1_8 }"
+        if (targetVersion < GradleVersion.version("5.0")) {
+            targetCompatibility = "sourceCompatibility = targetCompatibility = 1.8"
+        }
+
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
+
+            ${targetCompatibility}
+
             dependencies {
                 ${groovyDepConf} localGroovy()
                 ${apiDepConf} gradleApi()

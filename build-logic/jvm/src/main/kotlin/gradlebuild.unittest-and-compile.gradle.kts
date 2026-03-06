@@ -20,7 +20,6 @@ import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
-import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionLocalExecutors
@@ -75,7 +74,6 @@ the<JvmCompileExtension>().apply {
     addCompilationFrom(sourceSets.test)
 }
 
-removeTeamcityTempProperty()
 addDependencies()
 configureCompileDefaults()
 addCompileAllTasks()
@@ -371,14 +369,6 @@ fun configureTests() {
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }
-    }
-}
-
-fun removeTeamcityTempProperty() {
-    // Undo: https://github.com/JetBrains/teamcity-gradle/blob/e1dc98db0505748df7bea2e61b5ee3a3ba9933db/gradle-runner-agent/src/main/scripts/init.gradle#L818
-    if (project.buildRunningOnCi.get() && project.hasProperty("teamcity")) {
-        @Suppress("UNCHECKED_CAST") val teamcity = project.property("teamcity") as MutableMap<String, Any>
-        teamcity["teamcity.build.tempDir"] = ""
     }
 }
 

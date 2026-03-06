@@ -83,10 +83,6 @@ ul.linkList li {
     margin-bottom: 5px;
 }
 
-.code {
-    position: relative;
-}
-
 .clipboard-copy-btn {
     position: absolute;
     top: 8px;

@@ -724,6 +724,7 @@ tasks.named<Test>("docsTest") {
             // PMD doesn't support Java 26
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
             // There is a bug in either AGP or the JDK which causes JdkImageTransform to fail with Java 26
+            // https://issuetracker.google.com/issues/486844145
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-kmp*")
         }
 

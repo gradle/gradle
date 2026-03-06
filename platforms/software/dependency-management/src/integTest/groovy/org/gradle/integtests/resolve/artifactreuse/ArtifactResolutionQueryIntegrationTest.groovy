@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -34,7 +33,7 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
 
     @Issue('https://github.com/gradle/gradle/issues/3579')
     @IntegrationTestTimeout(60)
-    @UnsupportedWithConfigurationCache(because = "task uses artifact query API")
+    @UnsupportedWithConfigurationCache(because = "https://github.com/gradle/gradle/issues/26365")
     def 'can use artifact resolution queries in parallel to file resolution'() {
         given:
         def module = mavenHttpRepo.module('group', "artifact", '1.0').publish()
@@ -97,7 +96,7 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
     }
 
     @Issue('https://github.com/gradle/gradle/issues/11247')
-    @ToBeFixedForConfigurationCache(because = "task uses artifact query API")
+    @UnsupportedWithConfigurationCache(because = "https://github.com/gradle/gradle/issues/26365")
     def 'respects repository content filter'() {
         given:
         def module = mavenHttpRepo.module('group', "artifact", '1.0').publish()
@@ -134,7 +133,7 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
         succeeds('query')
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses artifact query API")
+    @UnsupportedWithConfigurationCache(because = "https://github.com/gradle/gradle/issues/26365")
     def "can resolve sources and javadoc for ivy repo"() {
         given:
         ivyRepo.module('group', "artifact", '1.0')

@@ -76,6 +76,9 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun project(notation: Map<String, *>): Dependency =
         delegate.project(notation)
 
+    override fun project(): Dependency =
+        delegate.project()
+
     override fun gradleApi(): Dependency =
         delegate.gradleApi()
 

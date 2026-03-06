@@ -17,6 +17,7 @@ dependencies {
     api(projects.problemsApi)
     api(projects.projectFeatures)
     api(projects.projectFeaturesApi)
+    api(projects.serviceLookup)
 
     api(libs.guava)
     api(libs.inject)

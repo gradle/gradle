@@ -20,9 +20,10 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.GUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
@@ -39,7 +40,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        spec.compileOptions = TestUtil.newInstance(CompileOptions)
     }
 
     def "generates options for an unconfigured spec"() {
@@ -160,7 +161,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == defaultOptions
 
         when:
-        spec.compileOptions.debugOptions.debugLevel = "source,vars"
+        spec.compileOptions.debugLevel = "source,vars"
 
         then:
         builder.build() == ["-g:source,vars"] + defaultOptions.findAll { it != "-g" }
@@ -180,7 +181,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -bootclasspath option"() {
-        def compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        def compileOptions = TestUtil.newInstance(CompileOptions)
         compileOptions.bootstrapClasspath = TestFiles.fixed(new File("lib1.jar"), new File("lib2.jar"))
         spec.compileOptions = compileOptions
 
@@ -377,6 +378,24 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         expect:
         builder.build() == expected
         builder.noEmptySourcePath().build() == expected
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34989")
+    def "can set module-version"() {
+        File file = new File('/src/other')
+        def fc = [file]
+        when:
+        spec.compileOptions.javaModuleVersion = "1.0.0"
+        spec.modulePath = fc
+
+        then:
+        builder.build() == ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-version", "1.0.0",  "--module-path", GUtil.asPath(fc)]
+
+        when:
+        spec.modulePath = []
+
+        then:
+        builder.build() == ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-version", "1.0.0"]
     }
 
     String defaultEmptySourcePathRefFolder() {

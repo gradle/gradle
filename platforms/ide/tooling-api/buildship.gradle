@@ -72,7 +72,7 @@ abstract class CreateBuildshipEclipseProjectTask extends DefaultTask {
      """Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Gradle Tooling API
-Bundle-Vendor: Gradle Inc.
+Bundle-Vendor: Gradle, Inc.
 Bundle-SymbolicName: org.gradle.toolingapi
 Bundle-Version: ${bundleVersion}.v${qualifier}
 Bundle-ClassPath: .

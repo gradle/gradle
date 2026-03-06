@@ -1,8 +1,8 @@
 # ADR-0002 - Avoid using Java serialization
 
-## Date
+## Status
 
-2012-12-01
+- ACCEPTED on 2023-12-01
 
 ## Context
 
@@ -40,10 +40,6 @@ For internal purposes, we use binary formats for their brevity.
 We use the `Serializer` abstraction to separate the actual implementation of serialization from its uses.
 
 When sharing data with external tools, we use JSON.
-
-## Status
-
-ACCEPTED
 
 ## Consequences
 

@@ -33,7 +33,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         enableStdoutProxying = false
     }
 
-    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 5"() {
+    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in JUnit 5"() {
         setupJUnit5()
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
@@ -70,7 +70,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         }
     }
 
-    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in Junit 4"() {
+    def "Emits test failure events for org.opentest4j.MultipleFailuresError assertion errors in JUnit 4"() {
         setupJUnit4()
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
@@ -107,7 +107,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         }
     }
 
-    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 5"() {
+    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in JUnit 5"() {
         setupJUnit5()
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;
@@ -142,7 +142,7 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         failure.actualContent == new byte[]{0x1}
     }
 
-    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in Junit 4"() {
+    def "Emits test failure events for org.opentest4j.AssertionFailedError assertion errors in JUnit 4"() {
         setupJUnit4()
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
             package org.gradle;

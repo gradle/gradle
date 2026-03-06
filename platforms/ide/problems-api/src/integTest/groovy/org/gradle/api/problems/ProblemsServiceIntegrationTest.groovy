@@ -528,6 +528,26 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
         errorOutput.count(docLink) == 1
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/36719")
+    def "minimal DeprecationLogger nagging can emit problems"() {
+        setup:
+        ignoreCleanupAssertions()
+        buildFile << """
+            org.gradle.internal.deprecation.DeprecationLogger
+                .deprecate("Feature")
+                .willBeRemovedInGradle10()
+                .undocumented()
+                .nagUser()
+        """
+        executer.expectDocumentedDeprecationWarning("Feature has been deprecated. This is scheduled to be removed in Gradle 10.")
+
+        expect:
+        succeeds("help")
+        verifyAll(receivedProblem) {
+            it.definition.id.group.name == 'deprecation'
+        }
+    }
+
     static String problemIdScript() {
         """${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
            ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)"""

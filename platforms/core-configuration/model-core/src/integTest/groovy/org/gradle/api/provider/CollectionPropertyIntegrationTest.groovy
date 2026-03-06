@@ -17,8 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -205,7 +204,7 @@ afterEvaluate {
         outputContains("value: value 1, value 2, value 3")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36664")
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile """
@@ -269,7 +268,6 @@ task thing {
         "providers.provider { [ 'a', 'b', 'c' ] }" | _
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/27528")
     def "can set value for string list property using GString values"() {
         buildFile """
             def str = "aBc"
@@ -303,7 +301,6 @@ task thing {
         succeeds("verify")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/27528")
     def "can add element to string list property using GString value"() {
         buildFile << """
             def str = "aBc"
@@ -322,7 +319,6 @@ task thing {
         'providers.provider { "${str.toLowerCase().substring(1, 2)}" }' | _
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/27528")
     def "can add elements to string list property using GString value"() {
         buildFile << """
             def str = "aBc"

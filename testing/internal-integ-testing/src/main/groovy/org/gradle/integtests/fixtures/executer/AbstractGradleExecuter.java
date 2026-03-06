@@ -75,6 +75,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -182,6 +183,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
     private boolean jdkWarningChecksOn = false;
+    private final List<String> ignoredLines = new ArrayList<>();
 
     private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<>();
     private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
@@ -1375,6 +1377,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return new ResultAssertion(
             expectedDeprecationWarnings,
             maybeExpectedDeprecationWarnings,
+            ignoredLines,
             !stackTraceChecksOn,
             shouldCheckDeprecations,
             jdkWarningChecksOn
@@ -1402,6 +1405,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
         return expectExternalDeprecatedMessage(normalizeDocumentationLink(warning));
+    }
+
+    @Override
+    public GradleExecuter ignoreLines(List<String> lines) {
+        this.ignoredLines.addAll(lines);
+        return this;
+    }
+
+    public List<String> getIgnoredLines() {
+        return Collections.unmodifiableList(ignoredLines);
     }
 
     private String normalizeDocumentationLink(String warning) {

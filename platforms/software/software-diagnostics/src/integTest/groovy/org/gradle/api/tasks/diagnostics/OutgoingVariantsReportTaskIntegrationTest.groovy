@@ -64,6 +64,22 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         promptsForRerunToFindMoreVariants()
     }
 
+    def "if only configurations without attributes present, and --all not specified, task produces empty report and prompts for rerun"() {
+        given:
+        buildFile << """
+            configurations.create("custom") {
+                description = "My custom configuration without attributes"
+                canBeResolved = false
+                assert canBeConsumed
+            }
+        """
+
+        expect:
+        succeeds ':outgoingVariants'
+        reportsNoProperVariants()
+        promptsForRerunToFindMoreVariants()
+    }
+
     def "if only legacy configuration present, task reports it if --all flag is set"() {
         given:
         buildFile << """
@@ -80,7 +96,7 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
-Variant legacy (l)
+Variant legacy (l) (n)
 --------------------------------------------------
 My custom legacy configuration""")
 
@@ -90,7 +106,7 @@ My custom legacy configuration""")
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    def "if single outgoing variant with no attributes or artifacts present, task reports it"() {
+    def "if single outgoing variant with no attributes or artifacts present, task reports it with --all"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -101,11 +117,12 @@ My custom legacy configuration""")
         """
 
         when:
-        succeeds ':outgoingVariants'
+        executer.expectExternalDeprecatedMessage('(n) Variant not selectable via attributes. Variants without attributes cannot be used for variant-aware dependency resolution.')
+        succeeds ':outgoingVariants', '--all'
 
         then:
         result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
-Variant custom
+Variant custom (n)
 --------------------------------------------------
 My custom configuration
 """
@@ -113,6 +130,7 @@ My custom configuration
         doesNotHaveLegacyLegend()
         doesNotHaveIncubatingLegend()
         doesNotPromptForRerunToFindMoreVariants()
+        hasNonSelectableVariantsLegend()
     }
 
     def "if single outgoing variant present with attributes, task reports it and them"() {
@@ -261,26 +279,6 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
-Variant archives
---------------------------------------------------
-Configuration for archive artifacts.
-
-Capabilities
-    - org:myLib:1.0 (default capability)
-Artifacts
-    - $jarPath (artifactType = jar)
-
---------------------------------------------------
-Variant default
---------------------------------------------------
-Configuration for default artifacts.
-
-Capabilities
-    - org:myLib:1.0 (default capability)
-Artifacts
-    - $jarPath (artifactType = jar)
-
---------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
 List of source directories contained in the Main SourceSet.
@@ -359,6 +357,7 @@ Artifacts
         doesNotHaveLegacyLegend()
         hasIncubatingLegend()
         hasSecondaryVariantsLegend()
+        doesNotHaveNonSelectableVariantsLegend()
     }
 
     def "reports outgoing variants of a Java Library with documentation"() {
@@ -417,26 +416,6 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
-Variant archives
---------------------------------------------------
-Configuration for archive artifacts.
-
-Capabilities
-    - org:myLib:1.0 (default capability)
-Artifacts
-    - $jarPath (artifactType = jar)
-
---------------------------------------------------
-Variant default
---------------------------------------------------
-Configuration for default artifacts.
-
-Capabilities
-    - org:myLib:1.0 (default capability)
-Artifacts
-    - $jarPath (artifactType = jar)
-
---------------------------------------------------
 Variant javadocElements
 --------------------------------------------------
 javadoc elements for main.
@@ -544,6 +523,7 @@ Artifacts
         and:
         doesNotHaveLegacyLegend()
         hasSecondaryVariantsLegend()
+        doesNotHaveNonSelectableVariantsLegend()
     }
 
     def "reports outgoing variants of a Java Library with documentation including test data variants"() {
@@ -602,26 +582,6 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
-Variant archives
---------------------------------------------------
-Configuration for archive artifacts.
-
-Capabilities
-    - org:myLib:1.0 (default capability)
-Artifacts
-    - $jarPath (artifactType = jar)
-
---------------------------------------------------
-Variant default
---------------------------------------------------
-Configuration for default artifacts.
-
-Capabilities
-    - org:myLib:1.0 (default capability)
-Artifacts
-    - $jarPath (artifactType = jar)
-
---------------------------------------------------
 Variant javadocElements
 --------------------------------------------------
 javadoc elements for main.
@@ -730,6 +690,7 @@ Artifacts
         and:
         doesNotHaveLegacyLegend()
         hasSecondaryVariantsLegend()
+        doesNotHaveNonSelectableVariantsLegend()
         hasIncubatingLegend()
     }
 
@@ -797,6 +758,30 @@ Secondary Variants (*)
         and:
         doesNotHaveLegacyLegend()
         hasSecondaryVariantsLegend()
+        doesNotHaveNonSelectableVariantsLegend()
+    }
+
+    def "does not show variants without attributes by default"() {
+        buildFile << """
+            plugins { id 'java-library' }
+            group = 'org'
+            version = '1.0'
+        """
+
+        when:
+        run ':outgoingVariants'
+
+        then:
+        // Should show apiElements and runtimeElements (both have attributes)
+        outputContains("Variant apiElements")
+        outputContains("Variant runtimeElements")
+        // Should NOT show archives and default (neither have attributes)
+        outputDoesNotContain("Variant archives")
+        outputDoesNotContain("Variant default")
+        and:
+        doesNotHaveLegacyLegend()
+        hasSecondaryVariantsLegend()
+        doesNotHaveNonSelectableVariantsLegend()
     }
 
     def "can show all variants"() {
@@ -850,7 +835,7 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
-Variant archives
+Variant archives (n)
 --------------------------------------------------
 Configuration for archive artifacts.
 
@@ -860,7 +845,7 @@ Artifacts
     - $jarPath (artifactType = jar)
 
 --------------------------------------------------
-Variant default
+Variant default (n)
 --------------------------------------------------
 Configuration for default artifacts.
 
@@ -948,6 +933,7 @@ Artifacts
         and:
         hasIncubatingLegend()
         hasSecondaryVariantsLegend()
+        hasNonSelectableVariantsLegend()
     }
 
     def "can show all variants including test data variants"() {
@@ -1000,7 +986,7 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
-Variant archives
+Variant archives (n)
 --------------------------------------------------
 Configuration for archive artifacts.
 
@@ -1010,7 +996,7 @@ Artifacts
     - $jarPath (artifactType = jar)
 
 --------------------------------------------------
-Variant default
+Variant default (n)
 --------------------------------------------------
 Configuration for default artifacts.
 
@@ -1098,6 +1084,7 @@ Artifacts
         and:
         hasIncubatingLegend()
         hasSecondaryVariantsLegend()
+        hasNonSelectableVariantsLegend()
     }
 
     def "prints explicit capabilities"() {
@@ -1197,6 +1184,7 @@ Secondary Variants (*)
         and:
         doesNotHaveLegacyLegend()
         hasSecondaryVariantsLegend()
+        doesNotHaveNonSelectableVariantsLegend()
     }
 
     def "variants using custom VERIFICATION_TYPE attribute values are reported as incubating"() {
@@ -1257,26 +1245,6 @@ Secondary Variants (*)
         - org.gradle.usage               = java-api
     Artifacts
         - $builtMainClassesPath (artifactType = java-classes-directory)
-
---------------------------------------------------
-Variant archives
---------------------------------------------------
-Configuration for archive artifacts.
-
-Capabilities
-    - org:myLib:1.0 (default capability)
-Artifacts
-    - $jarPath (artifactType = jar)
-
---------------------------------------------------
-Variant default
---------------------------------------------------
-Configuration for default artifacts.
-
-Capabilities
-    - org:myLib:1.0 (default capability)
-Artifacts
-    - $jarPath (artifactType = jar)
 
 --------------------------------------------------
 Variant mainSourceElements (i)
@@ -1402,13 +1370,14 @@ Artifacts
         """
 
         when:
-        succeeds ':outgoingVariants'
+        executer.expectExternalDeprecatedMessage('(n) Variant not selectable via attributes. Variants without attributes cannot be used for variant-aware dependency resolution.')
+        succeeds ':outgoingVariants', '--all'
 
         then:
         def jarPath = file('build/libs/myLib-red.jar').getRelativePathFromBase()
 
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
-Variant custom
+Variant custom (n)
 --------------------------------------------------
 My custom configuration
 
@@ -1422,5 +1391,6 @@ Artifacts
         doesNotHaveLegacyLegend()
         hasIncubatingLegend()
         doesNotPromptForRerunToFindMoreVariants()
+        hasNonSelectableVariantsLegend()
     }
 }
