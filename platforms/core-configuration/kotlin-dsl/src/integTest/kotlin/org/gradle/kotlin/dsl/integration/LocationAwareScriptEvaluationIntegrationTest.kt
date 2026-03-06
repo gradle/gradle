@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.internal.buildevents.BuildExceptionReporter
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
@@ -116,6 +117,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractKotlinIntegrationTe
             """
             * Where:
             Script '${present.canonicalPath}' line: 1
+              ${BuildExceptionReporter.formatClickableLink(present.canonicalPath, 1)}
 
             * What went wrong:
             Could not read script '${existing("absent.gradle.kts").canonicalPath}' as it does not exist.

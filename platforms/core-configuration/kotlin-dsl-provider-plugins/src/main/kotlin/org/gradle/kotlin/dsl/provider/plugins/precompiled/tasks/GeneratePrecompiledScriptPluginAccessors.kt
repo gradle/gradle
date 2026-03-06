@@ -293,6 +293,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             throw LocationAwareException(
                 IllegalArgumentException(validationErrors.joinToString("\n")),
                 plugin.scriptFile.path,
+                plugin.scriptFile.path,
                 requests.first().lineNumber
             )
         }

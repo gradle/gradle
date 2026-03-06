@@ -19,8 +19,10 @@ package org.gradle.kotlin.dsl.integration
 import okhttp3.HttpUrl
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okio.Path.Companion.toPath
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.internal.buildevents.BuildExceptionReporter
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
@@ -616,6 +618,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
                 * Where:
                 Build file '${buildFile.canonicalPath}' line: 1
+                  ${BuildExceptionReporter.formatClickableLink(buildFile.canonicalPath, 1)}
 
                 * What went wrong:
                 Script compilation error:
@@ -664,6 +667,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
                     * Where:
                     Build file '${buildFile.canonicalPath}' line: 1
+                      ${BuildExceptionReporter.formatClickableLink(buildFile.canonicalPath, 1)}
 
                     * What went wrong:
                     Script compilation errors:

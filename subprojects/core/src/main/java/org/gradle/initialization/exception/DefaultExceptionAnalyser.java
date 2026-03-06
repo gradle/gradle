@@ -70,12 +70,14 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
             return actualException;
         }
 
+        String sourcePath = null;
         String source = null;
         Integer lineNumber = null;
 
         // TODO: remove these special cases
         if (actualException instanceof ScriptCompilationException) {
             ScriptCompilationException scriptCompilationException = (ScriptCompilationException) actualException;
+            sourcePath = scriptCompilationException.getScriptSource().getFileName();
             source = scriptCompilationException.getScriptSource().getLongDisplayName().getCapitalizedDisplayName();
             lineNumber = scriptCompilationException.getLineNumber();
         }
@@ -88,13 +90,14 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
             ) {
                 Location location = diagnosticsFactory.forException(currentException).getLocation();
                 if (location != null) {
+                    sourcePath = location.getFilePath();
                     source = location.getSourceLongDisplayName().getCapitalizedDisplayName();
                     lineNumber = location.getLineNumber();
                 }
             }
         }
 
-        return new LocationAwareException(actualException, source, lineNumber);
+        return new LocationAwareException(actualException, sourcePath, source, lineNumber);
     }
 
     private static Throwable findDeepestRootException(Throwable exception) {

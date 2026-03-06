@@ -54,7 +54,7 @@ class ExceptionMetadataHelperTest extends Specification {
         def l = 57
         def c = new RuntimeException("!")
         def s = "source"
-        def e = new LocationAwareException(c, s, l)
+        def e = new LocationAwareException(c, null, s, l)
 
         expect:
         with(ExceptionMetadataHelper.getMetadata(e)) {
@@ -67,7 +67,7 @@ class ExceptionMetadataHelperTest extends Specification {
     def "can deal with LAE when everything is null"() {
         given:
         def c = new RuntimeException("!")
-        def e = new LocationAwareException(c, null as String, null)
+        def e = new LocationAwareException(c, null, null as String, null)
 
         expect:
         with(ExceptionMetadataHelper.getMetadata(e)) {
