@@ -26,11 +26,14 @@ import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.DefaultPostExecutionWorkQueue;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.PostExecutionWorkQueue;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -139,6 +142,12 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    PostExecutionWorkQueue createPostExecutionWorkQueue(ExecutorFactory executorFactory, StartParameter startParameter) {
+        int packingThreads = Math.max(1, startParameter.getMaxWorkerCount() / 2);
+        return new DefaultPostExecutionWorkQueue(executorFactory.create("Build cache packing", packingThreads));
+    }
+
+    @Provides
     public ExecutionEngine createExecutionEngine(
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
@@ -160,7 +169,8 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         StartParameter startParameter,
         TimeoutHandler timeoutHandler,
         InternalProblems problems,
-        WorkerLeaseService workerLeaseService
+        WorkerLeaseService workerLeaseService,
+        PostExecutionWorkQueue postExecutionWorkQueue
     ) {
         UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
@@ -176,8 +186,8 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new ResolveImmutableCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
-            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
+            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, postExecutionWorkQueue,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER, workerLeaseService,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
@@ -198,9 +208,9 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new MarkSnapshottingInputsFinishedStep<>(
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
-            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
+            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, postExecutionWorkQueue,
             new ResolveInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, new OverlappingOutputsFilter(),
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, new OverlappingOutputsFilter(), workerLeaseService,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new PreCreateOutputParentsStep<>(

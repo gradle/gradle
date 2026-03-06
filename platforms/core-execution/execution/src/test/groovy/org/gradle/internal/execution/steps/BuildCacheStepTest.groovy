@@ -25,6 +25,7 @@ import org.gradle.internal.Try
 import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.OutputVisitor
+import org.gradle.internal.execution.PostExecutionWorkQueue
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
@@ -53,7 +54,9 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
     def fileSystemAccess = Mock(FileSystemAccess)
     def outputChangeListener = Mock(OutputChangeListener)
 
-    def step = new BuildCacheStep<TestCachingContext>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, delegate)
+    // Synchronous queue so tests can verify store interactions without async coordination
+    def postExecutionWorkQueue = { Runnable work -> work.run() } as PostExecutionWorkQueue
+    def step = new BuildCacheStep<TestCachingContext>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, postExecutionWorkQueue, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
     def "loads from cache"() {
@@ -227,23 +230,16 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
         0 * _
     }
 
-    def "fails when cache backend throws exception while storing cached result"() {
+    def "warns when cache backend throws exception while storing cached result"() {
         given:
         def execution = Mock(Execution)
         def failure = new RuntimeException("store failure")
-        def afterExecutionOutputState = Mock(ExecutionOutputState)
-        def duration = Duration.of(5, ChronoUnit.SECONDS)
 
         when:
         def result = step.execute(work, context)
 
         then:
-        def ex = result.execution.failure.get()
-        ex.message == "Failed to store cache entry $cacheKeyHashCode for job ':test': store failure"
-        ex.cause == failure
-
-        result.afterExecutionOutputState.get() == afterExecutionOutputState
-        result.duration == duration
+        result == delegateResult
 
         interaction { withValidCacheKey() }
 
@@ -257,11 +253,6 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         interaction { outputStored { throw failure } }
-
-
-        then:
-        1 * delegateResult.getDuration() >> duration
-        1 * delegateResult.getAfterExecutionOutputState() >> Optional.of(afterExecutionOutputState)
 
         then:
         0 * _
