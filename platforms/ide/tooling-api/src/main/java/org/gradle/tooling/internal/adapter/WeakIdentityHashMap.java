@@ -16,11 +16,13 @@
 
 package org.gradle.tooling.internal.adapter;
 
+import org.jetbrains.annotations.VisibleForTesting;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A specialized map wrapper, that uses weak references for keys and stores
@@ -30,31 +32,38 @@ import java.util.Set;
  * for generating hash code and considers referent equality for {@code equals} method.
  */
 class WeakIdentityHashMap<K, V> {
-    private final HashMap<WeakKey<K>, V> map = new HashMap<>();
+    private final ConcurrentHashMap<WeakKey<K>, V> map = new ConcurrentHashMap<>();
+    private final ReferenceQueue<K> referenceQueue = new ReferenceQueue<>();
 
     void put(K key, V value) {
-        map.put(new WeakKey<>(key), value);
+        cleanUnreferencedKeys();
+        map.put(new WeakKey<>(key, referenceQueue), value);
     }
 
     @Nullable
     V get(K key) {
+        cleanUnreferencedKeys();
         return map.get(new WeakKey<>(key));
     }
 
+    @VisibleForTesting
     Set<WeakKey<K>> keySet() {
+        cleanUnreferencedKeys();
         return map.keySet();
     }
 
     V computeIfAbsent(K key, AbsentValueProvider<V> absentValueProvider) {
-        WeakKey<K> weakKey = new WeakKey<>(key);
-        V value = map.get(weakKey);
+        cleanUnreferencedKeys();
+        WeakKey<K> weakKey = new WeakKey<>(key, referenceQueue);
+        return map.computeIfAbsent(weakKey, k -> absentValueProvider.provide());
+    }
 
-        if (value == null) {
-            value = absentValueProvider.provide();
-            map.put(weakKey, value);
+    @SuppressWarnings("unchecked")
+    private void cleanUnreferencedKeys() {
+        WeakKey<K> staleKey;
+        while ((staleKey = (WeakKey<K>) referenceQueue.poll()) != null) {
+            map.remove(staleKey);
         }
-
-        return value;
     }
 
     public interface AbsentValueProvider<T> {
@@ -66,11 +75,16 @@ class WeakIdentityHashMap<K, V> {
         private final int hashCode;
 
         public WeakKey(T referent) {
-            super(referent);
+            this(referent, null);
+        }
+
+        public WeakKey(T referent, @Nullable ReferenceQueue<? super T> q) {
+            super(referent, q);
             hashCode = System.identityHashCode(referent);
         }
 
         @Override
+        @SuppressWarnings("SuperCallToObjectMethod")
         public boolean equals(Object obj) {
             if (this == obj) {
                 return true;
@@ -80,6 +94,11 @@ class WeakIdentityHashMap<K, V> {
             }
             Object thisReferent = get();
             Object objReferent = ((WeakKey<?>) obj).get();
+
+            if (thisReferent == null && objReferent == null) {
+                return super.equals(obj);
+            }
+
             return thisReferent == objReferent;
         }
 
