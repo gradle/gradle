@@ -27,6 +27,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputVisitor;
+import org.gradle.internal.execution.PostExecutionWorkQueue;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
@@ -53,6 +54,7 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
     private final Deleter deleter;
     private final FileSystemAccess fileSystemAccess;
     private final OutputChangeListener outputChangeListener;
+    private final PostExecutionWorkQueue postExecutionWorkQueue;
     private final Step<? super C, ? extends AfterExecutionResult> delegate;
 
     public BuildCacheStep(
@@ -60,12 +62,14 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
         OutputChangeListener outputChangeListener,
+        PostExecutionWorkQueue postExecutionWorkQueue,
         Step<? super C, ? extends AfterExecutionResult> delegate
     ) {
         this.buildCache = buildCache;
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.outputChangeListener = outputChangeListener;
+        this.postExecutionWorkQueue = postExecutionWorkQueue;
         this.delegate = delegate;
     }
 
@@ -162,7 +166,11 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
     private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, Execution executionResult) {
         if (executionResult.canStoreOutputsInCache()) {
             result.getAfterExecutionOutputState()
-                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
+                .ifPresent(afterExecutionState -> {
+                    ImmutableSortedMap<String, FileSystemSnapshot> outputs = afterExecutionState.getOutputFilesProducedByWork();
+                    Duration executionTime = afterExecutionState.getOriginMetadata().getExecutionTime();
+                    postExecutionWorkQueue.submit(() -> store(cacheableWork, cacheKey, outputs, executionTime));
+                });
         } else {
             LOGGER.debug("Not storing result of {} in cache because storing was disabled for this execution", cacheableWork.getDisplayName());
         }
@@ -176,12 +184,8 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
                     work.getDisplayName(), cacheKey.getHashCode());
             }
         } catch (Exception e) {
-            throw new RuntimeException(
-                String.format("Failed to store cache entry %s for %s: %s",
-                    cacheKey.getHashCode(),
-                    work.getDisplayName(),
-                    e.getMessage()),
-                e);
+            LOGGER.warn("Failed to store cache entry {} for {}: {}",
+                cacheKey.getHashCode(), work.getDisplayName(), e.getMessage(), e);
         }
     }
 
