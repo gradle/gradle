@@ -39,6 +39,7 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
+import org.gradle.internal.Factory
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
@@ -48,6 +49,8 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
+import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -109,6 +112,10 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
     def deleter = TestFiles.deleter()
     def problems = TestUtil.problemsService()
+    def workerLeaseService = Stub(WorkerLeaseService) {
+        getCurrentWorkerLease() >> Mock(WorkerLeaseRegistry.WorkerLease)
+        withoutLocks(_, _) >> { Collection locks, Factory factory -> factory.create() }
+    }
 
     ExecutionEngine createExecutor() {
         TestExecutionEngineFactory.createExecutionEngine(
@@ -123,6 +130,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             overlappingOutputDetector,
             validationWarningReporter,
             virtualFileSystem,
+            workerLeaseService,
             problems
         )
     }

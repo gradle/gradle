@@ -311,6 +311,15 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         return false;
     }
 
+    private static boolean containsWorkerLease(Iterable<? extends ResourceLock> locks) {
+        for (ResourceLock lock : locks) {
+            if (lock instanceof WorkerLease) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private Collection<? extends ResourceLock> locksNotHeld(final Collection<? extends ResourceLock> locks) {
         if (locks.isEmpty()) {
             return locks;
@@ -357,11 +366,28 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         }
 
         assertAllLocked(locks);
-        releaseLocks(locks);
+        Collection<? extends ResourceLock> locksToRelease;
+        boolean hasWorkerLease = containsWorkerLease(locks);
+        if (hasWorkerLease) {
+            // Don't release the worker lease, just mark it dormant.
+            List<ResourceLock> locksWithoutWorkerLease = new ArrayList<>(locks.size() - 1);
+            for (ResourceLock lock : locks) {
+                if (!(lock instanceof WorkerLease)) {
+                    locksWithoutWorkerLease.add(lock);
+                }
+            }
+            locksToRelease = locksWithoutWorkerLease;
+        } else {
+            locksToRelease = locks;
+        }
+        releaseLocks(locksToRelease);
         WorkerThreadPool owningThreadPool = blockingFactory ? OWNING_WORKER_THREAD_POOL.get() : null;
-        return resourceLockStatistics.measure("Released", locks, () -> {
+        return resourceLockStatistics.measure("Released", locksToRelease, () -> {
             if (owningThreadPool != null) {
                 owningThreadPool.notifyBlockingWorkStarting();
+            }
+            if (hasWorkerLease) {
+                workerLeaseLockRegistry.root.addDormantLease();
             }
             try {
                 return factory.create();
@@ -371,7 +397,10 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
                     // But we don't want to double-up on blocking sections, as it may lead to overallocation of threads in the pool.
                     owningThreadPool.notifyBlockingWorkFinished();
                 }
-                acquireLocksWithoutWorkerLeaseWhileBlocked(locks);
+                if (hasWorkerLease) {
+                    workerLeaseLockRegistry.root.removeDormantLease();
+                }
+                acquireLocksWithoutWorkerLeaseWhileBlocked(locksToRelease);
             }
         });
     }

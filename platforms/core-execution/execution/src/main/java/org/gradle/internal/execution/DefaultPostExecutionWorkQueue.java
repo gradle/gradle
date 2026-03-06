@@ -18,8 +18,6 @@ package org.gradle.internal.execution;
 
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 public class DefaultPostExecutionWorkQueue implements PostExecutionWorkQueue, Stoppable {
 
@@ -31,8 +29,7 @@ public class DefaultPostExecutionWorkQueue implements PostExecutionWorkQueue, St
 
     @Override
     public void submit(Runnable work) {
-        BuildOperationRef capturedOperation = CurrentBuildOperationRef.instance().get();
-        executor.execute(() -> CurrentBuildOperationRef.instance().with(capturedOperation, work));
+        executor.execute(work);
     }
 
     @Override
