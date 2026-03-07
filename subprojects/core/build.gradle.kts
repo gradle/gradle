@@ -100,7 +100,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
     api(libs.jsr305)
-    api(libs.nativePlatform)
 
     implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
@@ -124,12 +123,13 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovyJson)
     implementation(libs.groovyXml)
+    implementation(libs.nativePlatform)
     implementation(libs.slf4jApi)
     implementation(libs.tomlj) {
         // Used for its nullability annotations, not needed at runtime
         exclude("org.checkerframework", "checker-qual")
     }
-    implementation(libs.jnrConstants)
+
 
     compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")
