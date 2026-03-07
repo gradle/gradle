@@ -18,15 +18,17 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.Cast;
-import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
@@ -81,7 +83,7 @@ public class DefaultConnection implements ConnectionVersion4,
     private static final String MIN_CLIENT_VERSION_STR = DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION.getVersion();
     public static final int GUARANTEED_TAPI_BACKWARDS_COMPATIBILITY = 5;
     private ProtocolToModelAdapter adapter;
-    private BuildProcessState buildProcessState;
+    private CloseableServiceRegistry connectionServices;
     private ProviderConnection connection;
     @Nullable // not provided by older client versions
     private GradleVersion consumerVersion;
@@ -111,24 +113,22 @@ public class DefaultConnection implements ConnectionVersion4,
     private void initializeServices(File gradleUserHomeDir) {
         NativeServices.initializeOnClient(gradleUserHomeDir, NativeServicesMode.fromSystemProperties());
         ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        // Merge the connection services into the build process services
-        // It would be better to separate these into different scopes, but many things still assume that connection services are available in the global scope,
-        // so keep them merged as a migration step
-        // It would also be better to create the build process services only if they are needed, ie when the tooling API is used in embedded mode
-        buildProcessState = new BuildProcessState(
-            true,
-            AgentStatus.disabled(),
-            CurrentGradleInstallation.locate(),
-            loggingServices,
-            NativeServices.getInstance()
-        ) {
-            @Override
-            protected void addProviders(ServiceRegistryBuilder builder) {
-                builder.provider(new ConnectionScopeServices());
-            }
-        };
-        adapter = buildProcessState.getServices().get(ProtocolToModelAdapter.class);
-        connection = buildProcessState.getServices().get(ProviderConnection.class);
+
+        this.connectionServices = ServiceRegistryBuilder.builder()
+            .displayName("TAPI connection global services")
+            .scopeStrictly(Scope.Global.class)
+            .parent(loggingServices)
+            .parent(NativeServices.getInstance())
+            .provider(new GlobalScopeServices(
+                true,
+                AgentStatus.disabled(),
+                CurrentGradleInstallation.locate()
+            ))
+            .provider(new ConnectionScopeServices())
+            .build();
+
+        adapter = connectionServices.get(ProtocolToModelAdapter.class);
+        connection = connectionServices.get(ProviderConnection.class);
     }
 
     /**
@@ -144,7 +144,11 @@ public class DefaultConnection implements ConnectionVersion4,
      */
     @Override
     public void shutdown(ShutdownParameters parameters) {
-        buildProcessState.close();
+        if (connectionServices != null) {
+            connectionServices.get(ShutdownCoordinator.class).stopAllDaemons();
+            connectionServices.close();
+            connectionServices = null;
+        }
     }
 
     /**

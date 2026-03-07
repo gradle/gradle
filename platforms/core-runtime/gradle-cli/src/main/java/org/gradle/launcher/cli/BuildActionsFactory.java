@@ -66,6 +66,8 @@ import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess;
 import org.gradle.tooling.internal.provider.RunInProcess;
 
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
@@ -189,8 +191,11 @@ class BuildActionsFactory implements CommandLineActionCreator {
             startParameter.isContinuous(),
             AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent()),
             currentGradleInstallation,
-            loggingServices,
-            NativeServices.getInstance()
+            Collections.emptySet(),
+            Arrays.asList(
+                loggingServices,
+                NativeServices.getInstance()
+            )
         );
 
         ServiceRegistry globalServices = buildProcessState.getServices();
