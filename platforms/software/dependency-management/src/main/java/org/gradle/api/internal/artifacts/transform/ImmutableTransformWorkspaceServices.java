@@ -24,10 +24,11 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
+import java.util.concurrent.CompletableFuture;
 
 @ServiceScope(Scope.UserHome.class)
 public interface ImmutableTransformWorkspaceServices extends Closeable {
     ImmutableWorkspaceProvider getWorkspaceProvider();
 
-    Cache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache();
+    Cache<Identity, CompletableFuture<DeferredResult<TransformExecutionResult.TransformWorkspaceResult>>> getIdentityCache();
 }

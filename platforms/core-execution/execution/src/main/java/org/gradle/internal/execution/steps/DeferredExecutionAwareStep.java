@@ -23,6 +23,8 @@ import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface DeferredExecutionAwareStep<C extends Context, R extends Result> extends Step<C, R> {
-    <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, DeferredResult<T>> cache);
+    <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, CompletableFuture<DeferredResult<T>>> cache);
 }

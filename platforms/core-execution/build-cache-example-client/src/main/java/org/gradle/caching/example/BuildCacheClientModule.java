@@ -448,7 +448,7 @@ class BuildCacheClientModule extends AbstractModule {
     //      watching/non-watching implementations so DefaultVirtualFileSystem can be reused here
     private static class CustomVirtualFileSystem extends AbstractVirtualFileSystem {
         protected CustomVirtualFileSystem(SnapshotHierarchy root) {
-            super(root);
+            super(root, path -> false);
         }
 
         @Override

@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -71,16 +72,25 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private Thread createAndStartEventConsumerThread(ChangeHandler handler) {
         Thread thread = new Thread(() -> {
             LOGGER.debug("Started listening to file system change events");
+            List<FileWatchEvent> eventBatch = new ArrayList<>();
+            List<FileWatcherRegistry.FileChange> changes = new ArrayList<>();
             try {
                 while (consumeEvents) {
-                    FileWatchEvent nextEvent = fileEvents.take();
-                    if (!stopping) {
-                        nextEvent.handleEvent(new FileWatchEvent.Handler() {
+                    eventBatch.clear();
+                    changes.clear();
+                    eventBatch.add(fileEvents.take());
+                    fileEvents.drainTo(eventBatch);
+                    if (stopping) {
+                        continue;
+                    }
+                    for (FileWatchEvent event : eventBatch) {
+                        boolean[] stopProcessing = new boolean[1];
+                        event.handleEvent(new FileWatchEvent.Handler() {
                             @Override
                             public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
                                 fileWatchingStatistics.eventReceived();
                                 fileWatcherUpdater.triggerWatchProbe(absolutePath);
-                                handler.handleChange(convertType(type), Paths.get(absolutePath));
+                                changes.add(new FileWatcherRegistry.FileChange(convertType(type), Paths.get(absolutePath)));
                             }
 
                             @Override
@@ -88,10 +98,15 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                                 LOGGER.error("Received unknown event for {}", absolutePath);
                                 fileWatchingStatistics.unknownEventEncountered();
                                 handler.stopWatchingAfterError();
+                                stopProcessing[0] = true;
                             }
 
                             @Override
                             public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
+                                if (!changes.isEmpty()) {
+                                    handler.handleChanges(changes);
+                                    changes.clear();
+                                }
                                 if (absolutePath == null) {
                                     LOGGER.info("Overflow detected (type: {}), invalidating all watched files", type);
                                     fileWatcherUpdater.getWatchedFiles().visitRoots(watchedRoot ->
@@ -100,6 +115,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                                     LOGGER.info("Overflow detected (type: {}) for watched path '{}', invalidating", type, absolutePath);
                                     handler.handleChange(OVERFLOW, Paths.get(absolutePath));
                                 }
+                                stopProcessing[0] = true;
                             }
 
                             @Override
@@ -107,13 +123,21 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                                 LOGGER.error("Error while receiving file changes", failure);
                                 fileWatchingStatistics.errorWhileReceivingFileChanges(failure);
                                 handler.stopWatchingAfterError();
+                                stopProcessing[0] = true;
                             }
 
                             @Override
                             public void handleTerminated() {
                                 consumeEvents = false;
+                                stopProcessing[0] = true;
                             }
                         });
+                        if (stopProcessing[0]) {
+                            break;
+                        }
+                    }
+                    if (!changes.isEmpty()) {
+                        handler.handleChanges(changes);
                     }
                 }
             } catch (InterruptedException e) {

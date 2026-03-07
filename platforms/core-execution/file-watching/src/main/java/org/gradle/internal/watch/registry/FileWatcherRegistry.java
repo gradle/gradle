@@ -33,8 +33,32 @@ public interface FileWatcherRegistry extends Closeable {
 
     boolean isWatchingAnyLocations();
 
+    class FileChange {
+        private final Type type;
+        private final Path path;
+
+        public FileChange(Type type, Path path) {
+            this.type = type;
+            this.path = path;
+        }
+
+        public Type getType() {
+            return type;
+        }
+
+        public Path getPath() {
+            return path;
+        }
+    }
+
     interface ChangeHandler {
         void handleChange(Type type, Path path);
+
+        default void handleChanges(List<FileChange> changes) {
+            for (FileChange change : changes) {
+                handleChange(change.getType(), change.getPath());
+            }
+        }
 
         void stopWatchingAfterError();
     }

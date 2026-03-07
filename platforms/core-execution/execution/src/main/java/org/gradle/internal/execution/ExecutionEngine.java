@@ -28,6 +28,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @ServiceScope(Scope.Build.class)
 public interface ExecutionEngine {
@@ -58,7 +59,7 @@ public interface ExecutionEngine {
          * Otherwise, the execution is wrapped in a not-yet-complete {@link Deferrable} to be evaluated later.
          * The work is looked up by its {@link Identity identity} in the given cache.
          */
-        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, DeferredResult<T>> cache);
+        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, CompletableFuture<DeferredResult<T>>> cache);
     }
 
     interface Result {

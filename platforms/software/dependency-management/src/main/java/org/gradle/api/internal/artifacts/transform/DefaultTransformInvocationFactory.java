@@ -41,6 +41,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class DefaultTransformInvocationFactory implements TransformInvocationFactory {
     private static final InternalOption<@Nullable String> CACHING_DISABLED_PROPERTY = StringInternalOption.of("org.gradle.internal.transform-caching-disabled");
@@ -84,7 +85,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
 
-        Cache<Identity, DeferredResult<TransformWorkspaceResult>> identityCache;
+        Cache<Identity, CompletableFuture<DeferredResult<TransformWorkspaceResult>>> identityCache;
         UnitOfWork execution;
 
         boolean cachingDisabledByProperty = isCachingDisabledByProperty(transform);
