@@ -18,7 +18,7 @@ package org.gradle.internal.service
 
 import spock.lang.Specification
 
-class DefaultServiceRegistryServiceAccessTest extends Specification {
+class ServiceRegistryServiceAccessTest extends Specification {
 
     ServiceRegistry registry = new DefaultServiceRegistry("test registry")
 
@@ -36,7 +36,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         when:
         def service1 = registry.get(ServiceWithDependency)
         then:
-        service1 instanceof ServiceWithDependency
+        (service1 instanceof ServiceWithDependency)
 
         when:
         registry.get(TestService)
@@ -60,7 +60,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         when:
         def service1 = registry.get(ServiceWithDependency)
         then:
-        service1 instanceof ServiceWithDependency
+        (service1 instanceof ServiceWithDependency)
 
         when:
         registry.get(TestService)

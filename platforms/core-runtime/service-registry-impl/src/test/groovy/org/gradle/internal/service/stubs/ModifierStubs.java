@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.internal;
+package org.gradle.internal.service.stubs;
 
 import javax.inject.Inject;
 

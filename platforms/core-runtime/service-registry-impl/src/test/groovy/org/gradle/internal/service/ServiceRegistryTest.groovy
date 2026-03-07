@@ -19,6 +19,7 @@ package org.gradle.internal.service
 import com.google.common.reflect.TypeToken
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.service.stubs.ProviderWithGenericType
 import org.gradle.util.GroovyNullMarked
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
@@ -26,7 +27,8 @@ import spock.lang.Specification
 import java.lang.reflect.Type
 import java.util.concurrent.Callable
 
-class DefaultServiceRegistryTest extends Specification {
+class ServiceRegistryTest extends Specification {
+
     def registry = new DefaultServiceRegistry("test registry")
         .addProvider(new TestProvider())
 
@@ -192,7 +194,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def handlesInheritanceInGenericTypes() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ProviderWithGenericTypes())
+        registry.addProvider(new ProviderWithGenericType())
 
         expect:
         registry.get(Integer) == 123
@@ -320,7 +322,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry via DefaultServiceRegistryTest$<anonymous>.createServices()'
+        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry via ServiceRegistryTest$<anonymous>.createServices()'
     }
 
     def failsWhenProviderFactoryMethodRequiresUnknownService() {
@@ -332,15 +334,15 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type String using method DefaultServiceRegistryTest\$StringProvider.createString() as required service of type Runnable for parameter #1 is not available."
+        e.message == "Cannot create service of type String using method ServiceRegistryTest\$StringProvider.createString() as required service of type Runnable for parameter #1 is not available."
 
         when:
         registry.get(Number)
 
         then:
         e = thrown()
-        e.message == "Cannot create service of type Integer using method DefaultServiceRegistryTest\$StringProvider.createInteger() as there is a problem with parameter #1 of type String."
-        e.cause.message == "Cannot create service of type String using method DefaultServiceRegistryTest\$StringProvider.createString() as required service of type Runnable for parameter #1 is not available."
+        e.message == "Cannot create service of type Integer using method ServiceRegistryTest\$StringProvider.createInteger() as there is a problem with parameter #1 of type String."
+        e.cause.message == "Cannot create service of type String using method ServiceRegistryTest\$StringProvider.createString() as required service of type Runnable for parameter #1 is not available."
     }
 
     def failsWhenConstructorRequiresUnknownService() {
@@ -354,7 +356,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type DefaultServiceRegistryTest\$RequiresService using DefaultServiceRegistryTest\$RequiresService constructor as required service of type Number for parameter #1 is not available."
+        e.message == "Cannot create service of type ServiceRegistryTest\$RequiresService using ServiceRegistryTest\$RequiresService constructor as required service of type Number for parameter #1 is not available."
     }
 
     def failsWhenProviderFactoryMethodThrowsException() {
@@ -435,7 +437,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(ServiceValidationException)
-        e.message == "Cannot register an abstract type (org.gradle.internal.service.DefaultServiceRegistryTest.AbstractClass) for construction."
+        e.message == "Cannot register an abstract type (org.gradle.internal.service.ServiceRegistryTest.AbstractClass) for construction."
     }
 
     def cachesInstancesCreatedUsingAProviderFactoryMethod() {
@@ -506,8 +508,8 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         ServiceLookupException e = thrown()
         e.message.contains("Multiple services of type Long available in DefaultServiceRegistry:")
-        e.message.contains('- Service Long via DefaultServiceRegistryTest$ConflictingDecoratorMethods.createLong()')
-        e.message.contains('- Service Long via DefaultServiceRegistryTest$ConflictingDecoratorMethods.decorateLong()')
+        e.message.contains('- Service Long via ServiceRegistryTest$ConflictingDecoratorMethods.createLong()')
+        e.message.contains('- Service Long via ServiceRegistryTest$ConflictingDecoratorMethods.decorateLong()')
     }
 
     def providerDecoratorMethodFailsWhenNoParentRegistry() {
@@ -538,7 +540,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type Long using method DefaultServiceRegistryTest\$${decoratorProvider.class.simpleName}.${methodName}Long() as required service of type Long for parameter #1 is not available in parent registries."
+        e.message == "Cannot create service of type Long using method ServiceRegistryTest\$${decoratorProvider.class.simpleName}.${methodName}Long() as required service of type Long for parameter #1 is not available in parent registries."
 
         where:
         decoratorProvider                        | methodName
@@ -580,9 +582,9 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == 'Cannot create service of type String using method DefaultServiceRegistryTest$ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
-        e.cause.message == 'Cannot create service of type Integer using method DefaultServiceRegistryTest$ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
-        e.cause.cause.message == 'Cycle in dependencies of Service String via DefaultServiceRegistryTest$ProviderWithCycle.createString() detected'
+        e.message == 'Cannot create service of type String using method ServiceRegistryTest$ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
+        e.cause.message == 'Cannot create service of type Integer using method ServiceRegistryTest$ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
+        e.cause.cause.message == 'Cycle in dependencies of Service String via ServiceRegistryTest$ProviderWithCycle.createString() detected'
 
         when:
         registry.getAll(Number)
@@ -590,9 +592,9 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         e = thrown()
 
-        e.message == 'Cannot create service of type Integer using method DefaultServiceRegistryTest$ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
-        e.cause.message == 'Cannot create service of type String using method DefaultServiceRegistryTest$ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
-        e.cause.cause.message == 'Cycle in dependencies of Service Integer via DefaultServiceRegistryTest$ProviderWithCycle.createInteger() detected'
+        e.message == 'Cannot create service of type Integer using method ServiceRegistryTest$ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
+        e.cause.message == 'Cannot create service of type String using method ServiceRegistryTest$ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
+        e.cause.cause.message == 'Cycle in dependencies of Service Integer via ServiceRegistryTest$ProviderWithCycle.createInteger() detected'
     }
 
     def failsWhenAProviderFactoryMethodReturnsNull() {
@@ -661,8 +663,8 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         ServiceLookupException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""Multiple services of type Comparable available in DefaultServiceRegistry:
-   - Service Integer via DefaultServiceRegistryTest\$TestProvider.createInt()
-   - Service String via DefaultServiceRegistryTest\$TestProvider.createString()""")
+   - Service Integer via ServiceRegistryTest\$TestProvider.createInt()
+   - Service String via ServiceRegistryTest\$TestProvider.createString()""")
     }
 
     def failsWhenMultipleFactoryMethodsCanCreateRequestedServiceTypeViaConstructor() {
@@ -703,7 +705,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type Number using method DefaultServiceRegistryTest\$UnsupportedInjectionProvider.create() as there is a problem with parameter #1 of type String[]."
+        e.message == "Cannot create service of type Number using method ServiceRegistryTest\$UnsupportedInjectionProvider.create() as there is a problem with parameter #1 of type String[]."
         e.cause.message == 'Locating services with array type is not supported.'
     }
 
@@ -845,7 +847,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == 'Could not create service of type DefaultServiceRegistryTest$ClassWithBrokenConstructor.'
+        e.message == 'Could not create service of type ServiceRegistryTest$ClassWithBrokenConstructor.'
         e.cause == ClassWithBrokenConstructor.failure
     }
 
@@ -1047,7 +1049,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(ServiceCreationException)
-        e.message == 'Cannot create service of type Number using method DefaultServiceRegistryTest\$UnsupportedWildcardProvider.create() as there is a problem with parameter #1 of type List<? super java.lang.String>.'
+        e.message == 'Cannot create service of type Number using method ServiceRegistryTest\$UnsupportedWildcardProvider.create() as there is a problem with parameter #1 of type List<? super java.lang.String>.'
         e.cause.message == 'Locating services with type ? super java.lang.String is not supported.'
     }
 
@@ -1467,7 +1469,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(TestServiceImpl)
         then:
         def e = thrown(UnknownServiceException)
-        e.message == "No service of type DefaultServiceRegistryTest\$TestServiceImpl available in test registry."
+        e.message == "No service of type ServiceRegistryTest\$TestServiceImpl available in test registry."
     }
 
     def "can lookup a multi-service by any service type declared via @Provides"() {
@@ -1480,18 +1482,18 @@ class DefaultServiceRegistryTest extends Specification {
         when:
         def service1 = registry.get(TestService)
         then:
-        service1 instanceof TestService
+        (service1 instanceof TestService)
 
         when:
         def service2 = registry.get(AnotherTestService)
         then:
-        service2 instanceof AnotherTestService
+        (service2 instanceof AnotherTestService)
 
         when:
         registry.get(TestMultiServiceImpl)
         then:
         def e = thrown(UnknownServiceException)
-        e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in test registry."
+        e.message == "No service of type ServiceRegistryTest\$TestMultiServiceImpl available in test registry."
     }
 
     def "cannot declare explicit service type via @Provides that is not implemented by the return type"() {
@@ -1518,7 +1520,7 @@ class DefaultServiceRegistryTest extends Specification {
         when:
         def service1 = registry.get(TestService)
         then:
-        service1 instanceof TestService
+        (service1 instanceof TestService)
 
         when:
         def service2 = registry.get(AnotherTestService)
@@ -1539,7 +1541,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(TestMultiServiceImpl)
         then:
         def e = thrown(UnknownServiceException)
-        e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in test registry."
+        e.message == "No service of type ServiceRegistryTest\$TestMultiServiceImpl available in test registry."
     }
 
     private AbstractServiceRegistry parentRegistry(ServiceProvider provider) {

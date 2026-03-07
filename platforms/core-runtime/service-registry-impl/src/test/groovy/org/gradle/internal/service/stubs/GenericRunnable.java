@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service;
+package org.gradle.internal.service.stubs;
 
-class ProviderWithGenericTypes implements ServiceRegistrationProvider {
-    @Provides
-    Integer createInteger(Runnable action) {
-        action.run();
-        return 123;
-    }
-
-    @Provides
-    GenericRunnable<String> createString() {
-        return new GenericRunnable<String>() {
-            public void run() {
-            }
-        };
-    }
+public interface GenericRunnable<T> extends Runnable {
 }
