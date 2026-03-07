@@ -1535,32 +1535,6 @@ class DefaultServiceRegistryTest extends Specification {
         return new MockServiceRegistry(parentServices)
     }
 
-    private Factory<Number> numberFactory
-    private Factory<String> stringFactory
-    private Factory<? super BigDecimal> superBigDecimalFactory
-    private Factory<? extends BigDecimal> extendsBigDecimalFactory
-    private Factory<? extends Number> extendsNumberFactory
-
-    private Type getNumberFactoryType() {
-        return getClass().getDeclaredField("numberFactory").getGenericType()
-    }
-
-    private Type getStringFactoryType() {
-        return getClass().getDeclaredField("stringFactory").getGenericType()
-    }
-
-    private Type getSuperBigDecimalFactoryType() {
-        return getClass().getDeclaredField("superBigDecimalFactory").getGenericType()
-    }
-
-    private Type getExtendsBigDecimalFactoryType() {
-        return getClass().getDeclaredField("extendsBigDecimalFactory").getGenericType()
-    }
-
-    private Type getExtendsNumberFactoryType() {
-        return getClass().getDeclaredField("extendsNumberFactory").getGenericType()
-    }
-
     /**
      * A simplified view of {@link ServiceRegistry}
      */
