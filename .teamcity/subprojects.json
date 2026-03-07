@@ -1256,7 +1256,7 @@
     "name": "process-services",
     "path": "platforms/core-runtime/process-services",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

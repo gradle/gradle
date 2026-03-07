@@ -33,6 +33,10 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 
+    testFixturesImplementation(projects.stdlibJavaExtensions)
+
+    integTestImplementation(projects.internalDistributionTesting)
+
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 

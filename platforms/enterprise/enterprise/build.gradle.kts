@@ -49,6 +49,7 @@ dependencies {
     integTestImplementation(projects.internalIntegTesting)
     integTestImplementation(testFixtures(projects.toolingApi))
     integTestImplementation(testFixtures(projects.core))
+    integTestImplementation(testFixtures(projects.processServices))
 
     // Dependencies of the integ test fixtures
     integTestImplementation(projects.buildOption)
