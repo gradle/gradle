@@ -16,10 +16,10 @@
 
 package org.gradle.internal.service
 
-import org.gradle.internal.service.internal.ModifierStubs
+import org.gradle.internal.service.stubs.ModifierStubs
 import spock.lang.Specification
 
-class AccessModifierDefaultServiceRegistryTest extends Specification {
+class ServiceRegistryAccessModifiersTest extends Specification {
 
     def "can add type to registry that has package private constructor"() {
         when:
