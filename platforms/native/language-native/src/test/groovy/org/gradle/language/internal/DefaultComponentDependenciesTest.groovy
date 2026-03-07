@@ -21,13 +21,15 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import spock.lang.Specification
 
 class DefaultComponentDependenciesTest extends Specification {
     def configurations = Stub(RoleBasedConfigurationContainerInternal)
-    def dependencyFactory = Mock(DependencyHandler)
+    def dependencyHandler = Mock(DependencyHandler)
+    def dependencyFactory = Stub(DependencyFactory)
     def implDeps = Mock(DependencyScopeConfiguration)
     def deps = Mock(DependencySet)
     DefaultComponentDependencies dependencies
@@ -36,7 +38,7 @@ class DefaultComponentDependenciesTest extends Specification {
         configurations.dependencyScopeLocked("impl") >> implDeps
         implDeps.dependencies >> deps
 
-        dependencies = new DefaultComponentDependencies(configurations, "impl", dependencyFactory)
+        dependencies = new DefaultComponentDependencies(configurations, "impl", dependencyHandler, dependencyFactory)
     }
 
     def "can add implementation dependency"() {
@@ -46,7 +48,7 @@ class DefaultComponentDependenciesTest extends Specification {
         dependencies.implementation("a:b:c")
 
         then:
-        1 * dependencyFactory.create("a:b:c") >> dep
+        1 * dependencyHandler.create("a:b:c") >> dep
         1 * deps.add(dep)
     }
 
@@ -58,7 +60,7 @@ class DefaultComponentDependenciesTest extends Specification {
         dependencies.implementation("a:b:c", action)
 
         then:
-        1 * dependencyFactory.create("a:b:c") >> dep
+        1 * dependencyHandler.create("a:b:c") >> dep
         1 * action.execute(dep)
         1 * deps.add(dep)
     }

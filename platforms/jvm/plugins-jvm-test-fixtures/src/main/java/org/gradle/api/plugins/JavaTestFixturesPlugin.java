@@ -87,12 +87,12 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
         DependencyHandler dependencies = project.getDependencies();
 
         // Test fixtures depend on the project.
-        feature.getApiConfiguration().getDependencies().add(dependencies.create(project));
+        feature.getApiConfiguration().getDependencies().add(dependencies.project());
 
         // The tests depend on the test fixtures.
         SourceSet testSourceSet = JavaPluginHelper.getDefaultTestSuite(project).getSources();
         Configuration testImplementation = project.getConfigurations().getByName(testSourceSet.getImplementationConfigurationName());
-        testImplementation.getDependencies().add(dependencies.testFixtures(dependencies.create(project)));
+        testImplementation.getDependencies().add(dependencies.testFixtures(dependencies.project()));
 
         // Overwrite what the Java plugin defines for test, in order to avoid duplicate classes
         // see gradle/gradle#10872

@@ -10,7 +10,7 @@ version = "1.0"
 val integrationTest by sourceSets.creating
 
 dependencies {
-    "integrationTestImplementation"(project)
+    "integrationTestImplementation"(project())
 }
 // end::test-source-set[]
 
@@ -29,7 +29,7 @@ tasks.check {
 
 val functionalTest by sourceSets.creating
 dependencies {
-    "functionalTestImplementation"(project)
+    "functionalTestImplementation"(project())
 }
 val functionalTestTask = tasks.register<Test>("functionalTest") {
     description = "Runs the functional tests."

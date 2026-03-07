@@ -91,7 +91,9 @@ public interface DependencyFactory {
      *
      * @param project the project
      * @return the new dependency
+     * @deprecated Use {@link #createProjectDependency(String)} instead.
      */
+    @Deprecated
     ProjectDependency create(Project project);
 
     /**

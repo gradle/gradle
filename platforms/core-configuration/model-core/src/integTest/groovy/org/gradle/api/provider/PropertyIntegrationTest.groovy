@@ -568,7 +568,7 @@ assert custom.prop.get() == "value 4"
                 def m = extensions.create('model', Model)
                 m.prop.finalizeValueOnRead()
                 def c = configurations.create("incoming")
-                dependencies.incoming(project(":producer"))
+                dependencies.incoming(dependencies.project(":producer"))
                 m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
                 task consumer1(type: SomeTask) {
                     prop = m.prop
@@ -627,7 +627,7 @@ assert custom.prop.get() == "value 4"
                 def m = extensions.create('model', Model)
                 m.prop.finalizeValueOnRead()
                 def c = configurations.create("incoming")
-                dependencies.incoming(project(":producer"))
+                dependencies.incoming(dependencies.project(":producer"))
                 m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
                 task consumer1 {
                     inputs.files(c)

@@ -126,7 +126,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         project.getPlugins().withId("jvm-test-suite", plugin -> {
             // Depend on this project for aggregation
             jacocoAggregation.configure(conf -> {
-                conf.getDependencies().add(project.getDependencyFactory().create(project));
+                conf.getDependencies().add(project.getDependencyFactory().createProjectDependency());
             });
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);

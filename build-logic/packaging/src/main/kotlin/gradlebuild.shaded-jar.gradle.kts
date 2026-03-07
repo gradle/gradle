@@ -99,7 +99,7 @@ fun createConfigurationToShade() = configurations.create("jarsToShade") {
     isCanBeConsumed = false
     dependencies.addAllLater(provider {
         listOf(
-            project.dependencies.create(project),
+            project.dependencies.project(),
             project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies")))
         )
     })
