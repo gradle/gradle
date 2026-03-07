@@ -26,11 +26,11 @@ import org.gradle.internal.time.Time;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -53,7 +53,7 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
         this.maximumLockingTimeMillis = 5000;
         HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
         int queueCapacity = Math.min(4000, heapProportionalCacheSizer.scaleCacheSize(40000));
-        workQueue = new ArrayBlockingQueue<Runnable>(queueCapacity, true);
+        workQueue = new LinkedBlockingQueue<>(queueCapacity);
     }
 
     @Override

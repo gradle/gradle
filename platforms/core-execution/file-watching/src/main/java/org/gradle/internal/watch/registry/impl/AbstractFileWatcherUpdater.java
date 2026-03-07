@@ -111,7 +111,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root) {
-        SnapshotHierarchy newRoot = WatchableHierarchies.removeUnwatchableContentAfterBuildFinished(
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentAfterBuildFinished(
             root,
             createInvalidator()
         );
