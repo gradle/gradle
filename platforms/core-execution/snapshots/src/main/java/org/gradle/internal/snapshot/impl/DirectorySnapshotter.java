@@ -370,10 +370,10 @@ public class DirectorySnapshotter {
                             }
                         }
                     } else {
-                        visitResolvedFile(file, targetAttributes, AccessType.VIA_SYMLINK);
+                        visitResolvedFile(file, internedFileName, targetAttributes, AccessType.VIA_SYMLINK);
                     }
                 } else {
-                    visitResolvedFile(file, attrs, AccessType.DIRECT);
+                    visitResolvedFile(file, internedFileName, attrs, AccessType.DIRECT);
                 }
                 return FileVisitResult.CONTINUE;
             } finally {
@@ -411,8 +411,7 @@ public class DirectorySnapshotter {
             return parentDirectories.contains(targetDirString);
         }
 
-        private void visitResolvedFile(Path file, BasicFileAttributes targetAttributes, AccessType accessType) {
-            String internedName = intern(file.getFileName().toString());
+        private void visitResolvedFile(Path file, String internedName, BasicFileAttributes targetAttributes, AccessType accessType) {
             if (shouldVisitFile(file, internedName)) {
                 builder.visitLeafElement(snapshotFile(file, internedName, targetAttributes, accessType));
             }
@@ -513,9 +512,10 @@ public class DirectorySnapshotter {
             return allowed;
         }
 
-        private String getInternedFileName(Path dir) {
-            Path fileName = dir.getFileName();
-            return fileName == null ? "" : intern(fileName.toString());
+        private String getInternedFileName(Path path) {
+            String absolutePath = path.toString();
+            int lastSep = absolutePath.lastIndexOf(File.separatorChar);
+            return intern(lastSep < 0 ? absolutePath : absolutePath.substring(lastSep + 1));
         }
 
         public FileSystemLocationSnapshot getResult() {
