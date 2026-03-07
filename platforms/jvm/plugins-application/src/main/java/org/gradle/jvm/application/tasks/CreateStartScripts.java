@@ -38,6 +38,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -170,12 +171,23 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     /**
      * The environment variable to use to control exit value (Windows only).
+     *
+     * @deprecated No longer used in the default start script templates. Will be removed in Gradle 10.
      */
     @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public String getExitEnvironmentVar() {
+        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "getExitEnvironmentVar()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_exit_environment_var")
+            .nagUser();
+        return computeExitEnvironmentVar();
+    }
+
+    @Nullable
+    private String computeExitEnvironmentVar() {
         if (GUtil.isTrue(exitEnvironmentVar)) {
             return exitEnvironmentVar;
         }
@@ -300,7 +312,12 @@ public abstract class CreateStartScripts extends ConventionTask {
         this.optsEnvironmentVar = optsEnvironmentVar;
     }
 
+    @Deprecated
     public void setExitEnvironmentVar(@Nullable String exitEnvironmentVar) {
+        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "setExitEnvironmentVar(String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_exit_environment_var")
+            .nagUser();
         this.exitEnvironmentVar = exitEnvironmentVar;
     }
 
@@ -366,7 +383,8 @@ public abstract class CreateStartScripts extends ConventionTask {
         generator.setEntryPoint(getEntryPoint());
         generator.setDefaultJvmOpts(getDefaultJvmOpts());
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
-        generator.setExitEnvironmentVar(getExitEnvironmentVar());
+        // Skipping use of getExitEnvironmentVar() to avoid deprecation warning
+        generator.setExitEnvironmentVar(computeExitEnvironmentVar());
         generator.setClasspath(getRelativePath(javaModuleDetector.inferClasspath(getMainModule().isPresent(), getClasspath())));
         generator.setModulePath(getRelativePath(javaModuleDetector.inferModulePath(getMainModule().isPresent(), getClasspath())));
         if (StringUtils.isEmpty(getExecutableDir())) {
