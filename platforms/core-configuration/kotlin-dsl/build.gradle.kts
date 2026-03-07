@@ -20,6 +20,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.concurrent)
+    implementation(projects.processServices)
     api(projects.declarativeDslApi)
     api(projects.fileOperations)
     api(projects.hashing)
