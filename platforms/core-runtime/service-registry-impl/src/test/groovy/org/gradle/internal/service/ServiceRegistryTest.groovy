@@ -23,7 +23,6 @@ import org.gradle.util.GroovyNullMarked
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
-import java.lang.reflect.Type
 import java.util.concurrent.Callable
 
 class ServiceRegistryTest extends Specification {
@@ -672,7 +671,7 @@ class ServiceRegistryTest extends Specification {
             @SuppressWarnings('unused')
             void configure(ServiceRegistration registration) {
                 registration.add(TestServiceImpl)
-                registration.add(TestMultiServiceImpl)
+                registration.add(TestServiceImpl2)
             }
         })
 
@@ -682,8 +681,8 @@ class ServiceRegistryTest extends Specification {
         then:
         def e = thrown(ServiceLookupException)
         withoutTestClassName(e.message) == TextUtil.toPlatformLineSeparators("""Multiple services of type TestService available in DefaultServiceRegistry:
-   - Service TestMultiServiceImpl via TestMultiServiceImpl constructor
-   - Service TestServiceImpl via TestServiceImpl constructor""")
+   - Service TestServiceImpl via TestServiceImpl constructor
+   - Service TestServiceImpl2 via TestServiceImpl2 constructor""")
     }
 
     def failsWhenArrayClassRequested() {
@@ -1083,76 +1082,16 @@ class ServiceRegistryTest extends Specification {
         e.message == "No service of type ServiceRegistryTest\$TestServiceImpl available in test registry."
     }
 
-    def "can lookup a multi-service by any service type declared via @Provides"() {
-        given:
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides([TestService, AnotherTestService])
-            TestMultiServiceImpl create() { new TestMultiServiceImpl() }
-        })
-
-        when:
-        def service1 = registry.get(TestService)
-        then:
-        (service1 instanceof TestService)
-
-        when:
-        def service2 = registry.get(AnotherTestService)
-        then:
-        (service2 instanceof AnotherTestService)
-
-        when:
-        registry.get(TestMultiServiceImpl)
-        then:
-        def e = thrown(UnknownServiceException)
-        e.message == "No service of type ServiceRegistryTest\$TestMultiServiceImpl available in test registry."
-    }
-
     def "cannot declare explicit service type via @Provides that is not implemented by the return type"() {
         when:
         registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides([AnotherTestService])
+            @Provides([Runnable])
             TestServiceImpl create() { new TestServiceImpl() }
         })
 
         then:
         def e = thrown(ServiceValidationException)
-        e.message == "Cannot register implementation 'TestServiceImpl' for service 'AnotherTestService', because it does not implement it"
-    }
-
-    def "can lookup a multi-service by any declared service type added via registration"() {
-        given:
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            void configure(ServiceRegistration registration) {
-                registration.add(TestService, AnotherTestService, TestMultiServiceImpl)
-            }
-        })
-
-        when:
-        def service1 = registry.get(TestService)
-        then:
-        (service1 instanceof TestService)
-
-        when:
-        def service2 = registry.get(AnotherTestService)
-        then:
-        service2 instanceof AnotherTestService
-    }
-
-    def "cannot lookup implementation of a multi-service with declared service types added via registration"() {
-        given:
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            void configure(ServiceRegistration registration) {
-                registration.add(TestService, AnotherTestService, TestMultiServiceImpl)
-            }
-        })
-
-        when:
-        registry.get(TestMultiServiceImpl)
-        then:
-        def e = thrown(UnknownServiceException)
-        e.message == "No service of type ServiceRegistryTest\$TestMultiServiceImpl available in test registry."
+        e.message == "Cannot register implementation 'TestServiceImpl' for service 'Runnable', because it does not implement it"
     }
 
     private AbstractServiceRegistry parentRegistry(ServiceProvider provider) {
@@ -1198,10 +1137,7 @@ class ServiceRegistryTest extends Specification {
     private static class TestServiceImpl implements TestService {
     }
 
-    private interface AnotherTestService {
-    }
-
-    private static class TestMultiServiceImpl implements TestService, AnotherTestService {
+    private static class TestServiceImpl2 implements TestService {
     }
 
     private static class ServiceWithDependency {
