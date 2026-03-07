@@ -30,14 +30,26 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Project.class)
 public interface ProjectFeatureApplicator {
     /**
-     * Applies the given project feature to the target, registering the public model object as an extension of the target and
-     * returning it.  This method can be called multiple times, but will only apply the feature once.
+     * Instantiates the definition and build model for the given project feature returning a {@link FeatureApplication}.
      *
-     * @param target - the receiver object to apply the feature to
-     * @param projectFeature - the feature to apply
-     * @return the public model object for the feature
-     * @param <T> the type of the public model object for the feature
-     * @since 8.12
+     * Note that this does not apply the feature to the target.  {@link FeatureApplication#apply()} must be called to apply the feature.
+     *
+     * @param target - the receiver object the feature will be applied to
+     * @param projectFeature - the feature to instantiate the definition and build model for
+     * @return the definition for the feature
+     * @param <OwnDefinition> the type of the definition for the feature
+     * @param <OwnBuildModel> the type of the build model for the feature
      */
-    <T extends Definition<V>, V extends BuildModel> T applyFeatureTo(DynamicObjectAware target, ProjectFeatureImplementation<T, V> projectFeature);
+    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> FeatureApplication<OwnDefinition, OwnBuildModel> createFeatureApplicationFor(DynamicObjectAware target, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature);
+
+    /**
+     * Represents a feature instance that has been created.
+     * @param <OwnDefinition> the type of the definition
+     * @param <OwnBuildModel> the type of the build model
+     */
+    interface FeatureApplication<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
+        OwnDefinition getDefinitionInstance();
+        boolean isProjectType();
+        void apply();
+    }
 }

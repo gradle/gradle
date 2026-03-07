@@ -164,6 +164,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 binding.targetDefinitionType(),
                 binding.getBuildModelType(),
                 binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
+                binding.getNestedBuildModelTypes(),
                 pluginClass,
                 registeringPlugin.pluginClass,
                 registeringPlugin.pluginId,
