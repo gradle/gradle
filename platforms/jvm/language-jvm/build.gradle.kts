@@ -21,8 +21,9 @@ dependencies {
     api(libs.groovy)
     api(libs.inject)
 
+    api(projects.processServices)
+
     implementation(projects.dependencyManagement)
-    implementation(projects.processServices)
     implementation(projects.logging)
     implementation(projects.platformBase)
     implementation(projects.testSuitesBase)

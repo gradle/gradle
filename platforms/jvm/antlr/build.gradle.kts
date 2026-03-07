@@ -18,6 +18,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.languageJava)
+    implementation(projects.processServices)
     implementation(projects.logging)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJava)

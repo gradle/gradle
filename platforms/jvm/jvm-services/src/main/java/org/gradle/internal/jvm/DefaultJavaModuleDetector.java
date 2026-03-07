@@ -21,8 +21,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -34,10 +32,8 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 
-@ServiceScope(Scope.UserHome.class)
-public class JavaModuleDetector {
+public class DefaultJavaModuleDetector implements JavaModuleDetector {
 
-    private static final String MODULE_INFO_SOURCE_FILE = "module-info.java";
     private static final String MODULE_INFO_CLASS_FILE = "module-info.class";
     private static final String AUTOMATIC_MODULE_NAME_ATTRIBUTE = "Automatic-Module-Name";
     private static final String MULTI_RELEASE_ATTRIBUTE = "Multi-Release";
@@ -47,15 +43,17 @@ public class JavaModuleDetector {
     private final FileContentCache<Boolean> cache;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public JavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
+    public DefaultJavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
         this.cache = cacheFactory.newCache("java-modules", 20000, new ModuleInfoLocator(), new BaseSerializerFactory().getSerializerFor(Boolean.class));
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
+    @Override
     public FileCollection inferClasspath(boolean inferModulePath, Collection<File> classpath) {
         return inferClasspath(inferModulePath, fileCollectionFactory.fixed(classpath));
     }
 
+    @Override
     public FileCollection inferClasspath(boolean inferModulePath, @Nullable FileCollection classpath) {
         if (classpath == null) {
             return FileCollectionFactory.empty();
@@ -66,10 +64,12 @@ public class JavaModuleDetector {
         return classpath.filter(this::isNotModule);
     }
 
+    @Override
     public FileCollection inferModulePath(boolean inferModulePath, Collection<File> classpath) {
         return inferModulePath(inferModulePath, fileCollectionFactory.fixed(classpath));
     }
 
+    @Override
     public FileCollection inferModulePath(boolean inferModulePath, @Nullable FileCollection classpath) {
         if (classpath == null) {
             return FileCollectionFactory.empty();
@@ -80,6 +80,7 @@ public class JavaModuleDetector {
         return classpath.filter(this::isModule);
     }
 
+    @Override
     public boolean isModule(boolean inferModulePath, FileCollection files) {
         if (!inferModulePath) {
             return false;
@@ -92,6 +93,7 @@ public class JavaModuleDetector {
         return false;
     }
 
+    @Override
     public boolean isModule(boolean inferModulePath, File file) {
         if (!inferModulePath) {
             return false;
@@ -111,22 +113,6 @@ public class JavaModuleDetector {
             return false;
         }
         return !isModule(file);
-    }
-
-    public static boolean isModuleSource(boolean inferModulePath, Iterable<File> sourcesRoots) {
-        if (!inferModulePath) {
-            return false;
-        }
-        for (File srcFolder : sourcesRoots) {
-            if (isModuleSourceFolder(srcFolder)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isModuleSourceFolder(File folder) {
-        return new File(folder, MODULE_INFO_SOURCE_FILE).exists();
     }
 
     private static class ModuleInfoLocator implements FileContentCacheFactory.Calculator<Boolean> {

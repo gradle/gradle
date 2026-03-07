@@ -19,6 +19,7 @@ dependencies {
     api(projects.modelCore)
     api(projects.platformBase)
     api(projects.platformJvm)
+    api(projects.processServices)
     api(projects.scalaCompilerWorker)
     api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvm)

@@ -79,6 +79,7 @@ import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.jvm.DefaultJavaModuleDetector;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
@@ -266,7 +267,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
 
     @Provides
     JavaModuleDetector createJavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
-        return new JavaModuleDetector(cacheFactory, fileCollectionFactory);
+        return new DefaultJavaModuleDetector(cacheFactory, fileCollectionFactory);
     }
 
     @Provides({GeneratedGradleJarCache.class, GlobalCache.class})

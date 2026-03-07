@@ -18,6 +18,7 @@ dependencies {
     api(projects.messaging)
     api(projects.modelCore)
     api(projects.processMemoryServices)
+    api(projects.processServices)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)

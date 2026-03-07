@@ -24,8 +24,8 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.jvmServices)
     api(projects.modelCore)
+    api(projects.processServices)
     api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
@@ -41,7 +41,6 @@ dependencies {
     implementation(projects.pluginsDistribution)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
-    implementation(projects.processServices)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
 

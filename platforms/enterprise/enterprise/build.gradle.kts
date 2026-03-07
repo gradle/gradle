@@ -29,7 +29,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.concurrent)
-    implementation(projects.processServices)
+    api(projects.processServices)
     implementation(projects.dependencyManagement)
     implementation(projects.files)
     implementation(projects.hashing)

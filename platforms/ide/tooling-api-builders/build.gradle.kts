@@ -11,6 +11,7 @@ dependencies {
     implementation(projects.launcher)
     implementation(projects.loggingApi)
     implementation(projects.problemsApi)
+    implementation(projects.processServices)
     implementation(projects.testingBase)
     implementation(projects.testingBaseInfrastructure)
     implementation(projects.testingJvm)

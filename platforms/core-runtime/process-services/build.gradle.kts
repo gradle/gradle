@@ -9,24 +9,29 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.coreApi)
+    api(projects.fileCollections)
+    api(projects.fileTemp)
 
     api(libs.inject)
     api(libs.jspecify)
     api(libs.nativePlatform)
 
+    implementation(projects.instrumentationAgentServices)
+    implementation(projects.logging)
+    implementation(projects.persistentCache)
     implementation(projects.loggingApi)
     implementation(projects.messaging)
     implementation(projects.native)
     implementation(projects.serviceLookup)
 
     implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.jnrConstants)
     implementation(libs.slf4jApi)
 
-    runtimeOnly(projects.logging)
-
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

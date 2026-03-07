@@ -10,7 +10,6 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.files)
-    api(projects.jvmServices)
     api(projects.modelCore)
     api(projects.processServices)
     api(projects.serviceProvider)
