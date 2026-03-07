@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.apache.commons.lang3.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -35,15 +36,14 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class DefaultResolvedDependency implements ResolvedDependency {
-    private final Set<DefaultResolvedDependency> children = new LinkedHashSet<>();
-    private final Set<ResolvedDependency> parents = new LinkedHashSet<>();
+    private final Set<DefaultResolvedDependency> children = new ObjectLinkedOpenHashSet<>();
+    private final Set<ResolvedDependency> parents = new ObjectLinkedOpenHashSet<>();
     private final ListMultimap<ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
     private final String variantName;
     private final ModuleVersionIdentifier moduleVersionId;
@@ -63,7 +63,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         this.variantName = variantName;
         this.buildOperationExecutor = buildOperationExecutor;
         this.resolutionHost = resolutionHost;
-        this.moduleArtifacts = new LinkedHashSet<>();
+        this.moduleArtifacts = new ObjectLinkedOpenHashSet<>();
     }
 
     @Override
@@ -109,7 +109,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     @Override
     public Set<ResolvedArtifact> getAllModuleArtifacts() {
         if (allModuleArtifactsCache == null) {
-            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getModuleArtifacts());
+            Set<ResolvedArtifact> allArtifacts = new ObjectLinkedOpenHashSet<>(getModuleArtifacts());
             for (ResolvedDependency childResolvedDependency : getChildren()) {
                 allArtifacts.addAll(childResolvedDependency.getAllModuleArtifacts());
             }
@@ -147,7 +147,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     @Override
     public Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
         if (allArtifactsCache.get(parent) == null) {
-            Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getArtifacts(parent));
+            Set<ResolvedArtifact> allArtifacts = new ObjectLinkedOpenHashSet<>(getArtifacts(parent));
             for (ResolvedDependency childResolvedDependency : getChildren()) {
                 for (ResolvedDependency childParent : childResolvedDependency.getParents()) {
                     allArtifacts.addAll(childResolvedDependency.getAllArtifacts(childParent));

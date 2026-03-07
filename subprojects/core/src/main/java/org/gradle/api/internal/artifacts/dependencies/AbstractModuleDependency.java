@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.DependencyArtifact;
@@ -39,7 +40,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,7 +55,7 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
     private ObjectFactory objectFactory;
 
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
-    private Set<DependencyArtifact> artifacts = new LinkedHashSet<>();
+    private Set<DependencyArtifact> artifacts = new ObjectLinkedOpenHashSet<>();
     private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
     private @Nullable AttributeContainerInternal attributes;
     private @Nullable ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
@@ -163,7 +163,7 @@ public abstract class AbstractModuleDependency implements ModuleDependency {
 
     protected void copyTo(AbstractModuleDependency target) {
         target.because(reason);
-        target.setArtifacts(new LinkedHashSet<>(getArtifacts()));
+        target.setArtifacts(new ObjectLinkedOpenHashSet<>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
         if (attributes != null) {

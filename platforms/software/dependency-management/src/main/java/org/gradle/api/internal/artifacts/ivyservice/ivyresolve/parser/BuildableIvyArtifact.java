@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 class BuildableIvyArtifact {
 
     private final IvyArtifactName ivyArtifactName;
-    private final Set<String> configurations = new LinkedHashSet<>();
+    private final Set<String> configurations = new ObjectLinkedOpenHashSet<>();
 
     public BuildableIvyArtifact(String name, String type, String ext, String classifier) {
         this.ivyArtifactName = new DefaultIvyArtifactName(name, type, ext, classifier);

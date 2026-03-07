@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -62,7 +63,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -408,7 +408,7 @@ public class NodeState implements DependencyGraphNode {
 
     void prepareToRecomputeEdge(EdgeState edgeToRecompute) {
         if (edgesToRecompute == null) {
-            edgesToRecompute = new LinkedHashSet<>();
+            edgesToRecompute = new ObjectLinkedOpenHashSet<>();
         }
         edgesToRecompute.add(edgeToRecompute);
         resolveState.onMoreSelected(this);
@@ -1214,7 +1214,7 @@ public class NodeState implements DependencyGraphNode {
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
         if (upcomingNoLongerPendingConstraints == null) {
-            upcomingNoLongerPendingConstraints = new LinkedHashSet<>();
+            upcomingNoLongerPendingConstraints = new ObjectLinkedOpenHashSet<>();
         }
         upcomingNoLongerPendingConstraints.add(moduleIdentifier);
         // Trigger a replay on this node, to add new constraints to graph

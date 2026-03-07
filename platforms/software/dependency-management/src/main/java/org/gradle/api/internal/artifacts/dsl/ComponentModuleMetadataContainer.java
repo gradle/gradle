@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -28,7 +29,6 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -86,7 +86,7 @@ public class ComponentModuleMetadataContainer {
             //target does not exist in the map, there's no cycle for sure
             return;
         }
-        Set<ModuleIdentifier> visited = new LinkedHashSet<>();
+        Set<ModuleIdentifier> visited = new ObjectLinkedOpenHashSet<>();
         visited.add(source);
         visited.add(target);
 

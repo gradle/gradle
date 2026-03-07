@@ -16,9 +16,9 @@
 
 package org.gradle.execution.plan;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.jspecify.annotations.Nullable;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -28,7 +28,7 @@ public class OrdinalGroup extends NodeGroup {
     private final int ordinal;
     @Nullable
     private final OrdinalGroup previous;
-    private final Set<Node> entryNodes = new LinkedHashSet<>();
+    private final Set<Node> entryNodes = new ObjectLinkedOpenHashSet<>();
     private OrdinalNode producerLocationsNode;
     private OrdinalNode destroyerLocationsNode;
 

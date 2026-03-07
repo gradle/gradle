@@ -17,6 +17,7 @@
 package org.gradle.internal.graph;
 
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.util.internal.GUtil;
 
 import java.util.ArrayDeque;
@@ -25,7 +26,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,7 +40,7 @@ import java.util.Set;
 public class CachingDirectedGraphWalker<N, T> {
     private final DirectedGraphWithEdgeValues<N, T> graph;
     private List<N> startNodes = new ArrayList<N>();
-    private Set<NodeDetails<N, T>> strongComponents = new LinkedHashSet<NodeDetails<N, T>>();
+    private Set<NodeDetails<N, T>> strongComponents = new ObjectLinkedOpenHashSet<NodeDetails<N, T>>();
 
     /**
      * We use an immutable set for cached node values since the cache can become quite large
@@ -91,7 +91,7 @@ public class CachingDirectedGraphWalker<N, T> {
         findValues();
         List<Set<N>> result = new ArrayList<Set<N>>();
         for (NodeDetails<N, T> nodeDetails : strongComponents) {
-            Set<N> componentMembers = new LinkedHashSet<N>();
+            Set<N> componentMembers = new ObjectLinkedOpenHashSet<N>();
             for (NodeDetails<N, T> componentMember : nodeDetails.componentMembers) {
                 componentMembers.add(componentMember.node);
             }
@@ -180,7 +180,7 @@ public class CachingDirectedGraphWalker<N, T> {
             }
         }
 
-        Set<T> values = new LinkedHashSet<T>();
+        Set<T> values = new ObjectLinkedOpenHashSet<T>();
         for (N startNode : startNodes) {
             values.addAll(cachedNodeValues.get(startNode));
         }
@@ -190,9 +190,9 @@ public class CachingDirectedGraphWalker<N, T> {
     private static class NodeDetails<N, T> {
         private final int component;
         private final N node;
-        private Set<T> values = new LinkedHashSet<T>();
+        private Set<T> values = new ObjectLinkedOpenHashSet<T>();
         private List<N> successors = new ArrayList<N>();
-        private Set<NodeDetails<N, T>> componentMembers = new LinkedHashSet<NodeDetails<N, T>>();
+        private Set<NodeDetails<N, T>> componentMembers = new ObjectLinkedOpenHashSet<NodeDetails<N, T>>();
         private int minSeen;
         private boolean stronglyConnected;
         private boolean finished;

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.attributes.matching;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
@@ -33,7 +34,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -106,7 +106,7 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
 
     @Override
     public Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requested) {
-        Set<Attribute<?>> extraAttributes = new LinkedHashSet<>();
+        Set<Attribute<?>> extraAttributes = new ObjectLinkedOpenHashSet<>();
         for (ImmutableAttributes attributes : candidateAttributeSets) {
             extraAttributes.addAll(attributes.keySet());
         }

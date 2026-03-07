@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -37,11 +38,10 @@ import org.gradle.internal.service.ServiceLookup;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
-    private final Set<TransformRegistration> registeredTransforms = new LinkedHashSet<>();
+    private final Set<TransformRegistration> registeredTransforms = new ObjectLinkedOpenHashSet<>();
 
     private final AttributesFactory attributesFactory;
     private final ServiceLookup services;

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
@@ -32,7 +33,6 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -255,7 +255,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         private final String capabilityId;
         private final List<Set<NodeState>> previousConflictedNodes = new ArrayList<>();
 
-        private Set<NodeState> currentConflictedNodes = new LinkedHashSet<>();
+        private Set<NodeState> currentConflictedNodes = new ObjectLinkedOpenHashSet<>();
 
         /**
          * If non-null, the capability tracked by this tracker has a pending conflict
@@ -281,7 +281,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             CapabilityConflict currentConflict = pendingConflict;
             this.pendingConflict = null;
 
-            Set<NodeState> selectedNodes = new LinkedHashSet<>();
+            Set<NodeState> selectedNodes = new ObjectLinkedOpenHashSet<>();
             boolean didFilter = false;
             for (NodeState node : currentConflict.nodes) {
                 if (node.isSelected() || (!currentConflict.nodeToDependentNodes.isEmpty() && currentConflict.nodeToDependentNodes.getOrDefault(node, emptySet()).stream().anyMatch(NodeState::isSelected))) {
@@ -318,7 +318,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
 
         private Set<NodeState> getConflictedNodesCopy() {
-            return new LinkedHashSet<>(currentConflictedNodes);
+            return new ObjectLinkedOpenHashSet<>(currentConflictedNodes);
         }
 
         /**

@@ -17,10 +17,10 @@
 package org.gradle.internal.resolve.result;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.internal.resource.ExternalResourceName;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -35,7 +35,7 @@ public class DefaultResourceAwareResolveResult implements ResourceAwareResolveRe
     @Override
     public void attempted(String locationDescription) {
         if (attempted == null) {
-            attempted = new LinkedHashSet<>();
+            attempted = new ObjectLinkedOpenHashSet<>();
         }
         attempted.add(locationDescription);
     }

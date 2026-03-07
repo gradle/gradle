@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -27,7 +28,6 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +37,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal {
     private final IsolatableFactory isolatableFactory;
 
     private final Map<Attribute<?>, DefaultAttributeMatchingStrategy<?>> strategies = new HashMap<>();
-    private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
+    private final Set<Attribute<?>> precedence = new ObjectLinkedOpenHashSet<>();
 
     @Inject
     public DefaultAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {

@@ -16,21 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.internal.component.model.VariantIdentifier;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
-    private final Set<File> files = new LinkedHashSet<>();
-    private final Set<Throwable> failures = new LinkedHashSet<>();
+    private final Set<File> files = new ObjectLinkedOpenHashSet<>();
+    private final Set<Throwable> failures = new ObjectLinkedOpenHashSet<>();
 
     @Override
     public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {

@@ -58,6 +58,9 @@ val keepPatterns = mapOf(
         "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",
         "it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap",
         "it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap",
+
+        // For graph
+        "it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet",
     ),
     "com.github.jnr:jnr-constants" to setOf(
         // For signal codes

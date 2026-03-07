@@ -15,6 +15,7 @@
  */
 package org.gradle.execution;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
@@ -26,7 +27,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,7 +52,7 @@ public class TaskNameResolver {
     @Nullable
     public TaskSelectionResult selectWithName(final String taskName, final ProjectState project, boolean includeSubProjects) {
         if (includeSubProjects) {
-            Set<Task> tasks = new LinkedHashSet<>();
+            Set<Task> tasks = new ObjectLinkedOpenHashSet<>();
             new MultiProjectTaskSelectionResult(taskName, project, false).collectTasks(tasks);
             if (!tasks.isEmpty()) {
                 return new FixedTaskSelectionResult(tasks);
@@ -80,7 +80,7 @@ public class TaskNameResolver {
         Map<String, TaskSelectionResult> selected = new LinkedHashMap<>();
 
         if (includeSubProjects) {
-            Set<String> taskNames = new LinkedHashSet<>();
+            Set<String> taskNames = new ObjectLinkedOpenHashSet<>();
             collectTaskNames(project, taskNames);
             for (String taskName : taskNames) {
                 selected.put(taskName, new MultiProjectTaskSelectionResult(taskName, project, true));

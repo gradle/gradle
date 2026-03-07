@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.query;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -63,7 +64,6 @@ import org.jspecify.annotations.NonNull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -75,9 +75,9 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ComponentMetadataProcessorFactory componentMetadataProcessorFactory;
     private final ComponentTypeRegistry componentTypeRegistry;
 
-    private final Set<ComponentIdentifier> componentIds = new LinkedHashSet<>();
+    private final Set<ComponentIdentifier> componentIds = new ObjectLinkedOpenHashSet<>();
     private Class<? extends Component> componentType;
-    private final Set<Class<? extends Artifact>> artifactTypes = new LinkedHashSet<>();
+    private final Set<Class<? extends Artifact>> artifactTypes = new ObjectLinkedOpenHashSet<>();
 
     public DefaultArtifactResolutionQuery(
         ResolutionStrategyFactory resolutionStrategyFactory,

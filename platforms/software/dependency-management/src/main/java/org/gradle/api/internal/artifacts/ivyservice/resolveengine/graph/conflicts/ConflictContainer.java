@@ -19,11 +19,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -85,7 +85,7 @@ class ConflictContainer<K, T> {
         Collection<? extends T> candidates = elements.get(replacedBy);
         assert candidates != null;
 
-        Set<K> participants = new LinkedHashSet<>(targets);
+        Set<K> participants = new ObjectLinkedOpenHashSet<>(targets);
         participants.add(replacedBy);
 
         //We need to ensure that the conflict is orderly injected to the list of conflicts

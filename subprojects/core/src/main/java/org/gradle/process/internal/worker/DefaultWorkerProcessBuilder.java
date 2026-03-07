@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.id.IdGenerator;
@@ -46,7 +47,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -60,8 +60,8 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private final OutputEventListener outputEventListener;
     private final JavaExecHandleBuilder javaCommand;
     private final Set<String> packages = new HashSet<>();
-    private final Set<File> applicationClasspath = new LinkedHashSet<>();
-    private final Set<File> applicationModulePath = new LinkedHashSet<>();
+    private final Set<File> applicationClasspath = new ObjectLinkedOpenHashSet<>();
+    private final Set<File> applicationModulePath = new ObjectLinkedOpenHashSet<>();
 
     private final MemoryManager memoryManager;
     private final JvmVersionDetector jvmVersionDetector;

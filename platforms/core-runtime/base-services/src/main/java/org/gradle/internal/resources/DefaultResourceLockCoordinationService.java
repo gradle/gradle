@@ -17,6 +17,7 @@
 package org.gradle.internal.resources;
 
 import com.google.common.base.Supplier;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.MutableReference;
@@ -29,13 +30,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Function;
 
 public class DefaultResourceLockCoordinationService implements ResourceLockCoordinationService, Closeable {
     private final Object lock = new Object();
-    private final Set<Action<ResourceLock>> releaseHandlers = new LinkedHashSet<Action<ResourceLock>>();
+    private final Set<Action<ResourceLock>> releaseHandlers = new ObjectLinkedOpenHashSet<Action<ResourceLock>>();
     private @Nullable Thread currentOwner;
     private @Nullable DefaultResourceLockState currentState;
 

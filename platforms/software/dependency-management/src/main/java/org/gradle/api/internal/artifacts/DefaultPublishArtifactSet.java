@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -22,14 +23,13 @@ import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Describables;
 
 import java.io.File;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<PublishArtifact> implements PublishArtifactSet {
@@ -85,7 +85,7 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
 
         @Override
         public Set<File> getFiles() {
-            Set<File> files = new LinkedHashSet<>();
+            Set<File> files = new ObjectLinkedOpenHashSet<>();
             for (PublishArtifact artifact : DefaultPublishArtifactSet.this) {
                 files.add(artifact.getFile());
             }

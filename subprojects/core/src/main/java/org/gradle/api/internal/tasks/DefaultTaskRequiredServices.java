@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.GetServiceReferencesVisitor;
 import org.gradle.api.provider.Provider;
@@ -30,7 +31,6 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -105,7 +105,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
 
     private void addRegisteredService(RegisteredBuildServiceProvider<?, ?> service) {
         if (registeredServices == null) {
-            registeredServices = new LinkedHashSet<>();
+            registeredServices = new ObjectLinkedOpenHashSet<>();
         }
         registeredServices.add(service);
     }

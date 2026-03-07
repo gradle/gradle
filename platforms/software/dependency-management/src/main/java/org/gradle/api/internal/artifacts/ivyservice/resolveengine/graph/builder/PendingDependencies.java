@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -32,7 +32,7 @@ public class PendingDependencies {
 
     PendingDependencies(ModuleIdentifier moduleIdentifier) {
         this.moduleIdentifier = moduleIdentifier;
-        this.constraintProvidingNodes = new LinkedHashSet<>();
+        this.constraintProvidingNodes = new ObjectLinkedOpenHashSet<>();
         this.hardEdges = 0;
     }
 

@@ -16,8 +16,9 @@
 
 package org.gradle.execution.plan;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
+
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -27,7 +28,7 @@ import java.util.function.Consumer;
  */
 public class OrdinalNodeAccess {
     private final OrdinalGroupFactory ordinalGroups;
-    private final Set<OrdinalNode> requiredNodes = new LinkedHashSet<>();
+    private final Set<OrdinalNode> requiredNodes = new ObjectLinkedOpenHashSet<>();
 
     public OrdinalNodeAccess(OrdinalGroupFactory ordinalGroups) {
         this.ordinalGroups = ordinalGroups;

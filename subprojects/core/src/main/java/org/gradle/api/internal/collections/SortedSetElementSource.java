@@ -18,6 +18,7 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
@@ -32,7 +33,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -183,7 +183,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     private void ensurePendingIsMutable() {
         if (pending == Collections.EMPTY_SET) {
-            pending = new LinkedHashSet<>();
+            pending = new ObjectLinkedOpenHashSet<>();
         }
     }
 
