@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.initialization.DefaultProjectDescriptor
@@ -33,12 +34,18 @@ import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.ResourceLockStatistics
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
+import org.junit.Rule
 
 import static org.junit.Assert.assertTrue
 
 class DefaultProjectStateRegistryTest extends ConcurrentSpec {
+
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
     def workerLeaseService = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultWorkerLimits(4), ResourceLockStatistics.NO_OP)
     def registry = new DefaultProjectStateRegistry(workerLeaseService)
     def projectFactory = Mock(IProjectFactory)
@@ -729,11 +736,14 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     }
 
     BuildState build(String... projects) {
-        def problemsReporter = Stub(ProblemReporter)
+        def problemReporter = Stub(ProblemReporter)
         def descriptors = new DefaultProjectDescriptorRegistry()
-        def root = new DefaultProjectDescriptor(null, "root", null, descriptors, null, problemsReporter)
+        def rootDir = tmpDir.file("build-root")
+        def fileResolver = new IdentityFileResolver()
+        // Use side effects of constructors to populate the descriptor registry
+        def root = new DefaultProjectDescriptor(null, "root", rootDir, descriptors, fileResolver, problemReporter)
         projects.each {
-            new DefaultProjectDescriptor(root, it, null, descriptors, null, problemsReporter)
+            new DefaultProjectDescriptor(root, it, rootDir.file(it), descriptors, fileResolver, problemReporter)
         }
 
         def settings = Stub(SettingsInternal)
