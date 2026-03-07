@@ -19,7 +19,7 @@ package org.gradle.internal.watch.vfs.impl;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.function.Predicate;
 
 /**
  * A {@link VirtualFileSystem} which is not able to register any watches.
@@ -40,8 +41,8 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingNotSupportedVirtualFileSystem.class);
 
-    public WatchingNotSupportedVirtualFileSystem(SnapshotHierarchy root) {
-        super(root);
+    public WatchingNotSupportedVirtualFileSystem(SnapshotHierarchy root, Predicate<String> globalCacheFilter) {
+        super(root, globalCacheFilter);
     }
 
     @Override
@@ -58,11 +59,13 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
         if (watchMode == WatchMode.ENABLED) {
             LOGGER.warn("Watching the file system is not supported.");
         }
-        updateRootUnderLock(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+
+        SnapshotHierarchy currentRoot = currentRoot();
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
-            public SnapshotHierarchy call(BuildOperationContext context) {
+            public void run(BuildOperationContext context) {
                 context.setResult(BuildStartedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
-                return vfsRoot.empty();
+                replaceRoot(currentRoot.empty());
             }
 
             @Override
@@ -70,7 +73,7 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
                 return BuildOperationDescriptor.displayName(BuildStartedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
                     .details(BuildStartedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
-        }));
+        });
         return false;
     }
 
@@ -85,11 +88,12 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
         BuildOperationRunner buildOperationRunner,
         int maximumNumberOfWatchedHierarchies
     ) {
-        updateRootUnderLock(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+        SnapshotHierarchy currentRoot = currentRoot();
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
-            public SnapshotHierarchy call(BuildOperationContext context) {
+            public void run(BuildOperationContext context) {
                 context.setResult(BuildFinishedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
-                return vfsRoot.empty();
+                replaceRoot(currentRoot.empty());
             }
 
             @Override
@@ -97,7 +101,7 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
                 return BuildOperationDescriptor.displayName(BuildFinishedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
                     .details(BuildFinishedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
-        }));
+        });
     }
 
     @Override

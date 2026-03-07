@@ -138,18 +138,21 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public static SnapshotHierarchy removeUnwatchableContentAfterBuildFinished(SnapshotHierarchy root, Invalidator invalidator) {
+    public SnapshotHierarchy removeUnwatchableContentAfterBuildFinished(SnapshotHierarchy root, Invalidator invalidator) {
         SnapshotHierarchy newRoot = root;
-        // We are not being notified about changes to content accessed via symlinks
+        // We are not being notified about changes to content accessed via symlinks.
+        // Do this after build finishes to not block reporting build results to the client.
         newRoot = removeIndirectlySymlinkedRoots(newRoot, invalidator);
         newRoot = removeDirectSymlinks(newRoot, invalidator);
         return newRoot;
     }
 
     @CheckReturnValue
-    private static SnapshotHierarchy removeIndirectlySymlinkedRoots(SnapshotHierarchy root, Invalidator invalidator) {
+    private SnapshotHierarchy removeIndirectlySymlinkedRoots(SnapshotHierarchy root, Invalidator invalidator) {
         Map<String, Boolean> symlinkCache = new HashMap<>();
         return root.rootSnapshots()
+            // Snapshots under the Gradle global cache (matched by immutableLocationsFilter) are Gradle-managed and trusted, we don't watch these directories
+            .filter(snapshot -> !immutableLocationsFilter.test(snapshot.getAbsolutePath()))
             .filter(snapshot -> isAncestorASymlink(symlinkCache, new File(snapshot.getAbsolutePath())))
             .reduce(
                 root,

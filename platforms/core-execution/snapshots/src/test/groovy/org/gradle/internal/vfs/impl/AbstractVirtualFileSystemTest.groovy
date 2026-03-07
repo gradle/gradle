@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapshotFixture {
 
-    def vfs = new AbstractVirtualFileSystem(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) {
+    def vfs = new AbstractVirtualFileSystem(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE), path -> false) {
         @Override
         protected SnapshotHierarchy updateNotifyingListeners(AbstractVirtualFileSystem.UpdateFunction updateFunction) {
             return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP)

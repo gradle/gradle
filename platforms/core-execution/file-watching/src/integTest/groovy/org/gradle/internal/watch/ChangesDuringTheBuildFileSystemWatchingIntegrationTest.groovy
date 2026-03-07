@@ -83,11 +83,11 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                     def projectRoot = parameters.rootDir.get().absolutePath
                     def vfs = parameters.vfsService.get()
                     int filesInVfs = 0
-                    vfs.root.rootSnapshots().forEach { snapshot ->
+                    vfs.findRootSnapshotsUnder(projectRoot).forEach { snapshot ->
                         snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
                             @Override
                             SnapshotVisitResult visitEntry(FileSystemLocationSnapshot fileSnapshot) {
-                                if (fileSnapshot.type == FileType.RegularFile && fileSnapshot.absolutePath.startsWith(projectRoot)) {
+                                if (fileSnapshot.type == FileType.RegularFile) {
                                     println("Found file in VFS: \$fileSnapshot.absolutePath")
                                     filesInVfs++
                                 }

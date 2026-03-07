@@ -29,21 +29,21 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
     }
-    def watchingNotSupportedVfs = new WatchingNotSupportedVirtualFileSystem(nonEmptySnapshotHierarchy)
+    def watchingNotSupportedVfs = new WatchingNotSupportedVirtualFileSystem(nonEmptySnapshotHierarchy, path -> false)
     def buildOperationRunner = new TestBuildOperationRunner()
 
     def "invalidates the virtual file system before and after the build (watch mode: #watchMode.description)"() {
         when:
         watchingNotSupportedVfs.afterBuildStarted(watchMode, VfsLogging.NORMAL, buildOperationRunner)
         then:
-        watchingNotSupportedVfs.root == emptySnapshotHierarchy
+        watchingNotSupportedVfs.currentRoot() == emptySnapshotHierarchy
 
         when:
-        watchingNotSupportedVfs.updateRootUnderLock { root -> nonEmptySnapshotHierarchy }
+        watchingNotSupportedVfs.replaceRoot(nonEmptySnapshotHierarchy)
         watchingNotSupportedVfs.beforeBuildFinished(watchMode, VfsLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         watchingNotSupportedVfs.afterBuildFinished()
         then:
-        watchingNotSupportedVfs.root == emptySnapshotHierarchy
+        watchingNotSupportedVfs.currentRoot() == emptySnapshotHierarchy
 
         where:
         watchMode << WatchMode.values().toList()
