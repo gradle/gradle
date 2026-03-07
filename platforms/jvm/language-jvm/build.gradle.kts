@@ -22,6 +22,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.dependencyManagement)
+    implementation(projects.processServices)
     implementation(projects.logging)
     implementation(projects.platformBase)
     implementation(projects.testSuitesBase)

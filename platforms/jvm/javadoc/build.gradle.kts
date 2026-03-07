@@ -12,6 +12,7 @@ dependencies {
     api(projects.files)
     api(projects.jvmServices)
     api(projects.modelCore)
+    api(projects.processServices)
     api(projects.serviceProvider)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)

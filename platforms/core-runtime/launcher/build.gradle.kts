@@ -52,6 +52,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.buildProcessServices)
+    implementation(projects.processServices)
     implementation(projects.classloaders)
     implementation(projects.collections)
     implementation(projects.enterpriseOperations)

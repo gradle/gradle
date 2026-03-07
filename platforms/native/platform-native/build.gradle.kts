@@ -29,6 +29,7 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(projects.daemonServerWorker)
+    implementation(projects.processServices)
     implementation(projects.enterpriseLogging)
     implementation(projects.io)
     implementation(projects.loggingApi)

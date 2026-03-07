@@ -7,9 +7,16 @@ description = "Process execution abstractions."
 dependencies {
     api(projects.concurrent)
     api(projects.baseServices)
+    api(projects.buildOperations)
     api(projects.coreApi)
 
+    api(libs.inject)
     api(libs.jspecify)
+
+    implementation(projects.loggingApi)
+
+    implementation(libs.guava)
+    implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))
 
