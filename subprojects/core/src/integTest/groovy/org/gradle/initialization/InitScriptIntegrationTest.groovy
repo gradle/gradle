@@ -180,7 +180,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/29678")
-    def "can use lazy gradle.providers.exec in init script"() {
+    def "can use lazy gradle.providers.exec in init script in Groovy DSL"() {
         given:
         file("version.txt") << "1.2.3"
 
@@ -197,6 +197,33 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(file('init.gradle'))
         settingsFile << "rootProject.name = 'test'"
         buildFile << "task hello"
+
+        when:
+        succeeds 'hello'
+
+        then:
+        outputContains("Version from lazy provider: 1.2.3")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29678")
+    def "can use lazy gradle.providers.exec in init script in Kolin DSL"() {
+        given:
+        file("version.txt") << "1.2.3"
+
+        kotlinFile "init.gradle.kts", """
+            val versionProvider = gradle.providers.exec {
+                commandLine(${org.gradle.internal.os.OperatingSystem.current().windows ? '"cmd.exe", "/d", "/c", "type"' : '"cat"'}, "version.txt")
+            }.standardOutput.getAsText()
+            gradle.settingsEvaluated {
+                println("Version from lazy provider: " + versionProvider.get().trim())
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle.kts'))
+        kotlinFile "build.gradle.kts", '''
+            tasks.register("hello") {}
+        '''
+        settingsFile << "rootProject.name = 'test'"
 
         when:
         succeeds 'hello'
@@ -231,7 +258,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/29678")
-    def "can use gradle.providers from initscript block"() {
+    def "can use gradle.providers from initscript block in Groovy DSL"() {
         given:
         file("config.txt") << "gradle-providers-test"
 
@@ -247,6 +274,33 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
         executer.usingInitScript(file('init.gradle'))
         buildFile << "task hello"
+
+        when:
+        succeeds 'hello'
+
+        then:
+        outputContains("Config using gradle.providers from initscript block: gradle-providers-test")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29678")
+    def "can use gradle.providers from initscript block in Kotlin DSL"() {
+        given:
+        file("config.txt") << "gradle-providers-test"
+
+        kotlinFile "init.gradle.kts", """
+            initscript {
+                // Test that gradle.providers is accessible from within initscript block
+                val configValue = gradle.providers.exec {
+                    commandLine(${org.gradle.internal.os.OperatingSystem.current().windows ? '"cmd.exe", "/d", "/c", "type"' : '"cat"'}, "config.txt")
+                }.standardOutput.getAsText().get().trim()
+                println("Config using gradle.providers from initscript block: \${configValue}")
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle.kts'))
+        kotlinFile "build.gradle.kts", '''
+            tasks.register("hello") {}
+        '''
 
         when:
         succeeds 'hello'
