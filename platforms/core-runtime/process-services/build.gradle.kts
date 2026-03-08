@@ -9,6 +9,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.coreApi)
+    api(projects.modelCore)
     api(projects.processServicesApi)
     api(projects.fileCollections)
     api(projects.fileTemp)
@@ -18,7 +19,6 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.instrumentationAgentServices)
-    api(projects.modelCore)
     implementation(projects.logging)
     implementation(projects.persistentCache)
     implementation(projects.loggingApi)
@@ -32,7 +32,10 @@ dependencies {
     implementation(libs.jnrConstants)
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(projects.core))
+    testImplementation(projects.io)
+    testImplementation(testFixtures(projects.core)) {
+        because("Provides TestFiles, TestUtil, UsesNativeServices, and NoOpProblemDiagnosticsFactory used by process unit tests")
+    }
     testImplementation(testFixtures(projects.logging))
 
     testFixturesImplementation(projects.stdlibJavaExtensions)
