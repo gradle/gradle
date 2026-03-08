@@ -34,6 +34,6 @@ public class WrapperDefaults {
     public static final int NETWORK_TIMEOUT = 10000;
     public static final boolean VALIDATE_DISTRIBUTION_URL = true;
 
-    public static final int RETRIES = 0;
-    public static final int RETRY_TIMEOUT_MS = 2000;
+    public static final int RETRIES = Install.DEFAULT_NETWORK_RETRIES;
+    public static final int RETRY_TIMEOUT_MS = Install.DEFAULT_NETWORK_RETRY_TIMEOUT_MS;
 }

@@ -26,8 +26,8 @@ public class WrapperConfiguration {
     private String zipPath = Install.DEFAULT_DISTRIBUTION_PATH;
     private int networkTimeout = Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS;
     private boolean validateDistributionUrl = true;
-    private int retries = Install.MIN_RETRIES;
-    private int retryTimeoutMs = Install.MIN_RETRY_TIMEOUT_MS;
+    private int retries = Install.DEFAULT_NETWORK_RETRIES;
+    private int retryTimeoutMs = Install.DEFAULT_NETWORK_RETRY_TIMEOUT_MS;
 
     public URI getDistribution() {
         return distribution;

@@ -48,10 +48,10 @@ public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
     public static final String SHA_256 = ".sha256";
 
-    public static final int MIN_RETRIES = 0;
-    public static final int MAX_RETRIES = 10;
-    public static final int MIN_RETRY_TIMEOUT_MS = 2000;
-    public static final int MAX_RETRY_TIMEOUT_MS = 60000;
+    public static final int DEFAULT_NETWORK_RETRIES = 0;
+    public static final int DEFAULT_NETWORK_RETRY_TIMEOUT_MS = 0;
+
+    private static final int BROKEN_ZIP_RETRIES = 3;
 
     private final Logger logger;
     private final IDownload download;
@@ -103,26 +103,12 @@ public class Install {
     private void fetchDistribution(File localZipFile, URI distributionUrl, File distDir, WrapperConfiguration configuration) throws Exception {
         String distributionSha256Sum = configuration.getDistributionSha256Sum();
         boolean failed = false;
-
-        int retries = configuration.getRetries();
-        retries = retries < MIN_RETRIES ? MIN_RETRIES : (retries > MAX_RETRIES ? MAX_RETRIES : retries);
-
-        int retryTimeoutMs = configuration.getRetryTimeout();
-        retryTimeoutMs = retryTimeoutMs < MIN_RETRY_TIMEOUT_MS ? MIN_RETRY_TIMEOUT_MS :
-                         (retryTimeoutMs > MAX_RETRY_TIMEOUT_MS ? MAX_RETRY_TIMEOUT_MS : retryTimeoutMs);
-
-        Exception lastException = null;
-
-        logger.log(String.format(
-            "Fetching distribution. Retry settings: %d attempts, %d ms timeout",
-            retries,
-            retryTimeoutMs));
-
+        int retries = BROKEN_ZIP_RETRIES;
         do {
             try {
                 boolean needsDownload = !localZipFile.isFile() || failed;
                 if (needsDownload) {
-                    forceFetch(localZipFile, distributionUrl);
+                    forceFetch(localZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeout());
                 }
 
                 deleteLocalTopLevelDirs(distDir);
@@ -132,37 +118,16 @@ public class Install {
                 unzipLocal(localZipFile, distDir);
                 failed = false;
             } catch (ZipException e) {
-                if (!failed && distributionSha256Sum == null) {
+                if (retries >= BROKEN_ZIP_RETRIES && distributionSha256Sum == null) {
                     distributionSha256Sum = fetchDistributionSha256Sum(configuration, localZipFile);
                 }
                 failed = true;
-                lastException = new RuntimeException("Downloaded distribution file " + localZipFile + " is no valid zip file.");
-            } catch (IOException e) {
-                failed = true;
-                lastException = e;
-            }
-
-            if (failed) {
-                if (retries-- <= 0) {
-                    throw lastException;
+                retries--;
+                if(retries <= 0){
+                    throw new RuntimeException("Downloaded distribution file " + localZipFile + " is no valid zip file.");
                 }
-
-                logger.log(String.format(
-                    "Attempt failed. Retrying in %d ms... Reason: %s",
-                    retryTimeoutMs,
-                    lastException == null ? "" : lastException.getMessage()));
-
-                waitFor(retryTimeoutMs);
             }
         } while (failed);
-    }
-
-    private static void waitFor(int timeoutMs) {
-        try {
-            Thread.sleep(timeoutMs);
-        } catch (InterruptedException ex) {
-            // empty
-        }
     }
 
     private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
@@ -171,7 +136,7 @@ public class Install {
             URI distributionUrl = distribution.resolve(distribution.getPath() + SHA_256);
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + SHA_256);
 
-            forceFetch(tmpZipFile, distributionUrl);
+            forceFetch(tmpZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeout());
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(tmpZipFile), "UTF-8"));
             try {
@@ -204,16 +169,52 @@ public class Install {
         }
     }
 
-    private void forceFetch(File localTargetFile, URI distributionUrl) throws Exception {
-        File tempDownloadFile = new File(localTargetFile.getParentFile(), localTargetFile.getName() + ".part");
-        tempDownloadFile.delete();
+    private void forceFetch(File localTargetFile, URI distributionUrl, int networkRetries, int networkRetryTimeoutMs) throws Exception {
 
-        logger.log("Downloading " + safeUri(distributionUrl));
-        download.download(distributionUrl, tempDownloadFile);
-        if(localTargetFile.exists()) {
-            localTargetFile.delete();
+        logger.log(String.format(
+            "Fetching distribution. Retry settings: %d attempts, %d ms timeout",
+            networkRetries,
+            networkRetryTimeoutMs));
+
+        int attempts = networkRetries + 1;
+        Exception lasException = null;
+        for (int attempt = 1; attempt <= attempts; attempt++) {
+            try {
+                File tempDownloadFile = new File(localTargetFile.getParentFile(), localTargetFile.getName() + ".part");
+                tempDownloadFile.delete();
+
+                logger.log("Downloading " + safeUri(distributionUrl));
+                download.download(distributionUrl, tempDownloadFile);
+                if (localTargetFile.exists()) {
+                    localTargetFile.delete();
+                }
+                tempDownloadFile.renameTo(localTargetFile);
+
+                return;
+            }
+            catch (IOException ioException) {
+                lasException = ioException;
+
+                logger.log(String.format("Attempt %d/%d failed. Reason: %s",
+                    attempt,
+                    attempts,
+                    ioException.getMessage()));
+
+                if (attempt < attempts) {
+                    waitFor(networkRetryTimeoutMs);
+                }
+            }
         }
-        tempDownloadFile.renameTo(localTargetFile);
+
+        throw lasException;
+    }
+
+    private static void waitFor(int timeoutMs) {
+        try {
+            Thread.sleep(timeoutMs);
+        } catch (InterruptedException ex) {
+            // empty
+        }
     }
 
     static String calculateSha256Sum(File file) throws Exception {

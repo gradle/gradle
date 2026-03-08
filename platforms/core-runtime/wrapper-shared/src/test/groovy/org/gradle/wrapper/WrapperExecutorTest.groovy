@@ -93,8 +93,8 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.zipPath == Install.DEFAULT_DISTRIBUTION_PATH
         wrapper.configuration.distributionSha256Sum == null
         wrapper.configuration.networkTimeout == Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS
-        wrapper.configuration.retries == Install.MIN_RETRIES;
-        wrapper.configuration.retryTimeoutMs == Install.MIN_RETRY_TIMEOUT_MS
+        wrapper.configuration.retries == Install.DEFAULT_NETWORK_RETRIES;
+        wrapper.configuration.retryTimeoutMs == Install.DEFAULT_NETWORK_RETRY_TIMEOUT_MS
         wrapper.configuration.validateDistributionUrl
     }
 

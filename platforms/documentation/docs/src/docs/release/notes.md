@@ -75,17 +75,17 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ## New features and usability improvements
 
-### Automatic retries for wrapper downloads
+### Automatic retries for Wrapper downloads
 
-The Gradle Wrapper now supports automatic retries for distribution downloads.
-This reduces build failures caused by unstable network connections or server-side timeouts.
-By default, the Wrapper will try once and will not retry.
+The [Gradle Wrapper](userguide/gradle_wrapper.html) now supports automatic retries when downloading the Gradle distribution.
+This helps reduce build failures caused by unstable network connections or temporary server issues.
+By default, no retries are attempted.
 
-Users can fine-tune the retry logic by adding the following to their Gradle properties file:
+To enable retries, add the following properties to `gradle-wrapper.properties`:
 
 ```properties
-retries=3
-retryTimeoutMs=5000
+retries=3 // Sets the maximum number of retry attempts
+retryTimeoutMs=5000 // Sets the delay between retries
 ```
 
 ### Type-safe Accessors for Precompiled Kotlin Settings Plugins
