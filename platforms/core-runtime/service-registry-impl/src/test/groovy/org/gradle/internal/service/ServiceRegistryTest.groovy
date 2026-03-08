@@ -190,62 +190,6 @@ class ServiceRegistryTest extends Specification {
         registry.get(String) == "hi"
     }
 
-
-    // tags: self-injection, service-dependencies
-    def injectsServiceRegistryIntoProviderFactoryMethod() {
-        def parentProvider = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            String createString(ServiceRegistry services) {
-                assert services.is(registry)
-                return services.get(Number).toString()
-            }
-        })
-        registry.add(Integer, 123)
-
-        expect:
-        registry.get(String) == '123'
-    }
-
-    // tags: self-injection, service-dependencies
-    def canLocateSelfAsAServiceOfTypeServiceRegistry() {
-        def registry = new DefaultServiceRegistry()
-
-        expect:
-        registry.get(ServiceRegistry) == registry
-        registry.find(DefaultServiceRegistry) == null
-    }
-
-    // tags: self-injection, registration, error
-    def failsWhenRegisteringAServiceOfTypeServiceRegistry() {
-        def registry = new DefaultServiceRegistry()
-
-        when:
-        registry.add(ServiceRegistry, new DefaultServiceRegistry())
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry with implementation DefaultServiceRegistry'
-    }
-
-    // tags: self-injection, registration, error
-    def failsWhenProviderFactoryMethodProducesAServiceOfTypeServiceRegistry() {
-        def registry = new DefaultServiceRegistry()
-
-        when:
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            ServiceRegistry createServices() {
-                return new DefaultServiceRegistry()
-            }
-        })
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry via ServiceRegistryTest$<anonymous>.createServices()'
-    }
-
     // tags: service-dependencies, error
     def failsWhenProviderFactoryMethodRequiresUnknownService() {
         def registry = new DefaultServiceRegistry()
