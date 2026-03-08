@@ -28,6 +28,7 @@ dependencies {
     api(projects.time)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
+    api(projects.workerProcessServices)
 
     api(libs.asm)
     api(libs.groovy)

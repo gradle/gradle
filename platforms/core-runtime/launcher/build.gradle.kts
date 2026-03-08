@@ -87,6 +87,7 @@ dependencies {
     testImplementation(testFixtures(projects.daemonProtocol))
 
     integTestImplementation(projects.persistentCache)
+    integTestImplementation(projects.workerProcessServices)
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)
     integTestImplementation(libs.commonsLang)

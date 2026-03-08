@@ -146,6 +146,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "tooling-api-provider",
         "versioned-cache",
         "worker-main",
+        "worker-process-services",
         "wrapper-shared",
     ]
 

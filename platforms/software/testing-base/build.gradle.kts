@@ -29,6 +29,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.testingBaseInfrastructure)
     api(projects.time)
+    api(projects.workerProcessServices)
 
     api(libs.groovy)
     api(libs.guava)

@@ -1645,6 +1645,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "worker-process-services",
+    "path": "platforms/core-execution/worker-process-services",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "workers",
     "path": "platforms/core-execution/workers",
     "unitTests": true,

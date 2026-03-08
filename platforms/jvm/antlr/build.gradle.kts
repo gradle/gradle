@@ -10,6 +10,7 @@ dependencies {
     api(projects.fileOperations)
     api(projects.files)
     api(projects.modelCore)
+    api(projects.workerProcessServices)
     api(projects.requestHandlerWorker)
     api(projects.stdlibJavaExtensions)
 

@@ -23,6 +23,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
     api(projects.workerMain)
+    api(projects.workerProcessServices)
 
     api(libs.inject)
     api(libs.jspecify)

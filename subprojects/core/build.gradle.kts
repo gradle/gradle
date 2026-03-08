@@ -78,10 +78,8 @@ dependencies {
     api(projects.normalizationJava)
     api(projects.persistentCache)
     api(projects.problemsApi)
-    api(projects.processMemoryServices)
     api(projects.processServices)
     api(projects.processServicesApi)
-    api(projects.requestHandlerWorker)
     api(projects.resources)
     api(projects.scopedPersistentCache)
     api(projects.serialization)
@@ -92,7 +90,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.versionedCache)
-    api(projects.workerMain)
 
     api(libs.asm)
     api(libs.asmTree)
@@ -106,14 +103,15 @@ dependencies {
     implementation(projects.buildOperationsTrace)
     implementation(projects.daemonLogging)
     implementation(projects.inputTracking)
-    implementation(projects.io)
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
+    implementation(projects.processMemoryServices)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.coreFlowServicesApi) {
         because("DefaultBuildServicesRegistry has ordering dependency with FlowScope")
     }
     implementation(projects.projectFeaturesApi)
+    implementation(projects.workerProcessServices)
 
     implementation(libs.ant)
     implementation(libs.asmCommons)
@@ -147,6 +145,7 @@ dependencies {
     testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)
     testImplementation(projects.platformNative)
+    testImplementation(projects.io)
     testImplementation(projects.testingBase)
     testImplementation(libs.jsoup)
     testImplementation(libs.log4jToSlf4j)

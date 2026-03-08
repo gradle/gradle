@@ -14,7 +14,6 @@ dependencies {
     api(projects.daemonServices)
     api(projects.enterpriseLogging)
     api(projects.fileCollections)
-    api(projects.jvmServices)
     api(projects.launcher)
     api(projects.modelCore)
     api(projects.problemsApi)
