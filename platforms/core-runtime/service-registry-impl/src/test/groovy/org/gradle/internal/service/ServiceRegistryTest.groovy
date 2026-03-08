@@ -47,54 +47,9 @@ class ServiceRegistryTest extends Specification {
         e.message == "No service of type StringBuilder available in test registry."
     }
 
-    def delegatesToParentForUnknownService() {
-        def value = BigDecimal.TEN
-        def parentProvider = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
-        registry.addProvider(new TestProvider())
 
-        when:
-        def result = registry.get(BigDecimal)
 
-        then:
-        result == value
-
-        and:
-        1 * parentProvider.getService(BigDecimal, _) >> new ServiceWrapper(value)
-    }
-
-    def delegatesToParentsForUnknownService() {
-        def value = BigDecimal.TEN
-        def parentProvider1 = Mock(ServiceProvider)
-        def parentProvider2 = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider1), parentRegistry(parentProvider2))
-
-        when:
-        def result = registry.get(BigDecimal)
-
-        then:
-        result == value
-
-        and:
-        1 * parentProvider1.getService(BigDecimal, _) >> null
-        1 * parentProvider2.getService(BigDecimal, _) >> new ServiceWrapper(value)
-    }
-
-    def throwsExceptionForUnknownParentService() {
-        def parentProvider = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry("test registry", parentRegistry(parentProvider))
-
-        given:
-        _ * parentProvider.getService(StringBuilder, _) >> null
-
-        when:
-        registry.get(StringBuilder)
-
-        then:
-        UnknownServiceException e = thrown()
-        e.message == "No service of type StringBuilder available in test registry."
-    }
-
+    // tags: basic, internal-api
     def returnsServiceInstanceThatHasBeenRegistered() {
         def value = BigDecimal.TEN
         def registry = new DefaultServiceRegistry()
@@ -226,51 +181,8 @@ class ServiceRegistryTest extends Specification {
         registry.get(String) == "hi"
     }
 
-    def injectsParentServicesIntoProviderFactoryMethod() {
-        def parentProvider = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            String createString(Number n) {
-                return n.toString()
-            }
-        })
 
-        when:
-        def result = registry.get(String)
-
-        then:
-        result == '123'
-
-        and:
-        1 * parentProvider.getService(Number, _) >> new ServiceWrapper(123)
-    }
-
-    def injectsGenericTypesFromParentIntoProviderFactoryMethod() {
-        def parent = new DefaultServiceRegistry()
-        parent.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            Callable<String> createStringCallable() {
-                return { "hello" }
-            }
-
-            @Provides
-            Factory<String> createStringFactory() {
-                return { "world" } as Factory
-            }
-        })
-        def registry = new DefaultServiceRegistry(parent)
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            String createString(Callable<String> callable, Factory<String> factory) {
-                return callable.call() + ' ' + factory.create()
-            }
-        })
-
-        expect:
-        registry.get(String) == 'hello world'
-    }
-
+    // tags: self-injection, service-dependencies
     def injectsServiceRegistryIntoProviderFactoryMethod() {
         def parentProvider = Mock(ServiceProvider)
         def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
@@ -322,6 +234,7 @@ class ServiceRegistryTest extends Specification {
         e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry via ServiceRegistryTest$<anonymous>.createServices()'
     }
 
+    // tags: service-dependencies, error
     def failsWhenProviderFactoryMethodRequiresUnknownService() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new StringProvider())
@@ -460,114 +373,8 @@ class ServiceRegistryTest extends Specification {
         registry.get(String).is(registry.get(String))
     }
 
-    def usesProviderDecoratorMethodToDecorateParentServiceInstance() {
-        def parentProvider = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
-        registry.addProvider(decoratorProvider)
 
-        given:
-        _ * parentProvider.getService(Long, _) >> new ServiceWrapper(110L)
-
-        expect:
-        registry.get(Long) == 112L
-        registry.get(Number) == 112L
-
-        where:
-        decoratorProvider << [new TestDecoratingProviderWithCreate(), new TestDecoratingProviderWithDecorate()]
-    }
-
-    def cachesServiceCreatedUsingProviderDecoratorMethod() {
-        def parentProvider = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
-        registry.addProvider(decoratorProvider)
-
-        given:
-        _ * parentProvider.getService(Long, _) >> new ServiceWrapper(11L)
-
-        expect:
-        registry.get(Long).is(registry.get(Long))
-
-        where:
-        decoratorProvider << [new TestDecoratingProviderWithCreate(), new TestDecoratingProviderWithDecorate()]
-    }
-
-    def conflictWhenCreateAndDecorateMethodDecorateTheSameType() {
-        def parentProvider = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
-        registry.addProvider(new ConflictingDecoratorMethods())
-
-        given:
-        _ * parentProvider.getService(Long, _) >> new ServiceWrapper(11L)
-
-        when:
-        registry.get(Long).is(registry.get(Long))
-
-        then:
-        ServiceLookupException e = thrown()
-        e.message.contains("Multiple services of type Long available in DefaultServiceRegistry:")
-        e.message.contains('- Service Long via ServiceRegistryTest$ConflictingDecoratorMethods.createLong()')
-        e.message.contains('- Service Long via ServiceRegistryTest$ConflictingDecoratorMethods.decorateLong()')
-    }
-
-    def providerDecoratorMethodFailsWhenNoParentRegistry() {
-        def registry = new DefaultServiceRegistry()
-
-        when:
-        registry.addProvider(decoratorProvider)
-
-        then:
-        ServiceLookupException e = thrown()
-        e.message == "Cannot use decorator method ${decoratorProvider.class.simpleName}.${methodName}Long() when no parent registry is provided."
-
-        where:
-        decoratorProvider                        | methodName
-        new TestDecoratingProviderWithCreate()   | 'create'
-        new TestDecoratingProviderWithDecorate() | 'decorate'
-    }
-
-    def failsWhenProviderDecoratorMethodRequiresUnknownService() {
-        def parentProvider = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
-
-        given:
-        registry.addProvider(decoratorProvider)
-
-        when:
-        registry.get(Long)
-
-        then:
-        ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type Long using method ServiceRegistryTest\$${decoratorProvider.class.simpleName}.${methodName}Long() as required service of type Long for parameter #1 is not available in parent registries."
-
-        where:
-        decoratorProvider                        | methodName
-        new TestDecoratingProviderWithCreate()   | 'create'
-        new TestDecoratingProviderWithDecorate() | 'decorate'
-    }
-
-    def failsWhenProviderDecoratorMethodThrowsException() {
-        def parentProvider = Stub(ServiceProvider) {
-            getService(Long, _) >> new ServiceWrapper(12L)
-        }
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
-
-        given:
-        registry.addProvider(decoratorProvider)
-
-        when:
-        registry.get(Long)
-
-        then:
-        ServiceCreationException e = thrown()
-        e.message == "Could not create service of type Long using ${decoratorProvider.class.simpleName}.${methodName}Long()."
-        e.cause == decoratorProvider.failure
-
-        where:
-        decoratorProvider                          | methodName
-        new BrokenDecoratingProviderWithCreate()   | 'create'
-        new BrokenDecoratingProviderWithDecorate() | 'decorate'
-    }
-
+    // tags: service-dependencies, creation, error
     def failsWhenThereIsACycleInDependenciesForProviderFactoryMethods() {
         def registry = new DefaultServiceRegistry()
 
@@ -706,66 +513,7 @@ class ServiceRegistryTest extends Specification {
         e.cause.message == 'Locating services with array type is not supported.'
     }
 
-    def usesDecoratorMethodToDecorateParentServiceInstance() {
-        def parentProvider = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
-        registry.addProvider(provider)
-
-        when:
-        def result = registry.get(Long)
-
-        then:
-        result == 120L
-
-        and:
-        1 * parentProvider.getService(Long, _) >> new ServiceWrapper(110L)
-
-        where:
-        provider << [
-            new TestProviderWithDecoratorMethodsWithCreate(),
-            new TestProviderWithDecoratorMethodsWithDecorate(),
-        ]
-    }
-
-    def "decorator methods can take additional parameters"() {
-        def parentProvider = Mock(ServiceProvider)
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
-        registry.addProvider(provider)
-
-        when:
-        def result = registry.get(String)
-
-        then:
-        result == "Foo120"
-
-        and:
-        1 * parentProvider.getService(Long, _) >> new ServiceWrapper(110L)
-        1 * parentProvider.getService(String, _) >> new ServiceWrapper("Foo")
-
-        where:
-        provider << [
-            new TestProviderWithDecoratorMethodsWithCreate(),
-            new TestProviderWithDecoratorMethodsWithDecorate(),
-        ]
-    }
-
-    def decoratorCreateMethodFailsWhenNoParentRegistry() {
-        def registry = new DefaultServiceRegistry()
-
-        when:
-        registry.addProvider(provider)
-
-        then:
-        ServiceLookupException e = thrown()
-        e.message.matches(/Cannot use decorator method TestProviderWithDecoratorMethodsWith(Create|Decorate)\..*\(\) when no parent registry is provided./)
-
-        where:
-        provider << [
-            new TestProviderWithDecoratorMethodsWithCreate(),
-            new TestProviderWithDecoratorMethodsWithDecorate(),
-        ]
-    }
-
+    // tags: registration
     def canRegisterServicesUsingAction() {
         def registry = new DefaultServiceRegistry()
 
@@ -1040,51 +788,6 @@ class ServiceRegistryTest extends Specification {
         }
     }
 
-
-    private static class ConflictingDecoratorMethods implements ServiceRegistrationProvider {
-        @Provides
-        Long createLong(Long value) {
-            return value + 2
-        }
-
-        @Provides
-        Long decorateLong(Long value) {
-            return value + 2
-        }
-    }
-
-    private static class TestDecoratingProviderWithCreate implements ServiceRegistrationProvider {
-        @Provides
-        Long createLong(Long value) {
-            return value + 2
-        }
-    }
-
-    private static class TestDecoratingProviderWithDecorate implements ServiceRegistrationProvider {
-        @Provides
-        Long decorateLong(Long value) {
-            return value + 2
-        }
-    }
-
-    private static class BrokenDecoratingProviderWithCreate implements ServiceRegistrationProvider {
-        static def failure = new RuntimeException()
-
-        @Provides
-        Long createLong(Long value) {
-            throw failure
-        }
-    }
-
-    private static class BrokenDecoratingProviderWithDecorate implements ServiceRegistrationProvider {
-        static def failure = new RuntimeException()
-
-        @Provides
-        Long decorateLong(Long value) {
-            throw failure
-        }
-    }
-
     private static class NullDecoratorWithCreate implements ServiceRegistrationProvider {
         @Provides
         String createString(String value) {
@@ -1096,48 +799,6 @@ class ServiceRegistryTest extends Specification {
         @Provides
         String decorateString(String value) {
             return null
-        }
-    }
-
-    private static class TestProviderWithDecoratorMethodsWithCreate implements ServiceRegistrationProvider {
-        @Provides
-        protected Long createLong(Long value) {
-            return value + 10
-        }
-
-        @Provides
-        protected Factory<Long> createLongFactory(final Factory<Long> factory) {
-            return new Factory<Long>() {
-                Long create() {
-                    return factory.create() + 2
-                }
-            }
-        }
-
-        @Provides
-        protected String createString(String parentValue, Long myValue) {
-            return parentValue + myValue
-        }
-    }
-
-    private static class TestProviderWithDecoratorMethodsWithDecorate implements ServiceRegistrationProvider {
-        @Provides
-        protected Long decorateLong(Long value) {
-            return value + 10
-        }
-
-        @Provides
-        protected Factory<Long> decorateLongFactory(final Factory<Long> factory) {
-            return new Factory<Long>() {
-                Long create() {
-                    return factory.create() + 2
-                }
-            }
-        }
-
-        @Provides
-        protected String decorateString(String parentValue, Long myValue) {
-            return parentValue + myValue
         }
     }
 
