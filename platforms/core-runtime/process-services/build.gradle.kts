@@ -18,6 +18,7 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.instrumentationAgentServices)
+    api(projects.modelCore)
     implementation(projects.logging)
     implementation(projects.persistentCache)
     implementation(projects.loggingApi)
