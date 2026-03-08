@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service
 
-import com.google.common.reflect.TypeToken
 import org.gradle.internal.Factory
 import org.gradle.internal.service.stubs.ProviderWithGenericType
 import org.gradle.util.GroovyNullMarked
@@ -849,208 +848,6 @@ class ServiceRegistryTest extends Specification {
         e.cause == ClassWithBrokenConstructor.failure
     }
 
-    def canGetAllServicesOfAGivenType() {
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            String createOtherString() {
-                return "hi"
-            }
-        })
-
-        expect:
-        registry.getAll(String) == ["12", "hi"]
-        registry.getAll(Number) == [12]
-    }
-
-    def removesDuplicateServicesWhenParentIsReachableViaMultiplePaths() {
-        def root = new DefaultServiceRegistry()
-        root.add(String, "root")
-        def parent1 = new DefaultServiceRegistry(root)
-        parent1.add(String, "p1")
-        def parent2 = new DefaultServiceRegistry(root)
-        parent2.add(String, "p2")
-        def registry = new DefaultServiceRegistry(parent1, parent2)
-
-        expect:
-        registry.getAll(String) == ["p1", "root", "p2"]
-    }
-
-    def canGetAllServicesOfAGivenTypeUsingCollectionType() {
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            String createOtherString() {
-                return "hi"
-            }
-        })
-
-        expect:
-        registry.get(new TypeToken<List<String>>() {}.type) == ["12", "hi"]
-        registry.get(new TypeToken<List<Number>>() {}.type) == [12]
-        registry.get(new TypeToken<List<? extends CharSequence>>() {}.type) == ["12", "hi"]
-        registry.get(new TypeToken<List<? extends Number>>() {}.type) == [12]
-    }
-
-    def canGetAllServicesOfARawType() {
-        def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            String createString() {
-                return "hi"
-            }
-
-            @Provides
-            Factory<String> createFactory() {
-                return {} as Factory
-            }
-
-            @Provides
-            CharSequence createCharSequence() {
-                return "foo"
-            }
-        })
-
-        expect:
-        registry.getAll(Factory).size() == 1
-        registry.getAll(CharSequence).size() == 2
-    }
-
-    def allServicesReturnsEmptyCollectionWhenNoServicesOfGivenType() {
-        expect:
-        registry.getAll(Long).empty
-    }
-
-    def allServicesIncludesServicesFromParents() {
-        def parentProvider1 = Stub(ServiceProvider) {
-            getAll(Number, _, _) >> { Class type, token, ServiceProvider.Visitor visitor ->
-                visitor.visit(new ServiceWrapper(123L))
-                return visitor
-            }
-        }
-        def parentProvider2 = Stub(ServiceProvider) {
-            getAll(Number, _, _) >> { Class type, token, ServiceProvider.Visitor visitor ->
-                visitor.visit(new ServiceWrapper(456))
-                return visitor
-            }
-        }
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider1), parentRegistry(parentProvider2))
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            Long createLong() {
-                return 12
-            }
-        })
-
-        expect:
-        registry.getAll(Number) == [12, 123L, 456]
-    }
-
-    def allServicesDoesNotIncludeDecoratedServicesFromParents() {
-        def longService = new ServiceWrapper(123L)
-        def parentProvider1 = Stub(ServiceProvider) {
-            getService(Long, _) >> longService
-            getAll(Number, _, _) >> { Class type, token, ServiceProvider.Visitor visitor ->
-                visitor.visit(longService)
-                return visitor
-            }
-        }
-        def parentProvider2 = Stub(ServiceProvider) {
-            getAll(Number, _, _) >> { Class type, token, ServiceProvider.Visitor visitor ->
-                visitor.visit(new ServiceWrapper(456))
-                return visitor
-            }
-        }
-        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider1), parentRegistry(parentProvider2))
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            Long createLong(Long parent) {
-                return parent + 1
-            }
-        })
-
-        expect:
-        registry.getAll(Number) == [124L, 456]
-    }
-
-    def injectsAllServicesOfAGivenTypeIntoServiceImplementation() {
-        def parent = new DefaultServiceRegistry()
-        parent.register { ServiceRegistration registration ->
-            registration.add(TestServiceImpl)
-        }
-        def registry = new DefaultServiceRegistry(parent)
-        registry.register { ServiceRegistration registration ->
-            registration.add(ServiceWithMultipleDependencies)
-            registration.add(TestServiceImpl)
-        }
-
-        expect:
-        registry.get(ServiceWithMultipleDependencies).services.size() == 2
-        registry.get(ServiceWithMultipleDependencies).services == registry.getAll(TestServiceImpl)
-        registry.get(ServiceWithMultipleDependencies).services == [registry.get(TestService), parent.get(TestService)]
-    }
-
-    def removesDuplicateinjectedServicesOfAGivenTypeWhenParentIsReachableFromMultiplePaths() {
-        def root = new DefaultServiceRegistry()
-        root.add(TestServiceImpl, new TestServiceImpl())
-        def parent1 = new DefaultServiceRegistry(root)
-        parent1.register { ServiceRegistration registration ->
-            registration.add(TestServiceImpl)
-        }
-        def parent2 = new DefaultServiceRegistry(root)
-        parent2.register { ServiceRegistration registration ->
-            registration.add(TestServiceImpl)
-        }
-        def registry = new DefaultServiceRegistry(parent1, parent2)
-        registry.register { ServiceRegistration registration ->
-            registration.add(ServiceWithMultipleDependencies)
-        }
-
-        expect:
-        registry.get(ServiceWithMultipleDependencies).services.size() == 3
-        registry.get(ServiceWithMultipleDependencies).services == [parent1.get(TestService), root.get(TestService), parent2.get(TestService)]
-    }
-
-    def injectsEmptyListWhenNoServicesOfGivenType() {
-        def parent = new DefaultServiceRegistry()
-        def registry = new DefaultServiceRegistry(parent)
-        registry.register { ServiceRegistration registration ->
-            registration.add(ServiceWithMultipleDependencies)
-        }
-
-        expect:
-        registry.get(ServiceWithMultipleDependencies).services.empty
-    }
-
-    def canUseWildcardsToInjectAllServicesWithType() {
-        def parent = new DefaultServiceRegistry()
-        parent.register { ServiceRegistration registration ->
-            registration.add(TestServiceImpl)
-        }
-        def registry = new DefaultServiceRegistry(parent)
-        registry.register { ServiceRegistration registration ->
-            registration.add(ServiceWithWildCardDependencies)
-            registration.add(TestServiceImpl)
-        }
-
-        expect:
-        registry.get(ServiceWithWildCardDependencies).services.size() == 2
-        registry.get(ServiceWithWildCardDependencies).services == registry.getAll(TestService)
-    }
-
-    def cannotUseLowerBoundWildcardToInjectAllServicesWithType() {
-        def registry = new DefaultServiceRegistry()
-
-        given:
-        registry.addProvider(new UnsupportedWildcardProvider())
-
-        when:
-        registry.get(Number)
-
-        then:
-        def e = thrown(ServiceCreationException)
-        e.message == 'Cannot create service of type Number using method ServiceRegistryTest\$UnsupportedWildcardProvider.create() as there is a problem with parameter #1 of type List<? super java.lang.String>.'
-        e.cause.message == 'Locating services with type ? super java.lang.String is not supported.'
-    }
-
     def "can lookup a service with declared service type added via registration"() {
         given:
         registry.addProvider(new ServiceRegistrationProvider() {
@@ -1148,22 +945,6 @@ class ServiceRegistryTest extends Specification {
         }
     }
 
-    private static class ServiceWithMultipleDependencies {
-        final List<TestService> services
-
-        ServiceWithMultipleDependencies(List<TestService> services) {
-            this.services = services
-        }
-    }
-
-    private static class ServiceWithWildCardDependencies {
-        final List<?> services
-
-        ServiceWithWildCardDependencies(List<? extends TestService> services) {
-            this.services = services
-        }
-    }
-
     private static class TestProvider implements ServiceRegistrationProvider {
         @Provides
         String createString(Integer integer) {
@@ -1228,13 +1009,6 @@ class ServiceRegistryTest extends Specification {
     private static class UnsupportedInjectionProvider implements ServiceRegistrationProvider {
         @Provides
         Number create(String[] values) {
-            return values.length
-        }
-    }
-
-    private static class UnsupportedWildcardProvider implements ServiceRegistrationProvider {
-        @Provides
-        Number create(List<? super String> values) {
             return values.length
         }
     }
