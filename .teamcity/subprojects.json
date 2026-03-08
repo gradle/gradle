@@ -1260,6 +1260,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "process-services-api",
+    "path": "platforms/core-runtime/process-services-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "project-features",
     "path": "platforms/core-configuration/project-features",
     "unitTests": false,

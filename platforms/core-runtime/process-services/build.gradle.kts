@@ -9,6 +9,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.coreApi)
+    api(projects.processServicesApi)
     api(projects.fileCollections)
     api(projects.fileTemp)
 

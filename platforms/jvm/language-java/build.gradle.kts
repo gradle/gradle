@@ -25,6 +25,7 @@ dependencies {
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.processServices)
+    api(projects.processServicesApi)
     api(projects.scopedPersistentCache)
     api(projects.serialization)
     api(projects.serviceProvider)

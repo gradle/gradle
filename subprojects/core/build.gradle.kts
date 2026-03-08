@@ -80,6 +80,7 @@ dependencies {
     api(projects.problemsApi)
     api(projects.processMemoryServices)
     api(projects.processServices)
+    api(projects.processServicesApi)
     api(projects.requestHandlerWorker)
     api(projects.resources)
     api(projects.scopedPersistentCache)

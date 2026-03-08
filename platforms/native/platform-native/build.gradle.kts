@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.enterpriseLogging)
     implementation(projects.io)
     implementation(projects.loggingApi)
+    implementation(projects.processServicesApi)
     implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)

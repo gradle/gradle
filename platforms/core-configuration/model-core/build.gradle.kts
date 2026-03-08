@@ -49,6 +49,8 @@ dependencies {
     testFixturesImplementation(libs.groovyDatetime)
     testFixturesImplementation(libs.groovyDateUtil)
 
+    api(projects.processServicesApi)
+
     testImplementation(projects.processServices)
     testImplementation(projects.fileCollections)
     testImplementation(projects.native)

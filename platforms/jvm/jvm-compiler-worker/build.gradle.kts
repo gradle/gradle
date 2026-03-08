@@ -10,6 +10,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(projects.internalInstrumentationApi)
+    api(projects.processServicesApi)
     api(projects.stdlibJavaExtensions)
     api(libs.inject)
     api(libs.jspecify)

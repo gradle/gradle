@@ -28,6 +28,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.hashing)
+    implementation(projects.processServicesApi)
     implementation(projects.requestHandlerWorker)
     implementation(projects.serialization)
     implementation(projects.snapshots)

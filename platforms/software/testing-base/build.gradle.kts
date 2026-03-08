@@ -37,6 +37,7 @@ dependencies {
 
     implementation(projects.logging)
     implementation(projects.processServices)
+    implementation(projects.processServicesApi)
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
     implementation(projects.modelCore)

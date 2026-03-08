@@ -21,6 +21,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.platformBase)
+    implementation(projects.processServicesApi)
 
     implementation(libs.guava)
 

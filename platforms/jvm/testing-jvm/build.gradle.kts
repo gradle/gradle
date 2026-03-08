@@ -19,6 +19,7 @@ dependencies {
     api(projects.fileOperations)
     api(projects.messaging)
     api(projects.processServices)
+    api(projects.processServicesApi)
     api(projects.modelCore)
     api(projects.reporting)
     api(projects.stdlibJavaExtensions)
