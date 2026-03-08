@@ -25,6 +25,7 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.native)
     implementation(projects.serviceLookup)
+    api(projects.serviceProvider)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

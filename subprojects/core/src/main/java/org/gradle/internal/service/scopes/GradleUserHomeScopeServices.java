@@ -25,7 +25,7 @@ import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJourna
 import org.gradle.api.internal.changedetection.state.GradleUserHomeScopeFileTimeStampInspector;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
+
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -91,7 +91,7 @@ import org.gradle.internal.jvm.inspection.ReportingJvmMetadataDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.reflect.Instantiator;
+
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -99,7 +99,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -213,17 +212,6 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     @Provides
     GlobalCacheLocations createGlobalCacheLocations(List<GlobalCache> globalCaches) {
         return new DefaultGlobalCacheLocations(globalCaches);
-    }
-
-    @Provides
-    ExecFactory createExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
-        return parent.forContext()
-            .withFileResolver(fileResolver)
-            .withFileCollectionFactory(fileCollectionFactory)
-            .withInstantiator(instantiator)
-            .withObjectFactory(objectFactory)
-            .withJavaModuleDetector(javaModuleDetector)
-            .build();
     }
 
     @Provides
