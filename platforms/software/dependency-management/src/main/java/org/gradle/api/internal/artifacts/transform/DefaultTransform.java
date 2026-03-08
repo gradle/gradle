@@ -495,15 +495,6 @@ public class DefaultTransform implements Transform {
             return result;
         }
 
-        @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            Object result = find(serviceType, annotatedWith);
-            if (result != null) {
-                return result;
-            }
-            return delegate.get(serviceType, annotatedWith);
-        }
-
         private static class InjectionPoint {
             private final Class<? extends Annotation> annotation;
             private final Type injectedType;
