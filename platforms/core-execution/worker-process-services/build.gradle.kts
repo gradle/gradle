@@ -22,6 +22,7 @@ dependencies {
     api(projects.requestHandlerWorker)
     api(projects.scopedPersistentCache)
     api(projects.serialization)
+    api(projects.serviceProvider)
     api(projects.workerMain)
 
     api(libs.jspecify)
