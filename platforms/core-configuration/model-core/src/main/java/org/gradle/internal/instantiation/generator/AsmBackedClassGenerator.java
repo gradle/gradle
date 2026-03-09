@@ -151,6 +151,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         return new ManagedObjectFactory(details.services, details.instantiator, details.roleHandler);
     }
 
+    private static final String GET_DETAILS_FOR_NEXT_METHOD_NAME = "getDetailsForNext";
+
+    // Used by generated code — single ThreadLocal read replacing 3 separate calls
+    @SuppressWarnings("unused")
+    @NonNull
+    public static ObjectCreationDetails getDetailsForNext() {
+        return getDetails();
+    }
+
     @NonNull
     private static ObjectCreationDetails getDetails() {
         ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
@@ -507,6 +516,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_SERVICE_REGISTRY = getMethodDescriptor(SERVICE_REGISTRY_TYPE);
         private static final String RETURN_SERVICE_LOOKUP = getMethodDescriptor(SERVICE_LOOKUP_TYPE);
         private static final String RETURN_MANAGED_OBJECT_FACTORY = getMethodDescriptor(MANAGED_OBJECT_FACTORY_TYPE);
+        private static final Type OBJECT_CREATION_DETAILS_TYPE = getType(ObjectCreationDetails.class);
+        private static final String RETURN_OBJECT_CREATION_DETAILS = getMethodDescriptor(OBJECT_CREATION_DETAILS_TYPE);
+        private static final String RETURN_DESCRIBABLE_FROM_DETAILS = getMethodDescriptor(DESCRIBABLE_TYPE);
+        private static final String RETURN_SERVICE_LOOKUP_FROM_DETAILS = getMethodDescriptor(SERVICE_LOOKUP_TYPE);
+        private static final String RETURN_MANAGED_OBJECT_FACTORY_FROM_DETAILS = getMethodDescriptor(MANAGED_OBJECT_FACTORY_TYPE);
         private static final String RETURN_META_CLASS = getMethodDescriptor(META_CLASS_TYPE);
         private static final String RETURN_VOID_FROM_META_CLASS = getMethodDescriptor(Type.VOID_TYPE, META_CLASS_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
@@ -756,21 +770,29 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // private void $gradleInitWork() { ... do the work ... }
             privateSyntheticMethod(INIT_WORK_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
-                // this.displayName = AsmBackedClassGenerator.getDisplayNameForNext()
+                // ObjectCreationDetails details = AsmBackedClassGenerator.getDetailsForNext()
+                // Single ThreadLocal read instead of 1-3 separate calls
+                _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, GET_DETAILS_FOR_NEXT_METHOD_NAME, RETURN_OBJECT_CREATION_DETAILS);
+                _ASTORE(1); // store details in local var 1
+
+                // this.displayName = details.getDisplayName()
                 _ALOAD(0);
-                _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME, RETURN_DESCRIBABLE);
+                _ALOAD(1);
+                _INVOKEVIRTUAL(OBJECT_CREATION_DETAILS_TYPE, "getDisplayName", RETURN_DESCRIBABLE_FROM_DETAILS);
                 _PUTFIELD(generatedType, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE);
 
                 if (requiresServicesMethod) {
-                    // this.services = AsmBackedClassGenerator.getServicesForNext()
+                    // this.services = details.getServices()
                     _ALOAD(0);
-                    _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, GET_SERVICES_FOR_NEXT_METHOD_NAME, RETURN_SERVICE_LOOKUP);
+                    _ALOAD(1);
+                    _INVOKEVIRTUAL(OBJECT_CREATION_DETAILS_TYPE, "getServices", RETURN_SERVICE_LOOKUP_FROM_DETAILS);
                     _PUTFIELD(generatedType, SERVICES_FIELD, SERVICE_LOOKUP_TYPE);
                 }
                 if (requiresFactory) {
-                    // this.factory = AsmBackedClassGenerator.getFactoryForNext()
+                    // this.factory = details.createFactory()
                     _ALOAD(0);
-                    _INVOKESTATIC(ASM_BACKED_CLASS_GENERATOR_TYPE, GET_FACTORY_FOR_NEXT_METHOD_NAME, RETURN_MANAGED_OBJECT_FACTORY);
+                    _ALOAD(1);
+                    _INVOKEVIRTUAL(OBJECT_CREATION_DETAILS_TYPE, "createFactory", RETURN_MANAGED_OBJECT_FACTORY_FROM_DETAILS);
                     _PUTFIELD(generatedType, FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE);
                 }
 
@@ -1962,12 +1984,25 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         return (Class<?>) Cast.cast(ParameterizedType.class, argument).getRawType();
     }
 
-    private static class ObjectCreationDetails {
+    public static class ObjectCreationDetails {
         InstanceGenerator instantiator;
         ServiceLookup services;
         @Nullable
         Describable displayName;
         PropertyRoleAnnotationHandler roleHandler;
+
+        @Nullable
+        public Describable getDisplayName() {
+            return displayName;
+        }
+
+        public ServiceLookup getServices() {
+            return services;
+        }
+
+        public ManagedObjectFactory createFactory() {
+            return new ManagedObjectFactory(services, instantiator, roleHandler);
+        }
     }
 
     /**
