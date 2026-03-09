@@ -113,22 +113,6 @@ fun Requirements.requiresNotSharedHost() {
  */
 const val HIDDEN_ARTIFACT_DESTINATION = ".teamcity/gradle-logs"
 
-fun BuildType.addEc2PostBuild(os: Os = Os.LINUX) {
-    if (os !in listOf(Os.WINDOWS, Os.MACOS)) {
-        steps {
-            exec {
-                name = "EC2_POST_BUILD"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                path = ".teamcity/scripts/post_build_on_ec2.sh"
-
-                conditions {
-                    requiresEc2Agent()
-                }
-            }
-        }
-    }
-}
-
 fun BuildTypeSettings.setArtifactRules(rules: String) {
     artifactRules = rules
     publishArtifacts = PublishMode.ALWAYS
@@ -192,20 +176,6 @@ fun BuildType.applyDefaultSettings(
                 failureMessage = "This build might be leaking credentials"
                 reverse = false
                 stopBuildOnFailure = true
-            }
-        }
-    }
-
-    if (os !in listOf(Os.WINDOWS, Os.MACOS)) {
-        steps {
-            exec {
-                name = "EC2_BUILD_CUSTOMIZATIONS"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                path = ".teamcity/scripts/configure_build_env_on_ec2.sh"
-
-                conditions {
-                    requiresEc2Agent()
-                }
             }
         }
     }
