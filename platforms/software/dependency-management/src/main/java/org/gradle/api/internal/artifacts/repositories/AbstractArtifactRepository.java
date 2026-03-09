@@ -230,15 +230,18 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
             if (service != null) {
                 return service;
             }
-            String availableServices = repositoryResourceAccessor != null
-                ? "ObjectFactory, RepositoryResourceAccessor"
-                : "ObjectFactory";
-            throw new UnknownServiceException(serviceType, "Service of type " + serviceType + " is not available for repository metadata rules. Available services: " + availableServices + ".");
+            throw new UnknownServiceException(serviceType, "Service of type " + serviceType + " is not available for repository metadata rules. Available services: " + availableServicesDescription() + ".");
         }
 
         @Override
         public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            throw new UnknownServiceException(serviceType, "Service of type " + serviceType + " annotated with @" + annotatedWith.getSimpleName() + " is not available for repository metadata rules.");
+            throw new UnknownServiceException(serviceType, "Service of type " + serviceType + " annotated with @" + annotatedWith.getSimpleName() + " is not available for repository metadata rules. Available services: " + availableServicesDescription() + ".");
+        }
+
+        private String availableServicesDescription() {
+            return repositoryResourceAccessor != null
+                ? ObjectFactory.class.getSimpleName() + ", " + RepositoryResourceAccessor.class.getSimpleName()
+                : ObjectFactory.class.getSimpleName();
         }
     }
 
