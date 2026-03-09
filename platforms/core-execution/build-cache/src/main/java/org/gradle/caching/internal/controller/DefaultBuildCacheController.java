@@ -68,6 +68,7 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultBuildCacheController implements BuildCacheController {
@@ -117,6 +118,19 @@ public class DefaultBuildCacheController implements BuildCacheController {
             return result;
         }
         return loadRemoteAndStoreResultLocally(key, entity);
+    }
+
+    @Override
+    public Optional<BuildCacheLoadResult> loadLocally(BuildCacheKey key, CacheableEntity entity) {
+        return loadLocal(key, entity);
+    }
+
+    @Override
+    public CompletableFuture<Optional<BuildCacheLoadResult>> loadRemoteAsync(BuildCacheKey key, CacheableEntity entity) {
+        if (!remote.canLoad()) {
+            return CompletableFuture.completedFuture(Optional.empty());
+        }
+        return CompletableFuture.supplyAsync(() -> loadRemoteAndStoreResultLocally(key, entity));
     }
 
     private Optional<BuildCacheLoadResult> loadLocal(BuildCacheKey key, CacheableEntity entity) {

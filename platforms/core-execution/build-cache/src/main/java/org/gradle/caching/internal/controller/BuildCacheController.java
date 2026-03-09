@@ -27,6 +27,7 @@ import java.io.Closeable;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * High-level controller for build cache operations; can load and store {@link CacheableEntity}s with a given {@link BuildCacheKey}.
@@ -39,6 +40,25 @@ public interface BuildCacheController extends Closeable {
     boolean isEnabled();
 
     Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity);
+
+    /**
+     * Loads the cache entry from only the local cache.
+     * Does not check remote cache.
+     */
+    default Optional<BuildCacheLoadResult> loadLocally(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
+        return load(cacheKey, cacheableEntity);
+    }
+
+    /**
+     * Starts an asynchronous download of the cache entry from the remote cache.
+     * If the entry is found, it is downloaded to a temp file, unpacked into the entity's workspace,
+     * and stored in the local cache.
+     *
+     * @return a future that completes with the load result, or empty if the entry was not found
+     */
+    default CompletableFuture<Optional<BuildCacheLoadResult>> loadRemoteAsync(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
+        return CompletableFuture.completedFuture(Optional.empty());
+    }
 
     void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);
 }

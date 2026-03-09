@@ -47,6 +47,7 @@ import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
 import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.BuildCacheStep;
+import org.gradle.internal.execution.steps.OptimisticBuildCacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CaptureImmutableStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep;
@@ -176,7 +177,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new ResolveImmutableCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
-            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
+            new OptimisticBuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
