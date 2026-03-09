@@ -3,26 +3,23 @@ plugins {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
-    api(projects.baseServices)
-    api(projects.core)
+    api(projects.baseCompilerWorker)
     api(projects.coreApi)
     api(projects.files)
-    api(projects.logging)
-    api(projects.modelCore)
-    api(projects.baseCompilerWorker)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
-    api(libs.jspecify)
     api(libs.jsr305)
 
-    implementation(projects.dependencyManagement)
     implementation(projects.execution)
-    implementation(projects.modelReflect)
+    implementation(projects.baseServices)
+    implementation(projects.core)
+    implementation(projects.logging)
+    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
+
+    compileOnly(libs.jspecify)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
@@ -39,10 +36,6 @@ dependencies {
         because("RuntimeShadedJarCreatorTest requires a distribution to access the ...-relocated.txt metadata")
     }
     integTestDistributionRuntimeOnly(projects.distributionsCore)
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/**")
 }
 
 description = """Provides general purpose base types and interfaces for modeling projects, and provides runtime and language support."""
