@@ -228,6 +228,22 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         0 * services._
     }
 
+    def "can inject service using a custom annotation on getter"() {
+        given:
+        def services = defaultServices()
+        _ * services.get(Number) >> 12
+
+        def generator = AsmBackedClassGenerator.decorateAndInject(
+            [new CustomAnnotationHandler()], Stub(PropertyRoleAnnotationHandler),
+            [CustomInject], new TestCrossBuildInMemoryCacheFactory(), 0)
+
+        when:
+        def obj = create(generator, BeanWithCustomServices, services)
+
+        then:
+        obj.thing == 12
+    }
+
     def "cannot use multiple inject annotations on getter"() {
         def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], Stub(PropertyRoleAnnotationHandler), [CustomInject], new TestCrossBuildInMemoryCacheFactory(), 0)
 
@@ -396,11 +412,6 @@ class BeanWithParameterizedTypeService {
 class BeanWithCustomServices {
     @CustomInject
     Number getThing() { throw new UnsupportedOperationException() }
-}
-
-abstract class AbstractBeanWithCustomServices {
-    @CustomInject
-    abstract Number getThing()
 }
 
 class MultipleInjectAnnotations {
