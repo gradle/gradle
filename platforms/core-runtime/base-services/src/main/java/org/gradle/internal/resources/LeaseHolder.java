@@ -16,31 +16,20 @@
 
 package org.gradle.internal.resources;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class LeaseHolder {
     private final int maxWorkerCount;
     private int leasesInUse;
-    private final AtomicInteger dormantLeases = new AtomicInteger();
 
     public LeaseHolder(int maxWorkerCount) {
         this.maxWorkerCount = maxWorkerCount;
     }
 
     public boolean grantLease() {
-        if ((leasesInUse - dormantLeases.get()) >= maxWorkerCount) {
+        if (leasesInUse >= maxWorkerCount) {
             return false;
         }
         leasesInUse++;
         return true;
-    }
-
-    public void addDormantLease() {
-        dormantLeases.incrementAndGet();
-    }
-
-    public void removeDormantLease() {
-        dormantLeases.decrementAndGet();
     }
 
     public void releaseLease() {

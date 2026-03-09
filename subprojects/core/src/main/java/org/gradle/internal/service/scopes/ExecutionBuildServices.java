@@ -100,6 +100,23 @@ import java.util.function.Supplier;
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
 public class ExecutionBuildServices implements ServiceRegistrationProvider {
+    /**
+     * Must be the first service defined so it is stopped first. After the PostExecutionWorkQueue is
+     * drained, all thenAccept callbacks (e.g. recordOutputs(), history.store()) have completed and
+     * their async cache writes are queued. Only then can the caches below be safely closed:
+     * their ExclusiveCacheAccessingWorker will drain the pending writes and release file locks
+     * before returning. If PostExecutionWorkQueue were stopped after any of these caches, the
+     * thenAccept callbacks would fire against an already-closed cache, re-open its file lock via
+     * acquireFileLock(), and then fail to enqueue the completion runnable (worker already stopped),
+     * leaving the file lock permanently open and causing the next build to fail with
+     * "Cannot lock X as it has already been locked by this process."
+     */
+    @Provides
+    PostExecutionWorkQueue createPostExecutionWorkQueue(ExecutorFactory executorFactory, StartParameter startParameter) {
+        int packingThreads = Math.max(1, startParameter.getMaxWorkerCount() / 2);
+        return new DefaultPostExecutionWorkQueue(executorFactory.create("Build cache packing", packingThreads));
+    }
+
     @Provides
     ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheBuilderFactory cacheBuilderFactory) {
         return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);
@@ -142,12 +159,6 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    PostExecutionWorkQueue createPostExecutionWorkQueue(ExecutorFactory executorFactory, StartParameter startParameter) {
-        int packingThreads = Math.max(1, startParameter.getMaxWorkerCount() / 2);
-        return new DefaultPostExecutionWorkQueue(executorFactory.create("Build cache packing", packingThreads));
-    }
-
-    @Provides
     public ExecutionEngine createExecutionEngine(
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
@@ -163,14 +174,15 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         FileSystemAccess fileSystemAccess,
         ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
         OutputChangeListener outputChangeListener,
-        WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
+        WorkInputListeners workInputListeners,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         StartParameter startParameter,
         TimeoutHandler timeoutHandler,
         InternalProblems problems,
         WorkerLeaseService workerLeaseService,
-        PostExecutionWorkQueue postExecutionWorkQueue
+        PostExecutionWorkQueue postExecutionWorkQueue,
+        OutputFilesRepository outputFilesRepository
     ) {
         UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
