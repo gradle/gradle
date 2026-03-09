@@ -24,6 +24,10 @@ import org.gradle.api.internal.tasks.testing.DefaultTestFailureDetails
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
+import org.gradle.api.internal.tasks.testing.source.DefaultClassSource
+import org.gradle.api.internal.tasks.testing.source.DefaultFilePosition
+import org.gradle.api.internal.tasks.testing.source.DefaultFileSource
+import org.gradle.api.internal.tasks.testing.source.DefaultMethodSource
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
@@ -178,6 +182,103 @@ java.lang.IllegalStateException: connection refused
         def json = new JsonSlurper().parse(outputFile.toFile())
         json.failures[0].failure.message.length() == 1024
         json.failures[0].failure.messageComplete == false
+    }
+
+    def "includes FileSource with file path and line number"() {
+        def outputFile = tempDir.resolve("failure-index.json")
+        def writer = new TestFailureIndexWriter(outputFile)
+
+        def rootSuite = new DefaultTestSuiteDescriptor(0, "Root")
+        def fileSource = new DefaultFileSource(new File("src/test/java/com/example/MyTest.java"), new DefaultFilePosition(15, 5))
+        def descriptor = new DefaultTestDescriptor(1, "com.example.MyTest", "testSomething", fileSource)
+
+        def details = new DefaultTestFailureDetails("error", "RuntimeException", "stack")
+        def failure = new DefaultTestFailure(new RuntimeException("error"), details, [])
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [failure], null)
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        writer.completed(descriptor, result, complete)
+        writer.completed(rootSuite, new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [], null), complete)
+
+        then:
+        def json = new JsonSlurper().parse(outputFile.toFile())
+        def source = json.failures[0].source
+        source.type == "file"
+        source.file == "src/test/java/com/example/MyTest.java"
+        source.line == 15
+        source.column == 5
+    }
+
+    def "includes MethodSource with class and method names"() {
+        def outputFile = tempDir.resolve("failure-index.json")
+        def writer = new TestFailureIndexWriter(outputFile)
+
+        def rootSuite = new DefaultTestSuiteDescriptor(0, "Root")
+        def methodSource = new DefaultMethodSource("com.example.MyTest", "testSomething")
+        def descriptor = new DefaultTestDescriptor(1, "com.example.MyTest", "testSomething", methodSource)
+
+        def details = new DefaultTestFailureDetails("error", "RuntimeException", "stack")
+        def failure = new DefaultTestFailure(new RuntimeException("error"), details, [])
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [failure], null)
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        writer.completed(descriptor, result, complete)
+        writer.completed(rootSuite, new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [], null), complete)
+
+        then:
+        def json = new JsonSlurper().parse(outputFile.toFile())
+        def source = json.failures[0].source
+        source.type == "method"
+        source.className == "com.example.MyTest"
+        source.methodName == "testSomething"
+    }
+
+    def "includes ClassSource with class name"() {
+        def outputFile = tempDir.resolve("failure-index.json")
+        def writer = new TestFailureIndexWriter(outputFile)
+
+        def rootSuite = new DefaultTestSuiteDescriptor(0, "Root")
+        def classSource = new DefaultClassSource("com.example.MyTest")
+        def descriptor = new DefaultTestDescriptor(1, "com.example.MyTest", "testSomething", classSource)
+
+        def details = new DefaultTestFailureDetails("error", "RuntimeException", "stack")
+        def failure = new DefaultTestFailure(new RuntimeException("error"), details, [])
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [failure], null)
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        writer.completed(descriptor, result, complete)
+        writer.completed(rootSuite, new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [], null), complete)
+
+        then:
+        def json = new JsonSlurper().parse(outputFile.toFile())
+        def source = json.failures[0].source
+        source.type == "class"
+        source.className == "com.example.MyTest"
+    }
+
+    def "source is null for NoSource"() {
+        def outputFile = tempDir.resolve("failure-index.json")
+        def writer = new TestFailureIndexWriter(outputFile)
+
+        def rootSuite = new DefaultTestSuiteDescriptor(0, "Root")
+        // DefaultTestDescriptor with 5-arg constructor uses NoSource
+        def descriptor = new DefaultTestDescriptor(1, "com.example.MyTest", "testSomething", "com.example.MyTest", "testSomething")
+
+        def details = new DefaultTestFailureDetails("error", "RuntimeException", "stack")
+        def failure = new DefaultTestFailure(new RuntimeException("error"), details, [])
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [failure], null)
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        writer.completed(descriptor, result, complete)
+        writer.completed(rootSuite, new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [], null), complete)
+
+        then:
+        def json = new JsonSlurper().parse(outputFile.toFile())
+        json.failures[0].source == null
     }
 
     def "framework failures have correct type"() {
