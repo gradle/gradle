@@ -26,6 +26,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.annotations.BindsProjectType
@@ -41,6 +42,7 @@ import javax.inject.Inject
 @RegistersProjectFeatures(
     KotlinBuildLogicProjectTypePlugin::class,
     KotlinDslProjectTypePlugin::class,
+    GroovyKotlinDslProjectTypePlugin::class,
     JavaPlatformBuildLogicProjectTypePlugin::class,
     JavaLibraryBuildLogicProjectTypePlugin::class
 )
@@ -150,6 +152,31 @@ open class KotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
                     }
                     for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                         configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
+                    }
+                }
+            }.withUnsafeDefinition().withUnsafeApplyAction()
+        }
+    }
+}
+
+@BindsProjectType(GroovyKotlinDslProjectTypePlugin.Binding::class)
+open class GroovyKotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+
+    class Binding : ProjectTypeBinding {
+        override fun bind(builder: ProjectTypeBindingBuilder) {
+            builder.bindProjectType("groovyKotlinDslPlugin", JavaBuildLogicDefinition::class.java) { context, definition, model ->
+                context.objectFactory.newInstance<Services>().project.run {
+                    plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
+                    plugins.apply("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
+                    group = "gradlebuild"
+                    afterEvaluate {
+                        description = definition.description.get()
+                    }
+                    for ((scope, collector) in definition.dependencies.scopeToCollector()) {
+                        configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
+                    }
+                    tasks.named("compileGroovy", GroovyCompile::class) {
+                        classpath += files(tasks.named("compileKotlin"))
                     }
                 }
             }.withUnsafeDefinition().withUnsafeApplyAction()
