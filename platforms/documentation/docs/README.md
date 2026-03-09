@@ -42,20 +42,20 @@ Follow the instructions in [notes.md](https://github.com/gradle/gradle/blob/mast
 
 ### Build Commands
 
-| Goal                                        | Command                                   |
-|---------------------------------------------|-------------------------------------------|
-| Full preview (recommended)                  | `./gradlew stageDocs`                     |
-| Full preview with continuous rebuild        | `./gradlew stageDocs -t`                  |
-| Fast iteration (no DSL ref, no single-page) | `./gradlew stageDocs -PquickDocs`         |
-| Fast iteration with continuous rebuild      | `./gradlew stageDocs -PquickDocs -t`      |
-| Live reload at `http://localhost:8000`      | `./gradlew serveDocs -PquickDocs`         |
-| User manual only (links may break)          | `./gradlew :docs:userguide`               |
-| Multi-page HTML manual only                 | `./gradlew :docs:userguideMultiPage`      |
-| Single-page HTML manual only                | `./gradlew :docs:userguideSinglePageHtml` |
-| Javadoc only                                | `./gradlew :docs:javadocAll`              |
-| Run all snippet and sample tests            | `./gradlew :docs:docsTest`                |
+| Goal                                   | Command                                   |
+|----------------------------------------|-------------------------------------------|
+| Full preview (recommended)             | `./gradlew stageDocs`                     |
+| Full preview with continuous rebuild   | `./gradlew stageDocs -t`                  |
+| Full preview with fast iteration       | `./gradlew stageDocs -PquickDocs`         |
+| Live reload at `http://localhost:8000` | `./gradlew serveDocs`                     |
+| User manual only (links may break)     | `./gradlew :docs:userguide`               |
+| Multi-page HTML manual only            | `./gradlew :docs:userguideMultiPage`      |
+| Single-page HTML manual only           | `./gradlew :docs:userguideSinglePageHtml` |
+| Javadoc only                           | `./gradlew :docs:javadocAll`              |
+| Run all snippet and sample tests       | `./gradlew :docs:docsTest`                |
 
 The `-PquickDocs` flag skips slow tasks (DSL reference, single-page manual). Rebuild time in quick mode is approximately 30–40 seconds.
+The `t` and `-PquickDocs` flags can be used by the `serveDocs` task as well.
 
 **Output locations:**
 - Multi-page HTML: `build/working/usermanual/render-multi/` (one `.html` per `.adoc`)
@@ -91,7 +91,7 @@ Always wrap link text in backticks for any code identifier — classes, methods,
 
 ### Images
 
-Images live in `docs/src/userguide/img/`. Accepted formats are GIF, GRAPHML, SVG, PNG, and JPEG. Keep file sizes small — avoid large uncompressed images.
+Images live in `docs/src/userguide/img/`. Formats include GIF, GRAPHML, SVG, PNG, and JPEG. Smaller size files are preferred.
 
 To embed an image in an `.adoc` file:
 
@@ -101,6 +101,8 @@ image::performance/performance-1.png[]
 
 The path is relative to the `src/docs/img/` directory.
 
+Do not submit images as part of a PR to `gradle/gradle`. All images must be created and approved by the Gradle documentation team.
+
 ### Anchors
 
 Every heading should have an anchor declared on the line immediately above it. This enables direct linking from other pages. Anchor IDs should use `snake_case`.
@@ -109,8 +111,8 @@ Every heading should have an anchor declared on the line immediately above it. T
 |-------------------------|------------------|
 | `=` (page title)        | Required         |
 | `==` (section)          | Required         |
-| `===` (subsection)      | Recommended      |
-| `====` (sub-subsection) | Recommended      |
+| `===` (subsection)      | As needed        |
+| `====` (sub-subsection) | As needed        |
 
 ```asciidoc
 [[incremental_build]]
@@ -191,17 +193,12 @@ src/snippets/
 
 **What belongs in each directory:**
 
-| Directory  | Contains                                                                    |
-|------------|-----------------------------------------------------------------------------|
-| `groovy/`  | Groovy DSL source files (`.gradle`)                                         |
-| `kotlin/`  | Kotlin DSL source files (`.gradle.kts`)                                     |
-| `common/`  | Files shared between both DSLs (e.g. `gradle.properties`, version catalogs) |
-| `tests/`   | Testing instructions and expected outputs (e.g. `*.out`, `*.sample.conf`)   |
-
-**What must NOT be in these directories:**
-- Gradle wrapper files (`gradlew`, `gradlew.bat`, `gradle/wrapper/`)
-- Build output directories (`build/`)
-- Any other Gradle infrastructure files
+| Directory  | Contains                                                                                                             |
+|------------|----------------------------------------------------------------------------------------------------------------------|
+| `groovy/`  | Groovy DSL source files (`.gradle`)                                                                                  |
+| `kotlin/`  | Kotlin DSL source files (`.gradle.kts`)                                                                              |
+| `common/`  | Files shared between both DSLs (e.g. `gradle.properties`, version catalogs, `xml` files, java source sets and tests) |
+| `tests/`   | Testing instructions and expected outputs (e.g. `*.out`, `*.sample.conf`)                                            |
 
 The only exceptions are `gradle.properties` and version catalog files (e.g. `libs.versions.toml`), which are allowed.
 
@@ -367,14 +364,7 @@ Both Groovy and Kotlin variants must still be provided using `[.multi-language-s
 .settings.gradle.kts
 [source, kotlin]
 ----
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven {
-            url = uri("<path-to>/convention-plugins/build/repo")
-        }
-    }
-}
+rootProject.name = "test"
 ----
 .build.gradle.kts
 [source, kotlin]
@@ -389,14 +379,7 @@ plugins {
 .settings.gradle
 [source, groovy]
 ----
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven {
-            url = uri('<path-to>/convention-plugins/build/repo')
-        }
-    }
-}
+rootProject.name = 'test'
 ----
 .build.gradle
 [source, groovy]
@@ -532,11 +515,9 @@ The `docs:docsTest` task covers three sources of code:
 
 ### Testing Snippets with Exemplar
 
-Gradle uses [Exemplar](https://github.com/gradle/exemplar) to automatically test all snippets in `src/snippets/`. Exemplar discovers, executes, and verifies the output of snippet projects by looking for `*.sample.conf` files inside each snippet's `tests/` directory.
+Gradle uses [Exemplar](https://github.com/gradle/exemplar) to automatically test all snippets in `src/snippets/`. Exemplar discovers, executes, and verifies the output of each snippet by looking for `*.sample.conf` files inside the snippet's `tests/` directory.
 
-When a snippet is tested, Exemplar copies the snippet to a temporary directory, runs the commands declared in the `.sample.conf` file, and compares the actual output against the corresponding `.out` file. If the output doesn't match, the test fails.
-
-By default, all snippets automatically go through a basic sanity check equivalent to running `./gradlew check` — this happens as part of CI without any manual intervention. You do not need to trigger this yourself (see [`BaseSamplesTest`](https://github.com/gradle/gradle/blob/a503d4a36c53e43a8857da3115fa744612c6ad36/subprojects/docs/src/docsTest/java/org/gradle/docs/samples/BaseSamplesTest.java#L66)).
+Under the hood, a custom JUnit Platform test engine ([`SamplesTestEngine`](https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docsTest/java/org/gradle/docs/samples/SamplesTestEngine.java)) handles discovery and execution. For each snippet, it assembles the `groovy/`, `kotlin/`, and `common/` subdirectories into a temporary working directory, then runs the Gradle commands declared in the `.sample.conf` file using Gradle's standard integration test infrastructure. The actual output is then compared against the corresponding `.out` file (if provided) — if they don't match, the test fails.
 
 Use the specific test commands below when you need to test a snippet locally during development.
 
@@ -607,8 +588,7 @@ A typical `.out` file looks like this:
 > Task :myTask
 Some result
 
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed
+BUILD SUCCESSFUL
 ```
 
 The content should exactly match what Gradle prints to the console when the snippet runs successfully. If `allow-additional-output: true` is set in the `.sample.conf`, Exemplar will accept output that contains extra lines beyond what's in the `.out` file. If `allow-disordered-output: true` is set, the lines can appear in any order.
@@ -643,7 +623,7 @@ The snippet folder path maps to a test filter string by replacing `/` separators
 ./gradlew :docs:docsTest --tests "*.snippet-java-toolchain-task_*" -PenableConfigurationCacheForDocsTests=true
 ```
 
-You can also set `enableConfigurationCacheForDocsTests=true` in `gradle.properties`.
+You can also set `enableConfigurationCacheForDocsTests=true` in the `gradle.properties` file in the root of the `gradle/gradle` repository.
 
 ### Snippets Used in Integration Tests
 
