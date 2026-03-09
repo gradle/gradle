@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
+import org.gradle.api.internal.tasks.testing.logging.TestFailureIndexWriter;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -70,6 +71,11 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         // Emits progress logger events
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
+        // Writes structured failure index JSON for AI agents and tools
+        Path failureIndexPath = htmlReportDirectory.getAsFile().toPath().resolve("failure-index.json");
+        TestFailureIndexWriter failureIndexWriter = new TestFailureIndexWriter(failureIndexPath);
+        testListenerInternalBroadcaster.add(failureIndexWriter);
+
         GenericHtmlTestReportGenerator reportGenerator = objectFactory.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
         return createInternalTestEventReporter(
             id -> new DefaultTestSuiteDescriptor(id, rootName),
@@ -78,7 +84,8 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             testListenerInternalBroadcaster,
             0,
             closeThrowsOnTestFailures,
-            true
+            true,
+            failureIndexWriter
         );
     }
 
@@ -91,6 +98,23 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         int diskSkipLevels,
         boolean closeThrowsOnTestFailures,
         boolean addToAggregateReports
+    ) {
+        return createInternalTestEventReporter(
+            rootDescriptorFactory, binaryResultsDirectory, reportGenerator,
+            testListenerInternalBroadcaster, diskSkipLevels, closeThrowsOnTestFailures,
+            addToAggregateReports, null
+        );
+    }
+
+    private GroupTestEventReporterInternal createInternalTestEventReporter(
+        LongFunction<TestDescriptorInternal> rootDescriptorFactory,
+        Directory binaryResultsDirectory,
+        @Nullable TestReportGenerator reportGenerator,
+        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
+        int diskSkipLevels,
+        boolean closeThrowsOnTestFailures,
+        boolean addToAggregateReports,
+        @Nullable TestFailureIndexWriter failureIndexWriter
     ) {
         // Record all emitted results to disk
         Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
@@ -114,7 +138,8 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             reportGenerator,
             executionResultsListenerBroadcaster,
             closeThrowsOnTestFailures,
-            addToAggregateReports
+            addToAggregateReports,
+            failureIndexWriter
         ));
     }
 }

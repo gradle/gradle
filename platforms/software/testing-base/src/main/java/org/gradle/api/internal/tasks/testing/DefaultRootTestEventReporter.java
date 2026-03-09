@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.internal.exceptions.MarkedVerificationException;
+import org.gradle.api.internal.tasks.testing.logging.TestFailureIndexWriter;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -43,6 +44,8 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     private final TestExecutionResultsListener executionResultsListener;
     private final boolean closeThrowsOnTestFailures;
     private final boolean addToAggregateReports;
+    @Nullable
+    private final TestFailureIndexWriter failureIndexWriter;
 
     // Mutable state
     @Nullable
@@ -57,7 +60,8 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         @Nullable TestReportGenerator testReportGenerator,
         TestExecutionResultsListener executionResultsListener,
         boolean closeThrowsOnTestFailures,
-        boolean addToAggregateReports
+        boolean addToAggregateReports,
+        @Nullable TestFailureIndexWriter failureIndexWriter
     ) {
         super(
             listener,
@@ -72,6 +76,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         this.executionResultsListener = executionResultsListener;
         this.closeThrowsOnTestFailures = closeThrowsOnTestFailures;
         this.addToAggregateReports = addToAggregateReports;
+        this.failureIndexWriter = failureIndexWriter;
     }
 
     @Override
@@ -107,12 +112,15 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
         // Throw an exception with rendered test results, if necessary
         if (hasTestFailures && closeThrowsOnTestFailures) {
-            if (reportIndexFile == null) {
-                // No report was requested, just fail with the message we have
-                throw new MarkedVerificationException(failureMessage);
+            String message = failureMessage;
+            if (reportIndexFile != null) {
+                String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
+                message += " See the report at: " + testResultsUrl;
             }
-            String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
-            throw new MarkedVerificationException(failureMessage + " See the report at: " + testResultsUrl);
+            if (failureIndexWriter != null && failureIndexWriter.hasFailures()) {
+                message += "\n  Failure index: " + failureIndexWriter.getOutputFile();
+            }
+            throw new MarkedVerificationException(message);
         }
     }
 
