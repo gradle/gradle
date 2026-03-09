@@ -231,7 +231,7 @@ Instead, a resolvable ('canBeResolved=true') dependency configuration that exten
             }
 
             dependencies {
-                res project
+                res project()
             }
 
             task resolve {

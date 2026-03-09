@@ -32,7 +32,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "buildscript classpath dependency on root project fails to resolve"() {
+    def "buildscript classpath dependency on root project fails to declare"() {
         file("foo.txt") << "foo"
         buildFile << """
             buildscript {
@@ -60,8 +60,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failure.assertHasCause("Could not resolve all dependencies for configuration 'classpath'.")
-        failure.assertHasErrorOutput("No variants exist")
+        failure.assertHasCause("This dependency factory is not associated with a project, so project dependencies cannot be used.")
     }
 
     def "cannot declare project dependencies using path notation in buildscript block"() {
@@ -80,8 +79,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Project dependencies cannot be declared here.")
     }
 
-    // This is not desired behavior.
-    def "project buildscript classpath configuration can select another project"() {
+    def "project buildscript classpath configuration cannot declare project dependency using string notation"() {
         settingsFile << """
             include "first"
             include "other"
@@ -90,6 +88,31 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
             buildscript {
                 dependencies {
                     classpath project(":other")
+                }
+            }
+        """
+        file("other/build.gradle") << ""
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("This dependency factory is not associated with a project, so project dependencies cannot be used.")
+    }
+
+    // This is not desirable behavior, but we currently allow it for backward compatibility reasons.  This test only verifies that we emit the
+    // expected deprecation warning and do not fail with an error.
+    def "project buildscript classpath configuration can use deprecated Project notation to select another project"() {
+        settingsFile << """
+            include "first"
+            include "other"
+        """
+        // project.project(":other") bypasses the DependencyHandler delegate and forces the deprecated
+        // Project-as-notation path through DependencyProjectNotationConverter
+        file("first/build.gradle") << """
+            buildscript {
+                dependencies {
+                    classpath project.project(":other")
                 }
             }
         """
@@ -108,6 +131,13 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning(
+            "Passing a Project object as a dependency notation has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Use project(String) on DependencyHandler or DependencyFactory.createProjectDependency(String) instead. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_notation_in_dependency_handler"
+        )
         succeeds("help")
     }
 
@@ -116,10 +146,12 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
             include "first"
             include "other"
         """
+        // project.project(":other") bypasses the DependencyHandler delegate and forces the deprecated
+        // Project-as-notation path through DependencyProjectNotationConverter
         file("first/build.gradle") << """
             buildscript {
                 dependencies {
-                    classpath project(":other")
+                    classpath project.project(":other")
                 }
             }
         """
@@ -141,6 +173,13 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning(
+            "Passing a Project object as a dependency notation has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Use project(String) on DependencyHandler or DependencyFactory.createProjectDependency(String) instead. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_notation_in_dependency_handler"
+        )
         fails("help")
         failure.assertHasCause("Script classpath dependencies must reside in a separate build from the script itself.")
     }
@@ -543,7 +582,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task resolve {
                 def conf = buildscript.configurations.detachedConfiguration(
-                    buildscript.dependencies.create(project(":other"))
+                    dependencies.project(":other")
                 )
                 conf.attributes {
                     attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
@@ -575,13 +614,9 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "standalone buildscripts support detached configurations for resolving local dependencies"() {
-        mavenRepo.module("org", "foo").publish()
         file("foo.gradle") << """
-            buildscript {
-                ${mavenTestRepository()}
-            }
             def files = buildscript.configurations.detachedConfiguration(
-                buildscript.dependencies.create(project(":other"))
+                dependencies.project(":other")
             ).incoming.files
             assert files.files*.name == ["foo.txt"]
         """

@@ -18,6 +18,7 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -31,6 +32,20 @@ public class ProjectDependencyFactory {
 
     public ProjectDependencyFactory(DefaultProjectDependencyFactory factory) {
         this.factory = factory;
+    }
+
+    /**
+     * Creates a ProjectDependency from a string project path, resolved via the given ProjectFinder.
+     */
+    public ProjectDependency create(ProjectFinder projectFinder, String projectPath) {
+        return factory.create(projectFinder.resolveIdentityPath(projectPath));
+    }
+
+    /**
+     * Creates a ProjectDependency from an already-resolved ProjectState.
+     */
+    public ProjectDependency create(ProjectState projectState) {
+        return factory.create(projectState);
     }
 
     public ProjectDependency createFromMap(ProjectFinder projectFinder, Map<? extends String, ?> map) {

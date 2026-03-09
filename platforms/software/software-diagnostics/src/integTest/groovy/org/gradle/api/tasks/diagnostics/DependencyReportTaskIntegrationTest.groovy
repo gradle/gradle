@@ -77,7 +77,7 @@ compile
 
             project(':B') {
                 configurations.create('default')
-                dependencies.add("default", project(':C'))
+                dependencies.add("default", dependencies.project(':C'))
             }
         """
 

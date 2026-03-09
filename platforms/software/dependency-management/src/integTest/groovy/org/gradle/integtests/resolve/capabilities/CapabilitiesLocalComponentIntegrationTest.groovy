@@ -98,7 +98,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
             }
 
             dependencies {
-                deps(project) {
+                deps(project()) {
                     capabilities {
                         requireCapability(project.provider(() -> value))
                     }

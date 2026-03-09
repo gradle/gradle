@@ -10,7 +10,7 @@ version = '1.0'
 def integrationTest = sourceSets.create("integrationTest")
 
 dependencies {
-    integrationTestImplementation(project)
+    integrationTestImplementation(project())
 }
 // end::test-source-set[]
 
@@ -29,7 +29,7 @@ tasks.named('check') {
 
 def functionalTest = sourceSets.create("functionalTest")
 dependencies {
-    functionalTestImplementation(project)
+    functionalTestImplementation(project())
 }
 def functionalTestTask = tasks.register("functionalTest", Test) {
     description = 'Runs the functional tests.'

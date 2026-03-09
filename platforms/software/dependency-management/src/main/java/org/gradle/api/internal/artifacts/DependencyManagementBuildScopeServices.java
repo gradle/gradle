@@ -195,6 +195,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             objectFactory,
             projectDependencyFactory,
             attributesFactory,
+            null,
             null
         );
     }

@@ -32,7 +32,9 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
@@ -49,6 +51,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final ProjectDependencyFactory projectDependencyFactory;
     private final AttributesFactory attributesFactory;
     @Nullable
+    private final ProjectFinder projectFinder;
+    @Nullable
     private final Project project;
 
     public DefaultDependencyFactory(
@@ -58,6 +62,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         ObjectFactory objectFactory,
         ProjectDependencyFactory projectDependencyFactory,
         AttributesFactory attributesFactory,
+        @Nullable ProjectFinder projectFinder,
         @Nullable Project project
     ) {
         this.instantiator = instantiator;
@@ -66,6 +71,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         this.objectFactory = objectFactory;
         this.projectDependencyFactory = projectDependencyFactory;
         this.attributesFactory = attributesFactory;
+        this.projectFinder = projectFinder;
         this.project = project;
     }
 
@@ -122,27 +128,33 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         return dependencyNotationParser.getFileCollectionNotationParser().parseNotation(fileCollection);
     }
 
+    @Deprecated
     @Override
     public ProjectDependency create(Project project) {
-        ProjectDependency dependency = dependencyNotationParser.getProjectNotationParser().parseNotation(project);
+        DeprecationLogger.deprecateMethod(DefaultDependencyFactory.class, "create(Project)")
+            .withAdvice("Use createProjectDependency(String) instead.")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_project_notation_in_dependency_handler")
+            .nagUser();
+        ProjectDependency dependency = projectDependencyFactory.create(((ProjectInternal) project).getOwner());
         injectServices(dependency);
         return dependency;
     }
 
     @Override
     public ProjectDependency createProjectDependency(String projectPath) {
-        if (project == null) {
-            throw new IllegalStateException("This dependency factory is not associated with a project, so project dependencies cannot be created by path.  Use create(Project) instead.");
+        if (projectFinder == null) {
+            throw new IllegalStateException("This dependency factory is not associated with a project, so project dependencies cannot be used.");
         }
-        return create(project.project(projectPath));
+        return projectDependencyFactory.create(projectFinder, projectPath);
     }
 
     @Override
     public ProjectDependency createProjectDependency() {
         if (project == null) {
-            throw new IllegalStateException("This dependency factory is not associated with a project, so a dependency for the current project cannot be created.  Use create(Project) instead.");
+            throw new IllegalStateException("This dependency factory is not associated with a project, so a dependency for the current project cannot be used.");
         }
-        return create(project);
+        return projectDependencyFactory.create(((ProjectInternal) project).getOwner());
     }
 
     // endregion

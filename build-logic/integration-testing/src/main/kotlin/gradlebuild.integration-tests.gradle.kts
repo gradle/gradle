@@ -53,7 +53,7 @@ configurations.named("integTestImplementation") {
 
     dependencies.apply {
         // Use a provider so we don't lookup the project when we generate accessors
-        addLater(provider { dependencyFactory.create(project.project(":internal-integ-testing")) })
+        addLater(provider { dependencyFactory.createProjectDependency(":internal-integ-testing") })
     }
 }
 
