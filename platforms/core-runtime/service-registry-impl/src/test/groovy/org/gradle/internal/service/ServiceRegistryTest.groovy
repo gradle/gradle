@@ -36,7 +36,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         e.message == "Inheriting from DefaultServiceRegistry is not allowed. Use ServiceRegistryBuilder instead."
     }
 
-    // tags: error, look-up
     def throwsExceptionForUnknownService() {
         when:
         registry.get(StringBuilder.class)
@@ -46,7 +45,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         e.message == "No service of type StringBuilder available in test registry."
     }
 
-    // tags: basic, internal-api
     def returnsServiceInstanceThatHasBeenRegistered() {
         def value = BigDecimal.TEN
         def registry = new DefaultServiceRegistry()
@@ -59,7 +57,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         registry.get(Number) == value
     }
 
-    // tags: error, look-up
     def "does not support querying for Object.class"() {
         def registry = new DefaultServiceRegistry()
         when:
@@ -70,7 +67,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         e.message == "Locating services with type Object is not supported."
     }
 
-    // tags: basic, registration
     def createsInstanceOfServiceImplementation() {
         def registry = new DefaultServiceRegistry()
         registry.register({ ServiceRegistration registration ->
@@ -82,7 +78,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         registry.get(TestService) == registry.get(TestServiceImpl)
     }
 
-    // tags: basic, service-dependencies
     def injectsServicesIntoServiceImplementation() {
         def registry = new DefaultServiceRegistry()
         registry.register({ ServiceRegistration registration ->
@@ -94,7 +89,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         registry.get(ServiceWithDependency).service == registry.get(TestServiceImpl)
     }
 
-    // tags: basic, registration
     def usesFactoryMethodOnProviderToCreateServiceInstance() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new TestProvider())
@@ -104,7 +98,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         registry.get(Number) == 12
     }
 
-    // tags: service-dependencies
     def injectsServicesIntoProviderFactoryMethod() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new ServiceRegistrationProvider() {
@@ -123,7 +116,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         registry.get(String) == "12"
     }
 
-    // tags: service-dependencies, error
     def failsWhenProviderFactoryMethodRequiresUnknownService() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new StringProvider())
@@ -144,7 +136,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         normalizedMessage(e2.cause) == "Cannot create service of type String using method StringProvider.createString() as required service of type Runnable for parameter #1 is not available."
     }
 
-    // tags: service-dependencies, error
     def failsWhenConstructorRequiresUnknownService() {
         def registry = new DefaultServiceRegistry()
         registry.register {
@@ -159,7 +150,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         normalizedMessage(e) == "Cannot create service of type RequiresService using RequiresService constructor as required service of type Number for parameter #1 is not available."
     }
 
-    // tags: service-dependencies, instantiation, error
     def failsWhenProviderFactoryMethodThrowsException() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new BrokenProvider())
@@ -181,7 +171,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         e.cause == BrokenProvider.failure
     }
 
-    // tags: registration, error
     def failsWhenCreateMethodHasNoAnnotation() {
         def registry = new DefaultServiceRegistry()
 
@@ -200,7 +189,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         }
     }
 
-    // tags: registration, error
     def failsWhenNonCreateMethodHasAnnotation() {
         def registry = new DefaultServiceRegistry()
 
@@ -219,7 +207,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         }
     }
 
-    // tags: registration, error
     def failsWhenInterfaceIsRegistered() {
         def registry = new DefaultServiceRegistry()
         when:
@@ -232,7 +219,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         e.message == "Cannot register an interface (java.lang.Runnable) for construction."
     }
 
-    // tags: registration, error
     def "fails when abstract class is registered"() {
         def registry = new DefaultServiceRegistry()
         when:
@@ -245,7 +231,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         normalizedMessage(e) == "Cannot register an abstract type (AbstractClass) for construction."
     }
 
-    // tags: service-dependencies, creation, error
     def failsWhenThereIsACycleInDependenciesForProviderFactoryMethods() {
         def registry = new DefaultServiceRegistry()
 
@@ -271,7 +256,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         normalizedMessage(e.cause.cause) == 'Cycle in dependencies of Service Integer via ProviderWithCycle.createInteger() detected'
     }
 
-    // tags: creation, error
     def failsWhenAProviderFactoryMethodReturnsNull() {
         def registry = new DefaultServiceRegistry()
 
@@ -286,7 +270,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         e.message == "Could not create service of type String using NullProvider.createString() as this method returned null."
     }
 
-    // tags: creation, error
     def failsWhenAProviderDecoratorCreateMethodReturnsNull() {
         def parentProvider = Stub(ServiceProvider) {
             getService(String, _) >> new ServiceWrapper("parent")
@@ -309,7 +292,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         new NullDecoratorWithDecorate() | 'decorate'
     }
 
-    // tags: basic, look-up
     def usesFactoryMethodToCreateServiceInstance() {
         expect:
         registry.get(String.class) == "12"
@@ -317,7 +299,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
     }
 
 
-    // tags: registration
     def usesOverriddenFactoryMethodToCreateServiceInstance() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new OverridingTestProvider())
@@ -326,7 +307,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         registry.get(String) == "overridden"
     }
 
-    // tags: registration, creation, error
     def failsWhenMultipleFactoryMethodsCanCreateRequestedServiceType() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new TestProvider())
@@ -341,7 +321,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
    - Service String via TestProvider.createString()"""
     }
 
-    // tags: registration, creation, error
     def failsWhenMultipleFactoryMethodsCanCreateRequestedServiceTypeViaConstructor() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new ServiceRegistrationProvider() {
@@ -362,7 +341,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
    - Service TestServiceImpl2 via TestServiceImpl2 constructor"""
     }
 
-    // tags: look-up, error
     def failsWhenArrayClassRequested() {
         when:
         registry.get(String[].class)
@@ -372,7 +350,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         e.message == "Locating services with array type is not supported."
     }
 
-    // tags: registration, error
     def cannotInjectAnArrayType() {
         given:
         registry.addProvider(new UnsupportedInjectionProvider())
@@ -386,7 +363,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         e.cause.message == 'Locating services with array type is not supported.'
     }
 
-    // tags: registration
     def canRegisterServicesUsingAction() {
         def registry = new DefaultServiceRegistry()
 
