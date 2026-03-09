@@ -238,6 +238,19 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createProjectDependency() >> projectDependency
     }
 
+    void "creates a project dependency by path"() {
+        ProjectDependency projectDependency = Mock()
+
+        when:
+        def result = dependencyHandler.project(":sub")
+
+        then:
+        result == projectDependency
+
+        and:
+        1 * dependencyFactory.createProjectDependency(":sub") >> projectDependency
+    }
+
     void "cannot create project dependency for configuration from same project"() {
         Configuration other = Mock()
 
