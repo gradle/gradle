@@ -44,7 +44,6 @@ import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
 import org.jspecify.annotations.Nullable;
 
@@ -231,12 +230,18 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
             if (service != null) {
                 return service;
             }
-            return ServiceRegistry.EMPTY.get(serviceType);
+            throw new UnknownServiceException(serviceType, "Service of type " + serviceType + " is not available for repository metadata rules. Available services: " + availableServicesDescription() + ".");
         }
 
         @Override
         public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            return ServiceRegistry.EMPTY.get(serviceType, annotatedWith);
+            throw new UnknownServiceException(serviceType, "Service of type " + serviceType + " annotated with @" + annotatedWith.getSimpleName() + " is not available for repository metadata rules. Available services: " + availableServicesDescription() + ".");
+        }
+
+        private String availableServicesDescription() {
+            return repositoryResourceAccessor != null
+                ? ObjectFactory.class.getSimpleName() + ", " + RepositoryResourceAccessor.class.getSimpleName()
+                : ObjectFactory.class.getSimpleName();
         }
     }
 
