@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import org.gradle.features.internal.ProjectFeatureFixture
 import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -26,7 +27,7 @@ import org.gradle.internal.declarativedsl.DeclarativeTestUtils
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
-class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
+class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements ProjectFeatureFixture, PolyglotTestFixture {
 
     def setup() {
         file("gradle.properties") << """
@@ -388,8 +389,39 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         outputContains("definition foo.bar = settings")
     }
 
+    def "can configure build-level defaults that applies features to a project type (#testCase)"() {
+        given:
+        withProjectFeature().prepareToExecute()
+
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
+
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestProjectType(buildConfiguration) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printFeatureDefinitionConfiguration")
+
+        then:
+        expectedValues.each { String value -> outputContains(value) }
+
+        where:
+        testCase                                           | modelDefault                 | buildConfiguration      | expectedValues
+        "feature is set in default and build script"       | setFeatureText("default")    | setFeatureText("test")  | expected("text":"test")
+        "feature is set in default but not build script"   | setFeatureText("default")    | ""                      | expected("text":"default")
+    }
+
     private static String[] expected(Map<String, String> expectations) {
         return expectations.collect { k, v -> "definition ${k} = ${v}" }
+    }
+
+    static String setFeatureText(String text) {
+        return """
+            feature {
+                text = "${text}"
+                fizz {
+                    buzz = ""
+                }
+            }
+        """
     }
 
     static String setId(String id) {
