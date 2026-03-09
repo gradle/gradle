@@ -15,8 +15,7 @@
  */
 package org.gradle.integtests.wrapper
 
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.GradleDistribution
+
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -37,7 +36,9 @@ class WrapperCrossVersionIntegrationTest extends AbstractWrapperCrossVersionInte
         cleanupDaemons(executer, current)
     }
 
-    @Requires(value = [UnitTestPreconditions.NotWindowsJavaBefore11], reason = "https://github.com/gradle/gradle-private/issues/3758")
+    @Requires(value = [
+        UnitTestPreconditions.NotWindowsJavaBefore11
+    ], reason = "see https://github.com/gradle/gradle-private/issues/3758")
     void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(current, previous).withWarningMode(null)
@@ -47,17 +48,5 @@ class WrapperCrossVersionIntegrationTest extends AbstractWrapperCrossVersionInte
 
         cleanup:
         cleanupDaemons(executer, previous)
-    }
-
-    void checkWrapperWorksWith(GradleExecuter executer, GradleDistribution executionVersion) {
-        def result = executer.withTasks('hello').run()
-
-        assert result.output.contains("hello from $executionVersion.version.version")
-        assert result.output.contains("using distribution at ${executer.gradleUserHomeDir.file("wrapper/dists")}")
-        assert result.output.contains("using Gradle user home at $executer.gradleUserHomeDir")
-    }
-
-    static void cleanupDaemons(GradleExecuter executer, GradleDistribution executionVersion) {
-        new DaemonLogsAnalyzer(executer.daemonBaseDir, executionVersion.version.version).killAll()
     }
 }

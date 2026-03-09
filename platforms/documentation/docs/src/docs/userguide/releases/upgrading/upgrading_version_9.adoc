@@ -77,9 +77,30 @@ Existing lockfiles written with Windows line endings can still be read, but new 
 
 During the next lock update using Gradle 9.5.0 or above, if the lockfiles were previously generated with Windows line endings, all line endings will be changed, regardless of whether dependencies have changed.
 
+==== The Windows start script has been reworked to improve usability
+The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
+However, this change may have unintended side effects due to certain checks being removed and slight changes in behavior.
+
+The new script features multiple changes:
+
+- No check of the `OS` variable is performed since Gradle does not support versions of Windows that are not NT-based.
+- `endlocal` is used before invoking the application so the local environment changes of the script do not affect the invoked process.
+Environment variables intended for the invoked process should be set before the `gradlew.bat` invocation.
+- `& CALL` is used after invoking the application to remove the "Terminate batch job (Y/N)?" prompt.
+- `exit /b` has been changed to `"%COMSPEC%" /c exit`. This allows the use of `&&` and `||` when invoking the script from another batch file.
+
 ==== Upgrade to Kotlin 2.3.10
 
 The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.10[Kotlin 2.3.10].
+
+=== Deprecations
+
+[[deprecate_exit_environment_var]]
+==== Deprecation of setting an exit environment variable
+`CreateStartScripts.getExitEnvironmentVariable()` and `CreateStartScripts.setExitEnvironmentVariable(String)` have been deprecated and will be removed in Gradle 10.0.0.
+Due to the changes in the Windows start script template, these functions no longer have any effect with the default templates.
+
+It is recommended that custom start script templates are updated to not rely on this functionality.
 
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
@@ -295,7 +316,7 @@ testing {
 
 The configuration above may now fail to compile with an error in 9.5.0 if `-Werror` is set.
 
-To depend on the current project, use the `project()` method without arguments. 
+To depend on the current project, use the `project()` method without arguments.
 This syntax is the idiomatic way to reference the project in both test suites and standard `dependencies {}` blocks:
 
 [source,kotlin]
