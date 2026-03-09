@@ -281,6 +281,55 @@ java.lang.IllegalStateException: connection refused
         json.failures[0].source == null
     }
 
+    def "produces valid JSON when className is null (no filter field)"() {
+        def outputFile = tempDir.resolve("failure-index.json")
+        def writer = new TestFailureIndexWriter(outputFile)
+
+        def rootSuite = new DefaultTestSuiteDescriptor(0, "Root")
+        // null className and classDisplayName
+        def descriptor = new DefaultTestDescriptor(1, null, "testSomething", null, "testSomething")
+
+        def details = new DefaultTestFailureDetails("error", "RuntimeException", "stack")
+        def failure = new DefaultTestFailure(new RuntimeException("error"), details, [])
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [failure], null)
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        writer.completed(descriptor, result, complete)
+        writer.completed(rootSuite, new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [], null), complete)
+
+        then:
+        def json = new JsonSlurper().parse(outputFile.toFile())
+        json.failures.size() == 1
+        json.failures[0].className == null
+        json.failures[0].filter == null // no filter field when className is null
+    }
+
+    def "produces valid JSON for FileSource without position"() {
+        def outputFile = tempDir.resolve("failure-index.json")
+        def writer = new TestFailureIndexWriter(outputFile)
+
+        def rootSuite = new DefaultTestSuiteDescriptor(0, "Root")
+        def fileSource = new DefaultFileSource(new File("src/test/java/com/example/MyTest.java"), null)
+        def descriptor = new DefaultTestDescriptor(1, "com.example.MyTest", "testSomething", fileSource)
+
+        def details = new DefaultTestFailureDetails("error", "RuntimeException", "stack")
+        def failure = new DefaultTestFailure(new RuntimeException("error"), details, [])
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [failure], null)
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        writer.completed(descriptor, result, complete)
+        writer.completed(rootSuite, new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [], null), complete)
+
+        then:
+        def json = new JsonSlurper().parse(outputFile.toFile())
+        def source = json.failures[0].source
+        source.type == "file"
+        source.file == "src/test/java/com/example/MyTest.java"
+        source.line == null // no position
+    }
+
     def "framework failures have correct type"() {
         def outputFile = tempDir.resolve("failure-index.json")
         def writer = new TestFailureIndexWriter(outputFile)

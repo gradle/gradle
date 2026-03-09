@@ -163,10 +163,10 @@ public class TestFailureIndexWriter implements TestListenerInternal {
         writeFailureBlock(writer, details, descriptor.getClassName());
 
         // Output
-        writeOutputBlock(writer, entry.outputBuffer);
+        String filter = buildTestFilter(descriptor);
+        writeOutputBlock(writer, entry.outputBuffer, filter != null);
 
         // Filter for re-running
-        String filter = buildTestFilter(descriptor);
         if (filter != null) {
             writeJsonField(writer, "filter", filter, false);
         }
@@ -183,8 +183,8 @@ public class TestFailureIndexWriter implements TestListenerInternal {
             FileSource fileSource = (FileSource) source;
             writer.write("{\n");
             writeJsonField(writer, "type", "file", true, 8);
-            writeJsonField(writer, "file", fileSource.getFile().getPath(), true, 8);
             FilePosition position = fileSource.getPosition();
+            writeJsonField(writer, "file", fileSource.getFile().getPath(), position != null, 8);
             if (position != null) {
                 writer.write("        \"line\": " + position.getLine());
                 Integer column = position.getColumn();
@@ -261,7 +261,7 @@ public class TestFailureIndexWriter implements TestListenerInternal {
         writer.write("\n      },\n");
     }
 
-    private void writeOutputBlock(BufferedWriter writer, @Nullable OutputBuffer buffer) throws IOException {
+    private void writeOutputBlock(BufferedWriter writer, @Nullable OutputBuffer buffer, boolean hasMore) throws IOException {
         writer.write("      \"output\": {\n");
 
         if (buffer != null) {
@@ -289,7 +289,11 @@ public class TestFailureIndexWriter implements TestListenerInternal {
             writer.write("        \"stderrComplete\": true");
         }
 
-        writer.write("\n      },\n");
+        writer.write("\n      }");
+        if (hasMore) {
+            writer.write(",");
+        }
+        writer.write("\n");
     }
 
     static String filterStackTrace(String stacktrace, @Nullable String testClassName) {
