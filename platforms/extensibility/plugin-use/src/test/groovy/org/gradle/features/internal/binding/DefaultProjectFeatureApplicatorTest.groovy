@@ -103,7 +103,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
 
     def "creates definition and model when feature application is created"() {
         when:
-        def returned = applicator.createFeatureApplicationFor(target as DynamicObjectAware, boundProjectTypeImplementation)
+        def returned = applicator.registerFeatureApplicationFor(target as DynamicObjectAware, boundProjectTypeImplementation)
 
         then:
         _ * boundProjectTypeImplementation.pluginClass >> plugin.class
@@ -137,7 +137,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         def secondProjectTypeImplementation = Mock(BoundProjectFeatureImplementation)
 
         when:
-        def returned = applicator.createFeatureApplicationFor(project as DynamicObjectAware, boundProjectTypeImplementation)
+        def returned = applicator.registerFeatureApplicationFor(project as DynamicObjectAware, boundProjectTypeImplementation)
 
         then:
         _ * boundProjectTypeImplementation.pluginClass >> plugin.class
@@ -160,7 +160,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         returned.definitionInstance == foo
 
         when:
-        applicator.createFeatureApplicationFor(project as DynamicObjectAware, secondProjectTypeImplementation)
+        applicator.registerFeatureApplicationFor(project as DynamicObjectAware, secondProjectTypeImplementation)
 
         then:
         thrown(IllegalStateException)
@@ -185,7 +185,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         _ * pluginManager.pluginContainer >> plugins
         _ * plugins.getPlugin(plugin.class) >> plugin
 
-        def featureApplication = applicator.createFeatureApplicationFor(target as DynamicObjectAware, boundProjectTypeImplementation)
+        def featureApplication = applicator.registerFeatureApplicationFor(target as DynamicObjectAware, boundProjectTypeImplementation)
 
         then:
         featureApplication.definitionInstance == foo

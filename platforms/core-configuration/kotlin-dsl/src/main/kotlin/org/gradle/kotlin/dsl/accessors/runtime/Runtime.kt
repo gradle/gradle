@@ -152,13 +152,12 @@ fun applyProjectFeature(
     val matchingFeature = projectFeatures.find {
         TargetTypeInformationChecks.isValidBindingType(it.targetDefinitionType, target.javaClass)
     } ?: throw IllegalArgumentException("No project feature '$name' is applicable to target of type ${target::class.qualifiedName}")
-    val featureApplication = context.projectFeatureApplicator.createFeatureApplicationFor(target, matchingFeature)
+    val featureApplication = context.projectFeatureApplicator.registerFeatureApplicationFor(target, matchingFeature)
     configure.invoke(featureApplication.definitionInstance)
-    // If the feature is a project type (i.e. the outermost declarative block) we can walk the feature graph and apply all features.
+    // If the feature is a project type (i.e. the outermost declarative block) we can go ahead and apply all features.
     // Otherwise, defer application until the outermost project type is done being configured.
     if (featureApplication.isProjectType) {
-        featureApplication.apply()
-        ProjectFeatureSupportInternal.walkAndApplyFeatures(featureApplication.definitionInstance)
+        context.projectFeatureApplicator.applyFeatures()
     }
 }
 

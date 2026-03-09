@@ -67,6 +67,8 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -82,6 +84,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
     private final InternalProblemReporter problemReporter;
     private final ServiceLookup allServices;
     private final PropertyWalker propertyWalker = new DefaultPropertyWalker(getTypeAnnotationMetadataStore());
+    private final List<FeatureApplication<?, ?>> pendingFeatureApplications = new ArrayList<>();
 
     @Inject
     public DefaultProjectFeatureApplicator(
@@ -109,7 +112,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
     }
 
     @Override
-    public <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> FeatureApplication<OwnDefinition, OwnBuildModel> createFeatureApplicationFor(DynamicObjectAware parentDefinition, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
+    public <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> FeatureApplication<OwnDefinition, OwnBuildModel> registerFeatureApplicationFor(DynamicObjectAware parentDefinition, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
         ProjectFeatureDefinitionContext parentDefinitionContext = ProjectFeatureSupportInternal.getContext(parentDefinition);
 
         ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult<OwnDefinition, OwnBuildModel> result = instantiateDefinition(parentDefinition, projectFeature, parentDefinitionContext);
@@ -117,9 +120,15 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         if (result.isNew) {
             Plugin<Project> plugin = getPluginManager().getPluginContainer().getPlugin(projectFeature.getPluginClass());
             getModelDefaultsApplicator().applyDefaultsTo(parentDefinition, result.featureApplication.getDefinitionInstance(), new ClassLoaderContextFromScope(classLoaderScope), plugin, projectFeature);
+            pendingFeatureApplications.add(result.featureApplication);
         }
 
         return result.featureApplication;
+    }
+
+    @Override
+    public void applyFeatures() {
+        pendingFeatureApplications.forEach(FeatureApplication::apply);
     }
 
     private static <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> void checkSingleProjectTypeApplication(ProjectFeatureDefinitionContext context, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
@@ -163,13 +172,12 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
     }
 
     private void bindNestedDefinitions(Class<?> publicType, DynamicObjectAware parent, ProjectFeatureApplicationContextInternal applyActionContext, Map<Class<?>, Class<?>> buildModelImplementationTypes) {
-        ProjectFeatureDefinitionContext rootDefinitionContext = ProjectFeatureSupportInternal.getContext(parent);
         // Must use an anonymous class for config cache compatibility
         propertyWalker.walkProperties(publicType, parent, new PropertyWalker.Visitor() {
             @Override
             public void visit(PropertyAnnotationMetadata propertyMetadata, Object propertyValue) {
                 if (Definition.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
-                    bindNestedDefinition(propertyValue, rootDefinitionContext, applyActionContext, buildModelImplementationTypes);
+                    bindNestedDefinition(propertyValue, applyActionContext, buildModelImplementationTypes);
                 }
                 if (NamedDomainObjectContainer.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
                     NamedDomainObjectContainer<?> ndoc = Cast.uncheckedCast(propertyValue);
@@ -179,7 +187,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                         ndoc.all(new Action<Object>() {
                             @Override
                             public void execute(Object element) {
-                                bindNestedDefinition(element, rootDefinitionContext, applyActionContext, buildModelImplementationTypes);
+                                bindNestedDefinition(element, applyActionContext, buildModelImplementationTypes);
                             }
                         });
                     }
@@ -188,10 +196,9 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         });
     }
 
-    private static void bindNestedDefinition(Object propertyValue, ProjectFeatureDefinitionContext rootDefinitionContext, ProjectFeatureApplicationContextInternal applyActionContext, Map<Class<?>, Class<?>> buildModelImplementationTypes) {
+    private static void bindNestedDefinition(Object propertyValue, ProjectFeatureApplicationContextInternal applyActionContext, Map<Class<?>, Class<?>> buildModelImplementationTypes) {
         Definition<?> nestedDefinition = Cast.uncheckedCast(propertyValue);
         applyActionContext.registerBuildModel(nestedDefinition, buildModelImplementationTypes);
-        rootDefinitionContext.addNestedDefinition(nestedDefinition);
     }
 
     private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> ServiceLookup getContextSpecificServiceLookup(ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {

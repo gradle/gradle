@@ -56,6 +56,7 @@ import org.gradle.features.internal.binding.ProjectFeatureApplicator
 import org.gradle.features.internal.binding.ProjectFeatureImplementation
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import org.gradle.features.internal.binding.TargetTypeInformationChecks
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessorsWithPostProcessing
 import kotlin.collections.get
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -104,7 +105,7 @@ fun EvaluationSchemaBuilder.projectFeaturesDefaultsComponent(
 
 private
 class ProjectFeatureComponent(
-    private val featureSchemaBindingIndex: ProjectFeatureSchemaBindingIndex,
+    private val featureSchemaBindingIndex: ProjectFeatureSchemaBindingIndex
 ) : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         FixedTypeDiscovery(
@@ -258,16 +259,15 @@ fun projectFeatureConfiguringFunctions(projectFeatureImplementations: ProjectFea
 private class RuntimeProjectFeatureAccessors(
     private val projectFeatureApplicator: ProjectFeatureApplicator,
     info: List<ProjectFeatureInfo<*, *>>
-) : RuntimeCustomAccessors {
-
+) : RuntimeCustomAccessorsWithPostProcessing {
     val projectFeatureById = info.associate { it.customAccessorId to it.delegate }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
         require(accessor.accessorIdentifier is CustomAccessorIdentifier.ProjectFeatureIdentifier) { "unexpected accessor, expected an accessor with a ProjectFeatureIdentifier, got ${accessor.accessorIdentifier::class.simpleName}" }
         val projectFeature = projectFeatureById[accessor.accessorIdentifier]
             ?: return InstanceAndPublicType.NULL
-        val featureInstance = createFeatureInstance(receiverObject, projectFeature, projectFeatureApplicator)
-        return InstanceAndPublicType.of(featureInstance.definitionInstance, projectFeature.definitionPublicType.kotlin)
+        val featureApplication = createFeatureInstance(receiverObject, projectFeature, projectFeatureApplicator)
+        return InstanceAndPublicType.of(featureApplication.definitionInstance, projectFeature.definitionPublicType.kotlin)
     }
 
     private fun createFeatureInstance(receiverObject: Any, projectFeature: ProjectFeatureImplementation<*, *>, projectFeatureApplicator: ProjectFeatureApplicator): ProjectFeatureApplicator.FeatureApplication<*, *> {
@@ -275,7 +275,12 @@ private class RuntimeProjectFeatureAccessors(
         require(TargetTypeInformationChecks.isValidBindingType(projectFeature.targetDefinitionType, receiverObject::class.java)) {
             "unexpected receiver; project feature ${projectFeature.featureName} binds to '${projectFeature.targetDefinitionType}', got '$receiverObject' definition"
         }
-        return projectFeatureApplicator.createFeatureApplicationFor(receiverObject, projectFeature)
+        return projectFeatureApplicator.registerFeatureApplicationFor(receiverObject, projectFeature)
+    }
+
+    override fun postProcess() {
+        // Apply all features that were accessed during conversion
+        projectFeatureApplicator.applyFeatures()
     }
 
 }

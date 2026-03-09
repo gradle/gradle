@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Encapsulates the work of applying a project feature to a target.
+ * Encapsulates the work of applying project features to a target.
  *
  * @since 8.12
  */
@@ -34,16 +34,25 @@ public interface ProjectFeatureApplicator {
      *
      * Note that this does not apply the feature to the target.  {@link FeatureApplication#apply()} must be called to apply the feature.
      *
+     * See {@link #applyFeatures()} for applying all feature applications that have been registered.
+     *
      * @param target - the receiver object the feature will be applied to
      * @param projectFeature - the feature to instantiate the definition and build model for
      * @return the definition for the feature
      * @param <OwnDefinition> the type of the definition for the feature
      * @param <OwnBuildModel> the type of the build model for the feature
      */
-    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> FeatureApplication<OwnDefinition, OwnBuildModel> createFeatureApplicationFor(DynamicObjectAware target, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature);
+    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> FeatureApplication<OwnDefinition, OwnBuildModel> registerFeatureApplicationFor(DynamicObjectAware target, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature);
 
     /**
-     * Represents a feature instance that has been created.
+     * Applies all feature applications that have been registered for this project.
+     *
+     * This method is idempotent.  It can be called multiple times and features will only be applied once.
+     */
+    void applyFeatures();
+
+    /**
+     * Represents a feature instance that has been registered.
      * @param <OwnDefinition> the type of the definition
      * @param <OwnBuildModel> the type of the build model
      */

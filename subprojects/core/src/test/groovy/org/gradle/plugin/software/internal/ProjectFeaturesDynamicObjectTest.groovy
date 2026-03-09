@@ -56,10 +56,10 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
-        1 * projectFeatureApplicator.createFeatureApplicationFor(dynamicObjectAware, projectTypeImplementation) >> featureApplication
-        3 * featureApplication.getDefinitionInstance() >> foo
+        1 * projectFeatureApplicator.registerFeatureApplicationFor(dynamicObjectAware, projectTypeImplementation) >> featureApplication
+        2 * featureApplication.getDefinitionInstance() >> foo
         1 * featureApplication.isProjectType() >> true
-        1 * featureApplication.apply()
+        1 * projectFeatureApplicator.applyFeatures()
 
         and:
         foo.bar == 'baz'
@@ -73,10 +73,11 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
-        1 * projectFeatureApplicator.createFeatureApplicationFor(dynamicObjectAware, projectTypeImplementation) >> featureApplication
+        1 * projectFeatureApplicator.registerFeatureApplicationFor(dynamicObjectAware, projectTypeImplementation) >> featureApplication
         2 * featureApplication.getDefinitionInstance() >> foo
         1 * featureApplication.isProjectType() >> false
         0 * featureApplication.apply()
+        0 * projectFeatureApplicator.applyFeatures()
 
         and:
         foo.bar == 'baz'
@@ -88,7 +89,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         0 * projectFeatureRegistry.getProjectFeatureImplementations()
-        0 * projectFeatureApplicator.createFeatureApplicationFor(_, _)
+        0 * projectFeatureApplicator.registerFeatureApplicationFor(_, _)
 
         and:
         thrown(MissingPropertyException)
@@ -100,7 +101,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         0 * projectFeatureRegistry.getProjectFeatureImplementations()
-        0 * projectFeatureApplicator.createFeatureApplicationFor(_, _)
+        0 * projectFeatureApplicator.registerFeatureApplicationFor(_, _)
 
         and:
         thrown(MissingMethodException)
@@ -112,7 +113,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
-        0 * projectFeatureApplicator.createFeatureApplicationFor(_, _)
+        0 * projectFeatureApplicator.registerFeatureApplicationFor(_, _)
 
         and:
         thrown(MissingMethodException)
@@ -124,7 +125,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
-        0 * projectFeatureApplicator.createFeatureApplicationFor(_, _)
+        0 * projectFeatureApplicator.registerFeatureApplicationFor(_, _)
     }
 
     private static Object[] closureArg(Closure closure) {

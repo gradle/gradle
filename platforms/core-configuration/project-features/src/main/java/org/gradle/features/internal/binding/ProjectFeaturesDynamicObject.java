@@ -86,19 +86,18 @@ abstract public class ProjectFeaturesDynamicObject extends AbstractDynamicObject
                 // This should not be possible if the project feature bindings are correctly disambiguated at registration time
                 throw new IllegalStateException(String.format("Multiple project features of name '%s' match target type '%s'. Cannot disambiguate.", name, target.getClass().getName()));
             }
-            Object definition = configureAndApplyFeature((Closure<?>) arguments[0], getProjectFeatureApplicator().createFeatureApplicationFor(target, matchingFeatures.iterator().next()));
+            Object definition = configureAndApplyFeature((Closure<?>) arguments[0], getProjectFeatureApplicator().registerFeatureApplicationFor(target, matchingFeatures.iterator().next()));
             return DynamicInvokeResult.found(definition);
         }
         return DynamicInvokeResult.notFound();
     }
 
-    private static Object configureAndApplyFeature(Closure<?> configurationClosure, ProjectFeatureApplicator.FeatureApplication<?, ?> featureApplication) {
+    private Object configureAndApplyFeature(Closure<?> configurationClosure, ProjectFeatureApplicator.FeatureApplication<?, ?> featureApplication) {
         ConfigureUtil.configure(configurationClosure, featureApplication.getDefinitionInstance());
-        // If the feature is a project type (i.e. the outermost declarative block) we can walk the feature graph and apply all features.
+        // If the feature is a project type (i.e. the outermost declarative block) we can go ahead and apply all features.
         // Otherwise, defer application until the outermost project type is done being configured.
         if (featureApplication.isProjectType()) {
-            featureApplication.apply();
-            ProjectFeatureSupportInternal.walkAndApplyFeatures(featureApplication.getDefinitionInstance());
+            getProjectFeatureApplicator().applyFeatures();
         }
         return featureApplication.getDefinitionInstance();
     }

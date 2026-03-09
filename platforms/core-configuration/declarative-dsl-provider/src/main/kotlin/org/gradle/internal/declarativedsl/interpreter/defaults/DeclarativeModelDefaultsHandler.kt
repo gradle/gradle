@@ -88,7 +88,7 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
                     { classLoaderContext.classLoader },
                     { classLoaderContext.parentClassLoader },
                     analysisStepContext,
-                    emptyList()
+                    false
                 )
             )
 

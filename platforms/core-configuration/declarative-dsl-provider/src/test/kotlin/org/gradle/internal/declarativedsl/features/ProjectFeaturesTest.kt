@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.software
+package org.gradle.internal.declarativedsl.features
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -33,15 +33,13 @@ import org.gradle.features.internal.binding.ModelDefault
 import org.gradle.features.internal.binding.ProjectFeatureApplyActionFactory
 import org.gradle.features.internal.binding.ProjectFeatureImplementation
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations
-import org.gradle.internal.declarativedsl.features.projectFeaturesComponent
-import org.gradle.internal.declarativedsl.features.projectFeaturesDefaultsComponent
 import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.kotlin.mock
 
 
-class ProjectTypesTest {
+class ProjectFeaturesTest {
     @Test
     fun `project types are added to the schema along with their supertypes`() {
         val registryMock = mock<ProjectFeatureDeclarations> { mock ->

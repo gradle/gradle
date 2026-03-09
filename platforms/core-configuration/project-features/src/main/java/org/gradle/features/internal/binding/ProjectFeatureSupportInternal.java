@@ -26,15 +26,11 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -47,12 +43,8 @@ public class ProjectFeatureSupportInternal {
 
         // Child features that have been bound to this definition
         Map<ProjectFeatureImplementation<?, ?>, ProjectFeatureApplicator.FeatureApplication<?, ?>> childFeatures();
-        // Implicit nested definitions discovered while inspecting the definition
-        List<Definition<?>> nestedDefinitions();
 
         <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> ChildDefinitionAdditionResult<OwnDefinition, OwnBuildModel> getOrAddChildDefinition(ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> feature, Supplier<ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel>> definition);
-
-        void addNestedDefinition(Definition<?> definition);
 
         final class ChildDefinitionAdditionResult<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
             public final boolean isNew;
@@ -77,7 +69,6 @@ public class ProjectFeatureSupportInternal {
         private final ObjectFactory objectFactory;
         protected final Object buildModel;
         private final Map<ProjectFeatureImplementation<?, ?>, ProjectFeatureApplicator.FeatureApplication<?, ?>> childFeatures = new LinkedHashMap<>();
-        private final List<Definition<?>> nestedDefinitions = new ArrayList<>();
 
         public static class Factory {
             private final ProjectFeatureApplicator projectFeatureApplicator;
@@ -121,16 +112,6 @@ public class ProjectFeatureSupportInternal {
         @Override
         public Map<ProjectFeatureImplementation<?, ?>, ProjectFeatureApplicator.FeatureApplication<?, ?>> childFeatures() {
             return Collections.unmodifiableMap(childFeatures);
-        }
-
-        @Override
-        public List<Definition<?>> nestedDefinitions() {
-            return Collections.unmodifiableList(nestedDefinitions);
-        }
-
-        @Override
-        public void addNestedDefinition(Definition<?> definition) {
-            nestedDefinitions.add(definition);
         }
 
         @Override
@@ -226,28 +207,5 @@ public class ProjectFeatureSupportInternal {
             objectFactory.newInstance(ProjectFeaturesDynamicObject.class, dslObjectToInitialize, context),
             ExtensibleDynamicObject.Location.BeforeConventionNotInherited
         );
-    }
-
-    /**
-     * Walks the feature graph of an object and applies all features that are bound to it or any of its nested definitions.
-     */
-    public static void walkAndApplyFeatures(Object definition) {
-        walkAndApplyFeatures(definition, new HashSet<>());
-    }
-
-    private static void walkAndApplyFeatures(Object definition, Set<Object> seen) {
-        if (seen.add(definition)) {
-            ProjectFeatureDefinitionContext context = ProjectFeatureSupportInternal.tryGetContext(definition);
-
-            if (context != null) {
-                // Apply any features directly applied to this definition
-                context.childFeatures().values().forEach(child -> {
-                    child.apply();
-                    walkAndApplyFeatures(child.getDefinitionInstance(), seen);
-                });
-                // Apply any features applied to implicitly nested definitions discovered by inspecting this definition
-                context.nestedDefinitions().forEach(nested -> walkAndApplyFeatures(nested, seen));
-            }
-        }
     }
 }

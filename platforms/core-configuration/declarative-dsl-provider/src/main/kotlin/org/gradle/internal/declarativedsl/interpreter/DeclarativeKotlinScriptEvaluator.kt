@@ -44,8 +44,6 @@ import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaB
 import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.internal.declarativedsl.evaluator.conversion.ReflectionToConversionResultHandler
-import org.gradle.internal.declarativedsl.features.ProjectFeatureApplicationReflectionToConversionResultHandler
 
 
 @ServiceScope(Scope.Build::class)
@@ -68,8 +66,7 @@ fun defaultDeclarativeScriptEvaluator(
     resolutionResultHandlers = setOf(
         ApplyModelDefaultsHandler.DO_NOTHING,
         ModelDefaultsDefinitionCollector(projectFeatureRegistryBasedModelDefaultsRegistrar(projectFeatureDeclarations))
-    ),
-    reflectionToConversionResultHandlers = setOf(ProjectFeatureApplicationReflectionToConversionResultHandler())
+    )
 )
 
 
@@ -77,8 +74,7 @@ internal
 class DefaultDeclarativeKotlinScriptEvaluator(
     private val schemaBuilder: InterpretationSchemaBuilder,
     documentChecks: Iterable<DocumentCheck>,
-    resolutionResultHandlers: Iterable<ResolutionResultHandler>,
-    private val reflectionToConversionResultHandlers: Iterable<ReflectionToConversionResultHandler>
+    resolutionResultHandlers: Iterable<ResolutionResultHandler>
 ) : DeclarativeKotlinScriptEvaluator {
 
     private
@@ -111,7 +107,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
                 scriptSource.fileName,
                 scriptSource.resource.text,
                 step,
-                ConversionStepContext(target, { classLoaderScope.localClassLoader }, { classLoaderScope.parent.localClassLoader },defaultAnalysisContext, reflectionToConversionResultHandlers)
+                ConversionStepContext(target, { classLoaderScope.localClassLoader }, { classLoaderScope.parent.localClassLoader },defaultAnalysisContext, true)
             ).also { if (it is NotEvaluated) return it }
         }.lastOrNull() ?: throw DeclarativeDslNotEvaluatedException(scriptSource.fileName, emptyList())
 
