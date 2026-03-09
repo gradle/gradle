@@ -35,10 +35,15 @@ public class UpToDateResult extends AfterExecutionResult {
     public UpToDateResult(AfterExecutionResult parent, ImmutableList<String> executionReasons) {
         super(parent);
         this.executionReasons = executionReasons;
-        this.reusedOutputOriginMetadata = parent.getAfterExecutionOutputState()
-            .filter(ExecutionOutputState::isReused)
-            .map(ExecutionOutputState::getOriginMetadata)
-            .orElse(null);
+        // For actually-executed tasks isReused() is always false (only true for cache hits).
+        // Cache hits use the synchronous constructors which produce an already-complete future,
+        // so isDone() is true only when we actually need to check the value.
+        this.reusedOutputOriginMetadata = parent.getAfterExecutionOutputStateFuture().isDone()
+            ? parent.getAfterExecutionOutputStateFuture().join()
+                .filter(ExecutionOutputState::isReused)
+                .map(ExecutionOutputState::getOriginMetadata)
+                .orElse(null)
+            : null;
     }
 
     public UpToDateResult(Duration duration, Try<Execution> execution, @Nullable ExecutionOutputState executionOutputState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata) {

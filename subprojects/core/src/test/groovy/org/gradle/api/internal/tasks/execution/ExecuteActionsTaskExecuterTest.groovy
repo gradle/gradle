@@ -68,10 +68,7 @@ import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
-import org.gradle.internal.Factory
 import org.gradle.internal.work.AsyncWorkTracker
-import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -147,10 +144,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
     def missingTaskDependencyDetector = Stub(MissingTaskDependencyDetector)
-    def workerLeaseService = Stub(WorkerLeaseService) {
-        getCurrentWorkerLease() >> Mock(WorkerLeaseRegistry.WorkerLease)
-        withoutLocks(_, _) >> { Collection locks, Factory factory -> factory.create() }
-    }
 
     // TODO Make this test work with a mock execution engine
     def executionEngine = TestExecutionEngineFactory.createExecutionEngine(
@@ -165,7 +158,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         overlappingOutputDetector,
         validationWarningReporter,
         virtualFileSystem,
-        workerLeaseService,
         problems
     )
 

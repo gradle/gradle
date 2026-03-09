@@ -27,7 +27,6 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputVisitor;
-import org.gradle.internal.execution.PostExecutionWorkQueue;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
@@ -54,7 +53,6 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
     private final Deleter deleter;
     private final FileSystemAccess fileSystemAccess;
     private final OutputChangeListener outputChangeListener;
-    private final PostExecutionWorkQueue postExecutionWorkQueue;
     private final Step<? super C, ? extends AfterExecutionResult> delegate;
 
     public BuildCacheStep(
@@ -62,14 +60,12 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
         OutputChangeListener outputChangeListener,
-        PostExecutionWorkQueue postExecutionWorkQueue,
         Step<? super C, ? extends AfterExecutionResult> delegate
     ) {
         this.buildCache = buildCache;
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.outputChangeListener = outputChangeListener;
-        this.postExecutionWorkQueue = postExecutionWorkQueue;
         this.delegate = delegate;
     }
 
@@ -154,7 +150,7 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
             );
             return result;
         } catch (Exception storeFailure) {
-            return new AfterExecutionResult(Result.failed(storeFailure, result.getDuration()), result.getAfterExecutionOutputState().orElse(null));
+            return new AfterExecutionResult(Result.failed(storeFailure, result.getDuration()), (ExecutionOutputState) null);
         }
     }
 
@@ -162,15 +158,19 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
      * Stores the results of the given work in the build cache, unless storing was disabled for this execution or work was untracked.
      * <p>
      * The former is currently used only for tasks and can be triggered via {@code org.gradle.api.internal.TaskOutputsEnterpriseInternal}.
+     * <p>
+     * Cache packing runs in the callback of the snapshotting future, keeping it off the worker thread.
      */
+    @SuppressWarnings("FutureReturnValueIgnored")
     private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, Execution executionResult) {
         if (executionResult.canStoreOutputsInCache()) {
-            result.getAfterExecutionOutputState()
-                .ifPresent(afterExecutionState -> {
+            result.getAfterExecutionOutputStateFuture().thenAccept(optState ->
+                optState.ifPresent(afterExecutionState -> {
                     ImmutableSortedMap<String, FileSystemSnapshot> outputs = afterExecutionState.getOutputFilesProducedByWork();
                     Duration executionTime = afterExecutionState.getOriginMetadata().getExecutionTime();
-                    postExecutionWorkQueue.submit(() -> store(cacheableWork, cacheKey, outputs, executionTime));
-                });
+                    store(cacheableWork, cacheKey, outputs, executionTime);
+                })
+            );
         } else {
             LOGGER.debug("Not storing result of {} in cache because storing was disabled for this execution", cacheableWork.getDisplayName());
         }

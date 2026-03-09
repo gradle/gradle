@@ -19,6 +19,9 @@ package org.gradle.internal.execution;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+
 /**
  * A queue for work that should run after a unit of work completes, outside the worker lease.
  * Work submitted here runs concurrently with subsequent task execution in a bounded thread pool.
@@ -31,4 +34,12 @@ public interface PostExecutionWorkQueue {
      * Returns immediately without waiting for the work to complete.
      */
     void submit(Runnable work);
+
+    /**
+     * Submits work to run in the background, returning a CompletableFuture for the result.
+     * Returns immediately without waiting for the work to complete.
+     * Any {@code thenAccept} / {@code thenRun} callbacks chained on the returned future run on
+     * the background thread, keeping post-execution work off the worker lease.
+     */
+    <T> CompletableFuture<T> submitAsync(Callable<T> callable);
 }

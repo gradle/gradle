@@ -18,8 +18,8 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.SimpleBuildCacheKey
-import org.gradle.internal.Factory
 import org.gradle.internal.execution.OutputSnapshotter
+import org.gradle.internal.execution.PostExecutionWorkQueue
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
@@ -27,10 +27,10 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.internal.work.WorkerLeaseService
 
 import java.time.Duration
+import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
 
 import static org.gradle.internal.hash.TestHashCodes.hashCodeFrom
 
@@ -41,12 +41,16 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<TestCachingContext> 
     def outputSnapshotter = Mock(OutputSnapshotter)
     def outputFilter = Mock(AfterExecutionOutputFilter)
     def delegateResult = Stub(Result)
-    def workerLeaseService = Stub(WorkerLeaseService) {
-        getCurrentWorkerLease() >> Mock(WorkerLeaseRegistry.WorkerLease)
-        withoutLocks(_, _) >> { Collection locks, Factory factory -> factory.create() }
+    def postExecutionWorkQueue = Stub(PostExecutionWorkQueue) {
+        submitAsync(_) >> { Callable callable ->
+            def future = new CompletableFuture()
+            try { future.complete(callable.call()) }
+            catch (Throwable t) { future.completeExceptionally(t) }
+            return future
+        }
     }
 
-    def step = new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildInvocationScopeId, outputSnapshotter, outputFilter, workerLeaseService, delegate)
+    def step = new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildInvocationScopeId, outputSnapshotter, outputFilter, postExecutionWorkQueue, delegate)
 
     def "no state is captured if cache key calculated state is unavailable"() {
         def delegateDuration = Duration.ofMillis(123)
@@ -64,18 +68,19 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<TestCachingContext> 
         0 * _
     }
 
-    def "fails if snapshotting outputs fail"() {
+    def "snapshotting failure is logged and results in no output state"() {
         def delegateDuration = Duration.ofMillis(123)
         def failure = new OutputSnapshotter.OutputFileSnapshottingException("output", new IOException("Error")) {}
         delegateResult.duration >> delegateDuration
 
         when:
-        step.execute(work, context)
+        def result = step.execute(work, context)
 
         then:
-        def ex = thrown RuntimeException
-        ex == failure
-        assertOperation(ex)
+        !result.afterExecutionOutputState.present
+        result.duration == delegateDuration
+        // The build operation is still emitted even when snapshotting fails
+        assertOperation(failure)
 
         1 * delegate.execute(work, _) >> delegateResult
 

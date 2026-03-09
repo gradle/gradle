@@ -186,8 +186,8 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new ResolveImmutableCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
-            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, postExecutionWorkQueue,
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER, workerLeaseService,
+            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER, postExecutionWorkQueue,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
@@ -208,9 +208,9 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new MarkSnapshottingInputsFinishedStep<>(
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
-            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, postExecutionWorkQueue,
+            new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new ResolveInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, new OverlappingOutputsFilter(), workerLeaseService,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, new OverlappingOutputsFilter(), postExecutionWorkQueue,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new PreCreateOutputParentsStep<>(

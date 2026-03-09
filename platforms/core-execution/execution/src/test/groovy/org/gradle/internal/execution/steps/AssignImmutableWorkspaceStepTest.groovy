@@ -38,6 +38,7 @@ import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 
 import java.time.Duration
+import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
@@ -140,6 +141,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
             duration >> Duration.ZERO
             execution >> Try.successful(delegateExecution)
             afterExecutionOutputState >> Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), Stub(OriginMetadata), false))
+            afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), Stub(OriginMetadata), false)))
         }
 
         when:
@@ -176,6 +178,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
             duration >> Duration.ZERO
             execution >> Try.successful(delegateExecution)
             afterExecutionOutputState >> Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), Stub(OriginMetadata), false))
+            afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), Stub(OriginMetadata), false)))
         }
 
         when:

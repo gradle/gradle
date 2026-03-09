@@ -25,7 +25,6 @@ import org.gradle.internal.Try
 import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.OutputVisitor
-import org.gradle.internal.execution.PostExecutionWorkQueue
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
@@ -35,6 +34,7 @@ import org.gradle.internal.file.Deleter
 import org.gradle.internal.vfs.FileSystemAccess
 
 import java.time.Duration
+import java.util.concurrent.CompletableFuture
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.FROM_CACHE
 
@@ -52,9 +52,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
     def fileSystemAccess = Mock(FileSystemAccess)
     def outputChangeListener = Mock(OutputChangeListener)
 
-    // Synchronous queue so tests can verify store interactions without async coordination
-    def postExecutionWorkQueue = { Runnable work -> work.run() } as PostExecutionWorkQueue
-    def step = new BuildCacheStep<TestCachingContext>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, postExecutionWorkQueue, delegate)
+    def step = new BuildCacheStep<TestCachingContext>(buildCacheController, deleter, fileSystemAccess, outputChangeListener, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
     def "loads from cache"() {
@@ -172,7 +170,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
         then:
         1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.execution >> Try.successful(execution)
-        1 * delegateResult.afterExecutionOutputState >> Optional.empty()
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.empty())
         1 * execution.canStoreOutputsInCache() >> true
 
         then:
@@ -294,10 +292,10 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
         def originMetadata = Mock(OriginMetadata)
         def outputFilesProducedByWork = snapshotsOf("test": [])
 
-        1 * delegateResult.afterExecutionOutputState >> Optional.of(Mock(AfterExecutionState) {
-            1 * getOutputFilesProducedByWork() >> outputFilesProducedByWork
-            1 * getOriginMetadata() >> originMetadata
-        })
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(Stub(AfterExecutionState) {
+            getOutputFilesProducedByWork() >> outputFilesProducedByWork
+            getOriginMetadata() >> originMetadata
+        }))
         1 * originMetadata.executionTime >> Duration.ofMillis(123L)
         1 * buildCacheController.store(cacheKey, _, outputFilesProducedByWork, Duration.ofMillis(123L)) >> { storeResult() }
     }

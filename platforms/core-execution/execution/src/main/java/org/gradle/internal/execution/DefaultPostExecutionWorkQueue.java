@@ -19,6 +19,9 @@ package org.gradle.internal.execution;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+
 public class DefaultPostExecutionWorkQueue implements PostExecutionWorkQueue, Stoppable {
 
     private final ManagedExecutor executor;
@@ -30,6 +33,19 @@ public class DefaultPostExecutionWorkQueue implements PostExecutionWorkQueue, St
     @Override
     public void submit(Runnable work) {
         executor.execute(work);
+    }
+
+    @Override
+    public <T> CompletableFuture<T> submitAsync(Callable<T> callable) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        executor.execute(() -> {
+            try {
+                future.complete(callable.call());
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
+        });
+        return future;
     }
 
     @Override
