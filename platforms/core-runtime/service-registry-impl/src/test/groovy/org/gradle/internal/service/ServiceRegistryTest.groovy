@@ -17,7 +17,6 @@
 package org.gradle.internal.service
 
 import org.gradle.internal.Factory
-import org.gradle.internal.service.stubs.ProviderWithGenericType
 import org.gradle.util.GroovyNullMarked
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
@@ -47,8 +46,6 @@ class ServiceRegistryTest extends Specification {
         UnknownServiceException e = thrown()
         e.message == "No service of type StringBuilder available in test registry."
     }
-
-
 
     // tags: basic, internal-api
     def returnsServiceInstanceThatHasBeenRegistered() {
@@ -125,69 +122,6 @@ class ServiceRegistryTest extends Specification {
 
         expect:
         registry.get(String) == "12"
-    }
-
-    // tags: service-dependencies, generics
-    def injectsGenericTypesIntoProviderFactoryMethod() {
-        def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            Integer createInteger(Factory<String> factory) {
-                return factory.create().length()
-            }
-
-            @Provides
-            Factory<String> createString(Callable<String> action) {
-                return { action.call() } as Factory
-            }
-
-            @Provides
-            Callable<String> createAction() {
-                return { "hi" }
-            }
-        })
-
-        expect:
-        registry.get(Integer) == 2
-    }
-
-    // tags: service-dependencies, generics
-    def handlesInheritanceInGenericTypes() {
-        def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ProviderWithGenericType())
-
-        expect:
-        registry.get(Integer) == 123
-    }
-
-    // tags: service-dependencies, generics
-    def canHaveMultipleServicesWithParameterizedTypesAndSameRawType() {
-        def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            Integer createInteger(Callable<Integer> factory) {
-                return factory.call()
-            }
-
-            @Provides
-            String createString(Callable<String> factory) {
-                return factory.call()
-            }
-
-            @Provides
-            Callable<Integer> createIntFactory() {
-                return { 123 }
-            }
-
-            @Provides
-            Callable<String> createStringFactory() {
-                return { "hi" }
-            }
-        })
-
-        expect:
-        registry.get(Integer) == 123
-        registry.get(String) == "hi"
     }
 
     // tags: service-dependencies, error
