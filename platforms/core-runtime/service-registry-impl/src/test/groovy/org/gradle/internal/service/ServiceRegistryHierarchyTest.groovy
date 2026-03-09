@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
-class ServiceRegistryHierarchyTest extends Specification {
+class ServiceRegistryHierarchyTest extends Specification implements ServiceRegistryFixture {
 
     def delegatesToParentForUnknownService() {
         def instance = BigDecimal.TEN
@@ -133,9 +133,9 @@ class ServiceRegistryHierarchyTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        withoutTestClassName(e.message).contains("Multiple services of type Long available in test registry:")
-        withoutTestClassName(e.message).contains('- Service Long via ConflictingDecoratorMethods.createLong()')
-        withoutTestClassName(e.message).contains('- Service Long via ConflictingDecoratorMethods.decorateLong()')
+        normalizedMessage(e) == """Multiple services of type Long available in test registry:
+   - Service Long via ConflictingDecoratorMethods.createLong()
+   - Service Long via ConflictingDecoratorMethods.decorateLong()"""
     }
 
     def providerDecoratorMethodFailsWhenNoParentRegistry() {
@@ -166,7 +166,7 @@ class ServiceRegistryHierarchyTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        withoutTestClassName(e.message) ==
+        normalizedMessage(e) ==
             "Cannot create service of type Long using method ${decoratorProvider.class.simpleName}.${methodName}Long()" +
             " as required service of type Long for parameter #1 is not available in parent registries."
 
@@ -382,7 +382,4 @@ class ServiceRegistryHierarchyTest extends Specification {
         }
     }
 
-    private String withoutTestClassName(String s) {
-        s.replaceAll(this.class.simpleName + "\\\$", "")
-    }
 }

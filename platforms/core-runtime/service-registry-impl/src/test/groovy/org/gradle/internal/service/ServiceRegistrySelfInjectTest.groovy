@@ -18,7 +18,7 @@ package org.gradle.internal.service
 
 import spock.lang.Specification
 
-class ServiceRegistrySelfInjectTest extends Specification {
+class ServiceRegistrySelfInjectTest extends Specification implements ServiceRegistryFixture {
 
     def injectsServiceRegistryIntoProviderFactoryMethod() {
         def parentProvider = Mock(ServiceProvider)
@@ -68,7 +68,7 @@ class ServiceRegistrySelfInjectTest extends Specification {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry via ServiceRegistrySelfInjectTest$<anonymous>.createServices()'
+        normalizedMessage(e) == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry via <anonymous>.createServices()'
     }
 
     private AbstractServiceRegistry parentRegistry(ServiceProvider provider) {

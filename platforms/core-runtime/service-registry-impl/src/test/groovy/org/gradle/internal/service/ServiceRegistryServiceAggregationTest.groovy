@@ -20,7 +20,7 @@ import com.google.common.reflect.TypeToken
 import org.gradle.internal.Factory
 import spock.lang.Specification
 
-class ServiceRegistryServiceAggregationTest extends Specification {
+class ServiceRegistryServiceAggregationTest extends Specification implements ServiceRegistryFixture {
 
     def "can get all services of a given type"() {
         def registry = newRegistry()
@@ -224,7 +224,7 @@ class ServiceRegistryServiceAggregationTest extends Specification {
 
         then:
         def e = thrown(ServiceCreationException)
-        e.message == 'Cannot create service of type Number using method ServiceRegistryServiceAggregationTest\$UnsupportedWildcardProvider.create() as there is a problem with parameter #1 of type List<? super java.lang.String>.'
+        normalizedMessage(e) == 'Cannot create service of type Number using method UnsupportedWildcardProvider.create() as there is a problem with parameter #1 of type List<? super java.lang.String>.'
         e.cause.message == 'Locating services with type ? super java.lang.String is not supported.'
     }
 

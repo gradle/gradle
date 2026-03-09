@@ -18,7 +18,7 @@ package org.gradle.internal.service
 
 import spock.lang.Specification
 
-class ServiceRegistryMultiServiceTest extends Specification {
+class ServiceRegistryMultiServiceTest extends Specification implements ServiceRegistryFixture {
 
     def registry = new DefaultServiceRegistry("test registry")
 
@@ -43,7 +43,7 @@ class ServiceRegistryMultiServiceTest extends Specification {
         registry.get(TestMultiServiceImpl)
         then:
         def e = thrown(UnknownServiceException)
-        e.message == "No service of type ServiceRegistryMultiServiceTest\$TestMultiServiceImpl available in test registry."
+        normalizedMessage(e) == "No service of type TestMultiServiceImpl available in test registry."
     }
 
     def "can lookup a multi-service by any declared service type added via registration"() {
@@ -79,7 +79,7 @@ class ServiceRegistryMultiServiceTest extends Specification {
         registry.get(TestMultiServiceImpl)
         then:
         def e = thrown(UnknownServiceException)
-        e.message == "No service of type ServiceRegistryMultiServiceTest\$TestMultiServiceImpl available in test registry."
+        normalizedMessage(e) == "No service of type TestMultiServiceImpl available in test registry."
     }
 
     private interface TestService {

@@ -18,12 +18,11 @@ package org.gradle.internal.service
 
 import org.gradle.internal.Factory
 import org.gradle.util.GroovyNullMarked
-import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
-class ServiceRegistryTest extends Specification {
+class ServiceRegistryTest extends Specification implements ServiceRegistryFixture {
 
     def registry = new DefaultServiceRegistry("test registry")
         .addProvider(new TestProvider())
@@ -134,15 +133,15 @@ class ServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type String using method ServiceRegistryTest\$StringProvider.createString() as required service of type Runnable for parameter #1 is not available."
+        normalizedMessage(e) == "Cannot create service of type String using method StringProvider.createString() as required service of type Runnable for parameter #1 is not available."
 
         when:
         registry.get(Number)
 
         then:
-        e = thrown()
-        e.message == "Cannot create service of type Integer using method ServiceRegistryTest\$StringProvider.createInteger() as there is a problem with parameter #1 of type String."
-        e.cause.message == "Cannot create service of type String using method ServiceRegistryTest\$StringProvider.createString() as required service of type Runnable for parameter #1 is not available."
+        ServiceCreationException e2 = thrown()
+        normalizedMessage(e2) == "Cannot create service of type Integer using method StringProvider.createInteger() as there is a problem with parameter #1 of type String."
+        normalizedMessage(e2.cause) == "Cannot create service of type String using method StringProvider.createString() as required service of type Runnable for parameter #1 is not available."
     }
 
     // tags: service-dependencies, error
@@ -157,7 +156,7 @@ class ServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type ServiceRegistryTest\$RequiresService using ServiceRegistryTest\$RequiresService constructor as required service of type Number for parameter #1 is not available."
+        normalizedMessage(e) == "Cannot create service of type RequiresService using RequiresService constructor as required service of type Number for parameter #1 is not available."
     }
 
     // tags: service-dependencies, instantiation, error
@@ -243,7 +242,7 @@ class ServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(ServiceValidationException)
-        e.message == "Cannot register an abstract type (org.gradle.internal.service.ServiceRegistryTest.AbstractClass) for construction."
+        normalizedMessage(e) == "Cannot register an abstract type (AbstractClass) for construction."
     }
 
     // tags: service-dependencies, creation, error
@@ -258,19 +257,18 @@ class ServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == 'Cannot create service of type String using method ServiceRegistryTest$ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
-        e.cause.message == 'Cannot create service of type Integer using method ServiceRegistryTest$ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
-        e.cause.cause.message == 'Cycle in dependencies of Service String via ServiceRegistryTest$ProviderWithCycle.createString() detected'
+        normalizedMessage(e) == 'Cannot create service of type String using method ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
+        normalizedMessage(e.cause) == 'Cannot create service of type Integer using method ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
+        normalizedMessage(e.cause.cause) == 'Cycle in dependencies of Service String via ProviderWithCycle.createString() detected'
 
         when:
         registry.getAll(Number)
 
         then:
-        e = thrown()
-
-        e.message == 'Cannot create service of type Integer using method ServiceRegistryTest$ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
-        e.cause.message == 'Cannot create service of type String using method ServiceRegistryTest$ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
-        e.cause.cause.message == 'Cycle in dependencies of Service Integer via ServiceRegistryTest$ProviderWithCycle.createInteger() detected'
+        e = thrown(ServiceCreationException)
+        normalizedMessage(e) == 'Cannot create service of type Integer using method ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String.'
+        normalizedMessage(e.cause) == 'Cannot create service of type String using method ProviderWithCycle.createString() as there is a problem with parameter #1 of type Integer.'
+        normalizedMessage(e.cause.cause) == 'Cycle in dependencies of Service Integer via ProviderWithCycle.createInteger() detected'
     }
 
     // tags: creation, error
@@ -338,9 +336,9 @@ class ServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Multiple services of type Comparable available in DefaultServiceRegistry:
-   - Service Integer via ServiceRegistryTest\$TestProvider.createInt()
-   - Service String via ServiceRegistryTest\$TestProvider.createString()""")
+        normalizedMessage(e) == """Multiple services of type Comparable available in DefaultServiceRegistry:
+   - Service Integer via TestProvider.createInt()
+   - Service String via TestProvider.createString()"""
     }
 
     // tags: registration, creation, error
@@ -359,9 +357,9 @@ class ServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(ServiceLookupException)
-        withoutTestClassName(e.message) == TextUtil.toPlatformLineSeparators("""Multiple services of type TestService available in DefaultServiceRegistry:
+        normalizedMessage(e) == """Multiple services of type TestService available in DefaultServiceRegistry:
    - Service TestServiceImpl via TestServiceImpl constructor
-   - Service TestServiceImpl2 via TestServiceImpl2 constructor""")
+   - Service TestServiceImpl2 via TestServiceImpl2 constructor"""
     }
 
     // tags: look-up, error
@@ -384,7 +382,7 @@ class ServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type Number using method ServiceRegistryTest\$UnsupportedInjectionProvider.create() as there is a problem with parameter #1 of type String[]."
+        normalizedMessage(e) == "Cannot create service of type Number using method UnsupportedInjectionProvider.create() as there is a problem with parameter #1 of type String[]."
         e.cause.message == 'Locating services with array type is not supported.'
     }
 
@@ -467,7 +465,7 @@ class ServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == 'Could not create service of type ServiceRegistryTest$ClassWithBrokenConstructor.'
+        normalizedMessage(e) == 'Could not create service of type ClassWithBrokenConstructor.'
         e.cause == ClassWithBrokenConstructor.failure
     }
 
@@ -499,7 +497,7 @@ class ServiceRegistryTest extends Specification {
         registry.get(TestServiceImpl)
         then:
         def e = thrown(UnknownServiceException)
-        e.message == "No service of type ServiceRegistryTest\$TestServiceImpl available in test registry."
+        normalizedMessage(e) == "No service of type TestServiceImpl available in test registry."
     }
 
     def "cannot declare explicit service type via @Provides that is not implemented by the return type"() {
@@ -692,9 +690,5 @@ class ServiceRegistryTest extends Specification {
     static class RequiresService {
         RequiresService(Number value) {
         }
-    }
-
-    private String withoutTestClassName(String s) {
-        s.replaceAll(this.class.simpleName + "\\\$", "")
     }
 }
