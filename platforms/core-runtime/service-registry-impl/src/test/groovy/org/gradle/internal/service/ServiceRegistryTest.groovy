@@ -312,31 +312,6 @@ class ServiceRegistryTest extends Specification {
         e.message == "Cannot register an abstract type (org.gradle.internal.service.ServiceRegistryTest.AbstractClass) for construction."
     }
 
-    // tags: lifecycle
-    def cachesInstancesCreatedUsingAProviderFactoryMethod() {
-        def registry = new DefaultServiceRegistry()
-        def provider = new ServiceRegistrationProvider() {
-            @Provides
-            String createString(Number number) {
-                return number.toString()
-            }
-
-            @Provides
-            Integer createInteger() {
-                return 12
-            }
-        }
-        registry.addProvider(provider)
-
-        expect:
-        registry.get(Integer).is(registry.get(Integer))
-        registry.get(Number).is(registry.get(Number))
-
-        and:
-        registry.get(String).is(registry.get(String))
-    }
-
-
     // tags: service-dependencies, creation, error
     def failsWhenThereIsACycleInDependenciesForProviderFactoryMethods() {
         def registry = new DefaultServiceRegistry()
@@ -409,12 +384,6 @@ class ServiceRegistryTest extends Specification {
         registry.get(Integer.class) == 12
     }
 
-    // tags: basic, lifecycle
-    def cachesInstancesCreatedUsingAFactoryMethod() {
-        expect:
-        registry.get(Integer).is(registry.get(Integer))
-        registry.get(Number).is(registry.get(Number))
-    }
 
     // tags: registration
     def usesOverriddenFactoryMethodToCreateServiceInstance() {

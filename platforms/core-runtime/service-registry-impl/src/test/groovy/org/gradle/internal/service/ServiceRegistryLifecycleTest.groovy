@@ -23,6 +23,66 @@ import java.lang.reflect.Type
 
 class ServiceRegistryLifecycleTest extends Specification {
 
+    def "reuses service instances of services registered via provides-method"() {
+        TestService.instancesCreated = 0
+        def registry = newRegistry().addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService createTestService() { new TestService() }
+        })
+
+        expect:
+        registry.get(TestService).is(registry.get(TestService))
+        TestService.instancesCreated == 1
+    }
+
+    def "reuses dependency service instances of services registered via provides-method"() {
+        TestService.instancesCreated = 0
+        def registry = newRegistry().addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            TestService createTestService() { new TestService() }
+
+            @Provides
+            DependentService createDependentService(TestService testService) { new DependentService(testService) }
+        })
+
+        expect:
+        def dependentService = registry.get(DependentService)
+        dependentService.is(registry.get(DependentService))
+        dependentService.dependency.is(registry.get(TestService))
+        TestService.instancesCreated == 1
+    }
+
+    def "reuses service instances of services registered via constructor injection"() {
+        TestService.instancesCreated = 0
+        def registry = newRegistry().addProvider(new ServiceRegistrationProvider() {
+            @SuppressWarnings('unused')
+            void configure(ServiceRegistration registration) {
+                registration.add(TestService)
+            }
+        })
+
+        expect:
+        registry.get(TestService).is(registry.get(TestService))
+        TestService.instancesCreated == 1
+    }
+
+    def "reuses dependency service instances of services registered via constructor injection"() {
+        TestService.instancesCreated = 0
+        def registry = newRegistry().addProvider(new ServiceRegistrationProvider() {
+            @SuppressWarnings('unused')
+            void configure(ServiceRegistration registration) {
+                registration.add(TestService)
+                registration.add(DependentService)
+            }
+        })
+
+        expect:
+        def dependentService = registry.get(DependentService)
+        dependentService.is(registry.get(DependentService))
+        dependentService.dependency.is(registry.get(TestService))
+        TestService.instancesCreated == 1
+    }
+
     def "close invokes close method on each service"() {
         def registry = newRegistry()
         def service = Mock(TestCloseService)
@@ -410,6 +470,22 @@ class ServiceRegistryLifecycleTest extends Specification {
 
     private static DefaultServiceRegistry newRegistry(ServiceRegistry... parents) {
         new DefaultServiceRegistry("test registry", parents)
+    }
+
+    private static class TestService {
+        static int instancesCreated = 0
+
+        TestService() {
+            instancesCreated++
+        }
+    }
+
+     private static class DependentService {
+        TestService dependency
+
+        DependentService(TestService other) {
+            dependency = other
+        }
     }
 
     interface TestCloseService extends Closeable {
