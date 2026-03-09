@@ -62,10 +62,7 @@ import java.util.EnumSet
 
 
 internal
-data class KotlinBuildScriptModelParameter(
-    val scriptFile: File?,
-    val correlationId: String?
-)
+data class KotlinBuildScriptModelParameter(val scriptFile: File?)
 
 
 internal
@@ -128,8 +125,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun requestParameterOf(modelRequestProject: Project) =
         KotlinBuildScriptModelParameter(
-            (modelRequestProject.findProperty(KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME) as? String)?.let(::canonicalFile),
-            modelRequestProject.resolveCorrelationIdParameter()
+            (modelRequestProject.findProperty(KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME) as? String)?.let(::canonicalFile)
         )
 }
 

@@ -16,51 +16,13 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.TaskAction
-
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.listFilesOrdered
-import org.gradle.work.DisableCachingByDefault
-
 import java.io.File
-import javax.inject.Inject
-
-
-@DisableCachingByDefault(because = "Produces no cacheable output")
-abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructor(
-
-    private
-    val implicitImports: ImplicitImports
-
-) : DefaultTask(), ClassPathAware {
-
-    @get:Internal
-    abstract val metadataDir: DirectoryProperty
-
-    private
-    lateinit var onConfigure: (Provider<String>) -> Unit
-
-    fun onConfigure(action: (Provider<String>) -> Unit) {
-        onConfigure = action
-    }
-
-    @TaskAction
-    fun configureImports() {
-        val resolverEnvironment = resolverEnvironmentStringFor(
-            implicitImports,
-            classPathFiles,
-            metadataDir
-        )
-        onConfigure(resolverEnvironment)
-    }
-}
 
 
 internal
