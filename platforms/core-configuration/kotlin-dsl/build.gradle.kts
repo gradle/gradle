@@ -160,8 +160,6 @@ dependencies {
     testFixturesImplementation(libs.asm)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
-    integTestBinDistribution(projects.distributionsFull)
-    integTestSrcDistribution(projects.distributionsFull)
 }
 
 // Relocate kotlin-metadata-jvm
