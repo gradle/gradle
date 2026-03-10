@@ -23,7 +23,10 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.Closeable;
+import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -50,14 +53,25 @@ public interface BuildCacheController extends Closeable {
     }
 
     /**
-     * Starts an asynchronous download of the cache entry from the remote cache.
-     * If the entry is found, it is downloaded to a temp file, unpacked into the entity's workspace,
-     * and stored in the local cache.
+     * Starts an asynchronous download of the cache entry from the remote cache to a temp file.
+     * Does NOT unpack into the workspace. The caller must call {@link #loadFromDownloadedRemoteEntry}
+     * to unpack, or delete the temp file if not needed.
      *
-     * @return a future that completes with the load result, or empty if the entry was not found
+     * @return a future that completes with the temp file if the entry was found, or null if not found
      */
-    default CompletableFuture<Optional<BuildCacheLoadResult>> loadRemoteAsync(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
-        return CompletableFuture.completedFuture(Optional.empty());
+    default CompletableFuture<@Nullable File> downloadRemoteAsync(BuildCacheKey cacheKey) {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Unpacks a previously downloaded cache entry from a temp file into the entity's workspace
+     * and stores it in the local cache.
+     *
+     * @param downloadedFile the temp file containing the downloaded cache entry
+     * @return the load result after unpacking
+     */
+    default Optional<BuildCacheLoadResult> loadFromDownloadedRemoteEntry(BuildCacheKey cacheKey, CacheableEntity entity, File downloadedFile) {
+        return Optional.empty();
     }
 
     void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);

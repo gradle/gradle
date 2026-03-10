@@ -31,4 +31,11 @@ public interface BuildCacheTempFileStore {
      */
     void withTempFile(HashCode key, Consumer<? super File> action);
 
+    /**
+     * Creates a temp file that the caller is responsible for deleting.
+     */
+    default File createTempFile(HashCode key) {
+        throw new UnsupportedOperationException();
+    }
+
 }

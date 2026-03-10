@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.caching.BuildCacheKey
-import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult
 import org.gradle.caching.internal.origin.OriginMetadata
@@ -112,7 +111,7 @@ class OptimisticBuildCacheStepTest extends StepSpec<TestCachingContext> implemen
         _ * work.allowedToLoadFromCache >> true
         1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.loadLocally(cacheKey, _) >> Optional.empty()
-        1 * buildCacheController.loadRemoteAsync(cacheKey, _) >> CompletableFuture.completedFuture(Optional.empty())
+        1 * buildCacheController.downloadRemoteAsync(cacheKey) >> CompletableFuture.completedFuture(null)
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
@@ -124,10 +123,62 @@ class OptimisticBuildCacheStepTest extends StepSpec<TestCachingContext> implemen
         0 * _
     }
 
-    def "executes optimistically even when remote has cache hit"() {
+    def "uses remote cache result when download completes and execution fails"() {
+        given:
+        def tempFile = file("cache-entry.bin") << "cached content"
+        def cachedOriginMetadata = Stub(OriginMetadata)
+        cachedOriginMetadata.executionTime >> Duration.ofSeconds(1)
+        def outputsFromCache = snapshotsOf("test": [])
+        def cacheLoadResult = Mock(BuildCacheLoadResult)
+        def localStateFile = file("local-state.txt") << "local state"
+
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result.execution.get().outcome == FROM_CACHE
+
+        interaction { withValidCacheKey() }
+
+        then:
+        _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
+        1 * buildCacheController.loadLocally(cacheKey, _) >> Optional.empty()
+        // Remote download completes immediately with a file (simulating cache hit arriving before execution)
+        1 * buildCacheController.downloadRemoteAsync(cacheKey) >> CompletableFuture.completedFuture(tempFile)
+
+        then:
+        // Execution fails (as if interrupted)
+        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegateResult.execution >> Try.failure(new RuntimeException("interrupted"))
+
+        then:
+        // VFS invalidated for cleanup
+        _ * work.getAllOutputLocationsForInvalidation(_) >> ["/workspace"]
+        1 * fileSystemAccess.invalidate(["/workspace"])
+        1 * buildCacheController.loadFromDownloadedRemoteEntry(cacheKey, _, tempFile) >> Optional.of(cacheLoadResult)
+
+        then:
+        _ * work.visitOutputs(_ as File, _ as OutputVisitor) >> { File workspace, OutputVisitor visitor ->
+            visitor.visitLocalState(localStateFile)
+        }
+        1 * outputChangeListener.invalidateCachesFor([localStateFile.getAbsolutePath()])
+        1 * deleter.deleteRecursively(_) >> { File root ->
+            assert root == localStateFile
+            return true
+        }
+
+        then:
+        1 * cacheLoadResult.originMetadata >> cachedOriginMetadata
+        1 * cacheLoadResult.resultingSnapshots >> outputsFromCache
+
+        0 * _
+    }
+
+    def "uses execution result when both download and execution succeed"() {
         given:
         def execution = Mock(Execution)
-        def remoteResult = Mock(BuildCacheLoadResult)
+        def tempFile = file("cache-entry.bin") << "cached content"
 
         when:
         def result = step.execute(work, context)
@@ -141,11 +192,13 @@ class OptimisticBuildCacheStepTest extends StepSpec<TestCachingContext> implemen
         _ * work.allowedToLoadFromCache >> true
         1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.loadLocally(cacheKey, _) >> Optional.empty()
-        1 * buildCacheController.loadRemoteAsync(cacheKey, _) >> CompletableFuture.completedFuture(Optional.of(remoteResult))
+        1 * buildCacheController.downloadRemoteAsync(cacheKey) >> CompletableFuture.completedFuture(tempFile)
 
         then:
+        // Execution succeeds despite the interrupt (or finished before interrupt)
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.execution >> Try.successful(execution)
+        // Called twice: once to check isSuccessful(), once in storeInCacheUnlessDisabled
+        (1.._) * delegateResult.execution >> Try.successful(execution)
         1 * execution.canStoreOutputsInCache() >> true
 
         then:
@@ -153,7 +206,7 @@ class OptimisticBuildCacheStepTest extends StepSpec<TestCachingContext> implemen
         0 * _
     }
 
-    def "does not store result of failed execution"() {
+    def "does not store result of failed execution when no remote download"() {
         when:
         def result = step.execute(work, context)
 
@@ -166,7 +219,7 @@ class OptimisticBuildCacheStepTest extends StepSpec<TestCachingContext> implemen
         _ * work.allowedToLoadFromCache >> true
         1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.loadLocally(cacheKey, _) >> Optional.empty()
-        1 * buildCacheController.loadRemoteAsync(cacheKey, _) >> CompletableFuture.completedFuture(Optional.empty())
+        1 * buildCacheController.downloadRemoteAsync(cacheKey) >> CompletableFuture.completedFuture(null)
 
         then:
         1 * delegate.execute(work, context) >> delegateResult

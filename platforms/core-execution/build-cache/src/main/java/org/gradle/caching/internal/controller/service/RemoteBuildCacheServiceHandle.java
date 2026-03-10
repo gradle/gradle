@@ -41,6 +41,12 @@ public interface RemoteBuildCacheServiceHandle extends Closeable {
      */
     Optional<BuildCacheLoadResult> maybeLoad(BuildCacheKey key, File toFile, Function<File, BuildCacheLoadResult> unpackFunction);
 
+    /**
+     * Downloads the cached entry to the given load target without unpacking.
+     * Used for optimistic execution where download and unpack are separate phases.
+     */
+    void loadInto(BuildCacheKey key, LoadTarget loadTarget);
+
     boolean canStore();
 
     /**

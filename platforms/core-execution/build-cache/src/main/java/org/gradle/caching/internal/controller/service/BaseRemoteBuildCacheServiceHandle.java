@@ -113,6 +113,20 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         service.load(key, entryReader);
     }
 
+    @Override
+    public void loadInto(BuildCacheKey key, LoadTarget loadTarget) {
+        if (!canLoad()) {
+            return;
+        }
+        String description = Operation.LOAD.describe(key, role);
+        LOGGER.debug(description);
+        try {
+            loadInner(description, key, loadTarget);
+        } catch (Exception e) {
+            failure(Operation.LOAD, key, e);
+        }
+    }
+
     private static Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {
         if (loadTarget.isLoaded()) {
             return Optional.ofNullable(unpackFunction.apply(loadTarget.getFile()));

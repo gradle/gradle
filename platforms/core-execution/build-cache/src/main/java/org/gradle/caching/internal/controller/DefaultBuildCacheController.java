@@ -30,6 +30,7 @@ import org.gradle.caching.internal.controller.operations.UnpackOperationDetails;
 import org.gradle.caching.internal.controller.operations.UnpackOperationResult;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
+import org.gradle.caching.internal.controller.service.LoadTarget;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
 import org.gradle.caching.internal.controller.service.LocalBuildCacheServiceHandle;
 import org.gradle.caching.internal.controller.service.NullLocalBuildCacheServiceHandle;
@@ -126,11 +127,39 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public CompletableFuture<Optional<BuildCacheLoadResult>> loadRemoteAsync(BuildCacheKey key, CacheableEntity entity) {
+    public CompletableFuture<@org.jspecify.annotations.Nullable File> downloadRemoteAsync(BuildCacheKey key) {
         if (!remote.canLoad()) {
-            return CompletableFuture.completedFuture(Optional.empty());
+            return CompletableFuture.completedFuture(null);
         }
-        return CompletableFuture.supplyAsync(() -> loadRemoteAndStoreResultLocally(key, entity));
+        return CompletableFuture.supplyAsync(() -> downloadRemoteToTempFile(key));
+    }
+
+    @Override
+    public Optional<BuildCacheLoadResult> loadFromDownloadedRemoteEntry(BuildCacheKey key, CacheableEntity entity, File downloadedFile) {
+        try {
+            BuildCacheLoadResult result = packExecutor.unpack(key, entity, downloadedFile);
+            local.maybeStore(key, downloadedFile);
+            return Optional.of(result);
+        } catch (Exception e) {
+            throw new BuildCacheOperationException("Could not unpack downloaded cache entry: " + e.getMessage(), e);
+        }
+    }
+
+    private @org.jspecify.annotations.Nullable File downloadRemoteToTempFile(BuildCacheKey key) {
+        File tempFile = tmp.createTempFile(((BuildCacheKeyInternal) key).getHashCodeInternal());
+        LoadTarget loadTarget = new LoadTarget(tempFile);
+        try {
+            remote.loadInto(key, loadTarget);
+        } catch (Exception e) {
+            tempFile.delete();
+            throw new BuildCacheOperationException("Could not download from remote cache: " + e.getMessage(), e);
+        }
+        if (loadTarget.isLoaded()) {
+            return tempFile;
+        } else {
+            tempFile.delete();
+            return null;
+        }
     }
 
     private Optional<BuildCacheLoadResult> loadLocal(BuildCacheKey key, CacheableEntity entity) {

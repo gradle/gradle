@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
@@ -43,6 +44,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.FROM_CACHE;
 
@@ -53,9 +55,10 @@ import static org.gradle.internal.execution.Execution.ExecutionOutcome.FROM_CACH
  * content-addressable and both execution and cache restore produce identical outputs. This means
  * we can safely start execution without waiting for the remote cache response.
  *
- * The flow is: check local cache synchronously (fast), and if local miss, start remote download
- * in background AND execute immediately. The execution result is used since it is identical to
- * what cache would produce. The remote download is cancelled or ignored.
+ * The flow is: check local cache synchronously, and on a local miss start a remote download
+ * in the background while executing immediately on the current thread. If the remote download
+ * completes with a hit before execution finishes, the execution thread is interrupted and the
+ * cached result is used instead. If execution finishes first, the remote download is cancelled.
  */
 public class OptimisticBuildCacheStep<C extends WorkspaceContext & CachingContext> implements Step<C, AfterExecutionResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OptimisticBuildCacheStep.class);
@@ -122,26 +125,77 @@ public class OptimisticBuildCacheStep<C extends WorkspaceContext & CachingContex
             return buildCacheResult(cacheHit, work);
         }
 
-        // 2. Local miss — start remote download in background and execute immediately
-        CompletableFuture<Optional<BuildCacheLoadResult>> remoteFuture = null;
+        // 2. Local miss — start remote download and execute optimistically
         if (work.isAllowedToLoadFromCache()) {
-            remoteFuture = buildCache.loadRemoteAsync(cacheKey, cacheableWork);
+            return executeOptimistically(work, context, cacheKey, cacheableWork);
+        } else {
+            return executeAndStore(work, context, cacheKey, cacheableWork);
         }
+    }
+
+    private AfterExecutionResult executeOptimistically(UnitOfWork work, C context, BuildCacheKey cacheKey, CacheableWork cacheableWork) {
+        // Start remote download (download only, no unpack)
+        CompletableFuture<File> downloadFuture = buildCache.downloadRemoteAsync(cacheKey);
+
+        // Track if the remote download completed with a hit and set up interrupt
+        AtomicReference<File> downloadedFile = new AtomicReference<>();
+        Thread executionThread = Thread.currentThread();
+        @SuppressWarnings("FutureReturnValueIgnored")
+        CompletableFuture<Void> ignored = downloadFuture.thenAccept(file -> {
+            if (file != null && downloadedFile.compareAndSet(null, file)) {
+                LOGGER.info("Remote cache hit for {} arrived during execution, interrupting",
+                    work.getDisplayName());
+                executionThread.interrupt();
+            }
+        });
 
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Local cache miss for {} with cache key {}, executing optimistically",
                 work.getDisplayName(), cacheKey.getHashCode());
         }
 
-        // 3. Execute on current thread
-        AfterExecutionResult result = executeWithoutCache(work, context);
-
-        // 4. Cancel the remote download (result is redundant for immutable work)
-        if (remoteFuture != null) {
-            remoteFuture.cancel(true);
+        // Execute on current thread — may be interrupted by cache hit
+        AfterExecutionResult result;
+        try {
+            result = executeWithoutCache(work, context);
+        } finally {
+            // Prevent further interrupts from the download future
+            downloadFuture.cancel(true);
+            // Clear any pending interrupt flag (race: download may have set it just as we finished)
+            Thread.interrupted();
         }
 
-        // 5. Store result in cache
+        // Check if execution was interrupted by a remote cache hit
+        File tempFile = downloadedFile.get();
+        if (tempFile != null) {
+            if (!result.getExecution().isSuccessful()) {
+                // Execution failed (likely due to our interrupt) — use the cached result
+                try {
+                    LOGGER.info("Using remote cache result for {} after interrupting execution", work.getDisplayName());
+                    // Invalidate VFS for the workspace to clear any partial execution snapshots
+                    Collection<String> locations = work.getAllOutputLocationsForInvalidation(context.getWorkspace());
+                    fileSystemAccess.invalidate(locations);
+                    // Unpack the downloaded cache entry into the workspace
+                    Optional<BuildCacheLoadResult> cacheResult = buildCache.loadFromDownloadedRemoteEntry(cacheKey, cacheableWork, tempFile);
+                    if (cacheResult.isPresent()) {
+                        cleanLocalState(context.getWorkspace(), work);
+                        return buildCacheResult(cacheResult.get(), work);
+                    }
+                } catch (Exception e) {
+                    LOGGER.warn("Failed to load from downloaded cache entry for {}, falling through to execution failure",
+                        work.getDisplayName(), e);
+                } finally {
+                    tempFile.delete();
+                }
+                // Cache unpack failed — return the original (failed) execution result
+                return result;
+            } else {
+                // Execution succeeded despite the interrupt — use execution result, clean up temp file
+                tempFile.delete();
+            }
+        }
+
+        // Execution completed normally — store in cache
         try {
             result.getExecution().ifSuccessfulOrElse(
                 executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
@@ -151,6 +205,19 @@ public class OptimisticBuildCacheStep<C extends WorkspaceContext & CachingContex
             return new AfterExecutionResult(Result.failed(storeFailure, result.getDuration()), result.getAfterExecutionOutputState().orElse(null));
         }
 
+        return result;
+    }
+
+    private AfterExecutionResult executeAndStore(UnitOfWork work, C context, BuildCacheKey cacheKey, CacheableWork cacheableWork) {
+        AfterExecutionResult result = executeWithoutCache(work, context);
+        try {
+            result.getExecution().ifSuccessfulOrElse(
+                executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
+                failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", work.getDisplayName())
+            );
+        } catch (Exception storeFailure) {
+            return new AfterExecutionResult(Result.failed(storeFailure, result.getDuration()), result.getAfterExecutionOutputState().orElse(null));
+        }
         return result;
     }
 
@@ -175,7 +242,7 @@ public class OptimisticBuildCacheStep<C extends WorkspaceContext & CachingContex
             @Override
             public void visitLocalState(File localStateRoot) {
                 try {
-                    outputChangeListener.invalidateCachesFor(com.google.common.collect.ImmutableList.of(localStateRoot.getAbsolutePath()));
+                    outputChangeListener.invalidateCachesFor(ImmutableList.of(localStateRoot.getAbsolutePath()));
                     deleter.deleteRecursively(localStateRoot);
                 } catch (IOException ex) {
                     throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateRoot), ex);

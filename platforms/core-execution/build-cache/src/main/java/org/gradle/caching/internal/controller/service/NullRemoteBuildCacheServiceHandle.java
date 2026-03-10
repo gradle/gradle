@@ -45,6 +45,10 @@ public class NullRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
     }
 
     @Override
+    public void loadInto(BuildCacheKey key, LoadTarget loadTarget) {
+    }
+
+    @Override
     public boolean canStore() {
         return false;
     }

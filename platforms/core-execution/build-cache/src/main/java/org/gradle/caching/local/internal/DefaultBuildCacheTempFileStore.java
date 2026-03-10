@@ -39,4 +39,9 @@ public class DefaultBuildCacheTempFileStore implements BuildCacheTempFileStore {
             FileUtils.deleteQuietly(tempFile);
         }
     }
+
+    @Override
+    public File createTempFile(HashCode key) {
+        return temporaryFileFactory.createTemporaryFile(key + "-", PARTIAL_FILE_SUFFIX);
+    }
 }

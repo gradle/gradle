@@ -176,6 +176,11 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     }
 
     @Override
+    public File createTempFile(HashCode key) {
+        return tempFileStore.createTempFile(key);
+    }
+
+    @Override
     public void close() {
         persistentCache.close();
     }
