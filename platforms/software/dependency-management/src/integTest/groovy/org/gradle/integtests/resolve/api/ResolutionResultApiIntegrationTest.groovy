@@ -678,59 +678,59 @@ testRuntimeClasspath
     }
 
     private void withResolutionResultDumper(String... configurations) {
-        def confCapture = configurations.collect( configuration ->
-            "def $configuration = configurations.$configuration"
-        )
+        def confSetup = configurations.collect { configuration ->
+            """def root_$configuration = configurations.${configuration}.incoming.resolutionResult.root
+                def requestedAttributes_$configuration = configurations.${configuration}.incoming.resolutionResult.requestedAttributes
+                def consumerAttributes_$configuration = configurations.${configuration}.attributes"""
+        }
 
-        def confList = configurations.collect { configuration ->
+        def confExec = configurations.collect { configuration ->
             """
                 // dump variant dependencies
-                def result_$configuration = ${configuration}.incoming.resolutionResult
-                dump("$configuration", result_${configuration}.root, null, 0)
+                dump.call("$configuration", root_${configuration}, null, 0, [] as Set)
 
                 // check that configuration attributes are visible and desugared
-                def consumerAttributes_$configuration = configurations.${configuration}.attributes
-                assert result_${configuration}.requestedAttributes.keySet().size() == consumerAttributes_${configuration}.keySet().size()
+                assert requestedAttributes_${configuration}.keySet().size() == consumerAttributes_${configuration}.keySet().size()
                 consumerAttributes_${configuration}.keySet().each {
                     println "Checking \$it of type \$it.type"
                     def desugared = Attribute.of(it.name, String)
-                    assert result_${configuration}.requestedAttributes.getAttribute(desugared) == consumerAttributes_${configuration}.getAttribute(it).toString()
+                    assert requestedAttributes_${configuration}.getAttribute(desugared) == consumerAttributes_${configuration}.getAttribute(it).toString()
                 }
             """
         }
         buildFile << """
 
             task resolve {
-                ${confCapture.join('\n')}
+                ${confSetup.join('\n')}
                 doLast {
-                    { -> ${confList.join('\n')} }()
+                    Closure dump = null
+                    dump = { String root, ResolvedComponentResult result, ResolvedVariantResult variant, int depth, Set visited ->
+                        if (visited.add([result, variant])) {
+                            if (variant == null) {
+                                println(root)
+                            }
+                            def dependencies = variant == null ? result.dependencies : result.getDependenciesForVariant(variant)
+                            depth++
+                            dependencies.each {
+                                if (it instanceof ResolvedDependencyResult) {
+                                    def resolvedVariant = it.resolvedVariant
+                                    def selected = it.selected
+                                    println("   " * depth + "\$selected (\$resolvedVariant)")
+                                    dump.call(root, selected, resolvedVariant, depth, visited)
+                                } else {
+                                    println("   " * depth + "\$it (unresolved)")
+                                }
+                            }
+                        }
+                    }
+                    ${confExec.join('\n')}
                     println()
                     println 'Waiting for the cache to expire'
                     // see org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.CachedStoreFactory
                     Thread.sleep(800) // must be > cache expiry
                     println 'Read result again to make sure serialization state is ok'
-                    println();
-                    { -> ${confList.join('\n')} }()
-                }
-            }
-
-            void dump(String root, ResolvedComponentResult result, ResolvedVariantResult variant, int depth, Set visited = []) {
-                if (visited.add([result, variant])) {
-                    if (variant == null) {
-                        println(root)
-                    }
-                    def dependencies = variant == null ? result.dependencies : result.getDependenciesForVariant(variant)
-                    depth++
-                    dependencies.each {
-                        if (it instanceof ResolvedDependencyResult) {
-                            def resolvedVariant = it.resolvedVariant
-                            def selected = it.selected
-                            println("   " * depth + "\$selected (\$resolvedVariant)")
-                            dump(root, selected, resolvedVariant, depth, visited)
-                        } else {
-                            println("   " * depth + "\$it (unresolved)")
-                        }
-                    }
+                    println()
+                    ${confExec.join('\n')}
                 }
             }
 """
