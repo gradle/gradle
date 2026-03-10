@@ -107,7 +107,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         when:
         async {
             broadcaster.started(descriptor, startOperationEvent())
-            broadcaster.progress(Stub(OperationIdentifier), operationProgressEvent())
+            broadcaster.progress(descriptor.id, operationProgressEvent())
             broadcaster.finished(descriptor, finishEvent)
             signalBuildFinished()
         }
@@ -217,8 +217,10 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         new OperationFinishEvent(123, 345, null, null)
     }
 
+    private long nextId = 1
+
     private BuildOperationDescriptor descriptor() {
-        new BuildOperationDescriptor(Stub(OperationIdentifier), null, "name", "name", "name", null, null, 12)
+        new BuildOperationDescriptor(new OperationIdentifier(nextId++), null, "name", "name", "name", null, null, 12)
     }
 
     class MockBuildEventListenerFactory implements BuildEventListenerFactory {

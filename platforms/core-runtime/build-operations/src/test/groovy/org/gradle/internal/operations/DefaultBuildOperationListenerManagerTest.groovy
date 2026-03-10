@@ -20,24 +20,27 @@ import spock.lang.Specification
 
 class DefaultBuildOperationListenerManagerTest extends Specification {
 
-    def manager = new DefaultBuildOperationListenerManager()
+    def idFactory = new DefaultBuildOperationIdFactory()
+    def manager = new DefaultBuildOperationListenerManager(idFactory)
     def broadcaster = manager.broadcaster
     def events = []
-
-    def id1 = new OperationIdentifier(1)
-    def op1 = BuildOperationDescriptor.displayName("1").build(id1, null)
-    def id2 = new OperationIdentifier(2)
-    def op2 = BuildOperationDescriptor.displayName("2").build(id2, null)
 
     def startEvent = new OperationStartEvent(0)
     def progressEvent = new OperationProgressEvent(0, null)
     def finishEvent = new OperationFinishEvent(0, 0, null, null)
+
+    private BuildOperationDescriptor nextOp(String displayName) {
+        def id = new OperationIdentifier(idFactory.nextId())
+        BuildOperationDescriptor.displayName(displayName).build(id, null)
+    }
 
     def "notifies start and progress in registration order, finish in reverse registration order"() {
         given:
         manager.addListener(recordingListener("1"))
         manager.addListener(recordingListener("2"))
         manager.addListener(recordingListener("3"))
+        def op1 = nextOp("1")
+        def op2 = nextOp("2")
 
         when:
         broadcaster.started(op1, startEvent)
@@ -47,78 +50,72 @@ class DefaultBuildOperationListenerManagerTest extends Specification {
 
         then:
         events == [
-            start("1", id1),
-            start("2", id1),
-            start("3", id1),
-            start("1", id2),
-            start("2", id2),
-            start("3", id2),
-            finished("3", id1),
-            finished("2", id1),
-            finished("1", id1),
-            finished("3", id2),
-            finished("2", id2),
-            finished("1", id2),
+            start("1", op1.id),
+            start("2", op1.id),
+            start("3", op1.id),
+            start("1", op2.id),
+            start("2", op2.id),
+            start("3", op2.id),
+            finished("3", op1.id),
+            finished("2", op1.id),
+            finished("1", op1.id),
+            finished("3", op2.id),
+            finished("2", op2.id),
+            finished("1", op2.id),
         ]
     }
 
-    def "does not forward progress notifications outside of start and finish"() {
+    def "does not forward notifications for operations started before listener was registered"() {
         given:
+        // Listeners "1" and "2" registered before any operations
         manager.addListener(recordingListener("1"))
-        manager.addListener(new RecordingListener("2") {
-            @Override
-            void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-                super.started(buildOperation, startEvent)
-                broadcaster.progress(buildOperation.id, progressEvent)
-            }
+        manager.addListener(recordingListener("2"))
 
-            @Override
-            void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-                super.finished(buildOperation, finishEvent)
-                broadcaster.progress(buildOperation.id, progressEvent)
-            }
-        })
+        // op1's ID is allocated after listeners "1" and "2" but before "3"
+        def op1 = nextOp("1")
+
+        // Listener "3" is registered after op1's ID was allocated
         manager.addListener(recordingListener("3"))
+
+        // op2 is allocated after all listeners are registered
+        def op2 = nextOp("2")
 
         when:
         broadcaster.started(op1, startEvent)
         broadcaster.started(op2, startEvent)
-        broadcaster.progress(id1, progressEvent)
-        broadcaster.progress(id2, progressEvent)
+        broadcaster.progress(op1.id, progressEvent)
+        broadcaster.progress(op2.id, progressEvent)
         broadcaster.finished(op1, finishEvent)
         broadcaster.finished(op2, finishEvent)
 
         then:
         events == [
-            start("1", id1),
-            start("2", id1),
-            progress("1", id1),
-            progress("2", id1),
-            start("3", id1),
+            // op1: listeners "1" and "2" see it, "3" does not (registered after op1's ID)
+            start("1", op1.id),
+            start("2", op1.id),
 
-            start("1", id2),
-            start("2", id2),
-            progress("1", id2),
-            progress("2", id2),
-            start("3", id2),
+            // op2: all listeners see it
+            start("1", op2.id),
+            start("2", op2.id),
+            start("3", op2.id),
 
-            progress("1", id1),
-            progress("2", id1),
-            progress("3", id1),
+            // progress for op1 — "3" does not see it
+            progress("1", op1.id),
+            progress("2", op1.id),
 
-            progress("1", id2),
-            progress("2", id2),
-            progress("3", id2),
+            // progress for op2 — all listeners see it
+            progress("1", op2.id),
+            progress("2", op2.id),
+            progress("3", op2.id),
 
-            finished("3", id1),
-            finished("2", id1),
-            progress("1", id1),
-            finished("1", id1),
+            // finished for op1 — "3" does not see it (reverse order)
+            finished("2", op1.id),
+            finished("1", op1.id),
 
-            finished("3", id2),
-            finished("2", id2),
-            progress("1", id2),
-            finished("1", id2)
+            // finished for op2 — all listeners see it (reverse order)
+            finished("3", op2.id),
+            finished("2", op2.id),
+            finished("1", op2.id),
         ]
     }
 
