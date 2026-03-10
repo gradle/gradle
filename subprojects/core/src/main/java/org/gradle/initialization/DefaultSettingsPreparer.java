@@ -172,7 +172,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
             }
         }
 
-        // Add included builds defined in settings
+        // Load included builds defined in settings and those added above
         gradle.setIncludedBuilds(loadIncludedBuildsRecursively(settings));
 
         if (gradle.isRootBuild()) {
@@ -260,7 +260,6 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         // Allow a built-in command to run in a directory not contained in the settings file (but don't use the settings from that file)
         for (BuiltInCommand command : builtInCommands) {
             if (command.wasInvoked(startParameter)) {
-                // Allow built-in command to run in a directory not contained in the settings file (but don't use the settings from that file)
                 return true;
             }
         }
