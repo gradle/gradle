@@ -40,6 +40,14 @@ gradleModule {
     }
 }
 
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
+}
+
 errorprone {
     nullawayEnabled = true
 }
