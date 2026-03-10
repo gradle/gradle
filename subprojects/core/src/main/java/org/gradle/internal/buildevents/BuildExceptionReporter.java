@@ -47,7 +47,6 @@ import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -544,31 +543,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
             ((StyledException) failure.getOriginal()).render(details);
         } else {
             details.text(getMessage(failure));
-        }
-    }
-
-    /**
-     * Formats a clickable file URI link for IDE console output.
-     * <p>
-     * Creates a properly formatted clickable link that IDEs can recognize in console output.
-     * The file path is converted to a {@code file:} URI with proper percent-encoding.
-     * When a line number is provided, it is appended using the {@code :lineNumber} format.
-     *
-     * @param filePath the absolute file path to format as a clickable link
-     * @param lineNumber the optional line number to append to the URI
-     * @return the formatted clickable link text
-     * @throws IllegalArgumentException if the file path cannot be converted to a URI
-     */
-    public static String formatClickableLink(String filePath, @Nullable Integer lineNumber) {
-        try {
-            File f = new File(filePath);
-            String uri = f.toURI().toASCIIString();
-            if (lineNumber != null) {
-                uri = uri + ":" + lineNumber;
-            }
-            return "(Clickable link: " + uri + ")";
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to format clickable link for path: " + filePath, e);
         }
     }
 

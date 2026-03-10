@@ -1,12 +1,15 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.internal.buildevents.BuildExceptionReporter
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
+
+private fun formatClickableLink(file: java.io.File, lineNumber: Int = 1): String =
+    "(Clickable link: ${ConsoleRenderer().asClickableFileUrl(file, lineNumber)})"
 
 class LocationAwareScriptEvaluationIntegrationTest : AbstractKotlinIntegrationTest() {
 
@@ -117,7 +120,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractKotlinIntegrationTe
             """
             * Where:
             Script '${present.canonicalPath}' line: 1
-              ${BuildExceptionReporter.formatClickableLink(present.canonicalPath, 1)}
+              ${formatClickableLink(present)}
 
             * What went wrong:
             Could not read script '${existing("absent.gradle.kts").canonicalPath}' as it does not exist.

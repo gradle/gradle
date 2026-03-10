@@ -31,6 +31,7 @@ import org.gradle.internal.exceptions.ContextAwareException
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.FailureResolutionAware
 import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
@@ -606,7 +607,7 @@ $GET_HELP
         reporter.buildFinished(failure(exception))
         output.value.contains("* Where:")
         output.value.contains("Build file '${path.absolutePath}' line: 42")
-        output.value.contains("  " + BuildExceptionReporter.formatClickableLink(path.absolutePath, 42))
+        output.value.contains("  " + formatClickableLink(path.absolutePath, 42))
 
         where:
         description        | pathSegment
@@ -684,7 +685,7 @@ $GET_HELP
         expect:
         reporter.buildFinished(failure(exception))
         output.value.contains("Build file '${path.absolutePath}' line: 100")
-        output.value.contains("  " + BuildExceptionReporter.formatClickableLink(path.absolutePath, 100))
+        output.value.contains("  " + formatClickableLink(path.absolutePath, 100))
 
         where:
         description        | pathSegment
@@ -703,13 +704,18 @@ $GET_HELP
         expect:
         reporter.buildFinished(failure(exception))
         output.value.contains("Build file '${pathWithSpaces.absolutePath}'")
-        def expectedLink = BuildExceptionReporter.formatClickableLink(pathWithSpaces.absolutePath, null)
+        def expectedLink = formatClickableLink(pathWithSpaces.absolutePath, null)
         output.value.contains("  " + expectedLink)
         !output.value.contains(":null")
     }
 
     def failure(Throwable failure) {
         failureFactory.create(failure)
+    }
+
+    private static String formatClickableLink(String filePath, Integer lineNumber) {
+        String url = new ConsoleRenderer().asClickableFileUrl(new File(filePath), lineNumber)
+        return "(Clickable link: " + url + ")"
     }
 
     abstract class TestException extends GradleException implements FailureResolutionAware {

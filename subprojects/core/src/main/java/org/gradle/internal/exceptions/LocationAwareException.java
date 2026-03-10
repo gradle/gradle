@@ -17,9 +17,11 @@ package org.gradle.internal.exceptions;
 
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.buildevents.BuildExceptionReporter;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
+
+import java.io.File;
 
 
 /**
@@ -92,7 +94,7 @@ public class LocationAwareException extends ContextAwareException implements Fai
      * @return the location string, potentially with a clickable URI appended. Returns the same
      *         as {@link #describeLocation()} if no source path is available.
      * @see #describeLocation()
-     * @see BuildExceptionReporter#formatClickableLink(String, Integer)
+     * @see ConsoleRenderer#asClickableFileUrl(File, Integer)
      */
     @Nullable
     public String describeClickableLocation() {
@@ -157,12 +159,13 @@ public class LocationAwareException extends ContextAwareException implements Fai
      * @param location the base location string to potentially enhance
      * @return the location string, with a clickable URI appended if the source path needs encoding
      * @see #needsUriEncoding(String)
-     * @see BuildExceptionReporter#formatClickableLink(String, Integer)
+     * @see ConsoleRenderer#asClickableFileUrl(File, Integer)
      */
     private String maybeAddClickableLocation(String location) {
         if (needsUriEncoding(sourcePath)) {
             try {
-                return location + "\n  " + BuildExceptionReporter.formatClickableLink(sourcePath, lineNumber);
+                String url = new ConsoleRenderer().asClickableFileUrl(new File(sourcePath), lineNumber);
+                return location + "\n  (Clickable link: " + url + ")";
             } catch (Exception e) {
                 // Don't let URI conversion break error reporting
             }

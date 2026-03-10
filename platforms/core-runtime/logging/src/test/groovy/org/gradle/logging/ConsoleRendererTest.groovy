@@ -35,4 +35,18 @@ class ConsoleRendererTest extends Specification {
         expect:
         renderer.asClickableFileUrl(new File("C:\\foo\\teŝt files\\bar")) == "file:///C:/foo/te%C5%9Dt%20files/bar"
     }
+
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "appends line number to file URL when provided"() {
+        expect:
+        renderer.asClickableFileUrl(new File("/foo/bar"), 42) == "file:///foo/bar:42"
+    }
+
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "returns same URL when line number is null"() {
+        def file = new File("/foo/bar")
+
+        expect:
+        renderer.asClickableFileUrl(file, null) == renderer.asClickableFileUrl(file)
+    }
 }

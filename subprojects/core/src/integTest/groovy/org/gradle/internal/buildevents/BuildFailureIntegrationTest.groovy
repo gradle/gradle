@@ -17,6 +17,7 @@
 package org.gradle.internal.buildevents
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -77,7 +78,7 @@ throw new BadException()
         then:
         failure.assertHasFileName("Build file '${buildScript}'")
         failure.assertHasLineNumber(3)
-        def expectedLink = BuildExceptionReporter.formatClickableLink(buildScript.absolutePath, 3)
-        result.assertHasErrorOutput(expectedLink)
+        def expectedUrl = new ConsoleRenderer().asClickableFileUrl(buildScript, 3)
+        result.assertHasErrorOutput("(Clickable link: " + expectedUrl + ")")
     }
 }
