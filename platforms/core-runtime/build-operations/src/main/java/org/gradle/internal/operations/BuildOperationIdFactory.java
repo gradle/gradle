@@ -29,4 +29,9 @@ public interface BuildOperationIdFactory {
      * @return the next unique ID
      */
     long nextId();
+
+    /**
+     * @return the most recently assigned ID, or 0 if no IDs have been assigned yet
+     */
+    long mostRecentId();
 }
