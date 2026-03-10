@@ -48,4 +48,12 @@ public class TaskDependencyResolver {
     public Set<Node> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {
         return context.getDependencies(task, dependencies);
     }
+
+    /**
+     * Creates a new resolver with its own {@link CachingTaskDependencyResolveContext}.
+     * Used for parallel resolution where each worker thread needs its own context to avoid thread-safety issues.
+     */
+    public TaskDependencyResolver newResolver() {
+        return new TaskDependencyResolver(dependencyResolvers);
+    }
 }

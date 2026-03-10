@@ -48,6 +48,7 @@ import org.gradle.execution.plan.SelfExecutingNode
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildToolingModelController
@@ -61,6 +62,7 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.file.Stat
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -295,6 +297,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         _ * project.pluginManager >> Stub(PluginManagerInternal)
         def lock = Stub(ResourceLock)
         _ * projectState.taskExecutionLock >> lock
+        _ * projectState.fromMutableState(_) >> { args -> args[0].apply(project) }
         _ * lock.tryLock() >> true
         return task
     }
@@ -311,7 +314,10 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
                 []
             }
         }
-        def plan = new DefaultExecutionPlan(displayName, nodeFactory, new OrdinalGroupFactory(), dependencyResolver, hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.services.coordinationService)
+        def planWorkerLeaseService = Stub(WorkerLeaseService) {
+            runAsIsolatedTask(_ as Factory) >> { Factory factory -> factory.create() }
+        }
+        def plan = new DefaultExecutionPlan(displayName, nodeFactory, new OrdinalGroupFactory(), dependencyResolver, hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.services.coordinationService, planWorkerLeaseService, new TestBuildOperationExecutor())
         def workPlan = Stub(BuildWorkPlan) {
             _ * stop() >> { plan.close() }
         }
