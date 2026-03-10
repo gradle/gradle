@@ -178,13 +178,24 @@ open class GroovyKotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() 
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("groovyKotlinDslPlugin", JavaBuildLogicDefinition::class.java) { context, definition, model ->
+            builder.bindProjectType("groovyKotlinDslPlugin", KotlinDslDefinition::class.java) { context, definition, model ->
                 context.objectFactory.newInstance<Services>().project.run {
                     plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
                     plugins.apply("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
                     group = "gradlebuild"
                     afterEvaluate {
                         description = definition.description.get()
+
+                        extensions.configure<GradlePluginDevelopmentExtension>("gradlePlugin") {
+                            definition.gradlePlugins.forEach {
+                                plugins {
+                                    register(it.name) {
+                                        id = it.id.get()
+                                        implementationClass = it.implementationClass.get()
+                                    }
+                                }
+                            }
+                        }
                     }
                     for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                         configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
