@@ -103,6 +103,16 @@ public class InstantiationBenchmark {
 
 
     @Benchmark
+    public void decorateObjectWithPlainProperties(Blackhole bh) {
+        bh.consume(decoratedInstantiator.newInstance(ObjectWithPlainProperties.class, "hello"));
+    }
+
+    @Benchmark
+    public void decorateObjectWithImplementedPlainProperties(Blackhole bh) {
+        bh.consume(decoratedInstantiator.newInstance(ObjectWithImplementedPlainProperties.class, "hello"));
+    }
+
+    @Benchmark
     public void decorateMultipleConstructorArgs(Blackhole bh) {
         bh.consume(decoratedInstantiator.newInstance(ObjectWithMultipleArgs.class, "hello", 42));
     }
@@ -166,6 +176,101 @@ public class InstantiationBenchmark {
 
         @Nested
         NestedBean getNestedBean();
+    }
+
+    public interface NestedPlainBean {
+        String getBeanValue();
+        void setBeanValue(String value);
+    }
+
+    /**
+     * Interface with plain getter/setter properties instead of Provider API types.
+     * Same number of properties as ObjectWithProperties for comparison.
+     */
+    public interface ObjectWithPlainProperties extends Named {
+        @Input
+        String getLabel();
+        void setLabel(String label);
+
+        @Input
+        Boolean getVerbose();
+        void setVerbose(Boolean verbose);
+
+        @Input
+        Integer getCount();
+        void setCount(Integer count);
+
+        @Input
+        String getDescription();
+        void setDescription(String description);
+
+        @Input
+        String getCategory();
+        void setCategory(String category);
+
+        @Input
+        String getVersion();
+        void setVersion(String version);
+
+        @Input
+        Boolean getEnabled();
+        void setEnabled(Boolean enabled);
+
+        @Nested
+        NestedPlainBean getNestedBean();
+    }
+
+    /**
+     * Abstract class with manually implemented plain properties.
+     * The generator does not need to synthesize getters/setters.
+     */
+    public static abstract class ObjectWithImplementedPlainProperties implements Named {
+        private String name;
+        private String label;
+        private Boolean verbose;
+        private Integer count;
+        private String description;
+        private String category;
+        private String version;
+        private Boolean enabled;
+
+        @Inject
+        public ObjectWithImplementedPlainProperties(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Input
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+
+        @Input
+        public Boolean getVerbose() { return verbose; }
+        public void setVerbose(Boolean verbose) { this.verbose = verbose; }
+
+        @Input
+        public Integer getCount() { return count; }
+        public void setCount(Integer count) { this.count = count; }
+
+        @Input
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+
+        @Input
+        public String getCategory() { return category; }
+        public void setCategory(String category) { this.category = category; }
+
+        @Input
+        public String getVersion() { return version; }
+        public void setVersion(String version) { this.version = version; }
+
+        @Input
+        public Boolean getEnabled() { return enabled; }
+        public void setEnabled(Boolean enabled) { this.enabled = enabled; }
     }
 
     public static class ObjectWithConstructorArg {

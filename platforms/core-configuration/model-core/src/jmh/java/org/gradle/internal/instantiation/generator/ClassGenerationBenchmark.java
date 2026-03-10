@@ -122,6 +122,16 @@ public class ClassGenerationBenchmark {
         return decoratedGenerator.generate(ClassWithInjectedServices.class);
     }
 
+    @Benchmark
+    public Object generateDecoratedInterfaceWithPlainProperties() {
+        return decoratedGenerator.generate(InterfaceWithPlainProperties.class);
+    }
+
+    @Benchmark
+    public Object generateDecoratedClassWithPlainProperties() {
+        return decoratedGenerator.generate(ClassWithPlainProperties.class);
+    }
+
     // --- Inject-only generation benchmarks ---
 
     @Benchmark
@@ -137,6 +147,16 @@ public class ClassGenerationBenchmark {
     @Benchmark
     public Object generateInjectOnlyInterfaceWithManagedProperties() {
         return injectOnlyGenerator.generate(InterfaceWithManagedProperties.class);
+    }
+
+    @Benchmark
+    public Object generateInjectOnlyInterfaceWithPlainProperties() {
+        return injectOnlyGenerator.generate(InterfaceWithPlainProperties.class);
+    }
+
+    @Benchmark
+    public Object generateInjectOnlyClassWithPlainProperties() {
+        return injectOnlyGenerator.generate(ClassWithPlainProperties.class);
     }
 
     @Benchmark
@@ -225,6 +245,97 @@ public class ClassGenerationBenchmark {
 
         @Nested
         NestedBean getNestedBean();
+    }
+
+    /**
+     * Interface with the same number of properties as InterfaceWithManagedProperties,
+     * but using plain getters/setters instead of Provider API types.
+     * This isolates the cost of managed property generation from Provider property generation.
+     */
+    public interface InterfaceWithPlainProperties extends Named {
+        @Input
+        String getLabel();
+        void setLabel(String label);
+
+        @Input
+        Boolean getVerbose();
+        void setVerbose(Boolean verbose);
+
+        @Input
+        Integer getCount();
+        void setCount(Integer count);
+
+        @Input
+        String getDescription();
+        void setDescription(String description);
+
+        @Input
+        String getCategory();
+        void setCategory(String category);
+
+        @Input
+        String getVersion();
+        void setVersion(String version);
+
+        @Input
+        Boolean getEnabled();
+        void setEnabled(Boolean enabled);
+
+        @Nested
+        NestedBean getNestedBean();
+    }
+
+    /**
+     * Abstract class with manually implemented plain properties.
+     * The generator does not need to synthesize getters/setters — only infrastructure methods.
+     */
+    public static abstract class ClassWithPlainProperties implements Named {
+        private String name;
+        private String label;
+        private Boolean verbose;
+        private Integer count;
+        private String description;
+        private String category;
+        private String version;
+        private Boolean enabled;
+
+        @Inject
+        public ClassWithPlainProperties(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Input
+        public String getLabel() { return label; }
+        public void setLabel(String label) { this.label = label; }
+
+        @Input
+        public Boolean getVerbose() { return verbose; }
+        public void setVerbose(Boolean verbose) { this.verbose = verbose; }
+
+        @Input
+        public Integer getCount() { return count; }
+        public void setCount(Integer count) { this.count = count; }
+
+        @Input
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+
+        @Input
+        public String getCategory() { return category; }
+        public void setCategory(String category) { this.category = category; }
+
+        @Input
+        public String getVersion() { return version; }
+        public void setVersion(String version) { this.version = version; }
+
+        @Input
+        public Boolean getEnabled() { return enabled; }
+        public void setEnabled(Boolean enabled) { this.enabled = enabled; }
     }
 
     public interface ServiceA {}
