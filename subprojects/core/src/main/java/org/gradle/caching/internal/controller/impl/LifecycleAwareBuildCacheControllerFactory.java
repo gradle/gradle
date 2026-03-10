@@ -28,6 +28,9 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import java.io.File;
+import java.util.concurrent.CompletableFuture;
 import org.gradle.util.Path;
 
 import java.io.IOException;
@@ -80,6 +83,21 @@ public class LifecycleAwareBuildCacheControllerFactory {
         @Override
         public void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
             getDelegate().store(cacheKey, entity, snapshots, executionTime);
+        }
+
+        @Override
+        public Optional<BuildCacheLoadResult> loadLocally(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
+            return getDelegate().loadLocally(cacheKey, cacheableEntity);
+        }
+
+        @Override
+        public CompletableFuture<@org.jspecify.annotations.Nullable File> downloadRemoteAsync(BuildCacheKey cacheKey) {
+            return getDelegate().downloadRemoteAsync(cacheKey);
+        }
+
+        @Override
+        public Optional<BuildCacheLoadResult> loadFromDownloadedRemoteEntry(BuildCacheKey cacheKey, CacheableEntity entity, File downloadedFile) {
+            return getDelegate().loadFromDownloadedRemoteEntry(cacheKey, entity, downloadedFile);
         }
 
         @Override

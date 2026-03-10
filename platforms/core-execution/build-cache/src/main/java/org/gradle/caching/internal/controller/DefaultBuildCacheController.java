@@ -20,6 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.internal.BuildCacheKeyInternal;
@@ -74,6 +76,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultBuildCacheController implements BuildCacheController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheController.class);
+
     @VisibleForTesting
     final RemoteBuildCacheServiceHandle remote;
 
@@ -81,6 +85,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     final LocalBuildCacheServiceHandle local;
 
     private final BuildCacheTempFileStore tmp;
+    private final TemporaryFileFactory temporaryFileFactory;
     private final PackOperationExecutor packExecutor;
 
     private boolean closed;
@@ -99,6 +104,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush(), buildOperationRunner);
         this.remote = toRemoteHandle(config.getBuildPath(), config.getRemote(), config.isRemotePush(), buildOperationRunner, buildOperationProgressEventEmitter, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileFactory);
+        this.temporaryFileFactory = temporaryFileFactory;
         this.packExecutor = new PackOperationExecutor(
             buildOperationRunner,
             packer,
@@ -131,7 +137,35 @@ public class DefaultBuildCacheController implements BuildCacheController {
         if (!remote.canLoad()) {
             return CompletableFuture.completedFuture(null);
         }
-        return CompletableFuture.supplyAsync(() -> downloadRemoteToTempFile(key));
+        // Use an array to capture the thread reference before it's available
+        Thread[] downloadThreadHolder = new Thread[1];
+        CompletableFuture<@org.jspecify.annotations.Nullable File> future = new CompletableFuture<@org.jspecify.annotations.Nullable File>() {
+            @Override
+            public boolean cancel(boolean mayInterruptIfRunning) {
+                boolean cancelled = super.cancel(mayInterruptIfRunning);
+                if (cancelled && mayInterruptIfRunning) {
+                    Thread thread = downloadThreadHolder[0];
+                    if (thread != null) {
+                        thread.interrupt();
+                    }
+                }
+                return cancelled;
+            }
+        };
+        Thread downloadThread = new Thread(() -> {
+            try {
+                future.complete(downloadRemoteToTempFile(key));
+            } catch (Exception e) {
+                LOGGER.debug("Remote cache download failed for key {}", key.getHashCode(), e);
+                if (!future.isDone()) {
+                    future.completeExceptionally(e);
+                }
+            }
+        }, "remote-cache-download-" + key.getHashCode());
+        downloadThread.setDaemon(true);
+        downloadThreadHolder[0] = downloadThread;
+        downloadThread.start();
+        return future;
     }
 
     @Override
@@ -146,10 +180,16 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     private @org.jspecify.annotations.Nullable File downloadRemoteToTempFile(BuildCacheKey key) {
-        File tempFile = tmp.createTempFile(((BuildCacheKeyInternal) key).getHashCodeInternal());
+        File tempFile = temporaryFileFactory.createTemporaryFile(((BuildCacheKeyInternal) key).getHashCodeInternal() + "-", BuildCacheTempFileStore.PARTIAL_FILE_SUFFIX);
         LoadTarget loadTarget = new LoadTarget(tempFile);
         try {
-            remote.loadInto(key, loadTarget);
+            // Call the service directly (not through the handle) to avoid wrapping in a build operation.
+            // This download runs on a background thread for optimistic execution, and wrapping it in a
+            // build operation would cause the build to wait for it during shutdown.
+            BuildCacheService service = remote.getService();
+            if (service != null) {
+                service.load(key, loadTarget);
+            }
         } catch (Exception e) {
             tempFile.delete();
             throw new BuildCacheOperationException("Could not download from remote cache: " + e.getMessage(), e);
