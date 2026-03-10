@@ -16,9 +16,11 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.work.WorkerLeaseService;
 
 @ServiceScope(Scope.Build.class)
 public class ExecutionPlanFactory {
@@ -29,6 +31,8 @@ public class ExecutionPlanFactory {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
     private final ResourceLockCoordinationService lockCoordinationService;
+    private final WorkerLeaseService workerLeaseService;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     public ExecutionPlanFactory(
         String displayName,
@@ -37,7 +41,9 @@ public class ExecutionPlanFactory {
         TaskDependencyResolver dependencyResolver,
         ExecutionNodeAccessHierarchy outputHierarchy,
         ExecutionNodeAccessHierarchy destroyableHierarchy,
-        ResourceLockCoordinationService lockCoordinationService
+        ResourceLockCoordinationService lockCoordinationService,
+        WorkerLeaseService workerLeaseService,
+        BuildOperationExecutor buildOperationExecutor
     ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
@@ -46,9 +52,11 @@ public class ExecutionPlanFactory {
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
         this.lockCoordinationService = lockCoordinationService;
+        this.workerLeaseService = workerLeaseService;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public ExecutionPlan createPlan() {
-        return new DefaultExecutionPlan(displayName, taskNodeFactory, ordinalGroupFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService);
+        return new DefaultExecutionPlan(displayName, taskNodeFactory, ordinalGroupFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService, workerLeaseService, buildOperationExecutor);
     }
 }

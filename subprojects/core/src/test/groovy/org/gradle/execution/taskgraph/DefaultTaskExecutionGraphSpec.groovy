@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
@@ -62,6 +63,8 @@ import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.Factory
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -624,7 +627,10 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     }
 
     private DefaultExecutionPlan newExecutionPlan() {
-        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
+        def workerLeaseService = Stub(WorkerLeaseService) {
+            runAsIsolatedTask(_ as Factory) >> { Factory factory -> factory.create() }
+        }
+        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator, workerLeaseService, new TestBuildOperationExecutor())
     }
 
     def task(String name, Task... dependsOn = []) {

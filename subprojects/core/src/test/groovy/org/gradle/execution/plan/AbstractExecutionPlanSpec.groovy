@@ -84,6 +84,8 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         _ * project.services >> backing.services
         _ * project.tasks >> Stub(TaskContainerInternal)
 
+        _ * projectState.fromMutableState(_) >> { args -> args[0].apply(project) }
+
         def lock = new MockLock(project, acquired)
         locks.add(lock)
         _ * projectState.taskExecutionLock >> lock

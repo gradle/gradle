@@ -125,6 +125,10 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void configureProjects() {
+        // Fast path: if already past configuration phase, projects are configured.
+        if (buildState.inStateOrLater(State.TaskSchedule)) {
+            return;
+        }
         buildState.notInState(State.Finished, modelController::getConfiguredModel);
     }
 
