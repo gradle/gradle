@@ -23,12 +23,11 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntryCache
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.listFilesOrdered
 import org.gradle.work.DisableCachingByDefault
-
 import java.io.File
 import javax.inject.Inject
 
@@ -44,6 +43,9 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
     @get:Internal
     abstract val metadataDir: DirectoryProperty
 
+    @get:Inject
+    internal abstract val pluginEntryCache: PluginEntryCache
+
     private
     lateinit var onConfigure: (Provider<String>) -> Unit
 
@@ -55,6 +57,7 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
     fun configureImports() {
         val resolverEnvironment = resolverEnvironmentStringFor(
             implicitImports,
+            pluginEntryCache,
             classPathFiles,
             metadataDir
         )
@@ -66,12 +69,13 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
 internal
 fun resolverEnvironmentStringFor(
     implicitImports: ImplicitImports,
+    pluginEntryCache: PluginEntryCache,
     classPathFiles: FileCollection,
     accessorsMetadataDir: Provider<Directory>
 ): Provider<String> = accessorsMetadataDir.map { metadataDir ->
     resolverEnvironmentStringFor(
         listOf(
-            kotlinDslImplicitImports to implicitImportsForPrecompiledScriptPlugins(implicitImports, classPathFiles)
+            kotlinDslImplicitImports to implicitImportsForPrecompiledScriptPlugins(implicitImports, pluginEntryCache, classPathFiles)
         ) + precompiledScriptPluginImportsFrom(metadataDir.asFile)
     )
 }

@@ -20,6 +20,7 @@ Class <org.gradle.internal.file.PathToFileResolver> is not annotated with @Servi
 Class <org.gradle.internal.nativeintegration.filesystem.FileSystem> is not annotated with @ServiceScope in (FileSystem.java:0)
 Class <org.gradle.internal.nativeintegration.network.HostnameLookup> is not annotated with @ServiceScope in (HostnameLookup.java:0)
 Class <org.gradle.internal.reflect.Instantiator> is not annotated with @ServiceScope in (Instantiator.java:0)
+Class <org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntryCache> is not annotated with @ServiceScope in (PluginEntry.kt:0)
 Class <org.gradle.normalization.InputNormalizationHandler> is not annotated with @ServiceScope in (InputNormalizationHandler.java:0)
 Class <org.gradle.process.internal.JavaExecHandleFactory> is not annotated with @ServiceScope in (JavaExecHandleFactory.java:0)
 Class <org.gradle.process.internal.JavaForkOptionsFactory> is not annotated with @ServiceScope in (JavaForkOptionsFactory.java:0)
