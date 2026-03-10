@@ -16,6 +16,8 @@
 
 package gradlebuild.softwaretypes
 
+import org.gradle.api.Named
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -37,6 +39,7 @@ import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
+import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import javax.inject.Inject
 
 @RegistersProjectFeatures(
@@ -143,12 +146,23 @@ open class KotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("kotlinDslPlugin", JavaBuildLogicDefinition::class.java) { context, definition, model ->
+            builder.bindProjectType("kotlinDslPlugin", KotlinDslDefinition::class.java) { context, definition, model ->
                 context.objectFactory.newInstance<Services>().project.run {
                     plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
                     group = "gradlebuild"
                     afterEvaluate {
                         description = definition.description.get()
+
+                        extensions.configure<GradlePluginDevelopmentExtension>("gradlePlugin") {
+                            definition.gradlePlugins.forEach {
+                                plugins {
+                                    register(it.name) {
+                                        id = it.id.get()
+                                        implementationClass = it.implementationClass.get()
+                                    }
+                                }
+                            }
+                        }
                     }
                     for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                         configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
@@ -192,6 +206,15 @@ interface JavaBuildLogicDefinition : BuildLogicDefinition {
 
     @get:Nested
     val dependencies: BuildLogicDependencies
+}
+
+interface KotlinDslDefinition : JavaBuildLogicDefinition {
+    val gradlePlugins: NamedDomainObjectContainer<GradlePlugin>
+}
+
+interface GradlePlugin : Named {
+    val id: Property<String>
+    val implementationClass: Property<String>
 }
 
 interface BuildLogicDependencies : GradleDependencies, PlatformDependencyModifiers {
