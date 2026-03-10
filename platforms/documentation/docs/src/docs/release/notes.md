@@ -113,6 +113,12 @@ myCollection.add(MyType("other")) // this will fail
 myCollection.remove(main)         // this will fail
 ```
 
+### GitHub Permalinks in wrapper & start scripts
+
+Gradle Wrapper scripts and application start scripts include links to the GitHub source templates they were generated from.
+Previously, these links always pointed to the latest template versions, which could drift out of sync with the actual generated scripts as templates evolved. 
+This has now been fixed: scripts always link to the exact template version they were generated from.
+
 ## Tooling integration improvements
 
 Tooling API clients can now directly access Gradle help and version information the same way as the Gradle CLI.
