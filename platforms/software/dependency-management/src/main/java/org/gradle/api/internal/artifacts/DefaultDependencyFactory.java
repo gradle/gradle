@@ -49,6 +49,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final ProjectDependencyFactory projectDependencyFactory;
     private final AttributesFactory attributesFactory;
     @Nullable
+    private final ProjectFinder projectFinder;
+    @Nullable
     private final Project project;
 
     public DefaultDependencyFactory(
@@ -58,6 +60,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         ObjectFactory objectFactory,
         ProjectDependencyFactory projectDependencyFactory,
         AttributesFactory attributesFactory,
+        @Nullable ProjectFinder projectFinder,
         @Nullable Project project
     ) {
         this.instantiator = instantiator;
@@ -66,6 +69,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         this.objectFactory = objectFactory;
         this.projectDependencyFactory = projectDependencyFactory;
         this.attributesFactory = attributesFactory;
+        this.projectFinder = projectFinder;
         this.project = project;
     }
 
@@ -131,10 +135,10 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ProjectDependency createProjectDependency(String projectPath) {
-        if (project == null) {
+        if (projectFinder == null) {
             throw new IllegalStateException("This dependency factory is not associated with a project, so project dependencies cannot be created by path.  Use create(Project) instead.");
         }
-        return create(project.project(projectPath));
+        return projectDependencyFactory.create(projectFinder, projectPath);
     }
 
     @Override

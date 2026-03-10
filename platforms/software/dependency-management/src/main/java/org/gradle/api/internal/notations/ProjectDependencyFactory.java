@@ -38,6 +38,10 @@ public class ProjectDependencyFactory {
                 .converter(new ProjectDependencyMapNotationConverter(projectFinder, factory)).toComposite().parseNotation(map);
     }
 
+    public ProjectDependency create(ProjectFinder projectFinder, String projectPath) {
+        return factory.create(projectFinder.resolveIdentityPath(projectPath));
+    }
+
     static class ProjectDependencyMapNotationConverter extends MapNotationConverter<ProjectDependency> {
 
         private final ProjectFinder projectFinder;
