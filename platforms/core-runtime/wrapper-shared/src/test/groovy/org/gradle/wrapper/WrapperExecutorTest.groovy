@@ -114,8 +114,8 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.zipBase == PathAssembler.GRADLE_USER_HOME_STRING
         wrapper.configuration.zipPath == Install.DEFAULT_DISTRIBUTION_PATH
         wrapper.configuration.networkTimeout == Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS
-        wrapper.configuration.retries == Install.MIN_RETRIES;
-        wrapper.configuration.retryTimeoutMs == Install.MIN_RETRY_TIMEOUT_MS
+        wrapper.configuration.retries == Install.DEFAULT_NETWORK_RETRIES
+        wrapper.configuration.retryTimeoutMs == Install.DEFAULT_NETWORK_RETRY_TIMEOUT_MS
         wrapper.configuration.validateDistributionUrl
     }
 
