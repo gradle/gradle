@@ -40,7 +40,7 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
     private final ExclusiveCacheAccessCoordinator cacheAccess;
     private final long batchWindowMillis;
     private final long maximumLockingTimeMillis;
-    private boolean closed;
+    private volatile boolean closed;
     private boolean workerCompleted;
     private boolean stopSeen;
     private final CountDownLatch doneSignal = new CountDownLatch(1);
@@ -100,7 +100,7 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
     }
 
     private static class FlushOperationsCommand implements Runnable {
-        private CountDownLatch latch = new CountDownLatch(1);
+        private final CountDownLatch latch = new CountDownLatch(1);
 
         @Override
         public void run() {
