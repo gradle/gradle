@@ -22,6 +22,7 @@ import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
+import org.gradle.internal.logging.console.ProgressBar;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
@@ -56,6 +57,21 @@ public class ConsoleConfigureAction {
             configurePlainConsole(renderer, consoleMetadata, stdout, stderr);
         } else if (consoleOutput == ConsoleOutput.Colored) {
             configureColoredConsole(renderer, consoleMetadata, stdout, stderr);
+        }
+
+        // Register a JVM shutdown hook to clear the taskbar progress on exit (covers SIGINT).
+        // The normal EndOutputEvent path does not fire if the JVM exits abruptly.
+        String reset = ProgressBar.buildTaskbarProgressResetSequence(consoleMetadata);
+        if (!reset.isEmpty()) {
+            byte[] resetBytes = reset.getBytes(StandardCharsets.UTF_8);
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    stdout.write(resetBytes);
+                    stdout.flush();
+                } catch (IOException ignored) {
+                    //ignore
+                }
+            }, "taskbar-progress-reset"));
         }
     }
 
