@@ -30,11 +30,13 @@ import org.gradle.features.internal.builders.definitions.ProjectFeatureNestedDef
 import org.gradle.features.internal.builders.definitions.ProjectFeatureThatBindsToDefinitionWithNoBuildModeClassBuilder
 import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionClassBuilder
 import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionThatRegistersANestedBindingLocationClassBuilder
+import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionWithMultipleNestedBindingLocations
 import org.gradle.features.internal.builders.features.KotlinProjectFeaturePluginClassBuilder
 import org.gradle.features.internal.builders.features.KotlinProjectFeaturePluginClassThatBindsWithClassBuilder
 import org.gradle.features.internal.builders.features.KotlinReifiedProjectFeaturePluginClassBuilder
 import org.gradle.features.internal.builders.features.NotAProjectFeaturePluginClassBuilder
 import org.gradle.features.internal.builders.features.ProjectFeaturePluginClassBuilder
+import org.gradle.features.internal.builders.features.ProjectFeaturePluginThatBindsMultipleFeaturesToTheSameName
 import org.gradle.features.internal.builders.features.ProjectFeaturePluginThatInjectsUnknownServiceClassBuilder
 import org.gradle.features.internal.builders.features.ProjectFeaturePluginThatUsesUnsafeServicesClassBuilder
 import org.gradle.features.internal.builders.features.ProjectFeatureThatBindsWithClassBuilder
@@ -383,6 +385,18 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def projectType = new ProjectTypeThatBindsWithClassBuilder(projectTypeDefinition)
         def projectFeatureDefinition = new ProjectFeatureDefinitionThatUsesClassInjectedMethods()
         def projectFeature = new ProjectFeatureThatBindsWithClassBuilder(projectFeatureDefinition)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withProjectFeaturePluginThatBindsToMultipleTargets() {
+        def projectTypeDefinition = new ProjectTypeDefinitionWithMultipleNestedBindingLocations()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginThatBindsMultipleFeaturesToTheSameName(projectFeatureDefinition, "${projectTypeDefinition.publicTypeClassName}.Bar")
+            .bindingTypeClassName("${projectTypeDefinition.fullyQualifiedPublicTypeClassName}.Foo")
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
