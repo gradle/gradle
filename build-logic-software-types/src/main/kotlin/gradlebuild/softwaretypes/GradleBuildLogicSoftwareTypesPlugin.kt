@@ -48,9 +48,11 @@ import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import javax.inject.Inject
 
+@Suppress("unused")
 @RegistersProjectFeatures(
     KotlinBuildLogicProjectTypePlugin::class,
     KotlinDslProjectTypePlugin::class,
+    PerfTestProjectTypePlugin::class,
     JavaPlatformBuildLogicProjectTypePlugin::class,
     JavaLibraryBuildLogicProjectTypePlugin::class,
     KotlinSharedRuntimeProjectTypePlugin::class
@@ -119,6 +121,20 @@ open class KotlinDslProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
                 "kotlinDslPlugin",
                 KotlinDslDefinition::class.java,
                 KotlinDslProjectTypeAction::class.java
+            ).withUnsafeDefinition().withUnsafeApplyAction()
+        }
+    }
+}
+
+@BindsProjectType(PerfTestProjectTypePlugin.Binding::class)
+open class PerfTestProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
+
+    class Binding : ProjectTypeBinding {
+        override fun bind(builder: ProjectTypeBindingBuilder) {
+            builder.bindProjectType(
+                "perfTestPlugin",
+                KotlinDslDefinition::class.java,
+                PerfTestProjectTypeAction::class.java
             ).withUnsafeDefinition().withUnsafeApplyAction()
         }
     }
@@ -226,25 +242,29 @@ open class KotlinDslProjectTypeAction : JavaBuildLogicProjectTypeAction<KotlinDs
                         }
                     }
                 }
-                // TODO this probably don't need to be in afterEvluate
-                // TODO there's another compileGroovy configuration in this method, we should consolidate them
-                if (name == "performance-testing") {
-                    tasks.named<GroovyCompile>("compileGroovy") {
-                        val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
-                        classpath = sourceSets.getByName("main").compileClasspath
-                    }
-                    tasks.named<KotlinCompile>("compileKotlin") {
-                        libraries.from(files(tasks.named("compileGroovy")))
-                    }
-                }
-            }
-            if (name == "performance-testing") {
-                tasks.named<CodeNarc>("codenarcMain") {
-                    exclude("gradlebuild/performance/junit4/**")
-                }
             }
             tasks.named("compileGroovy", GroovyCompile::class) {
                 classpath += files(tasks.named("compileKotlin"))
+            }
+        }
+    }
+}
+
+open class PerfTestProjectTypeAction : KotlinDslProjectTypeAction() {
+    override fun configure(project: Project, definition: KotlinDslDefinition) {
+        super.configure(project, definition)
+        project.run {
+            tasks.named<CodeNarc>("codenarcMain") {
+                exclude("gradlebuild/performance/junit4/**")
+            }
+            afterEvaluate {
+                tasks.named<GroovyCompile>("compileGroovy") {
+                    val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
+                    classpath = sourceSets.getByName("main").compileClasspath
+                }
+                tasks.named<KotlinCompile>("compileKotlin") {
+                    libraries.from(files(tasks.named("compileGroovy")))
+                }
             }
         }
     }
@@ -306,6 +326,7 @@ interface BuildLogicDependencies : GradleDependencies, PlatformDependencyModifie
                 .get()
         }
 
+    @Suppress("unused")
     fun kotlinDlsGradlePlugin(): String =
         "org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersion"
 
