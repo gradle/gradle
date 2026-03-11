@@ -50,7 +50,8 @@ import javax.inject.Inject
     KotlinDslProjectTypePlugin::class,
     GroovyKotlinDslProjectTypePlugin::class,
     JavaPlatformBuildLogicProjectTypePlugin::class,
-    JavaLibraryBuildLogicProjectTypePlugin::class
+    JavaLibraryBuildLogicProjectTypePlugin::class,
+    KotlinSharedRuntimeProjectTypePlugin::class
 )
 open class GradleBuildLogicSoftwareTypesPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
@@ -222,6 +223,27 @@ open class GroovyKotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() 
                     }
                     tasks.named("compileGroovy", GroovyCompile::class) {
                         classpath += files(tasks.named("compileKotlin"))
+                    }
+                }
+            }.withUnsafeDefinition().withUnsafeApplyAction()
+        }
+    }
+}
+
+@BindsProjectType(KotlinSharedRuntimeProjectTypePlugin.Binding::class)
+open class KotlinSharedRuntimeProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+
+    class Binding : ProjectTypeBinding {
+        override fun bind(builder: ProjectTypeBindingBuilder) {
+            builder.bindProjectType("kotlinSharedRuntime", JavaBuildLogicDefinition::class.java) { context, definition, model ->
+                context.objectFactory.newInstance<Services>().project.run {
+                    plugins.apply("gradlebuild.kotlin-shared-runtime")
+                    group = "gradlebuild"
+                    afterEvaluate {
+                        definition.description.orNull?.let { description = it }
+                    }
+                    for ((scope, collector) in definition.dependencies.scopeToCollector()) {
+                        configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
                     }
                 }
             }.withUnsafeDefinition().withUnsafeApplyAction()
