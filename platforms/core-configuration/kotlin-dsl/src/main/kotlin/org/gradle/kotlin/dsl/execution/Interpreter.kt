@@ -580,9 +580,9 @@ fun locationAwareExceptionFor(
     val scriptClassNameInnerPrefix = "$scriptClassName$"
 
     fun scriptStackTraceElement(element: StackTraceElement) =
-        element.className?.run {
+        element.className.run {
             equals(scriptClassName) || startsWith(scriptClassNameInnerPrefix)
-        } == true
+        }
 
     tailrec fun inferLocationFrom(exception: Throwable): LocationAwareException? {
 
