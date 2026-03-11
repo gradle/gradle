@@ -28,6 +28,7 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchy;
+import org.gradle.internal.classloader.ClassNotFoundExceptionNoStackTrace;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
@@ -148,6 +149,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
                 BootstrapSecurityManager.class,
                 EncodedStream.EncodedInput.class,
                 ClassLoaderUtils.class,
+                ClassNotFoundExceptionNoStackTrace.class,
                 FilteringClassLoader.class,
                 FilteringClassLoader.Action.class,
                 FilteringClassLoader.Trie.Builder.class,
