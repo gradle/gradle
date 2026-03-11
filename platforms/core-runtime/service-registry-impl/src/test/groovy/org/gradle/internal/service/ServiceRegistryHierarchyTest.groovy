@@ -23,7 +23,7 @@ import java.util.concurrent.Callable
 
 class ServiceRegistryHierarchyTest extends Specification implements ServiceRegistryFixture {
 
-    def delegatesToParentForUnknownService() {
+    def "delegates to single parent for unknown service"() {
         def instance = BigDecimal.TEN
         def service = service(instance)
         def parentProvider = Mock(ServiceProvider)
@@ -39,7 +39,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         1 * parentProvider.getService(BigDecimal, _) >> service
     }
 
-    def delegatesToParentsForUnknownService() {
+    def "delegates to multiple parents for unknown service"() {
         def instance = BigDecimal.TEN
         def service = service(instance)
         def parentProvider1 = Mock(ServiceProvider)
@@ -57,7 +57,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         1 * parentProvider2.getService(BigDecimal, _) >> service
     }
 
-    def throwsExceptionForUnknownParentService() {
+    def "fails when requesting unknown service from parent"() {
         def parentProvider = Mock(ServiceProvider)
         def registry = newRegistry(parentRegistry(parentProvider))
 
@@ -72,7 +72,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         e.message == "No service of type StringBuilder available in test registry."
     }
 
-    def usesProviderDecoratorMethodToDecorateParentServiceInstance() {
+    def "uses provider decorator method to decorate parent service instance"() {
         def parentRegistry = newRegistry().addProvider(new ServiceRegistrationProvider() {
             @Provides
             Long createLong() { 110L }
@@ -88,7 +88,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         decoratorProvider << [new TestDecoratingProviderWithCreate(), new TestDecoratingProviderWithDecorate()]
     }
 
-    def injectsParentServicesIntoProviderFactoryMethod() {
+    def "injects parent services into provider factory method"() {
         def parentRegistry = newRegistry().addProvider(new ServiceRegistrationProvider() {
             @Provides
             Number createNumber() { 123 }
@@ -105,7 +105,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         result == '123'
     }
 
-    def cachesServiceCreatedUsingProviderDecoratorMethod() {
+    def "caches service created using provider decorator method"() {
         def parentRegistry = newRegistry().addProvider(new ServiceRegistrationProvider() {
             @Provides
             Long createLong() { 11L }
@@ -120,7 +120,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         decoratorProvider << [new TestDecoratingProviderWithCreate(), new TestDecoratingProviderWithDecorate()]
     }
 
-    def conflictWhenCreateAndDecorateMethodDecorateTheSameType() {
+    def "fails when create and decorate methods decorate the same type"() {
         def parentRegistry = newRegistry().addProvider(new ServiceRegistrationProvider() {
             @Provides
             Long createLong() { 11L }
@@ -138,7 +138,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
    - Service Long via ConflictingDecoratorMethods.decorateLong()"""
     }
 
-    def providerDecoratorMethodFailsWhenNoParentRegistry() {
+    def "provider decorator method fails when no parent registry"() {
         def registry = new DefaultServiceRegistry()
 
         when:
@@ -154,7 +154,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         new TestDecoratingProviderWithDecorate() | 'decorate'
     }
 
-    def failsWhenProviderDecoratorMethodRequiresUnknownService() {
+    def "fails when provider decorator method requires unknown service"() {
         def parentProvider = Mock(ServiceProvider)
         def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
 
@@ -176,7 +176,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         new TestDecoratingProviderWithDecorate() | 'decorate'
     }
 
-    def failsWhenProviderDecoratorMethodThrowsException() {
+    def "fails when provider decorator method throws exception"() {
         def parentRegistry = newRegistry().addProvider(new ServiceRegistrationProvider() {
             @Provides
             Long createLong() { 11L }
@@ -200,7 +200,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         new BrokenDecoratingProviderWithDecorate() | 'decorate'
     }
 
-    def usesDecoratorMethodToDecorateParentServiceInstance() {
+    def "uses decorator method to decorate parent service instance"() {
         def parentRegistry = newRegistry().addProvider(new ServiceRegistrationProvider() {
             @Provides
             Long createLong() { 110L }
@@ -245,7 +245,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         ]
     }
 
-    def decoratorCreateMethodFailsWhenNoParentRegistry() {
+    def "decorator create method fails when no parent registry"() {
         def registry = new DefaultServiceRegistry()
 
         when:
@@ -262,7 +262,7 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         ]
     }
 
-    def injectsGenericTypesFromParentIntoProviderFactoryMethod() {
+    def "injects generic types from parent into provider factory method"() {
         def parent = newRegistry().addProvider(new ServiceRegistrationProvider() {
             @Provides
             Callable<String> createStringCallable() { return { "hello" } }

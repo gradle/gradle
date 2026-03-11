@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class ServiceRegistrySelfInjectTest extends Specification implements ServiceRegistryFixture {
 
-    def injectsServiceRegistryIntoProviderFactoryMethod() {
+    def "injects service registry into provider factory method"() {
         def parentProvider = Mock(ServiceProvider)
         def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
         registry.addProvider(new ServiceRegistrationProvider() {
@@ -36,7 +36,7 @@ class ServiceRegistrySelfInjectTest extends Specification implements ServiceRegi
         registry.get(String) == '123'
     }
 
-    def canLocateSelfAsAServiceOfTypeServiceRegistry() {
+    def "can locate self as a service of type ServiceRegistry"() {
         def registry = new DefaultServiceRegistry()
 
         expect:
@@ -44,7 +44,7 @@ class ServiceRegistrySelfInjectTest extends Specification implements ServiceRegi
         registry.find(DefaultServiceRegistry) == null
     }
 
-    def failsWhenRegisteringAServiceOfTypeServiceRegistry() {
+    def "fails when registering a service of type ServiceRegistry"() {
         def registry = new DefaultServiceRegistry()
 
         when:
@@ -55,7 +55,7 @@ class ServiceRegistrySelfInjectTest extends Specification implements ServiceRegi
         e.message == 'Cannot define a service of type ServiceRegistry: Service ServiceRegistry with implementation DefaultServiceRegistry'
     }
 
-    def failsWhenProviderFactoryMethodProducesAServiceOfTypeServiceRegistry() {
+    def "fails when provider factory method produces a service of type ServiceRegistry"() {
         def registry = new DefaultServiceRegistry()
 
         when:

@@ -260,7 +260,7 @@ class ServiceRegistryServiceAccessTest extends Specification implements ServiceR
         services.toSorted() == [2, 4, 6]
     }
 
-    def "can declare a private service together with a private one"() {
+    def "can declare a private service together with a non-private one"() {
         given:
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides

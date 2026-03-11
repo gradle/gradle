@@ -23,7 +23,7 @@ import java.util.concurrent.Callable
 
 class ServiceRegistryGenericsTest extends Specification {
 
-    def injectsGenericTypesIntoProviderFactoryMethod() {
+    def "injects generic types into provider factory method"() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
@@ -46,7 +46,7 @@ class ServiceRegistryGenericsTest extends Specification {
         registry.get(Integer) == 2
     }
 
-    def handlesInheritanceInGenericTypes() {
+    def "handles inheritance in generic types"() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new ProviderWithGenericType())
 
@@ -54,7 +54,7 @@ class ServiceRegistryGenericsTest extends Specification {
         registry.get(Integer) == 123
     }
 
-    def canHaveMultipleServicesWithParameterizedTypesAndSameRawType() {
+    def "can have multiple services with parameterized types and same raw type"() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
