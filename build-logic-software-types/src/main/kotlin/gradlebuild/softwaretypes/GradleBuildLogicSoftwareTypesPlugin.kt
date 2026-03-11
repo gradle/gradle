@@ -26,8 +26,10 @@ import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.GradleDependencies
 import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
+import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
@@ -40,6 +42,7 @@ import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import javax.inject.Inject
 
 @RegistersProjectFeatures(
@@ -196,6 +199,23 @@ open class GroovyKotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() 
                                 }
                             }
                         }
+
+                        // TODO this probably don't need to be in afterEvluate
+                        // TODO there's another compileGroovy configuration in this method, we should consolidate them
+                        if (name == "performance-testing") {
+                            tasks.getByName<GroovyCompile>("compileGroovy") {
+                                val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
+                                classpath = sourceSets.getByName("main").compileClasspath
+                            }
+                            tasks.getByName<KotlinCompile>("compileKotlin") {
+                                libraries.from(files(tasks.getByName("compileGroovy")))
+                            }
+                        }
+                    }
+                    if (name == "performance-testing") {
+                        tasks.getByName<CodeNarc>("codenarcMain") {
+                            exclude("gradlebuild/performance/junit4/**")
+                        }
                     }
                     for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                         configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
@@ -235,6 +255,8 @@ interface BuildLogicDependencies : GradleDependencies, PlatformDependencyModifie
     val compileOnly: DependencyCollector
     val testImplementation: DependencyCollector
     val testRuntimeOnly: DependencyCollector
+    val runtimeOnly: DependencyCollector
+
 
     @HiddenInDefinition
     fun scopeToCollector(): Map<String, DependencyCollector> =
@@ -243,7 +265,8 @@ interface BuildLogicDependencies : GradleDependencies, PlatformDependencyModifie
             "implementation" to implementation,
             "compileOnly" to compileOnly,
             "testImplementation" to testImplementation,
-            "testRuntimeOnly" to testRuntimeOnly
+            "testRuntimeOnly" to testRuntimeOnly,
+            "runtimeOnly" to runtimeOnly
         )
 
     fun catalog(notation: String): ExternalModuleDependency =

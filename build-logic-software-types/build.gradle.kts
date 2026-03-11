@@ -22,6 +22,10 @@ description = "Provides declarative software types for configuring build logic p
 
 group = "gradlebuild"
 
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.3.10")
+}
+
 gradlePlugin {
     plugins {
         register("buildLogicSoftwareTypes") {
