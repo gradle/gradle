@@ -68,6 +68,19 @@ The `t` and `-PquickDocs` flags can be used by the `serveDocs` task as well.
 - [Asciidoctor User Manual](https://asciidoctor.org/docs/user-manual/)
 - [Asciidoctor Gradle Plugin Reference](https://asciidoctor.org/docs/asciidoctor-gradle-plugin/)
 
+### Cross-References and Linking
+
+Good cross-references help readers navigate, but too many become disruptive. 
+
+Follow these guidelines:
+
+- **Be selective.** Every link adds cognitive load and risks pulling readers away from the page. Only include links that are genuinely useful.
+- **Provide context on the page.** When a term, concept, or brief set of steps can be explained in a few sentences, do so rather than linking out.
+- **Avoid duplicate links.** Link to the same destination only once per page, unless sections are far apart or serve different entry points (e.g., a procedure and a troubleshooting section).
+- **Link to the most relevant destination.** Target the most specific relevant page or heading. Don't provide multiple links that serve the same purpose.
+
+**For third-party content**, avoid links unless absolutely necessary. If a brief explanation covers what readers need, provide it on the page. Reserve **third-party links** for cases where the full external resource is genuinely required.
+
 ### Linking to DSL and API References
 
 Whenever you reference a Gradle API class, method, or annotation in prose, link it to the relevant reference documentation. Three path attributes are available:
