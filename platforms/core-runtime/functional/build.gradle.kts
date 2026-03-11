@@ -9,8 +9,8 @@ dependencies {
     api(libs.jspecify)
     api(projects.stdlibJavaExtensions)
 
-    implementation(libs.guava)
     implementation(libs.fastutil)
+    implementation(libs.guava)
     implementation(libs.jsr305)
 }
 

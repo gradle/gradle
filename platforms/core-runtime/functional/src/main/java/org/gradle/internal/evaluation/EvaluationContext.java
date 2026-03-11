@@ -18,11 +18,8 @@ package org.gradle.internal.evaluation;
 
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceList;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * This class keeps track of all objects being evaluated at the moment.
@@ -34,7 +31,7 @@ import java.util.Set;
  */
 public final class EvaluationContext {
 
-    private static final int EXPECTED_MAX_CONTEXT_SIZE = 64;
+    private static final int INITIAL_CAPACITY = 8;
 
     private static final EvaluationContext INSTANCE = new EvaluationContext();
 
@@ -146,31 +143,30 @@ public final class EvaluationContext {
         return getContext().nested();
     }
 
+    /**
+     * Uses a simple identity-based array stack.
+     *
+     * Cycle detection scans the array linearly, which is fast for the typical
+     * shallow evaluation depths (< 10). Automatically resizes to accommodate
+     * deeper stacks.
+     */
     private final class PerThreadContext implements EvaluationScopeContext {
-        private final Set<EvaluationOwner> objectsInScope = new ReferenceOpenHashSet<>(EXPECTED_MAX_CONTEXT_SIZE);
-        private final List<EvaluationOwner> evaluationStack = new ReferenceArrayList<>(EXPECTED_MAX_CONTEXT_SIZE);
+        private final ReferenceArrayList<EvaluationOwner> stack;
+
         @Nullable
         private final PerThreadContext parent;
 
         public PerThreadContext(@Nullable PerThreadContext parent) {
+            this.stack = new ReferenceArrayList<>(INITIAL_CAPACITY);
             this.parent = parent;
         }
 
-        private void push(EvaluationOwner owner) {
-            if (objectsInScope.add(owner)) {
-                evaluationStack.add(owner);
-            } else {
+        public PerThreadContext open(EvaluationOwner owner) {
+            // Identity scan for cycle detection
+            if (isInScope(owner)) {
                 throw prepareException(owner);
             }
-        }
-
-        private void pop() {
-            EvaluationOwner removed = evaluationStack.remove(evaluationStack.size() - 1);
-            objectsInScope.remove(removed);
-        }
-
-        public PerThreadContext open(EvaluationOwner owner) {
-            push(owner);
+            stack.add(owner);
             return this;
         }
 
@@ -182,35 +178,38 @@ public final class EvaluationContext {
         @Override
         public void close() {
             // Closing the "nested" context.
-            if (parent != null && evaluationStack.isEmpty()) {
+            if (parent != null && stack.isEmpty()) {
                 setContext(parent);
                 return;
             }
-            pop();
+            stack.pop();
         }
 
         public boolean isInScope(EvaluationOwner owner) {
-            return objectsInScope.contains(owner);
+            return indexOf(owner) != -1;
         }
 
         @Override
         @Nullable
         public EvaluationOwner getOwner() {
-            if (evaluationStack.isEmpty()) {
+            if (stack.isEmpty()) {
                 return null;
             }
-            return evaluationStack.get(evaluationStack.size() - 1);
+            return stack.top();
         }
 
         private CircularEvaluationException prepareException(EvaluationOwner circular) {
-            int i = evaluationStack.indexOf(circular);
+            int i = indexOf(circular);
             assert i >= 0;
-            List<EvaluationOwner> preCycleList = evaluationStack.subList(i, evaluationStack.size());
-            ImmutableList<EvaluationOwner> evaluationCycle = ImmutableList.<EvaluationOwner>builderWithExpectedSize(preCycleList.size() + 1)
-                .addAll(preCycleList)
-                .add(circular)
-                .build();
-            return new CircularEvaluationException(evaluationCycle);
+            ReferenceList<EvaluationOwner> path = stack.subList(i, stack.size());
+            ImmutableList.Builder<EvaluationOwner> builder = ImmutableList.builderWithExpectedSize(path.size() + 1);
+            builder.addAll(path);
+            builder.add(circular);
+            return new CircularEvaluationException(builder.build());
+        }
+
+        private int indexOf(EvaluationOwner owner) {
+            return stack.indexOf(owner);
         }
     }
 
