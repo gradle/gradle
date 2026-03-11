@@ -138,29 +138,28 @@ open class KotlinSharedRuntimeProjectTypePlugin : BaseGradleBuildProjectTypePlug
     }
 }
 
-abstract class BaseProjectApplyAction<OwnDefinition : Definition<OwnBuildModel>, OwnBuildModel : BuildModel> : ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> {
-    final override fun apply(context: ProjectFeatureApplicationContext, definition: OwnDefinition, buildModel: OwnBuildModel) {
+abstract class BaseProjectApplyAction<OwnDefinition : BuildLogicDefinition> : ProjectTypeApplyAction<OwnDefinition, BuildModel.None> {
+    final override fun apply(context: ProjectFeatureApplicationContext, definition: OwnDefinition, buildModel: BuildModel.None) {
         context.objectFactory.newInstance<Services>().project.run {
             group = "gradlebuild"
+            afterEvaluate {
+                definition.description.orNull?.let { description = it }
+            }
         }
-        doApply(context, definition, buildModel)
+        doApply(context, definition)
     }
 
-    protected abstract fun doApply(context: ProjectFeatureApplicationContext, definition: OwnDefinition, buildModel: OwnBuildModel)
+    protected abstract fun doApply(context: ProjectFeatureApplicationContext, definition: OwnDefinition)
 }
 
-open class KotlinBuildLogicProjectTypeApplyAction : BaseProjectApplyAction<JavaBuildLogicDefinition, BuildModel.None>() {
+open class KotlinBuildLogicProjectTypeApplyAction : BaseProjectApplyAction<JavaBuildLogicDefinition>() {
 
     override fun doApply(
         context: ProjectFeatureApplicationContext,
         definition: JavaBuildLogicDefinition,
-        buildModel: BuildModel.None
     ) {
         context.objectFactory.newInstance<Services>().project.run {
             plugins.apply("org.gradle.kotlin.kotlin-dsl")
-            afterEvaluate {
-                definition.description.orNull?.let { description = it }
-            }
             for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                 configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
             }
@@ -171,18 +170,14 @@ open class KotlinBuildLogicProjectTypeApplyAction : BaseProjectApplyAction<JavaB
     }
 }
 
-open class JavaLibraryBuildLogicProjectTypeAction : BaseProjectApplyAction<JavaBuildLogicDefinition, BuildModel.None>() {
+open class JavaLibraryBuildLogicProjectTypeAction : BaseProjectApplyAction<JavaBuildLogicDefinition>() {
     override fun doApply(
         context: ProjectFeatureApplicationContext,
         definition: JavaBuildLogicDefinition,
-        buildModel: BuildModel.None
     ) {
         context.objectFactory.newInstance<Services>().project.run {
             repositories.mavenCentral()
             plugins.apply("java-library")
-            afterEvaluate {
-                definition.description.orNull?.let { description = it }
-            }
             for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                 configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
             }
@@ -190,11 +185,10 @@ open class JavaLibraryBuildLogicProjectTypeAction : BaseProjectApplyAction<JavaB
     }
 }
 
-open class JavaPlatformBuildLogicProjectTypeAction : BaseProjectApplyAction<BuildLogicDefinition, BuildModel.None>() {
+open class JavaPlatformBuildLogicProjectTypeAction : BaseProjectApplyAction<BuildLogicDefinition>() {
     override fun doApply(
         context: ProjectFeatureApplicationContext,
         definition: BuildLogicDefinition,
-        buildModel: BuildModel.None
     ) {
         context.objectFactory.newInstance<Services>().project.run {
             plugins.apply("java-platform")
@@ -218,17 +212,15 @@ open class JavaPlatformBuildLogicProjectTypeAction : BaseProjectApplyAction<Buil
     }
 }
 
-open class KotlinDslProjectTypeAction : BaseProjectApplyAction<KotlinDslDefinition, BuildModel.None>() {
+open class KotlinDslProjectTypeAction : BaseProjectApplyAction<KotlinDslDefinition>() {
     override fun doApply(
         context: ProjectFeatureApplicationContext,
         definition: KotlinDslDefinition,
-        buildModel: BuildModel.None
     ) {
         context.objectFactory.newInstance<Services>().project.run {
             plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
             plugins.apply("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
             afterEvaluate {
-                definition.description.orNull?.let { description = it }
                 extensions.configure<GradlePluginDevelopmentExtension>("gradlePlugin") {
                     definition.gradlePlugins.forEach {
                         plugins {
@@ -266,17 +258,13 @@ open class KotlinDslProjectTypeAction : BaseProjectApplyAction<KotlinDslDefiniti
     }
 }
 
-open class KotlinSharedRuntimeProjectTypeAction : BaseProjectApplyAction<JavaBuildLogicDefinition, BuildModel.None>() {
+open class KotlinSharedRuntimeProjectTypeAction : BaseProjectApplyAction<JavaBuildLogicDefinition>() {
     override fun doApply(
         context: ProjectFeatureApplicationContext,
         definition: JavaBuildLogicDefinition,
-        buildModel: BuildModel.None
     ) {
         context.objectFactory.newInstance<Services>().project.run {
             plugins.apply("gradlebuild.kotlin-shared-runtime")
-            afterEvaluate {
-                definition.description.orNull?.let { description = it }
-            }
             for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                 configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
             }
