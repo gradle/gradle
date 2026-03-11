@@ -21,8 +21,8 @@ package org.gradle.internal.classloader;
  * Used in classloader negative caching where the exception is caught and ignored
  * by the caller, making the stack trace unnecessary overhead.
  */
-class ClassNotFoundExceptionNoStackTrace extends ClassNotFoundException {
-    ClassNotFoundExceptionNoStackTrace(String name) {
+public class ClassNotFoundExceptionNoStackTrace extends ClassNotFoundException {
+    public ClassNotFoundExceptionNoStackTrace(String name) {
         super(name);
     }
 
