@@ -145,20 +145,17 @@ abstract class BaseProjectApplyAction<OwnDefinition : BuildLogicDefinition> : Pr
             afterEvaluate {
                 definition.description.orNull?.let { description = it }
             }
+            doApply(this, definition)
         }
-        doApply(context, definition)
     }
 
-    protected abstract fun doApply(context: ProjectFeatureApplicationContext, definition: OwnDefinition)
+    protected abstract fun doApply(project: Project, definition: OwnDefinition)
 }
 
 open class KotlinBuildLogicProjectTypeApplyAction : BaseProjectApplyAction<JavaBuildLogicDefinition>() {
 
-    override fun doApply(
-        context: ProjectFeatureApplicationContext,
-        definition: JavaBuildLogicDefinition,
-    ) {
-        context.objectFactory.newInstance<Services>().project.run {
+    override fun doApply(project: Project, definition: JavaBuildLogicDefinition) {
+        project.run {
             plugins.apply("org.gradle.kotlin.kotlin-dsl")
             for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                 configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
@@ -171,11 +168,8 @@ open class KotlinBuildLogicProjectTypeApplyAction : BaseProjectApplyAction<JavaB
 }
 
 open class JavaLibraryBuildLogicProjectTypeAction : BaseProjectApplyAction<JavaBuildLogicDefinition>() {
-    override fun doApply(
-        context: ProjectFeatureApplicationContext,
-        definition: JavaBuildLogicDefinition,
-    ) {
-        context.objectFactory.newInstance<Services>().project.run {
+    override fun doApply(project: Project, definition: JavaBuildLogicDefinition) {
+        project.run {
             repositories.mavenCentral()
             plugins.apply("java-library")
             for ((scope, collector) in definition.dependencies.scopeToCollector()) {
@@ -186,11 +180,8 @@ open class JavaLibraryBuildLogicProjectTypeAction : BaseProjectApplyAction<JavaB
 }
 
 open class JavaPlatformBuildLogicProjectTypeAction : BaseProjectApplyAction<BuildLogicDefinition>() {
-    override fun doApply(
-        context: ProjectFeatureApplicationContext,
-        definition: BuildLogicDefinition,
-    ) {
-        context.objectFactory.newInstance<Services>().project.run {
+    override fun doApply(project: Project, definition: BuildLogicDefinition) {
+        project.run {
             plugins.apply("java-platform")
             val kotlinVersion = providers.gradleProperty("buildKotlinVersion").getOrElse(embeddedKotlinVersion)
             val distributionDependencies = project.extensions.getByType<VersionCatalogsExtension>().named("buildLibs")
@@ -213,11 +204,8 @@ open class JavaPlatformBuildLogicProjectTypeAction : BaseProjectApplyAction<Buil
 }
 
 open class KotlinDslProjectTypeAction : BaseProjectApplyAction<KotlinDslDefinition>() {
-    override fun doApply(
-        context: ProjectFeatureApplicationContext,
-        definition: KotlinDslDefinition,
-    ) {
-        context.objectFactory.newInstance<Services>().project.run {
+    override fun doApply(project: Project, definition: KotlinDslDefinition) {
+        project.run {
             plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
             plugins.apply("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
             afterEvaluate {
@@ -259,11 +247,8 @@ open class KotlinDslProjectTypeAction : BaseProjectApplyAction<KotlinDslDefiniti
 }
 
 open class KotlinSharedRuntimeProjectTypeAction : BaseProjectApplyAction<JavaBuildLogicDefinition>() {
-    override fun doApply(
-        context: ProjectFeatureApplicationContext,
-        definition: JavaBuildLogicDefinition,
-    ) {
-        context.objectFactory.newInstance<Services>().project.run {
+    override fun doApply(project: Project, definition: JavaBuildLogicDefinition) {
+        project.run {
             plugins.apply("gradlebuild.kotlin-shared-runtime")
             for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                 configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
