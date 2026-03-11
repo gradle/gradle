@@ -10,7 +10,7 @@ kotlinBuildLogic {
         implementation(project(":module-identity"))
         implementation(catalog("buildLibs.errorPronePlugin"))
         implementation(catalog("buildLibs.nullawayPlugin"))
-        implementation(kotlinDlsGradlePlugin())
+        implementation(kotlinDslGradlePlugin())
         implementation(catalog("buildLibs.kgp"))
         implementation(catalog("buildLibs.testRetryPlugin"))
         implementation(catalog("buildLibs.detektPlugin"))

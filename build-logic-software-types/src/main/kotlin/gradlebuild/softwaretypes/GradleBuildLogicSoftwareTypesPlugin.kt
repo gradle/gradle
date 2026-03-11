@@ -327,7 +327,7 @@ interface BuildLogicDependencies : GradleDependencies, PlatformDependencyModifie
         }
 
     @Suppress("unused")
-    fun kotlinDlsGradlePlugin(): String =
+    fun kotlinDslGradlePlugin(): String =
         "org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersion"
 
     @get:Inject
