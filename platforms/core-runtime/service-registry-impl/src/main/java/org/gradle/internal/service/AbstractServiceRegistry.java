@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,11 @@
 package org.gradle.internal.service;
 
 /**
- * Represents a source of services.
+ * Base class for service registries that can be used as parents of {@link DefaultServiceRegistry}.
+ * <p>
+ * Subclasses provide access to their internal {@link ServiceProvider} via {@link #asServiceProvider()},
+ * which child registries use to resolve services from their parents.
  */
-interface ContainsServices {
-    ServiceProvider asProvider();
+abstract class AbstractServiceRegistry implements ServiceRegistry {
+    abstract ServiceProvider asServiceProvider();
 }
