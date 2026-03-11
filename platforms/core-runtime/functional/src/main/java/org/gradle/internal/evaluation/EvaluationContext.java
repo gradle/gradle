@@ -17,12 +17,10 @@
 package org.gradle.internal.evaluation;
 
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 /**
  * This class keeps track of all objects being evaluated at the moment.
@@ -34,7 +32,7 @@ import java.util.Set;
  */
 public final class EvaluationContext {
 
-    private static final int EXPECTED_MAX_CONTEXT_SIZE = 64;
+    private static final int INITIAL_CAPACITY = 8;
 
     private static final EvaluationContext INSTANCE = new EvaluationContext();
 
@@ -146,27 +144,40 @@ public final class EvaluationContext {
         return getContext().nested();
     }
 
+    /**
+     * Uses a simple identity-based array stack instead of HashSet + ArrayList.
+     * Cycle detection scans the array linearly, which is fast for the typical
+     * shallow evaluation depths (< 10). Avoids HashSet add/remove overhead
+     * on every property read.
+     */
     private final class PerThreadContext implements EvaluationScopeContext {
-        private final Set<EvaluationOwner> objectsInScope = new ReferenceOpenHashSet<>(EXPECTED_MAX_CONTEXT_SIZE);
-        private final List<EvaluationOwner> evaluationStack = new ReferenceArrayList<>(EXPECTED_MAX_CONTEXT_SIZE);
+        private EvaluationOwner[] stack;
+        private int size;
         @Nullable
         private final PerThreadContext parent;
 
         public PerThreadContext(@Nullable PerThreadContext parent) {
+            this.stack = new EvaluationOwner[INITIAL_CAPACITY];
+            this.size = 0;
             this.parent = parent;
         }
 
         private void push(EvaluationOwner owner) {
-            if (objectsInScope.add(owner)) {
-                evaluationStack.add(owner);
-            } else {
-                throw prepareException(owner);
+            // Identity scan for cycle detection
+            for (int i = 0; i < size; i++) {
+                if (stack[i] == owner) {
+                    throw prepareException(owner);
+                }
             }
+            if (size == stack.length) {
+                stack = Arrays.copyOf(stack, stack.length * 2);
+            }
+            stack[size++] = owner;
         }
 
+        @SuppressWarnings("NullAway")
         private void pop() {
-            EvaluationOwner removed = evaluationStack.remove(evaluationStack.size() - 1);
-            objectsInScope.remove(removed);
+            stack[--size] = null; // help GC
         }
 
         public PerThreadContext open(EvaluationOwner owner) {
@@ -182,7 +193,7 @@ public final class EvaluationContext {
         @Override
         public void close() {
             // Closing the "nested" context.
-            if (parent != null && evaluationStack.isEmpty()) {
+            if (parent != null && size == 0) {
                 setContext(parent);
                 return;
             }
@@ -190,27 +201,41 @@ public final class EvaluationContext {
         }
 
         public boolean isInScope(EvaluationOwner owner) {
-            return objectsInScope.contains(owner);
+            for (int i = 0; i < size; i++) {
+                if (stack[i] == owner) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
         @Nullable
         public EvaluationOwner getOwner() {
-            if (evaluationStack.isEmpty()) {
+            if (size == 0) {
                 return null;
             }
-            return evaluationStack.get(evaluationStack.size() - 1);
+            return stack[size - 1];
         }
 
         private CircularEvaluationException prepareException(EvaluationOwner circular) {
-            int i = evaluationStack.indexOf(circular);
+            int i = indexOf(circular);
             assert i >= 0;
-            List<EvaluationOwner> preCycleList = evaluationStack.subList(i, evaluationStack.size());
-            ImmutableList<EvaluationOwner> evaluationCycle = ImmutableList.<EvaluationOwner>builderWithExpectedSize(preCycleList.size() + 1)
-                .addAll(preCycleList)
-                .add(circular)
-                .build();
-            return new CircularEvaluationException(evaluationCycle);
+            ImmutableList.Builder<EvaluationOwner> builder = ImmutableList.builderWithExpectedSize(size - i + 1);
+            for (int j = i; j < size; j++) {
+                builder.add(stack[j]);
+            }
+            builder.add(circular);
+            return new CircularEvaluationException(builder.build());
+        }
+
+        private int indexOf(EvaluationOwner owner) {
+            for (int i = 0; i < size; i++) {
+                if (stack[i] == owner) {
+                    return i;
+                }
+            }
+            return -1;
         }
     }
 

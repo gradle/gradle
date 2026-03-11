@@ -53,11 +53,16 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
         return doCreate(type, null, parameters);
     }
 
+    private static final Object[] NO_PARAMS = new Object[0];
+
     @NonNull
     private <T> T doCreate(Class<? extends T> type, @Nullable Describable displayName, Object[] parameters) {
         try {
             ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forParams(type, parameters);
-            Object[] resolvedParameters = convertParameters(type, constructor, services, parameters);
+            // Fast path: skip parameter conversion/verification for zero-arg constructors
+            Object[] resolvedParameters = (parameters.length == 0 && constructor.getParameterTypes().length == 0)
+                ? NO_PARAMS
+                : convertParameters(type, constructor, services, parameters);
             try {
                 return constructor.newInstance(services, this, displayName, resolvedParameters);
             } catch (InvocationTargetException e) {

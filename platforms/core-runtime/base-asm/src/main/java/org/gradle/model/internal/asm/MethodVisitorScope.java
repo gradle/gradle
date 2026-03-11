@@ -24,7 +24,6 @@ import org.objectweb.asm.Type;
 
 import java.util.List;
 
-import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType;
 import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.AALOAD;
 import static org.objectweb.asm.Opcodes.AASTORE;
@@ -35,7 +34,10 @@ import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.F_APPEND;
+import static org.objectweb.asm.Opcodes.F_FULL;
 import static org.objectweb.asm.Opcodes.F_SAME;
+import static org.objectweb.asm.Opcodes.F_SAME1;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.GOTO;
@@ -65,6 +67,8 @@ import static org.objectweb.asm.Type.getType;
  */
 @SuppressWarnings({"NewMethodNamingConvention", "SpellCheckingInspection"})
 public class MethodVisitorScope extends MethodVisitor {
+
+    private static final Object[] EMPTY_FRAME = new Object[0];
 
     private static final String BOXED_BOOLEAN_TYPE = getType(Boolean.class).getInternalName();
     private static final String BOXED_CHAR_TYPE = getType(Character.class).getInternalName();
@@ -138,14 +142,48 @@ public class MethodVisitorScope extends MethodVisitor {
         _INVOKEVIRTUAL(boxedType, unboxMethod, unboxMethodDescriptor);
     }
 
+    private static final String AUTOBOX_BOOLEAN = getMethodDescriptor(getType(Boolean.class), Type.BOOLEAN_TYPE);
+    private static final String AUTOBOX_CHAR = getMethodDescriptor(getType(Character.class), Type.CHAR_TYPE);
+    private static final String AUTOBOX_BYTE = getMethodDescriptor(getType(Byte.class), Type.BYTE_TYPE);
+    private static final String AUTOBOX_SHORT = getMethodDescriptor(getType(Short.class), Type.SHORT_TYPE);
+    private static final String AUTOBOX_INT = getMethodDescriptor(getType(Integer.class), Type.INT_TYPE);
+    private static final String AUTOBOX_LONG = getMethodDescriptor(getType(Long.class), Type.LONG_TYPE);
+    private static final String AUTOBOX_FLOAT = getMethodDescriptor(getType(Float.class), Type.FLOAT_TYPE);
+    private static final String AUTOBOX_DOUBLE = getMethodDescriptor(getType(Double.class), Type.DOUBLE_TYPE);
+
     /**
      * Boxes the value at the top of the stack, if primitive
      */
     public void _AUTOBOX(Class<?> valueClass, Type valueType) {
         if (valueClass.isPrimitive()) {
-            // Box value
-            Type boxedType = getType(getWrapperTypeForPrimitiveType(valueClass));
-            _INVOKESTATIC(boxedType, "valueOf", getMethodDescriptor(boxedType, valueType));
+            switch (valueType.getSort()) {
+                case Type.BOOLEAN:
+                    _INVOKESTATIC(BOXED_BOOLEAN_TYPE, "valueOf", AUTOBOX_BOOLEAN);
+                    break;
+                case Type.CHAR:
+                    _INVOKESTATIC(BOXED_CHAR_TYPE, "valueOf", AUTOBOX_CHAR);
+                    break;
+                case Type.BYTE:
+                    _INVOKESTATIC(BOXED_BYTE_TYPE, "valueOf", AUTOBOX_BYTE);
+                    break;
+                case Type.SHORT:
+                    _INVOKESTATIC(BOXED_SHORT_TYPE, "valueOf", AUTOBOX_SHORT);
+                    break;
+                case Type.INT:
+                    _INVOKESTATIC(BOXED_INT_TYPE, "valueOf", AUTOBOX_INT);
+                    break;
+                case Type.LONG:
+                    _INVOKESTATIC(BOXED_LONG_TYPE, "valueOf", AUTOBOX_LONG);
+                    break;
+                case Type.FLOAT:
+                    _INVOKESTATIC(BOXED_FLOAT_TYPE, "valueOf", AUTOBOX_FLOAT);
+                    break;
+                case Type.DOUBLE:
+                    _INVOKESTATIC(BOXED_DOUBLE_TYPE, "valueOf", AUTOBOX_DOUBLE);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -153,7 +191,28 @@ public class MethodVisitorScope extends MethodVisitor {
      * @see org.objectweb.asm.Opcodes#F_SAME
      */
     public void _F_SAME() {
-        super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);
+        super.visitFrame(F_SAME, 0, EMPTY_FRAME, 0, EMPTY_FRAME);
+    }
+
+    /**
+     * @see org.objectweb.asm.Opcodes#F_SAME1
+     */
+    public void _F_SAME1(Object stackType) {
+        super.visitFrame(F_SAME1, 0, EMPTY_FRAME, 1, new Object[]{stackType});
+    }
+
+    /**
+     * @see org.objectweb.asm.Opcodes#F_FULL
+     */
+    public void _F_FULL(Object[] locals, Object[] stack) {
+        super.visitFrame(F_FULL, locals.length, locals, stack.length, stack);
+    }
+
+    /**
+     * @see org.objectweb.asm.Opcodes#F_APPEND
+     */
+    public void _F_APPEND(Object... additionalLocals) {
+        super.visitFrame(F_APPEND, additionalLocals.length, additionalLocals, 0, EMPTY_FRAME);
     }
 
     public void _INVOKESPECIAL(Type owner, String name, String descriptor) {

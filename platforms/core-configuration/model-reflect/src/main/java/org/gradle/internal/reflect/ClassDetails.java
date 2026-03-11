@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import org.jspecify.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -53,4 +55,11 @@ public interface ClassDetails {
      * Returns all instance fields of this class. Includes inherited fields.
      */
     List<Field> getInstanceFields();
+
+    /**
+     * Returns the previously computed property accessor type for the given method,
+     * or null if the method is not a property accessor.
+     */
+    @Nullable
+    PropertyAccessorType getAccessorType(Method method);
 }

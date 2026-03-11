@@ -304,7 +304,9 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     private void beforeRead(EvaluationScopeContext context, @Nullable ModelObject effectiveProducer, ValueConsumer consumer) {
-        state.finalizeOnReadIfNeeded(this.getDisplayName(), effectiveProducer, consumer, effectiveConsumer -> finalizeNow(context, effectiveConsumer));
+        if (state.maybeFinalizeOnRead(this.getDisplayName(), effectiveProducer, consumer)) {
+            finalizeNow(context, state.forUpstream(consumer));
+        }
     }
 
     private void finalizeNow(EvaluationScopeContext context, ValueConsumer consumer) {

@@ -17,25 +17,28 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableSet;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 class MutableClassDetails implements ClassDetails {
     private final Class<?> type;
     private final MethodSet instanceMethods = new MethodSet();
-    private final Map<String, MutablePropertyDetails> properties = new TreeMap<String, MutablePropertyDetails>();
+    private final Map<String, MutablePropertyDetails> properties = new HashMap<>();
     private final List<Method> methods = new ArrayList<Method>();
     private final List<Field> instanceFields = new ArrayList<>();
     private final Set<Class<?>> superTypes = new LinkedHashSet<Class<?>>();
+    private final IdentityHashMap<Method, PropertyAccessorType> accessorTypes = new IdentityHashMap<>();
 
     MutableClassDetails(Class<?> type) {
         this.type = type;
@@ -103,6 +106,16 @@ class MutableClassDetails implements ClassDetails {
             properties.put(propertyName, property);
         }
         return property;
+    }
+
+    void putAccessorType(Method method, PropertyAccessorType accessorType) {
+        accessorTypes.put(method, accessorType);
+    }
+
+    @Override
+    @Nullable
+    public PropertyAccessorType getAccessorType(Method method) {
+        return accessorTypes.get(method);
     }
 
     public void field(Field field) {

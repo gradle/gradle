@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations;
+package org.gradle.internal.classloader;
 
-import java.util.concurrent.atomic.AtomicLong;
-
-public class DefaultBuildOperationIdFactory implements BuildOperationIdFactory {
-    public static final long ROOT_BUILD_OPERATION_ID_VALUE = 1L;
-
-    private final AtomicLong nextId = new AtomicLong(ROOT_BUILD_OPERATION_ID_VALUE);
-
-    @Override
-    public long nextId() {
-        return nextId.getAndIncrement();
+/**
+ * A ClassNotFoundException that skips filling in the stack trace for performance.
+ * Used in classloader negative caching where the exception is caught and ignored
+ * by the caller, making the stack trace unnecessary overhead.
+ */
+public class ClassNotFoundExceptionNoStackTrace extends ClassNotFoundException {
+    public ClassNotFoundExceptionNoStackTrace(String name) {
+        super(name);
     }
 
     @Override
-    public long mostRecentId() {
-        return nextId.get() - 1;
+    public synchronized Throwable fillInStackTrace() {
+        return this;
     }
 }
