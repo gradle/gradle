@@ -56,7 +56,7 @@ open class GradleBuildLogicSoftwareTypesPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
 }
 
-abstract class BaseGradleBuilProjectTypePlugin : Plugin<Project> {
+abstract class BaseGradleBuildProjectTypePlugin : Plugin<Project> {
     override fun apply(target: Project) = Unit
 
     interface Services {
@@ -66,7 +66,7 @@ abstract class BaseGradleBuilProjectTypePlugin : Plugin<Project> {
 }
 
 @BindsProjectType(KotlinBuildLogicProjectTypePlugin.Binding::class)
-open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
@@ -90,7 +90,7 @@ open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin()
 }
 
 @BindsProjectType(JavaLibraryBuildLogicProjectTypePlugin.Binding::class)
-open class JavaLibraryBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+open class JavaLibraryBuildLogicProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
@@ -112,7 +112,7 @@ open class JavaLibraryBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlu
 }
 
 @BindsProjectType(JavaPlatformBuildLogicProjectTypePlugin.Binding::class)
-open class JavaPlatformBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+open class JavaPlatformBuildLogicProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
@@ -120,9 +120,7 @@ open class JavaPlatformBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePl
                 context.objectFactory.newInstance<Services>().project.run {
                     plugins.apply("java-platform")
                     group = "gradlebuild"
-
                     val kotlinVersion = providers.gradleProperty("buildKotlinVersion").getOrElse(embeddedKotlinVersion)
-
                     val distributionDependencies = project.extensions.getByType<VersionCatalogsExtension>().named("buildLibs")
                     distributionDependencies.libraryAliases.forEach { alias ->
                         val constr = distributionDependencies.findLibrary(alias).get().map { module ->
@@ -145,7 +143,7 @@ open class JavaPlatformBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePl
 }
 
 @BindsProjectType(KotlinDslProjectTypePlugin.Binding::class)
-open class KotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+open class KotlinDslProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
@@ -156,7 +154,6 @@ open class KotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
                     group = "gradlebuild"
                     afterEvaluate {
                         definition.description.orNull?.let { description = it }
-
                         extensions.configure<GradlePluginDevelopmentExtension>("gradlePlugin") {
                             definition.gradlePlugins.forEach {
                                 plugins {
@@ -167,7 +164,6 @@ open class KotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
                                 }
                             }
                         }
-
                         // TODO this probably don't need to be in afterEvluate
                         // TODO there's another compileGroovy configuration in this method, we should consolidate them
                         if (name == "performance-testing") {
@@ -198,7 +194,7 @@ open class KotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
 }
 
 @BindsProjectType(KotlinSharedRuntimeProjectTypePlugin.Binding::class)
-open class KotlinSharedRuntimeProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
+open class KotlinSharedRuntimeProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
