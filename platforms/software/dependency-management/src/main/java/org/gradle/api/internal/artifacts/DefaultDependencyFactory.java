@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
@@ -49,8 +48,6 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final ProjectDependencyFactory projectDependencyFactory;
     private final AttributesFactory attributesFactory;
     @Nullable
-    private final ProjectFinder projectFinder;
-    @Nullable
     private final Project project;
 
     public DefaultDependencyFactory(
@@ -60,7 +57,6 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         ObjectFactory objectFactory,
         ProjectDependencyFactory projectDependencyFactory,
         AttributesFactory attributesFactory,
-        @Nullable ProjectFinder projectFinder,
         @Nullable Project project
     ) {
         this.instantiator = instantiator;
@@ -69,7 +65,6 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         this.objectFactory = objectFactory;
         this.projectDependencyFactory = projectDependencyFactory;
         this.attributesFactory = attributesFactory;
-        this.projectFinder = projectFinder;
         this.project = project;
     }
 
@@ -95,8 +90,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     }
 
     @Override
-    public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map) {
-        return projectDependencyFactory.createFromMap(projectFinder, map);
+    public ProjectDependency createProjectDependencyFromMap(Map<? extends String, ? extends Object> map) {
+        return projectDependencyFactory.createFromMap(map);
     }
 
     // region DependencyFactory methods
@@ -135,10 +130,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ProjectDependency createProjectDependency(String projectPath) {
-        if (projectFinder == null) {
-            throw new IllegalStateException("This dependency factory is not associated with a project, so project dependencies cannot be created by path.  Use create(Project) instead.");
-        }
-        return projectDependencyFactory.create(projectFinder, projectPath);
+        return projectDependencyFactory.create(projectPath);
     }
 
     @Override

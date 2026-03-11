@@ -70,7 +70,6 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
 public abstract class DefaultDependencyHandler implements DependencyHandlerInternal, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
     private final DependencyFactoryInternal dependencyFactory;
-    private final ProjectFinder projectFinder;
     private final DependencyConstraintHandler dependencyConstraintHandler;
     private final ComponentMetadataHandler componentMetadataHandler;
     private final ComponentModuleMetadataHandler componentModuleMetadataHandler;
@@ -84,7 +83,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
                                     DependencyFactoryInternal dependencyFactory,
-                                    ProjectFinder projectFinder,
                                     DependencyConstraintHandler dependencyConstraintHandler,
                                     ComponentMetadataHandler componentMetadataHandler,
                                     ComponentModuleMetadataHandler componentModuleMetadataHandler,
@@ -96,7 +94,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
                                     PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
-        this.projectFinder = projectFinder;
         this.dependencyConstraintHandler = dependencyConstraintHandler;
         this.componentMetadataHandler = componentMetadataHandler;
         this.componentModuleMetadataHandler = componentModuleMetadataHandler;
@@ -229,7 +226,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
     @Override
     public Dependency project(Map<String, ?> notation) {
-        return dependencyFactory.createProjectDependencyFromMap(projectFinder, notation);
+        return dependencyFactory.createProjectDependencyFromMap(notation);
     }
 
     @Override
