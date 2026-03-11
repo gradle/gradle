@@ -80,7 +80,6 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
         generator.setApplicationName("Gradle")
         generator.setGitRef(DefaultGradleVersion.current().gitRevision ?: "HEAD")
         generator.setOptsEnvironmentVar("GRADLE_OPTS")
-        generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE")
         generator.setEntryPoint(ExecutableJar("lib/$launcherJarName"))
         generator.setScriptRelPath("bin/gradle")
         generator.setClasspath(emptyList())

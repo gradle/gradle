@@ -36,7 +36,7 @@ class ProviderStartParameterConverterTest extends Specification {
         params.getArguments() >> ['-PextraProperty=foo', '-m']
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties)
+        def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties, [:])
 
         then:
         start.projectProperties['extraProperty'] == 'foo'
@@ -50,7 +50,7 @@ class ProviderStartParameterConverterTest extends Specification {
         ]
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties)
+        def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties, [:])
 
         then:
         start.configureOnDemand
@@ -67,7 +67,7 @@ class ProviderStartParameterConverterTest extends Specification {
         params.getLaunchables() >> [selector]
 
         when:
-        def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties)
+        def start = new ProviderStartParameterConverter().toStartParameter(params, layout, properties, [:])
 
         then:
         start.taskRequests.size() == 1

@@ -56,7 +56,7 @@ import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.plugins.PluginManagerInternal
-import org.gradle.api.internal.project.ant.AntLoggingAdapter
+import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
@@ -170,7 +170,6 @@ class DefaultProjectTest extends Specification {
     PluginManagerInternal pluginManager = Stub(PluginManagerInternal)
     PluginContainer pluginContainer = Stub(PluginContainer)
     ManagedProxyFactory managedProxyFactory = Stub(ManagedProxyFactory)
-    AntLoggingAdapter antLoggingAdapter = Stub(AntLoggingAdapter)
     AttributesSchema attributesSchema = Stub(AttributesSchema)
     TextFileResourceLoader textResourceLoader = Stub(TextFileResourceLoader)
     ApiTextResourceAdapter.Factory textResourceAdapterFactory = Stub(ApiTextResourceAdapter.Factory)
@@ -187,7 +186,7 @@ class DefaultProjectTest extends Specification {
         rootDir = new File("/path/root").absoluteFile
         buildFile = new File(rootDir, TEST_BUILD_FILE_NAME)
 
-        testAntBuilder = new DefaultAntBuilder(null, antLoggingAdapter)
+        testAntBuilder = new BasicAntBuilder()
 
         antBuilderFactoryMock.createAntBuilder() >> testAntBuilder
         script.getDisplayName() >> '[build file]'

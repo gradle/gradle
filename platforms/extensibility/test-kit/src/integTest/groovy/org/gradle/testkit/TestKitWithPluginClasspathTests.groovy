@@ -17,6 +17,7 @@
 package org.gradle.testkit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.internal.TextUtil
@@ -207,6 +208,7 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
         """
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/5116")
     def "withPlugin detects plugin applied transitively when tested plugin is not used"() {
         given:
         succeeds(":plugin-leaf:publish", ":plugin-other:publish")

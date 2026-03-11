@@ -1,7 +1,28 @@
 [
   {
+    "name": "ant",
+    "path": "platforms/software/ant",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ant-api",
+    "path": "platforms/software/ant-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ant-impl",
+    "path": "platforms/software/ant-impl",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "ant-worker",
-    "path": "platforms/jvm/ant-worker",
+    "path": "platforms/software/ant-worker",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -339,6 +360,27 @@
     "name": "core-serialization-codecs",
     "path": "platforms/core-configuration/core-serialization-codecs",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "credentials",
+    "path": "platforms/software/credentials",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "credentials-api",
+    "path": "platforms/software/credentials-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "credentials-impl",
+    "path": "platforms/software/credentials-impl",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

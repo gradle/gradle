@@ -64,12 +64,10 @@ import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
-import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
@@ -150,6 +148,7 @@ import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
@@ -162,9 +161,7 @@ import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.initialization.BuildLoader;
-import org.gradle.initialization.BuildOperationFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
-import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.DefaultToolchainManagement;
@@ -177,7 +174,6 @@ import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
-import org.gradle.initialization.SettingsLoaderFactory;
 import org.gradle.initialization.SettingsPreparer;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.TaskExecutionPreparer;
@@ -189,8 +185,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
-import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
-import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
@@ -208,7 +202,6 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
-import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
@@ -259,7 +252,6 @@ import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.plugin.management.internal.PluginHandler;
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -300,7 +292,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(FileSystemOperations.class, DefaultFileSystemOperations.class);
         registration.add(ArchiveOperations.class, DefaultArchiveOperations.class);
         registration.add(IProjectFactory.class, ProjectFactory.class);
-        registration.add(SettingsLoaderFactory.class, DefaultSettingsLoaderFactory.class);
+        registration.add(SettingsPreparer.class, DefaultSettingsPreparer.class);
         registration.add(ResolvedBuildLayout.class);
         registration.add(NodeValidator.class, DefaultNodeValidator.class);
         registration.add(TaskNodeFactory.class);
@@ -440,11 +432,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         return new DefaultClassPathRegistry(
             new DefaultClassPathProvider(moduleRegistry),
             new DependencyClassPathProvider(moduleRegistry, pluginModuleRegistry));
-    }
-
-    @Provides
-    protected IsolatedAntBuilder createIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
-        return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
     }
 
     @Provides
@@ -682,17 +669,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected SettingsPreparer createSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory, BuildOperationRunner buildOperationRunner, BuildOperationProgressEventEmitter emitter, BuildDefinition buildDefinition) {
-        return new BuildOperationFiringSettingsPreparer(
-            new DefaultSettingsPreparer(
-                settingsLoaderFactory
-            ),
-            buildOperationRunner,
-            emitter,
-            buildDefinition.getFromBuild());
-    }
-
-    @Provides
     protected ProjectsPreparer createBuildConfigurer(
         ProjectConfigurer projectConfigurer,
         BuildSourceBuilder buildSourceBuilder,
@@ -765,11 +741,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected BuildOperationLoggerFactory createBuildOperationLoggerFactory() {
         return new DefaultBuildOperationLoggerFactory();
-    }
-
-    @Provides
-    AuthenticationSchemeRegistry createAuthenticationSchemeRegistry() {
-        return new DefaultAuthenticationSchemeRegistry();
     }
 
     @Provides

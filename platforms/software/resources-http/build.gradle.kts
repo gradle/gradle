@@ -7,8 +7,8 @@ description = "Implementation for interacting with repositories over HTTP"
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
-    api(projects.coreApi)
-    api(projects.core)
+    api(projects.credentials)
+    api(projects.credentialsApi)
     api(projects.logging)
     api(projects.resources)
 
@@ -26,6 +26,9 @@ dependencies {
     implementation(libs.jcifs)
     implementation(libs.jsoup)
     implementation(libs.slf4jApi)
+
+    runtimeOnly(projects.core)
+    runtimeOnly(projects.coreApi)
 
     testImplementation(projects.internalIntegTesting)
     testImplementation(testLibs.jettyWebApp)

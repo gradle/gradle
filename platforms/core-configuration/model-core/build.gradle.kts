@@ -16,6 +16,7 @@ jvmCompile {
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
+    api(projects.credentialsApi)
     api(projects.files)
     api(projects.functional)
     api(projects.hashing)

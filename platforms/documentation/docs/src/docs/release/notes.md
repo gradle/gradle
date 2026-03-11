@@ -22,6 +22,7 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[/dev/mataha](https://github.com/mataha),
 [Ujwal Suresh Vanjare](https://github.com/usv240),
 [Suvrat Acharya](https://github.com/Suvrat1629)
 
@@ -94,8 +95,7 @@ plugins {
 
 ### Domain Object Collections can be made immutable
 
-Plugin and build authors can now lock domain object collections to prevent further modifications using the new `disallowChanges()` method. 
-You can also verify the status of a collection using `areChangesAllowed()`.
+Plugin and build authors can now lock domain object collections to prevent further modifications using the new `disallowChanges()` method.
 - Once `disallowChanges()` is called, elements can no longer be added to or removed from the collection.
 - Invoking this method does not force the realization of lazy items previously added to the collection. 
 - This lock applies only to the collection itself. Individual objects within the collection can still be modified.
@@ -104,16 +104,20 @@ You can also verify the status of a collection using `areChangesAllowed()`.
 val myCollection = objects.domainObjectContainer(MyType::class)
 val main = MyType("main")
 
-myCollection.areChangesAllowed()  // returns true
 myCollection.add(main)
 myCollection.add(MyType("test"))
 
 myCollection.disallowChanges()    // the collection is now immutable
-myCollection.areChangesAllowed()  // returns false
 main.setFoo("bar")                // individual elements can still be modified
 myCollection.add(MyType("other")) // this will fail
 myCollection.remove(main)         // this will fail
 ```
+
+### GitHub Permalinks in wrapper & start scripts
+
+Gradle Wrapper scripts and application start scripts include links to the GitHub source templates they were generated from.
+Previously, these links always pointed to the latest template versions, which could drift out of sync with the actual generated scripts as templates evolved. 
+This has now been fixed: scripts always link to the exact template version they were generated from.
 
 ## Tooling integration improvements
 

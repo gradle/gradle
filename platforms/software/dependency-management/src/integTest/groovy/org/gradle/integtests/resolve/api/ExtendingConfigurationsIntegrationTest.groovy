@@ -244,7 +244,7 @@ task checkResolveParentThenChild {
         succeeds 'resolvableConfigurations', '--all'
         outputContains("""
 --------------------------------------------------
-Configuration conf2
+Configuration conf2 (n)
 --------------------------------------------------
 
 Extended Configurations
@@ -268,7 +268,7 @@ Extended Configurations
         succeeds 'resolvableConfigurations', '--all'
         outputContains("""
 --------------------------------------------------
-Configuration conf2
+Configuration conf2 (n)
 --------------------------------------------------
 
 Extended Configurations
@@ -293,7 +293,7 @@ Extended Configurations
         succeeds 'resolvableConfigurations', '--all'
         outputContains("""
 --------------------------------------------------
-Configuration conf3
+Configuration conf3 (n)
 --------------------------------------------------
 
 Extended Configurations

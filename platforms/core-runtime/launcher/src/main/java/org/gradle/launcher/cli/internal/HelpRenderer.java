@@ -80,7 +80,7 @@ public final class HelpRenderer {
         metaData.describeCommand(out, "[option...]", "[task...]");
         out.println();
         out.println();
-        parser.printUsage(out, consoleWidth());
+        parser.printUsage(out, consoleWidth() - 1);
         out.println();
 
         out.flush();

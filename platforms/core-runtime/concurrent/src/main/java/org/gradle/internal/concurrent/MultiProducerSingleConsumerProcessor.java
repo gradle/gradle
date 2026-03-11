@@ -135,13 +135,14 @@ public class MultiProducerSingleConsumerProcessor<T> {
             throw new IllegalStateException("Failed to offer value to queue");
         }
 
+        // Check if the worker is already active, using an inexpensive volatile read.
         if (awake.get()) {
             return;
         }
 
-        if (!awake.getAndSet(true)) {
+        if (awake.compareAndSet(false, true)) {
             // Only pay the cost to notify the worker if it is not already
-            // processing values.
+            // processing values. We use a CAS so only one thread has to pay this cost.
             LockSupport.unpark(worker);
         }
     }
