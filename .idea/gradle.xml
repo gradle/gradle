@@ -338,7 +338,6 @@
             <option value="$PROJECT_DIR$/testing/soak" />
           </set>
         </option>
-        <option name="myGradleHome" value="$PROJECT_DIR$/../../../gradle-dists/dev" />
       </GradleProjectSettings>
     </option>
     <option name="parallelModelFetch" value="true" />
