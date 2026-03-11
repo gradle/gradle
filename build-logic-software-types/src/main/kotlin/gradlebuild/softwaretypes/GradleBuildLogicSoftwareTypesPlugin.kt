@@ -75,7 +75,7 @@ open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin()
                     plugins.apply("org.gradle.kotlin.kotlin-dsl")
                     group = "gradlebuild"
                     afterEvaluate {
-                        description = definition.description.get()
+                        definition.description.orNull?.let { description = it }
                     }
                     for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                         configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
@@ -100,7 +100,7 @@ open class JavaLibraryBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlu
                     plugins.apply("java-library")
                     group = "gradlebuild"
                     afterEvaluate {
-                        description = definition.description.get()
+                        definition.description.orNull?.let { description = it }
                     }
                     for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                         configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
@@ -154,7 +154,7 @@ open class KotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
                     plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
                     group = "gradlebuild"
                     afterEvaluate {
-                        description = definition.description.get()
+                        definition.description.orNull?.let { description = it }
 
                         extensions.configure<GradlePluginDevelopmentExtension>("gradlePlugin") {
                             definition.gradlePlugins.forEach {
@@ -187,7 +187,7 @@ open class GroovyKotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() 
                     plugins.apply("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
                     group = "gradlebuild"
                     afterEvaluate {
-                        description = definition.description.get()
+                        definition.description.orNull?.let { description = it }
 
                         extensions.configure<GradlePluginDevelopmentExtension>("gradlePlugin") {
                             definition.gradlePlugins.forEach {
