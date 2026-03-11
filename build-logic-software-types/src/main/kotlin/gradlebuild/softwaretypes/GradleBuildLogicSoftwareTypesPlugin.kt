@@ -152,14 +152,24 @@ abstract class BaseProjectApplyAction<OwnDefinition : BuildLogicDefinition> : Pr
     protected abstract fun doApply(project: Project, definition: OwnDefinition)
 }
 
-open class KotlinBuildLogicProjectTypeApplyAction : BaseProjectApplyAction<JavaBuildLogicDefinition>() {
-
-    override fun doApply(project: Project, definition: JavaBuildLogicDefinition) {
+abstract class JavaBuildLogicProjectTypeAction<OwnDefinition : JavaBuildLogicDefinition> : BaseProjectApplyAction<OwnDefinition>() {
+    final override fun doApply(project: Project, definition: OwnDefinition) {
+        configure(project, definition)
         project.run {
-            plugins.apply("org.gradle.kotlin.kotlin-dsl")
             for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                 configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
             }
+        }
+    }
+
+    protected abstract fun configure(project: Project, definition: OwnDefinition)
+}
+
+open class KotlinBuildLogicProjectTypeApplyAction : JavaBuildLogicProjectTypeAction<JavaBuildLogicDefinition>() {
+
+    override fun configure(project: Project, definition: JavaBuildLogicDefinition) {
+        project.run {
+            plugins.apply("org.gradle.kotlin.kotlin-dsl")
             tasks.named("test", Test::class) {
                 useJUnitPlatform()
             }
@@ -167,14 +177,11 @@ open class KotlinBuildLogicProjectTypeApplyAction : BaseProjectApplyAction<JavaB
     }
 }
 
-open class JavaLibraryBuildLogicProjectTypeAction : BaseProjectApplyAction<JavaBuildLogicDefinition>() {
-    override fun doApply(project: Project, definition: JavaBuildLogicDefinition) {
+open class JavaLibraryBuildLogicProjectTypeAction : JavaBuildLogicProjectTypeAction<JavaBuildLogicDefinition>() {
+    override fun configure(project: Project, definition: JavaBuildLogicDefinition) {
         project.run {
             repositories.mavenCentral()
             plugins.apply("java-library")
-            for ((scope, collector) in definition.dependencies.scopeToCollector()) {
-                configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
-            }
         }
     }
 }
@@ -203,8 +210,8 @@ open class JavaPlatformBuildLogicProjectTypeAction : BaseProjectApplyAction<Buil
     }
 }
 
-open class KotlinDslProjectTypeAction : BaseProjectApplyAction<KotlinDslDefinition>() {
-    override fun doApply(project: Project, definition: KotlinDslDefinition) {
+open class KotlinDslProjectTypeAction : JavaBuildLogicProjectTypeAction<KotlinDslDefinition>() {
+    override fun configure(project: Project, definition: KotlinDslDefinition) {
         project.run {
             plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
             plugins.apply("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
@@ -236,9 +243,6 @@ open class KotlinDslProjectTypeAction : BaseProjectApplyAction<KotlinDslDefiniti
                     exclude("gradlebuild/performance/junit4/**")
                 }
             }
-            for ((scope, collector) in definition.dependencies.scopeToCollector()) {
-                configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
-            }
             tasks.named("compileGroovy", GroovyCompile::class) {
                 classpath += files(tasks.named("compileKotlin"))
             }
@@ -246,14 +250,9 @@ open class KotlinDslProjectTypeAction : BaseProjectApplyAction<KotlinDslDefiniti
     }
 }
 
-open class KotlinSharedRuntimeProjectTypeAction : BaseProjectApplyAction<JavaBuildLogicDefinition>() {
-    override fun doApply(project: Project, definition: JavaBuildLogicDefinition) {
-        project.run {
-            plugins.apply("gradlebuild.kotlin-shared-runtime")
-            for ((scope, collector) in definition.dependencies.scopeToCollector()) {
-                configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
-            }
-        }
+open class KotlinSharedRuntimeProjectTypeAction : JavaBuildLogicProjectTypeAction<JavaBuildLogicDefinition>() {
+    override fun configure(project: Project, definition: JavaBuildLogicDefinition) {
+        project.plugins.apply("gradlebuild.kotlin-shared-runtime")
     }
 }
 
