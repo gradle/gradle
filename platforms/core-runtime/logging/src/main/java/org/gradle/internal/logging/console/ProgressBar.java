@@ -295,7 +295,7 @@ public class ProgressBar {
         return buildOsc94Sequence("0");
     }
 
-    // ESC ] 9 ; 4 ; state ; progress BEL
+    // ESC ] 9 ; 4 ; state [; progress] BEL
     // Using BEL (0x07) instead of ST (ESC \) for broader compatibility
     private static String buildOsc94Sequence(String command) {
         return "\u001B]9;4;" + command + "\u0007";
