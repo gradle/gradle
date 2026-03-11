@@ -16,6 +16,7 @@
 
 package gradlebuild.softwaretypes
 
+import gradlebuild.softwaretypes.BaseGradleBuildProjectTypePlugin.Services
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
@@ -37,6 +38,8 @@ import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.*
@@ -70,21 +73,11 @@ open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuildProjectTypePlugin(
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("kotlinBuildLogic", JavaBuildLogicDefinition::class.java) { context, definition, model ->
-                context.objectFactory.newInstance<Services>().project.run {
-                    plugins.apply("org.gradle.kotlin.kotlin-dsl")
-                    group = "gradlebuild"
-                    afterEvaluate {
-                        definition.description.orNull?.let { description = it }
-                    }
-                    for ((scope, collector) in definition.dependencies.scopeToCollector()) {
-                        configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
-                    }
-                    tasks.named("test", Test::class) {
-                        useJUnitPlatform()
-                    }
-                }
-            }.withUnsafeDefinition().withUnsafeApplyAction()
+            builder.bindProjectType(
+                "kotlinBuildLogic",
+                JavaBuildLogicDefinition::class.java,
+                KotlinBuildLogicProjectTypeApplyAction::class.java
+            ).withUnsafeDefinition().withUnsafeApplyAction()
         }
     }
 }
@@ -94,19 +87,11 @@ open class JavaLibraryBuildLogicProjectTypePlugin : BaseGradleBuildProjectTypePl
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("javaLibraryBuildLogic", JavaBuildLogicDefinition::class.java) { context, definition, model ->
-                context.objectFactory.newInstance<Services>().project.run {
-                    repositories.mavenCentral()
-                    plugins.apply("java-library")
-                    group = "gradlebuild"
-                    afterEvaluate {
-                        definition.description.orNull?.let { description = it }
-                    }
-                    for ((scope, collector) in definition.dependencies.scopeToCollector()) {
-                        configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
-                    }
-                }
-            }.withUnsafeDefinition().withUnsafeApplyAction()
+            builder.bindProjectType(
+                "javaLibraryBuildLogic",
+                JavaBuildLogicDefinition::class.java,
+                JavaLibraryBuildLogicProjectTypeAction::class.java
+            ).withUnsafeDefinition().withUnsafeApplyAction()
         }
     }
 }
@@ -116,28 +101,11 @@ open class JavaPlatformBuildLogicProjectTypePlugin : BaseGradleBuildProjectTypeP
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("javaPlatformBuildLogic", BuildLogicDefinition::class.java) { context, definition, model ->
-                context.objectFactory.newInstance<Services>().project.run {
-                    plugins.apply("java-platform")
-                    group = "gradlebuild"
-                    val kotlinVersion = providers.gradleProperty("buildKotlinVersion").getOrElse(embeddedKotlinVersion)
-                    val distributionDependencies = project.extensions.getByType<VersionCatalogsExtension>().named("buildLibs")
-                    distributionDependencies.libraryAliases.forEach { alias ->
-                        val constr = distributionDependencies.findLibrary(alias).get().map { module ->
-                            if (module.group == "org.jetbrains.kotlin") {
-                                module.copy().apply {
-                                    version {
-                                        strictly(kotlinVersion)
-                                    }
-                                }
-                            } else {
-                                module
-                            }
-                        }
-                        dependencies.constraints.add("api", constr)
-                    }
-                }
-            }.withUnsafeDefinition().withUnsafeApplyAction()
+            builder.bindProjectType(
+            "javaPlatformBuildLogic",
+                BuildLogicDefinition::class.java,
+                JavaPlatformBuildLogicProjectTypeAction::class.java
+            ).withUnsafeDefinition().withUnsafeApplyAction()
         }
     }
 }
@@ -147,48 +115,11 @@ open class KotlinDslProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("kotlinDslPlugin", KotlinDslDefinition::class.java) { context, definition, model ->
-                context.objectFactory.newInstance<Services>().project.run {
-                    plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
-                    plugins.apply("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
-                    group = "gradlebuild"
-                    afterEvaluate {
-                        definition.description.orNull?.let { description = it }
-                        extensions.configure<GradlePluginDevelopmentExtension>("gradlePlugin") {
-                            definition.gradlePlugins.forEach {
-                                plugins {
-                                    register(it.name) {
-                                        id = it.id.get()
-                                        implementationClass = it.implementationClass.get()
-                                    }
-                                }
-                            }
-                        }
-                        // TODO this probably don't need to be in afterEvluate
-                        // TODO there's another compileGroovy configuration in this method, we should consolidate them
-                        if (name == "performance-testing") {
-                            tasks.named<GroovyCompile>("compileGroovy") {
-                                val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
-                                classpath = sourceSets.getByName("main").compileClasspath
-                            }
-                            tasks.named<KotlinCompile>("compileKotlin") {
-                                libraries.from(files(tasks.named("compileGroovy")))
-                            }
-                        }
-                    }
-                    if (name == "performance-testing") {
-                        tasks.named<CodeNarc>("codenarcMain") {
-                            exclude("gradlebuild/performance/junit4/**")
-                        }
-                    }
-                    for ((scope, collector) in definition.dependencies.scopeToCollector()) {
-                        configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
-                    }
-                    tasks.named("compileGroovy", GroovyCompile::class) {
-                        classpath += files(tasks.named("compileKotlin"))
-                    }
-                }
-            }.withUnsafeDefinition().withUnsafeApplyAction()
+            builder.bindProjectType(
+                "kotlinDslPlugin",
+                KotlinDslDefinition::class.java,
+                KotlinDslProjectTypeAction::class.java
+            ).withUnsafeDefinition().withUnsafeApplyAction()
         }
     }
 }
@@ -198,18 +129,151 @@ open class KotlinSharedRuntimeProjectTypePlugin : BaseGradleBuildProjectTypePlug
 
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("kotlinSharedRuntime", JavaBuildLogicDefinition::class.java) { context, definition, model ->
-                context.objectFactory.newInstance<Services>().project.run {
-                    plugins.apply("gradlebuild.kotlin-shared-runtime")
-                    group = "gradlebuild"
-                    afterEvaluate {
-                        definition.description.orNull?.let { description = it }
-                    }
-                    for ((scope, collector) in definition.dependencies.scopeToCollector()) {
-                        configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
+            builder.bindProjectType(
+                "kotlinSharedRuntime",
+                JavaBuildLogicDefinition::class.java,
+                KotlinSharedRuntimeProjectTypeAction::class.java
+            ).withUnsafeDefinition().withUnsafeApplyAction()
+        }
+    }
+}
+
+open class KotlinBuildLogicProjectTypeApplyAction : ProjectTypeApplyAction<JavaBuildLogicDefinition, BuildModel.None> {
+
+    override fun apply(
+        context: ProjectFeatureApplicationContext,
+        definition: JavaBuildLogicDefinition,
+        buildModel: BuildModel.None
+    ) {
+        context.objectFactory.newInstance<Services>().project.run {
+            plugins.apply("org.gradle.kotlin.kotlin-dsl")
+            group = "gradlebuild"
+            afterEvaluate {
+                definition.description.orNull?.let { description = it }
+            }
+            for ((scope, collector) in definition.dependencies.scopeToCollector()) {
+                configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
+            }
+            tasks.named("test", Test::class) {
+                useJUnitPlatform()
+            }
+        }
+    }
+}
+
+open class JavaLibraryBuildLogicProjectTypeAction : ProjectTypeApplyAction<JavaBuildLogicDefinition, BuildModel.None> {
+    override fun apply(
+        context: ProjectFeatureApplicationContext,
+        definition: JavaBuildLogicDefinition,
+        buildModel: BuildModel.None
+    ) {
+        context.objectFactory.newInstance<Services>().project.run {
+            repositories.mavenCentral()
+            plugins.apply("java-library")
+            group = "gradlebuild"
+            afterEvaluate {
+                definition.description.orNull?.let { description = it }
+            }
+            for ((scope, collector) in definition.dependencies.scopeToCollector()) {
+                configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
+            }
+        }
+    }
+}
+
+open class JavaPlatformBuildLogicProjectTypeAction : ProjectTypeApplyAction<BuildLogicDefinition, BuildModel.None> {
+    override fun apply(
+        context: ProjectFeatureApplicationContext,
+        definition: BuildLogicDefinition,
+        buildModel: BuildModel.None
+    ) {
+        context.objectFactory.newInstance<Services>().project.run {
+            plugins.apply("java-platform")
+            group = "gradlebuild"
+            val kotlinVersion = providers.gradleProperty("buildKotlinVersion").getOrElse(embeddedKotlinVersion)
+            val distributionDependencies = project.extensions.getByType<VersionCatalogsExtension>().named("buildLibs")
+            distributionDependencies.libraryAliases.forEach { alias ->
+                val constr = distributionDependencies.findLibrary(alias).get().map { module ->
+                    if (module.group == "org.jetbrains.kotlin") {
+                        module.copy().apply {
+                            version {
+                                strictly(kotlinVersion)
+                            }
+                        }
+                    } else {
+                        module
                     }
                 }
-            }.withUnsafeDefinition().withUnsafeApplyAction()
+                dependencies.constraints.add("api", constr)
+            }
+        }
+    }
+}
+
+open class KotlinDslProjectTypeAction : ProjectTypeApplyAction<KotlinDslDefinition, BuildModel.None> {
+    override fun apply(
+        context: ProjectFeatureApplicationContext,
+        definition: KotlinDslDefinition,
+        buildModel: BuildModel.None
+    ) {
+        context.objectFactory.newInstance<Services>().project.run {
+            plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
+            plugins.apply("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
+            group = "gradlebuild"
+            afterEvaluate {
+                definition.description.orNull?.let { description = it }
+                extensions.configure<GradlePluginDevelopmentExtension>("gradlePlugin") {
+                    definition.gradlePlugins.forEach {
+                        plugins {
+                            register(it.name) {
+                                id = it.id.get()
+                                implementationClass = it.implementationClass.get()
+                            }
+                        }
+                    }
+                }
+                // TODO this probably don't need to be in afterEvluate
+                // TODO there's another compileGroovy configuration in this method, we should consolidate them
+                if (name == "performance-testing") {
+                    tasks.named<GroovyCompile>("compileGroovy") {
+                        val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
+                        classpath = sourceSets.getByName("main").compileClasspath
+                    }
+                    tasks.named<KotlinCompile>("compileKotlin") {
+                        libraries.from(files(tasks.named("compileGroovy")))
+                    }
+                }
+            }
+            if (name == "performance-testing") {
+                tasks.named<CodeNarc>("codenarcMain") {
+                    exclude("gradlebuild/performance/junit4/**")
+                }
+            }
+            for ((scope, collector) in definition.dependencies.scopeToCollector()) {
+                configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
+            }
+            tasks.named("compileGroovy", GroovyCompile::class) {
+                classpath += files(tasks.named("compileKotlin"))
+            }
+        }
+    }
+}
+
+open class KotlinSharedRuntimeProjectTypeAction : ProjectTypeApplyAction<JavaBuildLogicDefinition, BuildModel.None> {
+    override fun apply(
+        context: ProjectFeatureApplicationContext,
+        definition: JavaBuildLogicDefinition,
+        buildModel: BuildModel.None
+    ) {
+        context.objectFactory.newInstance<Services>().project.run {
+            plugins.apply("gradlebuild.kotlin-shared-runtime")
+            group = "gradlebuild"
+            afterEvaluate {
+                definition.description.orNull?.let { description = it }
+            }
+            for ((scope, collector) in definition.dependencies.scopeToCollector()) {
+                configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
+            }
         }
     }
 }
