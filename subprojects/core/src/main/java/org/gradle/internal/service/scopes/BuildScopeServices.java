@@ -176,6 +176,7 @@ import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcesso
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsPreparer;
 import org.gradle.initialization.SettingsProcessor;
+import org.gradle.features.internal.initialization.SharedModelDefaultsSettingsProcessor;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
@@ -650,17 +651,19 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     ) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
-                new SettingsEvaluatedCallbackFiringSettingsProcessor(
-                    new ScriptEvaluatingSettingsProcessor(
-                        scriptPluginFactory,
-                        new SettingsFactory(
-                            instantiator,
-                            buildScopeServices,
-                            scriptHandlerFactory
-                        ),
-                        gradleProperties,
-                        textFileResourceLoader,
-                        buildIncludeListener
+                new SharedModelDefaultsSettingsProcessor(
+                    new SettingsEvaluatedCallbackFiringSettingsProcessor(
+                        new ScriptEvaluatingSettingsProcessor(
+                            scriptPluginFactory,
+                            new SettingsFactory(
+                                instantiator,
+                                buildScopeServices,
+                                scriptHandlerFactory
+                            ),
+                            gradleProperties,
+                            textFileResourceLoader,
+                            buildIncludeListener
+                        )
                     )
                 )
             ),

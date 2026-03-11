@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -41,6 +42,7 @@ public class DefaultProjectFeatureImplementation<OwnDefinition extends Definitio
     private final TargetTypeInformation<?> targetDefinitionType;
     private final Class<OwnBuildModel> buildModelType;
     private final Class<? extends OwnBuildModel> buildModelImplementationType;
+    private final Map<Class<?>, Class<?>> nestedBuildModelTypesToImplementationTypes;
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
@@ -57,6 +59,7 @@ public class DefaultProjectFeatureImplementation<OwnDefinition extends Definitio
         TargetTypeInformation<?> targetDefinitionType,
         Class<OwnBuildModel> buildModelType,
         Class<? extends OwnBuildModel> buildModelImplementationType,
+        Map<Class<?>, Class<?>> nestedBuildModelTypesToImplementationTypes,
         Class<? extends Plugin<Project>> pluginClass,
         Class<? extends Plugin<Settings>> registeringPluginClass,
         @Nullable String registeringPluginId,
@@ -70,6 +73,7 @@ public class DefaultProjectFeatureImplementation<OwnDefinition extends Definitio
         this.targetDefinitionType = targetDefinitionType;
         this.buildModelType = buildModelType;
         this.buildModelImplementationType = buildModelImplementationType;
+        this.nestedBuildModelTypesToImplementationTypes = nestedBuildModelTypesToImplementationTypes;
         this.pluginClass = pluginClass;
         this.registeringPluginClass = registeringPluginClass;
         this.registeringPluginId = registeringPluginId;
@@ -109,6 +113,11 @@ public class DefaultProjectFeatureImplementation<OwnDefinition extends Definitio
     @Override
     public Class<? extends OwnBuildModel> getBuildModelImplementationType() {
         return buildModelImplementationType;
+    }
+
+    @Override
+    public Map<Class<?>, Class<?>> getNestedBuildModelTypes() {
+        return nestedBuildModelTypesToImplementationTypes;
     }
 
     @Override

@@ -76,7 +76,6 @@ class KotlinProjectTypeThatBindsWithClassBuilder extends ProjectTypePluginClassB
 
                     override fun apply(context: ${ProjectFeatureApplicationContext.class.name}, definition: ${definition.publicTypeClassName}, model: ${definition.fullyQualifiedBuildModelClassName}) {
                         println("Binding " + ${definition.publicTypeClassName}::class.simpleName)
-                        ${conventions == null ? "" : convertToKotlin(conventions)}
 
                         ${convertToKotlin(definition.buildModelMapping)}
 

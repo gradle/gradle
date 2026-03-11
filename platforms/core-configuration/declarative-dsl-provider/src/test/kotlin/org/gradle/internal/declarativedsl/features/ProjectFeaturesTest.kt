@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.software
+package org.gradle.internal.declarativedsl.features
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -39,7 +39,7 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 
 
-class ProjectTypesTest {
+class ProjectFeaturesTest {
     @Test
     fun `project types are added to the schema along with their supertypes`() {
         val registryMock = mock<ProjectFeatureDeclarations> { mock ->
@@ -54,6 +54,7 @@ class ProjectTypesTest {
                             override fun getApplyActionSafety(): ProjectFeatureBindingDeclaration.Safety = ProjectFeatureBindingDeclaration.Safety.UNSAFE
                             override fun getBuildModelType(): Class<ModelType> = ModelType::class.java
                             override fun getBuildModelImplementationType(): Class<out ModelType> = buildModelType
+                            override fun getNestedBuildModelTypes(): Map<Class<*>, Class<*>> = emptyMap()
                             override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
                             override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
                             override fun getRegisteringPluginId(): String = "com.example.test"

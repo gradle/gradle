@@ -24,6 +24,7 @@ import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.dsl.bindProjectType
 import org.gradle.api.plugins.internal.java.DefaultJavaProjectType
+import org.gradle.api.plugins.java.JavaClasses
 import org.gradle.api.plugins.java.JavaClasses.DefaultJavaClasses
 import org.gradle.api.plugins.java.JavaProjectType
 import org.gradle.features.registration.TaskRegistrar
@@ -47,8 +48,6 @@ class JavaProjectTypePlugin : Plugin<Project> {
         override fun bind(builder: ProjectTypeBindingBuilder) {
             builder.bindProjectType("javaLibrary") { definition: JavaProjectType, model ->
                 val services = objectFactory.newInstance(Services::class.java)
-                definition.sources.register("main")
-                definition.sources.register("test")
 
                 definition.sources.all { source ->
                     // Should be TaskRegistrar with some sort of an implicit namer for the context
@@ -64,7 +63,7 @@ class JavaProjectTypePlugin : Plugin<Project> {
                     val processResourcesTask = registerResourcesProcessing(source, services.taskRegistrar)
 
                     // Creates an extension on javaSources containing its classes object
-                    model.classes.add(registerBuildModel(source, DefaultJavaClasses::class.java).apply {
+                    model.classes.add(getBuildModel(source).apply {
                         name = source.name
                         inputSources.source(source.sourceDirectories)
                         byteCodeDir.set(compileTask.map { it.destinationDirectory.get() })
@@ -76,6 +75,8 @@ class JavaProjectTypePlugin : Plugin<Project> {
                 registerJar(mainClasses, model, services.taskRegistrar)
             }
             .withUnsafeDefinitionImplementationType(DefaultJavaProjectType::class.java)
+            .withNestedBuildModelImplementationType(JavaClasses::class.java, DefaultJavaClasses::class.java)
+            .withUnsafeApplyAction()
         }
 
         interface Services {

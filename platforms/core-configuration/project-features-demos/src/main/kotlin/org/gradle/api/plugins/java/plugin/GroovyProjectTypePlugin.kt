@@ -48,9 +48,6 @@ class GroovyProjectTypePlugin : Plugin<Project> {
             builder.bindProjectType("groovyLibrary") { definition: GroovyProjectType, model ->
                 val services = objectFactory.newInstance(Services::class.java)
 
-                definition.sources.register("main")
-                definition.sources.register("test")
-
                 definition.sources.all { source ->
                     val compileTask = services.taskRegistrar.register(
                         "compile" + capitalize(source.name) + "Groovy",
@@ -63,7 +60,7 @@ class GroovyProjectTypePlugin : Plugin<Project> {
 
                     val processResourcesTask = registerResourcesProcessing(source, services.taskRegistrar)
 
-                    model.classes.add(registerBuildModel(source, GroovyClasses.DefaultGroovyClasses::class.java).apply {
+                    model.classes.add(getBuildModel(source).apply {
                         name = source.name
                         inputSources.source(source.sourceDirectories)
                         byteCodeDir.set(compileTask.map { it.destinationDirectory.get() })
@@ -74,6 +71,8 @@ class GroovyProjectTypePlugin : Plugin<Project> {
                 registerJar(model.classes.named("main"), model, services.taskRegistrar)
             }
             .withUnsafeDefinitionImplementationType(DefaultGroovyProjectType::class.java)
+            .withNestedBuildModelImplementationType(GroovyClasses::class.java, GroovyClasses.DefaultGroovyClasses::class.java)
+            .withUnsafeApplyAction()
         }
 
         interface Services {

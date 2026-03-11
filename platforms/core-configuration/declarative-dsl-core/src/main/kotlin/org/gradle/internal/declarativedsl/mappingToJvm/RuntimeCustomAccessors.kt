@@ -19,7 +19,11 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
 
-
+/**
+ * Allows resolution of custom accessors at runtime. This is used for accessors that cannot be resolved statically, for example
+ * project features or container elements.
+ *
+ */
 interface RuntimeCustomAccessors {
     fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType
 
@@ -30,7 +34,17 @@ interface RuntimeCustomAccessors {
     }
 }
 
+/**
+ * Allows [RuntimeCustomAccessors] that have post-processing requirements that must be met once all conversion is complete.
+ */
+interface RuntimeCustomAccessorsWithPostProcessing : RuntimeCustomAccessors {
+    fun postProcess()
+}
 
+
+/**
+ * Allows grouping of multiple [RuntimeCustomAccessors] into a single implementation.
+ */
 class CompositeCustomAccessors(private val implementations: List<RuntimeCustomAccessors>) : RuntimeCustomAccessors {
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
         implementations.forEach {

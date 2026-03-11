@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.software
+package org.gradle.internal.declarativedsl.features
 
 import org.gradle.api.Project
 import org.gradle.api.internal.DynamicObjectAware
@@ -56,6 +56,8 @@ import org.gradle.features.internal.binding.ProjectFeatureApplicator
 import org.gradle.features.internal.binding.ProjectFeatureImplementation
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import org.gradle.features.internal.binding.TargetTypeInformationChecks
+import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessorsWithPostProcessing
+import kotlin.collections.get
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.allSupertypes
@@ -103,7 +105,7 @@ fun EvaluationSchemaBuilder.projectFeaturesDefaultsComponent(
 
 private
 class ProjectFeatureComponent(
-    private val featureSchemaBindingIndex: ProjectFeatureSchemaBindingIndex,
+    private val featureSchemaBindingIndex: ProjectFeatureSchemaBindingIndex
 ) : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         FixedTypeDiscovery(
@@ -130,7 +132,7 @@ class ProjectFeatureConversionComponent(
     private val projectFeatureApplicator: ProjectFeatureApplicator
 ) : ObjectConversionComponent {
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
-        RuntimeModelTypeAccessors(projectFeatureApplicator, projectFeatureImplementations)
+        RuntimeProjectFeatureAccessors(projectFeatureApplicator, projectFeatureImplementations)
     )
 }
 
@@ -254,26 +256,31 @@ fun projectFeatureConfiguringFunctions(projectFeatureImplementations: ProjectFea
     override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): SchemaResult<DataTopLevelFunction>? = null
 }
 
-
-private class RuntimeModelTypeAccessors(
+private class RuntimeProjectFeatureAccessors(
     private val projectFeatureApplicator: ProjectFeatureApplicator,
     info: List<ProjectFeatureInfo<*, *>>
-) : RuntimeCustomAccessors {
-
-    val modelTypeById = info.associate { it.customAccessorId to it.delegate }
+) : RuntimeCustomAccessorsWithPostProcessing {
+    val projectFeatureById = info.associate { it.customAccessorId to it.delegate }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
         require(accessor.accessorIdentifier is CustomAccessorIdentifier.ProjectFeatureIdentifier) { "unexpected accessor, expected an accessor with a ProjectFeatureIdentifier, got ${accessor.accessorIdentifier::class.simpleName}" }
-        val projectFeature = modelTypeById[accessor.accessorIdentifier]
+        val projectFeature = projectFeatureById[accessor.accessorIdentifier]
             ?: return InstanceAndPublicType.NULL
-        return InstanceAndPublicType.of(applyProjectFeaturePlugin(receiverObject, projectFeature, projectFeatureApplicator), projectFeature.definitionPublicType.kotlin)
+        val featureApplication = createFeatureInstance(receiverObject, projectFeature, projectFeatureApplicator)
+        return InstanceAndPublicType.of(featureApplication.definitionInstance, projectFeature.definitionPublicType.kotlin)
     }
 
-    private fun applyProjectFeaturePlugin(receiverObject: Any, projectFeature: ProjectFeatureImplementation<*, *>, projectFeatureApplicator: ProjectFeatureApplicator): Any {
+    private fun createFeatureInstance(receiverObject: Any, projectFeature: ProjectFeatureImplementation<*, *>, projectFeatureApplicator: ProjectFeatureApplicator): ProjectFeatureApplicator.FeatureApplication<*, *> {
         require(receiverObject is DynamicObjectAware) { "unexpected receiver, expected a DynamicObjectAware instance, got $receiverObject" }
         require(TargetTypeInformationChecks.isValidBindingType(projectFeature.targetDefinitionType, receiverObject::class.java)) {
             "unexpected receiver; project feature ${projectFeature.featureName} binds to '${projectFeature.targetDefinitionType}', got '$receiverObject' definition"
         }
-        return projectFeatureApplicator.applyFeatureTo(receiverObject, projectFeature)
+        return projectFeatureApplicator.registerFeatureApplicationFor(receiverObject, projectFeature)
     }
+
+    override fun postProcess() {
+        // Apply all features that were accessed during conversion
+        projectFeatureApplicator.applyFeatures()
+    }
+
 }
