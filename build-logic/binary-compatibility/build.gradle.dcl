@@ -1,4 +1,4 @@
-groovyKotlinDslPlugin {
+kotlinDslPlugin {
     description = "Provides a plugin for configuring japicmp-gradle-plugin to detect binary incompatible changes"
 
     dependencies {

@@ -1,4 +1,4 @@
-groovyKotlinDslPlugin {
+kotlinDslPlugin {
     description = "Provides a plugin for generating and defining performance test projects"
 
     dependencies {

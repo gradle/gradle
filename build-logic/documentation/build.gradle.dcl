@@ -1,4 +1,4 @@
-groovyKotlinDslPlugin {
+kotlinDslPlugin {
     description = "Provides a plugin to generate Gradle's DSL reference, User Manual and Javadocs"
 
     dependencies {

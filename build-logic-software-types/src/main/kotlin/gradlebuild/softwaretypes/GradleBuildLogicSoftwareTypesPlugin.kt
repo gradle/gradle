@@ -48,7 +48,6 @@ import javax.inject.Inject
 @RegistersProjectFeatures(
     KotlinBuildLogicProjectTypePlugin::class,
     KotlinDslProjectTypePlugin::class,
-    GroovyKotlinDslProjectTypePlugin::class,
     JavaPlatformBuildLogicProjectTypePlugin::class,
     JavaLibraryBuildLogicProjectTypePlugin::class,
     KotlinSharedRuntimeProjectTypePlugin::class
@@ -81,7 +80,7 @@ open class KotlinBuildLogicProjectTypePlugin : BaseGradleBuilProjectTypePlugin()
                     for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                         configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
                     }
-                    tasks.getByName("test", Test::class) {
+                    tasks.named("test", Test::class) {
                         useJUnitPlatform()
                     }
                 }
@@ -153,38 +152,6 @@ open class KotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
             builder.bindProjectType("kotlinDslPlugin", KotlinDslDefinition::class.java) { context, definition, model ->
                 context.objectFactory.newInstance<Services>().project.run {
                     plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
-                    group = "gradlebuild"
-                    afterEvaluate {
-                        definition.description.orNull?.let { description = it }
-
-                        extensions.configure<GradlePluginDevelopmentExtension>("gradlePlugin") {
-                            definition.gradlePlugins.forEach {
-                                plugins {
-                                    register(it.name) {
-                                        id = it.id.get()
-                                        implementationClass = it.implementationClass.get()
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    for ((scope, collector) in definition.dependencies.scopeToCollector()) {
-                        configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
-                    }
-                }
-            }.withUnsafeDefinition().withUnsafeApplyAction()
-        }
-    }
-}
-
-@BindsProjectType(GroovyKotlinDslProjectTypePlugin.Binding::class)
-open class GroovyKotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() {
-
-    class Binding : ProjectTypeBinding {
-        override fun bind(builder: ProjectTypeBindingBuilder) {
-            builder.bindProjectType("groovyKotlinDslPlugin", KotlinDslDefinition::class.java) { context, definition, model ->
-                context.objectFactory.newInstance<Services>().project.run {
-                    plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
                     plugins.apply("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
                     group = "gradlebuild"
                     afterEvaluate {
@@ -204,17 +171,17 @@ open class GroovyKotlinDslProjectTypePlugin : BaseGradleBuilProjectTypePlugin() 
                         // TODO this probably don't need to be in afterEvluate
                         // TODO there's another compileGroovy configuration in this method, we should consolidate them
                         if (name == "performance-testing") {
-                            tasks.getByName<GroovyCompile>("compileGroovy") {
+                            tasks.named<GroovyCompile>("compileGroovy") {
                                 val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
                                 classpath = sourceSets.getByName("main").compileClasspath
                             }
-                            tasks.getByName<KotlinCompile>("compileKotlin") {
-                                libraries.from(files(tasks.getByName("compileGroovy")))
+                            tasks.named<KotlinCompile>("compileKotlin") {
+                                libraries.from(files(tasks.named("compileGroovy")))
                             }
                         }
                     }
                     if (name == "performance-testing") {
-                        tasks.getByName<CodeNarc>("codenarcMain") {
+                        tasks.named<CodeNarc>("codenarcMain") {
                             exclude("gradlebuild/performance/junit4/**")
                         }
                     }
