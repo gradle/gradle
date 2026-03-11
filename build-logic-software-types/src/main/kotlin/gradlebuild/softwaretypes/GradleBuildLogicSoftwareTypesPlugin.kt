@@ -170,7 +170,7 @@ abstract class BaseProjectApplyAction<OwnDefinition : BuildLogicDefinition> : Pr
 
 abstract class JavaBuildLogicProjectTypeAction<OwnDefinition : JavaBuildLogicDefinition> : BaseProjectApplyAction<OwnDefinition>() {
     final override fun doApply(project: Project, definition: OwnDefinition) {
-        configure(project, definition)
+        doApplyJava(project, definition)
         project.run {
             for ((scope, collector) in definition.dependencies.scopeToCollector()) {
                 configurations.getByName(scope).dependencies.addAllLater(collector.dependencies)
@@ -178,12 +178,12 @@ abstract class JavaBuildLogicProjectTypeAction<OwnDefinition : JavaBuildLogicDef
         }
     }
 
-    protected abstract fun configure(project: Project, definition: OwnDefinition)
+    protected abstract fun doApplyJava(project: Project, definition: OwnDefinition)
 }
 
 open class KotlinBuildLogicProjectTypeApplyAction : JavaBuildLogicProjectTypeAction<JavaBuildLogicDefinition>() {
 
-    override fun configure(project: Project, definition: JavaBuildLogicDefinition) {
+    override fun doApplyJava(project: Project, definition: JavaBuildLogicDefinition) {
         project.run {
             plugins.apply("org.gradle.kotlin.kotlin-dsl")
             tasks.named("test", Test::class) {
@@ -194,7 +194,7 @@ open class KotlinBuildLogicProjectTypeApplyAction : JavaBuildLogicProjectTypeAct
 }
 
 open class JavaLibraryBuildLogicProjectTypeAction : JavaBuildLogicProjectTypeAction<JavaBuildLogicDefinition>() {
-    override fun configure(project: Project, definition: JavaBuildLogicDefinition) {
+    override fun doApplyJava(project: Project, definition: JavaBuildLogicDefinition) {
         project.run {
             repositories.mavenCentral()
             plugins.apply("java-library")
@@ -227,7 +227,7 @@ open class JavaPlatformBuildLogicProjectTypeAction : BaseProjectApplyAction<Buil
 }
 
 open class KotlinDslProjectTypeAction : JavaBuildLogicProjectTypeAction<KotlinDslDefinition>() {
-    override fun configure(project: Project, definition: KotlinDslDefinition) {
+    override fun doApplyJava(project: Project, definition: KotlinDslDefinition) {
         project.run {
             plugins.apply("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
             plugins.apply("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
@@ -251,8 +251,8 @@ open class KotlinDslProjectTypeAction : JavaBuildLogicProjectTypeAction<KotlinDs
 }
 
 open class PerfTestProjectTypeAction : KotlinDslProjectTypeAction() {
-    override fun configure(project: Project, definition: KotlinDslDefinition) {
-        super.configure(project, definition)
+    override fun doApplyJava(project: Project, definition: KotlinDslDefinition) {
+        super.doApplyJava(project, definition)
         project.run {
             tasks.named<CodeNarc>("codenarcMain") {
                 exclude("gradlebuild/performance/junit4/**")
@@ -271,7 +271,7 @@ open class PerfTestProjectTypeAction : KotlinDslProjectTypeAction() {
 }
 
 open class KotlinSharedRuntimeProjectTypeAction : JavaBuildLogicProjectTypeAction<JavaBuildLogicDefinition>() {
-    override fun configure(project: Project, definition: JavaBuildLogicDefinition) {
+    override fun doApplyJava(project: Project, definition: JavaBuildLogicDefinition) {
         project.plugins.apply("gradlebuild.kotlin-shared-runtime")
     }
 }
