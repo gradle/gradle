@@ -16,16 +16,10 @@
 
 package org.gradle.internal.service
 
-import org.gradle.internal.Factory
 import org.gradle.util.GroovyNullMarked
 import spock.lang.Specification
 
-import java.util.concurrent.Callable
-
 class ServiceRegistryTest extends Specification implements ServiceRegistryFixture {
-
-    def registry = new DefaultServiceRegistry("test registry")
-        .addProvider(new TestProvider())
 
     def "fails when inheriting from DefaultServiceRegistry"() {
         when:
@@ -37,6 +31,8 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
     }
 
     def "fails when requesting unknown service"() {
+        def registry = newRegistry()
+
         when:
         registry.get(StringBuilder.class)
 
@@ -91,7 +87,12 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
 
     def "creates service using provider factory method"() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new TestProvider())
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            Integer createInt() {
+                return 12
+            }
+        })
 
         expect:
         registry.get(Integer) == 12
@@ -293,6 +294,19 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
     }
 
     def "creates service with dependencies using provider factory method"() {
+        def registry = newRegistry()
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            Integer createInt() {
+                return 12
+            }
+
+            @Provides
+            String createString(Integer integer) {
+                return integer.toString()
+            }
+        })
+
         expect:
         registry.get(String.class) == "12"
         registry.get(Integer.class) == 12
@@ -301,7 +315,12 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
 
     def "uses overridden factory method to create service instance"() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new OverridingTestProvider())
+        registry.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            String createString() {
+                return "overridden"
+            }
+        })
 
         expect:
         registry.get(String) == "overridden"
@@ -309,7 +328,7 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
 
     def "fails when multiple factory methods can create requested service type"() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new TestProvider())
+        registry.addProvider(new MultiComparableProvider())
 
         when:
         registry.get(Comparable)
@@ -317,8 +336,8 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         then:
         ServiceLookupException e = thrown()
         normalizedMessage(e) == """Multiple services of type Comparable available in DefaultServiceRegistry:
-   - Service Integer via TestProvider.createInt()
-   - Service String via TestProvider.createString()"""
+   - Service Integer via MultiComparableProvider.createInt()
+   - Service String via MultiComparableProvider.createString()"""
     }
 
     def "fails when multiple factory methods can create requested service type via constructor"() {
@@ -342,6 +361,8 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
     }
 
     def "fails when requesting array class"() {
+        def registry = newRegistry()
+
         when:
         registry.get(String[].class)
 
@@ -351,6 +372,8 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
     }
 
     def "fails when injecting an array type"() {
+        def registry = newRegistry()
+
         given:
         registry.addProvider(new UnsupportedInjectionProvider())
 
@@ -433,6 +456,8 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
     }
 
     def "fails when cannot create service instance from implementation class"() {
+        def registry = newRegistry()
+
         given:
         registry.register({ registration -> registration.add(ClassWithBrokenConstructor) })
 
@@ -446,6 +471,8 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
     }
 
     def "can lookup a service with declared service type added via registration"() {
+        def registry = newRegistry()
+
         given:
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
@@ -461,6 +488,8 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
     }
 
     def "cannot lookup implementation of a service with declared service type added via registration"() {
+        def registry = newRegistry()
+
         given:
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
@@ -477,6 +506,8 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
     }
 
     def "cannot declare explicit service type via @Provides that is not implemented by the return type"() {
+        def registry = newRegistry()
+
         when:
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides([Runnable])
@@ -517,14 +548,6 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         }
     }
 
-    private static class TestFactory implements Factory<BigDecimal> {
-        int value
-
-        BigDecimal create() {
-            return BigDecimal.valueOf(value++)
-        }
-    }
-
     private interface TestService {
     }
 
@@ -542,33 +565,15 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         }
     }
 
-    private static class TestProvider implements ServiceRegistrationProvider {
-        @Provides
-        String createString(Integer integer) {
-            return integer.toString()
-        }
-
+    private static class MultiComparableProvider implements ServiceRegistrationProvider {
         @Provides
         Integer createInt() {
             return 12
         }
 
         @Provides
-        Factory<BigDecimal> createTestFactory() {
-            return new TestFactory()
-        }
-
-        @Provides
-        Callable<BigDecimal> createCallable() {
-            return { 12 }
-        }
-    }
-
-    private static class OverridingTestProvider extends TestProvider {
-        @Override
-        @Provides
-        String createString(Integer integer) {
-            return "overridden"
+        String createString() {
+            return "hello"
         }
     }
 
