@@ -558,6 +558,58 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
+    def 'can declare and configure a project feature that binds to multiple types with the same name'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeaturePluginThatBindsToMultipleTargets()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testProjectType {
+                id = "test"
+                foo {
+                    bar = "foo"
+                    feature {
+                        text = "foo"
+                        fizz {
+                            buzz = "foo-baz"
+                        }
+                    }
+                }
+                bar {
+                    baz = "bar"
+                    feature {
+                        text = "bar"
+                        fizz {
+                            buzz = "bar-baz"
+                        }
+                    }
+                }
+            }
+        """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printFeatureDefinition1Configuration")
+
+        then:
+        outputContains("definition text = foo")
+        outputContains("definition fizz.buzz = foo-baz")
+
+        when:
+        run(":printFeatureDefinition2Configuration")
+
+        then:
+        outputContains("definition text = bar")
+        outputContains("definition fizz.buzz = bar-baz")
+
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
+    }
+
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectFeature() {
         return """
             testProjectType {
