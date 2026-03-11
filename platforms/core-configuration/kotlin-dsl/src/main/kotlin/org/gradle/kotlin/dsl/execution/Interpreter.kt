@@ -39,6 +39,7 @@ import org.gradle.kotlin.dsl.support.serviceRegistryOf
 import org.gradle.plugin.management.internal.PluginRequests
 import java.io.File
 import java.lang.reflect.InvocationTargetException
+import java.nio.file.Path
 
 
 /**
@@ -142,6 +143,8 @@ class Interpreter(val host: Host) {
 
         val compilerOptions: KotlinCompilerOptions
 
+        val buildTreeRootDir: Path
+
         fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
             ProgramTarget.Project -> serviceRegistryOf(target as Project)
             ProgramTarget.Settings -> serviceRegistryOf(target as Settings)
@@ -174,11 +177,13 @@ class Interpreter(val host: Host) {
         val parentClassLoader =
             baseScope.exportClassLoader
 
+        val scriptHost =
+            scriptHostFor(programTarget, target, scriptSource, scriptHandler, targetScope, baseScope)
+
         val programId =
             ProgramId(
                 templateId,
-                scriptSource.fileName,
-                scriptSource.className,
+                scriptHost.buildTreeScriptPath,
                 sourceHash,
                 parentClassLoader,
                 compilerOptions = host.compilerOptions
@@ -186,9 +191,6 @@ class Interpreter(val host: Host) {
 
         val cachedProgram =
             host.cachedClassFor(programId)
-
-        val scriptHost =
-            scriptHostFor(programTarget, target, scriptSource, scriptHandler, targetScope, baseScope)
 
         val programHost =
             programHostFor(options)
@@ -241,6 +243,7 @@ class Interpreter(val host: Host) {
             scriptHandler,
             targetScope,
             baseScope,
+            host.buildTreeRootDir,
             host.serviceRegistryFor(programTarget, target)
         )
 
@@ -266,11 +269,10 @@ class Interpreter(val host: Host) {
             else -> ClassPath.EMPTY
         }
 
-        val scriptPath = scriptHost.fileName
         val classesDir = compile(
             scriptHost,
             programId,
-            scriptPath,
+            scriptHost.originalScriptPath,
             scriptSource,
             programKind,
             programTarget,
@@ -282,7 +284,7 @@ class Interpreter(val host: Host) {
 
         return loadClassInChildScopeOf(
             baseScope,
-            scriptPath,
+            scriptHost.originalScriptPath,
             classesDir,
             programId.templateId,
             stage1BlocksAccessorsClassPath,
@@ -348,7 +350,7 @@ class Interpreter(val host: Host) {
     private
     fun loadClassInChildScopeOf(
         baseScope: ClassLoaderScope,
-        scriptPath: String,
+        originalScriptPath: String,
         classesDir: File,
         scriptTemplateId: String,
         accessorsClassPath: ClassPath,
@@ -359,7 +361,7 @@ class Interpreter(val host: Host) {
 
         return host.loadClassInChildScopeOf(
             baseScope,
-            childScopeId = classLoaderScopeIdFor(scriptPath, scriptTemplateId),
+            childScopeId = classLoaderScopeIdFor(originalScriptPath, scriptTemplateId),
             origin = ClassLoaderScopeOrigin.Script(scriptSource.fileName, scriptSource.longDisplayName, scriptSource.shortDisplayName),
             accessorsClassPath = accessorsClassPath,
             location = classesDir,
@@ -422,8 +424,7 @@ class Interpreter(val host: Host) {
 
             val programId = ProgramId(
                 scriptTemplateId,
-                scriptHost.scriptSource.fileName,
-                scriptHost.scriptSource.className,
+                scriptHost.buildTreeScriptPath,
                 sourceHash,
                 parentClassLoader,
                 host.hashOf(accessorsClassPath),
@@ -465,7 +466,7 @@ class Interpreter(val host: Host) {
             accessorsClassPath: ClassPath
         ): CompiledScript {
 
-            val originalScriptPath = scriptHost.fileName
+            val originalScriptPath = scriptHost.originalScriptPath
             val targetScope = scriptHost.targetScope
             val scriptSource = scriptHost.scriptSource
             val targetScopeClassPath = host.compilationClassPathOf(targetScope)
@@ -557,8 +558,8 @@ fun templateIdFor(programTarget: ProgramTarget, programKind: ProgramKind, stage:
 
 
 private
-fun classLoaderScopeIdFor(scriptPath: String, stage: String) =
-    "kotlin-dsl:$scriptPath:$stage"
+fun classLoaderScopeIdFor(originalScriptPath: String, stage: String) =
+    "kotlin-dsl:$originalScriptPath:$stage"
 
 
 private
@@ -580,9 +581,10 @@ fun locationAwareExceptionFor(
     val scriptClassNameInnerPrefix = "$scriptClassName$"
 
     fun scriptStackTraceElement(element: StackTraceElement) =
-        element.className.run {
+        // On purpose defense against null
+        element.className?.run {
             equals(scriptClassName) || startsWith(scriptClassNameInnerPrefix)
-        }
+        } == true
 
     tailrec fun inferLocationFrom(exception: Throwable): LocationAwareException? {
 

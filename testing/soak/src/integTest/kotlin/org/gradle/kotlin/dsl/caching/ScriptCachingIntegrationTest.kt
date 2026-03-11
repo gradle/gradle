@@ -334,8 +334,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 ).apply {
                     buildForCacheInspection("help", "--build-cache").apply {
                         compilationCache {
-                            // TODO WRONG
-                            misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                            hits(rootBuildFile, leftBuildFile, rightBuildFile)
                         }
                         classLoadingCache {
                             misses(rootBuildFile, leftBuildFile, rightBuildFile)
@@ -344,11 +343,10 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                         assertOutputContains("Loaded cache entry for Kotlin DSL accessors for root project 'bottom'")
                         assertOutputContains("Loaded cache entry for Kotlin DSL accessors for project ':left'")
                         assertNotOutput("Loaded cache entry for Kotlin DSL accessors for project ':right'") // Same as :left
-                        // TODO WRONG
-                        assertOutputContains("Stored cache entry for Kotlin DSL script compilation (Project/TopLevel/stage1)")
-                        assertOutputContains("Stored cache entry for Kotlin DSL script compilation (Project/TopLevel/stage2)")
-                        assertNotOutput("Loaded cache entry for Kotlin DSL script compilation (Project/TopLevel/stage1)")
-                        assertNotOutput("Loaded cache entry for Kotlin DSL script compilation (Project/TopLevel/stage2)")
+                        assertOutputContains("Loaded cache entry for Kotlin DSL script compilation (Project/TopLevel/stage1)")
+                        assertOutputContains("Loaded cache entry for Kotlin DSL script compilation (Project/TopLevel/stage2)")
+                        assertNotOutput("Stored cache entry for Kotlin DSL script compilation (Project/TopLevel/stage1)")
+                        assertNotOutput("Stored cache entry for Kotlin DSL script compilation (Project/TopLevel/stage2)")
                     }
                 }
             }
