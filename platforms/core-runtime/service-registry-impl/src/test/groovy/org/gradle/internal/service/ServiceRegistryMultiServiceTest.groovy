@@ -20,10 +20,9 @@ import spock.lang.Specification
 
 class ServiceRegistryMultiServiceTest extends Specification implements ServiceRegistryFixture {
 
-    def registry = new DefaultServiceRegistry("test registry")
-
     def "can lookup a multi-service by any service type declared via @Provides"() {
         given:
+        def registry = newRegistry()
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides([TestService, AnotherTestService])
             TestMultiServiceImpl create() { new TestMultiServiceImpl() }
@@ -48,6 +47,7 @@ class ServiceRegistryMultiServiceTest extends Specification implements ServiceRe
 
     def "can lookup a multi-service by any declared service type added via registration"() {
         given:
+        def registry = newRegistry()
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             void configure(ServiceRegistration registration) {
@@ -68,6 +68,7 @@ class ServiceRegistryMultiServiceTest extends Specification implements ServiceRe
 
     def "cannot lookup implementation of a multi-service with declared service types added via registration"() {
         given:
+        def registry = newRegistry()
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             void configure(ServiceRegistration registration) {

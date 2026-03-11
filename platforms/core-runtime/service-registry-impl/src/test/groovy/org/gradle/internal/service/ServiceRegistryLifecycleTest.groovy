@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 import java.lang.reflect.Type
 
-class ServiceRegistryLifecycleTest extends Specification {
+class ServiceRegistryLifecycleTest extends Specification implements ServiceRegistryFixture {
 
     def "reuses service instances of services registered via provides-method"() {
         TestService.instancesCreated = 0
@@ -466,10 +466,6 @@ class ServiceRegistryLifecycleTest extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == "test registry has been closed."
-    }
-
-    private static DefaultServiceRegistry newRegistry(ServiceRegistry... parents) {
-        new DefaultServiceRegistry("test registry", parents)
     }
 
     private static class TestService {

@@ -279,10 +279,6 @@ class ServiceRegistryHierarchyTest extends Specification implements ServiceRegis
         registry.get(String) == 'hello world'
     }
 
-    private static DefaultServiceRegistry newRegistry(ServiceRegistry... parents) {
-        new DefaultServiceRegistry("test registry", parents)
-    }
-
     private AbstractServiceRegistry parentRegistry(ServiceProvider provider) {
         def parent = Mock(AbstractServiceRegistry)
         parent.asServiceProvider() >> provider

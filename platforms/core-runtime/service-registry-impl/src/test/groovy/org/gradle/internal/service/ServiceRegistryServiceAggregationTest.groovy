@@ -23,7 +23,7 @@ import spock.lang.Specification
 class ServiceRegistryServiceAggregationTest extends Specification implements ServiceRegistryFixture {
 
     def "can get all services of a given type"() {
-        def registry = newRegistry()
+        def registry = newRegistry().addProvider(new TestProvider())
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createOtherString() {
@@ -50,7 +50,7 @@ class ServiceRegistryServiceAggregationTest extends Specification implements Ser
     }
 
     def "can get all services of a given type using collection type"() {
-        def registry = newRegistry()
+        def registry = newRegistry().addProvider(new TestProvider())
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createOtherString() {
@@ -90,7 +90,7 @@ class ServiceRegistryServiceAggregationTest extends Specification implements Ser
     }
 
     def "all services returns empty collection when no services of given type"() {
-        def registry = newRegistry()
+        def registry = newRegistry().addProvider(new TestProvider())
 
         expect:
         registry.getAll(Long).empty
@@ -226,12 +226,6 @@ class ServiceRegistryServiceAggregationTest extends Specification implements Ser
         def e = thrown(ServiceCreationException)
         normalizedMessage(e) == 'Cannot create service of type Number using method UnsupportedWildcardProvider.create() as there is a problem with parameter #1 of type List<? super java.lang.String>.'
         e.cause.message == 'Locating services with type ? super java.lang.String is not supported.'
-    }
-
-    private static DefaultServiceRegistry newRegistry(ServiceRegistry... parents) {
-        new DefaultServiceRegistry("test registry", parents).tap {
-            addProvider(new TestProvider())
-        }
     }
 
     private AbstractServiceRegistry parentRegistry(ServiceProvider provider) {

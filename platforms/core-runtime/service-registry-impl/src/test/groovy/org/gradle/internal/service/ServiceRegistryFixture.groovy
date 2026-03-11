@@ -30,4 +30,8 @@ trait ServiceRegistryFixture {
         s.replaceAll(Pattern.quote(this.class.name) + "\\.", "")
             .replaceAll(Pattern.quote(this.class.simpleName) + "\\\$", "")
     }
+
+    static DefaultServiceRegistry newRegistry(ServiceRegistry... parents) {
+        new DefaultServiceRegistry("test registry", parents)
+    }
 }
