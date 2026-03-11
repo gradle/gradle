@@ -70,7 +70,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             }
             batchResult = statement.executeBatch();
         } finally {
-            System.out.println("[Profiling] " + SQLProfilingData.create("batchInsertOperation", sql, results.getBuilds().stream().toList(), batchResult, startTime).toJson());
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("batchInsertOperation", sql, results.getBuilds().stream().toList(), batchResult, startTime).toJson());
         }
     }
 
@@ -100,7 +100,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 return keys.getLong(1);
             }
         } finally {
-            System.out.println("[Profiling] " + SQLProfilingData.create("insertExecution", sql, List.of(results.getTeamCityBuildId()), executeResult, startTime).toJson());
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("insertExecution", sql, List.of(results.getTeamCityBuildId()), executeResult, startTime).toJson());
         }
     }
 
@@ -117,7 +117,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         } catch (SQLIntegrityConstraintViolationException ignore) {
             // This is expected, ignore.
         } finally {
-            System.out.println("[Profiling] " + SQLProfilingData.create("insertExecutionExperiment", sql, List.of(results.getTestId(), results.getTestProject(), results.getTestClass()), executeResult, startTime).toJson());
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("insertExecutionExperiment", sql, List.of(results.getTestId(), results.getTestProject(), results.getTestClass()), executeResult, startTime).toJson());
         }
     }
 
@@ -158,7 +158,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                     return Lists.newArrayList(testNames);
                 }
             } finally {
-                System.out.println("[Profiling] " + SQLProfilingData.create("getPerformanceExperiments", sql, List.of(resultType), rs, startTime).toJson());
+                PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("getPerformanceExperiments", sql, List.of(resultType), rs, startTime).toJson());
             }
         });
     }
@@ -237,12 +237,12 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                                 builds.add(displayInfo);
                             }
                         } finally {
-                            System.out.println("[Profiling] " + SQLProfilingData.create("operationsForExecution", operationsForExecutionSql, List.of(id), operationsForExecutionRs, operationsForExecutionStartTime).toJson());
+                            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("operationsForExecution", operationsForExecutionSql, List.of(id), operationsForExecutionRs, operationsForExecutionStartTime).toJson());
                         }
                     }
                     return new CrossBuildPerformanceTestHistory(experiment, ImmutableList.copyOf(builds), results);
                 } finally {
-                    System.out.println("[Profiling] " + SQLProfilingData.create("executionsForName", executionsForNameSql, List.of(experiment.getScenario().getClassName(),  experiment.getScenario().getTestName(), experiment.getTestProject(), minDate), executionsForNameRs, executionsForNameStartTime).toJson());
+                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("executionsForName", executionsForNameSql, List.of(experiment.getScenario().getClassName(),  experiment.getScenario().getTestName(), experiment.getTestProject(), minDate), executionsForNameRs, executionsForNameStartTime).toJson());
                 }
             }
         });

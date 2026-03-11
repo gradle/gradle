@@ -41,32 +41,6 @@ class PerformanceReporter {
         this.fileOperations = fileOperations
     }
 
-    static class PerformanceReportExecOutputStream extends OutputStream {
-        private File profilingOutput;
-        private StringBuilder buffer = new StringBuilder()
-
-        PerformanceReportExecOutputStream(File profilingOutput) {
-            this.profilingOutput = profilingOutput
-        }
-
-        @Override
-        void write(int b) throws IOException {
-            char c = (char) b
-            if (c == ('\n' as char)) {
-                String line = buffer.toString()
-                String prefix = "[Profiling] "
-                if (line.startsWith(prefix)) {
-                    profilingOutput << line.substring(prefix.length()) << "\n"
-                }
-                println(line)
-
-                buffer.setLength(0) // Clear for next line
-            } else {
-                buffer.append(c)
-            }
-        }
-    }
-
     void report(
         String reportGeneratorClass,
         File reportDir,
@@ -85,7 +59,6 @@ class PerformanceReporter {
             it.delete(reportDir)
         }
         reportDir.mkdirs()
-        OutputStream output = new PerformanceReportExecOutputStream(new File(reportDir, "profiling.txt"))
 
         ExecResult result = execOperations.javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
@@ -98,6 +71,7 @@ class PerformanceReporter {
                 spec.systemProperty("org.gradle.performance.execution.channel.patterns", channelPatterns.join(","))
                 spec.systemProperty("org.gradle.performance.execution.branch", branchName)
                 spec.systemProperty("org.gradle.performance.dependencyBuildIds", dependencyBuildIds)
+                spec.systemProperty("org.gradle.performance.db.profiling.output", new File(reportDir, "profiling.txt").absolutePath)
 
                 // For org.gradle.performance.util.Git
                 spec.systemProperty("gradleBuildBranch", branchName)
@@ -106,8 +80,6 @@ class PerformanceReporter {
                 spec.setClasspath(classpath)
 
                 spec.ignoreExitValue = true
-                spec.setErrorOutput(output)
-                spec.setStandardOutput(output)
             }
         })
 

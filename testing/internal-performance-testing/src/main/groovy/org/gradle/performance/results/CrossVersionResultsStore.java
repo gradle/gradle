@@ -102,7 +102,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
         } catch (SQLIntegrityConstraintViolationException ignore) {
             // This is expected, ignore.
         } finally {
-            System.out.println("[Profiling] " + SQLProfilingData.create("insertExecutionExperiment", sql, List.of(results.getTestId(), results.getTestProject(), results.getTestClass()), result, startTime).toJson());
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("insertExecutionExperiment", sql, List.of(results.getTestId(), results.getTestProject(), results.getTestClass()), result, startTime).toJson());
         }
     }
 
@@ -118,7 +118,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                 statement.setString(4, results.getTestClass());
                 result = statement.execute();
             } finally {
-                System.out.println("[Profiling] " + SQLProfilingData.create("updatePreviousTestId", sql, List.of(results.getTestId(), previousId, results.getTestProject(), results.getTestClass()), result, startTime).toJson());
+                PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("updatePreviousTestId", sql, List.of(results.getTestId(), previousId, results.getTestProject(), results.getTestClass()), result, startTime).toJson());
             }
         }
     }
@@ -134,7 +134,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             }
             result = statement.executeBatch();
         } finally {
-            System.out.println("[Profiling] " + SQLProfilingData.create("batchInsertOperation", sql, List.of(String.valueOf(results.getTeamCityBuildId())), result, startTime).toJson());
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("batchInsertOperation", sql, List.of(String.valueOf(results.getTeamCityBuildId())), result, startTime).toJson());
         }
     }
 
@@ -188,7 +188,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                 return keys.getLong(1);
             }
         } finally {
-            System.out.println("[Profiling] " + SQLProfilingData.create("insertExecution", insertStatement, List.of(results.getTeamCityBuildId()), result, startTime).toJson());
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("insertExecution", insertStatement, List.of(results.getTeamCityBuildId()), result, startTime).toJson());
         }
     }
 
@@ -226,7 +226,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                 }
                 return testNames;
             } finally {
-                System.out.println("[Profiling] " + SQLProfilingData.create("getPerformanceExperiments", sql, List.of(), rs, startTime).toJson());
+                PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("getPerformanceExperiments", sql, List.of(), rs, startTime).toJson());
             }
         });
     }
@@ -299,7 +299,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                         allBranches.add(performanceResults.getVcsBranch());
                     }
                 } finally {
-                    System.out.println("[Profiling] " + SQLProfilingData.create("executionsForName", executionsForNameSql, List.of(experiment.getScenario().getClassName(), experiment.getScenario().getTestName(), experiment.getTestProject(), minDate), executionsForNameRs, executionsForNameStartTime).toJson());
+                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("executionsForName", executionsForNameSql, List.of(experiment.getScenario().getClassName(), experiment.getScenario().getTestName(), experiment.getTestProject(), minDate), executionsForNameRs, executionsForNameStartTime).toJson());
                 }
 
                 operationsForExecution.setFetchSize(10 * results.size());
@@ -338,7 +338,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                         }
                     }
                 } finally {
-                    System.out.println("[Profiling] " + SQLProfilingData.create("operationsForExecution", operationsForExecutionSql, List.of(experiment.getScenario().getClassName(), experiment.getScenario().getTestName(), experiment.getTestProject(), minDate), operationsForExecutionRs, operationsForExecutionStartTime).toJson());
+                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("operationsForExecution", operationsForExecutionSql, List.of(experiment.getScenario().getClassName(), experiment.getScenario().getTestName(), experiment.getTestProject(), minDate), operationsForExecutionRs, operationsForExecutionStartTime).toJson());
                 }
                 return new CrossVersionPerformanceTestHistory(experiment, new ArrayList<>(allVersions), new ArrayList<>(allBranches), Lists.newArrayList(results.values()));
             }
