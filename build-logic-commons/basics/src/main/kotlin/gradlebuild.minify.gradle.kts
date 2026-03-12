@@ -50,6 +50,7 @@ val keepPatterns = mapOf(
         "it.unimi.dsi.fastutil.objects.ObjectOpenHashSet",
         "it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap",
         // For build operation listener and logging
+        "it.unimi.dsi.fastutil.longs.LongSet",
         "it.unimi.dsi.fastutil.longs.LongOpenHashSet",
         "it.unimi.dsi.fastutil.longs.LongSets",
         // For dependency management
