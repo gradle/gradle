@@ -169,25 +169,6 @@ samples {
     }
 
     publishedSamples {
-        val taskWithArguments by creating {
-            sampleDirectory = samplesRoot.dir("writing-tasks/task-with-arguments")
-            displayName = "Implementing Tasks with Command-line Arguments"
-            description = "Pass arguments to a custom task."
-            category = "Writing Custom Tasks"
-        }
-        val customTestTask by creating {
-            sampleDirectory = samplesRoot.dir("writing-tasks/custom-test-task")
-            displayName = "Implementing a task that runs tests"
-            description = "Running tests outside of the JVM."
-            category = "Writing Custom Tasks"
-        }
-        val tasksWithDependencyResolutionResultInputs by creating {
-            sampleDirectory = samplesRoot.dir("writing-tasks/tasks-with-dependency-resolution-result-inputs")
-            displayName = "Implementing tasks with dependency resolution result inputs"
-            description = "Consume dependency resolution result inputs in tasks."
-            category = "Writing Custom Tasks"
-        }
-
     }
 }
 
@@ -280,7 +261,7 @@ tasks.named<Test>("docsTest") {
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_21)) {
             // Sample requests Java 21
-            excludeTestsMatching("org.gradle.docs.samples.*.custom-test-task_*_consumer")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-writing-tasks-custom-test-task_*_consumer")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
