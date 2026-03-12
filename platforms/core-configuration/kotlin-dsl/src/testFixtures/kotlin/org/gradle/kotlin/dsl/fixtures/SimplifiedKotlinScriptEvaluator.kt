@@ -46,6 +46,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.file.Path
 
 
 /**
@@ -55,12 +56,14 @@ import java.net.URLClassLoader
 fun eval(
     script: String,
     target: Any,
+    buildTreeRootDir: File,
     baseCacheDir: File,
     baseTempDir: File,
     scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
     scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) {
     SimplifiedKotlinScriptEvaluator(
+        buildTreeRootDir,
         baseCacheDir,
         baseTempDir,
         scriptCompilationClassPath,
@@ -96,6 +99,7 @@ fun simplifiedKotlinDefaultServiceRegistry(
  */
 private
 class SimplifiedKotlinScriptEvaluator(
+    private val buildTreeRootDirFile: File,
     private val baseCacheDir: File,
     private val baseTempDir: File,
     private val scriptCompilationClassPath: ClassPath,
@@ -149,6 +153,9 @@ class SimplifiedKotlinScriptEvaluator(
 
     private
     inner class InterpreterHost : Interpreter.Host {
+
+        override val buildTreeRootDir: Path
+            get() = buildTreeRootDirFile.toPath()
 
         override fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry =
             serviceRegistry

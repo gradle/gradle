@@ -47,5 +47,6 @@ fun canonicalScriptFileFor(baseDir: File, scriptPath: String, scriptText: String
 private
 fun scriptFileNameFor(scriptPath: String) = scriptPath.run {
     val index = lastIndexOf('/')
-    if (index != -1) substring(index + 1, length) else substringAfterLast('\\')
+    if (index != -1) substring(index + 1, length)
+    else substringAfterLast('\\')
 }

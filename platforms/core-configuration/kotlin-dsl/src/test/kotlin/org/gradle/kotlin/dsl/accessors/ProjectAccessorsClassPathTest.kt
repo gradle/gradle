@@ -481,6 +481,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         eval(
             script = script,
             target = target,
+            buildTreeRootDir = root,
             baseCacheDir = kotlinDslEvalBaseCacheDir,
             baseTempDir = kotlinDslEvalBaseTempDir,
             scriptCompilationClassPath = DefaultClassPath.of(binDir) + classPath,
