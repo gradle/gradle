@@ -74,10 +74,13 @@ public class FileBackedBlockStore implements BlockStore {
     @Override
     public void close() {
         try {
-            if (writable) {
-                file.setLength(currentFileSize);
+            try {
+                if (writable) {
+                    file.setLength(currentFileSize);
+                }
+            } finally {
+                file.close();
             }
-            file.close();
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
