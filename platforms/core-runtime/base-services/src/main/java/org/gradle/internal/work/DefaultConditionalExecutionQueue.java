@@ -50,8 +50,8 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
     public DefaultConditionalExecutionQueue(String displayName, WorkerLimits workerLimits, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
         this.executor = executorFactory.create(displayName);
-        this.helper = new WorkerThreadPoolHelper<>(workerLimits, () -> {
-            Future<?> ignored = executor.submit(new ExecutionRunner());
+        this.helper = new WorkerThreadPoolHelper<>(workerLimits, token -> {
+            Future<?> ignored = executor.submit(new ExecutionRunner(token));
         });
 
         executor.setKeepAlive(KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS);
@@ -110,6 +110,12 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
      * new items to arrive (if there are less than max workers threads running) or exit, finishing the thread.
      */
     private class ExecutionRunner implements Runnable {
+        private final WorkerThreadPoolHelper.WorkerToken token;
+
+        private ExecutionRunner(WorkerThreadPoolHelper.WorkerToken token) {
+            this.token = token;
+        }
+
         @Override
         public void run() {
             workerLeaseService.setOwningThreadPool(DefaultConditionalExecutionQueue.this);
@@ -120,14 +126,24 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
                 }
             } finally {
                 workerLeaseService.setOwningThreadPool(null);
-                shutDown();
+                invalidateIfNeeded();
             }
         }
 
         private @Nullable ConditionalExecution<?> waitForNextOperation() {
             lock.lock();
             try {
-                while (queueState == QueueState.Working && helper.shouldWorkerKeepWaiting()) {
+                // If the token was already invalidated (e.g. in runBatch), exit immediately
+                // to avoid becoming a zombie thread stuck in await().
+                if (!token.isValid()) {
+                    return null;
+                }
+                while (queueState == QueueState.Working && helper.isQueueEmpty()) {
+                    if (helper.isExtraWorker()) {
+                        // We should exit, immediately invalidate our token to ensure the count goes down now.
+                        invalidateIfNeeded();
+                        return null;
+                    }
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
@@ -153,6 +169,11 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
 
                         lock.lock();
                         try {
+                            if (helper.isExtraWorker()) {
+                                // We should exit, immediately invalidate our token to ensure the count goes down now.
+                                invalidateIfNeeded();
+                                return;
+                            }
                             operation = helper.pollWork();
                         } finally {
                             lock.unlock();
@@ -173,10 +194,10 @@ public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, Co
             }
         }
 
-        private void shutDown() {
+        private void invalidateIfNeeded() {
             lock.lock();
             try {
-                helper.notifyWorkerFinished();
+                token.invalidateIfNeeded();
             } finally {
                 lock.unlock();
             }

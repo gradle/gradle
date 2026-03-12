@@ -70,7 +70,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             : context.getMaxConcurrency();
         this.helper = new WorkerThreadPoolHelper<>(
             new DefaultWorkerLimits(maxWorkerTasks),
-            () -> context.getExecutor().execute(new WorkerRunnable(parent))
+            token -> context.getExecutor().execute(new WorkerRunnable(token, parent))
         );
     }
 
@@ -137,7 +137,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         // have a worker lease. This ensures that all worker leases are being utilized,
         // regardless of the bounds of the thread pool.
         if (context.requiresWorkerLease()) {
-            new WorkerRunnable(parent).runOperations();
+            new WorkerRunnable(null, parent).runOperations();
         }
 
         waitForWorkToComplete();
@@ -221,9 +221,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private class WorkerRunnable implements Runnable {
 
+        private final WorkerThreadPoolHelper.@Nullable WorkerToken token;
         private final @Nullable BuildOperationRef parent;
 
-        public WorkerRunnable(@Nullable BuildOperationRef parent) {
+        public WorkerRunnable(WorkerThreadPoolHelper.@Nullable WorkerToken token, @Nullable BuildOperationRef parent) {
+            this.token = token;
             this.parent = parent;
         }
 
@@ -247,7 +249,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 } catch (Throwable t) {
                     addFailure(t);
                 } finally {
-                    shutDown();
+                    invalidateIfNeeded();
                 }
             });
         }
@@ -256,7 +258,17 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         private T waitForNextOperation() {
             lock.lock();
             try {
-                while (queueState == QueueState.Working && helper.shouldWorkerKeepWaiting()) {
+                // If the token was already invalidated (e.g. in runBatch), exit immediately
+                // to avoid becoming a zombie thread stuck in await().
+                if (token != null && !token.isValid()) {
+                    return null;
+                }
+                while (queueState == QueueState.Working && helper.isQueueEmpty()) {
+                    if (helper.isExtraWorker()) {
+                        // We should exit, immediately invalidate our token to ensure the count goes down now.
+                        invalidateIfNeeded();
+                        return null;
+                    }
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
@@ -319,6 +331,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
                 lock.lock();
                 try {
+                    if (helper.isExtraWorker()) {
+                        // We should exit, immediately invalidate our token to ensure the count goes down now.
+                        invalidateIfNeeded();
+                        break;
+                    }
                     operation = helper.pollWork();
                 } finally {
                     lock.unlock();
@@ -335,10 +352,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             }
         }
 
-        private void shutDown() {
+        private void invalidateIfNeeded() {
             lock.lock();
             try {
-                helper.notifyWorkerFinished();
+                if (token != null) {
+                    token.invalidateIfNeeded();
+                }
             } finally {
                 lock.unlock();
             }

@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.function.Consumer;
 
 /**
  * Common code for handling work for {@link WorkerThreadPool} implementations.
@@ -29,13 +30,34 @@ import java.util.Deque;
  * </p>
  */
 public final class WorkerThreadPoolHelper<T> {
+    public static final class WorkerToken {
+        private final WorkerThreadPoolHelper<?> helper;
+        private boolean valid = true;
+
+        private WorkerToken(WorkerThreadPoolHelper<?> helper) {
+            this.helper = helper;
+        }
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public void invalidateIfNeeded() {
+            if (!valid) {
+                return;
+            }
+            valid = false;
+            helper.notifyWorkerFinished();
+        }
+    }
+
     private final WorkerLimits workerLimits;
-    private final Runnable spawnWorker;
+    private final Consumer<WorkerToken> spawnWorker;
     private final Deque<T> queue = new ArrayDeque<>();
     private int workerCount;
     private int blockedWorkerCount;
 
-    public WorkerThreadPoolHelper(WorkerLimits workerLimits, Runnable spawnWorker) {
+    public WorkerThreadPoolHelper(WorkerLimits workerLimits, Consumer<WorkerToken> spawnWorker) {
         this.workerLimits = workerLimits;
         this.spawnWorker = spawnWorker;
     }
@@ -66,6 +88,10 @@ public final class WorkerThreadPoolHelper<T> {
         return queue.pollFirst();
     }
 
+    public boolean isQueueEmpty() {
+        return queue.isEmpty();
+    }
+
     public int getQueueSize() {
         return queue.size();
     }
@@ -74,20 +100,16 @@ public final class WorkerThreadPoolHelper<T> {
         queue.clear();
     }
 
-    /**
-     * Wait for work to be submitted if the queue is empty and the worker count is under max workers.
-     * This attempts to keep up to max workers alive once they've been started.
-     */
-    public boolean shouldWorkerKeepWaiting() {
-        return queue.isEmpty() && workerCount <= getCurrentMaxWorkerCount();
+    public boolean isExtraWorker() {
+        return workerCount > getCurrentMaxWorkerCount();
     }
 
-    public void notifyWorkerFinished() {
+    private void notifyWorkerFinished() {
         workerCount--;
     }
 
     private void doSpawnWorker() {
-        spawnWorker.run();
+        spawnWorker.accept(new WorkerToken(this));
         workerCount++;
     }
 
