@@ -19,17 +19,17 @@ import org.gradle.cache.FileAccess;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
-import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
+import org.gradle.cache.internal.btree.PersistentIndexedCache;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSafeIndexedCache<K, V> {
     private final FileAccess fileAccess;
-    private final Supplier<BTreePersistentIndexedCache<K, V>> factory;
-    private BTreePersistentIndexedCache<K, V> cache;
+    private final Supplier<PersistentIndexedCache<K, V>> factory;
+    private PersistentIndexedCache<K, V> cache;
 
-    public DefaultMultiProcessSafeIndexedCache(Supplier<BTreePersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
+    public DefaultMultiProcessSafeIndexedCache(Supplier<PersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
         this.factory = factory;
         this.fileAccess = fileAccess;
     }
@@ -41,7 +41,7 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
 
     @Override
     public V getIfPresent(final K key) {
-        final BTreePersistentIndexedCache<K, V> cache = getCache();
+        final PersistentIndexedCache<K, V> cache = getCache();
         try {
             return fileAccess.readFile((Supplier<V>) () -> cache.get(key));
         } catch (FileIntegrityViolationException e) {
@@ -61,7 +61,7 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
 
     @Override
     public void put(final K key, final V value) {
-        final BTreePersistentIndexedCache<K, V> cache = getCache();
+        final PersistentIndexedCache<K, V> cache = getCache();
         // Use writeFile because the cache can internally recover from datafile
         // corruption, so we don't care at this level if it's corrupt
         fileAccess.writeFile(() -> cache.put(key, value));
@@ -69,7 +69,7 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
 
     @Override
     public void remove(final K key) {
-        final BTreePersistentIndexedCache<K, V> cache = getCache();
+        final PersistentIndexedCache<K, V> cache = getCache();
         // Use writeFile because the cache can internally recover from datafile
         // corruption, so we don't care at this level if it's corrupt
         fileAccess.writeFile(() -> cache.remove(key));
@@ -94,7 +94,7 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
     public void beforeLockRelease(FileLock.State currentCacheState) {
     }
 
-    private BTreePersistentIndexedCache<K, V> getCache() {
+    private PersistentIndexedCache<K, V> getCache() {
         if (cache == null) {
             // Use writeFile because the cache can internally recover from datafile
             // corruption, so we don't care at this level if it's corrupt

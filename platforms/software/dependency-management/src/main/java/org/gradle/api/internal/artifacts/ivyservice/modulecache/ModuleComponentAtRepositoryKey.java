@@ -18,7 +18,16 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
-public class ModuleComponentAtRepositoryKey {
+import java.util.Comparator;
+
+public class ModuleComponentAtRepositoryKey implements Comparable<ModuleComponentAtRepositoryKey> {
+
+    private static final Comparator<ModuleComponentAtRepositoryKey> COMPARATOR =
+        Comparator.comparing(ModuleComponentAtRepositoryKey::getRepositoryId)
+            .thenComparing(k -> k.getComponentId().getGroup())
+            .thenComparing(k -> k.getComponentId().getModule())
+            .thenComparing(k -> k.getComponentId().getVersion());
+
     private final String repositoryId;
     private final ModuleComponentIdentifier componentId;
     private final int hashCode;
@@ -34,7 +43,7 @@ public class ModuleComponentAtRepositoryKey {
         return repositoryId + "," + componentId;
     }
 
-    public ModuleComponentIdentifier getComponentId() {
+    public ModuleComponentIdentifier getComponentId()    {
         return componentId;
     }
 
@@ -54,5 +63,10 @@ public class ModuleComponentAtRepositoryKey {
     @Override
     public int hashCode() {
         return hashCode;
+    }
+
+    @Override
+    public int compareTo(ModuleComponentAtRepositoryKey other) {
+        return COMPARATOR.compare(this, other);
     }
 }

@@ -22,6 +22,7 @@ dependencies {
 
     implementation(libs.fastutil)
     implementation(libs.guava)
+    implementation(libs.h2Mvstore)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)

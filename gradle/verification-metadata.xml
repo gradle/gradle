@@ -139,6 +139,7 @@
             <trusting group="^org[.]gradle($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="31FAE244A81D64507B47182E1B2718089CE964B8" group="com.thoughtworks.qdox"/>
+         <trusted-key id="331224E1D7BE883D16E8A685825C06C827AF6B66" group="me.champeau.gradle"/>
          <trusted-key id="33FD4BFD33554634053D73C0C2148900BCD3C2AF" group="org.jetbrains" name="annotations"/>
          <trusted-key id="34441E504A937F43EB0DAEF96A65176A0FB1CD0B">
             <trusting group="org.apache.groovy"/>
@@ -242,6 +243,7 @@
          <trusted-key id="8E3A02905A1AE67E7B0F9ACD3967D4EDA591B991" group="org.jetbrains.kotlinx" name="kotlinx-html-jvm"/>
          <trusted-key id="98465301A4939C0279F2E847D89D05374952262B" group="org.jetbrains.dokka"/>
          <trusted-key id="9857C388D7D1D9D031274CD0A5DEF5A76F94A471" group="com.github.spotbugs"/>
+         <trusted-key id="9B5D41D28D8231A341B6713BC8C127A0EC7665D6" group="org.jctools"/>
          <trusted-key id="9C60C6B3A5A9DF8FEDD299D65BE0BA8CB80602AE" group="org.apache.ivy"/>
          <trusted-key id="9E84765A7AA3E3D3D5598A408E3F0DE7AE354651" group="^com[.]squareup($|([.].*))" regex="true"/>
          <trusted-key id="A2570288E10932263E8326CBAA49C633B4734832">
@@ -309,6 +311,7 @@
          <trusted-key id="CF4B3A3F53BEF9A2CE2CBFB895962C5E716C39AA" group="com.autonomousapps"/>
          <trusted-key id="CFBE6E7934FB211224EE1C2B0C0A9468268C79AE" group="org.jetbrains"/>
          <trusted-key id="D40633BFD9FDB773C896E9025DFB46C505B694FE" group="com.github.bbottema"/>
+         <trusted-key id="D477D51812E692011DB11E66A6EA2E2BF22E0543" group="io.github.java-diff-utils"/>
          <trusted-key id="D54A395B5CF3F86EB45F6E426B1B008864323B92">
             <trusting group="org.antlr"/>
             <trusting group="org.antlr" name="antlr4-runtime"/>
@@ -385,9 +388,6 @@
          </trusted-key>
          <trusted-key id="FF986D345395D4AD1DC48137BB6FD5AD91D01857" group="org.seleniumhq.selenium"/>
          <trusted-key id="FFFD810FFFDE203D5FA27263BEABCFBEE059E4E5" group="com.github.siom79.japicmp"/>
-         <trusted-key id="331224E1D7BE883D16E8A685825C06C827AF6B66" group="me.champeau.gradle"/>
-         <trusted-key id="D477D51812E692011DB11E66A6EA2E2BF22E0543" group="io.github.java-diff-utils"/>
-         <trusted-key id="9B5D41D28D8231A341B6713BC8C127A0EC7665D6" group="org.jctools"/>
       </trusted-keys>
    </configuration>
    <components>
@@ -665,6 +665,11 @@
       <component group="com.gradleup" name="gr8-plugin" version="0.10">
          <artifact name="gr8-plugin-0.10.jar">
             <pgp value="4857D1CE04E78FAB2A172E8F39B48E1BADDB933F"/>
+         </artifact>
+      </component>
+      <component group="com.h2database" name="h2-mvstore" version="2.4.240">
+         <artifact name="h2-mvstore-2.4.240.jar">
+            <pgp value="CF6FCDD747FD9C32304B180B58BD11D32974088F"/>
          </artifact>
       </component>
       <component group="com.ibm.icu" name="icu4j" version="59.1">
