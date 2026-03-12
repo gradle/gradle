@@ -13,6 +13,7 @@ dependencies {
     api(projects.buildCacheSpi)
     api(projects.buildDiscovery)
     api(projects.loggingApi)
+    api(projects.normalizationApi)
     api(projects.baseServices)
     api(projects.files)
     api(projects.resources)

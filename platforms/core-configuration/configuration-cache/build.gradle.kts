@@ -27,6 +27,7 @@ dependencies {
     api(projects.coreSerializationCodecs)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.normalization)
     api(projects.processServices)
     api(projects.dependencyManagement)
     api(projects.fileTemp)
