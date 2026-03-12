@@ -17,7 +17,9 @@
 package org.gradle.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
 import com.google.common.base.Utf8;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -34,17 +36,38 @@ import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
  * Sibling class to {@link FileUtils}, focused on obtaining safe file locations and names.
  */
 public final class SafeFileLocationUtils {
+    /**
+     * The Windows path limit if not using UNC paths.
+     * The JDK will automatically use UNC paths, so this is only needed for validating paths
+     * used in native code that doesn't handle UNC paths.
+     */
     public static final int WINDOWS_PATH_LIMIT = 260;
 
-    // SipHash-2-4 provides decent collision resistance of 64 bits while being fast to compute
-    private static final HashFunction HASHER = Hashing.sipHash24();
-    private static final BaseEncoding BASE_ENCODING = BaseEncoding.base32Hex().omitPadding();
+    /**
+     * The shortest max path length across all known filesystems, used to limit the length of
+     * emitted paths to ensure they can be used on all filesystems.
+     */
+    @VisibleForTesting
+    static final int MAX_PATH_LENGTH =
+        Arrays.stream(FileSystem.values())
+            .mapToInt(FileSystem::getMaxPathLength)
+            .min()
+            .orElseThrow(() -> new IllegalStateException("No filesystems found"));
+
+    // Fingerprint hash provides the best collision resistance, though not cryptographically secure,
+    // and is the fastest as manually tested with org.gradle.internal.reflect.HashingAlgorithmsBenchmark
+    // We don't need secure hashes here as we don't expect malicious file names.
+    private static final HashFunction HASHER = Hashing.farmHashFingerprint64();
+    private static final BaseEncoding BASE_ENCODING = BaseEncoding.base64Url().omitPadding();
 
     /**
      * The maximum file name length in bytes for most filesystems (e.g. ext4, NTFS).
@@ -159,13 +182,15 @@ public final class SafeFileLocationUtils {
             return prefixResult.getCleanString() + removeInvalidStrings(forDirectory, nameResult.getCleanString());
         }
 
+        String shortName = shortenNameAndAddHash(nameResult.cleanBytes, hashName(name), prefixResult.cleanBytes.length);
+        return prefixResult.getCleanString() + removeInvalidStrings(forDirectory, shortName);
+    }
+
+    private static String hashName(String name) {
         // We use hashUnencodedChars to ensure we hash the original name without any replacements
         // This ensures that different original names that map to the same cleaned name still get different hashes
         byte[] hashBytes = HASHER.hashUnencodedChars(name).asBytes();
-        String encoded = BASE_ENCODING.encode(hashBytes);
-
-        String shortName = shortenNameAndAddHash(nameResult.cleanBytes, encoded, prefixResult.cleanBytes.length);
-        return prefixResult.getCleanString() + removeInvalidStrings(forDirectory, shortName);
+        return BASE_ENCODING.encode(hashBytes);
     }
 
     private static String removeInvalidStrings(boolean forDirectory, String name) {
@@ -365,6 +390,126 @@ public final class SafeFileLocationUtils {
         }
         // Otherwise, the valid length is up to before the start of the code point
         return startOfCodePoint;
+    }
+
+    private static final Splitter PATH_SPLITTER = Splitter.on('/');
+
+    /**
+     * A segment of a file path.
+     */
+    public static final class Segment {
+        public static Segment directory(String name) {
+            if (name.contains("/")) {
+                throw new IllegalArgumentException("Directory name cannot contain '/': " + name);
+            }
+            return new Segment(name, name, true);
+        }
+
+        public static Segment file(String name) {
+            if (name.contains("/")) {
+                throw new IllegalArgumentException("File name cannot contain '/': " + name);
+            }
+            return new Segment(name, name, false);
+        }
+
+        private static int sumByteLengths(List<Segment> segments) {
+            int sum = 0;
+            for (Segment s : segments) {
+                sum += s.byteLength;
+            }
+            return sum;
+        }
+
+        private final String original;
+        private final String current;
+        private final int byteLength;
+        private final boolean isDirectory;
+
+        private Segment(String original, String current, boolean isDirectory) {
+            this.original = original;
+            this.current = current;
+            this.byteLength = Utf8.encodedLength(current);
+            this.isDirectory = isDirectory;
+        }
+
+        private Segment withCurrent(String newCurrent) {
+            return new Segment(this.original, newCurrent, isDirectory);
+        }
+    }
+
+    /**
+     * Convert the given path to a safe file path by converting each segment to a safe file name,
+     * or clobbering segments to a hash if the path exceeds the max safe path length.
+     * The base path will be preserved.
+     *
+     * <p>
+     * This is an inherently lossy operation, only to be used when the specific output path is not too important,
+     * such as with HTML report output.
+     * </p>
+     *
+     * @param basePath the absolute base path that the resulting path will be joined with
+     * @param segments the relative path segments to be joined with the base path
+     * @return a safe file path derived from the original path, joined with the base path
+     */
+    public static String toSafeFilePathLossy(String basePath, Iterable<Segment> segments) {
+        if (!basePath.startsWith("/")) {
+            throw new IllegalArgumentException("Base path must be absolute.");
+        }
+        int basePathByteLength = Utf8.encodedLength(basePath);
+        List<Segment> segmentsList = Lists.newArrayList(segments);
+
+        for (int i = 0; i < segmentsList.size(); i++) {
+            Segment segment = segmentsList.get(i);
+            if (!segment.isDirectory && i < segmentsList.size() - 1) {
+                throw new IllegalArgumentException(
+                    "Only the last segment can be a file," +
+                        " segment '" + segment.original + "' at index " + i + " was marked as a file."
+                );
+            }
+            segmentsList.set(i, segment.withCurrent(toSafeFileName(segment.original, segment.isDirectory)));
+        }
+
+        int totalByteLength = basePathByteLength
+            // + '/'
+            + 1
+            // + segment lengths
+            + Segment.sumByteLengths(segmentsList)
+            // + segment slashes
+            + (segmentsList.size() - 1);
+
+        if (totalByteLength < MAX_PATH_LENGTH)  {
+            return finishPath(totalByteLength, basePath, segmentsList);
+        }
+
+        // Work from the last segment backwards as we want to preserve as much of the leading path as possible
+        // This ensures test reports still share directories as much as possible.
+        ListIterator<Segment> reverseSegmentIterator = segmentsList.listIterator(segmentsList.size());
+        while (totalByteLength >= MAX_PATH_LENGTH && reverseSegmentIterator.hasPrevious()) {
+            Segment segment = reverseSegmentIterator.previous();
+            Segment newSegment = segment.withCurrent(hashName(segment.original));
+
+            totalByteLength -= segment.byteLength;
+            totalByteLength += newSegment.byteLength;
+        }
+
+        if (totalByteLength >= MAX_PATH_LENGTH) {
+            String path = segmentsList.stream().map(s -> s.original).collect(Collectors.joining("/"));
+            throw new IllegalStateException("Failed to shorten path to be within the maximum length limit: " + basePath + "/" + path);
+        }
+        return finishPath(totalByteLength, basePath, segmentsList);
+    }
+
+    private static String finishPath(int totalByteLength, String basePath, List<Segment> segments) {
+        // This may overallocate a bit, but that's probably OK to reduce the number of overall allocations.
+        StringBuilder result = new StringBuilder(totalByteLength);
+        result.append(basePath);
+        for (Segment segment : segments) {
+            result.append('/').append(segment.current);
+        }
+        if (segments.get(segments.size() - 1).isDirectory) {
+            result.append('/');
+        }
+        return result.toString();
     }
 
     public static File assertInWindowsPathLengthLimitation(File file) {

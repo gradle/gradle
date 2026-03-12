@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets
 import static org.gradle.internal.SafeFileLocationUtils.MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES
 import static org.gradle.internal.SafeFileLocationUtils.assertInWindowsPathLengthLimitation
 import static org.gradle.internal.SafeFileLocationUtils.toSafeFileName
+import static org.gradle.internal.SafeFileLocationUtils.toSafeFilePathLossy
 
 class SafeFileLocationUtilsTest extends Specification {
 
@@ -214,5 +215,124 @@ class SafeFileLocationUtilsTest extends Specification {
 
         then:
         thrown(NullPointerException)
+    }
+
+    def "toSafeFilePathLossy returns safe segments joined when path fits within limit"() {
+        expect:
+        toSafeFilePathLossy('/base', 'a/b/c.html') == 'a/b/c.html'
+        toSafeFilePathLossy('/base', 'simple') == 'simple'
+        toSafeFilePathLossy('/base', 'dir/file.txt') == 'dir/file.txt'
+    }
+
+    def "toSafeFilePathLossy sanitizes segment names"() {
+        expect:
+        toSafeFilePathLossy('/base', 'with space/file name.html') == 'with-space/file-name.html'
+    }
+
+    def "toSafeFilePathLossy treats last segment as directory when path ends with slash"() {
+        expect:
+        // Trailing dots are removed for directories but not files
+        toSafeFilePathLossy('/base', 'a./b.') == 'a/b.'
+        toSafeFilePathLossy('/base', 'a./b./') == 'a/b'
+    }
+
+    def "toSafeFilePathLossy hashes largest segments when path exceeds limit"() {
+        given:
+        // MAX_PATH_LENGTH is 255 (ext4/NTFS minimum across filesystems)
+        // Base path is /base = 5 bytes
+        // We need segments that when combined with base exceed 255
+        def basePath = '/' + 'B' * 49  // 50 bytes
+        // Create segments that total well over the limit
+        def longSegment1 = 'A' * 100
+        def longSegment2 = 'C' * 100
+        def path = "${longSegment1}/${longSegment2}/file.html"
+
+        when:
+        def result = toSafeFilePathLossy(basePath, path)
+        def totalLength = Utf8.encodedLength(basePath) + 1 + Utf8.encodedLength(result)
+
+        then:
+        // Result should fit within MAX_PATH_LENGTH (255)
+        totalLength <= 255
+        // The file.html segment should be preserved (it's the smallest)
+        result.endsWith('file.html')
+    }
+
+    def "toSafeFilePathLossy handles Unicode segments"() {
+        expect:
+        toSafeFilePathLossy('/base', '한글/テスト/file.html') == '한글/テスト/file.html'
+    }
+
+    def "toSafeFilePathLossy hashes Unicode segments when path is too long"() {
+        given:
+        def basePath = '/' + 'B' * 199  // 200 bytes
+        // Each Korean char is 3 bytes in UTF-8, so 20 chars = 60 bytes
+        def unicodeSegment = '한' * 20
+        def path = "${unicodeSegment}/file.html"
+
+        when:
+        def result = toSafeFilePathLossy(basePath, path)
+        def totalLength = Utf8.encodedLength(basePath) + 1 + Utf8.encodedLength(result)
+
+        then:
+        totalLength <= 255
+    }
+
+    def "toSafeFilePathLossy handles single segment path"() {
+        expect:
+        toSafeFilePathLossy('/base', 'file.html') == 'file.html'
+    }
+
+    def "toSafeFilePathLossy handles empty segments from consecutive slashes"() {
+        expect:
+        // Empty segments from consecutive slashes should not cause errors
+        toSafeFilePathLossy('/base', 'a//b') == 'a//b'
+    }
+
+    def "toSafeFilePathLossy throws on absolute path argument"() {
+        when:
+        toSafeFilePathLossy('/base', '/absolute')
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
+    def "toSafeFilePathLossy throws on relative base path"() {
+        when:
+        toSafeFilePathLossy('relative', 'path')
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
+    def "toSafeFilePathLossy iteratively hashes multiple segments when needed"() {
+        given:
+        def basePath = '/' + 'B' * 99  // 100 bytes
+        // Three long segments that together exceed the limit
+        def seg1 = 'A' * 60
+        def seg2 = 'C' * 60
+        def seg3 = 'D' * 60
+        def path = "${seg1}/${seg2}/${seg3}"
+
+        when:
+        def result = toSafeFilePathLossy(basePath, path)
+        def totalLength = Utf8.encodedLength(basePath) + 1 + Utf8.encodedLength(result)
+
+        then:
+        totalLength <= 255
+    }
+
+    def "toSafeFilePathLossy with base path near limit hashes all segments"() {
+        given:
+        // Base path that leaves very little room
+        def basePath = '/' + 'B' * 219  // 220 bytes, leaves 35 bytes for path + separators
+        def path = 'segment1/segment2/file.html'
+
+        when:
+        def result = toSafeFilePathLossy(basePath, path)
+        def totalLength = Utf8.encodedLength(basePath) + 1 + Utf8.encodedLength(result)
+
+        then:
+        totalLength <= 255
     }
 }

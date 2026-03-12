@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.EmptyFileVisitor;
@@ -35,8 +37,7 @@ import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
+import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.file.Deleter;
@@ -60,8 +61,10 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -84,19 +87,25 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     public static String getFilePath(org.gradle.util.Path path, boolean isLeaf) {
         if (path.segmentCount() == 0) {
             return "index.html";
-        } else if (isLeaf) {
+        }
+
+        boolean flatLeaf = isLeaf && !Objects.equals(path.getName(), "index");
+        if (flatLeaf) {
             // Avoid using a directory for each leaf node
             // This reduces VFS overhead from many directories for large test suites
-            String prefix = String.join("/", Iterables.transform(
-                path.getParent().segments(),
-                GenericHtmlTestReportGenerator::hashSegment
-            ));
-            return prefix + (prefix.isEmpty() ? "" : "/") + hashSegment(path.getName()) + ".html";
+            return SafeFileLocationUtils.toSafeFilePathLossy(
+
+            );
+            String prefix = path.getParent().segments().stream()
+                .map(name1 -> SafeFileLocationUtils.toSafeFileName(name1, true))
+                .collect(Collectors.joining("/"));
+            String name = path.getName();
+            return prefix + (prefix.isEmpty() ? "" : "/") + SafeFileLocationUtils.toSafeFileName(name + ".html", false);
         } else {
-            return String.join("/", Iterables.transform(
-                path.segments(),
-                GenericHtmlTestReportGenerator::hashSegment
-            )) + "/index.html";
+            return path.segments().stream()
+                .map(name1 -> SafeFileLocationUtils.toSafeFileName(name1, true))
+                .collect(Collectors.joining("/"))
+                + "/index.html";
         }
     }
 
