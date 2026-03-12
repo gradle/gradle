@@ -9,10 +9,11 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.GradleVersion
 import org.junit.Test
+import java.io.File
+import java.util.UUID
 
-// We have some duplicated segments in the tests, but I think it's worth for the readability
-@Suppress("DuplicatedCode")
 class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
@@ -61,68 +62,89 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
     @Test
     fun `can download source distribution`() {
+        val gradleVersion = distribution.version
+        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
+        val server = HttpServer()
+        server.start()
+        try {
+            server.hostAndExpectRequestFor(gradleVersion, srcDistribution)
+            server.expectHead("/${gradleVersion.repositoryName}/${gradleVersion.artifactFileName}", srcDistribution)
+            server.expectGet("/${gradleVersion.repositoryName}/${gradleVersion.artifactFileName}.sha1", srcDistribution)
 
-        withBuildScript(
-            """
+            withBuildScript(
+                """
+                val sourceDirs =
+                    ${SourceDistributionResolver::class.qualifiedName}(project).run {
+                        sourceDirs()
+                    }
 
-            val sourceDirs =
-                ${SourceDistributionResolver::class.qualifiedName}(project).run {
-                    sourceDirs()
+                require(sourceDirs.isNotEmpty()) {
+                    "Expected source directories but got none"
                 }
 
-            require(sourceDirs.isNotEmpty()) {
-                "Expected source directories but got none"
-            }
+                val subprojectSourcePath = "org/gradle/StartParameter.java"
+                val subprojectFound = sourceDirs.find { it.resolve(subprojectSourcePath).isFile }
+                require(subprojectFound != null) {
+                    "Source directories do not contain subproject file '${'$'}subprojectSourcePath'. Searched in:\n  " +
+                        sourceDirs.joinToString("  \n")
+                }
 
-            val subprojectSourcePath = "org/gradle/StartParameter.java"
-            val subprojectFound = sourceDirs.find { it.resolve(subprojectSourcePath).isFile }
-            require(subprojectFound != null) {
-                "Source directories do not contain subproject file '${'$'}subprojectSourcePath'. Searched in:\n  " +
-                    sourceDirs.joinToString("  \n")
-            }
+                val platformSourcePath = "org/gradle/api/Action.java"
+                val platformFound = sourceDirs.find { it.resolve(platformSourcePath).isFile }
+                require(platformFound != null) {
+                    "Source directories do not contain platform file '${'$'}platformSourcePath'. Searched in:\n  " +
+                        sourceDirs.joinToString("\n  ")
+                }
 
-            val platformSourcePath = "org/gradle/api/Action.java"
-            val platformFound = sourceDirs.find { it.resolve(platformSourcePath).isFile }
-            require(platformFound != null) {
-                "Source directories do not contain platform file '${'$'}platformSourcePath'. Searched in:\n  " +
-                    sourceDirs.joinToString("\n  ")
-            }
+                """
+            )
 
-            """
-        )
-
-        build()
+            build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${server.uri}")
+        } finally {
+            server.stop()
+            server.resetExpectations()
+        }
     }
 
     @Test
     fun `can download source distribution when repositories are declared in settings`() {
+        val gradleVersion = distribution.version
+        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
+        val server = HttpServer()
+        server.start()
+        try {
+            server.hostAndExpectRequestFor(gradleVersion, srcDistribution)
+            server.expectHead("/${gradleVersion.repositoryName}/${gradleVersion.artifactFileName}", srcDistribution)
+            server.expectGet("/${gradleVersion.repositoryName}/${gradleVersion.artifactFileName}.sha1", srcDistribution)
 
-        withDefaultSettings().appendText(
-            """
-            dependencyResolutionManagement {
-                repositories {
-                    ${mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+            withDefaultSettings().appendText(
+                """
+                dependencyResolutionManagement {
+                    repositories {
+                        ${mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                    }
+                    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
                 }
-                repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-            }
-            """.trimIndent()
-        )
+                """.trimIndent()
+            )
 
-        withBuildScript(
-            """
-
-            val sourceDirs =
-                ${SourceDistributionResolver::class.qualifiedName}(project).run {
-                    sourceDirs()
+            withBuildScript(
+                """
+                val sourceDirs =
+                    ${SourceDistributionResolver::class.qualifiedName}(project).run {
+                        sourceDirs()
+                    }
+                require(sourceDirs.isNotEmpty()) {
+                    "Expected source directories but got none"
                 }
-            require(sourceDirs.isNotEmpty()) {
-                "Expected source directories but got none"
-            }
+                """
+            )
 
-            """
-        )
-
-        build()
+            build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${server.uri}")
+        } finally {
+            server.stop()
+            server.resetExpectations()
+        }
     }
 
     @Test
@@ -169,8 +191,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
             fallbackServer.start()
 
             try {
-                val artifactFileName = "gradle-${gradleVersion.version}-src.zip"
-                val repositoryName = if (gradleVersion.isSnapshot) "distributions-snapshots" else "distributions"
+                val repositoryName = gradleVersion.repositoryName
 
                 withCustomGradleProperties("${primaryServer.uri}/$repositoryName/gradle-${gradleVersion.version}-bin.zip")
 
@@ -178,11 +199,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
                 primaryServer.expectGetMissing("/$repositoryName/")
 
                 // Fallback: repo with the source artifact
-                val fallbackDir = file("fallback-repo/$repositoryName").also { it.mkdirs() }
-                srcDistribution.copyTo(file("fallback-repo/$repositoryName/$artifactFileName"))
-                fallbackServer.expectGetDirectoryListing("/$repositoryName/", fallbackDir)
-                fallbackServer.expectHead("/$repositoryName/gradle-${gradleVersion.version}-src.zip", srcDistribution)
-                fallbackServer.expectGet("/$repositoryName/gradle-${gradleVersion.version}-src.zip", srcDistribution)
+                fallbackServer.hostAndExpectRequestFor(gradleVersion, srcDistribution)
 
                 withBuildScript(
                     """
@@ -241,20 +258,13 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
             fallbackServer.start()
 
             try {
-                val artifactFileName = "gradle-${gradleVersion.version}-src.zip"
-                val repositoryName = if (gradleVersion.isSnapshot) "distributions-snapshots" else "distributions"
-
                 // Local file:// distribution without a src zip next to it
                 file("local-dist").also { it.mkdirs() }
                 binDistribution.copyTo(file("local-dist/gradle-${gradleVersion.version}-bin.zip"))
                 withCustomGradleProperties(file("local-dist/gradle-${gradleVersion.version}-bin.zip").toURI().toASCIIString())
 
                 // Fallback: repo with the source artifact
-                val fallbackDir = file("fallback-repo/$repositoryName").also { it.mkdirs() }
-                srcDistribution.copyTo(file("fallback-repo/$repositoryName/$artifactFileName"))
-                fallbackServer.expectGetDirectoryListing("/$repositoryName/", fallbackDir)
-                fallbackServer.expectHead("/$repositoryName/gradle-${gradleVersion.version}-src.zip", srcDistribution)
-                fallbackServer.expectGet("/$repositoryName/gradle-${gradleVersion.version}-src.zip", srcDistribution)
+                fallbackServer.hostAndExpectRequestFor(gradleVersion, srcDistribution)
 
                 withBuildScript(
                     """
@@ -271,6 +281,23 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
             }
         }
     }
+
+    private fun HttpServer.hostAndExpectRequestFor(gradleVersion: GradleVersion, srcDistribution: File) {
+        val rand = UUID.randomUUID()
+        val repositoryName = gradleVersion.repositoryName
+        val artifactFileName = gradleVersion.artifactFileName
+        val repoDir = file("$rand/${repositoryName}").also { it.mkdirs() }
+        srcDistribution.copyTo(repoDir.resolve(artifactFileName))
+        expectGetDirectoryListing("/${repositoryName}/", repoDir)
+        expectHead("/$repositoryName/$artifactFileName", srcDistribution)
+        expectGet("/$repositoryName/$artifactFileName", srcDistribution)
+    }
+
+    private val GradleVersion.repositoryName: String
+        get() = if (isSnapshot) "distributions-snapshots" else "distributions"
+
+    private val GradleVersion.artifactFileName: String
+        get() = "gradle-${version}-src.zip"
 
     private fun testStandardCustomRepoLayout(distributionFileName: String) {
         val baseUrl = "https://my-host.org/my-path/distributions"
