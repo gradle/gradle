@@ -27,9 +27,4 @@ public class DefaultBuildOperationIdFactory implements BuildOperationIdFactory {
     public long nextId() {
         return nextId.getAndIncrement();
     }
-
-    @Override
-    public long mostRecentId() {
-        return nextId.get() - 1;
-    }
 }
