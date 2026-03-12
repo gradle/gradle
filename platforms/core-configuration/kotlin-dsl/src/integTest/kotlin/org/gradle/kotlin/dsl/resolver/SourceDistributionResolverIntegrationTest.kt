@@ -64,45 +64,46 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     fun `can download source distribution`() {
         val gradleVersion = distribution.version
         val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
-        val server = HttpServer()
-        server.start()
-        try {
-            server.hostAndExpectRequestFor(gradleVersion, srcDistribution)
-            server.expectHead("/${gradleVersion.repositoryName}/${gradleVersion.artifactFileName}", srcDistribution)
-            server.expectGet("/${gradleVersion.repositoryName}/${gradleVersion.artifactFileName}.sha1", srcDistribution)
 
-            withBuildScript(
-                """
-                val sourceDirs =
-                    ${SourceDistributionResolver::class.qualifiedName}(project).run {
-                        sourceDirs()
+        withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
+            val server = HttpServer()
+            server.start()
+            try {
+                server.hostAndExpectRequestFor(gradleVersion, srcDistribution)
+
+                withBuildScript(
+                    """
+                    val sourceDirs =
+                        ${SourceDistributionResolver::class.qualifiedName}(project).run {
+                            sourceDirs()
+                        }
+
+                    require(sourceDirs.isNotEmpty()) {
+                        "Expected source directories but got none"
                     }
 
-                require(sourceDirs.isNotEmpty()) {
-                    "Expected source directories but got none"
-                }
+                    val subprojectSourcePath = "org/gradle/StartParameter.java"
+                    val subprojectFound = sourceDirs.find { it.resolve(subprojectSourcePath).isFile }
+                    require(subprojectFound != null) {
+                        "Source directories do not contain subproject file '${'$'}subprojectSourcePath'. Searched in:\n  " +
+                            sourceDirs.joinToString("  \n")
+                    }
 
-                val subprojectSourcePath = "org/gradle/StartParameter.java"
-                val subprojectFound = sourceDirs.find { it.resolve(subprojectSourcePath).isFile }
-                require(subprojectFound != null) {
-                    "Source directories do not contain subproject file '${'$'}subprojectSourcePath'. Searched in:\n  " +
-                        sourceDirs.joinToString("  \n")
-                }
+                    val platformSourcePath = "org/gradle/api/Action.java"
+                    val platformFound = sourceDirs.find { it.resolve(platformSourcePath).isFile }
+                    require(platformFound != null) {
+                        "Source directories do not contain platform file '${'$'}platformSourcePath'. Searched in:\n  " +
+                            sourceDirs.joinToString("\n  ")
+                    }
 
-                val platformSourcePath = "org/gradle/api/Action.java"
-                val platformFound = sourceDirs.find { it.resolve(platformSourcePath).isFile }
-                require(platformFound != null) {
-                    "Source directories do not contain platform file '${'$'}platformSourcePath'. Searched in:\n  " +
-                        sourceDirs.joinToString("\n  ")
-                }
+                    """
+                )
 
-                """
-            )
-
-            build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${server.uri}")
-        } finally {
-            server.stop()
-            server.resetExpectations()
+                build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${server.uri}")
+            } finally {
+                server.stop()
+                server.resetExpectations()
+            }
         }
     }
 
@@ -110,40 +111,41 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     fun `can download source distribution when repositories are declared in settings`() {
         val gradleVersion = distribution.version
         val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
-        val server = HttpServer()
-        server.start()
-        try {
-            server.hostAndExpectRequestFor(gradleVersion, srcDistribution)
-            server.expectHead("/${gradleVersion.repositoryName}/${gradleVersion.artifactFileName}", srcDistribution)
-            server.expectGet("/${gradleVersion.repositoryName}/${gradleVersion.artifactFileName}.sha1", srcDistribution)
 
-            withDefaultSettings().appendText(
-                """
-                dependencyResolutionManagement {
-                    repositories {
-                        ${mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+        withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
+            val server = HttpServer()
+            server.start()
+            try {
+                server.hostAndExpectRequestFor(gradleVersion, srcDistribution)
+
+                withDefaultSettings().appendText(
+                    """
+                    dependencyResolutionManagement {
+                        repositories {
+                            ${mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                        }
+                        repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
                     }
-                    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-                }
-                """.trimIndent()
-            )
+                    """.trimIndent()
+                )
 
-            withBuildScript(
-                """
-                val sourceDirs =
-                    ${SourceDistributionResolver::class.qualifiedName}(project).run {
-                        sourceDirs()
+                withBuildScript(
+                    """
+                    val sourceDirs =
+                        ${SourceDistributionResolver::class.qualifiedName}(project).run {
+                            sourceDirs()
+                        }
+                    require(sourceDirs.isNotEmpty()) {
+                        "Expected source directories but got none"
                     }
-                require(sourceDirs.isNotEmpty()) {
-                    "Expected source directories but got none"
-                }
-                """
-            )
+                    """
+                )
 
-            build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${server.uri}")
-        } finally {
-            server.stop()
-            server.resetExpectations()
+                build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${server.uri}")
+            } finally {
+                server.stop()
+                server.resetExpectations()
+            }
         }
     }
 
@@ -366,7 +368,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
                 executer.withStackTraceChecksDisabled()
 
-                build(fallbackRepoOverride, "--debug").apply {
+                build(fallbackRepoOverride, "--no-configuration-cache", "--debug").apply {
                     assertOutputContains("Could not resolve Gradle distribution sources. See debug logs for details.")
                     assertOutputContains(
                         """
