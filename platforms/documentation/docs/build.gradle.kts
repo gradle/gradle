@@ -205,17 +205,6 @@ samples {
             target = "application"
         }
 
-        val groovyListLibrary by creating
-        val groovyUtilitiesLibrary by creating
-        val groovyListLibraryInMyLibrary by creating {
-            sourceDirectory = groovyListLibrary.sourceDirectory
-            target = "my-library"
-        }
-        val groovyUtilitiesLibraryInMyLibrary by creating {
-            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
-            target = "my-library"
-        }
-
         val projectInfoPlugin by creating
 
         val precompiledScriptPluginUtils by creating {
@@ -451,16 +440,6 @@ samples {
                 from(templates.named("javaUtilitiesLibraryInMyLibrary"))
             }
         }
-        val publishingGroovyLibraries by creating {
-            sampleDirectory = samplesRoot.dir("groovy/library-publishing")
-            description = "Publish a Groovy library to a binary repository."
-            category = "Groovy"
-            common {
-                from(templates.named("groovyListLibraryInMyLibrary"))
-                from(templates.named("groovyUtilitiesLibraryInMyLibrary"))
-            }
-        }
-
         val taskWithArguments by creating {
             sampleDirectory = samplesRoot.dir("writing-tasks/task-with-arguments")
             displayName = "Implementing Tasks with Command-line Arguments"
