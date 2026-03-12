@@ -118,6 +118,8 @@ export DEVELOCITY_ARTIFACT_CACHE_BASE_BRANCH_NAME="master"
 
 echo "Prefix: ${DEVELOCITY_ACCESS_KEY:0:20}"
 
+echo "tc build properties: ${TEAMCITY_BUILD_PROPERTIES_FILE}"
+
 cleanGradleUserHome
 stopAllGradleDaemons
 downloadDvBootstrapCliTool
