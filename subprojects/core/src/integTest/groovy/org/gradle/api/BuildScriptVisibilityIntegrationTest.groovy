@@ -17,10 +17,11 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
+    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects"() {
         createDirs("child1")
         settingsFile << "include 'child1'"
@@ -49,13 +50,18 @@ println "child: " + doSomethingElse(11)
 
         and:
         succeeds()
-        outputContains("root: {10}")
-        outputContains("root: [10]")
-        outputContains("child: {11}")
-        outputContains("child: [11]")
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains("root: {10}")
+            outputContains("root: [10]")
+            outputContains("child: {11}")
+            outputContains("child: [11]")
+        } else {
+            outputDoesNotContain("root:")
+            outputDoesNotContain("child:")
+        }
     }
 
-    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
+    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to script plugins applied to project and descendants"() {
         createDirs("child1")
         settingsFile << "include 'child1'"
@@ -86,13 +92,18 @@ println project.path + " - " + doSomethingElse(12)
 
         and:
         succeeds()
-        outputContains(": - {12}")
-        outputContains(": - [12]")
-        outputContains(":child1 - {12}")
-        outputContains(":child1 - [12]")
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains(": - {12}")
+            outputContains(": - [12]")
+            outputContains(":child1 - {12}")
+            outputContains(":child1 - [12]")
+        } else {
+            outputDoesNotContain(": -")
+            outputDoesNotContain("child:")
+        }
     }
 
-    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
+    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects when script contains only methods"() {
         createDirs("child1")
         settingsFile << "include 'child1'"
@@ -112,10 +123,14 @@ println "child: " + doSomething(11)
 
         and:
         succeeds()
-        outputContains("child: 11")
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains("child: 11")
+        } else {
+            outputDoesNotContain("child:")
+        }
     }
 
-    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
+    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects when script contains only methods and model block"() {
         createDirs("child1")
         settingsFile << "include 'child1'"
@@ -141,10 +156,14 @@ println "child: " + doSomething(11)
 
         and:
         succeeds("hello")
-        outputContains("child: 11")
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains("child: 11")
+        } else {
+            outputDoesNotContain("child:")
+        }
     }
 
-    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
+    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "properties defined in project build script are not visible to descendant projects"() {
         createDirs("child1")
         settingsFile << "include 'child1'"
@@ -203,10 +222,14 @@ println "child1 ok"
 
         and:
         succeeds()
-        outputContains("child1 ok")
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains("child1 ok")
+        } else {
+            outputDoesNotContain("child1")
+        }
     }
 
-    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
+    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "properties defined in project build script are not visible to script plugins"() {
         createDirs("child1")
         settingsFile << "include 'child1'"
@@ -252,7 +275,12 @@ println project.path + " ok"
 
         and:
         succeeds()
-        outputContains(": ok")
-        outputContains(":child1 ok")
+        if (GradleContextualExecuter.notConfigCache) {
+            outputContains(": ok")
+            outputContains(":child1 ok")
+        } else {
+            outputDoesNotContain(": ok")
+            outputDoesNotContain(":child1")
+        }
     }
 }
