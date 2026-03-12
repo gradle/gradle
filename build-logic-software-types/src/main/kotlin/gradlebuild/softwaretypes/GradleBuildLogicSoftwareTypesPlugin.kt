@@ -155,6 +155,8 @@ open class KotlinSharedRuntimeProjectTypePlugin : BaseGradleBuildProjectTypePlug
 }
 
 abstract class BaseProjectApplyAction<OwnDefinition : BuildLogicDefinition> : ProjectTypeApplyAction<OwnDefinition, BuildModel.None> {
+    protected abstract fun applyBase(project: Project, definition: OwnDefinition)
+
     final override fun apply(context: ProjectFeatureApplicationContext, definition: OwnDefinition, buildModel: BuildModel.None) {
         context.objectFactory.newInstance<Services>().project.run {
             group = "gradlebuild"
@@ -164,11 +166,11 @@ abstract class BaseProjectApplyAction<OwnDefinition : BuildLogicDefinition> : Pr
             applyBase(this, definition)
         }
     }
-
-    protected abstract fun applyBase(project: Project, definition: OwnDefinition)
 }
 
 abstract class JavaBuildLogicProjectTypeAction<OwnDefinition : JavaBuildLogicDefinition> : BaseProjectApplyAction<OwnDefinition>() {
+    protected abstract fun applyJava(project: Project, definition: OwnDefinition)
+
     final override fun applyBase(project: Project, definition: OwnDefinition) {
         applyJava(project, definition)
         project.run {
@@ -177,12 +179,9 @@ abstract class JavaBuildLogicProjectTypeAction<OwnDefinition : JavaBuildLogicDef
             }
         }
     }
-
-    protected abstract fun applyJava(project: Project, definition: OwnDefinition)
 }
 
 open class KotlinBuildLogicProjectTypeApplyAction : JavaBuildLogicProjectTypeAction<JavaBuildLogicDefinition>() {
-
     override fun applyJava(project: Project, definition: JavaBuildLogicDefinition) {
         project.run {
             plugins.apply("org.gradle.kotlin.kotlin-dsl")
@@ -281,7 +280,6 @@ interface BuildLogicDefinition : Definition<BuildModel.None> {
 }
 
 interface JavaBuildLogicDefinition : BuildLogicDefinition {
-
     @get:Nested
     val dependencies: BuildLogicDependencies
 }
@@ -296,7 +294,6 @@ interface GradlePlugin : Named {
 }
 
 interface BuildLogicDependencies : GradleDependencies, PlatformDependencyModifiers {
-
     val implementation: DependencyCollector
     val api: DependencyCollector
     val compileOnly: DependencyCollector
