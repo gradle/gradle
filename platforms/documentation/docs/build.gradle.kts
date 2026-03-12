@@ -480,23 +480,6 @@ samples {
             category = "Writing Custom Tasks"
         }
 
-        val publishingCredentials by creating {
-            sampleDirectory = samplesRoot.dir("credentials-handling/publishing-credentials")
-            description = "Publish to a password protected repository"
-            category = "Using Credentials"
-            common {
-                from(templates.named("javaListLibrary"))
-                from(templates.named("javaUtilitiesLibrary"))
-            }
-        }
-
-        val credentialsForExternalToolViaStdin by creating {
-            sampleDirectory = samplesRoot.dir("credentials-handling/pass-credentials-to-external-tool-via-stdin")
-            displayName = "Supply credentials to external tool"
-            description = "Pass credentials to an external tool via stdin using Gradle properties."
-            category = "Using Credentials"
-        }
-
         val problemsApiUsage by creating {
             sampleDirectory = samplesRoot.dir("ide/problems-api-usage")
             displayName = "Reporting and receiving problems via the Problems API"
