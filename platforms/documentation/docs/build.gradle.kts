@@ -31,7 +31,7 @@ androidHomeWarmup {
             // Used by android-application snippet (AGP 8.3.0)
             SdkVersion(compileSdk = 30, buildTools = "34.0.0", agpVersion = "8.3.0"),
 
-            // Used by structuring-software-projects/android-app sample (AGP 8.9.0)
+            // Used by structuring-software-projects/android-app snippet (AGP 8.9.0)
             SdkVersion(compileSdk = 28, buildTools = "35.0.0", agpVersion = "8.9.0"),
         ),
     )
@@ -144,16 +144,8 @@ tasks.named<Sync>("stageDocs") {
 
 samples {
     templates {
-        val structuringSoftwareProjects by creating
         val springBootWebApplication by creating {
             target = "app"
-        }
-        val gradlePluginInJava by creating {
-            target = "greeting-plugin"
-        }
-        val gradlePluginInJavaInBuildSrc by creating {
-            sourceDirectory = gradlePluginInJava.sourceDirectory
-            target = "buildSrc"
         }
         val buildSrcPluginJavaModuleTransform by creating
 
@@ -228,10 +220,6 @@ samples {
 
         val precompiledScriptPluginUtils by creating {
             target = "convention-plugins"
-        }
-        val precompiledScriptPluginUtilsInBuildSrc by creating {
-            sourceDirectory = precompiledScriptPluginUtils.sourceDirectory
-            target = "buildSrc"
         }
         val problemsApiUsage by creating
     }
@@ -473,46 +461,6 @@ samples {
             }
         }
 
-        val gradlePlugin by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/gradle-plugin")
-            description = "Organize your build logic into a Gradle plugin written in Java."
-            category = "Build organization"
-            common {
-                from(templates.named("gradlePluginInJava"))
-            }
-        }
-
-        val conventionPlugins by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-convention-plugins")
-            displayName = "Sharing build logic between subprojects"
-            description = "Organize build logic into reusable pieces"
-            category = "Build organization"
-            common {
-                from(templates.named("precompiledScriptPluginUtilsInBuildSrc"))
-            }
-        }
-
-        val publishingConventionPlugins by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/publishing-convention-plugins")
-            displayName = "Sharing build logic in a multi-repo setup"
-            description = "Organize and publish build logic for reuse in other projects"
-            category = "Build organization"
-            common {
-                from(templates.named("precompiledScriptPluginUtils"))
-            }
-        }
-
-        val sharingConventionPluginsWithBuildLogic by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/sharing-convention-plugins-with-build-logic")
-            displayName = "Sharing convention plugins with build logic build"
-            description = "Reuse convention plugins in both main build and build logic build"
-            category = "Build organization"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-            }
-        }
         val taskWithArguments by creating {
             sampleDirectory = samplesRoot.dir("writing-tasks/task-with-arguments")
             displayName = "Implementing Tasks with Command-line Arguments"
@@ -547,46 +495,6 @@ samples {
             displayName = "Supply credentials to external tool"
             description = "Pass credentials to an external tool via stdin using Gradle properties."
             category = "Using Credentials"
-        }
-
-        val structuringSoftwareProjects by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/structuring-software-projects")
-            description = "Structuring a software product project with Gradle"
-            category = "Build organization"
-            common {
-                from(templates.named("structuringSoftwareProjects"))
-            }
-        }
-
-        val compositeBuildsBasics by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/basic")
-            description = "Defining and using a composite build"
-            category = "Build organization"
-        }
-
-        val compositeBuildsDeclaredSubstitutions by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/declared-substitution")
-            description = "Applying and testing changes in downstream dependencies without publishing."
-            category = "Build organization"
-        }
-
-        val compositeBuildsHierarchicalMultirepo by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/hierarchical-multirepo")
-            description = "Defining and using a composite build to combine multiple independent builds."
-            category = "Build organization"
-        }
-
-        val compositeBuildsPluginDevelopment by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/plugin-dev")
-            description = "Developing a Gradle plugin in a build without publishing."
-            category = "Build organization"
-        }
-
-        val crossProjectOutputSharing by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/cross-project-output-sharing")
-            displayName = "Sharing task outputs across projects in a multi-project build"
-            description = "Sharing a file made by a task in one Gradle project, with a task in another Gradle project."
-            category = "Build organization"
         }
 
         val problemsApiUsage by creating {
@@ -679,13 +587,13 @@ tasks.named<Test>("docsTest") {
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
             // Android requires Java 17+
             excludeTestsMatching("org.gradle.docs.samples.*.building-android-*")
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects*android-app")
             // Umbrella build project also contains Android projects
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects_*_umbrella-build")
             // AGP AND KMP are tested on Java 17 only
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-*")
             // Spring Boot requires Java 17+
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects_*_build-server-application")
         }
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_21)) {
@@ -695,12 +603,12 @@ tasks.named<Test>("docsTest") {
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
             // Incompatible for unknown reasons, investigation ongoing
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-android-app")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects_*_build-android-app")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
             // SpotBugs doesn't support Java 23
-            excludeTestsMatching("org.gradle.docs.samples.*.publishing-convention-plugins*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-publishing-convention-plugins*")
             excludeTestsMatching("org.gradle.docs.samples.*.incubating-publishing-convention-plugins*")
         }
 
@@ -725,7 +633,7 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.building-swift*")
             // We don't have Android SDK installed on Mac M1 now
             excludeTestsMatching("org.gradle.docs.samples.*.building-android-*")
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects*android-app")
         }
     }
 
@@ -802,14 +710,14 @@ tasks.named<Test>("docsTest") {
             // These tests use third-party plugins at versions that may not support the configuration cache properly.
             // The tests should be removed from this list when the plugin is updated to the version that works with the configuration cache properly.
             val testsWithThirdPartyFailures = listOf(
-                "structuring-software-projects_groovy_aggregate-reports",
-                "structuring-software-projects_groovy_build-android-app",
-                "structuring-software-projects_groovy_build-server-application",
-                "structuring-software-projects_groovy_umbrella-build",
-                "structuring-software-projects_kotlin_aggregate-reports",
-                "structuring-software-projects_kotlin_build-android-app",
-                "structuring-software-projects_kotlin_build-server-application",
-                "structuring-software-projects_kotlin_umbrella-build",
+                "snippet-build-organization-structuring-software-projects_groovy_aggregate-reports",
+                "snippet-build-organization-structuring-software-projects_groovy_build-android-app",
+                "snippet-build-organization-structuring-software-projects_groovy_build-server-application",
+                "snippet-build-organization-structuring-software-projects_groovy_umbrella-build",
+                "snippet-build-organization-structuring-software-projects_kotlin_aggregate-reports",
+                "snippet-build-organization-structuring-software-projects_kotlin_build-android-app",
+                "snippet-build-organization-structuring-software-projects_kotlin_build-server-application",
+                "snippet-build-organization-structuring-software-projects_kotlin_umbrella-build",
             )
 
             // These tests cover features that the configuration cache doesn't support yet, but we plan to do that before hitting stable.
