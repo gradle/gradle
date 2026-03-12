@@ -95,6 +95,7 @@ function restoreArtifactCache() {
 }
 
 export DEVELOCITY_ARTIFACT_CACHE_BASE_BRANCH_NAME="master"
+echo "##teamcity[setParameter name='env.DEVELOCITY_ACCESS_KEY' value='%ge.gradle.org.access.key.us%;%gbt-td.grdev.net.access.key.us-west-2%']"
 
 echo "Prefix: ${DEVELOCITY_ACCESS_KEY:0:20}"
 
