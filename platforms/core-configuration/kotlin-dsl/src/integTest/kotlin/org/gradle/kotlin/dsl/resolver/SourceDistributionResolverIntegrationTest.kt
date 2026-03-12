@@ -178,6 +178,50 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     @Test
     @LeaksFileHandles
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    fun `source distribution resolved from wrapper without touching the fallback server`() {
+        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
+        val gradleVersion = distribution.version
+
+        withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
+            // Will play the role of the primary, custom Gradle repository, with a source distribution.
+            val primaryServer = HttpServer()
+            primaryServer.start()
+            // Will play the role of `services.gradle.org` (overridden by the system property), should not be involved.
+            val fallbackServer = HttpServer()
+            fallbackServer.start()
+
+            try {
+                val repositoryName = gradleVersion.repositoryName
+
+                withCustomGradleProperties("${primaryServer.uri}/$repositoryName/gradle-${gradleVersion.version}-bin.zip")
+
+                // Primary: repo with the source artifact
+                primaryServer.hostAndExpectRequestFor(gradleVersion, srcDistribution)
+
+                // Fallback: should not be used
+                fallbackServer.expectGetMissing("/$repositoryName/") // TODO Fix and remove me.
+
+                withBuildScript(
+                    """
+                    require(${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs().isNotEmpty()) {
+                        "Expected source dirs to be resolved from the primary repository"
+                    }
+                    """
+                )
+
+                build("-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${fallbackServer.uri}")
+            } finally {
+                primaryServer.stop()
+                fallbackServer.stop()
+                primaryServer.resetExpectations()
+                fallbackServer.resetExpectations()
+            }
+        }
+    }
+
+    @Test
+    @LeaksFileHandles
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from fallback when custom repo does not have it`() {
         val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
         val gradleVersion = distribution.version
