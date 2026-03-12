@@ -204,8 +204,8 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     @Provides
-    BuildOperationListenerManager createBuildOperationListenerManager(BuildOperationIdFactory buildOperationIdFactory) {
-        return new DefaultBuildOperationListenerManager(buildOperationIdFactory);
+    BuildOperationListenerManager createBuildOperationListenerManager() {
+        return new DefaultBuildOperationListenerManager();
     }
 
     @Provides

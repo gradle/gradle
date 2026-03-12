@@ -17,6 +17,7 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.collect.SynchronizedLongHashSet;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,15 +26,6 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
     // Imitation of CopyOnWriteArrayList, which supports safe iteration in reverse
     private final AtomicReference<ImmutableList<ProgressShieldingBuildOperationListener>> listeners = new AtomicReference<>(ImmutableList.of());
-    private final BuildOperationIdFactory buildOperationIdFactory;
-
-    public DefaultBuildOperationListenerManager() {
-        this(new DefaultBuildOperationIdFactory());
-    }
-
-    public DefaultBuildOperationListenerManager(BuildOperationIdFactory buildOperationIdFactory) {
-        this.buildOperationIdFactory = buildOperationIdFactory;
-    }
 
     private final BuildOperationListener broadcaster = new BuildOperationListener() {
         @Override
@@ -70,11 +62,10 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
     @Override
     public void addListener(BuildOperationListener listener) {
-        long registeredAt = buildOperationIdFactory.mostRecentId();
         listeners.updateAndGet(current ->
             ImmutableList.<ProgressShieldingBuildOperationListener>builderWithExpectedSize(current.size() + 1)
                 .addAll(current)
-                .add(new ProgressShieldingBuildOperationListener(listener, registeredAt))
+                .add(new ProgressShieldingBuildOperationListener(listener))
                 .build());
     }
 
@@ -92,44 +83,41 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     }
 
     /**
-     * Prevents sending notifications to a given listener for operations
-     * that were already in progress when the listener was registered.
+     * Prevents sending progress and finished notifications to a given listener
+     * for operations whose started notification was not delivered to this listener.
      *
-     * Uses a monotonically increasing operation ID watermark instead of tracking
-     * individual active operations, eliminating per-operation map allocations.
+     * Tracks active operations in a primitive long hash set to avoid per-operation
+     * object allocation. Only delivers progress/finished if started was seen.
      */
     private static class ProgressShieldingBuildOperationListener implements BuildOperationListener {
 
         private final BuildOperationListener delegate;
-        private final long registeredAtId;
+        private final SynchronizedLongHashSet activeOps = new SynchronizedLongHashSet();
 
-        private ProgressShieldingBuildOperationListener(BuildOperationListener delegate, long registeredAtId) {
+        private ProgressShieldingBuildOperationListener(BuildOperationListener delegate) {
             this.delegate = delegate;
-            this.registeredAtId = registeredAtId;
-        }
-
-        private boolean isAfterWatermark(BuildOperationDescriptor buildOperation) {
-            OperationIdentifier id = buildOperation.getId();
-            return id != null && id.getId() > registeredAtId;
         }
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            if (isAfterWatermark(buildOperation)) {
-                delegate.started(buildOperation, startEvent);
+            OperationIdentifier id = buildOperation.getId();
+            if (id != null) {
+                activeOps.add(id.getId());
             }
+            delegate.started(buildOperation, startEvent);
         }
 
         @Override
         public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-            if (operationIdentifier.getId() > registeredAtId) {
+            if (activeOps.contains(operationIdentifier.getId())) {
                 delegate.progress(operationIdentifier, progressEvent);
             }
         }
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            if (isAfterWatermark(buildOperation)) {
+            OperationIdentifier id = buildOperation.getId();
+            if (id != null && activeOps.remove(id.getId())) {
                 delegate.finished(buildOperation, finishEvent);
             }
         }
