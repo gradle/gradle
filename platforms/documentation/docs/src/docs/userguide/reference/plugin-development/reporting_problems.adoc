@@ -146,7 +146,7 @@ The standard way to fail a build is by throwing an exception.
 The Problems API enhances this by allowing you to throw exceptions tied to detailed problem reports:
 
 ====
-include::sample[dir="samples/templates/problems-api-usage/reporters/standard-plugin/src/main/java/reporters",files="FailingTask.java[tags=problems-api-fail-the-build]"]
+include::sample[dir="snippets/ide/problems-api-usage/common/reporters/standard-plugin/src/main/java/reporters",files="FailingTask.java[tags=problems-api-fail-the-build]"]
 ====
 
 This ensures build failures are clearly associated with their underlying issues and are visible across all Gradle clients (CLI, Build Scan, IDEs, Tooling API).
