@@ -28,7 +28,7 @@ androidHomeWarmup {
             // Both use compileSdk 36, and AGP < 9.0 uses build-tools 35.0.0
             SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.11.2"),
 
-            // Used by android-application sample (AGP 8.3.0)
+            // Used by android-application snippet (AGP 8.3.0)
             SdkVersion(compileSdk = 30, buildTools = "34.0.0", agpVersion = "8.3.0"),
 
             // Used by structuring-software-projects/android-app sample (AGP 8.9.0)
@@ -144,7 +144,6 @@ tasks.named<Sync>("stageDocs") {
 
 samples {
     templates {
-        val javaAndroidApplication by creating
         val structuringSoftwareProjects by creating
         val springBootWebApplication by creating {
             target = "app"
@@ -260,14 +259,6 @@ samples {
     }
 
     publishedSamples {
-        val buildingAndroidApps by creating {
-            sampleDirectory = samplesRoot.dir("android-application")
-            description = "Build a simple Android app."
-            category = "Android"
-            common {
-                from(templates.named("javaAndroidApplication"))
-            }
-        }
         val buildingSpringBootWebApplications by creating {
             sampleDirectory = samplesRoot.dir("spring-boot-web-application")
             description = "Build a simple Spring Boot application."
