@@ -24,7 +24,6 @@ class FindBrokenInternalLinksTest extends Specification {
     @TempDir
     private File projectDir
     private File docsRoot
-    private File samplesRoot
     private File sampleDoc
     private File sampleSampleDoc
     private File releaseNotes
@@ -83,7 +82,6 @@ class FindBrokenInternalLinksTest extends Specification {
                 documentationRoot = project.layout.projectDirectory.dir('docsRoot')
                 javadocRoot = documentationRoot.dir('javadoc')
                 releaseNotesFile = project.layout.buildDirectory.file('working/release-notes/raw.html')
-                samplesRoot = project.layout.buildDirectory.dir('working/samples/docs');
             }
         """
     }
