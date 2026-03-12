@@ -55,6 +55,9 @@ public class PropertyGetBenchmark {
     private Property<String> setOverConventionProperty;
     private Property<String> providerProperty;
     private Property<String> conventionProviderProperty;
+    private Property<String> finalizedSetProperty;
+    private Property<String> finalizedConventionProperty;
+    private Property<String> finalizedProviderProperty;
 
     @Setup(Level.Trial)
     public void setup() {
@@ -78,6 +81,19 @@ public class PropertyGetBenchmark {
         // Convention backed by a Provider
         conventionProviderProperty = new DefaultProperty<>(host, String.class);
         conventionProviderProperty.convention(new DefaultProvider<>(() -> "convention-provider-value"));
+
+        // Finalized properties
+        finalizedSetProperty = new DefaultProperty<>(host, String.class);
+        finalizedSetProperty.set("finalized-explicit");
+        finalizedSetProperty.finalizeValue();
+
+        finalizedConventionProperty = new DefaultProperty<>(host, String.class);
+        finalizedConventionProperty.convention("finalized-convention");
+        finalizedConventionProperty.finalizeValue();
+
+        finalizedProviderProperty = new DefaultProperty<>(host, String.class);
+        finalizedProviderProperty.set(new DefaultProvider<>(() -> "finalized-provider"));
+        finalizedProviderProperty.finalizeValue();
     }
 
     @Benchmark
@@ -103,5 +119,20 @@ public class PropertyGetBenchmark {
     @Benchmark
     public void getConventionProviderValue(Blackhole bh) {
         bh.consume(conventionProviderProperty.get());
+    }
+
+    @Benchmark
+    public void getFinalizedSetValue(Blackhole bh) {
+        bh.consume(finalizedSetProperty.get());
+    }
+
+    @Benchmark
+    public void getFinalizedConventionValue(Blackhole bh) {
+        bh.consume(finalizedConventionProperty.get());
+    }
+
+    @Benchmark
+    public void getFinalizedProviderValue(Blackhole bh) {
+        bh.consume(finalizedProviderProperty.get());
     }
 }
