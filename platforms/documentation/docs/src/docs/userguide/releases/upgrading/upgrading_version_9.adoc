@@ -98,7 +98,7 @@ The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetB
 link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#getExitEnvironmentVar()[`CreateStartScripts.getExitEnvironmentVar()`] and link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#setExitEnvironmentVar(java.lang.String)[`CreateStartScripts.setExitEnvironmentVar(String)`] have been deprecated and will be removed in Gradle 10.0.0.
 
 As of this release, these methods are no-ops and have no effect, even with custom start script templates.
-This is a result of the [Windows start script template no longer using an exit environment variable](https://github.com/gradle/gradle/pull/36510).
+This is a result of the link:https://github.com/gradle/gradle/pull/36510[Windows start script template no longer using an exit environment variable].
 
 If you are using a custom start script template that references the exit environment variable, update your template to remove this dependency.
 There is no replacement API, the exit environment variable concept has been removed entirely.
