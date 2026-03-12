@@ -32,8 +32,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.slf4jApi)
 
-    implementation(projects.collections)
     implementation(projects.concurrent)
+    implementation(libs.fastutil)
     implementation(projects.io)
     implementation(projects.messaging)
     implementation(projects.serviceRegistryBuilder)

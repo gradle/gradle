@@ -15,10 +15,9 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.time)
 
-    implementation(projects.collections)
-
     api(libs.jspecify)
 
+    implementation(libs.fastutil)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 

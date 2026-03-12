@@ -35,7 +35,9 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.gradle.internal.collect.SynchronizedLongHashSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
 
 import java.util.Map;
 import java.util.Queue;
@@ -147,7 +149,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         private final BuildOperationNotificationListener notificationListener;
 
         private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<>();
-        private final SynchronizedLongHashSet active = new SynchronizedLongHashSet();
+        private final LongSet active = LongSets.synchronize(new LongOpenHashSet());
 
         private Adapter(BuildOperationNotificationListener notificationListener) {
             this.notificationListener = notificationListener;

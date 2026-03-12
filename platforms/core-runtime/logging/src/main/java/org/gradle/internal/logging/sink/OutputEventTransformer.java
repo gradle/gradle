@@ -22,7 +22,9 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
-import org.gradle.internal.collect.SynchronizedLongHashSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.internal.GUtil;
@@ -37,7 +39,7 @@ public class OutputEventTransformer implements OutputEventListener {
     // A map from progress operation id seen in event -> progress operation id that should be forwarded
     private final Map<OperationIdentifier, OperationIdentifier> effectiveProgressOperation = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
     // A set of progress operations that have been forwarded
-    private final SynchronizedLongHashSet forwarded = new SynchronizedLongHashSet();
+    private final LongSet forwarded = LongSets.synchronize(new LongOpenHashSet());
 
     private final OutputEventListener listener;
     private final Object lock;

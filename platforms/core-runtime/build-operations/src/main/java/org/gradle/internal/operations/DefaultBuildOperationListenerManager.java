@@ -17,7 +17,9 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.collect.SynchronizedLongHashSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -92,7 +94,7 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     private static class ProgressShieldingBuildOperationListener implements BuildOperationListener {
 
         private final BuildOperationListener delegate;
-        private final SynchronizedLongHashSet activeOps = new SynchronizedLongHashSet();
+        private final LongSet activeOps = LongSets.synchronize(new LongOpenHashSet());
 
         private ProgressShieldingBuildOperationListener(BuildOperationListener delegate) {
             this.delegate = delegate;
