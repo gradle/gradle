@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
 import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinLogger
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.COMPILER_PLUGINS
@@ -191,7 +192,12 @@ private class BTACompiler {
     private val buildSession = toolchains.createBuildSession()
 
     @OptIn(ExperimentalCompilerArgument::class)
-    fun compile(sources: List<Path>, destinationDirectory: Path, arguments: (JvmCompilerArguments.Builder) -> Unit): CompilationResult {
+    fun compile(
+        sources: List<Path>,
+        destinationDirectory: Path,
+        logger: Logger,
+        arguments: (JvmCompilerArguments.Builder) -> Unit,
+    ): CompilationResult {
         val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
 
         // compilation operation config
@@ -201,9 +207,10 @@ private class BTACompiler {
         arguments.invoke(operationBuilder.compilerArguments)
 
         val operation = operationBuilder.build()
+        // TODO operation[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = ... will be the proper replacement for MessageCollector
 
         // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Deamon mode can be enabled
-        return buildSession.executeOperation(operation)
+        return buildSession.executeOperation(operation, toolchains.createInProcessExecutionPolicy(), BTALogger(logger))
     }
 }
 
@@ -218,6 +225,7 @@ fun btaCompileKotlinScriptToDirectory(
     scriptFile: File,
     classPath: List<File>,
     template: KClass<out Any>,
+    logger: Logger,
 ): CompilationResult {
     fun configureClasspath(arguments: JvmCompilerArguments.Builder, classPath: List<File>) {
         arguments[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
@@ -248,7 +256,7 @@ fun btaCompileKotlinScriptToDirectory(
         )
     }
 
-    return btaCompiler.compile(listOf(Path(scriptFile.path)), outputDirectory.toPath()) {
+    return btaCompiler.compile(listOf(Path(scriptFile.path)), outputDirectory.toPath(), logger) {
         // TODO: put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         it[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
         it[X_USE_FIR_LT] = false
@@ -635,6 +643,35 @@ private
 fun onCompilerWarningsFor(allWarningsAsErrors: Boolean) =
     if (allWarningsAsErrors) EmbeddedKotlinCompilerWarning.FAIL
     else EmbeddedKotlinCompilerWarning.WARN
+
+
+private
+class BTALogger(val log: Logger) : KotlinLogger {
+    // TODO: MessageCollector does more, how much to duplicate?
+
+    override fun debug(msg: String) {
+        log.debug(msg)
+    }
+
+    override fun error(msg: String, throwable: Throwable?) {
+        log.error(msg, throwable)
+    }
+
+    override fun info(msg: String) {
+        log.info(msg)
+    }
+
+    override fun lifecycle(msg: String) {
+        log.info(msg) // TODO: right level?
+    }
+
+    override fun warn(msg: String, throwable: Throwable?) {
+        log.warn(msg)
+    }
+
+    override val isDebugEnabled: Boolean
+        get() = log.isDebugEnabled
+}
 
 
 private

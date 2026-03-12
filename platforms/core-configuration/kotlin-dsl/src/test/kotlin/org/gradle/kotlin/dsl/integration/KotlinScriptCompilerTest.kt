@@ -102,7 +102,8 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
                 writeText(script)
             },
             testRuntimeClassPath.asFiles,
-            template
+            template,
+            mock()
         )
     }
 }
