@@ -61,7 +61,7 @@ function cleanGradleUserHome() {
 }
 
 function stopAllGradleDaemons() {
-    "%linux.java21.openjdk.64bit%/bin/java" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java KILL_ALL_GRADLE_PROCESSES
+    "${JAVA_HOME}/bin/java" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java KILL_ALL_GRADLE_PROCESSES
 }
 
 function tagRestoreError() {
@@ -85,7 +85,7 @@ function restoreArtifactCache() {
   echo "Starting to restore bootstrap image..."
 
   set -x
-  "%linux.java21.openjdk.64bit%/bin/java" -jar "${TMPDIR}/develocity-artifact-cache-cli.jar" \
+  "${JAVA_HOME}/bin/java" -jar "${TMPDIR}/develocity-artifact-cache-cli.jar" \
     restore \
     --http1-preferred \
     --dv-server=https://ge.gradle.org \
