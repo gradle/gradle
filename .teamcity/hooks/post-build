@@ -47,7 +47,7 @@ function storeArtifactCache() {
   echo "Starting to store artifact cache..."
 
   set -x
-  "${JAVA_HOME}/bin/java" -jar "${TMPDIR}/develocity-artifact-cache-cli.jar" \
+  "/opt/jdk/open-jdk-21/bin/java" -jar "${TMPDIR}/develocity-artifact-cache-cli.jar" \
     store \
     --http1-preferred \
     --dv-server=https://ge.gradle.org \
