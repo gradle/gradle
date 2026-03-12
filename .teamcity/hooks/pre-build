@@ -16,32 +16,12 @@
 #
 
 set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/common.sh"
 
-BOOTSTRAP_CLI_VERSION="0.11.0"
 GRADLE_USER_HOME="/mnt/tcagent1/.gradle"
 CACHE_METRICS_FILE="artifact-cache-metrics/restore.json"
 REPORTING_DIR="artifact-cache-report/restore"
-
-function downloadDvBootstrapCliTool() {
-  local start_time=$(date +%s)000
-
-  echo "Starting to download develocity-artifact-cache-cli ${BOOTSTRAP_CLI_VERSION}..."
-
-  curl -fsSL -u "$GBT_REPO_GRDEV_NET_READONLY_USERNAME:$GBT_REPO_GRDEV_NET_READONLY_PASSWORD" \
-    "https://repo.grdev.net:443/artifactory/develocity-artifact-cache-cli-libs-releases/com/gradle/develocity-artifact-cache-cli/${BOOTSTRAP_CLI_VERSION}/develocity-artifact-cache-cli-${BOOTSTRAP_CLI_VERSION}.jar" \
-    -o ${TMPDIR}/develocity-artifact-cache-cli.jar
-
-  DOWNLOAD_EXIT_CODE=$?
-  set +x
-
-  local end_time=$(date +%s)000
-  local duration=$((end_time - start_time))
-  echo "Downloading develocity-artifact-cache-cli ${BOOTSTRAP_CLI_VERSION} finished in ${duration} ms with exit code ${DOWNLOAD_EXIT_CODE}."
-
-  if [ "${DOWNLOAD_EXIT_CODE}" -eq 0 ]; then
-    ls -hal "${TMPDIR}"
-  fi
-}
 
 function cleanGradleUserHome() {
   if [ -d "${GRADLE_USER_HOME}" ]; then

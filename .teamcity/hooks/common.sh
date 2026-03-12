@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# Copyright 2024 the original author or authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+BOOTSTRAP_CLI_VERSION="0.11.0"
+
+function downloadDvBootstrapCliTool() {
+  local start_time=$(date +%s)000
+
+  echo "Starting to download develocity-artifact-cache-cli ${BOOTSTRAP_CLI_VERSION}..."
+
+  set -x
+  curl -fsSL -u "$GBT_REPO_GRDEV_NET_READONLY_USERNAME:$GBT_REPO_GRDEV_NET_READONLY_PASSWORD" \
+    "https://repo.grdev.net:443/artifactory/develocity-artifact-cache-cli-libs-releases/com/gradle/develocity-artifact-cache-cli/${BOOTSTRAP_CLI_VERSION}/develocity-artifact-cache-cli-${BOOTSTRAP_CLI_VERSION}.jar" \
+    -o "${TMPDIR}/develocity-artifact-cache-cli.jar"
+
+  DOWNLOAD_EXIT_CODE=$?
+  set +x
+
+  local end_time=$(date +%s)000
+  local duration=$((end_time - start_time))
+  echo "Downloading develocity-artifact-cache-cli ${BOOTSTRAP_CLI_VERSION} finished in ${duration} ms with exit code ${DOWNLOAD_EXIT_CODE}."
+
+  if [ "${DOWNLOAD_EXIT_CODE}" -eq 0 ]; then
+    ls -hal "${TMPDIR}"
+  fi
+}
