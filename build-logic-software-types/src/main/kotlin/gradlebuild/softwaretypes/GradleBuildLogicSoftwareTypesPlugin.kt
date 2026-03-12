@@ -160,7 +160,7 @@ open class BuildLogicCommonsProjectTypePlugin : BaseGradleBuildProjectTypePlugin
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
             builder.bindProjectType(
-                "gradleBuildRoot",
+                "includedBuildRoot",
                 BuildLogicDefinition::class.java,
                 BuildLogicCommonsProjectTypeAction::class.java
             ).withUnsafeDefinition().withUnsafeApplyAction()
