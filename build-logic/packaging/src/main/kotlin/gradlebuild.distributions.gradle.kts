@@ -18,6 +18,7 @@ import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.buildVersionQualifier
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
+import gradlebuild.basics.repoRoot
 import gradlebuild.basics.tasks.PackageListGenerator
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeElements
@@ -36,7 +37,12 @@ import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
 import gradlebuild.packaging.tasks.GenerateClasspathModuleProperties
 import gradlebuild.packaging.tasks.GenerateEmptyModuleProperties
+import gradlebuild.packaging.tasks.GenerateLicenseFile
 import gradlebuild.packaging.tasks.PluginsManifest
+import gradlebuild.packaging.transforms.ExtractPomLicenseData
+import gradlebuild.shade.ArtifactTypes.pomLicenseMetadataType
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.jar.Attributes
@@ -215,6 +221,54 @@ tasks.register<GenerateClasspathModuleProperties>("generateRuntimeModuleProperti
 tasks.register<GenerateClasspathModuleProperties>("generateAgentsRuntimeModuleProperties") {
     configureFrom(agentsRuntimeClasspath)
     outputDir = layout.buildDirectory.dir("classpathProperties/$name")
+}
+
+// Register the transform from Maven POM → license metadata JSON.
+// "pom" is the artifact type string Gradle uses internally for Maven POM files.
+dependencies {
+    registerTransform(ExtractPomLicenseData::class) {
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "pom")
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, pomLicenseMetadataType)
+    }
+}
+
+// Generate the component license section for the distribution LICENSE file.
+// The output is used by GradleDistributionSpecs instead of the static root LICENSE.
+val generateLicenseFile by tasks.registering(GenerateLicenseFile::class) {
+    baseLicenseFile = repoRoot().file("LICENSE")
+
+    // Resolve POM metadata for all external dependencies in the main runtime classpath.
+    // withVariantReselection() switches from the runtime (jar) variant to the pom variant.
+    pomLicenseFiles.from(
+        runtimeClasspath.incoming.artifactView {
+            withVariantReselection()
+            attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, pomLicenseMetadataType)
+            componentFilter { it is ModuleComponentIdentifier }
+            lenient(true)
+        }.files
+    )
+    // Include POM metadata for agent runtime dependencies as well
+    pomLicenseFiles.from(
+        agentsRuntimeClasspath.incoming.artifactView {
+            withVariantReselection()
+            attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, pomLicenseMetadataType)
+            componentFilter { it is ModuleComponentIdentifier }
+            lenient(true)
+        }.files
+    )
+
+    // Use the module properties output to get the authoritative list of components
+    // that are actually present in the distribution (external ones have alias.group set)
+    modulePropertiesFiles.from(
+        tasks.named("generateRuntimeModuleProperties", GenerateClasspathModuleProperties::class)
+            .map { it.outputDir.asFileTree }
+    )
+    modulePropertiesFiles.from(
+        tasks.named("generateAgentsRuntimeModuleProperties", GenerateClasspathModuleProperties::class)
+            .map { it.outputDir.asFileTree }
+    )
+
+    outputLicenseFile = layout.buildDirectory.file("generated-license/LICENSE")
 }
 
 val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtensions", KotlinCompile::class) {

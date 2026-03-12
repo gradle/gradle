@@ -24,4 +24,8 @@ object ArtifactTypes {
     const val classTreesType = "classTrees"
     const val manifestsType = "manifests"
     const val buildReceiptType = "buildReceipt"
+
+    /** Artifact type produced by [gradlebuild.packaging.transforms.ExtractPomLicenseData]:
+     *  a JSON file with license metadata extracted from a Maven POM file. */
+    const val pomLicenseMetadataType = "pom-license-metadata"
 }
