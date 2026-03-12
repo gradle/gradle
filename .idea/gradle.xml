@@ -52,9 +52,15 @@
                   <project path="$PROJECT_DIR$/build-logic-settings/version-catalogs" />
                 </projects>
               </build>
+              <build path="$PROJECT_DIR$/build-logic-software-types" name="build-logic-software-types">
+                <projects>
+                  <project path="$PROJECT_DIR$/build-logic-software-types" />
+                </projects>
+              </build>
             </builds>
           </compositeBuild>
         </compositeConfiguration>
+        <option name="distributionType" value="LOCAL" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
@@ -73,6 +79,7 @@
             <option value="$PROJECT_DIR$/build-logic-settings/configuration-cache-compatibility" />
             <option value="$PROJECT_DIR$/build-logic-settings/default-settings-plugins" />
             <option value="$PROJECT_DIR$/build-logic-settings/version-catalogs" />
+            <option value="$PROJECT_DIR$/build-logic-software-types" />
             <option value="$PROJECT_DIR$/build-logic/binary-compatibility" />
             <option value="$PROJECT_DIR$/build-logic/build-init-samples" />
             <option value="$PROJECT_DIR$/build-logic/build-update-utils" />
