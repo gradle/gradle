@@ -207,9 +207,6 @@ samples {
 
         val projectInfoPlugin by creating
 
-        val precompiledScriptPluginUtils by creating {
-            target = "convention-plugins"
-        }
     }
 
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
@@ -241,55 +238,6 @@ samples {
             category = "Spring"
             common {
                 from(templates.named("springBootWebApplication"))
-            }
-        }
-        val incubatingJvmMultiProjectWithAdditionalTestTypes by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-additional-test-types")
-            displayName = "Using additional test types with Test Suites (Incubating)"
-            description = "Add an additional test type (e.g. integration tests) to a project using the new Test Suites API."
-            category = "Java"
-
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5IntegrationTestForApplication"))
-
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5IntegrationTestForUtilitiesLibrary"))
-
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-            }
-        }
-        val incubatingJavaModulesMultiProjectWithIntegrationTests by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/modules-multi-project-with-integration-tests")
-            displayName = "Building Java Modules with Blackbox Tests with Test Suites (Incubating)"
-            description = "Build Java Modules with blackbox integration tests using the new Test Suites API."
-            category = "Java Modules"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaModuleInfoForListLibrary"))
-                from(templates.named("javaModuleInfoForUtilitiesLibrary"))
-                from(templates.named("javaModuleInfoForApplication"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-
-                from(templates.named("javaJunit5IntegrationTestForApplication"))
-                from(templates.named("javaJunit5ModuleInfoForApplication"))
-                from(templates.named("javaJunit5IntegrationTestForUtilitiesLibrary"))
-                from(templates.named("javaJunit5ModuleInfoForUtilitiesLibrary"))
-            }
-        }
-        val incubatingPublishingConventionPlugins by creating {
-            sampleDirectory = samplesRoot.dir("incubating/build-organization/publishing-convention-plugins")
-            displayName = "Sharing build logic in a multi-repo setup with Test Suites (Incubating)"
-            description = "Organize and publish build logic for reuse in other projects using the new Test Suites API."
-            category = "Java"
-
-            common {
-                from(templates.named("precompiledScriptPluginUtils"))
             }
         }
         val jvmMultiProjectWithAdditionalTestTypes by creating {
@@ -372,62 +320,6 @@ samples {
             category = "Java Modules"
             common {
                 from(templates.named("buildSrcPluginJavaModuleTransform"))
-            }
-        }
-        val jvmMultiProjectWithCodeCoverageDistribution by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-code-coverage-distribution")
-            displayName = "Aggregating code coverage with JaCoCo from an application/distribution (Incubating)"
-            description = "Report code coverage on the application/distribution of a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
-            category = "Java"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5TestForUtilitiesLibrary"))
-            }
-        }
-        val jvmMultiProjectWithCodeCoverageStandalone by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-code-coverage-standalone")
-            displayName = "Aggregating code coverage with JaCoCo using a standalone utility project (Incubating)"
-            description = "Report code coverage on a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
-            category = "Java"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5TestForUtilitiesLibrary"))
-            }
-        }
-        val jvmMultiProjectWithTestAggregationDistribution by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-test-aggregation-distribution")
-            displayName = "Aggregating test results of an application/distribution (Incubating)"
-            description = "Report all test results using the application/distribution of a multi-module project."
-            category = "Java"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5TestForUtilitiesLibrary"))
-            }
-        }
-        val jvmMultiProjectWithTestAggregationStandalone by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-test-aggregation-standalone")
-            displayName = "Aggregating test results using a standalone utility project (Incubating)"
-            description = "Report all test results using a standalone utility project as part of a multi-module project."
-            category = "Java"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5TestForUtilitiesLibrary"))
             }
         }
         val publishingJavaLibraries by creating {
@@ -561,7 +453,7 @@ tasks.named<Test>("docsTest") {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
             // SpotBugs doesn't support Java 23
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-publishing-convention-plugins*")
-            excludeTestsMatching("org.gradle.docs.samples.*.incubating-publishing-convention-plugins*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-incubating-build-organization-publishing-convention-plugins*")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
