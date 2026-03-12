@@ -16,76 +16,25 @@
 
 package org.gradle.internal.collect;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+
 /**
- * A thread-safe primitive long hash set using open addressing with linear probing.
+ * A thread-safe primitive long hash set.
  *
- * Uses 0 as the empty sentinel and -1 as the tombstone for deleted entries,
- * so neither value can be stored as an element.
- *
- * Zero per-element object allocation — only allocates a new backing array when rehashing.
+ * Backed by fastutil's {@link LongOpenHashSet} with synchronized access.
+ * Zero per-element object allocation — only allocates when the backing
+ * array needs to grow.
  */
 public class SynchronizedLongHashSet {
 
-    private static final long EMPTY = 0;
-    private static final long TOMBSTONE = -1;
-    private static final int INITIAL_CAPACITY = 16;
+    private final LongOpenHashSet delegate = new LongOpenHashSet();
 
-    private long[] table;
-    private int liveCount;
-    private int occupiedCount; // live + tombstones, used for load factor check
-
-    public SynchronizedLongHashSet() {
-        table = new long[INITIAL_CAPACITY];
-    }
-
-    /**
-     * Adds the given value to the set.
-     *
-     * @throws IllegalArgumentException if value is 0 or -1 (reserved sentinels)
-     */
     public synchronized void add(long id) {
-        if (occupiedCount * 4 >= table.length * 3) {
-            rehash();
-        }
-        int mask = table.length - 1;
-        int index = hash(id) & mask;
-        int firstTombstone = -1;
-        while (true) {
-            long v = table[index];
-            if (v == id) {
-                return;
-            }
-            if (v == EMPTY) {
-                if (firstTombstone >= 0) {
-                    table[firstTombstone] = id;
-                    // Reusing a tombstone slot: occupiedCount stays the same
-                } else {
-                    table[index] = id;
-                    occupiedCount++;
-                }
-                liveCount++;
-                return;
-            }
-            if (v == TOMBSTONE && firstTombstone < 0) {
-                firstTombstone = index;
-            }
-            index = (index + 1) & mask;
-        }
+        delegate.add(id);
     }
 
     public synchronized boolean contains(long id) {
-        int mask = table.length - 1;
-        int index = hash(id) & mask;
-        while (true) {
-            long v = table[index];
-            if (v == id) {
-                return true;
-            }
-            if (v == EMPTY) {
-                return false;
-            }
-            index = (index + 1) & mask;
-        }
+        return delegate.contains(id);
     }
 
     /**
@@ -94,53 +43,10 @@ public class SynchronizedLongHashSet {
      * @return true if the value was present and removed, false if not found
      */
     public synchronized boolean remove(long id) {
-        int mask = table.length - 1;
-        int index = hash(id) & mask;
-        while (true) {
-            long v = table[index];
-            if (v == id) {
-                table[index] = TOMBSTONE;
-                liveCount--;
-                // occupiedCount stays the same — tombstone still occupies the slot
-                return true;
-            }
-            if (v == EMPTY) {
-                return false;
-            }
-            index = (index + 1) & mask;
-        }
+        return delegate.remove(id);
     }
 
     public synchronized int size() {
-        return liveCount;
-    }
-
-    private void rehash() {
-        long[] oldTable = table;
-        int newCapacity = oldTable.length * 2;
-        // If most entries are tombstones, don't grow — just clean up
-        if (liveCount * 4 < oldTable.length) {
-            newCapacity = oldTable.length;
-        }
-        table = new long[newCapacity];
-        int mask = newCapacity - 1;
-        liveCount = 0;
-        occupiedCount = 0;
-        for (long v : oldTable) {
-            if (v != EMPTY && v != TOMBSTONE) {
-                int index = hash(v) & mask;
-                while (table[index] != EMPTY) {
-                    index = (index + 1) & mask;
-                }
-                table[index] = v;
-                liveCount++;
-                occupiedCount++;
-            }
-        }
-    }
-
-    private static int hash(long id) {
-        int h = (int) (id ^ (id >>> 32));
-        return h ^ (h >>> 16);
+        return delegate.size();
     }
 }

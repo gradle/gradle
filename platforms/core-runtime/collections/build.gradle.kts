@@ -33,6 +33,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.stdlibJavaExtensions)
+    implementation(libs.fastutil)
 
     // For benchmarking against capsule, clojure, scala collections and more.
     // Uncomment the libraries you want to benchmark against then update
