@@ -116,12 +116,16 @@ abstract class ExtractPomLicenseData : TransformAction<TransformParameters.None>
             ?.firstOrNull { it.nodeName == "url" }
             ?.textContent?.trim()?.takeIf { it.isNotBlank() }
 
+        val parentElement = root.childNodes.items().firstOrNull { it.nodeName == "parent" } as? Element
         return mapOf(
             "groupId" to groupId,
             "artifactId" to artifactId,
             "version" to version,
             "licenseName" to licenseName,
-            "licenseUrl" to licenseUrl
+            "licenseUrl" to licenseUrl,
+            "parentGroupId" to parentElement?.directChildText("groupId"),
+            "parentArtifactId" to parentElement?.directChildText("artifactId"),
+            "parentVersion" to parentElement?.directChildText("version"),
         )
     }
 
