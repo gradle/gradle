@@ -28,7 +28,6 @@ function storeArtifactCache() {
   set -x
   "/opt/jdk/open-jdk-21/bin/java" -jar "${TMPDIR}/develocity-artifact-cache-cli.jar" \
     store \
-    --http1-preferred \
     --dv-server=https://ge.gradle.org \
     --reporting-directory=${REPORTING_DIR} \
     --operation-timeout=PT10M \
