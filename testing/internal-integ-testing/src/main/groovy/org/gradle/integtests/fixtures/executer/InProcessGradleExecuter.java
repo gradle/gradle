@@ -37,7 +37,6 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.integtests.fixtures.FileSystemWatchingHelper;
-import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
@@ -114,8 +113,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         AgentStatus.of(isAgentInstrumentationEnabled()),
         getCurrentInstallation(),
         newCommandLineProcessLogging(),
-        NativeServicesTestFixture.getInstance(),
-        ValidationServicesFixture.getServices()
+        NativeServicesTestFixture.getInstance()
     ).getServices();
 
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
