@@ -1,0 +1,124 @@
+#!/bin/bash
+#
+# Copyright 2024 the original author or authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+set -euo pipefail
+
+BOOTSTRAP_CLI_VERSION="0.10.0"
+GRADLE_USER_HOME="/mnt/tcagent1/.gradle"
+CACHE_METRICS_FILE="artifact-cache-metrics/restore.json"
+REPORTING_DIR="artifact-cache-report/restore"
+
+function downloadDvBootstrapCliTool() {
+  local start_time=$(date +%s)000
+
+  echo "Starting to download develocity-artifact-cache-cli ${BOOTSTRAP_CLI_VERSION}..."
+
+  curl -fsSL -u "$GBT_REPO_GRDEV_NET_READONLY_USERNAME:$GBT_REPO_GRDEV_NET_READONLY_PASSWORD" \
+    "https://repo.grdev.net:443/artifactory/develocity-artifact-cache-cli-libs-releases/com/gradle/develocity-artifact-cache-cli/${BOOTSTRAP_CLI_VERSION}/develocity-artifact-cache-cli-${BOOTSTRAP_CLI_VERSION}.jar" \
+    -o ${TMPDIR}/develocity-artifact-cache-cli.jar
+
+  DOWNLOAD_EXIT_CODE=$?
+  set +x
+
+  local end_time=$(date +%s)000
+  local duration=$((end_time - start_time))
+  echo "Downloading develocity-artifact-cache-cli ${BOOTSTRAP_CLI_VERSION} finished in ${duration} ms with exit code ${DOWNLOAD_EXIT_CODE}."
+
+  if [ "${DOWNLOAD_EXIT_CODE}" -eq 0 ]; then
+    ls -hal "${TMPDIR}"
+  fi
+}
+
+function cleanGradleUserHome() {
+  if [ -d "${GRADLE_USER_HOME}" ]; then
+      echo "Deleting existing Gradle user home at ${GRADLE_USER_HOME}"
+      local start_time=$(date +%s)000
+      rm -rf "${GRADLE_USER_HOME}"
+      local exitCode=$?
+      local end_time=$(date +%s)000
+      local duration=$((end_time - start_time))
+      echo "Deleting Gradle user home at ${GRADLE_USER_HOME} finished in ${duration} ms with exit code ${exitCode}."
+
+      # Re-creating the folder as it initially exists but is empty.
+      mkdir "${GRADLE_USER_HOME}"
+  else
+    echo "Warning: Gradle user home at ${GRADLE_USER_HOME} is not present - nothing to delete" 2>&1
+  fi
+}
+
+function stopAllGradleDaemons() {
+    "%linux.java21.openjdk.64bit%/bin/java" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java KILL_ALL_GRADLE_PROCESSES
+}
+
+function tagRestoreError() {
+  echo "##teamcity[addBuildTag 'ARTIFACT_CACHE_RESTORE_ERROR']"
+  echo "##teamcity[setParameter name='env.DV_ARTIFACT_CACHE_RESTORE_ERROR' value='true']"
+}
+
+function tagRestoreMissing() {
+  echo "##teamcity[addBuildTag 'ARTIFACT_CACHE_RESTORE_MISSING']"
+  echo "##teamcity[setParameter name='env.DV_ARTIFACT_CACHE_RESTORE_MISSING' value='true']"
+}
+
+function tagRestoreSuccess() {
+  echo "##teamcity[addBuildTag 'ARTIFACT_CACHE_RESTORE_SUCCESS']"
+  echo "##teamcity[setParameter name='env.DV_ARTIFACT_CACHE_RESTORE_SUCCESS' value='true']"
+}
+
+function restoreArtifactCache() {
+  local start_time=$(date +%s)000
+
+  echo "Starting to restore bootstrap image..."
+
+  set -x
+  "%linux.java21.openjdk.64bit%/bin/java" -jar "${TMPDIR}/develocity-artifact-cache-cli.jar" \
+    restore \
+    --http1-preferred \
+    --dv-server=https://ge.gradle.org \
+    --reporting-directory=${REPORTING_DIR} \
+    --operation-timeout=PT10M \
+    --gradle-home=${GRADLE_USER_HOME} \
+    --cache-metrics-file="${CACHE_METRICS_FILE}" \
+    --verbose
+
+  local restoreExitCode=$?
+  set +x
+
+  local end_time=$(date +%s)000
+  local duration=$((end_time - start_time))
+  echo "Restoring bootstrap image finished in ${duration} ms with exit code ${restoreExitCode}."
+
+  if [ "${restoreExitCode}" -eq 0 ]; then
+    local foundManifest=$(jq 'has("usedImageName")' "${CACHE_METRICS_FILE}")
+    if [ "${foundManifest}" = "true" ]; then
+      tagRestoreSuccess
+    else
+      tagRestoreMissing
+    fi
+  else
+    tagRestoreError
+  fi
+}
+
+export DEVELOCITY_ARTIFACT_CACHE_BASE_BRANCH_NAME="master"
+
+echo "Prefix: ${DEVELOCITY_ACCESS_KEY:0:20}"
+
+cleanGradleUserHome
+stopAllGradleDaemons
+downloadDvBootstrapCliTool
+restoreArtifactCache
