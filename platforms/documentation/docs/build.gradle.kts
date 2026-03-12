@@ -210,7 +210,6 @@ samples {
         val precompiledScriptPluginUtils by creating {
             target = "convention-plugins"
         }
-        val problemsApiUsage by creating
     }
 
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
@@ -459,15 +458,6 @@ samples {
             category = "Writing Custom Tasks"
         }
 
-        val problemsApiUsage by creating {
-            sampleDirectory = samplesRoot.dir("ide/problems-api-usage")
-            displayName = "Reporting and receiving problems via the Problems API"
-            description = "Reporting problems from plugins and consuming it in IDE integrations"
-            category = "IDE integration"
-            common {
-                from(templates.named("problemsApiUsage"))
-            }
-        }
     }
 }
 
