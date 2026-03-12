@@ -144,9 +144,6 @@ tasks.named<Sync>("stageDocs") {
 
 samples {
     templates {
-        val springBootWebApplication by creating {
-            target = "app"
-        }
     }
 
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
@@ -172,14 +169,6 @@ samples {
     }
 
     publishedSamples {
-        val buildingSpringBootWebApplications by creating {
-            sampleDirectory = samplesRoot.dir("spring-boot-web-application")
-            description = "Build a simple Spring Boot application."
-            category = "Spring"
-            common {
-                from(templates.named("springBootWebApplication"))
-            }
-        }
         val taskWithArguments by creating {
             sampleDirectory = samplesRoot.dir("writing-tasks/task-with-arguments")
             displayName = "Implementing Tasks with Command-line Arguments"
