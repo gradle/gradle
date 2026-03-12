@@ -244,6 +244,7 @@ dependencies {
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.baseDiagnostics))
+    testImplementation(testFixtures(projects.processServices))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.time))
