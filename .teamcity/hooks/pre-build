@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-BOOTSTRAP_CLI_VERSION="0.10.0"
+BOOTSTRAP_CLI_VERSION="0.11.0"
 GRADLE_USER_HOME="/mnt/tcagent1/.gradle"
 CACHE_METRICS_FILE="artifact-cache-metrics/restore.json"
 REPORTING_DIR="artifact-cache-report/restore"
