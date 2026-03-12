@@ -55,7 +55,8 @@ import javax.inject.Inject
     PerfTestProjectTypePlugin::class,
     JavaPlatformBuildLogicProjectTypePlugin::class,
     JavaLibraryBuildLogicProjectTypePlugin::class,
-    KotlinSharedRuntimeProjectTypePlugin::class
+    KotlinSharedRuntimeProjectTypePlugin::class,
+    BuildLogicCommonsProjectTypePlugin::class
 )
 open class GradleBuildLogicSoftwareTypesPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
@@ -142,7 +143,6 @@ open class PerfTestProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
 
 @BindsProjectType(KotlinSharedRuntimeProjectTypePlugin.Binding::class)
 open class KotlinSharedRuntimeProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
-
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
             builder.bindProjectType(
@@ -154,9 +154,23 @@ open class KotlinSharedRuntimeProjectTypePlugin : BaseGradleBuildProjectTypePlug
     }
 }
 
-abstract class BaseProjectApplyAction<OwnDefinition : BuildLogicDefinition> : ProjectTypeApplyAction<OwnDefinition, BuildModel.None> {
-    protected abstract fun applyBase(project: Project, definition: OwnDefinition)
+@BindsProjectType(BuildLogicCommonsProjectTypePlugin.Binding::class)
+open class BuildLogicCommonsProjectTypePlugin : BaseGradleBuildProjectTypePlugin() {
 
+    class Binding : ProjectTypeBinding {
+        override fun bind(builder: ProjectTypeBindingBuilder) {
+            builder.bindProjectType(
+                "gradleBuildRoot",
+                BuildLogicDefinition::class.java,
+                BuildLogicCommonsProjectTypeAction::class.java
+            ).withUnsafeDefinition().withUnsafeApplyAction()
+        }
+    }
+}
+
+abstract class BaseProjectApplyAction<OwnDefinition : BuildLogicDefinition> : ProjectTypeApplyAction<OwnDefinition, BuildModel.None> {
+
+    protected abstract fun applyBase(project: Project, definition: OwnDefinition)
     final override fun apply(context: ProjectFeatureApplicationContext, definition: OwnDefinition, buildModel: BuildModel.None) {
         context.objectFactory.newInstance<Services>().project.run {
             group = "gradlebuild"
@@ -169,8 +183,8 @@ abstract class BaseProjectApplyAction<OwnDefinition : BuildLogicDefinition> : Pr
 }
 
 abstract class JavaBuildLogicProjectTypeAction<OwnDefinition : JavaBuildLogicDefinition> : BaseProjectApplyAction<OwnDefinition>() {
-    protected abstract fun applyJava(project: Project, definition: OwnDefinition)
 
+    protected abstract fun applyJava(project: Project, definition: OwnDefinition)
     final override fun applyBase(project: Project, definition: OwnDefinition) {
         applyJava(project, definition)
         project.run {
@@ -272,6 +286,14 @@ open class PerfTestProjectTypeAction : KotlinDslProjectTypeAction() {
 open class KotlinSharedRuntimeProjectTypeAction : JavaBuildLogicProjectTypeAction<JavaBuildLogicDefinition>() {
     override fun applyJava(project: Project, definition: JavaBuildLogicDefinition) {
         project.plugins.apply("gradlebuild.kotlin-shared-runtime")
+    }
+}
+
+open class BuildLogicCommonsProjectTypeAction : BaseProjectApplyAction<BuildLogicDefinition>() {
+    override fun applyBase(project: Project, definition: BuildLogicDefinition) {
+        project.tasks.register("check") {
+            dependsOn(project.subprojects.map { "${it.name}:check" })
+        }
     }
 }
 
