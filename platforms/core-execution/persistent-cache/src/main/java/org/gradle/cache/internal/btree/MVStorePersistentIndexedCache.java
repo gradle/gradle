@@ -19,41 +19,50 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.type.ByteArrayDataType;
+import org.h2.mvstore.type.LongDataType;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 
 /**
  * A persistent indexed cache backed by H2 MVStore.
+ *
+ * Keys are hashed to longs (via MD5) for fast B-tree comparison,
+ * matching the approach used by {@link BTreePersistentIndexedCache}.
+ * This trades hash-collision safety for significantly faster lookups.
+ *
+ * Values are stored as raw byte arrays in MVStore. This avoids eager
+ * deserialization of all sibling values when MVStore loads a B-tree page
+ * from disk, drastically reducing GC pressure on reads.
  */
 @NullMarked
 public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(MVStorePersistentIndexedCache.class);
     private static final String MAP_NAME = "cache";
     private static final int CACHE_SIZE_MB = 16;
-    private static final int PAGE_SPLIT_SIZE = 8 * 1024;
+    private static final int PAGE_SPLIT_SIZE = 16 * 1024;
+    private static final int KRYO_BUFFER_SIZE = 512;
 
     private final File cacheFile;
-    private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
+    private final KeyHasher<K> keyHasher;
+    private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
     private MVStore store;
-    private MVMap<K, V> map;
+    private MVMap<Long, byte[]> map;
 
     public MVStorePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this.cacheFile = cacheFile;
-        this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
+        this.keyHasher = new KeyHasher<>(keySerializer);
         try {
             doOpen();
         } catch (Exception e) {
@@ -70,25 +79,36 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
         cacheFile.getParentFile().mkdirs();
         MVStore.Builder builder = new MVStore.Builder()
             .fileName(cacheFile.getPath())
-            .autoCommitDisabled()
             .cacheSize(CACHE_SIZE_MB)
             .pageSplitSize(PAGE_SPLIT_SIZE)
-            .compress();
+            .autoCompactFillRate(0);
         if (cacheFile.exists() && !cacheFile.canWrite()) {
             builder.readOnly();
         }
         store = builder.open();
-        MVMap.Builder<K, V> mapBuilder = new MVMap.Builder<K, V>()
-            .keyType(new CacheDataType<>(keySerializer))
-            .valueType(new CacheDataType<>(valueSerializer));
+        MVMap.Builder<Long, byte[]> mapBuilder = new MVMap.Builder<Long, byte[]>()
+            .keyType(LongDataType.INSTANCE)
+            .valueType(ByteArrayDataType.INSTANCE);
         map = store.openMap(MAP_NAME, mapBuilder);
+    }
+
+    private long hashKey(K key) {
+        try {
+            return keyHasher.getHashCode(key);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     @Nullable
     @Override
     public V get(K key) {
         try {
-            return map.get(key);
+            byte[] data = map.get(hashKey(key));
+            if (data == null) {
+                return null;
+            }
+            return deserialize(data);
         } catch (Exception e) {
             rebuild();
             return null;
@@ -98,16 +118,43 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public void put(K key, V value) {
         try {
-            map.put(key, value);
+            map.put(hashKey(key), serialize(value));
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not add entry '%s' to %s.", key, this), e), true);
+        }
+    }
+
+    private byte[] serialize(V value) {
+        try {
+            SerializationBuffer sb = serializationBuffers.get();
+            sb.baos.reset();
+            sb.encoder.flush();
+            valueSerializer.write(sb.encoder, value);
+            sb.encoder.flush();
+            int count = sb.baos.getCount();
+            byte[] result = new byte[count];
+            System.arraycopy(sb.baos.getBuffer(), 0, result, 0, count);
+            return result;
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private V deserialize(byte[] data) {
+        try {
+            SerializationBuffer sb = serializationBuffers.get();
+            sb.decoderInput.setData(data);
+            sb.decoder.restart(sb.decoderInput);
+            return valueSerializer.read(sb.decoder);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
     @Override
     public void remove(K key) {
         try {
-            map.remove(key);
+            map.remove(hashKey(key));
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
         }
@@ -178,117 +225,45 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
         }
     }
 
-    private static class CacheDataType<T> extends org.h2.mvstore.type.BasicDataType<T> {
-        private final Serializer<T> serializer;
+    private static class SerializationBuffer {
+        final FastByteArrayOutputStream baos = new FastByteArrayOutputStream(KRYO_BUFFER_SIZE);
+        final KryoBackedEncoder encoder = new KryoBackedEncoder(baos, KRYO_BUFFER_SIZE);
+        final ResettableByteArrayInputStream decoderInput = new ResettableByteArrayInputStream();
+        final KryoBackedDecoder decoder = new KryoBackedDecoder(decoderInput, KRYO_BUFFER_SIZE);
+    }
 
-        private final ThreadLocal<FastByteArrayOutputStream> bufferPool =
-            ThreadLocal.withInitial(FastByteArrayOutputStream::new);
-
-        public CacheDataType(Serializer<T> serializer) {
-            this.serializer = serializer;
+    /**
+     * A ByteArrayOutputStream that exposes its internal buffer to avoid
+     * the copy done by {@link ByteArrayOutputStream#toByteArray()}.
+     */
+    private static class FastByteArrayOutputStream extends ByteArrayOutputStream {
+        FastByteArrayOutputStream(int size) {
+            super(size);
         }
 
-        @Override
-        public int getMemory(T obj) {
-            return 128; // Static estimate for MVStore's RAM cache management
+        byte[] getBuffer() {
+            return buf;
         }
 
-        @Override
-        public void write(WriteBuffer buff, T obj) {
-            try {
-                FastByteArrayOutputStream baos = bufferPool.get();
-                baos.reset();
-
-                KryoBackedEncoder encoder = new KryoBackedEncoder(baos);
-                serializer.write(encoder, obj);
-                encoder.flush();
-
-                // Frame the data: Write length, then write directly from the exposed buffer
-                buff.putVarInt(baos.getCount());
-                buff.put(baos.getBuffer(), 0, baos.getCount());
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        @Override
-        public T read(ByteBuffer buff) {
-            try {
-                // Read length to frame the greedy stream
-                int len = DataUtils.readVarInt(buff);
-
-                // Create a strictly bounded, zero-copy slice for Kryo
-                ByteBuffer slice = buff.slice();
-                slice.limit(len);
-
-                // Advance the main buffer's position so MVStore knows we consumed it
-                buff.position(buff.position() + len);
-
-                KryoBackedDecoder decoder = new KryoBackedDecoder(new ByteBufferInputStream(slice));
-                return serializer.read(decoder);
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public T[] createStorage(int size) {
-            return (T[]) new Object[size];
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public int compare(T a, T b) {
-            if (a instanceof Comparable && b instanceof Comparable) {
-                return ((Comparable) a).compareTo(b);
-            }
-            throw new UnsupportedOperationException("Keys must implement Comparable, but " + a.getClass() + " does not.");
-        }
-
-        // Subclass to expose the internal byte array, eliminating the toByteArray() allocation
-        private static class FastByteArrayOutputStream extends ByteArrayOutputStream {
-            FastByteArrayOutputStream() {
-                super(512);
-            }
-
-            byte[] getBuffer() {
-                return buf;
-            }
-
-            int getCount() {
-                return count;
-            }
+        int getCount() {
+            return count;
         }
     }
 
-    private static class ByteBufferInputStream extends InputStream {
-
-        private final ByteBuffer buffer;
-
-        public ByteBufferInputStream(ByteBuffer buffer) {
-            this.buffer = buffer;
+    /**
+     * A ByteArrayInputStream whose backing data can be swapped without allocating a new stream,
+     * allowing reuse of the KryoBackedDecoder across deserialization calls.
+     */
+    private static class ResettableByteArrayInputStream extends ByteArrayInputStream {
+        ResettableByteArrayInputStream() {
+            super(new byte[0]);
         }
 
-        @Override
-        public int read() {
-            if (!buffer.hasRemaining()) {
-                return -1;
-            }
-            // Bitwise AND ensures we return an unsigned byte value (0-255) as required by InputStream
-            return buffer.get() & 0xFF;
-        }
-
-        @Override
-        public int read(byte[] bytes, int off, int len) {
-            if (!buffer.hasRemaining()) {
-                return -1;
-            }
-
-            // Only read as much as is available in the buffer
-            int length = Math.min(len, buffer.remaining());
-            buffer.get(bytes, off, length);
-            return length;
+        void setData(byte[] data) {
+            this.buf = data;
+            this.pos = 0;
+            this.count = data.length;
+            this.mark = 0;
         }
     }
 }

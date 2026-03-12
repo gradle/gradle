@@ -18,10 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 
-import javax.annotation.Nonnull;
 import java.util.Comparator;
 
-public class ArtifactAtRepositoryKey implements Comparable<ArtifactAtRepositoryKey>{
+public class ArtifactAtRepositoryKey implements Comparable<ArtifactAtRepositoryKey> {
 
     private static final Comparator<ArtifactAtRepositoryKey> COMPARATOR =
         Comparator.comparing(ArtifactAtRepositoryKey::getRepositoryId)
@@ -63,7 +62,7 @@ public class ArtifactAtRepositoryKey implements Comparable<ArtifactAtRepositoryK
     }
 
     @Override
-    public int compareTo(@Nonnull ArtifactAtRepositoryKey o) {
+    public int compareTo(ArtifactAtRepositoryKey o) {
         return COMPARATOR.compare(this, o);
     }
 }
