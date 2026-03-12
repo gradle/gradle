@@ -16,21 +16,22 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.repositories.IvyArtifactRepository
-import org.gradle.api.artifacts.transform.TransformAction
-import org.gradle.api.artifacts.transform.TransformParameters
-import org.gradle.api.artifacts.transform.TransformSpec
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.kotlin.dsl.*
+import org.gradle.internal.Try
+import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptor
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptorLocator
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistVersion
 import org.gradle.util.GradleVersion
 import java.io.File
+import kotlin.jvm.optionals.getOrNull
 
 interface SourceDistributionProvider {
     fun sourceDirs(): Collection<File>
@@ -52,55 +53,59 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
             sourceDirs
         } catch (ex: Exception) {
             project.logger.warn("Could not resolve Gradle distribution sources. See debug logs for details.")
-            project.logger.debug("Gradle distribution source resolution failure", ex)
+            project.logger.debug("Gradle distribution sources resolution failure", ex)
             emptyList()
         }
 
     private
     val sourceDirs by lazy {
-        createSourceRepositories()
-        registerTransforms()
-        transientConfigurationForSourcesDownload().files
+        resolveSourceDirsFromRepositories(candidateRepositories())
     }
 
     private
-    fun registerTransforms() {
-        registerTransform<FindGradleSources> {
-            from.attribute(artifactType, ZIP_TYPE)
-            to.attribute(artifactType, SOURCE_DIRECTORY)
-        }
-    }
-
-    private
-    fun transientConfigurationForSourcesDownload() =
-        detachedConfigurationFor(gradleSourceDependency()).apply {
-            attributes.attribute(artifactType, SOURCE_DIRECTORY)
-        }
-
-    private
-    fun detachedConfigurationFor(dependency: Dependency) =
-        configurations.detachedConfiguration(dependency)
-
-    private
-    fun gradleSourceDependency() = dependencies.create("gradle:gradle:${dependencyVersion(repoLocator.gradleVersion)}") {
-        artifact {
-            classifier = "src"
-            type = "zip"
-        }
-    }
-
-    private
-    fun createSourceRepositories() {
+    fun candidateRepositories() =
         listOfNotNull(
             // The repository inferred from the project configuration (e.g. wrapper properties)
             repoLocator.primaryRepository,
             // The fallback solution if the inferred repository is not available
             repoLocator.fallbackRepository
-        ).forEach(::createSourceRepository)
+        )
+
+    private
+    fun resolveSourceDirsFromRepositories(repositories: List<GradleDistRepoDescriptor>): Set<File> {
+        val results = buildList {
+            for (repo in repositories) {
+                val result = Try.ofFailable { resolveSourceDirsFrom(repo) }
+                add(result)
+                if (result.isSuccessful && result.get().isNotEmpty()) {
+                    break
+                }
+            }
+        }
+        val files = results.filter { it.isSuccessful }.mapNotNull { it.get().takeIf { it.isNotEmpty() } }.singleOrNull()
+        if (files != null) {
+            return files
+        }
+        val tried = repositories.joinToString(separator = "\n") { "  - ${it.repoBaseUrl}" }
+        throw GradleException("Unable to resolve Gradle distribution sources, tried:\n$tried").apply {
+            results.mapNotNull { it.failure.getOrNull() }.forEach {
+                addSuppressed(it)
+            }
+        }
     }
 
     private
-    fun createSourceRepository(repo: GradleDistRepoDescriptor) = ivy {
+    fun resolveSourceDirsFrom(repo: GradleDistRepoDescriptor): Set<File> {
+        val resolver = projectInternal.newDetachedResolver()
+        resolver.repositories.createSourceRepository(repo)
+        resolver.dependencies.registerTransform()
+        val dependency = resolver.dependencies.createDependency()
+        val configuration = resolver.configurations.createConfiguration(dependency)
+        return configuration.files
+    }
+
+    private
+    fun RepositoryHandler.createSourceRepository(repo: GradleDistRepoDescriptor) = ivy {
         name = "Gradle ${repo.name}"
         url = repo.repoBaseUrl
         metadataSources {
@@ -116,20 +121,35 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
     }
 
     private
+    fun DependencyHandler.registerTransform() =
+        registerTransform(FindGradleSources::class.java) {
+            from.attribute(artifactType, ZIP_TYPE)
+            to.attribute(artifactType, SOURCE_DIRECTORY)
+        }
+
+    private
+    fun DependencyHandler.createDependency() =
+        create("gradle:gradle:${dependencyVersion(repoLocator.gradleVersion)}") {
+            artifact {
+                classifier = "src"
+                type = "zip"
+            }
+        }
+
+    private
+    fun ConfigurationContainer.createConfiguration(dependency: Dependency) =
+        detachedConfiguration(dependency).apply {
+            attributes.attribute(artifactType, SOURCE_DIRECTORY)
+        }
+
+    private
     fun dependencyVersion(gradleVersion: GradleDistVersion): String =
-        if (gradleVersion.isSnapshot) toVersionRange(gradleVersion.versionString) else gradleVersion.versionString
+        if (gradleVersion.isSnapshot) toVersionRange(gradleVersion.versionString)
+        else gradleVersion.versionString
 
     private
     fun toVersionRange(gradleVersion: String) =
         "(${minimumGradleVersion()}, $gradleVersion]"
-
-    private
-    inline fun <reified T : TransformAction<TransformParameters.None>> registerTransform(configure: Action<TransformSpec<TransformParameters.None>>) =
-        dependencies.registerTransform(T::class.java, configure)
-
-    private
-    fun ivy(configure: Action<IvyArtifactRepository>) =
-        repositories.ivy(configure)
 
     private
     fun minimumGradleVersion(): String {
@@ -157,21 +177,6 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
         Integer.parseInt(versionDigit) - 1
 
     private
-    val resolver by lazy { projectInternal.newDetachedResolver() }
-
-    private
     val projectInternal
         get() = project as ProjectInternal
-
-    private
-    val repositories
-        get() = resolver.repositories
-
-    private
-    val configurations
-        get() = resolver.configurations
-
-    private
-    val dependencies
-        get() = resolver.dependencies
 }

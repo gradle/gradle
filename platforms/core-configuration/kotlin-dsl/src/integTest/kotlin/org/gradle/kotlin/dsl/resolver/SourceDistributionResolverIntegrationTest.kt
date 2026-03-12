@@ -198,9 +198,6 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
                 // Primary: repo with the source artifact
                 primaryServer.hostAndExpectRequestFor(gradleVersion, srcDistribution)
 
-                // Fallback: should not be used
-                fallbackServer.expectGetMissing("/$repositoryName/") // TODO Fix and remove me.
-
                 withBuildScript(
                     """
                     require(${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs().isNotEmpty()) {
@@ -322,6 +319,66 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
             } finally {
                 fallbackServer.stop()
                 fallbackServer.resetExpectations()
+            }
+        }
+    }
+
+    @Test
+    @LeaksFileHandles
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    fun `reasonable log messages when failing to resolve from both repositories`() {
+        val gradleVersion = distribution.version
+        val repositoryName = gradleVersion.repositoryName
+
+        withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
+            val primaryServer = HttpServer()
+            primaryServer.start()
+            val fallbackServer = HttpServer()
+            fallbackServer.start()
+
+            val fallbackRepoOverride = "-Dorg.gradle.kotlin.dsl.resolver.defaultGradleDistRepoBaseUrl=${fallbackServer.uri}"
+            val primaryBaseUrl = primaryServer.uri
+            val fallbackBaseUrl = fallbackServer.uri
+
+            try {
+                withCustomGradleProperties("${primaryBaseUrl}/$repositoryName/gradle-${gradleVersion.version}-bin.zip")
+
+                withBuildScript(
+                    """
+                    require(${SourceDistributionResolver::class.qualifiedName}(project).sourceDirs().isEmpty()) {
+                        "Did not expect source dirs to be resolved"
+                    }
+                    """
+                )
+
+                primaryServer.expectGetMissing("/${repositoryName}/")
+                fallbackServer.expectGetMissing("/${repositoryName}/")
+
+                build(fallbackRepoOverride).apply {
+                    assertOutputContains("Could not resolve Gradle distribution sources. See debug logs for details.")
+                }
+
+                primaryServer.resetExpectations()
+                fallbackServer.resetExpectations()
+
+                primaryServer.stop()
+                fallbackServer.stop()
+
+                executer.withStackTraceChecksDisabled()
+
+                build(fallbackRepoOverride, "--debug").apply {
+                    assertOutputContains("Could not resolve Gradle distribution sources. See debug logs for details.")
+                    assertOutputContains(
+                        """
+                        org.gradle.api.GradleException: Unable to resolve Gradle distribution sources, tried:
+                          - $primaryBaseUrl/$repositoryName
+                          - $fallbackBaseUrl/$repositoryName
+                        """.trimIndent()
+                    )
+                }
+            } finally {
+                primaryServer.stop()
+                fallbackServer.stop()
             }
         }
     }
