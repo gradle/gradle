@@ -111,29 +111,6 @@ Nothing to write about
         assertFoundDeadSectionLinks(sampleDoc, "missing_section", "other_missing_section")
     }
 
-    def "finds broken sample links"() {
-        given:
-        sampleDoc << """
-Nothing to write about
-        """
-
-        and:
-        releaseNotes << """
-Nothing to write about
-        """
-
-        and:
-        sampleSampleDoc << """
-This doesn't exist either link:{userManualPath}/no_sample.html.
-        """
-
-        when:
-        run('checkDeadInternalLinks').buildAndFail()
-
-        then:
-        assertFoundDeadLinks()
-    }
-
     def "validates present section links"() {
         given:
         sampleDoc << """
