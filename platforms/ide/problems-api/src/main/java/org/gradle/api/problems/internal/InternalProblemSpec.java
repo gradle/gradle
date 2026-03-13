@@ -118,6 +118,7 @@ public interface InternalProblemSpec extends ProblemSpec {
     @Override
     InternalProblemSpec withException(Throwable t);
 
+    @Deprecated
     @Override
     InternalProblemSpec severity(Severity severity);
 

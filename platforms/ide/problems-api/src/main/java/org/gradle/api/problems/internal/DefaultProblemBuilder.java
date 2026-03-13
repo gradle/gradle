@@ -204,6 +204,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return this;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public InternalProblemBuilder severity(Severity severity) {
         this.severity = severity;
