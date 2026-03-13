@@ -49,6 +49,7 @@ public class DefaultSeverity implements Severity {
         return known;
     }
 
+    @SuppressWarnings("deprecation")
     public static Severity from(int severity) {
         if (severity == Severity.ADVICE.getSeverity()) {
             return Severity.ADVICE;
