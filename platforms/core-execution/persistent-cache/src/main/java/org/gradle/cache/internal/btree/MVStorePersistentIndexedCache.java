@@ -48,9 +48,9 @@ import java.io.IOException;
 public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(MVStorePersistentIndexedCache.class);
     private static final String MAP_NAME = "cache";
-    private static final int CACHE_SIZE_MB = 16;
+    private static final int CACHE_SIZE_MB = 32;
     private static final int AUTO_COMMIT_BUFFER_SIZE_KB = 32 * 1024;
-    private static final int PAGE_SPLIT_SIZE = 16 * 1024;
+    private static final int PAGE_SPLIT_SIZE = 4 * 1024;
     private static final int KRYO_BUFFER_SIZE = 512;
 
     /**
