@@ -58,7 +58,6 @@ class DefaultProblemTest extends Specification {
     def "unbound builder result with modified #changedAspect is not equal"() {
         def problem = createTestProblem()
 
-
         when:
         def builder = toBuilder(problem)
         changeClosure.curry(builder).run()
@@ -70,7 +69,6 @@ class DefaultProblemTest extends Specification {
 
         where:
         changedAspect | changeClosure
-        "severity"    | { it.severity(Severity.WARNING) }
         "locations"   | { it.fileLocation("file") }
         "details"     | { it.details("details") }
     }

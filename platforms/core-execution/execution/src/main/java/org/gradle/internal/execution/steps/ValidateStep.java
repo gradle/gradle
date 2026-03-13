@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class ValidateStep<
@@ -140,7 +139,6 @@ public abstract class ValidateStep<
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
-                .severity(ERROR)
             );
         }
     }
@@ -154,7 +152,6 @@ public abstract class ValidateStep<
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
-                .severity(ERROR)
             );
         }
     }

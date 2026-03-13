@@ -200,7 +200,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private static void addSeverity(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
         Severity severity = mapKindToSeverity(diagnostic.getKind());
-        spec.severity(severity);
         if (severity == Severity.ERROR) {
             spec.solution(CompilationFailedException.RESOLUTION_MESSAGE);
         }

@@ -17,13 +17,11 @@ package org.gradle.integtests.fixtures.validation;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.problems.ProblemGroup;
-import org.gradle.api.problems.Severity;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
@@ -47,15 +45,7 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
                 .forProperty(propertyMetadata.getPropertyName())
                 .id("test-problem", "test problem", ProblemGroup.create("root", "root"))
                 .documentedAt(Documentation.userManual("id", "section"))
-                .severity(annotationValue(propertyMetadata))
                 .details("this is a test")
         );
-    }
-
-    private Severity annotationValue(PropertyMetadata propertyMetadata) {
-        return propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE)
-            .map(ValidationProblem.class::cast)
-            .map(ValidationProblem::value)
-            .orElse(Severity.WARNING);
     }
 }
