@@ -2,6 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
     id("gradlebuild.shaded-jar")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
@@ -105,10 +106,6 @@ jvmCompile {
         named("testFixtures") {
             // The cross version tests depend on the test fixtures
             targetJvmVersion = 8
-        }
-        named("crossVersionTest") {
-            // The TAPI tests must be able to run the TAPI client, which is still JVM 8 compatible
-            targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
         }
     }
 }
