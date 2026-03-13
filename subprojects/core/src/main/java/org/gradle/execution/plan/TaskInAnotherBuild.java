@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
@@ -38,7 +39,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
         TaskInternal task,
         BuildTreeWorkGraphController taskGraph
     ) {
-        BuildIdentifier targetBuild = buildIdentifierOf(task);
+        BuildIdentity targetBuild = buildIdentifierOf(task);
         TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, task);
         IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
         return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild) {
@@ -62,7 +63,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
      */
     public static TaskInAnotherBuild lazy(
         String taskPath,
-        BuildIdentifier targetBuild,
+        BuildIdentity targetBuild,
         BuildTreeWorkGraphController taskGraph
     ) {
         TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, taskPath);
@@ -79,9 +80,9 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
     private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Scheduled;
     private final Path taskIdentityPath;
     private final String taskPath;
-    private final BuildIdentifier targetBuild;
+    private final BuildIdentity targetBuild;
 
-    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild) {
+    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentity targetBuild) {
         this.taskIdentityPath = taskIdentityPath;
         this.taskPath = taskPath;
         this.targetBuild = targetBuild;
@@ -206,7 +207,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
         // This node does not do anything itself
     }
 
-    private static BuildIdentifier buildIdentifierOf(TaskInternal task) {
+    private static BuildIdentity buildIdentifierOf(TaskInternal task) {
         return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentifier();
     }
 

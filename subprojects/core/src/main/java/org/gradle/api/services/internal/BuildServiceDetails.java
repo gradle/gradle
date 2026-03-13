@@ -15,24 +15,24 @@
  */
 package org.gradle.api.services.internal;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.internal.build.BuildIdentity;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Details about a service registration.
  */
 public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServiceParameters> {
-    private final BuildIdentifier buildIdentifier;
+    private final BuildIdentity buildIdentity;
     private final String name;
     private final Class<T> implementationType;
     private final P parameters;
     private final int maxUsages;
     private final boolean resolved;
 
-    public BuildServiceDetails(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, @Nullable P parameters, @Nullable Integer maxUsages) {
-        this.buildIdentifier = buildIdentifier;
+    public BuildServiceDetails(BuildIdentity buildIdentity, String name, Class<T> implementationType, @Nullable P parameters, @Nullable Integer maxUsages) {
+        this.buildIdentity = buildIdentity;
         this.name = name;
         this.implementationType = implementationType;
         this.parameters = parameters;
@@ -40,8 +40,8 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
         this.resolved = true;
     }
 
-    public BuildServiceDetails(BuildIdentifier buildIdentifier, String name, Class<T> implementationType) {
-        this.buildIdentifier = buildIdentifier;
+    public BuildServiceDetails(BuildIdentity buildIdentity, String name, Class<T> implementationType) {
+        this.buildIdentity = buildIdentity;
         this.name = name;
         this.implementationType = implementationType;
         this.parameters = null;
@@ -49,8 +49,8 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
         this.resolved = false;
     }
 
-    public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
+    public BuildIdentity getBuildIdentity() {
+        return buildIdentity;
     }
 
     public String getName() {

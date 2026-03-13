@@ -16,9 +16,9 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildState
 import org.gradle.util.Path
 import java.io.File
@@ -39,5 +39,5 @@ interface ConfigurationCacheBuild {
 
     fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild
 
-    fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild
+    fun getBuildSrcOf(ownerId: BuildIdentity): ConfigurationCacheBuild
 }
