@@ -48,6 +48,7 @@ import org.gradle.execution.plan.SelfExecutingNode
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildToolingModelController
@@ -442,9 +443,9 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         final TreeServices services
         final GradleInternal gradle
         final BuildState state
-        final BuildIdentifier identifier
+        final BuildIdentity identifier
 
-        BuildServices(TreeServices services, BuildIdentifier identifier, GradleInternal gradle) {
+        BuildServices(TreeServices services, BuildIdentity identifier, GradleInternal gradle) {
             this.identifier = identifier
             this.services = services
             this.gradle = gradle

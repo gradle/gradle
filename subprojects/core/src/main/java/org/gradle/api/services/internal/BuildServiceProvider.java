@@ -16,7 +16,6 @@
 
 package org.gradle.api.services.internal;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -27,6 +26,7 @@ import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.state.Managed;
 import org.jspecify.annotations.NonNull;
@@ -94,7 +94,7 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     /**
      * Returns the identifier for the build that owns this service.
      */
-    public abstract BuildIdentifier getBuildIdentifier();
+    public abstract BuildIdentity getBuildIdentity();
 
     /**
      * Are the given providers referring to the same service provider?
@@ -118,7 +118,7 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         if (!isCompatibleServiceType(thisBuildServiceProvider, otherBuildServiceProvider)) {
             return false;
         }
-        return thisBuildServiceProvider.getBuildIdentifier().equals(otherBuildServiceProvider.getBuildIdentifier());
+        return thisBuildServiceProvider.getBuildIdentity().equals(otherBuildServiceProvider.getBuildIdentity());
     }
 
     private static boolean isCompatibleServiceType(BuildServiceProvider thisBuildServiceProvider, BuildServiceProvider otherBuildServiceProvider) {

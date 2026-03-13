@@ -17,11 +17,11 @@
 package org.gradle.api.services.internal;
 
 import com.google.errorprone.annotations.concurrent.GuardedBy;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.instantiation.InstantiationScheme;
@@ -58,7 +58,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     private boolean keepAlive;
 
     public RegisteredBuildServiceProvider(
-        BuildIdentifier buildIdentifier,
+        BuildIdentity buildIdentity,
         String name,
         Class<T> implementationType,
         @Nullable P parameters,
@@ -69,7 +69,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         Listener listener,
         @Nullable Integer maxUsages
     ) {
-        this.serviceDetails = new BuildServiceDetails<>(buildIdentifier, name, implementationType, parameters, maxUsages);
+        this.serviceDetails = new BuildServiceDetails<>(buildIdentity, name, implementationType, parameters, maxUsages);
         this.internalServices = internalServices;
         this.isolationScheme = isolationScheme;
         this.instantiationScheme = instantiationScheme;
@@ -83,8 +83,8 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     }
 
     @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return serviceDetails.getBuildIdentifier();
+    public BuildIdentity getBuildIdentity() {
+        return serviceDetails.getBuildIdentity();
     }
 
     @Override

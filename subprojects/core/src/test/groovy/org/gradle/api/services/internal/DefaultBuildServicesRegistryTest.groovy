@@ -20,7 +20,6 @@ import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.GradleException
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -31,6 +30,7 @@ import org.gradle.api.services.BuildServiceSpec
 import org.gradle.api.services.ServiceReference
 import org.gradle.internal.Actions
 import org.gradle.internal.Try
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
@@ -47,13 +47,13 @@ class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scope.Build)
     def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
-    def buildIdentifier = Mock(BuildIdentifier)
+    def buildIdentity = Mock(BuildIdentity)
     def services = TestUtil.createTestServices { registrations ->
         registrations.addProvider(new ServiceRegistrationProvider() {
             @Provides
             BuildServiceRegistry createBuildServiceRegistry() {
                 return new DefaultBuildServicesRegistry(
-                    buildIdentifier,
+                    buildIdentity,
                     services.get(DomainObjectCollectionFactory),
                     services.get(InstantiatorFactory),
                     services,

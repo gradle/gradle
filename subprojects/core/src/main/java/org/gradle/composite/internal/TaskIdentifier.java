@@ -16,11 +16,12 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.build.BuildIdentity;
 
 public interface TaskIdentifier {
-    BuildIdentifier getBuildIdentifier();
+
+    BuildIdentity getBuildIdentity();
 
     String getTaskPath();
 
@@ -28,11 +29,11 @@ public interface TaskIdentifier {
         TaskInternal getTask();
     }
 
-    static TaskBasedTaskIdentifier of(BuildIdentifier buildIdentifier, TaskInternal task) {
+    static TaskBasedTaskIdentifier of(BuildIdentity buildIdentity, TaskInternal task) {
         return new TaskBasedTaskIdentifier() {
             @Override
-            public BuildIdentifier getBuildIdentifier() {
-                return buildIdentifier;
+            public BuildIdentity getBuildIdentity() {
+                return buildIdentity;
             }
 
             @Override
@@ -47,11 +48,11 @@ public interface TaskIdentifier {
         };
     }
 
-    static TaskIdentifier of(BuildIdentifier buildIdentifier, String taskPath) {
+    static TaskIdentifier of(BuildIdentity buildIdentity, String taskPath) {
         return new TaskIdentifier() {
             @Override
-            public BuildIdentifier getBuildIdentifier() {
-                return buildIdentifier;
+            public BuildIdentity getBuildIdentity() {
+                return buildIdentity;
             }
 
             @Override

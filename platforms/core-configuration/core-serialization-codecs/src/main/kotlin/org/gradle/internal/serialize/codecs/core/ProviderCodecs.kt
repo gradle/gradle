@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.util.Path
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.flow.FlowAction
@@ -236,7 +237,7 @@ class BuildServiceProviderCodec(
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) =
         encodePreservingSharedIdentityOf(value) {
             val serviceDetails: BuildServiceDetails<*, *> = value.serviceDetails
-            write(serviceDetails.buildIdentifier)
+            write(serviceDetails.buildIdentity)
             writeString(serviceDetails.name)
             writeClass(serviceDetails.implementationType)
             writeBoolean(serviceDetails.isResolved)
@@ -263,7 +264,7 @@ class BuildServiceProviderCodec(
 
     private
     fun buildServiceRegistryOf(buildIdentifier: BuildIdentifier) =
-        buildStateRegistry.getBuild(buildIdentifier).mutableModel.serviceOf<BuildServiceRegistryInternal>()
+        buildStateRegistry.getBuild(Path.path(buildIdentifier.buildPath)).mutableModel.serviceOf<BuildServiceRegistryInternal>()
 }
 
 

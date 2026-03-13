@@ -16,13 +16,13 @@
 
 package org.gradle.api.services.internal;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -37,16 +37,16 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     protected final ServiceRegistry internalServices;
     private final String serviceName;
     private final Class<T> serviceType;
-    private final BuildIdentifier buildIdentifier;
+    private final BuildIdentity buildIdentity;
     private volatile RegisteredBuildServiceProvider<T, BuildServiceParameters> resolvedProvider;
 
     public ConsumedBuildServiceProvider(
-        BuildIdentifier buildIdentifier,
+        BuildIdentity buildIdentity,
         String serviceName,
         Class<T> serviceType,
         ServiceRegistry internalServices
     ) {
-        this.buildIdentifier = buildIdentifier;
+        this.buildIdentity = buildIdentity;
         this.serviceName = serviceName;
         this.serviceType = serviceType;
         this.internalServices = internalServices;
@@ -102,14 +102,14 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     }
 
     @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
+    public BuildIdentity getBuildIdentity() {
+        return buildIdentity;
     }
 
     @Override
     public BuildServiceDetails<T, BuildServiceParameters> getServiceDetails() {
         BuildServiceProvider<T, BuildServiceParameters> resolvedProvider = resolve(true);
-        return resolvedProvider != null ? resolvedProvider.getServiceDetails() : new BuildServiceDetails<>(buildIdentifier, serviceName, serviceType);
+        return resolvedProvider != null ? resolvedProvider.getServiceDetails() : new BuildServiceDetails<>(buildIdentity, serviceName, serviceType);
     }
 
     @Override

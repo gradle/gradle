@@ -18,10 +18,9 @@ package org.gradle.composite.internal;
 
 import com.google.common.base.MoreObjects;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.build.BuildState;
@@ -135,14 +134,14 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public BuildState getBuild(BuildIdentifier buildIdentifier) {
-        return getBuild(((DefaultBuildIdentifier) buildIdentifier).getIdentityPath());
+    public BuildState getBuild(BuildIdentity buildIdentity) {
+        return getBuild(buildIdentity.getIdentityPath());
     }
 
     @Nullable
     @Override
-    public BuildState findBuild(BuildIdentifier buildIdentifier) {
-        return findBuild(((DefaultBuildIdentifier) buildIdentifier).getIdentityPath());
+    public BuildState findBuild(BuildIdentity buildIdentity) {
+        return findBuild(buildIdentity.getIdentityPath());
     }
 
     @Override
