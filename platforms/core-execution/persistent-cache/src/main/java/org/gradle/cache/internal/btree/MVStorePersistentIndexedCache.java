@@ -49,7 +49,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final Logger LOGGER = LoggerFactory.getLogger(MVStorePersistentIndexedCache.class);
     private static final String MAP_NAME = "cache";
     private static final int CACHE_SIZE_MB = 16;
-    private static final int AUTO_COMMIT_BUFFER_SIZE_KB = 4 * 1024;
     private static final int PAGE_SPLIT_SIZE = 16 * 1024;
     private static final int KRYO_BUFFER_SIZE = 512;
 
@@ -88,7 +87,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
         MVStore.Builder builder = new MVStore.Builder()
             .fileName(cacheFile.getPath())
             .cacheSize(CACHE_SIZE_MB)
-            .autoCommitBufferSize(AUTO_COMMIT_BUFFER_SIZE_KB)
+            .autoCommitDisabled()
             .pageSplitSize(PAGE_SPLIT_SIZE)
             .autoCompactFillRate(0);
         if (cacheFile.exists() && !cacheFile.canWrite()) {
