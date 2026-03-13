@@ -118,13 +118,10 @@ public final class ProjectIdentity implements DisplayName {
         this.projectPath = projectPath;
         this.projectName = projectName;
 
-        this.buildTreePath = computeProjectIdentityPath(buildPath, projectPath);
-
-        // TODO: This is inconsistent with DefaultProject.getDisplayName.
-        // We should change this to match that of DefaultProject.
-        String prefix = Path.ROOT.equals(buildTreePath) ? "root project" : "project";
-        this.displayName = Describables.memoize(Describables.of(prefix, buildTreePath.asString()));
+        buildTreePath = computeProjectIdentityPath(buildPath, projectPath);
+        displayName = computeDisplayName(buildTreePath, projectName);
     }
+
 
     /**
      * The path of the build that owns this project.
@@ -156,6 +153,15 @@ public final class ProjectIdentity implements DisplayName {
         return projectName;
     }
 
+    /**
+     * Returns the display name of this project in a human-readable format.
+     * <p>
+     * The display name is not strictly a public contract, but it has always been computed like this:
+     * <ul>
+     *     <li>For the root project: {@code root project 'projectName'}</li>
+     *     <li>For subprojects: {@code project ':identity:path:of:project'}</li>
+     * </ul>
+     */
     @Override
     public String getDisplayName() {
         return displayName.getDisplayName();
@@ -188,4 +194,11 @@ public final class ProjectIdentity implements DisplayName {
         return buildTreePath.hashCode();
     }
 
+    private static DisplayName computeDisplayName(Path buildTreePath, String projectName) {
+        return Describables.memoize(
+            Path.ROOT.equals(buildTreePath)
+                ? Describables.withTypeAndName("root project", projectName)
+                : Describables.withTypeAndName("project", buildTreePath.asString())
+        );
+    }
 }

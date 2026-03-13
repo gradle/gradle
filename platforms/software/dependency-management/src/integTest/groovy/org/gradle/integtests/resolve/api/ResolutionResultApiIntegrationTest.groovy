@@ -589,6 +589,7 @@ testRuntimeClasspath
     def "reports if we try to get dependencies from a different variant"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         settingsFile << """
+            rootProject.name = 'test'
             include 'producer'
             dependencyResolutionManagement {
                 ${mavenTestRepository()}
@@ -631,7 +632,7 @@ testRuntimeClasspath
         fails 'resolve'
 
         then:
-        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'root project :'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
+        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'root project 'test''. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12643")

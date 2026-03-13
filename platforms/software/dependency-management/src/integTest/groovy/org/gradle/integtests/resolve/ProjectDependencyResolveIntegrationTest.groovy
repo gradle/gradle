@@ -791,6 +791,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
     def "suggests outgoingVariants command when targetConfiguration not found in local project"() {
         given:
         settingsFile << """
+            rootProject.name = 'myProject'
             includeBuild 'included'
         """
 
@@ -834,9 +835,9 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         succeeds(expectedCommand)
 
         where:
-        declaredDependency   | projectDescription  | expectedCommand
-        "project(':')"       | "root project :"         | ":outgoingVariants"
-        "'org:included:1.0'" | "project :included" | ":included:outgoingVariants"
+        declaredDependency   | projectDescription           | expectedCommand
+        "project(':')"       | "root project 'myProject'"   | ":outgoingVariants"
+        "'org:included:1.0'" | "project ':included'"        | ":included:outgoingVariants"
     }
 
     def "can resolve a variant of a child project during configuration from a parent project when the child project resolves a configuration during configuration time"() {
