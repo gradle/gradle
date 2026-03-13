@@ -48,6 +48,7 @@ public enum Severity {
      * Indicates a fatal issue that causes the build to fail.
      */
     ERROR("Error");
+
     private final String displayName;
 
     Severity(String displayName) {
