@@ -1,5 +1,9 @@
+import org.gradle.api.publish.internal.component.ConfigurationVariantDetailsInternal
+import org.gradle.kotlin.dsl.assign
+
 plugins {
-    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Internal interfaces and implementations for input normalization"
@@ -19,4 +23,13 @@ dependencies {
     testImplementation(projects.internalTesting)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+}
+
+listOf(configurations["apiElements"], configurations["runtimeElements"]).forEach {
+    (components["java"] as AdhocComponentWithVariants).withVariantsFromConfiguration(it) {
+        this as ConfigurationVariantDetailsInternal
+        this.dependencyMapping {
+            publishResolvedCoordinates = true
+        }
+    }
 }
