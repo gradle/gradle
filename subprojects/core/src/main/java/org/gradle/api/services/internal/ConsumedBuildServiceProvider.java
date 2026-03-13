@@ -21,9 +21,7 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
-import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
-import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -33,22 +31,25 @@ import java.util.stream.Collectors;
  * A build service that is consumed.
  */
 public class ConsumedBuildServiceProvider<T extends BuildService<BuildServiceParameters>> extends BuildServiceProvider<T, BuildServiceParameters> {
-    protected final ServiceRegistry internalServices;
+
     private final String serviceName;
     private final Class<T> serviceType;
     private final BuildIdentifier buildIdentifier;
+    private final BuildServiceRegistryInternal buildServiceRegistry;
+
+    @Nullable
     private volatile RegisteredBuildServiceProvider<T, BuildServiceParameters> resolvedProvider;
 
     public ConsumedBuildServiceProvider(
         BuildIdentifier buildIdentifier,
         String serviceName,
         Class<T> serviceType,
-        ServiceRegistry internalServices
+        BuildServiceRegistryInternal buildServiceRegistry
     ) {
         this.buildIdentifier = buildIdentifier;
         this.serviceName = serviceName;
         this.serviceType = serviceType;
-        this.internalServices = internalServices;
+        this.buildServiceRegistry = buildServiceRegistry;
     }
 
     @Override
@@ -69,8 +70,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     @Nullable
     private RegisteredBuildServiceProvider<T, BuildServiceParameters> resolve(boolean failIfAmbiguous) {
         if (resolvedProvider == null) {
-            BuildServiceRegistry buildServiceRegistry = internalServices.get(BuildServiceRegistry.class);
-            Set<BuildServiceRegistration<?, ?>> results = ((BuildServiceRegistryInternal) buildServiceRegistry).findRegistrations(this.getType(), this.getName());
+            Set<BuildServiceRegistration<?, ?>> results = buildServiceRegistry.findRegistrations(this.getType(), this.getName());
             if (results.isEmpty()) {
                 return null;
             }

@@ -247,7 +247,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     private <T extends BuildService<BuildServiceParameters>> BuildServiceProvider<T, BuildServiceParameters> doConsume(String name, Class<T> implementationType) {
-        return new ConsumedBuildServiceProvider<>(buildIdentifier, name, implementationType, services);
+        return new ConsumedBuildServiceProvider<>(buildIdentifier, name, implementationType, this);
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
