@@ -35,6 +35,8 @@ public interface Severity {
 
     // Note: the static fields must be in sync with entries from org.gradle.api.problems.Severity.
     /**
+     * Advice severity.
+     *
      * @deprecated This severity level is unused in Gradle 9.5+ versions.
      *
      * @since 8.6

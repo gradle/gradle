@@ -256,7 +256,7 @@ class ConfigurationCacheProblems(
     private
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         if (summarizer.onProblem(problem, severity)) {
-            problemsService.onProblem(problem, severity)
+            problemsService.onProblem(problem)
             report.onProblem(problem)
         }
 
@@ -270,7 +270,7 @@ class ConfigurationCacheProblems(
     val configCacheValidation: ProblemGroup = ProblemGroup.create("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())
 
     private
-    fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+    fun InternalProblems.onProblem(problem: PropertyProblem) {
         val message = problem.message.render()
         internalReporter.internalCreate {
             id(

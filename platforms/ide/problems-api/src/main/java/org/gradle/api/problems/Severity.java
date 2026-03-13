@@ -33,6 +33,8 @@ import org.gradle.api.Incubating;
 @Incubating
 public enum Severity {
     /**
+     * Advice severity.
+     *
      * @deprecated This severity level is unused and will be removed in a future release.
      */
     @Deprecated
