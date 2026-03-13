@@ -46,19 +46,14 @@ private const val DASH_SEPARATOR = "--------------------------------------------
  * plugin and supplied via [pomFiles]. The task only reads files at execution time, making it
  * fully compatible with the configuration cache.
  *
- * If the direct POM has no [<licenses>] section, the parent POM chain is walked using the
+ * If the direct POM has no `<licenses>` section, the parent POM chain is walked using the
  * pre-resolved [pomFiles] until a license declaration is found.
  *
- * The task fails with a descriptive error if any external component has no license data —
- * this ensures that new dependencies are always explicitly accounted for.
- *
- * For components whose POM has missing or incorrect license information, add a hardcoded
- * entry to [hardcodedLicenses] below.
- *
- * License name normalization is applied to group components that declare the same license
- * under different names. The [licenseNameNormalization] map maps raw POM license name strings
- * to canonical [License] enum entries, which carry both the display name and a canonical URL.
- * Add normalization entries when a new POM uses an unexpected spelling for a known license.
+ * The task fails with descriptive errors if:
+ * - a component's POM chain contains a license name not registered in [License] — add it
+ *   as an alias or new entry in `License.kt`
+ * - a component has no license data in its POM or any parent POM — add a hardcoded entry
+ *   to [hardcodedLicenses] below
  */
 abstract class GenerateLicenseFile : DefaultTask() {
 
@@ -111,25 +106,35 @@ abstract class GenerateLicenseFile : DefaultTask() {
 
         // Resolve license for each external component by walking the pre-resolved POM chain
         val licenseByCoords = mutableMapOf<String, ComponentLicenseInfo>()
+        val notFound = mutableListOf<String>()    // no license data in POM chain at all
+        val unknownName = mutableListOf<String>() // license name found but not registered in License enum
+
         for (component in externalComponents) {
-            val info = lookupLicense(component, pomMap)
-            if (info != null) {
-                licenseByCoords[component.coordKey] = info
+            when (val result = lookupLicense(component, pomMap)) {
+                is LicenseLookupResult.Found ->
+                    licenseByCoords[component.coordKey] = result.info
+                is LicenseLookupResult.UnknownName ->
+                    unknownName += "  ${component.coordKey}:${component.version} — '${result.rawName}'"
+                LicenseLookupResult.NotFound ->
+                    notFound += "  ${component.coordKey}:${component.version}"
             }
         }
 
-        // Fail if any external component has no license data
-        val missing = externalComponents
-            .filter { it.coordKey !in licenseByCoords }
-            .map { "${it.coordKey}:${it.version}" }
-            .sorted()
-        if (missing.isNotEmpty()) {
-            throw GradleException(
-                "The following external dependencies have no license information in their POM.\n" +
-                "Add a hardcoded entry to GenerateLicenseFile.hardcodedLicenses for each:\n" +
-                missing.joinToString("\n") { "  - $it" }
+        // Fail with actionable messages if any licenses could not be resolved
+        val errors = buildList {
+            if (unknownName.isNotEmpty()) add(
+                "The following dependencies declare a license name not registered in License.kt.\n" +
+                "Add it as an alias of an existing License entry, or add a new License entry in:\n" +
+                "  build-logic/dependency-modules/src/main/kotlin/gradlebuild/modules/model/License.kt\n" +
+                unknownName.sorted().joinToString("\n")
+            )
+            if (notFound.isNotEmpty()) add(
+                "The following dependencies have no license data in their POM or any parent POM.\n" +
+                "Add a hardcoded entry to the hardcodedLicenses map in GenerateLicenseFile.kt:\n" +
+                notFound.sorted().joinToString("\n")
             )
         }
+        if (errors.isNotEmpty()) throw GradleException(errors.joinToString("\n\n"))
 
         // Group components by license display name (sorted alphabetically)
         val byLicense = externalComponents
@@ -186,20 +191,20 @@ abstract class GenerateLicenseFile : DefaultTask() {
 
     /**
      * Looks up the license for a component by walking up the parent POM chain in [pomMap].
-     * Checks [hardcodedLicenses] first, then follows [<parent>] links in the POM map.
+     * Checks [hardcodedLicenses] first, then follows `<parent>` links in the POM map.
      * No project access — only reads from the pre-built map of POM files.
      *
-     * When the POM license name is found in [licenseNameNormalization], both the display name
-     * and URL are taken from the canonical [License] enum entry. The POM's own [<url>] is used
-     * only as a fallback for licenses not in the normalization map.
+     * Returns [LicenseLookupResult.Found] on success, [LicenseLookupResult.UnknownName] if the
+     * POM declares a license name not registered in [License.byPomName], or
+     * [LicenseLookupResult.NotFound] if no license data exists anywhere in the parent chain.
      */
     private fun lookupLicense(
         component: ExternalComponent,
         pomMap: Map<String, PomLicenseUtils.PomInfo>,
-    ): ComponentLicenseInfo? {
+    ): LicenseLookupResult {
         val override = hardcodedLicenses[component.coordKey]
         if (override != null) {
-            return ComponentLicenseInfo(override.displayName, override.url)
+            return LicenseLookupResult.Found(ComponentLicenseInfo(override.displayName, override.url))
         }
 
         var lookupKey = "${component.group}:${component.name}:${component.version}"
@@ -208,33 +213,42 @@ abstract class GenerateLicenseFile : DefaultTask() {
                 ?: pomMap[lookupKey.substringBeforeLast(":")]  // fallback: without version
                 ?: break
             if (pomInfo.licenseName != null) {
-                val license = licenseNameNormalization[pomInfo.licenseName]
-                val displayName = license?.displayName ?: pomInfo.licenseName
-                val url = license?.url ?: pomInfo.licenseUrl
-                return ComponentLicenseInfo(displayName, url)
+                val license = License.fromPomName(pomInfo.licenseName)
+                    ?: return LicenseLookupResult.UnknownName(pomInfo.licenseName)
+                return LicenseLookupResult.Found(ComponentLicenseInfo(license.displayName, license.url))
             }
             val pg = pomInfo.parentGroupId ?: break
             val pa = pomInfo.parentArtifactId ?: break
             val pv = pomInfo.parentVersion ?: break
             lookupKey = "$pg:$pa:$pv"
         }
-        return null
+        return LicenseLookupResult.NotFound
     }
 
     private data class ExternalComponent(val group: String, val name: String, val version: String) {
         val coordKey: String get() = "$group:$name"
     }
+}
 
-    private data class ComponentLicenseInfo(val displayName: String, val url: String?)
+
+private data class ComponentLicenseInfo(val displayName: String, val url: String?)
+
+
+private sealed class LicenseLookupResult {
+    data class Found(val info: ComponentLicenseInfo) : LicenseLookupResult()
+    /** The POM declares a license name that is not registered as an alias in [License]. */
+    data class UnknownName(val rawName: String) : LicenseLookupResult()
+    /** No license declaration was found in the POM or any parent POM in the chain. */
+    object NotFound : LicenseLookupResult()
 }
 
 
 /**
- * Hardcoded license data for components with missing or incorrect POM license information.
+ * Hardcoded license data for components whose POM and all parent POMs have no `<licenses>` section.
  * Key format: "groupId:artifactId"
  * Value: the canonical [License] enum entry.
  *
- * Add entries here when the build fails with "no license information found" for a component.
+ * Add entries here when the build fails with "no license data in their POM or any parent POM".
  */
 private val hardcodedLicenses: Map<String, License> = mapOf(
     // net.rubygrapefruit:native-platform and all its platform-specific variants do not include
@@ -255,54 +269,4 @@ private val hardcodedLicenses: Map<String, License> = mapOf(
     "net.rubygrapefruit:native-platform-windows-amd64-min" to License.Apache2,
     "net.rubygrapefruit:native-platform-windows-i386" to License.Apache2,
     "net.rubygrapefruit:native-platform-windows-i386-min" to License.Apache2,
-)
-
-
-/**
- * Maps raw POM license names to canonical [License] enum entries for consistent section grouping.
- *
- * POM files across the ecosystem use inconsistent strings for the same licenses
- * (e.g. "The Apache Software License, Version 2.0" vs "Apache-2.0").
- * The [License] enum carries both the canonical display name and the canonical URL,
- * so both are normalised consistently for any POM name that appears in this map.
- *
- * Add entries here when the build encounters an unexpected name for a license that is
- * already represented in the [License] enum.
- */
-private val licenseNameNormalization: Map<String, License> = mapOf(
-    // Apache 2.0 variants
-    "The Apache Software License, Version 2.0" to License.Apache2,
-    "The Apache License, Version 2.0" to License.Apache2,
-    "Apache Software License - Version 2.0" to License.Apache2,
-    "Apache License 2.0" to License.Apache2,
-    "Apache-2.0" to License.Apache2,
-    "Apache 2.0" to License.Apache2,
-    "Apache 2" to License.Apache2,
-    "ASL, version 2" to License.Apache2,
-
-    // MIT variants
-    "The MIT License" to License.MIT,
-    "MIT License" to License.MIT,
-    "MIT" to License.MIT,
-
-    // BSD 3-Clause variants
-    "BSD 3-Clause License" to License.BSD3,
-    "BSD-3-Clause" to License.BSD3,
-    "New BSD License" to License.BSD3,
-    "The New BSD License" to License.BSD3,
-    "BSD" to License.BSD3,
-    "Revised BSD" to License.BSD3,
-    "The BSD License" to License.BSD3,
-
-    // Eclipse Public License variants
-    "EPL-1.0" to License.EPL,
-    "Eclipse Public License v1.0" to License.EPL,
-    "EPL-2.0" to License.EPL2,
-    "Eclipse Public License v2.0" to License.EPL2,
-
-    // LGPL variants
-    "GNU Lesser General Public License" to License.LGPL21,
-    "GNU Lesser General Public License, Version 2.1" to License.LGPL21,
-    "GNU Lesser General Public License, version 2.1" to License.LGPL21,
-    "LGPL-2.1-or-later" to License.LGPL21,
 )
