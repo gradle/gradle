@@ -24,6 +24,7 @@ import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class DefaultPropertyFactory implements PropertyFactory {
@@ -48,20 +49,23 @@ public class DefaultPropertyFactory implements PropertyFactory {
 
     @Override
     public <T> DefaultProperty<T> property(Class<T> type) {
-        if (List.class.isAssignableFrom(type)) {
-            // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
-            // Allow this one type to be used with Property until we can fix this elsewhere
-            if (!ExternalModuleDependencyBundle.class.isAssignableFrom(type)) {
-                throw new InvalidUserCodeException(invalidPropertyCreationError("List<..>", "ListProperty<..>"));
+        Objects.requireNonNull(type);
+        if (type.isInterface()) {
+            if (List.class.isAssignableFrom(type)) {
+                // This is a terrible hack. We made a mistake in making this type a List<Thing> vs using a ListProperty<Thing>
+                // Allow this one type to be used with Property until we can fix this elsewhere
+                if (!ExternalModuleDependencyBundle.class.isAssignableFrom(type)) {
+                    throw new InvalidUserCodeException(invalidPropertyCreationError("List<..>", "ListProperty<..>"));
+                }
+            } else if (Set.class.isAssignableFrom(type)) {
+                throw new InvalidUserCodeException(invalidPropertyCreationError("Set<..>", "SetProperty<..>"));
+            } else if (Map.class.isAssignableFrom(type)) {
+                throw new InvalidUserCodeException(invalidPropertyCreationError("Map<..>", "MapProperty<..>"));
+            } else if (Directory.class.isAssignableFrom(type)) {
+                throw new InvalidUserCodeException(invalidPropertyCreationError("Directory", "DirectoryProperty"));
+            } else if (RegularFile.class.isAssignableFrom(type)) {
+                throw new InvalidUserCodeException(invalidPropertyCreationError("RegularFile", "RegularFileProperty"));
             }
-        } else if (Set.class.isAssignableFrom(type)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("Set<..>", "SetProperty<..>"));
-        } else if (Map.class.isAssignableFrom(type)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("Map<..>", "MapProperty<..>"));
-        } else if (Directory.class.isAssignableFrom(type)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("Directory", "DirectoryProperty"));
-        } else if (RegularFile.class.isAssignableFrom(type)) {
-            throw new InvalidUserCodeException(invalidPropertyCreationError("RegularFile", "RegularFileProperty"));
         }
 
         return new DefaultProperty<>(propertyHost, maybeAsWrapperType(type));
