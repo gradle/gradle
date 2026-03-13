@@ -22,6 +22,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
@@ -55,6 +56,7 @@ private const val DASH_SEPARATOR = "--------------------------------------------
  * - a component has no license data in its POM or any parent POM — add an entry
  *   to [licenseOverrides] below (supports both "groupId:artifactId" and "groupId" keys)
  */
+@CacheableTask
 abstract class GenerateLicenseFile : DefaultTask() {
 
     /**
