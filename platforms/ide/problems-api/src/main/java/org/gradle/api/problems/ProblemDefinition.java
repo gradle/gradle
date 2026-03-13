@@ -45,10 +45,13 @@ public interface ProblemDefinition {
     ProblemId getId();
 
     /**
-     * Problem severity.
-     * <p>
-     * The severity of a problem is a hint to the user about how important the problem is.
-     * ERROR will fail the build, WARNING will not.
+     * The severity of the problem.
+     *
+     * <p>Severity controls how a problem is surfaced to the user and whether it causes the build to fail:
+     * <ul>
+     *   <li>{@link Severity#WARNING} — non-fatal; the build continues.</li>
+     *   <li>{@link Severity#ERROR} — fatal; the build fails.</li>
+     * </ul>
      *
      * @since 8.13
      */
