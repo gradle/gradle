@@ -116,6 +116,90 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         }
     }
 
+    def "can enable baseline report via extension"() {
+        def task = project.tasks.create("codenarcCustom", CodeNarc)
+
+        project.codenarc {
+            reportFormat = "baseline"
+        }
+
+        expect:
+        task.reports.enabled*.name == ["baseline"]
+        task.reports.baseline.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.baseline.xml")
+    }
+
+    def "can enable sortable report via extension"() {
+        def task = project.tasks.create("codenarcCustom", CodeNarc)
+
+        project.codenarc {
+            reportFormat = "sortable"
+        }
+
+        expect:
+        task.reports.enabled*.name == ["sortable"]
+        task.reports.sortable.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.sortable.html")
+    }
+
+    def "can enable baseline and sortable reports directly"() {
+        CodeNarc task = project.tasks.create("codenarcCustom", CodeNarc)
+
+        task.reports.baseline {
+            required = true
+        }
+        task.reports.sortable {
+            required = true
+        }
+
+        expect:
+        task.reports {
+            assert enabled == [html, baseline, sortable] as Set
+            assert baseline.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.baseline.xml")
+            assert sortable.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.sortable.html")
+        }
+    }
+
+    def "can enable json report via extension"() {
+        def task = project.tasks.create("codenarcCustom", CodeNarc)
+
+        project.codenarc {
+            reportFormat = "json"
+        }
+
+        expect:
+        task.reports.enabled*.name == ["json"]
+        task.reports.json.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.json")
+    }
+
+    def "can enable gitlab report via extension"() {
+        def task = project.tasks.create("codenarcCustom", CodeNarc)
+
+        project.codenarc {
+            reportFormat = "gitlab"
+        }
+
+        expect:
+        task.reports.enabled*.name == ["gitlab"]
+        task.reports.gitlab.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.gitlab.json")
+    }
+
+    def "can enable json and gitlab reports directly"() {
+        CodeNarc task = project.tasks.create("codenarcCustom", CodeNarc)
+
+        task.reports.json {
+            required = true
+        }
+        task.reports.gitlab {
+            required = true
+        }
+
+        expect:
+        task.reports {
+            assert enabled == [html, json, gitlab] as Set
+            assert json.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.json")
+            assert gitlab.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.gitlab.json")
+        }
+    }
+
     def "tool configuration has correct attributes"() {
         expect:
         with(project.configurations.codenarc.attributes) {

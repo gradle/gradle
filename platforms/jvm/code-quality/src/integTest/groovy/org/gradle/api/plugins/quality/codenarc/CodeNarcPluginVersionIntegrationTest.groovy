@@ -155,6 +155,95 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         failure.assertThatCause(both(startsWith("CodeNarc rule violations were found. See the report at:")).and(endsWith("xml")))
     }
 
+    def "reports sortable report over text or XML report in failure message"() {
+        badCode()
+        buildFile << """
+            codenarcTest.reports {
+                html.required = false
+                sortable.required = true
+                xml.required = true
+                text.required = true
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertThatCause(both(startsWith("CodeNarc rule violations were found. See the report at:")).and(endsWith("sortable.html")))
+    }
+
+    def "can generate baseline report"() {
+        given:
+        buildFile << """
+            codenarcMain.reports {
+                html.required = false
+                baseline.required = true
+            }
+        """
+
+        and:
+        goodCode()
+
+        expect:
+        succeeds("check")
+        executedAndNotSkipped(":codenarcMain")
+        report("main", "baseline.xml").exists()
+    }
+
+    def "can generate sortable report"() {
+        given:
+        buildFile << """
+            codenarcMain.reports {
+                html.required = false
+                sortable.required = true
+            }
+        """
+
+        and:
+        goodCode()
+
+        expect:
+        succeeds("check")
+        executedAndNotSkipped(":codenarcMain")
+        report("main", "sortable.html").exists()
+        report("main", "sortable.html").text.contains("Sort by")
+    }
+
+    def "can generate json report"() {
+        given:
+        buildFile << """
+            codenarcMain.reports {
+                html.required = false
+                json.required = true
+            }
+        """
+
+        and:
+        goodCode()
+
+        expect:
+        succeeds("check")
+        executedAndNotSkipped(":codenarcMain")
+        report("main", "json").exists()
+    }
+
+    def "can generate gitlab report"() {
+        given:
+        buildFile << """
+            codenarcMain.reports {
+                html.required = false
+                gitlab.required = true
+            }
+        """
+
+        and:
+        goodCode()
+
+        expect:
+        succeeds("check")
+        executedAndNotSkipped(":codenarcMain")
+        report("main", "gitlab.json").exists()
+    }
+
     def "analyze bad code"() {
         badCode()
 
