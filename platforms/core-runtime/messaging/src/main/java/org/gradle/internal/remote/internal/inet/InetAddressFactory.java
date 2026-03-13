@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Set;
 
@@ -91,9 +92,6 @@ public class InetAddressFactory {
         wildcardBindingAddress = new InetSocketAddress(0).getAddress();
 
         if (!findGradleDaemonBindAddress() && !findOpenshiftAddress()) {
-            if (inetAddresses == null) { // For testing
-                inetAddresses = new InetAddresses();
-            }
             findLocalBindingAddress();
         }
     }
@@ -101,7 +99,10 @@ public class InetAddressFactory {
     /**
      * Prefer first loopback address if available, otherwise use the wildcard address.
      */
-    private void findLocalBindingAddress() {
+    private void findLocalBindingAddress() throws SocketException {
+        if (inetAddresses == null) { // For testing
+            inetAddresses = new InetAddresses();
+        }
         if (inetAddresses.getLoopback().isEmpty()) {
             logger.debug("No loopback address for local binding, using fallback {}", wildcardBindingAddress);
             localBindingAddress = wildcardBindingAddress;

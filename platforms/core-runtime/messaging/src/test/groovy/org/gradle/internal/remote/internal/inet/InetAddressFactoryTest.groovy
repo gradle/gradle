@@ -109,7 +109,7 @@ class InetAddressFactoryTest extends Specification {
         0 * addresses._
     }
 
-    def "GRADLE_DAEMON_BIND_ADDRESS skips auto-detection regardless of OPENSHIFT address"() {
+    def "GRADLE_DAEMON_BIND_ADDRESS takes precedence over OPENSHIFT address"() {
         when:
         environment["OPENSHIFT_FOO_IP"] = "10.0.0.1"
         environment["GRADLE_DAEMON_BIND_ADDRESS"] = "192.168.1.10"
