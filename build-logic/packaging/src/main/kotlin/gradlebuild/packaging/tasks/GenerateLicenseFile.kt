@@ -16,6 +16,7 @@
 
 package gradlebuild.packaging.tasks
 
+import gradlebuild.modules.model.License
 import gradlebuild.packaging.support.PomLicenseUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -55,8 +56,9 @@ private const val DASH_SEPARATOR = "--------------------------------------------
  * entry to [hardcodedLicenses] below.
  *
  * License name normalization is applied to group components that declare the same license
- * under different names. Add normalization entries in [licenseNameNormalization] when
- * a new POM uses an unexpected spelling for a known license.
+ * under different names. The [licenseNameNormalization] map maps raw POM license name strings
+ * to canonical [License] enum entries, which carry both the display name and a canonical URL.
+ * Add normalization entries when a new POM uses an unexpected spelling for a known license.
  */
 abstract class GenerateLicenseFile : DefaultTask() {
 
@@ -186,6 +188,10 @@ abstract class GenerateLicenseFile : DefaultTask() {
      * Looks up the license for a component by walking up the parent POM chain in [pomMap].
      * Checks [hardcodedLicenses] first, then follows [<parent>] links in the POM map.
      * No project access — only reads from the pre-built map of POM files.
+     *
+     * When the POM license name is found in [licenseNameNormalization], both the display name
+     * and URL are taken from the canonical [License] enum entry. The POM's own [<url>] is used
+     * only as a fallback for licenses not in the normalization map.
      */
     private fun lookupLicense(
         component: ExternalComponent,
@@ -193,8 +199,7 @@ abstract class GenerateLicenseFile : DefaultTask() {
     ): ComponentLicenseInfo? {
         val override = hardcodedLicenses[component.coordKey]
         if (override != null) {
-            val display = licenseNameNormalization[override.first] ?: override.first
-            return ComponentLicenseInfo(display, override.second)
+            return ComponentLicenseInfo(override.displayName, override.url)
         }
 
         var lookupKey = "${component.group}:${component.name}:${component.version}"
@@ -203,8 +208,10 @@ abstract class GenerateLicenseFile : DefaultTask() {
                 ?: pomMap[lookupKey.substringBeforeLast(":")]  // fallback: without version
                 ?: break
             if (pomInfo.licenseName != null) {
-                val display = licenseNameNormalization[pomInfo.licenseName] ?: pomInfo.licenseName
-                return ComponentLicenseInfo(display, pomInfo.licenseUrl)
+                val license = licenseNameNormalization[pomInfo.licenseName]
+                val displayName = license?.displayName ?: pomInfo.licenseName
+                val url = license?.url ?: pomInfo.licenseUrl
+                return ComponentLicenseInfo(displayName, url)
             }
             val pg = pomInfo.parentGroupId ?: break
             val pa = pomInfo.parentArtifactId ?: break
@@ -225,69 +232,77 @@ abstract class GenerateLicenseFile : DefaultTask() {
 /**
  * Hardcoded license data for components with missing or incorrect POM license information.
  * Key format: "groupId:artifactId"
- * Value: Pair(licenseName, licenseUrl?) — licenseUrl may be null if not applicable.
+ * Value: the canonical [License] enum entry.
  *
  * Add entries here when the build fails with "no license information found" for a component.
  */
-private val hardcodedLicenses: Map<String, Pair<String, String?>> = mapOf(
+private val hardcodedLicenses: Map<String, License> = mapOf(
     // net.rubygrapefruit:native-platform and all its platform-specific variants do not include
     // <licenses> in their POM but are Apache 2.0 licensed (https://github.com/gradle/native-platform)
-    "net.rubygrapefruit:native-platform" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-freebsd-amd64-libcpp" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-linux-aarch64" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-linux-aarch64-ncurses5" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-linux-aarch64-ncurses6" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-linux-amd64" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-linux-amd64-ncurses5" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-linux-amd64-ncurses6" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-osx-aarch64" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-osx-amd64" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-windows-aarch64" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-windows-aarch64-min" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-windows-amd64" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-windows-amd64-min" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-windows-i386" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
-    "net.rubygrapefruit:native-platform-windows-i386-min" to ("Apache License, Version 2.0" to "https://www.apache.org/licenses/LICENSE-2.0"),
+    "net.rubygrapefruit:native-platform" to License.Apache2,
+    "net.rubygrapefruit:native-platform-freebsd-amd64-libcpp" to License.Apache2,
+    "net.rubygrapefruit:native-platform-linux-aarch64" to License.Apache2,
+    "net.rubygrapefruit:native-platform-linux-aarch64-ncurses5" to License.Apache2,
+    "net.rubygrapefruit:native-platform-linux-aarch64-ncurses6" to License.Apache2,
+    "net.rubygrapefruit:native-platform-linux-amd64" to License.Apache2,
+    "net.rubygrapefruit:native-platform-linux-amd64-ncurses5" to License.Apache2,
+    "net.rubygrapefruit:native-platform-linux-amd64-ncurses6" to License.Apache2,
+    "net.rubygrapefruit:native-platform-osx-aarch64" to License.Apache2,
+    "net.rubygrapefruit:native-platform-osx-amd64" to License.Apache2,
+    "net.rubygrapefruit:native-platform-windows-aarch64" to License.Apache2,
+    "net.rubygrapefruit:native-platform-windows-aarch64-min" to License.Apache2,
+    "net.rubygrapefruit:native-platform-windows-amd64" to License.Apache2,
+    "net.rubygrapefruit:native-platform-windows-amd64-min" to License.Apache2,
+    "net.rubygrapefruit:native-platform-windows-i386" to License.Apache2,
+    "net.rubygrapefruit:native-platform-windows-i386-min" to License.Apache2,
 )
 
 
 /**
- * Maps raw POM license names to canonical display names for consistent section grouping.
+ * Maps raw POM license names to canonical [License] enum entries for consistent section grouping.
  *
  * POM files across the ecosystem use inconsistent strings for the same licenses
  * (e.g. "The Apache Software License, Version 2.0" vs "Apache-2.0").
- * This map normalizes them to the canonical name used in the LICENSE output.
+ * The [License] enum carries both the canonical display name and the canonical URL,
+ * so both are normalised consistently for any POM name that appears in this map.
  *
  * Add entries here when the build encounters an unexpected name for a license that is
- * already represented in the output (and that should be grouped with existing entries).
+ * already represented in the [License] enum.
  */
-private val licenseNameNormalization: Map<String, String> = mapOf(
+private val licenseNameNormalization: Map<String, License> = mapOf(
     // Apache 2.0 variants
-    "The Apache Software License, Version 2.0" to "Apache License, Version 2.0",
-    "Apache Software License - Version 2.0" to "Apache License, Version 2.0",
-    "Apache License 2.0" to "Apache License, Version 2.0",
-    "Apache-2.0" to "Apache License, Version 2.0",
-    "Apache 2.0" to "Apache License, Version 2.0",
-    "Apache 2" to "Apache License, Version 2.0",
-    "ASL, version 2" to "Apache License, Version 2.0",
+    "The Apache Software License, Version 2.0" to License.Apache2,
+    "The Apache License, Version 2.0" to License.Apache2,
+    "Apache Software License - Version 2.0" to License.Apache2,
+    "Apache License 2.0" to License.Apache2,
+    "Apache-2.0" to License.Apache2,
+    "Apache 2.0" to License.Apache2,
+    "Apache 2" to License.Apache2,
+    "ASL, version 2" to License.Apache2,
 
     // MIT variants
-    "The MIT License" to "MIT License",
-    "MIT" to "MIT License",
+    "The MIT License" to License.MIT,
+    "MIT License" to License.MIT,
+    "MIT" to License.MIT,
 
-    // BSD variants
-    "BSD 3-Clause License" to "3-Clause BSD License",
-    "BSD-3-Clause" to "3-Clause BSD License",
-    "New BSD License" to "3-Clause BSD License",
-    "The New BSD License" to "3-Clause BSD License",
-    "BSD" to "3-Clause BSD License",
+    // BSD 3-Clause variants
+    "BSD 3-Clause License" to License.BSD3,
+    "BSD-3-Clause" to License.BSD3,
+    "New BSD License" to License.BSD3,
+    "The New BSD License" to License.BSD3,
+    "BSD" to License.BSD3,
+    "Revised BSD" to License.BSD3,
+    "The BSD License" to License.BSD3,
 
     // Eclipse Public License variants
-    "EPL-1.0" to "Eclipse Public License 1.0",
-    "EPL-2.0" to "Eclipse Public License 2.0",
+    "EPL-1.0" to License.EPL,
+    "Eclipse Public License v1.0" to License.EPL,
+    "EPL-2.0" to License.EPL2,
+    "Eclipse Public License v2.0" to License.EPL2,
 
     // LGPL variants
-    "GNU Lesser General Public License" to "LGPL 2.1",
-    "GNU Lesser General Public License, Version 2.1" to "LGPL 2.1",
-    "LGPL-2.1-or-later" to "LGPL 2.1",
+    "GNU Lesser General Public License" to License.LGPL21,
+    "GNU Lesser General Public License, Version 2.1" to License.LGPL21,
+    "GNU Lesser General Public License, version 2.1" to License.LGPL21,
+    "LGPL-2.1-or-later" to License.LGPL21,
 )

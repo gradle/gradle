@@ -17,15 +17,45 @@
 package gradlebuild.modules.model
 
 
-enum class License(val displayName: String) {
-    Apache2("Apache 2.0"),
-    BSD3("3-Clause BSD"),
-    BSDStyle("BSD-style"),
-    CDDL("CDDL"),
-    EDL("Eclipse Distribution License 1.0"),
-    EPL("Eclipse Public License 1.0"),
-    EPL2("Eclipse Public License 2.0"),
-    LGPL21("LGPL 2.1"),
-    MIT("MIT"),
-    MPL2("Mozilla Public License 2.0")
+enum class License(val displayName: String, val url: String) {
+    Apache2(
+        "Apache License, Version 2.0",
+        "https://www.apache.org/licenses/LICENSE-2.0"
+    ),
+    BSD3(
+        "3-Clause BSD License",
+        "https://opensource.org/licenses/BSD-3-Clause"
+    ),
+    BSDStyle(
+        "BSD-style License",
+        "https://opensource.org/licenses/BSD-2-Clause"
+    ),
+    CDDL(
+        "CDDL",
+        "https://opensource.org/licenses/CDDL-1.0"
+    ),
+    EDL(
+        "Eclipse Distribution License 1.0",
+        "https://www.eclipse.org/org/documents/edl-v10.php"
+    ),
+    EPL(
+        "Eclipse Public License 1.0",
+        "https://www.eclipse.org/legal/epl-v10.html"
+    ),
+    EPL2(
+        "Eclipse Public License 2.0",
+        "https://www.eclipse.org/legal/epl-v20.html"
+    ),
+    LGPL21(
+        "LGPL 2.1",
+        "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
+    ),
+    MIT(
+        "MIT License",
+        "https://opensource.org/licenses/MIT"
+    ),
+    MPL2(
+        "Mozilla Public License 2.0",
+        "https://www.mozilla.org/en-US/MPL/2.0/"
+    ),
 }
