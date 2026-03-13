@@ -506,7 +506,6 @@ fun collectExternalPomFiles(configs: List<Configuration>): List<File> {
                 .detachedConfiguration(project.dependencies.create("$g:$a:$v@pom"))
                 .apply {
                     isTransitive = false
-                    resolutionStrategy.disableDependencyVerification()
                 }
                 .singleFile
         } catch (e: Exception) {
