@@ -24,7 +24,6 @@ import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -90,7 +89,6 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
         return resolvedProvider;
     }
 
-    @NonNull
     @Override
     public Class<T> getType() {
         return serviceType;

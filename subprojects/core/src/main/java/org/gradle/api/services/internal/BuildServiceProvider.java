@@ -88,7 +88,6 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     public abstract String getName();
 
     @Override
-    @NonNull
     public abstract Class<T> getType();
 
     /**
