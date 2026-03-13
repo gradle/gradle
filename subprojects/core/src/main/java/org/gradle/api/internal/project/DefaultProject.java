@@ -878,7 +878,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     /**
      * Returns the display name of this project in a human-readable format.
      * <p>
-     * Currently:
+     * The display name is not strictly a public contract, but it has always been computed like this:
      * <ul>
      *     <li>For the root project: {@code root project 'projectName'}</li>
      *     <li>For subprojects: {@code project ':identity:path:of:project'}</li>
@@ -886,7 +886,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
      */
     @Override
     public String getDisplayName() {
-        return owner.getDisplayName().getDisplayName();
+        return getProjectIdentity().getDisplayName();
     }
 
     @Override
