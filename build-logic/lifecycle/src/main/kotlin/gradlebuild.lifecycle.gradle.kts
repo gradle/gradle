@@ -108,7 +108,8 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
             ":architecture-test:test",
             ":tooling-api:toolingApiShadedJar",
             ":performance:verifyPerformanceScenarioDefinitions",
-            ":checkSubprojectsInfo"
+            ":checkSubprojectsInfo",
+            ":checkTargetRuntimes"
         )
     }
 }

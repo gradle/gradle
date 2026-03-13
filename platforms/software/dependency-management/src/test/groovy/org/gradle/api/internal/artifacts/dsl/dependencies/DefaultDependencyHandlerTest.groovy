@@ -54,11 +54,10 @@ class DefaultDependencyHandlerTest extends Specification {
     private ConfigurationContainer configurationContainer = Mock()
     private DependencyFactoryInternal dependencyFactory = Mock()
     private Configuration configuration = Mock()
-    private ProjectFinder projectFinder = Mock()
     private DependencySet dependencySet = Mock()
 
     private DefaultDependencyHandler dependencyHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyHandler,
-        configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
+        configurationContainer, dependencyFactory, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
         Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(ArtifactTypeRegistry), TestUtil.objectFactory(), DependencyManagementTestUtil.platformSupport())
 
     void setup() {
@@ -222,7 +221,7 @@ class DefaultDependencyHandlerTest extends Specification {
         result == projectDependency
 
         and:
-        1 * dependencyFactory.createProjectDependencyFromMap(projectFinder, [:]) >> projectDependency
+        1 * dependencyFactory.createProjectDependencyFromMap([:]) >> projectDependency
     }
 
     void "creates a project dependency on the current project"() {
@@ -236,6 +235,19 @@ class DefaultDependencyHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createProjectDependency() >> projectDependency
+    }
+
+    void "creates a project dependency by path"() {
+        ProjectDependency projectDependency = Mock()
+
+        when:
+        def result = dependencyHandler.project(":sub")
+
+        then:
+        result == projectDependency
+
+        and:
+        1 * dependencyFactory.createProjectDependency(":sub") >> projectDependency
     }
 
     void "cannot create project dependency for configuration from same project"() {

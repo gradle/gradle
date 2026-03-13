@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
@@ -91,8 +90,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     }
 
     @Override
-    public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map) {
-        return projectDependencyFactory.createFromMap(projectFinder, map);
+    public ProjectDependency createProjectDependencyFromMap(Map<? extends String, ? extends Object> map) {
+        return projectDependencyFactory.createFromMap(map);
     }
 
     // region DependencyFactory methods
@@ -131,10 +130,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ProjectDependency createProjectDependency(String projectPath) {
-        if (project == null) {
-            throw new IllegalStateException("This dependency factory is not associated with a project, so project dependencies cannot be created by path.  Use create(Project) instead.");
-        }
-        return create(project.project(projectPath));
+        return projectDependencyFactory.create(projectPath);
     }
 
     @Override
