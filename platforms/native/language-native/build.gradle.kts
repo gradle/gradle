@@ -33,6 +33,7 @@ dependencies {
 
     implementation(projects.loggingApi)
     implementation(projects.maven)
+    implementation(projects.processServicesApi)
     implementation(projects.publish)
     implementation(projects.versionControl)
 

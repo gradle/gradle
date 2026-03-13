@@ -19,7 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.ExternalProcessStartedListener;
+
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
@@ -69,7 +69,6 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
@@ -78,10 +77,8 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -106,7 +103,7 @@ import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.plugin.internal.PluginScheme;
-import org.gradle.process.internal.ExecFactory;
+
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrant;
 import org.jspecify.annotations.Nullable;
@@ -191,18 +188,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             temporaryFileProvider,
             textResourceAdapterFactory
         );
-    }
-
-    @Provides
-    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector, ListenerManager listenerManager) {
-        return execFactory.forContext()
-            .withFileResolver(fileResolver)
-            .withFileCollectionFactory(fileCollectionFactory)
-            .withInstantiator(instantiatorFactory.decorateLenient())
-            .withObjectFactory(objectFactory)
-            .withJavaModuleDetector(javaModuleDetector)
-            .withExternalProcessStartedListener(listenerManager.getBroadcaster(ExternalProcessStartedListener.class))
-            .build();
     }
 
     @Provides

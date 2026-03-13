@@ -16,21 +16,15 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.PathToFileResolver;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
 import java.util.concurrent.Executor;
-
-import static java.util.Objects.requireNonNull;
 
 @NullMarked
 public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory {
@@ -98,9 +92,12 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
          *
          * This instance has unmanaged executor so the caller has to call {@link #stop()} to stop when instance is not needed anymore.
          */
-        public static RootClientExecHandleBuilderFactory of(File gradleUserHome) {
-            requireNonNull(gradleUserHome, "gradleUserHome");
-            DefaultClientExecHandleBuilderFactory clientExecHandleBuilderFactory = DefaultClientExecHandleBuilderFactory.of(new DefaultFileLookup().getFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+        public static RootClientExecHandleBuilderFactory of(
+            PathToFileResolver fileResolver,
+            ExecutorFactory executorFactory,
+            BuildCancellationToken buildCancellationToken
+        ) {
+            DefaultClientExecHandleBuilderFactory clientExecHandleBuilderFactory = DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
             return new RootClientExecHandleBuilderFactory(clientExecHandleBuilderFactory);
         }
     }

@@ -70,6 +70,7 @@ dependencies {
     implementation(projects.instrumentationAgentServices)
     implementation(projects.io)
     implementation(projects.loggingApi)
+    implementation(projects.processServicesApi)
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.asm)

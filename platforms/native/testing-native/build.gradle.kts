@@ -16,6 +16,7 @@ dependencies {
     api(projects.platformBase)
     api(projects.platformNative)
     api(projects.processServices)
+    implementation(projects.processServicesApi)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.testSuitesBase)

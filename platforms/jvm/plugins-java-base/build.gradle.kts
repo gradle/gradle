@@ -44,6 +44,7 @@ dependencies {
     implementation(projects.javadoc)
     implementation(projects.jvmServices)
     implementation(projects.logging)
+    implementation(projects.processServices)
     implementation(projects.platformBase)
     implementation(projects.reporting)
     implementation(projects.serviceLookup)

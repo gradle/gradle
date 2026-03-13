@@ -34,7 +34,8 @@ dependencies {
     implementation(projects.native)
     implementation(projects.serialization)
     implementation(projects.serviceLookup)
-    implementation(projects.core)
+    implementation(projects.processServices)
+    
     implementation(projects.daemonProtocol)
     implementation(projects.daemonLogging)
 }

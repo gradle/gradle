@@ -30,6 +30,7 @@ dependencies {
 
     implementation(projects.core)
     implementation(projects.logging)
+    implementation(projects.processServicesApi)
     implementation(projects.loggingApi)
 
     implementation(libs.commonsLang)

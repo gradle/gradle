@@ -49,6 +49,8 @@ dependencies {
     testFixturesImplementation(libs.groovyDatetime)
     testFixturesImplementation(libs.groovyDateUtil)
 
+    api(projects.processServicesApi)
+
     testImplementation(projects.processServices)
     testImplementation(projects.fileCollections)
     testImplementation(projects.native)
@@ -58,6 +60,7 @@ dependencies {
     testImplementation(testFixtures(projects.modelReflect))
 
     integTestImplementation(projects.platformBase)
+    integTestImplementation(testFixtures(projects.processServices))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
