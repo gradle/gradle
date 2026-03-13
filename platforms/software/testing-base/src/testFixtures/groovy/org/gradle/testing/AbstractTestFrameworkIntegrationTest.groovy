@@ -264,13 +264,34 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createPassingFailingTest()
 
         when:
-        run(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod", "--no-fail-on-no-matching-tests")
+        run(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod", "--no-matching-tests")
 
         then:
         noExceptionThrown()
     }
 
-    def "task property takes precedence over filter property for failOnNoMatchingTests: #scenario"() {
+    def "task property and filter property for failOnNoMatchingTests - combinations that do not fail when no match: #scenario"() {
+        given:
+        createPassingFailingTest()
+        buildFile << """
+            tasks.withType(AbstractTestTask) {
+                ${taskPropertyConfig}
+                ${filterPropertyConfig}
+            }
+        """
+
+        expect:
+        succeeds(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
+
+        where:
+        scenario                    | taskPropertyConfig                | filterPropertyConfig                     | shouldFail
+        "task=false, filter=true"   | "failOnNoMatchingTests = false"   | "filter.failOnNoMatchingTests = true"    | false
+        "task=false, filter=false"  | "failOnNoMatchingTests = false"   | "filter.failOnNoMatchingTests = false"   | false
+        "task=false, filter unset"  | "failOnNoMatchingTests = false"   | "// filter not configured"               | false
+        "task unset, filter=false"  | "// task property not configured" | "filter.failOnNoMatchingTests = false"   | false
+    }
+
+    def "task property and filter property for failOnNoMatchingTests - combinations that do fail when no match: #scenario"() {
         given:
         createPassingFailingTest()
         buildFile << """
@@ -281,28 +302,16 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         """
 
         when:
-        if (shouldFail) {
-            fails(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
-        } else {
-            run(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
-        }
+        fails(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
 
         then:
-        if (shouldFail) {
-            failure.assertHasCause("No tests found for given includes:")
-        } else {
-            // All good
-        }
+        failure.assertHasCause("No tests found for given includes:")
 
         where:
         scenario                    | taskPropertyConfig                | filterPropertyConfig                     | shouldFail
-        "task=false, filter=true"   | "failOnNoMatchingTests = false"   | "filter.failOnNoMatchingTests = true"    | false
         "task=true, filter=false"   | "failOnNoMatchingTests = true"    | "filter.failOnNoMatchingTests = false"   | true
-        "task=false, filter=false"  | "failOnNoMatchingTests = false"   | "filter.failOnNoMatchingTests = false"   | false
         "task=true, filter=true"    | "failOnNoMatchingTests = true"    | "filter.failOnNoMatchingTests = true"    | true
-        "task=false, filter unset"  | "failOnNoMatchingTests = false"   | "// filter not configured"               | false
         "task=true, filter unset"   | "failOnNoMatchingTests = true"    | "// filter not configured"               | true
-        "task unset, filter=false"  | "// task property not configured" | "filter.failOnNoMatchingTests = false"   | false
         "task unset, filter=true"   | "// task property not configured" | "filter.failOnNoMatchingTests = true"    | true
         "task unset, filter unset"  | "// task property not configured" | "// filter not configured"               | true
     }

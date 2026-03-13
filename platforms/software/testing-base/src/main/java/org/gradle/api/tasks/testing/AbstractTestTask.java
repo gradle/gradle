@@ -803,12 +803,18 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * <p>
      * The main use case for this property is the CLI and being able to invoke a generic test task with a filter that may or may not match tests depending on the project,
      * and being able to not fail when it doesn't match any tests.
+     * <p>
+     * The exposed task options are:
+     * <ul>
+     *     <li>{@code --matching-tests} option for specifying that the task should fail if no tests match the filter. This is the default.</li>
+     *     <li>{@code --no-matching-tests} option for specifying that the task should not fail it no tests match the filter.</li>
+     * </ul>
      *
      * @since 9.5.0
      * @see TestFilter#isFailOnNoMatchingTests()
      */
     @Incubating
-    @Option(option = "fail-on-no-matching-tests", description = "Fail the task if a filter was specified but no tests matched.")
+    @Option(option = "matching-tests", description = "Fail the task if a filter was specified but no tests matched.")
     @Optional
     @Input
     public abstract Property<Boolean> getFailOnNoMatchingTests();

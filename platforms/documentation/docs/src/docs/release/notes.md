@@ -166,6 +166,10 @@ Gradle Wrapper scripts and application start scripts include links to the GitHub
 Previously, these links always pointed to the latest template versions, which could drift out of sync with the actual generated scripts as templates evolved. 
 This has now been fixed: scripts always link to the exact template version they were generated from.
 
+### More control over test selection behavior on the command line
+
+With the addition of the `--no-matching-tests`, you can now use a `--tests` filter without causing the build to fail when no tests match the filter.
+
 ## Tooling integration improvements
 
 Tooling API clients can now directly access Gradle help and version information the same way as the Gradle CLI.

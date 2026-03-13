@@ -123,6 +123,14 @@ For more details and examples of declaring filters in the build script, please s
 
 The command-line option is especially useful to execute a single test method. When you use `--tests`, be aware that the inclusions declared in the build script are still honored. It is also possible to supply multiple `--tests` options, all of whose patterns will take effect. The following sections have several examples of using the command-line option.
 
+[WARNING]
+====
+When filtering tests, the default in Gradle is to fail if the filter does not match any test.
+That means that using the top level task selector, like `test`, in a multi project has a high chance of failing if your filter matches tests in a single project only.
+
+To change this behavior, you can pass the additional command line option `--no-matching-tests` which will cause the build to succeed even if the filter does not match any test.
+====
+
 NOTE: Not all test frameworks play well with filtering. Some advanced, synthetic tests may not be fully compatible.
 However, the vast majority of tests and use cases work perfectly well with Gradle's filtering mechanism.
 
