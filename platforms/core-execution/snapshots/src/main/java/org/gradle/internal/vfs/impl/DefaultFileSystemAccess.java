@@ -19,7 +19,7 @@ package org.gradle.internal.vfs.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
-import com.google.common.util.concurrent.Striped;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.FileType;
@@ -42,9 +42,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -62,7 +63,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
-    private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
+    private final AdaptiveProducerGuard<String> producingSnapshots = new AdaptiveProducerGuard<>();
 
     public DefaultFileSystemAccess(
         FileHasher hasher,
@@ -243,16 +244,26 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         }
     }
 
-    private static class StripedProducerGuard<T> {
-        private final Striped<Lock> locks = Striped.lock(Runtime.getRuntime().availableProcessors() * 4);
+    private static class AdaptiveProducerGuard<T> {
+        private final Set<T> producing = new HashSet<>();
 
         public <V> V guardByKey(T key, Supplier<V> supplier) {
-            Lock lock = locks.get(key);
-            lock.lock();
+            synchronized (producing) {
+                while (!producing.add(key)) {
+                    try {
+                        producing.wait();
+                    } catch (InterruptedException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+            }
             try {
                 return supplier.get();
             } finally {
-                lock.unlock();
+                synchronized (producing) {
+                    producing.remove(key);
+                    producing.notifyAll();
+                }
             }
         }
     }
