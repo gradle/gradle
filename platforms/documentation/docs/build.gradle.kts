@@ -92,6 +92,10 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
+jvmCompile {
+    addCompilationFrom(sourceSets.docsTest)
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
