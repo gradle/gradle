@@ -179,7 +179,7 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-            test.workingDir = "${testWorkingDir.toURI()}"
+            test.workingDir("${testWorkingDir.toURI()}")
         """.stripIndent()
 
         and:

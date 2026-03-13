@@ -48,7 +48,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
     def buildCacheEnabled = true
     def buildOperationRunner = new TestBuildOperationRunner()
     def buildOperationProgressEmitter = new NoOpBuildOperationProgressEventEmitter()
-    def config = new DefaultBuildCacheConfiguration(TestUtil.instantiatorFactory().inject(), [
+    def config = new DefaultBuildCacheConfiguration(TestUtil.instantiatorFactory().decorate(TestUtil.createTestServices()), [
         new DefaultBuildCacheServiceRegistration(DirectoryBuildCache, TestDirectoryBuildCacheServiceFactory),
         new DefaultBuildCacheServiceRegistration(TestOtherRemoteBuildCache, TestOtherRemoteBuildCacheServiceFactory),
         new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
@@ -153,7 +153,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
     }
 
-    static class TestRemoteBuildCache extends AbstractBuildCache {
+    static abstract class TestRemoteBuildCache extends AbstractBuildCache {
         String value
     }
 
@@ -168,7 +168,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
     }
 
-    static class TestOtherRemoteBuildCache extends AbstractBuildCache {
+    static abstract class TestOtherRemoteBuildCache extends AbstractBuildCache {
         String value
     }
 
@@ -205,8 +205,8 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         @Override
         BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, Describer describer) {
             def chain = describer.type("directory")
-            if (configuration.directory != null) {
-                chain.config("location", configuration.directory.toString())
+            if (configuration.directory.isPresent()) {
+                chain.config("location", configuration.directory.getAsFile().get().absolutePath)
             }
 
             new TestLocalBuildCacheService()

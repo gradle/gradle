@@ -18,7 +18,9 @@ package org.gradle.vcs;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * Captures user-provided information about a version control repository.
@@ -30,33 +32,25 @@ public interface VersionControlSpec extends Describable {
      * Returns a {@link String} identifier which will be unique to this version
      * control specification among other version control specifications.
      */
-    @ToBeReplacedByLazyProperty
-    String getUniqueId();
+    @ReplacesEagerProperty
+    Provider<String> getUniqueId();
 
     /**
      * Returns the name of the repository.
      */
-    @ToBeReplacedByLazyProperty
-    String getRepoName();
+    @ReplacesEagerProperty
+    Provider<String> getRepoName();
 
     /**
-     * Returns the relative path to the root of the build within the repository.
+     * The relative path to the root of the build within the repository.
      *
-     * <p>Defaults to an empty relative path, meaning the root of the repository.
+     * <p>An empty string means the root of the repository (this is the default value).
      *
      * @return the root directory of the build, relative to the root of this repository.
      * @since 4.5
      */
-    @ToBeReplacedByLazyProperty
-    String getRootDir();
-
-    /**
-     * Sets the relative path to the root of the build within the repository. Use an empty string to refer to the root of the repository.
-     *
-     * @param rootDir The root directory of the build, relative to the root of this repository.
-     * @since 4.5
-     */
-    void setRootDir(String rootDir);
+    @ReplacesEagerProperty
+    Property<String> getRootDir();
 
     /**
      * Configure injected plugins into this build.

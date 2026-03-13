@@ -69,9 +69,9 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         JavaInfo jvm = Jvm.forHome(((ForkingJavaCompileSpec) spec).getJavaHome());
 
         MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(forkOptions);
-        javaForkOptions.setWorkingDir(daemonWorkingDir);
-        javaForkOptions.setExecutable(jvm.getJavaExecutable());
+        JavaForkOptions javaForkOptions = new MinimalCompilerDaemonForkOptionsConverter(forkOptionsFactory).transform(forkOptions);
+        javaForkOptions.getWorkingDir().set(daemonWorkingDir);
+        javaForkOptions.getExecutable().set(jvm.getJavaExecutable().getAbsolutePath());
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("JAVA-COMPILER");
 

@@ -40,7 +40,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.authentication.Authentication;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.Cast;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
@@ -54,8 +55,6 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.internal.serialization.Transient.varOf;
-
 /**
  * Publishes an IvyPublication to an IvyArtifactRepository.
  *
@@ -63,18 +62,17 @@ import static org.gradle.internal.serialization.Transient.varOf;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PublishToIvyRepository extends DefaultTask {
-    private final Transient.Var<IvyPublicationInternal> publication = varOf();
-    private final Transient.Var<DefaultIvyArtifactRepository> repository = varOf();
+    private final Transient.Var<IvyPublication> publication = Transient.varOf();
+    private final Transient.Var<IvyArtifactRepository> repository = Transient.varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
 
     public PublishToIvyRepository() {
 
         // Allow the publication to participate in incremental build
-        getInputs().files((Callable<FileCollection>) () -> {
-                IvyPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
-            })
-            .withPropertyName("publication.publishableFiles")
+        getInputs()
+            .files((Callable<FileCollection>) () ->
+                toPublicationInternal(getPublication()).getPublishableArtifacts().getFiles()
+            ).withPropertyName("publication.publishableFiles")
             .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
         // Should repositories be able to participate in incremental?
@@ -87,10 +85,10 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     /**
      * The publication to be published.
      *
-     * @return The publication to be published
+     * Currently only instances of IvyPublication are supported.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "we need a better way to handle this, see https://github.com/gradle/gradle/pull/30665#pullrequestreview-2329667058")
     public IvyPublication getPublication() {
         return publication.get();
     }
@@ -98,20 +96,14 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     /**
      * Sets the publication to be published.
      *
-     * @param publication The publication to be published
+     * @param publication The publication to be published. Currently only instances of IvyPublication are supported.
      */
     public void setPublication(IvyPublication publication) {
         this.publication.set(toPublicationInternal(publication));
     }
 
-    private IvyPublicationInternal getPublicationInternal() {
-        return toPublicationInternal(getPublication());
-    }
-
     private static IvyPublicationInternal toPublicationInternal(IvyPublication publication) {
-        if (publication == null) {
-            return null;
-        } else if (publication instanceof IvyPublicationInternal) {
+        if (publication instanceof IvyPublicationInternal) {
             return (IvyPublicationInternal) publication;
         } else {
             throw new InvalidUserDataException(
@@ -127,47 +119,41 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     /**
      * The repository to publish to.
      *
-     * @return The repository to publish to
+     * Only instances of DefaultIvyArtifactRepository are supported
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "we need a better way to handle this, see https://github.com/gradle/gradle/pull/30665#pullrequestreview-2329667058")
     public IvyArtifactRepository getRepository() {
         return repository.get();
+    }
+
+    /**
+     * Sets the repository to publish to.
+     *
+     * @param repository The repository to publish to. Only instances of DefaultIvyArtifactRepository are supported
+     */
+    @SuppressWarnings("RedundantCast") // this cast is intentional to fail earlier
+    public void setRepository(IvyArtifactRepository repository) {
+        this.repository.set((DefaultIvyArtifactRepository) repository);
+        this.getCredentials().set(((DefaultIvyArtifactRepository) repository).getConfiguredCredentials());
     }
 
     @Nested
     @Optional
     abstract Property<Credentials> getCredentials();
 
-    /**
-     * Sets the repository to publish to.
-     *
-     * @param repository The repository to publish to
-     */
-    public void setRepository(IvyArtifactRepository repository) {
-        this.repository.set((DefaultIvyArtifactRepository) repository);
-        this.getCredentials().set(((DefaultIvyArtifactRepository) repository).getConfiguredCredentials());
-    }
-
     @TaskAction
     public void publish() {
         PublishSpec spec = this.spec.get();
         IvyNormalizedPublication publication = spec.publication;
         IvyArtifactRepository repository = spec.repository.get(getServices());
-        getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
+        getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl().getOrNull(), repository.getName());
         doPublish(publication, repository);
     }
 
     private PublishSpec computeSpec() {
-        IvyPublicationInternal publicationInternal = getPublicationInternal();
-        if (publicationInternal == null) {
-            throw new InvalidUserDataException("The 'publication' property is required");
-        }
-
-        DefaultIvyArtifactRepository repository = this.repository.get();
-        if (repository == null) {
-            throw new InvalidUserDataException("The 'repository' property is required");
-        }
+        IvyPublicationInternal publicationInternal = toPublicationInternal(getPublication());
+        DefaultIvyArtifactRepository repository = Cast.cast(DefaultIvyArtifactRepository.class, getRepository());
         IvyNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
         return new PublishSpec(
             RepositorySpec.of(repository),
@@ -225,8 +211,8 @@ public abstract class PublishToIvyRepository extends DefaultTask {
             private Object writeReplace() {
                 return new DefaultRepositorySpec(
                     repository.getName(),
-                    repository.getUrl(),
-                    repository.isAllowInsecureProtocol(),
+                    repository.getUrl().getOrNull(),
+                    repository.getAllowInsecureProtocol().get(),
                     credentialsSpec(),
                     repository.getRepositoryLayout(),
                     repository.additionalArtifactPatterns(),
@@ -267,10 +253,10 @@ public abstract class PublishToIvyRepository extends DefaultTask {
             IvyArtifactRepository get(ServiceRegistry services) {
                 DefaultIvyArtifactRepository repository = (DefaultIvyArtifactRepository) services.get(BaseRepositoryFactory.class).createIvyRepository();
                 repository.setName(name);
-                repository.setUrl(repositoryUrl);
+                repository.getUrl().set(repositoryUrl);
                 artifactPatterns.forEach(repository::artifactPattern);
                 ivyPatterns.forEach(repository::ivyPattern);
-                repository.setAllowInsecureProtocol(allowInsecureProtocol);
+                repository.getAllowInsecureProtocol().set(allowInsecureProtocol);
                 repository.setRepositoryLayout(layout);
                 if (credentials != null) {
                     Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
@@ -307,5 +293,4 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
     @Inject
     protected abstract IvyDuplicatePublicationTracker getDuplicatePublicationTracker();
-
 }

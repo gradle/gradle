@@ -31,7 +31,6 @@ import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
@@ -81,7 +80,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         addRunTask(project, mainFeature, extension);
         addCreateScriptsTask(project, mainFeature, extension);
         configureJavaCompileTask(mainFeature.getCompileJavaTask(), extension);
-        configureInstallTask(project.getProviders(), tasks.named(TASK_INSTALL_NAME, Sync.class), extension);
+        configureInstallTask(tasks.named(TASK_INSTALL_NAME, Sync.class), extension);
 
         DistributionContainer distributions = project.getExtensions().getByType(DistributionContainer.class);
         Distribution mainDistribution = distributions.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);
@@ -92,12 +91,12 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         javaCompile.configure(j -> j.getOptions().getJavaModuleMainClass().convention(pluginExtension.getMainClass()));
     }
 
-    private void configureInstallTask(ProviderFactory providers, TaskProvider<Sync> installTask, JavaApplication pluginExtension) {
+    private void configureInstallTask(TaskProvider<Sync> installTask, JavaApplication pluginExtension) {
         installTask.configure(task -> task.doFirst(
             "don't overwrite existing directories",
             new PreventDestinationOverwrite(
-                providers.provider(pluginExtension::getApplicationName),
-                providers.provider(pluginExtension::getExecutableDir)
+                pluginExtension.getApplicationName(),
+                pluginExtension.getExecutableDir()
             )
         ));
     }
@@ -137,7 +136,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
     private JavaApplication addExtension(Project project) {
         JavaApplication javaApplication = project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class);
-        javaApplication.setApplicationName(project.getName());
+        javaApplication.getApplicationName().set(project.getName());
         return javaApplication;
     }
 
@@ -153,17 +152,16 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
                     return runtimeClasspath(mainFeature);
                 }
             });
-            run.setClasspath(runtimeClasspath);
+            run.getClasspath().setFrom(runtimeClasspath);
             run.getMainModule().set(pluginExtension.getMainModule());
             run.getMainClass().set(pluginExtension.getMainClass());
-            run.getJvmArguments().convention(project.provider(pluginExtension::getApplicationDefaultJvmArgs));
+            run.getJvmArguments().convention(pluginExtension.getApplicationDefaultJvmArgs());
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
             PropertyFactory propertyFactory = getPropertyFactory();
 
-            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, propertyFactory));
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, propertyFactory);
             run.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
         });
     }
@@ -180,24 +178,19 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
-    @SuppressWarnings("deprecation")
     private void addCreateScriptsTask(Project project, JvmFeatureInternal mainFeature, JavaApplication pluginExtension) {
         project.getTasks().register(TASK_START_SCRIPTS_NAME, CreateStartScripts.class, startScripts -> {
             startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
-            startScripts.setClasspath(jarsOnlyRuntimeClasspath(mainFeature));
+            startScripts.getClasspath().setFrom(jarsOnlyRuntimeClasspath(mainFeature));
 
             startScripts.getMainModule().set(pluginExtension.getMainModule());
             startScripts.getMainClass().set(pluginExtension.getMainClass());
 
-            startScripts.getConventionMapping().map("applicationName", pluginExtension::getApplicationName);
-
+            startScripts.getApplicationName().convention(pluginExtension.getApplicationName());
             startScripts.getGitRef().set(DefaultGradleVersion.current().getGitRevision());
-
-            startScripts.getConventionMapping().map("outputDir", () -> new File(project.getBuildDir(), "scripts"));
-
-            startScripts.getConventionMapping().map("executableDir", pluginExtension::getExecutableDir);
-
-            startScripts.getConventionMapping().map("defaultJvmOpts", pluginExtension::getApplicationDefaultJvmArgs);
+            startScripts.getOutputDir().convention(project.getLayout().getBuildDirectory().dir("scripts"));
+            startScripts.getExecutableDir().convention(pluginExtension.getExecutableDir());
+            startScripts.getDefaultJvmOpts().convention(pluginExtension.getApplicationDefaultJvmArgs());
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             startScripts.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
@@ -213,7 +206,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     private CopySpec configureDistribution(Project project, JvmFeatureInternal mainFeature, Distribution mainDistribution, JavaApplication pluginExtension) {
-        mainDistribution.getDistributionBaseName().convention(project.provider(pluginExtension::getApplicationName));
+        mainDistribution.getDistributionBaseName().convention(pluginExtension.getApplicationName());
         CopySpec distSpec = mainDistribution.getContents();
 
         TaskProvider<Jar> jar = mainFeature.getJarTask();

@@ -17,11 +17,14 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-
-import java.io.File;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.TaskProvider;
 
 public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     private final TaskProvider<? extends Task> generator;
@@ -29,8 +32,15 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
-    public SingleOutputTaskMavenArtifact(TaskProvider<? extends Task> generator, String extension, String classifier, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public SingleOutputTaskMavenArtifact(
+        TaskProvider<? extends Task> generator,
+        String extension,
+        String classifier,
+        TaskDependencyFactory taskDependencyFactory,
+        ObjectFactory objectFactory,
+        ProviderFactory providerFactory
+    ) {
+        super(taskDependencyFactory, objectFactory, providerFactory);
         this.generator = generator;
         this.extension = extension;
         this.classifier = classifier;
@@ -38,8 +48,8 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    public File getFile() {
-        return getGenerator().getOutputs().getFiles().getSingleFile();
+    public Provider<RegularFile> getFile() {
+        return Providers.of(() -> getGenerator().getOutputs().getFiles().getSingleFile());
     }
 
     private Task getGenerator() {
@@ -47,13 +57,13 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    protected String getDefaultExtension() {
-        return extension;
+    protected Provider<String> getDefaultExtension() {
+        return Providers.of(extension);
     }
 
     @Override
-    protected String getDefaultClassifier() {
-        return classifier;
+    protected Provider<String> getDefaultClassifier() {
+        return Providers.ofNullable(classifier);
     }
 
     @Override

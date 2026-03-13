@@ -6,7 +6,7 @@ import org.gradle.api.tasks.bundling.War;
 public class InhouseConventionWarPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getTasks().withType(War.class).configureEach(war ->
-            war.setWebXml(project.file("src/someWeb.xml")));
+            war.getWebXml().set(project.file("src/someWeb.xml")));
     }
 }
 // end::snippet[]

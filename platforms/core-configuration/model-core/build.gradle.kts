@@ -31,6 +31,7 @@ dependencies {
     implementation(projects.baseServicesGroovy)
     implementation(projects.baseAsm)
     implementation(projects.classloaders)
+    implementation(projects.groovySupport)
     implementation(projects.logging)
     implementation(projects.serviceRegistryBuilder)
 
@@ -54,6 +55,7 @@ dependencies {
     testImplementation(projects.native)
     testImplementation(projects.resources)
     testImplementation(testFixtures(projects.coreApi))
+    testImplementation(testFixtures(projects.groovySupport))
     testImplementation(testFixtures(projects.languageGroovy))
     testImplementation(testFixtures(projects.modelReflect))
 

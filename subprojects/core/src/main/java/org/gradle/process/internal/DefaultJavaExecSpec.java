@@ -16,60 +16,59 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.DefaultModularitySpec;
-import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.JavaExecSpec;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
 
 
-public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
-
-    private boolean ignoreExitValue;
-    private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
-    private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
+public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec {
 
     private final Property<String> mainClass;
     private final Property<String> mainModule;
     private final ModularitySpec modularity;
     private final ListProperty<String> jvmArguments;
 
-    private final FileCollectionFactory fileCollectionFactory;
-    private ConfigurableFileCollection classpath;
+    /**
+     * In some scopes JavaModuleDetector is not available, e.g. in Process isolation Worker. In such cases, this field will be null.
+     */
+    @Nullable
+    private final JavaModuleDetector javaModuleDetector;
 
     @Inject
     public DefaultJavaExecSpec(
         ObjectFactory objectFactory,
         PathToFileResolver resolver,
-        FileCollectionFactory fileCollectionFactory
+        FileCollectionFactory fileCollectionFactory,
+        Factory<JavaModuleDetector> javaModuleDetector
     ) {
         super(objectFactory, resolver, fileCollectionFactory);
         this.jvmArguments = objectFactory.listProperty(String.class);
         this.mainClass = objectFactory.property(String.class);
         this.mainModule = objectFactory.property(String.class);
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.classpath = fileCollectionFactory.configurableFiles("classpath");
+        this.javaModuleDetector = javaModuleDetector.create();
+        getIgnoreExitValue().convention(false);
     }
 
     public void copyTo(JavaExecSpec targetSpec) {
         // JavaExecSpec
-        targetSpec.setArgs(getArgs());
+        targetSpec.getArgs().set(getArgs());
         targetSpec.getArgumentProviders().addAll(getArgumentProviders());
         targetSpec.getMainClass().set(getMainClass());
         targetSpec.getMainModule().set(getMainModule());
@@ -82,125 +81,47 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     }
 
     @Override
-    public List<String> getCommandLine() {
-        return argumentsSpec.getCommandLine();
+    public Provider<List<String>> getCommandLine() {
+        return getExecutable().zip(getAllJvmArgs(), (SerializableLambdas.SerializableBiFunction<String, List<String>, List<String>>) (executable, allJvmArgs) -> {
+            List<String> allArgs = ExecHandleCommandLineCombiner.getAllArgs(allJvmArgs, getArgs().get(), getArgumentProviders().get());
+            return ExecHandleCommandLineCombiner.getCommandLine(executable, allArgs);
+        });
     }
 
     @Override
     public JavaExecSpec args(Object... args) {
-        argumentsSpec.args(args);
+        ExecHandleCommandLineCombiner.collectArgs(getArgs(), args);
         return this;
     }
 
     @Override
     public JavaExecSpec args(Iterable<?> args) {
-        argumentsSpec.args(args);
+        for (Object arg : args) {
+            args(arg);
+        }
         return this;
-    }
-
-    @Override
-    public JavaExecSpec setArgs(List<String> arguments) {
-        argumentsSpec.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public JavaExecSpec setArgs(Iterable<?> arguments) {
-        argumentsSpec.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public List<String> getArgs() {
-        return argumentsSpec.getArgs();
-    }
-
-    @Override
-    public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return argumentsSpec.getArgumentProviders();
     }
 
     @Override
     public JavaExecSpec classpath(Object... paths) {
-        this.classpath.from(paths);
+        getClasspath().from(paths);
         return this;
     }
 
     @Override
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    @Override
-    public JavaExecSpec setClasspath(FileCollection classpath) {
-        this.classpath = fileCollectionFactory.configurableFiles("classpath");
-        this.classpath.setFrom(classpath);
-        return this;
-    }
-
-    @Override
-    public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
-    }
-
-    @Override
-    public JavaExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
-    }
-
-    @Override
-    public InputStream getStandardInput() {
-        return streamsSpec.getStandardInput();
-    }
-
-    @Override
-    public JavaExecSpec setStandardInput(InputStream standardInput) {
-        streamsSpec.setStandardInput(standardInput);
-        return this;
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
-        return streamsSpec.getStandardOutput();
-    }
-
-    @Override
-    public JavaExecSpec setStandardOutput(OutputStream standardOutput) {
-        streamsSpec.setStandardOutput(standardOutput);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return streamsSpec.getErrorOutput();
-    }
-
-    @Override
-    public JavaExecSpec setErrorOutput(OutputStream errorOutput) {
-        streamsSpec.setErrorOutput(errorOutput);
-        return this;
-    }
-
-    @Override
-    public List<String> getAllJvmArgs() {
-        List<String> allJvmArgs = new ArrayList<>(super.getAllJvmArgs());
-        allJvmArgs.addAll(getJvmArguments().get());
-        return Collections.unmodifiableList(allJvmArgs);
-    }
-
-    @Override
-    @Deprecated
-    public void setAllJvmArgs(List<String> arguments) {
-        getJvmArguments().empty();
-        super.setAllJvmArgs(arguments);
-    }
-
-    @Override
-    @Deprecated
-    public void setAllJvmArgs(Iterable<?> arguments) {
-        getJvmArguments().empty();
-        super.setAllJvmArgs(arguments);
+    public Provider<List<String>> getAllJvmArgs() {
+        return super.getAllJvmArgs().map((SerializableLambdas.SerializableTransformer<List<String>, List<String>>) bootstrapJvmArgs -> ExecHandleCommandLineCombiner.getAllJvmArgs(
+            bootstrapJvmArgs,
+            getClasspath(),
+            getMainClass(),
+            getMainModule(),
+            getModularity(),
+            javaModuleDetector
+        )).zip(getJvmArguments(), (baseArgs, jvmArgs) -> {
+            List<String> combinedArgs = new ArrayList<>(baseArgs);
+            combinedArgs.addAll(jvmArgs);
+            return combinedArgs;
+        });
     }
 
     @Override

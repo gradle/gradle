@@ -41,16 +41,11 @@ class PublishToIvyRepositoryTest extends AbstractProjectBuilderSpec {
 
     def "publication must implement the internal interface"() {
         when:
-        publish.publication = [:] as IvyPublication
+        publish.setPublication(Mock(IvyPublication))
+        publish.publish()
 
         then:
         thrown(InvalidUserDataException)
-
-        when:
-        publish.publication = [:] as IvyPublicationInternal
-
-        then:
-        notThrown(Exception)
     }
 
     def "the publishableFiles of the publication are inputs of the task"() {

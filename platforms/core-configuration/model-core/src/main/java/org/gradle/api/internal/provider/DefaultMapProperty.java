@@ -145,9 +145,18 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @SuppressWarnings("unchecked")
     public void setFromAnyValue(@Nullable Object object) {
         if (object == null || object instanceof Map<?, ?>) {
-            set((Map) object);
-        } else if (object instanceof Provider<?>) {
-            set((Provider) object);
+            set((Map<K, V>) object);
+            return;
+        }
+        if (object instanceof CollectionPropertyCompoundAssignmentResult<?>) {
+            CollectionPropertyCompoundAssignmentResult<?> compoundAssignmentResult = (CollectionPropertyCompoundAssignmentResult<?>) object;
+            if (compoundAssignmentResult.isOwnedBy(this)) {
+                compoundAssignmentResult.assignToOwner();
+                return;
+            }
+        }
+        if (object instanceof Provider<?>) {
+            set((Provider<Map<K, V>>) object);
         } else {
             throw new IllegalArgumentException(String.format(
                 "Cannot set the value of a property of type %s using an instance of type %s.", Map.class.getName(), object.getClass().getName()));
@@ -695,5 +704,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public String toString() {
             return entries.toString();
         }
+    }
+
+    /**
+     * Returns a stand-in that defines operations for Groovy's {@code <OP>=} expression.
+     *
+     * @return the stand-in to call the operation on
+     */
+    public MapPropertyCompoundAssignmentStandIn<K, V> forCompoundAssignment() {
+        return new MapPropertyCompoundAssignmentStandIn<>(this);
     }
 }
