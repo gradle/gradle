@@ -27,13 +27,14 @@ run {
 
         // Working tasks that would otherwise be matched by filters below
         task.name in listOf(
-            "publishLocalPublicationToLocalRepository",
             "publishEmbeddedKotlinPluginMarkerMavenPublicationToTestRepository",
             "publishKotlinDslBasePluginMarkerMavenPublicationToTestRepository",
             "publishKotlinDslCompilerSettingsPluginMarkerMavenPublicationToTestRepository",
             "publishKotlinDslPluginMarkerMavenPublicationToTestRepository",
             "publishKotlinDslPrecompiledScriptPluginsPluginMarkerMavenPublicationToTestRepository",
+            "publishLocalPublicationToLocalRepository",
             "publishPluginMavenPublicationToTestRepository",
+            "publishPlugins",
             "publishPluginsToTestRepository",
         ) -> false
 
