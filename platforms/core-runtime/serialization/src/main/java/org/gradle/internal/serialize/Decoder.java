@@ -19,6 +19,7 @@ package org.gradle.internal.serialize;
 import org.jspecify.annotations.Nullable;
 
 import java.io.EOFException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -107,12 +108,19 @@ public interface Decoder {
     String readString() throws EOFException, IOException;
 
     /**
-     * Reads a nullable string value. Can reads any value that was written using {@link Encoder#writeNullableString(CharSequence)}.
+     * Reads a nullable string value. Can read any value that was written using {@link Encoder#writeNullableString(CharSequence)}.
      *
      * @throws EOFException when the end of the byte stream is reached before the string can be fully read.
      */
     @Nullable
     String readNullableString() throws EOFException, IOException;
+
+    /**
+     * Reads a file value. Can read any value that was written using {@link Encoder#writeFile(File)}.
+     *
+     * @since 9.1
+     */
+    File readFile() throws IOException;
 
     /**
      * Reads a byte value. Can read any byte value that was written using one of the raw byte methods on {@link Encoder}, such as {@link Encoder#writeByte(byte)} or {@link Encoder#getOutputStream()}

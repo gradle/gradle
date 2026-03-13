@@ -138,12 +138,12 @@ public class BaseSerializerFactory {
     private static class FileSerializer extends AbstractSerializer<File> {
         @Override
         public File read(Decoder decoder) throws Exception {
-            return new File(decoder.readString());
+            return decoder.readFile();
         }
 
         @Override
         public void write(Encoder encoder, File value) throws Exception {
-            encoder.writeString(value.getPath());
+            encoder.writeFile(value);
         }
     }
 
