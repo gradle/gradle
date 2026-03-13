@@ -213,18 +213,17 @@ abstract class GenerateLicenseFile : DefaultTask() {
             return LicenseLookupResult.Found(ComponentLicenseInfo(override.displayName, override.url))
         }
 
-        var lookupKey = "${component.group}:${component.name}:${component.version}"
-        for (depth in 0..10) {
-            val pomInfo = pomMap[lookupKey]
-                ?: pomMap[lookupKey.substringBeforeLast(":")]  // fallback: without version
-                ?: break
-            if (pomInfo.licenseName != null) {
-                val license = License.fromPomName(pomInfo.licenseName)
-                    ?: return LicenseLookupResult.UnknownName(pomInfo.licenseName)
-                return LicenseLookupResult.Found(ComponentLicenseInfo(license.displayName, license.url))
-            }
-            val parent = pomInfo.parent ?: break
-            lookupKey = "${parent.groupId}:${parent.artifactId}:${parent.version}"
+        // Walk the parent POM chain using generateSequence; the sequence stops naturally when
+        // a key is absent from pomMap or the POM has no <parent>, avoiding multiple breaks.
+        val startKey = "${component.group}:${component.name}:${component.version}"
+        val pomChain = generateSequence(pomMap[startKey] ?: pomMap["${component.group}:${component.name}"]) { info ->
+            info.parent?.let { p -> pomMap["${p.groupId}:${p.artifactId}:${p.version}"] ?: pomMap["${p.groupId}:${p.artifactId}"] }
+        }.take(11)
+        for (pomInfo in pomChain) {
+            val licenseName = pomInfo.licenseName ?: continue
+            return License.fromPomName(licenseName)
+                ?.let { LicenseLookupResult.Found(ComponentLicenseInfo(it.displayName, it.url)) }
+                ?: LicenseLookupResult.UnknownName(licenseName)
         }
         return LicenseLookupResult.NotFound
     }

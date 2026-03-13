@@ -49,11 +49,9 @@ object PomLicenseUtils {
      * lacks the mandatory `groupId` / `artifactId` coordinates.
      */
     fun parsePom(pomFile: File): PomInfo? {
-        val doc = try {
+        val doc = runCatching {
             DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(pomFile)
-        } catch (e: Exception) {
-            return null
-        }
+        }.getOrNull() ?: return null
         doc.documentElement.normalize()
         val root = doc.documentElement
 

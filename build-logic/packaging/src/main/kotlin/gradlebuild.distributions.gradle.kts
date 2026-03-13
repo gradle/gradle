@@ -499,27 +499,22 @@ fun collectExternalPomFiles(configs: List<Configuration>): List<File> {
     while (toResolve.isNotEmpty()) {
         val (g, a, v) = toResolve.removeFirst()
         val key = "$g:$a:$v"
-        if (!resolved.add(key)) continue
-
-        val pomFile = try {
-            project.configurations
-                .detachedConfiguration(project.dependencies.create("$g:$a:$v@pom"))
-                .apply {
-                    isTransitive = false
+        if (resolved.add(key)) {
+            val pomFile = runCatching {
+                project.configurations
+                    .detachedConfiguration(project.dependencies.create("$g:$a:$v@pom"))
+                    .apply { isTransitive = false }
+                    .singleFile
+            }.getOrNull()
+            if (pomFile != null) {
+                pomFiles.add(pomFile)
+                // Only follow the parent chain if the direct POM has no license — keeps the
+                // number of resolved POMs small for components with inline license declarations.
+                val parsed = PomLicenseUtils.parsePom(pomFile)
+                if (parsed != null && parsed.licenseName == null) {
+                    parsed.parent?.let { p -> toResolve.add(Triple(p.groupId, p.artifactId, p.version)) }
                 }
-                .singleFile
-        } catch (e: Exception) {
-            null
-        } ?: continue
-
-        pomFiles.add(pomFile)
-
-        // Only follow the parent chain if the direct POM has no license — keeps the
-        // number of resolved POMs small for components with inline license declarations.
-        val parsed = PomLicenseUtils.parsePom(pomFile) ?: continue
-        if (parsed.licenseName == null) {
-            val parent = parsed.parent ?: continue
-            toResolve.add(Triple(parent.groupId, parent.artifactId, parent.version))
+            }
         }
     }
 
