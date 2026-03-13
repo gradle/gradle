@@ -517,12 +517,10 @@ fun collectExternalPomFiles(configs: List<Configuration>): List<File> {
 
         // Only follow the parent chain if the direct POM has no license — keeps the
         // number of resolved POMs small for components with inline license declarations.
-        val parsed = PomLicenseUtils.parsePom(pomFile)
+        val parsed = PomLicenseUtils.parsePom(pomFile) ?: continue
         if (parsed.licenseName == null) {
-            val pg = parsed.parentGroupId ?: continue
-            val pa = parsed.parentArtifactId ?: continue
-            val pv = parsed.parentVersion ?: continue
-            toResolve.add(Triple(pg, pa, pv))
+            val parent = parsed.parent ?: continue
+            toResolve.add(Triple(parent.groupId, parent.artifactId, parent.version))
         }
     }
 

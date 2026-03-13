@@ -31,45 +31,62 @@ import javax.xml.parsers.DocumentBuilderFactory
  */
 object PomLicenseUtils {
 
+    /** Coordinates of a Maven `<parent>` declaration inside a POM. */
+    data class ParentCoordinates(val groupId: String, val artifactId: String, val version: String)
+
     data class PomInfo(
-        val groupId: String?,
-        val artifactId: String?,
+        val groupId: String,
+        val artifactId: String,
         val version: String?,
         val licenseName: String?,
         val licenseUrl: String?,
-        val parentGroupId: String?,
-        val parentArtifactId: String?,
-        val parentVersion: String?,
+        /** Non-null only when the POM declares a `<parent>` block with complete coordinates. */
+        val parent: ParentCoordinates?,
     )
 
-    fun parsePom(pomFile: File): PomInfo {
+    /**
+     * Parses [pomFile] and returns a [PomInfo], or `null` if the file cannot be parsed or
+     * lacks the mandatory `groupId` / `artifactId` coordinates.
+     */
+    fun parsePom(pomFile: File): PomInfo? {
         val doc = try {
             DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(pomFile)
         } catch (e: Exception) {
-            return PomInfo(null, null, null, null, null, null, null, null)
+            return null
         }
         doc.documentElement.normalize()
         val root = doc.documentElement
 
         fun Node.directChildText(name: String): String? =
-            childNodes.items().firstOrNull { it.nodeName == name }
+            childNodes.asSequence().firstOrNull { it.nodeName == name }
                 ?.textContent?.trim()?.takeIf { it.isNotBlank() }
 
-        val parentElement = root.childNodes.items().firstOrNull { it.nodeName == "parent" } as? Element
+        val parentElement = root.childNodes.asSequence().firstOrNull { it.nodeName == "parent" } as? Element
 
         // groupId may be declared directly or inherited from <parent>
-        val groupId = root.directChildText("groupId") ?: parentElement?.directChildText("groupId")
-        val artifactId = root.directChildText("artifactId")
+        val groupId = root.directChildText("groupId") ?: parentElement?.directChildText("groupId") ?: return null
+        val artifactId = root.directChildText("artifactId") ?: return null
         val version = root.directChildText("version") ?: parentElement?.directChildText("version")
 
-        val licensesNode = root.childNodes.items().firstOrNull { it.nodeName == "licenses" }
-        val firstLicense = licensesNode?.childNodes?.items()?.firstOrNull { it.nodeName == "license" }
-        val licenseName = firstLicense?.childNodes?.items()
+        val firstLicense = root.childNodes.asSequence()
+            .firstOrNull { it.nodeName == "licenses" }
+            ?.childNodes?.asSequence()
+            ?.firstOrNull { it.nodeName == "license" }
+        val licenseName = firstLicense?.childNodes?.asSequence()
             ?.firstOrNull { it.nodeName == "name" }
             ?.textContent?.trim()?.takeIf { it.isNotBlank() }
-        val licenseUrl = firstLicense?.childNodes?.items()
+        val licenseUrl = firstLicense?.childNodes?.asSequence()
             ?.firstOrNull { it.nodeName == "url" }
             ?.textContent?.trim()?.takeIf { it.isNotBlank() }
+
+        val parent = if (parentElement != null) {
+            val pg = parentElement.directChildText("groupId")
+            val pa = parentElement.directChildText("artifactId")
+            val pv = parentElement.directChildText("version")
+            if (pg != null && pa != null && pv != null) ParentCoordinates(pg, pa, pv) else null
+        } else {
+            null
+        }
 
         return PomInfo(
             groupId = groupId,
@@ -77,13 +94,9 @@ object PomLicenseUtils {
             version = version,
             licenseName = licenseName,
             licenseUrl = licenseUrl,
-            parentGroupId = parentElement?.directChildText("groupId"),
-            parentArtifactId = parentElement?.directChildText("artifactId"),
-            parentVersion = parentElement?.directChildText("version"),
+            parent = parent,
         )
     }
 
-    private fun NodeList.items(): Sequence<Node> = sequence {
-        for (i in 0 until length) yield(item(i))
-    }
+    private fun NodeList.asSequence(): Sequence<Node> = (0 until length).asSequence().map(::item)
 }

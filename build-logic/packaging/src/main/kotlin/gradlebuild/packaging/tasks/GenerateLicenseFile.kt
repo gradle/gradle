@@ -52,8 +52,8 @@ private const val DASH_SEPARATOR = "--------------------------------------------
  * The task fails with descriptive errors if:
  * - a component's POM chain contains a license name not registered in [License] — add it
  *   as an alias or new entry in `License.kt`
- * - a component has no license data in its POM or any parent POM — add a hardcoded entry
- *   to [hardcodedLicenses] below
+ * - a component has no license data in its POM or any parent POM — add an entry
+ *   to [licenseOverrides] below (supports both "groupId:artifactId" and "groupId" keys)
  */
 abstract class GenerateLicenseFile : DefaultTask() {
 
@@ -130,7 +130,8 @@ abstract class GenerateLicenseFile : DefaultTask() {
             )
             if (notFound.isNotEmpty()) add(
                 "The following dependencies have no license data in their POM or any parent POM.\n" +
-                "Add a hardcoded entry to the hardcodedLicenses map in GenerateLicenseFile.kt:\n" +
+                "Add an entry to the licenseOverrides map in GenerateLicenseFile.kt.\n" +
+                "Use \"groupId:artifactId\" for a single artifact or \"groupId\" for an entire group:\n" +
                 notFound.sorted().joinToString("\n")
             )
         }
@@ -179,19 +180,18 @@ abstract class GenerateLicenseFile : DefaultTask() {
     private fun buildPomMap(): Map<String, PomLicenseUtils.PomInfo> {
         val map = mutableMapOf<String, PomLicenseUtils.PomInfo>()
         for (pomFile in pomFiles.files) {
-            val info = PomLicenseUtils.parsePom(pomFile)
-            val g = info.groupId ?: continue
-            val a = info.artifactId ?: continue
+            val info = PomLicenseUtils.parsePom(pomFile) ?: continue
             val v = info.version
-            if (v != null) map["$g:$a:$v"] = info
-            map.putIfAbsent("$g:$a", info)
+            if (v != null) map["${info.groupId}:${info.artifactId}:$v"] = info
+            map.putIfAbsent("${info.groupId}:${info.artifactId}", info)
         }
         return map
     }
 
     /**
      * Looks up the license for a component by walking up the parent POM chain in [pomMap].
-     * Checks [hardcodedLicenses] first, then follows `<parent>` links in the POM map.
+     * Checks [licenseOverrides] first (by exact "group:artifact" key, then by "group"),
+     * then follows `<parent>` links in the POM map.
      * No project access — only reads from the pre-built map of POM files.
      *
      * Returns [LicenseLookupResult.Found] on success, [LicenseLookupResult.UnknownName] if the
@@ -202,7 +202,8 @@ abstract class GenerateLicenseFile : DefaultTask() {
         component: ExternalComponent,
         pomMap: Map<String, PomLicenseUtils.PomInfo>,
     ): LicenseLookupResult {
-        val override = hardcodedLicenses[component.coordKey]
+        val override = licenseOverrides["${component.group}:${component.name}"]
+            ?: licenseOverrides[component.group]
         if (override != null) {
             return LicenseLookupResult.Found(ComponentLicenseInfo(override.displayName, override.url))
         }
@@ -217,10 +218,8 @@ abstract class GenerateLicenseFile : DefaultTask() {
                     ?: return LicenseLookupResult.UnknownName(pomInfo.licenseName)
                 return LicenseLookupResult.Found(ComponentLicenseInfo(license.displayName, license.url))
             }
-            val pg = pomInfo.parentGroupId ?: break
-            val pa = pomInfo.parentArtifactId ?: break
-            val pv = pomInfo.parentVersion ?: break
-            lookupKey = "$pg:$pa:$pv"
+            val parent = pomInfo.parent ?: break
+            lookupKey = "${parent.groupId}:${parent.artifactId}:${parent.version}"
         }
         return LicenseLookupResult.NotFound
     }
@@ -244,29 +243,16 @@ private sealed class LicenseLookupResult {
 
 
 /**
- * Hardcoded license data for components whose POM and all parent POMs have no `<licenses>` section.
- * Key format: "groupId:artifactId"
- * Value: the canonical [License] enum entry.
+ * License overrides for components whose POM and all parent POMs have no `<licenses>` section.
+ *
+ * Keys are matched in order of specificity:
+ * - `"groupId:artifactId"` — overrides a single artifact
+ * - `"groupId"` — overrides all artifacts in the group
  *
  * Add entries here when the build fails with "no license data in their POM or any parent POM".
  */
-private val hardcodedLicenses: Map<String, License> = mapOf(
-    // net.rubygrapefruit:native-platform and all its platform-specific variants do not include
-    // <licenses> in their POM but are Apache 2.0 licensed (https://github.com/gradle/native-platform)
-    "net.rubygrapefruit:native-platform" to License.Apache2,
-    "net.rubygrapefruit:native-platform-freebsd-amd64-libcpp" to License.Apache2,
-    "net.rubygrapefruit:native-platform-linux-aarch64" to License.Apache2,
-    "net.rubygrapefruit:native-platform-linux-aarch64-ncurses5" to License.Apache2,
-    "net.rubygrapefruit:native-platform-linux-aarch64-ncurses6" to License.Apache2,
-    "net.rubygrapefruit:native-platform-linux-amd64" to License.Apache2,
-    "net.rubygrapefruit:native-platform-linux-amd64-ncurses5" to License.Apache2,
-    "net.rubygrapefruit:native-platform-linux-amd64-ncurses6" to License.Apache2,
-    "net.rubygrapefruit:native-platform-osx-aarch64" to License.Apache2,
-    "net.rubygrapefruit:native-platform-osx-amd64" to License.Apache2,
-    "net.rubygrapefruit:native-platform-windows-aarch64" to License.Apache2,
-    "net.rubygrapefruit:native-platform-windows-aarch64-min" to License.Apache2,
-    "net.rubygrapefruit:native-platform-windows-amd64" to License.Apache2,
-    "net.rubygrapefruit:native-platform-windows-amd64-min" to License.Apache2,
-    "net.rubygrapefruit:native-platform-windows-i386" to License.Apache2,
-    "net.rubygrapefruit:native-platform-windows-i386-min" to License.Apache2,
+private val licenseOverrides: Map<String, License> = mapOf(
+    // All net.rubygrapefruit:native-platform-* artifacts are Apache 2.0 licensed but do not
+    // include <licenses> in their POMs (https://github.com/gradle/native-platform)
+    "net.rubygrapefruit" to License.Apache2,
 )
