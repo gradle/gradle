@@ -20,6 +20,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.options.NoDisable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
@@ -157,7 +158,9 @@ public class OptionReader {
         for (Field field : type.getDeclaredFields()) {
             Option option = findOption(field);
             if (option != null) {
-                fieldOptionElements.add(FieldOptionElement.create(option, field, optionValueNotationParserFactory));
+                OptionElement element = FieldOptionElement.create(option, field, optionValueNotationParserFactory);
+                element = applyNoDisable(element, field.getAnnotation(NoDisable.class), field.getName(), type);
+                fieldOptionElements.add(element);
             }
         }
         return fieldOptionElements;
@@ -179,12 +182,24 @@ public class OptionReader {
         for (Method method : type.getDeclaredMethods()) {
             Option option = findOption(method);
             if (option != null) {
-                OptionElement methodOptionDescriptor = MethodOptionElement.create(option, method,
-                    optionValueNotationParserFactory);
-                methodOptionElements.add(new OptionElementAndSignature(methodOptionDescriptor, MethodSignature.from(method)));
+                OptionElement element = MethodOptionElement.create(option, method, optionValueNotationParserFactory);
+                element = applyNoDisable(element, method.getAnnotation(NoDisable.class), method.getName(), type);
+                methodOptionElements.add(new OptionElementAndSignature(element, MethodSignature.from(method)));
             }
         }
         return methodOptionElements;
+    }
+
+    private static OptionElement applyNoDisable(OptionElement element, @Nullable NoDisable noDisable, String elementName, Class<?> type) {
+        if (noDisable == null) {
+            return element;
+        }
+        if (!(element instanceof BooleanOptionElement)) {
+            throw new OptionValidationException(String.format(
+                "@NoDisable on '%s' in class '%s' is only supported on boolean options.",
+                elementName, type.getName()));
+        }
+        return ((BooleanOptionElement) element).withoutDisabledOption();
     }
 
     private Option findOption(Method method) {

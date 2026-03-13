@@ -39,17 +39,39 @@ public class BooleanOptionElement extends AbstractOptionElement {
     private static final String DISABLE_NAME_PREFIX = "no-";
     private final PropertySetter setter;
     private final boolean newOptionValue;
+    private final boolean generateDisabledOption;
 
     public BooleanOptionElement(String optionName, Option option, PropertySetter setter) {
         super(optionName, option, Void.TYPE, setter.getDeclaringClass());
         this.setter = setter;
         this.newOptionValue = true;
+        this.generateDisabledOption = true;
     }
 
     private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter, boolean newOptionValue) {
         super(optionDescription, optionName, Void.TYPE);
         this.setter = setter;
         this.newOptionValue = newOptionValue;
+        this.generateDisabledOption = true;
+    }
+
+    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter, boolean newOptionValue, boolean generateDisabledOption) {
+        super(optionDescription, optionName, Void.TYPE);
+        this.setter = setter;
+        this.newOptionValue = newOptionValue;
+        this.generateDisabledOption = generateDisabledOption;
+    }
+
+    /**
+     * Returns a copy of this option element with disabled-option generation suppressed.
+     * Used when the element is annotated with {@code @NoDisable}.
+     */
+    public BooleanOptionElement withoutDisabledOption() {
+        return new BooleanOptionElement(getOptionName(), getDescription(), setter, newOptionValue, false);
+    }
+
+    public boolean isGenerateDisabledOption() {
+        return generateDisabledOption;
     }
 
     public static BooleanOptionElement oppositeOf(BooleanOptionElement optionElement) {

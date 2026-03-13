@@ -126,8 +126,6 @@ Class <org.gradle.api.tasks.compile.GroovyForkOptions> is not annotated (directl
 Class <org.gradle.api.tasks.compile.JavaCompile> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (JavaCompile.java:0)
 Class <org.gradle.api.tasks.compile.ProviderAwareCompilerDaemonForkOptions> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ProviderAwareCompilerDaemonForkOptions.java:0)
 Class <org.gradle.api.tasks.diagnostics.artifact.transforms.ArtifactTransformReports> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ArtifactTransformReports.java:0)
-Class <org.gradle.api.tasks.options.Option> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (Option.java:0)
-Class <org.gradle.api.tasks.options.OptionValues> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (OptionValues.java:0)
 Class <org.gradle.api.tasks.scala.IncrementalCompileOptions> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IncrementalCompileOptions.java:0)
 Class <org.gradle.api.tasks.scala.ScalaCompile> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ScalaCompile.java:0)
 Class <org.gradle.api.tasks.scala.ScalaCompileOptions> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ScalaCompileOptions.java:0)

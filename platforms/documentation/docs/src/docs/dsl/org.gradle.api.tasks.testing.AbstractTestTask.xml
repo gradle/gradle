@@ -37,6 +37,10 @@
                 <td/>
             </tr>
             <tr>
+                <td>allowNoMatchingTests</td>
+                <td/>
+            </tr>
+            <tr>
                 <td>reports</td>
                 <td/>
             </tr>
