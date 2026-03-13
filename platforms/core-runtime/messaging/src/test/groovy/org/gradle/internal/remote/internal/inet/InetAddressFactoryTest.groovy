@@ -100,28 +100,27 @@ class InetAddressFactoryTest extends Specification {
         e.cause.message.contains("256.0.0.1")
     }
 
-    def "GRADLE_DAEMON_BIND_ADDRESS overrides the default local binding address"() {
+    def "GRADLE_DAEMON_BIND_ADDRESS skips auto-detection and uses the provided address"() {
         when:
-        defaultAddresses()
         environment["GRADLE_DAEMON_BIND_ADDRESS"] = "192.168.1.10"
 
         then:
         factory.localBindingAddress == InetAddress.getByName("192.168.1.10")
+        0 * addresses._
     }
 
-    def "GRADLE_DAEMON_BIND_ADDRESS takes precedence over OPENSHIFT address"() {
+    def "GRADLE_DAEMON_BIND_ADDRESS skips auto-detection regardless of OPENSHIFT address"() {
         when:
-        defaultAddresses()
         environment["OPENSHIFT_FOO_IP"] = "10.0.0.1"
         environment["GRADLE_DAEMON_BIND_ADDRESS"] = "192.168.1.10"
 
         then:
         factory.localBindingAddress == InetAddress.getByName("192.168.1.10")
+        0 * addresses._
     }
 
     def "invalid GRADLE_DAEMON_BIND_ADDRESS throws a descriptive error"() {
         when:
-        defaultAddresses()
         environment["GRADLE_DAEMON_BIND_ADDRESS"] = "256.0.0.1"
         factory.localBindingAddress
 

@@ -117,16 +117,13 @@ myCollection.remove(main)         // this will fail
 
 Gradle now supports the `GRADLE_DAEMON_BIND_ADDRESS` environment variable to explicitly specify the network address used for client-daemon and cross-daemon communication.
 
-Previously, Gradle attempted to auto-detect the local bind address, which could fail in environments with specific network configurations (multiple network interfaces, multiple TCP/IP stacks, etc.).
-A workaround existed via the `OPENSHIFT_*_IP` environment variables, but undocumented.
-__
-Setting `GRADLE_DAEMON_BIND_ADDRESS` to an IP address or hostname will override the auto-detected address:
+Previously, Gradle always attempted to auto-detect the local bind address, which could fail in environments with specific network configurations (multiple network interfaces, multiple TCP/IP stacks, etc.).
+
+Setting `GRADLE_DAEMON_BIND_ADDRESS` to an IP address or hostname will skip auto-detection and use the provided address directly:
 
 ```text
 GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
 ```
-
-`GRADLE_DAEMON_BIND_ADDRESS` takes precedence over any `OPENSHIFT_*_IP` variable if both are set.
 
 ### GitHub Permalinks in wrapper & start scripts
 

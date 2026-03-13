@@ -42,6 +42,7 @@ public class InetAddressFactory {
     public InetAddressFactory() {
     }
 
+    @VisibleForTesting
     public InetAddressFactory(InetAddresses inetAddresses) {
         this.inetAddresses = inetAddresses;
     }
@@ -87,15 +88,14 @@ public class InetAddressFactory {
         }
 
         initialized = true;
-        if (inetAddresses == null) { // For testing
-            inetAddresses = new InetAddresses();
-        }
-
         wildcardBindingAddress = new InetSocketAddress(0).getAddress();
 
-        findLocalBindingAddress();
-        handleOpenshift();
-        handleGradleBindAddress();
+        if (!findGradleDaemonBindAddress() && !findOpenshiftAddress()) {
+            if (inetAddresses == null) { // For testing
+                inetAddresses = new InetAddresses();
+            }
+            findLocalBindingAddress();
+        }
     }
 
     /**
@@ -110,31 +110,26 @@ public class InetAddressFactory {
         }
     }
 
-    private void handleOpenshift() {
-        InetAddress openshiftBindAddress = findOpenshiftAddresses();
-        if (openshiftBindAddress != null) {
-            localBindingAddress = openshiftBindAddress;
-        }
-    }
-
-    private void handleGradleBindAddress() {
+    private boolean findGradleDaemonBindAddress() {
         InetAddress address = resolveEnvBindAddress("GRADLE_DAEMON_BIND_ADDRESS");
         if (address != null) {
             localBindingAddress = address;
+            return true;
         }
+        return false;
     }
 
-    @Nullable
-    private InetAddress findOpenshiftAddresses() {
+    private boolean findOpenshiftAddress() {
         for (String key : getEnvKeys()) {
             if (key.startsWith("OPENSHIFT_") && key.endsWith("_IP")) {
                 InetAddress address = resolveEnvBindAddress(key);
                 if (address != null) {
-                    return address;
+                    localBindingAddress = address;
+                    return true;
                 }
             }
         }
-        return null;
+        return false;
     }
 
     @Nullable
