@@ -89,17 +89,20 @@ abstract class GenerateLicenseFile : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        // Collect all external components from module properties files
-        // (properties files for project components do not have alias.group, so they are skipped)
-        val externalComponents = mutableSetOf<ExternalComponent>()
-        for (propsFile in modulePropertiesFiles.files) {
-            if (!propsFile.exists()) continue
-            val props = Properties().also { it.load(propsFile.reader()) }
-            val group = props.getProperty("alias.group") ?: continue
-            val name = props.getProperty("alias.name") ?: continue
-            val version = props.getProperty("alias.version") ?: continue
-            externalComponents.add(ExternalComponent(group, name, version))
-        }
+        // Collect all external components from module properties files.
+        // Properties files for project components do not have alias.group so they map to null.
+        // Deduplicate by coordKey (group:name) to avoid duplicate output lines in case the same
+        // artifact appears with multiple versions in the dependency graph.
+        val externalComponents = modulePropertiesFiles.files
+            .filter { it.exists() }
+            .mapNotNull { propsFile ->
+                val props = Properties().also { p -> p.load(propsFile.reader()) }
+                val group = props.getProperty("alias.group") ?: return@mapNotNull null
+                val name = props.getProperty("alias.name") ?: return@mapNotNull null
+                val version = props.getProperty("alias.version") ?: return@mapNotNull null
+                ExternalComponent(group, name, version)
+            }
+            .distinctBy { it.coordKey }
 
         // Build a map of POM info from all pre-resolved POM files
         val pomMap = buildPomMap()
@@ -137,8 +140,10 @@ abstract class GenerateLicenseFile : DefaultTask() {
         }
         if (errors.isNotEmpty()) throw GradleException(errors.joinToString("\n\n"))
 
-        // Group components by license display name (sorted alphabetically)
+        // Group components by license display name; sections and components both sorted
+        // alphabetically to guarantee a deterministic, reproducible output.
         val byLicense = externalComponents
+            .sortedBy { it.coordKey }
             .groupBy { licenseByCoords.getValue(it.coordKey).displayName }
             .toSortedMap()
 
@@ -177,16 +182,16 @@ abstract class GenerateLicenseFile : DefaultTask() {
      * Builds a map of POM info from all files in [pomFiles], keyed by "group:artifact:version"
      * (and "group:artifact" as a fallback for version-less lookups).
      */
-    private fun buildPomMap(): Map<String, PomLicenseUtils.PomInfo> {
-        val map = mutableMapOf<String, PomLicenseUtils.PomInfo>()
-        for (pomFile in pomFiles.files) {
-            val info = PomLicenseUtils.parsePom(pomFile) ?: continue
-            val v = info.version
-            if (v != null) map["${info.groupId}:${info.artifactId}:$v"] = info
-            map.putIfAbsent("${info.groupId}:${info.artifactId}", info)
-        }
-        return map
-    }
+    private fun buildPomMap(): Map<String, PomLicenseUtils.PomInfo> =
+        pomFiles.files
+            .mapNotNull(PomLicenseUtils::parsePom)
+            .flatMap { info ->
+                buildList {
+                    info.version?.let { v -> add("${info.groupId}:${info.artifactId}:$v" to info) }
+                    add("${info.groupId}:${info.artifactId}" to info)
+                }
+            }
+            .toMap()
 
     /**
      * Looks up the license for a component by walking up the parent POM chain in [pomMap].
