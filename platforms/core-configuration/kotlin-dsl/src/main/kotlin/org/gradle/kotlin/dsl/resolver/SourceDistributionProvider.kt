@@ -73,22 +73,24 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     fun resolveSourceDirsFromRepositories(repositories: List<GradleDistRepoDescriptor>): Set<File> {
-        val results = buildList {
+        val results = buildMap {
             for (repo in repositories) {
                 val result = Try.ofFailable { resolveSourceDirsFrom(repo) }
-                add(result)
-                if (result.isSuccessful && result.get().isNotEmpty()) {
-                    break
+                put(repo, result)
+                if (result.isSuccessful) {
+                    val files = result.get()
+                    if (files.isNotEmpty()) {
+                        return files
+                    }
                 }
             }
         }
-        val files = results.filter { it.isSuccessful }.mapNotNull { it.get().takeIf { it.isNotEmpty() } }.singleOrNull()
-        if (files != null) {
-            return files
+        if (results.all { it.value.isSuccessful }) {
+            return emptySet()
         }
-        val tried = repositories.joinToString(separator = "\n") { "  - ${it.repoBaseUrl}" }
+        val tried = results.keys.joinToString(separator = "\n") { "  - ${it.repoBaseUrl}" }
         throw GradleException("Unable to resolve Gradle distribution sources, tried:\n$tried").apply {
-            results.mapNotNull { it.failure.getOrNull() }.forEach {
+            results.mapNotNull { it.value.failure.getOrNull() }.forEach {
                 addSuppressed(it)
             }
         }
