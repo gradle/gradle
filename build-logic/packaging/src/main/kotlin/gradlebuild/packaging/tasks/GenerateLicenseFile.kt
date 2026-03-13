@@ -16,6 +16,7 @@
 
 package gradlebuild.packaging.tasks
 
+import gradlebuild.packaging.support.PomLicenseUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
@@ -26,12 +27,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.w3c.dom.Element
-import org.w3c.dom.Node
-import org.w3c.dom.NodeList
-import java.io.File
 import java.util.Properties
-import javax.xml.parsers.DocumentBuilderFactory
 
 
 private const val EQUALS_SEPARATOR = "=============================================================================="
@@ -45,10 +41,12 @@ private const val DASH_SEPARATOR = "--------------------------------------------
  * every third-party component bundled in the distribution along with its license information,
  * derived from the components' Maven POM files.
  *
- * For each external component, the task resolves its POM file via Gradle's dependency resolution
- * (using a detached configuration), which hits the module cache and is therefore fast.
- * If the direct POM has no [<licenses>] section, the parent POM chain is walked until a license
- * declaration is found.
+ * POM files (direct and parent) are pre-resolved at configuration time by the build convention
+ * plugin and supplied via [pomFiles]. The task only reads files at execution time, making it
+ * fully compatible with the configuration cache.
+ *
+ * If the direct POM has no [<licenses>] section, the parent POM chain is walked using the
+ * pre-resolved [pomFiles] until a license declaration is found.
  *
  * The task fails with a descriptive error if any external component has no license data —
  * this ensures that new dependencies are always explicitly accounted for.
@@ -61,12 +59,6 @@ private const val DASH_SEPARATOR = "--------------------------------------------
  * a new POM uses an unexpected spelling for a known license.
  */
 abstract class GenerateLicenseFile : DefaultTask() {
-
-    init {
-        // Resolves POM artifacts at execution time via project.configurations.detachedConfiguration(),
-        // which requires project access and is therefore incompatible with the configuration cache.
-        notCompatibleWithConfigurationCache("Resolves Maven POM files at execution time using project.configurations")
-    }
 
     /**
      * The Apache 2.0 license header text (the root LICENSE file, without the component section).
@@ -85,6 +77,16 @@ abstract class GenerateLicenseFile : DefaultTask() {
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val modulePropertiesFiles: ConfigurableFileCollection
 
+    /**
+     * All Maven POM files needed to resolve license information, including parent POMs for
+     * components that inherit their license declaration. Populated at configuration time by
+     * the build convention plugin via a lazy provider, so the task itself requires no project
+     * access and is fully configuration-cache compatible.
+     */
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val pomFiles: ConfigurableFileCollection
+
     @get:OutputFile
     abstract val outputLicenseFile: RegularFileProperty
 
@@ -102,12 +104,13 @@ abstract class GenerateLicenseFile : DefaultTask() {
             externalComponents.add(ExternalComponent(group, name, version))
         }
 
-        // Resolve license for each external component by fetching and parsing its POM
-        // (and walking the parent POM chain if needed). Detached configurations are used
-        // so Gradle's normal dependency resolution applies, hitting the module cache.
+        // Build a map of POM info from all pre-resolved POM files
+        val pomMap = buildPomMap()
+
+        // Resolve license for each external component by walking the pre-resolved POM chain
         val licenseByCoords = mutableMapOf<String, ComponentLicenseInfo>()
         for (component in externalComponents) {
-            val info = resolveLicense(component.group, component.name, component.version)
+            val info = lookupLicense(component, pomMap)
             if (info != null) {
                 licenseByCoords[component.coordKey] = info
             }
@@ -163,79 +166,52 @@ abstract class GenerateLicenseFile : DefaultTask() {
     }
 
     /**
-     * Resolves the license for a component by fetching its POM and, if needed, walking up
-     * the parent POM chain. Each POM is fetched via a detached Gradle configuration, which
-     * uses the project's repositories and the module cache.
+     * Builds a map of POM info from all files in [pomFiles], keyed by "group:artifact:version"
+     * (and "group:artifact" as a fallback for version-less lookups).
      */
-    private fun resolveLicense(group: String, artifact: String, version: String, depth: Int = 0): ComponentLicenseInfo? {
-        if (depth > 10) return null
+    private fun buildPomMap(): Map<String, PomLicenseUtils.PomInfo> {
+        val map = mutableMapOf<String, PomLicenseUtils.PomInfo>()
+        for (pomFile in pomFiles.files) {
+            val info = PomLicenseUtils.parsePom(pomFile)
+            val g = info.groupId ?: continue
+            val a = info.artifactId ?: continue
+            val v = info.version
+            if (v != null) map["$g:$a:$v"] = info
+            map.putIfAbsent("$g:$a", info)
+        }
+        return map
+    }
 
-        val override = hardcodedLicenses["$group:$artifact"]
+    /**
+     * Looks up the license for a component by walking up the parent POM chain in [pomMap].
+     * Checks [hardcodedLicenses] first, then follows [<parent>] links in the POM map.
+     * No project access — only reads from the pre-built map of POM files.
+     */
+    private fun lookupLicense(
+        component: ExternalComponent,
+        pomMap: Map<String, PomLicenseUtils.PomInfo>,
+    ): ComponentLicenseInfo? {
+        val override = hardcodedLicenses[component.coordKey]
         if (override != null) {
             val display = licenseNameNormalization[override.first] ?: override.first
             return ComponentLicenseInfo(display, override.second)
         }
 
-        val pomFile = try {
-            project.configurations
-                .detachedConfiguration(project.dependencies.create("$group:$artifact:$version@pom"))
-                .apply {
-                    isTransitive = false
-                    resolutionStrategy.disableDependencyVerification()
-                }
-                .singleFile
-        } catch (e: Exception) {
-            logger.warn("Could not resolve POM for $group:$artifact:$version: ${e.message}")
-            return null
+        var lookupKey = "${component.group}:${component.name}:${component.version}"
+        for (depth in 0..10) {
+            val pomInfo = pomMap[lookupKey]
+                ?: pomMap[lookupKey.substringBeforeLast(":")]  // fallback: without version
+                ?: break
+            if (pomInfo.licenseName != null) {
+                val display = licenseNameNormalization[pomInfo.licenseName] ?: pomInfo.licenseName
+                return ComponentLicenseInfo(display, pomInfo.licenseUrl)
+            }
+            val pg = pomInfo.parentGroupId ?: break
+            val pa = pomInfo.parentArtifactId ?: break
+            val pv = pomInfo.parentVersion ?: break
+            lookupKey = "$pg:$pa:$pv"
         }
-
-        val parsed = parsePomFile(pomFile)
-        val rawName = parsed["licenseName"]
-        if (rawName != null) {
-            val display = licenseNameNormalization[rawName] ?: rawName
-            return ComponentLicenseInfo(display, parsed["licenseUrl"])
-        }
-
-        val pg = parsed["parentGroupId"] ?: return null
-        val pa = parsed["parentArtifactId"] ?: return null
-        val pv = parsed["parentVersion"] ?: return null
-        return resolveLicense(pg, pa, pv, depth + 1)
-    }
-
-    private fun parsePomFile(pomFile: File): Map<String, String?> {
-        val doc = try {
-            DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(pomFile)
-        } catch (e: Exception) {
-            return emptyMap()
-        }
-        doc.documentElement.normalize()
-        val root = doc.documentElement
-
-        fun Node.directChildText(name: String): String? =
-            childNodes.items().firstOrNull { it.nodeName == name }
-                ?.textContent?.trim()?.takeIf { it.isNotBlank() }
-
-        val licensesNode = root.childNodes.items().firstOrNull { it.nodeName == "licenses" }
-        val firstLicense = licensesNode?.childNodes?.items()?.firstOrNull { it.nodeName == "license" }
-        val licenseName = firstLicense?.childNodes?.items()
-            ?.firstOrNull { it.nodeName == "name" }
-            ?.textContent?.trim()?.takeIf { it.isNotBlank() }
-        val licenseUrl = firstLicense?.childNodes?.items()
-            ?.firstOrNull { it.nodeName == "url" }
-            ?.textContent?.trim()?.takeIf { it.isNotBlank() }
-
-        val parentElement = root.childNodes.items().firstOrNull { it.nodeName == "parent" } as? Element
-        return mapOf(
-            "licenseName" to licenseName,
-            "licenseUrl" to licenseUrl,
-            "parentGroupId" to parentElement?.directChildText("groupId"),
-            "parentArtifactId" to parentElement?.directChildText("artifactId"),
-            "parentVersion" to parentElement?.directChildText("version"),
-        )
-    }
-
-    private fun NodeList.items(): Sequence<Node> = sequence {
-        for (i in 0 until length) yield(item(i))
+        return null
     }
 
     private data class ExternalComponent(val group: String, val name: String, val version: String) {

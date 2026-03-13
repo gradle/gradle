@@ -37,8 +37,11 @@ import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
 import gradlebuild.packaging.tasks.GenerateClasspathModuleProperties
 import gradlebuild.packaging.tasks.GenerateEmptyModuleProperties
+import gradlebuild.packaging.support.PomLicenseUtils
 import gradlebuild.packaging.tasks.GenerateLicenseFile
 import gradlebuild.packaging.tasks.PluginsManifest
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.jar.Attributes
@@ -223,6 +226,13 @@ tasks.register<GenerateClasspathModuleProperties>("generateAgentsRuntimeModulePr
 // The output is used by GradleDistributionSpecs instead of the static root LICENSE.
 val generateLicenseFile by tasks.registering(GenerateLicenseFile::class) {
     baseLicenseFile = repoRoot().file("LICENSE")
+
+    // Lazily resolve all POM files needed for license extraction, including parent POMs.
+    // The provider is evaluated at configuration-cache fingerprinting time (part of the
+    // configuration phase), where project.configurations access is permitted.
+    pomFiles.from(provider {
+        collectExternalPomFiles(listOf(runtimeClasspath, agentsRuntimeClasspath))
+    })
 
     // Use the module properties output to get the authoritative list of components
     // that are actually present in the distribution (external ones have alias.group set)
@@ -460,3 +470,61 @@ fun consumablePlatformVariant(name: String, extends: List<Configuration>) =
         isCanBeConsumed = true
         extends.forEach { extendsFrom(it) }
     }
+
+/**
+ * Resolves POM files for all external Maven components reachable from the given configurations,
+ * walking up the parent POM chain for any component whose direct POM has no [<licenses>] element.
+ *
+ * This function is invoked inside a lazy [provider] used as a task input, so it runs during the
+ * configuration-cache fingerprinting phase (part of the configuration phase). At that point all
+ * project dependencies are declared and [project.configurations] access is permitted.
+ *
+ * All resolutions hit the Gradle module cache — no network traffic is expected because Gradle
+ * already downloaded these POMs during normal dependency resolution.
+ */
+fun collectExternalPomFiles(configs: List<Configuration>): List<File> {
+    val toResolve = ArrayDeque<Triple<String, String, String>>()
+    val resolved = mutableSetOf<String>()
+    val pomFiles = mutableListOf<File>()
+
+    // Seed with all external (Maven) components from each configuration
+    for (config in configs) {
+        config.incoming.resolutionResult.allComponents
+            .filter { it.id is ModuleComponentIdentifier }
+            .mapNotNull { it.moduleVersion }
+            .forEach { mv -> toResolve.add(Triple(mv.group, mv.name, mv.version)) }
+    }
+
+    // BFS: resolve each POM and, if it has no <licenses>, also enqueue its <parent>
+    while (toResolve.isNotEmpty()) {
+        val (g, a, v) = toResolve.removeFirst()
+        val key = "$g:$a:$v"
+        if (!resolved.add(key)) continue
+
+        val pomFile = try {
+            project.configurations
+                .detachedConfiguration(project.dependencies.create("$g:$a:$v@pom"))
+                .apply {
+                    isTransitive = false
+                    resolutionStrategy.disableDependencyVerification()
+                }
+                .singleFile
+        } catch (e: Exception) {
+            null
+        } ?: continue
+
+        pomFiles.add(pomFile)
+
+        // Only follow the parent chain if the direct POM has no license — keeps the
+        // number of resolved POMs small for components with inline license declarations.
+        val parsed = PomLicenseUtils.parsePom(pomFile)
+        if (parsed.licenseName == null) {
+            val pg = parsed.parentGroupId ?: continue
+            val pa = parsed.parentArtifactId ?: continue
+            val pv = parsed.parentVersion ?: continue
+            toResolve.add(Triple(pg, pa, pv))
+        }
+    }
+
+    return pomFiles
+}
