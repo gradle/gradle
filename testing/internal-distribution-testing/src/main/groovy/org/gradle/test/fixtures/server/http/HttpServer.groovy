@@ -380,6 +380,13 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     }
 
     /**
+     * Expects one HEAD request for the given URL with a query string.
+     */
+    void expectHeadWithQueryString(String path, String query, File srcFile) {
+        expect(path, false, ['HEAD'], withQueryString(query, fileHandler(path, srcFile)))
+    }
+
+    /**
      * Expects one HEAD request for the given URL, asserting that the request is revalidated.
      */
     void expectHeadRevalidate(String path, File srcFile) {
