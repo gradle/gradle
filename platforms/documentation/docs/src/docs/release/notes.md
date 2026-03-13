@@ -160,6 +160,18 @@ myCollection.add(MyType("other")) // this will fail
 myCollection.remove(main)         // this will fail
 ```
 
+### Explicit bind address for client-daemon and cross-daemon communication
+
+Gradle now supports the `GRADLE_DAEMON_BIND_ADDRESS` environment variable to explicitly specify the network address used for client-daemon and cross-daemon communication.
+
+Previously, Gradle always attempted to auto-detect the local bind address, which could fail in environments with specific network configurations (multiple network interfaces, multiple TCP/IP stacks, etc.).
+
+Setting `GRADLE_DAEMON_BIND_ADDRESS` to an IP address or hostname will skip auto-detection and use the provided address directly:
+
+```text
+GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
+```
+
 ### GitHub Permalinks in wrapper & start scripts
 
 Gradle Wrapper scripts and application start scripts include links to the GitHub source templates they were generated from.
