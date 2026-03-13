@@ -49,8 +49,16 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final Logger LOGGER = LoggerFactory.getLogger(MVStorePersistentIndexedCache.class);
     private static final String MAP_NAME = "cache";
     private static final int CACHE_SIZE_MB = 16;
+    private static final int AUTO_COMMIT_BUFFER_SIZE_KB = 4 * 1024;
     private static final int PAGE_SPLIT_SIZE = 16 * 1024;
     private static final int KRYO_BUFFER_SIZE = 512;
+
+    /**
+     * A zero-length byte array used as a tombstone marker for removed entries.
+     * Using a tombstone avoids the expensive B-tree page rebalancing and sibling
+     * page loads that MVStore's remove() triggers on underfull pages.
+     */
+    private static final byte[] TOMBSTONE = new byte[0];
 
     private final File cacheFile;
     private final Serializer<V> valueSerializer;
@@ -80,6 +88,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
         MVStore.Builder builder = new MVStore.Builder()
             .fileName(cacheFile.getPath())
             .cacheSize(CACHE_SIZE_MB)
+            .autoCommitBufferSize(AUTO_COMMIT_BUFFER_SIZE_KB)
             .pageSplitSize(PAGE_SPLIT_SIZE)
             .autoCompactFillRate(0);
         if (cacheFile.exists() && !cacheFile.canWrite()) {
@@ -105,7 +114,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     public V get(K key) {
         try {
             byte[] data = map.get(hashKey(key));
-            if (data == null) {
+            if (data == null || data.length == 0) {
                 return null;
             }
             return deserialize(data);
@@ -154,7 +163,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public void remove(K key) {
         try {
-            map.remove(hashKey(key));
+            map.put(hashKey(key), TOMBSTONE);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
         }
