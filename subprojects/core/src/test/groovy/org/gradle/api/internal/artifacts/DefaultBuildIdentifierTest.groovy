@@ -39,4 +39,10 @@ class DefaultBuildIdentifierTest extends Specification {
         Matchers.strictlyEquals(id, same)
         id != different
     }
+
+    def "can check isRoot"() {
+        expect:
+        new DefaultBuildIdentifier(Path.ROOT).isRoot()
+        !new DefaultBuildIdentifier(Path.path(":thing")).isRoot()
+    }
 }

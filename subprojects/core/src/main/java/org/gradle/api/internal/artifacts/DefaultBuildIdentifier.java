@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.util.Path;
 
-public class DefaultBuildIdentifier implements BuildIdentifier {
+public class DefaultBuildIdentifier implements BuildIdentity {
 
-    public static final BuildIdentifier ROOT = new DefaultBuildIdentifier(Path.ROOT);
+    @VisibleForTesting
+    public static final BuildIdentity ROOT = new DefaultBuildIdentifier(Path.ROOT);
+
     private final Path buildPath;
 
     public DefaultBuildIdentifier(Path buildPath) {
@@ -37,6 +40,7 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
         return buildPath.toString();
     }
 
+    @Override
     public Path getIdentityPath() {
         return buildPath;
     }
