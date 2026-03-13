@@ -48,7 +48,13 @@ abstract class AdHocPerformanceScenario(
             param("checks", "all")
             text("runs", "40", display = ParameterDisplay.PROMPT, allowEmpty = false)
             text("warmups", "10", display = ParameterDisplay.PROMPT, allowEmpty = false)
-            text("generateDiffs", "true", display = ParameterDisplay.PROMPT, allowEmpty = false, description = "Whether to generate differential flame graphs after profiling")
+            text(
+                "generateDiffs",
+                "true",
+                display = ParameterDisplay.PROMPT,
+                allowEmpty = false,
+                description = "Whether to generate differential flame graphs after profiling",
+            )
             text(
                 "scenario",
                 "",
