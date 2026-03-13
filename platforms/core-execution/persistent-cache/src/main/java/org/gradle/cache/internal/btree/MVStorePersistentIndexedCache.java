@@ -128,7 +128,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     public void put(K key, V value) {
         try {
             map.put(hashKey(key), serialize(value));
-            store.commit();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not add entry '%s' to %s.", key, this), e), true);
         }
@@ -165,7 +164,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     public void remove(K key) {
         try {
             map.put(hashKey(key), TOMBSTONE);
-            store.commit();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
         }

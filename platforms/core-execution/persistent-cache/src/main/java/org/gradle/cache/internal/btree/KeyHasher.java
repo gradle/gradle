@@ -27,17 +27,22 @@ import java.security.NoSuchAlgorithmException;
 
 class KeyHasher<K> {
     private final Serializer<K> serializer;
-    private final MessageDigestStream digestStream = new MessageDigestStream();
-    private final KryoBackedEncoder encoder = new KryoBackedEncoder(digestStream);
+    private final ThreadLocal<State> state = ThreadLocal.withInitial(State::new);
 
     public KeyHasher(Serializer<K> serializer) {
         this.serializer = serializer;
     }
 
     long getHashCode(K key) throws Exception {
-        serializer.write(encoder, key);
-        encoder.flush();
-        return digestStream.getChecksum();
+        State s = state.get();
+        serializer.write(s.encoder, key);
+        s.encoder.flush();
+        return s.digestStream.getChecksum();
+    }
+
+    private static class State {
+        final MessageDigestStream digestStream = new MessageDigestStream();
+        final KryoBackedEncoder encoder = new KryoBackedEncoder(digestStream);
     }
 
     private static class MessageDigestStream extends OutputStream {
