@@ -23,9 +23,17 @@ import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
 
+interface PluginEntryCache {
+    fun computeIfAbsent(jar: File, producer: (File) -> List<PluginEntry>): List<PluginEntry>
+}
+
 data class PluginEntry(val pluginId: String, val implementationClass: String)
 
 
+fun pluginEntriesFrom(jar: File, pluginEntryCache: PluginEntryCache): List<PluginEntry> =
+    pluginEntryCache.computeIfAbsent(jar, ::pluginEntriesFrom)
+
+private
 fun pluginEntriesFrom(jar: File): List<PluginEntry> = try {
     JarFile(jar, false).use { jarFile ->
         jarFile.entries().asSequence().filter {
