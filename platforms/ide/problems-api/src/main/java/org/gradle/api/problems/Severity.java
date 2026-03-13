@@ -19,14 +19,34 @@ package org.gradle.api.problems;
 import org.gradle.api.Incubating;
 
 /**
- * A problem severity.
+ * Represents the severity of a problem reported via the Problems API.
  *
+ * <p>Severity controls how a problem is surfaced to the user and whether it causes the build to fail:
+ * <ul>
+ *   <li>{@link #WARNING} — non-fatal; the build continues.</li>
+ *   <li>{@link #ERROR} — fatal; the build fails.</li>
+ * </ul>
+ *
+ * @see ProblemSpec
  * @since 8.6
  */
 @Incubating
 public enum Severity {
+    /**
+     * @deprecated This severity level is unused and will be removed in a future release.
+     */
+    @Deprecated
     ADVICE("Advice"),
+
+    /**
+     * Indicates a non-fatal issue that the user should be aware of but that does not prevent the build from succeeding.
+     * This is the default severity for every problem report.
+     */
     WARNING("Warning"),
+
+    /**
+     * Indicates a fatal issue that causes the build to fail.
+     */
     ERROR("Error");
     private final String displayName;
 
