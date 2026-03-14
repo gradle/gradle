@@ -102,6 +102,18 @@ Gradle Wrapper scripts and application start scripts now include links to the Gi
 Previously, these links always pointed to the latest template versions rather than the version used to generate the script. 
 In this release, scripts link to the exact template version they were generated from.
 
+#### Explicit bind address for client-daemon and cross-daemon communication
+
+Gradle now supports the `GRADLE_DAEMON_BIND_ADDRESS` environment variable to explicitly specify the network address used for client-daemon and cross-daemon communication.
+
+Previously, Gradle always attempted to auto-detect the local bind address, which could fail in environments with specific network configurations (multiple network interfaces, multiple TCP/IP stacks, etc.).
+
+Setting `GRADLE_DAEMON_BIND_ADDRESS` to an IP address or hostname will skip auto-detection and use the provided address directly:
+
+```text
+GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
+```
+
 ### Tooling and IDE integration
 
 Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
