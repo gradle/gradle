@@ -36,12 +36,12 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNull;
 
-public class MVStorePersistentIndexedCacheTest {
+public class MapDBPersistentIndexedCacheTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     private final Serializer<String> stringSerializer = new DefaultSerializer<String>();
     private final Serializer<Integer> integerSerializer = new DefaultSerializer<Integer>();
-    private MVStorePersistentIndexedCache<String, Integer> cache;
+    private MapDBPersistentIndexedCache<String, Integer> cache;
     private TestFile cacheFile;
 
     @Before
@@ -50,7 +50,7 @@ public class MVStorePersistentIndexedCacheTest {
     }
 
     private void createCache() {
-        cache = new MVStorePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
+        cache = new MapDBPersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
     }
 
     @Test
@@ -90,7 +90,7 @@ public class MVStorePersistentIndexedCacheTest {
 
     @Test
     public void handlesUpdatesWhenValueSizeDecreases() {
-        MVStorePersistentIndexedCache<String, List<Integer>> cache = new MVStorePersistentIndexedCache<String, List<Integer>>(
+        MapDBPersistentIndexedCache<String, List<Integer>> cache = new MapDBPersistentIndexedCache<String, List<Integer>>(
             tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>());
 
         List<Integer> values = Arrays.asList(3, 2, 11, 5, 7, 1, 10, 8, 9, 4, 6, 0);
@@ -125,7 +125,7 @@ public class MVStorePersistentIndexedCacheTest {
 
     @Test
     public void handlesUpdatesWhenValueSizeIncreases() {
-        MVStorePersistentIndexedCache<String, List<Integer>> cache = new MVStorePersistentIndexedCache<String, List<Integer>>(
+        MapDBPersistentIndexedCache<String, List<Integer>> cache = new MapDBPersistentIndexedCache<String, List<Integer>>(
             tmpDir.file("listcache.bin"), stringSerializer, new DefaultSerializer<List<Integer>>());
 
         List<Integer> values = Arrays.asList(3, 2, 11, 5, 7, 1, 10, 8, 9, 4, 6, 0);
@@ -238,7 +238,7 @@ public class MVStorePersistentIndexedCacheTest {
 
     @Test
     public void canUseFileAsKey() {
-        MVStorePersistentIndexedCache<File, Integer> cache = new MVStorePersistentIndexedCache<File, Integer>(
+        MapDBPersistentIndexedCache<File, Integer> cache = new MapDBPersistentIndexedCache<File, Integer>(
             cacheFile, new DefaultSerializer<File>(), integerSerializer);
 
         cache.put(new File("file"), 1);

@@ -259,6 +259,7 @@
          <trusted-key id="A5BD02B93E7A40482EB1D66A5F69AD087600B22C" group="org.ow2.asm"/>
          <trusted-key id="A602970FE1BF5C9C8A9491B97A3C9FE21DFDBF44" group="org.apache.pdfbox"/>
          <trusted-key id="A7892505CF1A58076453E52D7999BEFBA1039E8B" group="net.bytebuddy"/>
+         <trusted-key id="A793D76F50F39C6F7A5C179A98B92A9E641D5AB1" group="org.mapdb"/>
          <trusted-key id="AA417737BD805456DB3CBDDE6601E5C08DCCBB96" group="info.picocli"/>
          <trusted-key id="ACF39CCDED38E2C6F0898BF28F7F6C0451967B84" group="org.scala-lang"/>
          <trusted-key id="AD296CA014321485EB6780FF8B8E0CB0F6A7657E" group="org.asciidoctor"/>
@@ -317,6 +318,7 @@
             <trusting group="org.antlr" name="antlr4-runtime"/>
          </trusted-key>
          <trusted-key id="D5FC4D8E6FF704C573819555BF7CC7DEFE9389D7" group="com.github.docker-java"/>
+         <trusted-key id="D9905D77178BAC979B03C462E46D9A6A3624B8E3" group="org.eclipse.collections"/>
          <trusted-key id="D9AA7402BA75F78720D975211D185615D0A84648" group="net.sf.saxon" name="Saxon-HE"/>
          <trusted-key id="DB467D22A2666D061FDD120DB5BD4591883D638C" group="com.tngtech.archunit"/>
          <trusted-key id="DBD744ACE7ADE6AA50DD591F66B50994442D2D40" group="^com[.]squareup($|([.].*))" regex="true"/>
@@ -906,6 +908,11 @@
       <component group="net.jcip" name="jcip-annotations" version="1.0">
          <artifact name="jcip-annotations-1.0.jar">
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="net.jpountz.lz4" name="lz4" version="1.3.0">
+         <artifact name="lz4-1.3.0.jar">
+            <pgp value="DCEA5180FE0E5FE97220CC12713EA82ADF3A287B"/>
          </artifact>
       </component>
       <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="4.1.0">

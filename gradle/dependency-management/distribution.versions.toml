@@ -44,6 +44,7 @@ jsr305 = "3.0.2!!"
 kotlin = "2.3.10!!"
 kotlinxSerialization = "1.9.0!!"
 kryo = "2.24.0!!"
+mapdb = "3.1.0!!"
 minlog = "1.2!!"
 nativePlatform = "0.22-milestone-29!!"
 objenesis = "2.6!!" # transitive dependency of kryo
@@ -154,6 +155,7 @@ maven3Model = { group = "org.apache.maven", name = "maven-model", version.ref = 
 maven3RepositoryMetadata = { group = "org.apache.maven", name = "maven-repository-metadata", version.ref = "maven" }
 maven3Settings = { group = "org.apache.maven", name = "maven-settings", version.ref = "maven" }
 maven3SettingsBuilder = { group = "org.apache.maven", name = "maven-settings-builder", version.ref = "maven" }
+mapdb = { group = "org.mapdb", name = "mapdb", version.ref = "mapdb" }
 minlog = { group = "com.esotericsoftware.minlog", name = "minlog", version.ref = "minlog" }
 nativePlatform = { group = "net.rubygrapefruit", name = "native-platform", version.ref = "nativePlatform" }
 objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objenesis" }
