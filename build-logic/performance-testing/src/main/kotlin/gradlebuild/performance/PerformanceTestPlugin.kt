@@ -469,7 +469,7 @@ class PerformanceTestExtension(
             useJUnitPlatform()
             // We need 5G of heap to parse large JFR recordings when generating flamegraphs.
             // If we drop JFR as profiler and switch to something else, we can reduce the memory.
-            jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
+            jvmArgs("-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError")
             if (project.performanceTestVerbose.isPresent) {
                 testLogging.showStandardStreams = true
             }

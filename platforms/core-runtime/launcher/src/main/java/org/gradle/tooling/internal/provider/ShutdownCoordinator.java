@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
@@ -45,7 +44,7 @@ import java.util.Set;
  * @see org.gradle.tooling.internal.consumer.ConnectorServices
  */
 @ServiceScope(Scope.Global.class)
-public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
+public class ShutdownCoordinator implements DaemonStartListener {
     private final Map<File, Set<DaemonConnectDetails>> daemons = new HashMap<>();
     private final DaemonStopClientExecuter client;
     private final File incorrectDaemonRegistryPath;
@@ -82,8 +81,7 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
         }
     }
 
-    @Override
-    public void stop() {
+    public void stopAllDaemons() {
         ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         synchronized (daemons) {
             // TODO: This should go away, but exists for backwards compatibility.
@@ -92,7 +90,7 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
             //
             // We should instead create services for each known daemon registry or make it so a different shutdown
             // is used for each daemon registry.
-            // 
+            //
             // This has complications in TestKit because we shutdown all running daemons in a shutdown hook
             // Our integration testing infrastructure does not expect any tests to write to test file directories
             // when the test process stops. This is treated as an error.
