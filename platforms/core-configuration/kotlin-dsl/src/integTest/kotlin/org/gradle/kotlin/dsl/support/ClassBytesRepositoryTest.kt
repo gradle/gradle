@@ -29,13 +29,17 @@ import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.classFilePathCandidatesFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.kotlinSourceNameOf
 
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.notNullValue
 
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
+
+import java.util.zip.ZipException
 
 
 class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
@@ -180,6 +184,22 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
                 repository.allSourceNames,
                 equalTo(listOf(canonicalNameOf<DeepThought>(), canonicalNameOf<LightThought>()))
             )
+        }
+    }
+
+    @Test
+    fun `reports filename when jar is corrupt`() {
+        val corruptJar = withFile("corrupt.jar", "this is not a valid zip file")
+        try {
+            ClassBytesRepository(
+                platformClassLoader = ClassLoaderUtils.getPlatformClassLoader(),
+                classPathFiles = listOf(corruptJar)
+            ).use { repository ->
+                repository.allClassesBytesBySourceName().toList()
+            }
+            fail("Expected ZipException")
+        } catch (e: ZipException) {
+            assertThat(e.message, containsString(corruptJar.absolutePath))
         }
     }
 
