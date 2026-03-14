@@ -32,17 +32,20 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A persistent indexed cache backed by H2 MVStore.
  *
- * Keys are hashed to longs (via MD5) for fast B-tree comparison,
- * matching the approach used by {@link BTreePersistentIndexedCache}.
- * This trades hash-collision safety for significantly faster lookups.
+ * Keys are hashed to longs (via MD5) for fast lookup, matching the approach
+ * used by {@link BTreePersistentIndexedCache}.
  *
- * Values are stored as raw byte arrays in MVStore. This avoids eager
- * deserialization of all sibling values when MVStore loads a B-tree page
- * from disk, drastically reducing GC pressure on reads.
+ * Writes (puts and removes) are buffered in a heap {@link HashMap}, mirroring
+ * the {@code CachingBlockStore} pattern in {@link BTreePersistentIndexedCache}:
+ * the write buffer is checked first on reads, falling through to MVStore on a miss.
+ * MVStore is only written at close (bulk flush). This eliminates MVStore's
+ * per-operation paged-store overhead from the write hot path entirely.
  */
 @NullMarked
 public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
@@ -52,18 +55,20 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final int AUTO_COMMIT_BUFFER_SIZE_KB = 32 * 1024;
     private static final int PAGE_SPLIT_SIZE = 4 * 1024;
     private static final int KRYO_BUFFER_SIZE = 512;
-
-    /**
-     * A zero-length byte array used as a tombstone marker for removed entries.
-     * Using a tombstone avoids the expensive B-tree page rebalancing and sibling
-     * page loads that MVStore's remove() triggers on underfull pages.
-     */
+    /** Sentinel stored in {@link #dirty} to represent a removed entry. */
     private static final byte[] TOMBSTONE = new byte[0];
 
     private final File cacheFile;
     private final Serializer<V> valueSerializer;
     private final KeyHasher<K> keyHasher;
     private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
+    /**
+     * Write buffer for this session, mirroring {@code CachingBlockStore#dirty}.
+     * Puts are stored as serialized bytes; removes are stored as {@link #TOMBSTONE}.
+     * Reads check here first before falling through to MVStore.
+     * Flushed to MVStore at close.
+     */
+    private Map<Long, byte[]> dirty;
     private MVStore store;
     private MVMap<Long, byte[]> map;
 
@@ -99,6 +104,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
             .keyType(LongDataType.INSTANCE)
             .valueType(ByteArrayDataType.INSTANCE);
         map = store.openMap(MAP_NAME, mapBuilder);
+        dirty = new HashMap<>();
     }
 
     private long hashKey(K key) {
@@ -113,8 +119,15 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public V get(K key) {
         try {
-            byte[] data = map.get(hashKey(key));
-            if (data == null || data.length == 0) {
+            long hash = hashKey(key);
+            byte[] data = dirty.get(hash);
+            if (data == TOMBSTONE) {
+                return null;
+            }
+            if (data == null) {
+                data = map.get(hash);
+            }
+            if (data == null) {
                 return null;
             }
             return deserialize(data);
@@ -127,7 +140,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public void put(K key, V value) {
         try {
-            map.put(hashKey(key), serialize(value));
+            dirty.put(hashKey(key), serialize(value));
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not add entry '%s' to %s.", key, this), e), true);
         }
@@ -163,7 +176,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public void remove(K key) {
         try {
-            map.put(hashKey(key), TOMBSTONE);
+            dirty.put(hashKey(key), TOMBSTONE);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
         }
@@ -174,6 +187,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
         if (store != null && !store.isClosed()) {
             try {
                 if (!store.isReadOnly()) {
+                    flush();
                     store.commit();
                 }
                 store.close();
@@ -182,8 +196,20 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
             } finally {
                 store = null;
                 map = null;
+                dirty = null;
             }
         }
+    }
+
+    private void flush() {
+        for (Map.Entry<Long, byte[]> entry : dirty.entrySet()) {
+            if (entry.getValue() == TOMBSTONE) {
+                map.remove(entry.getKey());
+            } else {
+                map.put(entry.getKey(), entry.getValue());
+            }
+        }
+        dirty.clear();
     }
 
     @Override
@@ -220,17 +246,21 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     private void rebuild() {
         LOGGER.warn("{} is corrupt. Discarding.", this);
         try {
-            close();
-        } catch (Exception ignored) {
+            if (store != null && !store.isClosed()) {
+                store.closeImmediately();
+            }
+        } catch (Exception e) {
+            LOGGER.debug("Failed to close corrupt store", e);
+        } finally {
             store = null;
             map = null;
+            dirty = null;
         }
         try {
             cacheFile.delete();
             doOpen();
         } catch (Exception e) {
             LOGGER.warn("{} couldn't be rebuilt. Closing.", this);
-            close();
         }
     }
 
