@@ -673,6 +673,11 @@
             <pgp value="4857D1CE04E78FAB2A172E8F39B48E1BADDB933F"/>
          </artifact>
       </component>
+      <component group="com.h2database" name="h2-mvstore" version="2.4.240">
+         <artifact name="h2-mvstore-2.4.240.jar">
+            <pgp value="CF6FCDD747FD9C32304B180B58BD11D32974088F"/>
+         </artifact>
+      </component>
       <component group="com.ibm.icu" name="icu4j" version="59.1">
          <artifact name="icu4j-59.1.jar">
             <pgp value="CB3190CA7842439E57F3712E44CE7BF2825EA2CD"/>

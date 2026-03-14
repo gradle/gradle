@@ -17,6 +17,7 @@ package org.gradle.cache.internal.btree;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -46,7 +47,7 @@ import java.util.List;
 // todo - merge adjacent free blocks
 // todo - use more efficient lookup for free block with nearest size
 @SuppressWarnings("unchecked")
-public class BTreePersistentIndexedCache<K, V> {
+public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentIndexedCache.class);
     private final File cacheFile;
     private final KeyHasher<K> keyHasher;
@@ -120,6 +121,8 @@ public class BTreePersistentIndexedCache<K, V> {
         header = store.readFirst(HeaderBlock.class);
     }
 
+    @Nullable
+    @Override
     public V get(K key) {
         try {
             try {
@@ -137,6 +140,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
+    @Override
     public void put(K key, V value) {
         try {
             long hashCode = keyHasher.getHashCode(key);
@@ -162,6 +166,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
+    @Override
     public void remove(K key) {
         try {
             Lookup lookup = header.getRoot().find(key);
@@ -185,6 +190,7 @@ public class BTreePersistentIndexedCache<K, V> {
         return block;
     }
 
+    @Override
     public void reset() {
         close();
         try {
@@ -194,6 +200,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
+    @Override
     public void close() {
         LOGGER.debug("Closing {}", this);
         try {
@@ -203,6 +210,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
+    @Override
     public boolean isOpen() {
         return store.isOpen();
     }
@@ -217,6 +225,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
+    @Override
     public void verify() {
         try {
             doVerify();
@@ -288,6 +297,7 @@ public class BTreePersistentIndexedCache<K, V> {
         }
     }
 
+    @Override
     public void clear() {
         store.clear();
         close();

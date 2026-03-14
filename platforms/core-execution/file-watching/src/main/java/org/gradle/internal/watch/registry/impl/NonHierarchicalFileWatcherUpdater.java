@@ -119,6 +119,11 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     @Override
+    public SnapshotHierarchy updateVfsBeforeAfterFinished(SnapshotHierarchy root) {
+        return root;
+    }
+
+    @Override
     protected void startWatchingProbeDirectory(File probeDirectory) {
         updateWatchedDirectories(ImmutableMap.of(probeDirectory.getAbsolutePath(), 1));
     }

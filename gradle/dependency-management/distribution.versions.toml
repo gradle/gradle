@@ -21,6 +21,7 @@ googleOauthClient = "1.34.1!!" # our Google API Client version requires 1.34.1
 gradleFileEvents = "0.2.8!!"
 gson = "2.13.1!!"
 guava = "33.4.6-jre"
+h2Mvstore = "2.4.240!!"
 httpcore = "4.4.14!!"
 inject = "1!!"
 ivy = "2.5.3!!"
@@ -96,6 +97,7 @@ groovyTemplates = { group = "org.apache.groovy", name = "groovy-templates", vers
 groovyXml = { group = "org.apache.groovy", name = "groovy-xml", version.ref = "groovy" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+h2Mvstore = { group = "com.h2database", name = "h2-mvstore", version.ref = "h2Mvstore" }
 httpcore = { group = "org.apache.httpcomponents", name = "httpcore", version.ref = "httpcore" }
 inject = { group = "javax.inject", name = "javax.inject", version.ref = "inject" }
 ivy = { group = "org.apache.ivy", name = "ivy", version.ref = "ivy" }

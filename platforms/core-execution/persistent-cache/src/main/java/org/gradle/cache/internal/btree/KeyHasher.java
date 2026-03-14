@@ -22,23 +22,27 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 class KeyHasher<K> {
     private final Serializer<K> serializer;
-    private final MessageDigestStream digestStream = new MessageDigestStream();
-    private final KryoBackedEncoder encoder = new KryoBackedEncoder(digestStream);
+    private final ThreadLocal<State> state = ThreadLocal.withInitial(State::new);
 
     public KeyHasher(Serializer<K> serializer) {
         this.serializer = serializer;
     }
 
     long getHashCode(K key) throws Exception {
-        serializer.write(encoder, key);
-        encoder.flush();
-        return digestStream.getChecksum();
+        State s = state.get();
+        serializer.write(s.encoder, key);
+        s.encoder.flush();
+        return s.digestStream.getChecksum();
+    }
+
+    private static class State {
+        final MessageDigestStream digestStream = new MessageDigestStream();
+        final KryoBackedEncoder encoder = new KryoBackedEncoder(digestStream);
     }
 
     private static class MessageDigestStream extends OutputStream {
@@ -68,9 +72,15 @@ class KeyHasher<K> {
         }
 
         long getChecksum() {
-            byte[] digest = messageDigest.digest();
-            assert digest.length == 16;
-            return new BigInteger(digest).longValue();
+            byte[] d = messageDigest.digest();
+            return ((long) (d[8] & 0xFF) << 56)
+                | ((long) (d[9] & 0xFF) << 48)
+                | ((long) (d[10] & 0xFF) << 40)
+                | ((long) (d[11] & 0xFF) << 32)
+                | ((long) (d[12] & 0xFF) << 24)
+                | ((long) (d[13] & 0xFF) << 16)
+                | ((long) (d[14] & 0xFF) << 8)
+                | ((long) (d[15] & 0xFF));
         }
     }
 }

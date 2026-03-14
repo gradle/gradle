@@ -30,7 +30,8 @@ import org.gradle.cache.InsufficientLockModeException;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.LockTimeoutException;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
-import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
+import org.gradle.cache.internal.btree.MVStorePersistentIndexedCache;
+import org.gradle.cache.internal.btree.PersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -324,7 +325,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             if (entry == null) {
                 File cacheFile = findCacheFile(parameters);
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
-                Supplier<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
+                Supplier<PersistentIndexedCache<K, V>> indexedCacheFactory = () -> doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
 
                 MultiProcessSafeIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafeIndexedCache<>(indexedCacheFactory, fileAccess);
                 CacheDecorator decorator = parameters.getCacheDecorator();
@@ -359,8 +360,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         return findCacheFile(parameters).exists();
     }
 
-    <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return new BTreePersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
+    <K, V> PersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        return new MVStorePersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
     }
 
     /**
