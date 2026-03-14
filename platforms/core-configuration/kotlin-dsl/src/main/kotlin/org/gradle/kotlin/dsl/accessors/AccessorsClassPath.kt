@@ -515,7 +515,7 @@ internal
 fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
     val all = mutableListOf<String>()
     val leafs = mutableListOf<String>()
-    var buffer = StringBuilder()
+    val buffer = StringBuilder()
 
     fun nonPrimitiveKotlinType(): String? =
         buffer.takeIf(StringBuilder::isNotEmpty)?.toString()?.let {
@@ -527,7 +527,7 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
         when (char) {
             '<' -> {
                 nonPrimitiveKotlinType()?.also { all.add(it) }
-                buffer = StringBuilder()
+                buffer.clear()
             }
 
             in " ,>" -> {
@@ -535,7 +535,7 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
                     all.add(it)
                     leafs.add(it)
                 }
-                buffer = StringBuilder()
+                buffer.clear()
             }
 
             else -> buffer.append(char)
