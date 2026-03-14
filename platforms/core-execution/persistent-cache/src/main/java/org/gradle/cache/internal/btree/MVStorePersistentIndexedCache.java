@@ -15,8 +15,6 @@
  */
 package org.gradle.cache.internal.btree;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -40,12 +38,6 @@ import java.io.IOException;
  *
  * Keys are hashed to longs (via MD5) for fast lookup, matching the approach
  * used by {@link BTreePersistentIndexedCache}.
- *
- * Reads and writes go directly through MVStore, but are also cached in a
- * session-scoped Guava cache, mirroring the {@code CachingBlockStore.indexBlockCache}
- * pattern in {@link BTreePersistentIndexedCache}: entries read or written during
- * a session are served from heap on subsequent accesses. Removes are tracked
- * with a tombstone so they are not re-fetched from MVStore.
  */
 @NullMarked
 public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
@@ -55,19 +47,13 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final int AUTO_COMMIT_BUFFER_SIZE_KB = 32 * 1024;
     private static final int PAGE_SPLIT_SIZE = 4 * 1024;
     private static final int KRYO_BUFFER_SIZE = 512;
-    private static final int ENTRY_CACHE_SIZE = 1000;
-    /** Sentinel stored in {@link #entryCache} to represent a removed entry. */
+    /** Sentinel value stored in MVStore to represent a removed entry. */
     private static final byte[] TOMBSTONE = new byte[0];
 
     private final File cacheFile;
     private final Serializer<V> valueSerializer;
     private final KeyHasher<K> keyHasher;
     private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
-    /**
-     * Session-scoped cache of serialized entry bytes, mirroring {@code CachingBlockStore.indexBlockCache}.
-     * Populated on reads and writes; tombstoned on removes. Invalidated at reset/close.
-     */
-    private Cache<Long, byte[]> entryCache;
     private MVStore store;
     private MVMap<Long, byte[]> map;
 
@@ -94,6 +80,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
             .cacheSize(CACHE_SIZE_MB)
             .autoCommitBufferSize(AUTO_COMMIT_BUFFER_SIZE_KB)
             .pageSplitSize(PAGE_SPLIT_SIZE)
+            .cacheConcurrency(1)
             .autoCompactFillRate(0);
         if (cacheFile.exists() && !cacheFile.canWrite()) {
             builder.readOnly();
@@ -103,7 +90,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
             .keyType(LongDataType.INSTANCE)
             .valueType(ByteArrayDataType.INSTANCE);
         map = store.openMap(MAP_NAME, mapBuilder);
-        entryCache = CacheBuilder.newBuilder().maximumSize(ENTRY_CACHE_SIZE).concurrencyLevel(1).build();
     }
 
     private long hashKey(K key) {
@@ -118,20 +104,11 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public V get(K key) {
         try {
-            long hash = hashKey(key);
-            byte[] cached = entryCache.getIfPresent(hash);
-            if (cached == TOMBSTONE) {
+            byte[] data = map.get(hashKey(key));
+            if (data == null || data.length == 0) {
                 return null;
             }
-            if (cached != null) {
-                return deserialize(cached);
-            }
-            byte[] data = map.get(hash);
-            if (data != null) {
-                entryCache.put(hash, data);
-                return deserialize(data);
-            }
-            return null;
+            return deserialize(data);
         } catch (Exception e) {
             rebuild();
             return null;
@@ -141,10 +118,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public void put(K key, V value) {
         try {
-            long hash = hashKey(key);
-            byte[] bytes = serialize(value);
-            map.put(hash, bytes);
-            entryCache.put(hash, bytes);
+            map.put(hashKey(key), serialize(value));
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not add entry '%s' to %s.", key, this), e), true);
         }
@@ -180,9 +154,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public void remove(K key) {
         try {
-            long hash = hashKey(key);
-            map.put(hash, TOMBSTONE);
-            entryCache.put(hash, TOMBSTONE);
+            map.put(hashKey(key), TOMBSTONE);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
         }
@@ -201,7 +173,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
             } finally {
                 store = null;
                 map = null;
-                entryCache = null;
             }
         }
     }
@@ -248,7 +219,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
         } finally {
             store = null;
             map = null;
-            entryCache = null;
         }
         try {
             cacheFile.delete();
