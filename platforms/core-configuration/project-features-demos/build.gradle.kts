@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.implementation-kotlin")
+    id("gradlebuild.internal.kotlin")
 }
 
 description = "Demos of Project Features and Types"

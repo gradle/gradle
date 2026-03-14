@@ -5,6 +5,7 @@ checkstyle = "10.25.0"
 develocity = "4.3.2"
 groovy = "4.0.29"
 javaparser = "3.18.0"
+log4j="2.25.3" # CVE-2025-68161 on lower versions
 
 [libraries]
 ant = { module = "org.apache.ant:ant", version = "1.10.15" } # Bump the version brought in transitively by gradle-guides-plugin
@@ -44,6 +45,7 @@ kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin"}
 kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable"}
 kotlinMetadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm"}
 kotlinSamWithReceiver = { group = "org.jetbrains.kotlin", name = "kotlin-sam-with-receiver"}
+log4jCore = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
 nullaway = { module = "com.uber.nullaway:nullaway", version = "0.12.10" }
 nullawayPlugin = { module = "net.ltgt.gradle:gradle-nullaway-plugin", version = "2.2.0" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version = "2.0.24" } # Flexmark 0.34.60 brings in a vulnerable version of pdfbox
@@ -56,4 +58,4 @@ xerces = { module = "xerces:xercesImpl", version = "2.11.0" }
 xslthl = { module = "net.sf.xslthl:xslthl", version = "2.0.1" }
 
 [plugins]
-shadow = { id = "com.gradleup.shadow", version = "9.1.0" }
+shadow = { id = "com.gradleup.shadow", version = "9.2.0" }
