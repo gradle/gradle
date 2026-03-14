@@ -181,7 +181,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     public void remove(K key) {
         try {
             long hash = hashKey(key);
-            map.remove(hash);
+            map.put(hash, TOMBSTONE);
             entryCache.put(hash, TOMBSTONE);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
