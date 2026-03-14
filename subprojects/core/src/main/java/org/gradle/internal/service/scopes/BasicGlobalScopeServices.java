@@ -58,8 +58,7 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.Scope.Global;
-import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
+import org.gradle.process.internal.services.ProcessBasicGlobalScopeServices;
 
 import java.net.InetAddress;
 
@@ -74,6 +73,7 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
         serviceRegistration.add(ScriptFileResolverListeners.class, DefaultScriptFileResolverListeners.class);
         serviceRegistration.add(ScriptFileResolver.class, DefaultScriptFileResolver.class);
         serviceRegistration.addProvider(new MessagingServices());
+        serviceRegistration.addProvider(new ProcessBasicGlobalScopeServices());
     }
 
     @Provides
@@ -119,15 +119,6 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     @Provides
     BuildCancellationToken createBuildCancellationToken() {
         return new DefaultBuildCancellationToken();
-    }
-
-    @Provides
-    ClientExecHandleBuilderFactory createExecHandleFactory(
-        FileResolver fileResolver,
-        ExecutorFactory executorFactory,
-        BuildCancellationToken buildCancellationToken
-    ) {
-        return DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
     }
 
     @Provides

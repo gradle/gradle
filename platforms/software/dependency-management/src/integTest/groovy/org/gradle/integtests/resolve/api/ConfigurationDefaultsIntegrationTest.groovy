@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
@@ -348,7 +347,6 @@ task broken {
         failure.assertHasCause("Cannot mutate the dependencies of configuration ':conf' after the configuration's child configuration ':child' was resolved. After a configuration has been observed, it should not be modified.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "copied configuration has independent set of listeners"() {
         buildFile << """
 configurations {
@@ -380,40 +378,39 @@ confCopy.withDependencies { incoming ->
     calls << "copyWithDependencies"
 }
 
-task check {
+task checkConf {
+    inputs.files(conf)
     doLast {
-        conf.resolve()
         assert calls == ["sharedWithDependencies", "confWithDependencies", "sharedBeforeResolve", "confBeforeResolve"]
-        calls.clear()
+    }
+}
 
-        confCopy.resolve()
+task checkConfCopy {
+    inputs.files(confCopy)
+    doLast {
         assert calls == ["sharedWithDependencies", "copyWithDependencies", "sharedBeforeResolve", "copyBeforeResolve"]
     }
 }
 """
 
         expect:
-        succeeds ":check"
+        succeeds ":checkConf"
+        succeeds ":checkConfCopy"
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "copied configuration have unique names"() {
         buildFile << """
             configurations {
               conf
             }
 
-            task check {
-                doLast {
-                    assert configurations.conf.copyRecursive().name == 'confCopy'
-                    assert configurations.conf.copyRecursive().name == 'confCopy2'
-                    assert configurations.conf.copyRecursive().name == 'confCopy3'
-                    assert configurations.conf.copy().name == 'confCopy4'
-                    assert configurations.conf.copy().name == 'confCopy5'
-                }
-            }
+            assert configurations.conf.copyRecursive().name == 'confCopy'
+            assert configurations.conf.copyRecursive().name == 'confCopy2'
+            assert configurations.conf.copyRecursive().name == 'confCopy3'
+            assert configurations.conf.copy().name == 'confCopy4'
+            assert configurations.conf.copy().name == 'confCopy5'
             """
         expect:
-        succeeds ":check"
+        succeeds ":help"
     }
 }
