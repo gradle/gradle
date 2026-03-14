@@ -10,6 +10,7 @@ dependencies {
     api(projects.fileOperations)
     api(projects.files)
     api(projects.modelCore)
+    api(projects.workerProcessServices)
     api(projects.requestHandlerWorker)
     api(projects.stdlibJavaExtensions)
 
@@ -18,6 +19,8 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.languageJava)
+    implementation(projects.processServices)
+    implementation(projects.processServicesApi)
     implementation(projects.logging)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJava)

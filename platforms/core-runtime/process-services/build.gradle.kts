@@ -7,11 +7,41 @@ description = "Process execution abstractions."
 dependencies {
     api(projects.concurrent)
     api(projects.baseServices)
+    api(projects.buildOperations)
     api(projects.coreApi)
+    api(projects.modelCore)
+    api(projects.processServicesApi)
+    api(projects.fileCollections)
+    api(projects.fileTemp)
 
+    api(libs.inject)
     api(libs.jspecify)
+    api(libs.nativePlatform)
 
-    testImplementation(testFixtures(projects.core))
+    implementation(projects.instrumentationAgentServices)
+    implementation(projects.logging)
+    implementation(projects.persistentCache)
+    implementation(projects.loggingApi)
+    implementation(projects.messaging)
+    implementation(projects.native)
+    implementation(projects.serviceLookup)
+    api(projects.serviceProvider)
+
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
+    implementation(libs.jnrConstants)
+    implementation(libs.slf4jApi)
+
+    testImplementation(projects.io)
+    testImplementation(testFixtures(projects.core)) {
+        because("Provides TestFiles, TestUtil, UsesNativeServices, and NoOpProblemDiagnosticsFactory used by process unit tests")
+    }
+    testImplementation(testFixtures(projects.logging))
+
+    testFixturesImplementation(projects.stdlibJavaExtensions)
+
+    integTestImplementation(projects.internalDistributionTesting)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

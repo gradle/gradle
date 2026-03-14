@@ -34,6 +34,7 @@ dependencies {
     api(projects.native)
     api(projects.problemsApi)
     api(projects.processServices)
+    api(projects.processServicesApi)
     api(projects.serviceLookup)
 
     api(libs.groovy)

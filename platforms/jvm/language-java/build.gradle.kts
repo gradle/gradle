@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Source for JavaCompile and JavaExec tasks, it also contains logic for incremental Java compilation"
@@ -19,13 +20,13 @@ dependencies {
     api(projects.hashing)
     api(projects.javaCompilerWorker)
     api(projects.jvmCompilerWorker)
-    api(projects.jvmServices)
     api(projects.languageJvm)
     api(projects.modelCore)
     api(projects.persistentCache)
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.processServices)
+    api(projects.processServicesApi)
     api(projects.scopedPersistentCache)
     api(projects.serialization)
     api(projects.serviceProvider)
@@ -46,6 +47,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
+    implementation(projects.jvmServices)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
     implementation(projects.serviceLookup)
@@ -74,6 +76,7 @@ dependencies {
 
     integTestImplementation(projects.messaging)
     integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.processServices))
     integTestImplementation(testFixtures(projects.testingBase))
 
     // TODO: Make these available for all integration tests? Maybe all tests?

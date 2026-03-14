@@ -20,6 +20,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.concurrent)
+    implementation(projects.processServices)
     api(projects.declarativeDslApi)
     api(projects.fileOperations)
     api(projects.hashing)
@@ -29,6 +30,10 @@ dependencies {
     api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
+
+    api("org.gradle:kotlin-dsl-shared-runtime") {
+        because("Internal KotlinDslPluginEntriesCache exposes PluginEntriesCache")
+    }
 
     api(libs.groovy)
     api(libs.guava)
@@ -66,7 +71,6 @@ dependencies {
     implementation(projects.wrapperShared)
 
     implementation(projects.javaApiExtractor)
-    implementation("org.gradle:kotlin-dsl-shared-runtime")
 
     implementation(libs.asm)
     implementation(libs.jetbrainsAnnotations)

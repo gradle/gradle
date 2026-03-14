@@ -5,6 +5,7 @@ plugins {
 description = "Adds support for building Groovy projects"
 
 dependencies {
+    api(projects.baseServices)
     api(projects.baseCompilerWorker)
     api(projects.buildOption)
     api(projects.buildProcessServices)
@@ -16,8 +17,8 @@ dependencies {
     api(projects.groovyCompilerWorker)
     api(projects.groovydocWorker)
     api(projects.javaCompilerWorker)
-    api(projects.jvmServices)
     api(projects.jvmCompilerWorker)
+    api(projects.processServices)
     api(projects.languageJava)
     api(projects.languageJvm)
     api(projects.platformBase)
@@ -32,8 +33,8 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.baseServices)
     implementation(projects.classloaders)
+    implementation(projects.jvmServices)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.logging)

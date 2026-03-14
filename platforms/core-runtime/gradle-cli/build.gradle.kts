@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
+    implementation(projects.processServices)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)

@@ -14,10 +14,10 @@ dependencies {
     api(projects.daemonServices)
     api(projects.enterpriseLogging)
     api(projects.fileCollections)
-    api(projects.jvmServices)
     api(projects.launcher)
     api(projects.modelCore)
     api(projects.problemsApi)
+    api(projects.processServices)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
@@ -29,6 +29,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.concurrent)
+    implementation(projects.processServicesApi)
     implementation(projects.dependencyManagement)
     implementation(projects.files)
     implementation(projects.hashing)
@@ -48,6 +49,7 @@ dependencies {
     integTestImplementation(projects.internalIntegTesting)
     integTestImplementation(testFixtures(projects.toolingApi))
     integTestImplementation(testFixtures(projects.core))
+    integTestImplementation(testFixtures(projects.processServices))
 
     // Dependencies of the integ test fixtures
     integTestImplementation(projects.buildOption)

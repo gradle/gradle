@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Public and internal 'core' Gradle APIs with implementation"
@@ -78,9 +79,8 @@ dependencies {
     api(projects.normalizationJava)
     api(projects.persistentCache)
     api(projects.problemsApi)
-    api(projects.processMemoryServices)
     api(projects.processServices)
-    api(projects.requestHandlerWorker)
+    api(projects.processServicesApi)
     api(projects.resources)
     api(projects.scopedPersistentCache)
     api(projects.serialization)
@@ -91,7 +91,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.versionedCache)
-    api(projects.workerMain)
 
     api(libs.asm)
     api(libs.asmTree)
@@ -100,20 +99,20 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
     api(libs.jsr305)
-    api(libs.nativePlatform)
 
     implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
     implementation(projects.daemonLogging)
     implementation(projects.inputTracking)
-    implementation(projects.io)
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
+    implementation(projects.processMemoryServices)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.coreFlowServicesApi) {
         because("DefaultBuildServicesRegistry has ordering dependency with FlowScope")
     }
     implementation(projects.projectFeaturesApi)
+    implementation(projects.workerProcessServices)
 
     implementation(libs.ant)
     implementation(libs.asmCommons)
@@ -124,12 +123,13 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovyJson)
     implementation(libs.groovyXml)
+    implementation(libs.nativePlatform)
     implementation(libs.slf4jApi)
     implementation(libs.tomlj) {
         // Used for its nullability annotations, not needed at runtime
         exclude("org.checkerframework", "checker-qual")
     }
-    implementation(libs.jnrConstants)
+
 
     compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")
@@ -146,6 +146,7 @@ dependencies {
     testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)
     testImplementation(projects.platformNative)
+    testImplementation(projects.io)
     testImplementation(projects.testingBase)
     testImplementation(libs.jsoup)
     testImplementation(libs.log4jToSlf4j)
@@ -244,6 +245,7 @@ dependencies {
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.baseDiagnostics))
+    testImplementation(testFixtures(projects.processServices))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.time))

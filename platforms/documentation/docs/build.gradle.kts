@@ -90,6 +90,10 @@ dependencies {
     docsTestRuntimeOnly(testLibs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    constraints {
+        testImplementation(testLibs.jettyWebsocket)
+    }
 }
 
 jvmCompile {

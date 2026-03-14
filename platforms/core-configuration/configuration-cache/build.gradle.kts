@@ -2,6 +2,7 @@ plugins {
     id("gradlebuild.distribution.implementation-kotlin")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
     id("gradlebuild.kotlin-experimental-contracts")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Configuration cache implementation"
@@ -26,6 +27,7 @@ dependencies {
     api(projects.coreSerializationCodecs)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.processServices)
     api(projects.dependencyManagement)
     api(projects.fileTemp)
     api(projects.graphSerialization)
@@ -118,6 +120,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.jacoco))
     integTestImplementation(testFixtures(projects.modelReflect))
+    integTestImplementation(testFixtures(projects.processServices))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")

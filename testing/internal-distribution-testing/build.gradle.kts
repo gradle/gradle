@@ -83,6 +83,10 @@ dependencies {
     compileOnly(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    constraints {
+        implementation(testLibs.jettyWebsocket)
+    }
 }
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {

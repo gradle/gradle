@@ -33,6 +33,7 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
+import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
@@ -52,7 +53,18 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
         if (startParameter.isUseEmptySettings() || !shouldApplyDevelocityPlugin(target)) {
             return PluginRequests.EMPTY;
         } else {
-            return PluginRequests.of(createDevelocityPluginRequest(startParameter.getDevelocityPluginVersion()));
+            String develocityPluginVersion = startParameter.getDevelocityPluginVersion();
+            boolean isDevelocityURLSpecified = !Strings.isNullOrEmpty(startParameter.getDevelocityUrl());
+            if (isDevelocityURLSpecified && develocityPluginVersion != null) {
+                // Validate that the version is at least 4.4.0
+                if (VersionNumber.parse(develocityPluginVersion).compareTo(VersionNumber.version(4, 4)) < 0) {
+                    throw new IllegalArgumentException(String.format(
+                        "The specified Develocity plugin version '%s' is not supported. Version 4.4.0 or higher is required when using a custom Develocity URL.",
+                        develocityPluginVersion
+                    ));
+                }
+            }
+            return PluginRequests.of(createDevelocityPluginRequest(develocityPluginVersion));
         }
     }
 

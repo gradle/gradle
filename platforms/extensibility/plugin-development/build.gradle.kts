@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Gradle plugin development plugins"
@@ -23,6 +24,8 @@ dependencies {
     api(libs.gson)
     api(libs.jspecify)
     api(libs.inject)
+
+    implementation(projects.processServicesApi)
 
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)

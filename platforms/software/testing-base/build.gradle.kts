@@ -29,6 +29,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.testingBaseInfrastructure)
     api(projects.time)
+    api(projects.workerProcessServices)
 
     api(libs.groovy)
     api(libs.guava)
@@ -36,6 +37,8 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.logging)
+    implementation(projects.processServices)
+    implementation(projects.processServicesApi)
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
     implementation(projects.modelCore)

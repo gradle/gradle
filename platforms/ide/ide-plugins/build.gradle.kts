@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Plugins that add support for generating IDE project files used for importing Gradle projects into IDEs"
@@ -40,7 +41,7 @@ dependencies {
     implementation(projects.dependencyManagement)
     implementation(projects.ear)
     implementation(projects.fileCollections)
-    implementation(projects.jvmServices)
+    implementation(projects.processServices)
     implementation(projects.languageJava)
     implementation(projects.modelCore)
     implementation(projects.pluginsGroovy)

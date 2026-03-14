@@ -38,6 +38,8 @@ dependencies {
 
     implementation(libs.kotlinCompilerEmbeddable)
 
+    implementation("org.gradle:kotlin-dsl-shared-runtime")
+
     compileOnly(libs.kotlinReflect)
 
     testImplementation(testFixtures(projects.kotlinDsl))

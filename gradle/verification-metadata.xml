@@ -139,6 +139,7 @@
             <trusting group="^org[.]gradle($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="31FAE244A81D64507B47182E1B2718089CE964B8" group="com.thoughtworks.qdox"/>
+         <trusted-key id="331224E1D7BE883D16E8A685825C06C827AF6B66" group="me.champeau.gradle"/>
          <trusted-key id="33FD4BFD33554634053D73C0C2148900BCD3C2AF" group="org.jetbrains" name="annotations"/>
          <trusted-key id="34441E504A937F43EB0DAEF96A65176A0FB1CD0B">
             <trusting group="org.apache.groovy"/>
@@ -178,10 +179,12 @@
          <trusted-key id="522CA055B326A636D833EF6A0551FD3684FCBBB7" group="org.apache.maven.resolver"/>
          <trusted-key id="53C935821AA6A755BD337DB53595395EB3D8E1BA" group="org.apache.logging.log4j"/>
          <trusted-key id="55ABBEF06CF6277A23B1D3A21993B355097C8B5A" group="org.lz4" name="lz4-java"/>
-         <trusted-key id="5989BAF76217B843D66BE55B2D0E1FB8FE4B68B4" group="org.eclipse.jetty"/>
          <trusted-key id="5B7F3605A8CE471A9CA8DB7EC84125C13BF6F2F2" group="^org[.]ajoberstar($|([.].*))" regex="true"/>
          <trusted-key id="5CE325996A35213326AE2C68912D2C0ECCDA55C0" group="com.google.errorprone" name="error_prone_annotations"/>
-         <trusted-key id="5DE533CB43DAF8BC3E372283E7AE839CD7C58886" group="org.eclipse.jetty"/>
+         <trusted-key id="5E7D42F58249A287BD7384DA25A73BFC746E1035">
+            <trusting group="net.sourceforge.cssparser"/>
+            <trusting group="net.sourceforge.htmlunit"/>
+         </trusted-key>
          <trusted-key id="5F55943E13D49059D3F342777186B06E1ED139E7" group="org.apache.lucene"/>
          <trusted-key id="5F6C2148AD4911FE308110E5F0D0AE433308B042" group="io.gitlab.arturbosch.detekt"/>
          <trusted-key id="600EA202B1EC682F4A788E5AAC7A514BC9F9BB70" group="io.opencensus"/>
@@ -191,6 +194,7 @@
          </trusted-key>
          <trusted-key id="60C6700E08F02B9EB6F4A46745145F826CF4BF98" group="com.googlecode.plist" name="dd-plist"/>
          <trusted-key id="635EE627345F3C1DD422B2E207D3516820BCF6B1" group="com.github.ben-manes.caffeine" name="caffeine"/>
+         <trusted-key id="64EE0DF33CBEB345471E1233824B40F0D3D8E241" group="io.airlift" name="aircompressor"/>
          <trusted-key id="66CA61EA0FC7E9EA1216F83396B88EACD463B90B" group="com.diffplug.spotless"/>
          <trusted-key id="694621A7227D8D5289699830ABE9F3126BB741C1">
             <trusting group="com.google.guava"/>
@@ -242,6 +246,7 @@
          <trusted-key id="8E3A02905A1AE67E7B0F9ACD3967D4EDA591B991" group="org.jetbrains.kotlinx" name="kotlinx-html-jvm"/>
          <trusted-key id="98465301A4939C0279F2E847D89D05374952262B" group="org.jetbrains.dokka"/>
          <trusted-key id="9857C388D7D1D9D031274CD0A5DEF5A76F94A471" group="com.github.spotbugs"/>
+         <trusted-key id="9B5D41D28D8231A341B6713BC8C127A0EC7665D6" group="org.jctools"/>
          <trusted-key id="9C60C6B3A5A9DF8FEDD299D65BE0BA8CB80602AE" group="org.apache.ivy"/>
          <trusted-key id="9E84765A7AA3E3D3D5598A408E3F0DE7AE354651" group="^com[.]squareup($|([.].*))" regex="true"/>
          <trusted-key id="A2570288E10932263E8326CBAA49C633B4734832">
@@ -309,12 +314,14 @@
          <trusted-key id="CF4B3A3F53BEF9A2CE2CBFB895962C5E716C39AA" group="com.autonomousapps"/>
          <trusted-key id="CFBE6E7934FB211224EE1C2B0C0A9468268C79AE" group="org.jetbrains"/>
          <trusted-key id="D40633BFD9FDB773C896E9025DFB46C505B694FE" group="com.github.bbottema"/>
+         <trusted-key id="D477D51812E692011DB11E66A6EA2E2BF22E0543" group="io.github.java-diff-utils"/>
          <trusted-key id="D54A395B5CF3F86EB45F6E426B1B008864323B92">
             <trusting group="org.antlr"/>
             <trusting group="org.antlr" name="antlr4-runtime"/>
          </trusted-key>
          <trusted-key id="D5FC4D8E6FF704C573819555BF7CC7DEFE9389D7" group="com.github.docker-java"/>
          <trusted-key id="D9AA7402BA75F78720D975211D185615D0A84648" group="net.sf.saxon" name="Saxon-HE"/>
+         <trusted-key id="DB0763A5293A6E0F8B150EE7F855AE84BE4DB43D" group="org.seleniumhq.selenium"/>
          <trusted-key id="DB467D22A2666D061FDD120DB5BD4591883D638C" group="com.tngtech.archunit"/>
          <trusted-key id="DBD744ACE7ADE6AA50DD591F66B50994442D2D40" group="^com[.]squareup($|([.].*))" regex="true"/>
          <trusted-key id="DC98224C6421A7A5BB87F346ED2378CD09A08CDE" group="org.jline"/>
@@ -323,6 +330,7 @@
             <trusting group="org.apache-extras.beanshell"/>
          </trusted-key>
          <trusted-key id="E3A9F95079E84CE201F7CF60BEDE11EAF1164480" group="org.hamcrest"/>
+         <trusted-key id="E5B8247AF8A619A28F90FDFC9FF25980F5BA7E4F" group="xalan"/>
          <trusted-key id="E5C3B1929191DF06136CCB2B164779204E106A76" group="org.javassist" name="javassist"/>
          <trusted-key id="E62231331BCA7E1F292C9B88C1B12A5D99C0729D" group="org.jetbrains"/>
          <trusted-key id="E77417AC194160A3FABD04969A259C7EE636C5ED">
@@ -357,6 +365,8 @@
          <trusted-key id="F254B35617DC255D9344BCFA873A8E86B4372146">
             <trusting group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
             <trusting group="^org[.]codehaus($|([.].*))" regex="true"/>
+            <trusting group="org.eclipse.jetty" />
+            <trusting group="org.eclipse.jetty.websocket" />
          </trusted-key>
          <trusted-key id="F3184BCD55F4D016E30D4C9BF42E87F9665015C9" group="org.jsoup" name="jsoup"/>
          <trusted-key id="F3A90E6B10E809F851AB4FC54CC08E7F47C3EC76" group="com.zaxxer" name="HikariCP"/>
@@ -383,11 +393,7 @@
             <trusting group="org.opentest4j"/>
             <trusting group="^org[.]junit($|([.].*))" regex="true"/>
          </trusted-key>
-         <trusted-key id="FF986D345395D4AD1DC48137BB6FD5AD91D01857" group="org.seleniumhq.selenium"/>
          <trusted-key id="FFFD810FFFDE203D5FA27263BEABCFBEE059E4E5" group="com.github.siom79.japicmp"/>
-         <trusted-key id="331224E1D7BE883D16E8A685825C06C827AF6B66" group="me.champeau.gradle"/>
-         <trusted-key id="D477D51812E692011DB11E66A6EA2E2BF22E0543" group="io.github.java-diff-utils"/>
-         <trusted-key id="9B5D41D28D8231A341B6713BC8C127A0EC7665D6" group="org.jctools"/>
       </trusted-keys>
    </configuration>
    <components>
@@ -778,11 +784,6 @@
             <sha256 value="7de9b7ade957c6a1996e9c3d0e1e4d1e1840c081ebf16bbd3c2a6a5b05b88891" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="io.airlift" name="aircompressor" version="0.27">
-         <artifact name="aircompressor-0.27.jar">
-            <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
-         </artifact>
-      </component>
       <component group="io.airlift" name="slice" version="0.29">
          <artifact name="slice-0.29.jar">
             <pgp value="C328250FE23A2420814521EC0EB69F76FD171538"/>
@@ -958,11 +959,6 @@
             <sha256 value="28026d1b450cdc532c6a92264658d29b9b57a006cfbfb8c9cac2b098fd93e772" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.sourceforge.cssparser" name="cssparser" version="0.9.13">
-         <artifact name="cssparser-0.9.13.jar">
-            <pgp value="EEF3227F5F93C6C2A750730F0A4F46866E0A8DF9"/>
-         </artifact>
-      </component>
       <component group="net.sourceforge.nekohtml" name="nekohtml" version="1.9.22">
          <artifact name="nekohtml-1.9.22.jar">
             <pgp value="3CAC6E7DC43343FF75ECBAC27E6EB7BB6A7712DC"/>
@@ -1058,11 +1054,6 @@
             <pgp value="3A4D86C56CA99373B6D8953DBE84D764623A3644"/>
          </artifact>
       </component>
-      <component group="org.codehaus.gpars" name="gpars" version="1.2.1">
-         <artifact name="gpars-1.2.1.jar">
-            <sha256 value="f9e08bf964f34d129344404c01666276ec43c6704dd74e8d4ca32dcd1d2fb4a8" origin="Key couldn't be downloaded"/>
-         </artifact>
-      </component>
       <component group="org.codehaus.groovy.modules.http-builder" name="http-builder" version="0.7.2">
          <artifact name="http-builder-0.7.2.jar">
             <sha256 value="cbd0fa43ebc62cb548e17f78b92b745220d9b1904f255c5916ef5a592b11e090" reason="Artifact is not signed"/>
@@ -1121,11 +1112,6 @@
       <component group="org.eclipse.jdt.core.compiler" name="ecj" version="4.6.1">
          <artifact name="ecj-4.6.1.jar">
             <pgp value="45DAD8AED069092BC7BE9843ECA081A9790D4FC4"/>
-         </artifact>
-      </component>
-      <component group="org.eclipse.jetty" name="jetty-websocket" version="8.1.14.v20131031">
-         <artifact name="jetty-websocket-8.1.14.v20131031.jar">
-            <pgp value="5DE533CB43DAF8BC3E372283E7AE839CD7C58886"/>
          </artifact>
       </component>
       <component group="org.freemarker" name="freemarker" version="2.3.32">
@@ -1191,11 +1177,6 @@
       <component group="org.iq80.snappy" name="snappy" version="0.5">
          <artifact name="snappy-0.5.jar">
             <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
-         </artifact>
-      </component>
-      <component group="org.javassist" name="javassist" version="3.30.2-GA">
-         <artifact name="javassist-3.30.2-GA.jar">
-            <sha256 value="eba37290994b5e4868f3af98ff113f6244a6b099385d9ad46881307d3cb01aaf" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.jcommander" name="jcommander" version="1.85">

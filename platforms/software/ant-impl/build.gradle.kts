@@ -1,5 +1,8 @@
 plugins {
-    id("gradlebuild.distribution.implementation-java")
+    // We need to use api-java here because we have public api classes (specifically AntTarget) in this project
+    // That class is here because it depends on core for ConventionTask.  If ConventionTask is pulled up out of core,
+    // presumably AntTarget could then move up to ant-api and this project could apply implementation-java instead.
+    id("gradlebuild.distribution.api-java")
 }
 
 description = "Implementation of Gradle's Ant integration"

@@ -449,6 +449,14 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec implemen
         pluginAppliedOnce()
     }
 
+    def "fails to auto-apply plugin when develocity URL is configured via CLI but plugin version is set to incompatible version"() {
+        when:
+        fails("--develocity-url", "https://develocity.example.com", "--develocity-plugin-version", '4.3.0', 'dummy')
+
+        then:
+        failure.assertHasDescription("The specified Develocity plugin version '4.3.0' is not supported. Version 4.4.0 or higher is required when using a custom Develocity URL.")
+    }
+
 
     private void runBuildWithScanRequest(String... additionalArgs) {
         List<String> allArgs = ["--${BuildScanOption.LONG_OPTION}", "-s"]

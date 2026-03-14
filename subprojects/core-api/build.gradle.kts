@@ -17,6 +17,7 @@ dependencies {
     api(projects.files)
     api(projects.resources)
     api(projects.persistentCache)
+    api(projects.processServicesApi)
     api(projects.declarativeDslApi)
     api(libs.jspecify)
     api(libs.groovy)

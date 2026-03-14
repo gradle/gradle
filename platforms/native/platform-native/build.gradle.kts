@@ -21,6 +21,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.softwareDiagnostics)
     api(projects.stdlibJavaExtensions)
+    api(projects.processServices)
     api(projects.workers)
 
     api(libs.jspecify)
@@ -32,6 +33,7 @@ dependencies {
     implementation(projects.enterpriseLogging)
     implementation(projects.io)
     implementation(projects.loggingApi)
+    implementation(projects.processServicesApi)
     implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
