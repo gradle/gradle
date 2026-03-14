@@ -55,9 +55,7 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.process.ExecOperations;
-import org.gradle.process.internal.DefaultExecOperations;
-import org.gradle.process.internal.ExecFactory;
+import org.gradle.process.internal.services.ProcessWorkerSharedProjectScopeServices;
 
 import java.io.File;
 
@@ -74,6 +72,7 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     void configure(ServiceRegistration registration) {
         registration.add(PropertyFactory.class, DefaultPropertyFactory.class);
         registration.add(FilePropertyFactory.class, FileFactory.class, DefaultFilePropertyFactory.class);
+        registration.addProvider(new ProcessWorkerSharedProjectScopeServices());
     }
 
     @Provides
@@ -136,11 +135,6 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     @Provides
     protected ArchiveOperations createArchiveOperations(Instantiator instantiator, FileOperations fileOperations) {
         return instantiator.newInstance(DefaultArchiveOperations.class, fileOperations);
-    }
-
-    @Provides
-    protected ExecOperations createExecOperations(Instantiator instantiator, ExecFactory execFactory) {
-        return instantiator.newInstance(DefaultExecOperations.class, execFactory);
     }
 
     @Provides

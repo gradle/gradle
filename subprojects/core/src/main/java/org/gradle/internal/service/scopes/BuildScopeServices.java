@@ -30,7 +30,7 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.ExternalProcessStartedListener;
+
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -226,7 +226,7 @@ import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.jvm.JavaModuleDetector;
+
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.management.ToolchainManagementInternal;
@@ -254,10 +254,7 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
-import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
-import org.gradle.process.internal.DefaultExecSpecFactory;
-import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider;
@@ -288,7 +285,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
         registration.addProvider(new BuildCacheServices());
 
-        registration.add(ExecOperations.class, DefaultExecOperations.class);
         registration.add(FileOperations.class, DefaultFileOperations.class);
         registration.add(FileSystemOperations.class, DefaultFileSystemOperations.class);
         registration.add(ArchiveOperations.class, DefaultArchiveOperations.class);
@@ -390,18 +386,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ExecFactory decorateExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector, ListenerManager listenerManager) {
-        return parent.forContext()
-            .withFileResolver(fileResolver)
-            .withFileCollectionFactory(fileCollectionFactory)
-            .withInstantiator(instantiator)
-            .withObjectFactory(objectFactory)
-            .withJavaModuleDetector(javaModuleDetector)
-            .withExternalProcessStartedListener(listenerManager.getBroadcaster(ExternalProcessStartedListener.class))
-            .build();
-    }
-
-    @Provides
     protected PublicBuildPath createPublicBuildPath(BuildState buildState) {
         return new DefaultPublicBuildPath(buildState.getIdentityPath());
     }
@@ -464,11 +448,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             new DefaultExecOperations(execFactory.forContext().withoutExternalProcessStartedListener().build()),
             services
         );
-    }
-
-    @Provides
-    protected ExecSpecFactory createExecSpecFactory(ExecActionFactory execActionFactory) {
-        return new DefaultExecSpecFactory(execActionFactory);
     }
 
     @Provides
