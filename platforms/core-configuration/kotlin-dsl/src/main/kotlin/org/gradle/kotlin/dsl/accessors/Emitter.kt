@@ -30,6 +30,7 @@ import org.gradle.kotlin.dsl.support.bytecode.closeHeader
 import org.gradle.kotlin.dsl.support.bytecode.endKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
+import org.jetbrains.kotlin.lexer.KotlinLexer
 import java.io.File
 
 
@@ -216,7 +217,7 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(uniqueAccessorsFor(containerElements).map(Accessor::ForContainerElement))
 
             val configurationNames = configurations.asSequence().mapNotNull { entry ->
-                AccessorNameSpec.createOrNull(entry.target)?.let { accessorNameSpec -> entry.map { accessorNameSpec } }
+                AccessorNameSpec.createOrNull(lexer, entry.target)?.let { accessorNameSpec -> entry.map { accessorNameSpec } }
             }
             yieldAll(
                 uniqueAccessorsFrom(
@@ -226,9 +227,9 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(configurationNames.map(Accessor::ForConfiguration))
 
             yieldAll(uniqueAccessorsFor(modelDefaults).map(Accessor::ForModelDefault))
-            yieldAll(uniqueProjectFeatureEntries(projectFeatureEntries.mapNotNull(::typedProjectType)).map(Accessor::ForProjectType))
-            yieldAll(uniqueContainerElementFactories(containerElementFactories.mapNotNull(::typedContainerElementFactory)).map(Accessor::ForContainerElementFactory))
-            yieldAll(nestedModelEntries.mapNotNull(::typedNestedModel).map(Accessor::ForDeclarativeNestedModel))
+            yieldAll(uniqueProjectFeatureEntries(projectFeatureEntries.mapNotNull { typedProjectType(it, lexer) }).map(Accessor::ForProjectType))
+            yieldAll(uniqueContainerElementFactories(containerElementFactories.mapNotNull { typedContainerElementFactory(it, lexer) }).map(Accessor::ForContainerElementFactory))
+            yieldAll(nestedModelEntries.mapNotNull { typedNestedModel(it, lexer) }.map(Accessor::ForDeclarativeNestedModel))
         }
     }
 }
@@ -242,22 +243,22 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
         accessibleType<Configuration>()
     )
 
-private fun typedProjectType(projectFeatureEntry: ProjectFeatureEntry<TypeAccessibility>) : TypedProjectFeatureEntry? {
-    val name = AccessorNameSpec.createOrNull(projectFeatureEntry.featureName)
+private fun typedProjectType(projectFeatureEntry: ProjectFeatureEntry<TypeAccessibility>, lexer: KotlinLexer): TypedProjectFeatureEntry? {
+    val name = AccessorNameSpec.createOrNull(lexer, projectFeatureEntry.featureName)
     return name?.let {
         TypedProjectFeatureEntry(name, projectFeatureEntry.ownDefinitionType, projectFeatureEntry.targetDefinitionType)
     }
 }
 
-private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>) : TypedContainerElementFactoryEntry? {
-    val name = AccessorNameSpec.createOrNull(containerElementFactoryEntry.factoryName)
+private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>, lexer: KotlinLexer): TypedContainerElementFactoryEntry? {
+    val name = AccessorNameSpec.createOrNull(lexer, containerElementFactoryEntry.factoryName)
     return name?.let {
         TypedContainerElementFactoryEntry(name, containerElementFactoryEntry.containerReceiverType, containerElementFactoryEntry.publicType)
     }
 }
 
-private fun typedNestedModel(nestedModelEntry: NestedModelEntry<TypeAccessibility>) : TypedAccessorSpec? {
-    val name = AccessorNameSpec.createOrNull(nestedModelEntry.nestedModelPropertyName)
+private fun typedNestedModel(nestedModelEntry: NestedModelEntry<TypeAccessibility>, lexer: KotlinLexer): TypedAccessorSpec? {
+    val name = AccessorNameSpec.createOrNull(lexer, nestedModelEntry.nestedModelPropertyName)
     return name?.let {
         TypedAccessorSpec(
             nestedModelEntry.ownerType as? TypeAccessibility.Accessible ?: return null,
