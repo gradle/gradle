@@ -78,6 +78,7 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
 import java.util.Optional
+import java.util.regex.Pattern
 import javax.inject.Inject
 
 
@@ -276,7 +277,7 @@ object AccessorFormats {
 
     private
     val valFunOrClass by lazy {
-        "^(val|fun|class) ".toRegex(RegexOption.MULTILINE).toPattern()
+        Pattern.compile("^(val|fun|class) ", Pattern.MULTILINE)
     }
 }
 
