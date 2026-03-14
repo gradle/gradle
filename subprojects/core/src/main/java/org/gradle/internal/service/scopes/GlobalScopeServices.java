@@ -257,8 +257,13 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Provides
-    InstantiatorFactory createInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, List<AbstractOutputPropertyAnnotationHandler> outputHandlers) {
-        return new DefaultInstantiatorFactory(cacheFactory, injectHandlers, new OutputPropertyRoleAnnotationHandler(outputHandlers));
+    InstantiatorFactory createInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, List<AbstractOutputPropertyAnnotationHandler> outputHandlers, ExecutorFactory executorFactory) {
+        DefaultInstantiatorFactory factory = new DefaultInstantiatorFactory(cacheFactory, injectHandlers, new OutputPropertyRoleAnnotationHandler(outputHandlers));
+        if (environment.isLongLivingProcess()) {
+            int cores = Runtime.getRuntime().availableProcessors();
+            factory.warmUpDecoratedClasses(executorFactory.create("Decorated class warm-up", cores));
+        }
+        return factory;
     }
 
     @Provides

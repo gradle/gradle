@@ -37,6 +37,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 
 @NullMarked
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
@@ -48,6 +49,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final PropertyRoleAnnotationHandler roleHandler;
     private final DefaultInstantiationScheme injectOnlyScheme;
     private final DefaultInstantiationScheme injectOnlyLenientScheme;
+    private final ClassGenerator decoratedGenerator;
     private final DefaultInstantiationScheme decoratingScheme;
     private final DefaultInstantiationScheme decoratingLenientScheme;
     private final ManagedFactory managedFactory;
@@ -58,7 +60,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         this.roleHandler = roleAnnotationHandler;
         this.defaultServices = defaultServiceRegistry();
         ClassGenerator injectOnlyGenerator = AsmBackedClassGenerator.injectOnly(injectHandlers, roleAnnotationHandler, ImmutableSet.of(), cacheFactory, MANAGED_FACTORY_ID);
-        ClassGenerator decoratedGenerator = AsmBackedClassGenerator.decorateAndInject(injectHandlers, roleAnnotationHandler, ImmutableSet.of(), cacheFactory, MANAGED_FACTORY_ID);
+        this.decoratedGenerator = AsmBackedClassGenerator.decorateAndInject(injectHandlers, roleAnnotationHandler, ImmutableSet.of(), cacheFactory, MANAGED_FACTORY_ID);
         ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnlyGenerator, cacheFactory.newClassCache());
         ConstructorSelector decoratedJsr330Selector = new Jsr330ConstructorSelector(decoratedGenerator, cacheFactory.newClassCache());
         ConstructorSelector injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnlyGenerator);
@@ -151,6 +153,14 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     @Override
     public ManagedFactory getManagedFactory() {
         return managedFactory;
+    }
+
+    /**
+     * Pre-generates decorated classes in parallel using the given executor.
+     * Fire-and-forget — populates the shared cache so the first build is faster.
+     */
+    public void warmUpDecoratedClasses(Executor executor) {
+        DecoratedClassWarmUp.start(decoratedGenerator, executor);
     }
 
     private void assertKnownAnnotation(Class<? extends Annotation> annotation) {
