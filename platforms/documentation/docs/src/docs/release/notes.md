@@ -14,17 +14,24 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!--
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
-
- THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
-
 We would like to thank the following community members for their contributions to this release of Gradle:
 [/dev/mataha](https://github.com/mataha),
+[Adam](https://github.com/aSemy),
+[Attila Kelemen](https://github.com/kelemen),
+[Benedikt Ritter](https://github.com/britter),
+[Björn Kautler](https://github.com/Vampire),
+[Caro Silva Rode](https://github.com/budindepunk),
+[CHANHAN](https://github.com/chanani),
+[Eng Zer Jun](https://github.com/Juneezee),
+[Madalin Valceleanu](https://github.com/vmadalin),
+[Markus Gaisbauer](https://github.com/quijote),
+[Philip Wedemann](https://github.com/hfhbd),
+[ploober](https://github.com/ploober),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Rohit Anand](https://github.com/R0h1tAnand),
+[Suvrat Acharya](https://github.com/Suvrat1629),
 [Ujwal Suresh Vanjare](https://github.com/usv240),
-[Suvrat Acharya](https://github.com/Suvrat1629)
+[Victor Merkulov](https://github.com/urdak).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -38,49 +45,18 @@ Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gr
 
 See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+### Core plugin and plugin authoring enhancements
 
-<!--
+Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
-================== TEMPLATE ==============================
-
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the use case or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button. 
-For Wistia, contact Gradle's Video Team.
-@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
-@wistia(Summary,a5izazvgit)@
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
-
-## New features and usability improvements
-
-### Type-safe Accessors for Precompiled Kotlin Settings Plugins
+#### Type-safe accessors for precompiled Kotlin Settings plugins
 
 Gradle now generates type-safe Kotlin accessors for [precompiled convention Settings plugins](userguide/pre_compiled_script_plugin_advanced.html) (`*.settings.gradle.kts`).
+
 Previously, when writing a convention plugin for `settings.gradle.kts`, you often had to use string-based APIs to configure extensions or plugins.
 Now, as long as the `kotlin-dsl` plugin is applied, Gradle generates accessors that provide IDE autocompletion and compile-time checking for your settings scripts, matching the experience already available for Project-level convention plugins.
 
@@ -93,56 +69,14 @@ plugins {
 }
 ```
 
-### Cleaner `--help` output
+### Build authoring improvements
 
-The output of `gradle --help` has been refreshed to be clearer and more consistent. Changes include:
+Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
-- Options are now grouped into labeled sections
-- Several options have moved to more fitting categories
-- Descriptions were adjusted to follow a more consistent phrasing
-- The output now respects the width of the terminal (if present), wrapping text as needed to avoid horizontal scrolling
+#### Domain Object Collections can be made immutable
 
-Here is a snapshot of the updated output printed to a terminal with 80 columns:
+Plugin and build authors can now lock domain object collections to prevent further modifications using the new `disallowChanges()` method:
 
-```text
-To see help contextual to the project, use gradle help
-
-To see more detail about a task, run gradle help --task <task>
-
-To see a list of available tasks, run gradle tasks
-
-USAGE: gradle [option...] [task...]
-
---                                   Signals the end of built-in options. Parses
-                                     subsequent parameters as tasks or task
-                                     options only.
-
-Help:
-  --help, -?, -h                     Shows this help message.
-  --show-version, -V                 Prints version information and continues.
-  --version, -v                      Prints version information and exits.
-
-Logging:
-  --console                          Specifies which type of console output to
-                                     generate. Supported values are 'plain',
-                                     'colored', 'auto' (default), 'rich', or
-                                     'verbose'.
-  --console-unicode                  Specifies which character types are allowed
-                                     in the console output. Supported values are
-                                     'auto' (default), 'disable', or 'enable'.
-  --debug, -d                        Sets log level to debug. Includes the
-                                     normal stacktrace.
-  --full-stacktrace, -S              Prints the full (very verbose) stacktrace
-                                     for all exceptions.
-  --info, -i                         Sets the log level to info.
-  --quiet, -q                        Logs errors only.
-  --stacktrace, -s                   Prints the stacktrace for all exceptions.
-  --warn, -w                         Sets the log level to warn.
-```
-
-### Domain Object Collections can be made immutable
-
-Plugin and build authors can now lock domain object collections to prevent further modifications using the new `disallowChanges()` method.
 - Once `disallowChanges()` is called, elements can no longer be added to or removed from the collection.
 - Invoking this method does not force the realization of lazy items previously added to the collection. 
 - This lock applies only to the collection itself. Individual objects within the collection can still be modified.
@@ -156,11 +90,19 @@ myCollection.add(MyType("test"))
 
 myCollection.disallowChanges()    // the collection is now immutable
 main.setFoo("bar")                // individual elements can still be modified
+
 myCollection.add(MyType("other")) // this will fail
 myCollection.remove(main)         // this will fail
 ```
 
-### Explicit bind address for client-daemon and cross-daemon communication
+#### GitHub permalinks in Gradle Wrapper and application start scripts
+
+Gradle Wrapper scripts and application start scripts now include links to the GitHub source templates they were generated from. 
+
+Previously, these links always pointed to the latest template versions rather than the version used to generate the script. 
+In this release, scripts link to the exact template version they were generated from.
+
+#### Explicit bind address for client-daemon and cross-daemon communication
 
 Gradle now supports the `GRADLE_DAEMON_BIND_ADDRESS` environment variable to explicitly specify the network address used for client-daemon and cross-daemon communication.
 
@@ -172,23 +114,16 @@ Setting `GRADLE_DAEMON_BIND_ADDRESS` to an IP address or hostname will skip auto
 GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
 ```
 
-### GitHub Permalinks in wrapper & start scripts
+### Tooling and IDE integration
 
-Gradle Wrapper scripts and application start scripts include links to the GitHub source templates they were generated from.
-Previously, these links always pointed to the latest template versions, which could drift out of sync with the actual generated scripts as templates evolved. 
-This has now been fixed: scripts always link to the exact template version they were generated from.
+Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
 
-## Tooling integration improvements
+#### Tooling integration improvements
 
 Tooling API clients can now directly access Gradle help and version information the same way as the Gradle CLI.
 This allows IDEs and other tools to provide a more consistent user experience when interacting with Gradle.
+
 For example, In IntelliJ IDEA users will be able to run `--help` and `--version` via the `Execute Gradle task` toolbar action.
-
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
 
 ## Promoted features
 
@@ -196,10 +131,6 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
 
 The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
