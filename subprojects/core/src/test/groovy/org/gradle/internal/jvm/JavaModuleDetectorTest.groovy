@@ -31,7 +31,7 @@ class JavaModuleDetectorTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(JavaModuleDetectorTest)
 
     TestFileContentCacheFactory cacheFactory = new TestFileContentCacheFactory()
-    JavaModuleDetector moduleDetector = new JavaModuleDetector(cacheFactory, TestFiles.fileCollectionFactory())
+    JavaModuleDetector moduleDetector = new DefaultJavaModuleDetector(cacheFactory, TestFiles.fileCollectionFactory())
 
     def "detects modules on classpath"() {
         def path = path('lib.jar', 'module.jar', 'classes', 'classes-module', 'automaticModule.jar', 'mrjarModule.jar', 'automaticLateManifestModule.jar')

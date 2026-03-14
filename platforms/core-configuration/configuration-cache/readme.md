@@ -42,7 +42,7 @@ Examples of unsupported state include platform types like `java.lang.Thread` or 
 See [`UnsupportedTypesCodecs.kt`](../../../platforms/core-configuration/core-serialization-codecs/src/main/kotlin/org/gradle/internal/serialize/codecs/core/UnsupportedTypesCodecs.kt) for more details.
 
 Many problems that appear during configuration time before CC-store are also deferrable.
-For instance, we detect when user code starts an [external process](../../../subprojects/core/src/main/java/org/gradle/api/internal/ExternalProcessStartedListener.java)
+For instance, we detect when user code starts an [external process](../../../platforms/core-runtime/process-services/src/main/java/org/gradle/api/internal/ExternalProcessStartedListener.java)
 or uses an [unsupported build listener](https://github.com/gradle/gradle/blob/89da055f53cfe9be784f616abf0dfa0f4a3ef065/platforms/core-configuration/configuration-cache/src/main/kotlin/org/gradle/internal/cc/impl/ConfigurationCacheState.kt#L937-L949).
 
 This list is non-exhaustive, follow the calls to [`ProblemsListener.onProblem()`](https://github.com/gradle/gradle/blob/71e0b98ed84a392933c54a14a817e9609acd0d6f/platforms/core-configuration/configuration-problems-base/src/main/kotlin/org/gradle/internal/configuration/problems/ProblemsListener.kt#L24) to discover the rest.
