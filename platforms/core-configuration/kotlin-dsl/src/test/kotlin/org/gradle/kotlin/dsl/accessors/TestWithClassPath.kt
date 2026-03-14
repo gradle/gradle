@@ -9,7 +9,7 @@ import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.beginClass
 import org.gradle.kotlin.dsl.support.bytecode.endClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
-import org.gradle.kotlin.dsl.support.zipTo
+import org.gradle.kotlin.dsl.fixtures.zipTo
 
 import org.objectweb.asm.Opcodes.ACC_ABSTRACT
 import org.objectweb.asm.Opcodes.ACC_INTERFACE
