@@ -558,6 +558,158 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
+    def 'can declare and configure a project feature that binds to multiple types with the same name'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeaturePluginThatBindsToMultipleTargets()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testProjectType {
+                id = "test"
+                foo {
+                    bar = "foo"
+                    feature {
+                        text = "foo"
+                        fizz {
+                            buzz = "foo-baz"
+                        }
+                    }
+                }
+                bar {
+                    baz = "bar"
+                    feature {
+                        text = "bar"
+                        fizz {
+                            buzz = "bar-baz"
+                            }
+                    }
+                }
+            }
+        """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printFeatureDefinition1Configuration")
+
+        then:
+        outputContains("definition text = foo")
+        outputContains("definition fizz.buzz = foo-baz")
+
+        when:
+        run(":printFeatureDefinition2Configuration")
+
+        then:
+        outputContains("definition text = bar")
+        outputContains("definition fizz.buzz = bar-baz")
+
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
+    }
+
+    def "can declare and configure a custom feature that targets an element in a NamedDomainObjectContainer<Definition>"() {
+        given:
+        PluginBuilder pluginBuilder = withProjectTypeAndFeatureThatBindsToNdocElement()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+        testProjectType {
+                sources {
+                    ${registerNdocElement(currentDsl(), "source", "main")} {
+                        sourceDir = "src/main/java"
+                        sourceFeature {
+                            text = "active"
+                            fizz {
+                                buzz = "baz"
+                            }
+                        }
+                    }
+                }
+            }
+        """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printSourceFeatureDefinitionConfiguration")
+
+        then:
+        outputContains("definition text = active")
+        outputContains("Binding SourceFeatureDefinition")
+    }
+
+    def "can declare and configure a custom feature that targets a Definition in a deeply nested named domain object container"() {
+        given:
+        PluginBuilder pluginBuilder = withProjectTypeAndFeatureThatBindsToDeeplyNestedNdocElement()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testProjectType {
+                group {
+                    sources {
+                        ${registerNdocElement(currentDsl(), "source", "main")} {
+                            sourceDir = "src/main/java"
+                            sourceFeature {
+                                text = "active"
+                                fizz {
+                                    buzz = "baz"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printSourceFeatureDefinitionConfiguration")
+
+        then:
+        outputContains("definition text = active")
+        outputContains("Binding SourceFeatureDefinition")
+    }
+
+    def "can declare and configure a custom feature that targets a Definition nested deeply within a named domain object container element"() {
+        given:
+        PluginBuilder pluginBuilder = withProjectTypeAndFeatureThatBindsToDefinitionNestedInNdoc()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testProjectType {
+                sources {
+                    ${registerNdocElement(currentDsl(), "source", "main")} {
+                        sourceDir = "src/main/java"
+                        group {
+                            groupFeature {
+                                text = "main"
+                                fizz {
+                                    buzz = "baz"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printGroupFeatureDefinitionConfiguration")
+
+        then:
+        outputContains("definition text = main")
+        outputContains("Binding GroupFeatureDefinition")
+    }
+
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectFeature() {
         return """
             testProjectType {
@@ -626,5 +778,9 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         } else {
             failure.assertHasCause(expectedMessage)
         }
+    }
+
+    static String registerNdocElement(GradleDsl dsl, String elementType, String name) {
+        return dsl == GradleDsl.DECLARATIVE ? """${elementType}("${name}")""" : """register("${name}")"""
     }
 }

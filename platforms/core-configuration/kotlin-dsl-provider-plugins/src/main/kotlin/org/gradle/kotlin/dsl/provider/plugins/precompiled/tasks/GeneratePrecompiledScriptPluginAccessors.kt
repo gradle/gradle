@@ -161,26 +161,23 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
         recreateTaskDirectories()
 
-        generateProjectScriptPluginsAccessors()
-
-        generateSettingsScriptPluginsAccessors()
-    }
-
-    private fun generateProjectScriptPluginsAccessors() {
-        val projectScriptPlugins = selectProjectScriptPlugins()
-        if (projectScriptPlugins.isNotEmpty()) {
-            asyncIOScopeFactory.newScope().useToRun {
-                generateTypeSafeAccessorsForProject(projectScriptPlugins)
-            }
+        asyncIOScopeFactory.newScope().useToRun {
+            generateProjectScriptPluginsAccessors()
+            generateSettingsScriptPluginsAccessors()
         }
     }
 
-    private fun generateSettingsScriptPluginsAccessors() {
+    private fun IO.generateProjectScriptPluginsAccessors() {
+        val projectScriptPlugins = selectProjectScriptPlugins()
+        if (projectScriptPlugins.isNotEmpty()) {
+            generateTypeSafeAccessorsForProject(projectScriptPlugins)
+        }
+    }
+
+    private fun IO.generateSettingsScriptPluginsAccessors() {
         val settingsScriptPlugins = selectSettingsScriptPlugins()
         if (settingsScriptPlugins.isNotEmpty()) {
-            asyncIOScopeFactory.newScope().useToRun {
-                generateTypeSafeAccessorsForSettings(settingsScriptPlugins)
-            }
+            generateTypeSafeAccessorsForSettings(settingsScriptPlugins)
         }
     }
 

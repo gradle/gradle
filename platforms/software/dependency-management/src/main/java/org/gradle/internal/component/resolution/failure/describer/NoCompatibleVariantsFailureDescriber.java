@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.internal.component.model.AttributeDescriberSelector;
@@ -28,6 +29,8 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.exceptions.StyledException.style;
 
@@ -60,12 +63,27 @@ public abstract class NoCompatibleVariantsFailureDescriber extends AbstractResol
 
     private String buildFailureMsg(StyledAttributeDescriber describer, NoCompatibleVariantsFailure failure, FailureSubType failureSubType) {
         TreeFormatter formatter = new TreeFormatter();
-        String targetVariantText = style(StyledTextOutput.Style.Info, failure.describeRequestTarget());
+        String styedComponentName = style(StyledTextOutput.Style.Info, failure.describeRequestTarget());
         if (failure.getRequestedAttributes().isEmpty()) {
-            formatter.node("Unable to find a matching variant of " + targetVariantText);
+            formatter.node("Unable to find a matching variant of " + styedComponentName);
         } else {
-            formatter.node("No matching variant of " + targetVariantText + " was found. The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap()) + " but:");
+            String requestTarget = styedComponentName;
+            Set<CapabilitySelector> selectors = failure.getCapabilitySelectors();
+            if (selectors.size() == 1) {
+                CapabilitySelector selector = selectors.iterator().next();
+                requestTarget += " with capability " + style(StyledTextOutput.Style.Info, selector.getDisplayName());
+            } else if (selectors.size() > 1) {
+                String styledSelectors = selectors.stream()
+                    .map(it -> style(StyledTextOutput.Style.Info, it.getDisplayName()))
+                    .sorted()
+                    .collect(Collectors.joining(", "));
+                requestTarget += " with capabilities [" + styledSelectors + "]";
+            }
+            formatter.node("No matching variant of " + requestTarget + " was found. The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap()) + " but:");
         }
+
+        // TODO: We should split the candidate variants into those that match the requested capabilities and those that do not.
+        //       The use likely cares about only variants that match the requested capabilities.
 
         formatter.startChildren();
         switch (failureSubType) {
