@@ -160,7 +160,6 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
     }
 
     def "url can be specified with trailing slash"() {
-        httpBuildCacheServer.start()
         def buildCacheUrl = URI.create("${httpBuildCacheServer.uri}/")
         settingsFile.text = useHttpBuildCache(buildCacheUrl)
 
