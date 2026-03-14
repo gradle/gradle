@@ -19,11 +19,12 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
+import org.h2.mvstore.type.ByteArrayDataType;
+import org.h2.mvstore.type.LongDataType;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
-import org.mapdb.HTreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,30 +34,40 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * A persistent indexed cache backed by MapDB.
+ * A persistent indexed cache backed by H2 MVStore.
  *
- * Keys are hashed to longs (via MD5) for fast lookup,
+ * Keys are hashed to longs (via MD5) for fast B-tree comparison,
  * matching the approach used by {@link BTreePersistentIndexedCache}.
  * This trades hash-collision safety for significantly faster lookups.
  *
- * Values are stored as raw byte arrays. MapDB's HTreeMap provides O(1)
- * hash-based access with no MVCC overhead, making it efficient under
- * Gradle's externally-serialized access pattern.
+ * Values are stored as raw byte arrays in MVStore. This avoids eager
+ * deserialization of all sibling values when MVStore loads a B-tree page
+ * from disk, drastically reducing GC pressure on reads.
  */
 @NullMarked
-public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MapDBPersistentIndexedCache.class);
+public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MVStorePersistentIndexedCache.class);
     private static final String MAP_NAME = "cache";
+    private static final int CACHE_SIZE_MB = 32;
+    private static final int AUTO_COMMIT_BUFFER_SIZE_KB = 32 * 1024;
+    private static final int PAGE_SPLIT_SIZE = 4 * 1024;
     private static final int KRYO_BUFFER_SIZE = 512;
+
+    /**
+     * A zero-length byte array used as a tombstone marker for removed entries.
+     * Using a tombstone avoids the expensive B-tree page rebalancing and sibling
+     * page loads that MVStore's remove() triggers on underfull pages.
+     */
+    private static final byte[] TOMBSTONE = new byte[0];
 
     private final File cacheFile;
     private final Serializer<V> valueSerializer;
     private final KeyHasher<K> keyHasher;
     private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
-    private DB db;
-    private HTreeMap<Long, byte[]> map;
+    private MVStore store;
+    private MVMap<Long, byte[]> map;
 
-    public MapDBPersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+    public MVStorePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this.cacheFile = cacheFile;
         this.valueSerializer = valueSerializer;
         this.keyHasher = new KeyHasher<>(keySerializer);
@@ -74,16 +85,20 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     private void doOpen() {
         cacheFile.getParentFile().mkdirs();
-        DBMaker.Maker maker = DBMaker
-            .fileDB(cacheFile)
-            .fileMmapEnableIfSupported()
-            .fileLockDisable();
+        MVStore.Builder builder = new MVStore.Builder()
+            .fileName(cacheFile.getPath())
+            .cacheSize(CACHE_SIZE_MB)
+            .autoCommitBufferSize(AUTO_COMMIT_BUFFER_SIZE_KB)
+            .pageSplitSize(PAGE_SPLIT_SIZE)
+            .autoCompactFillRate(0);
         if (cacheFile.exists() && !cacheFile.canWrite()) {
-            maker = maker.readOnly();
+            builder.readOnly();
         }
-        db = maker.make();
-        map = db.hashMap(MAP_NAME, org.mapdb.Serializer.LONG, org.mapdb.Serializer.BYTE_ARRAY)
-            .createOrOpen();
+        store = builder.open();
+        MVMap.Builder<Long, byte[]> mapBuilder = new MVMap.Builder<Long, byte[]>()
+            .keyType(LongDataType.INSTANCE)
+            .valueType(ByteArrayDataType.INSTANCE);
+        map = store.openMap(MAP_NAME, mapBuilder);
     }
 
     private long hashKey(K key) {
@@ -99,7 +114,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     public V get(K key) {
         try {
             byte[] data = map.get(hashKey(key));
-            if (data == null) {
+            if (data == null || data.length == 0) {
                 return null;
             }
             return deserialize(data);
@@ -148,7 +163,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     @Override
     public void remove(K key) {
         try {
-            map.remove(hashKey(key));
+            map.put(hashKey(key), TOMBSTONE);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
         }
@@ -156,13 +171,16 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public void close() {
-        if (db != null && !db.isClosed()) {
+        if (store != null && !store.isClosed()) {
             try {
-                db.close();
+                if (!store.isReadOnly()) {
+                    store.commit();
+                }
+                store.close();
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             } finally {
-                db = null;
+                store = null;
                 map = null;
             }
         }
@@ -170,7 +188,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public boolean isOpen() {
-        return db != null && !db.isClosed();
+        return store != null && !store.isClosed();
     }
 
     @Override
@@ -186,7 +204,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     @Override
     public void clear() {
         close();
-        deleteFiles();
+        cacheFile.delete();
         try {
             doOpen();
         } catch (Exception e) {
@@ -196,7 +214,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public void verify() {
-        // MapDB handles integrity internally
+        // MVStore handles integrity internally with page checksums
     }
 
     private void rebuild() {
@@ -204,22 +222,16 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
         try {
             close();
         } catch (Exception ignored) {
-            db = null;
+            store = null;
             map = null;
         }
         try {
-            deleteFiles();
+            cacheFile.delete();
             doOpen();
         } catch (Exception e) {
             LOGGER.warn("{} couldn't be rebuilt. Closing.", this);
             close();
         }
-    }
-
-    private void deleteFiles() {
-        cacheFile.delete();
-        // MapDB may create a .p (wal) companion file
-        new File(cacheFile.getPath() + ".p").delete();
     }
 
     private static class SerializationBuffer {
@@ -229,6 +241,10 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
         final KryoBackedDecoder decoder = new KryoBackedDecoder(decoderInput, KRYO_BUFFER_SIZE);
     }
 
+    /**
+     * A ByteArrayOutputStream that exposes its internal buffer to avoid
+     * the copy done by {@link ByteArrayOutputStream#toByteArray()}.
+     */
     private static class FastByteArrayOutputStream extends ByteArrayOutputStream {
         FastByteArrayOutputStream(int size) {
             super(size);
@@ -243,6 +259,10 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
         }
     }
 
+    /**
+     * A ByteArrayInputStream whose backing data can be swapped without allocating a new stream,
+     * allowing reuse of the KryoBackedDecoder across deserialization calls.
+     */
     private static class ResettableByteArrayInputStream extends ByteArrayInputStream {
         ResettableByteArrayInputStream() {
             super(new byte[0]);
