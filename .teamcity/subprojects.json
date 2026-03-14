@@ -1255,6 +1255,13 @@
   {
     "name": "process-services",
     "path": "platforms/core-runtime/process-services",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "process-services-api",
+    "path": "platforms/core-runtime/process-services-api",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1635,6 +1642,13 @@
     "path": "platforms/core-execution/worker-main",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "worker-process-services",
+    "path": "platforms/core-execution/worker-process-services",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

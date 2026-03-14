@@ -93,6 +93,53 @@ plugins {
 }
 ```
 
+### Cleaner `--help` output
+
+The output of `gradle --help` has been refreshed to be clearer and more consistent. Changes include:
+
+- Options are now grouped into labeled sections
+- Several options have moved to more fitting categories
+- Descriptions were adjusted to follow a more consistent phrasing
+- The output now respects the width of the terminal (if present), wrapping text as needed to avoid horizontal scrolling
+
+Here is a snapshot of the updated output printed to a terminal with 80 columns:
+
+```text
+To see help contextual to the project, use gradle help
+
+To see more detail about a task, run gradle help --task <task>
+
+To see a list of available tasks, run gradle tasks
+
+USAGE: gradle [option...] [task...]
+
+--                                   Signals the end of built-in options. Parses
+                                     subsequent parameters as tasks or task
+                                     options only.
+
+Help:
+  --help, -?, -h                     Shows this help message.
+  --show-version, -V                 Prints version information and continues.
+  --version, -v                      Prints version information and exits.
+
+Logging:
+  --console                          Specifies which type of console output to
+                                     generate. Supported values are 'plain',
+                                     'colored', 'auto' (default), 'rich', or
+                                     'verbose'.
+  --console-unicode                  Specifies which character types are allowed
+                                     in the console output. Supported values are
+                                     'auto' (default), 'disable', or 'enable'.
+  --debug, -d                        Sets log level to debug. Includes the
+                                     normal stacktrace.
+  --full-stacktrace, -S              Prints the full (very verbose) stacktrace
+                                     for all exceptions.
+  --info, -i                         Sets the log level to info.
+  --quiet, -q                        Logs errors only.
+  --stacktrace, -s                   Prints the stacktrace for all exceptions.
+  --warn, -w                         Sets the log level to warn.
+```
+
 ### Domain Object Collections can be made immutable
 
 Plugin and build authors can now lock domain object collections to prevent further modifications using the new `disallowChanges()` method.
@@ -111,6 +158,18 @@ myCollection.disallowChanges()    // the collection is now immutable
 main.setFoo("bar")                // individual elements can still be modified
 myCollection.add(MyType("other")) // this will fail
 myCollection.remove(main)         // this will fail
+```
+
+### Explicit bind address for client-daemon and cross-daemon communication
+
+Gradle now supports the `GRADLE_DAEMON_BIND_ADDRESS` environment variable to explicitly specify the network address used for client-daemon and cross-daemon communication.
+
+Previously, Gradle always attempted to auto-detect the local bind address, which could fail in environments with specific network configurations (multiple network interfaces, multiple TCP/IP stacks, etc.).
+
+Setting `GRADLE_DAEMON_BIND_ADDRESS` to an IP address or hostname will skip auto-detection and use the provided address directly:
+
+```text
+GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
 ```
 
 ### GitHub Permalinks in wrapper & start scripts

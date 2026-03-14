@@ -1068,6 +1068,3 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
     }
 }
 
-interface StartParametersModel {
-    String getValue();
-}
