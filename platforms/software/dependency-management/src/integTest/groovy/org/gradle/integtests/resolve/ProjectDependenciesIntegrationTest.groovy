@@ -114,6 +114,43 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         failure.assertHasCause("Project with path ':unknown' could not be found.")
     }
 
+    def "can declare project dependency using project path string"() {
+        settingsFile << "include 'sub'"
+        file("sub/build.gradle") << """
+            apply plugin: 'java-library'
+        """
+        buildFile << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation project(':sub')
+            }
+        """
+
+        expect:
+        succeeds 'dependencies', '--configuration', 'compileClasspath'
+        outputContains 'project :sub'
+    }
+
+    def "can declare project dependency on root project using project path string"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'sub'
+        """
+        file("sub/build.gradle") << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation project(':')
+            }
+        """
+        buildFile << """
+            apply plugin: 'java-library'
+        """
+
+        expect:
+        succeeds 'sub:dependencies', '--configuration', 'compileClasspath'
+        outputContains 'root project :'
+    }
+
     def "can add constraint on root project"() {
         given:
         mavenRepo.module("org", "foo").publish()
