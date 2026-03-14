@@ -17,8 +17,12 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import spock.lang.Issue
+
+import static org.hamcrest.CoreMatchers.startsWith
 
 @FluidDependenciesResolveTest
 class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -920,7 +924,6 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    @ToBeFixedForConfigurationCache(because = "error reporting is different when CC is enabled")
     def "reports failure to query file dependency when artifacts are queried"() {
         buildFile << """
             $header
@@ -937,7 +940,11 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         fails 'show'
 
         then:
-        failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
+        if (GradleContextualExecuter.isConfigCache()) {
+            failure.assertThatDescription(startsWith("Configuration cache state could not be cached:"))
+        } else {
+            failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
+        }
         failure.assertHasCause("broken")
 
         where:
@@ -948,7 +955,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    @ToBeFixedForConfigurationCache(because = "error reporting is different when CC is enabled")
+    @Issue("https://github.com/gradle/gradle/issues/24640")
+    @UnsupportedWithConfigurationCache(because = "Multiple failures are currently not all reported by the configuration cache, only the first is")
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
         settingsFile << """
             include 'a'
@@ -1006,7 +1014,8 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
+    @Issue("https://github.com/gradle/gradle/issues/24640")
+    @UnsupportedWithConfigurationCache(because = "Multiple failures are currently not all reported by the configuration cache, only the first is")
     def "lenient artifact view reports failure to resolve graph and artifacts"() {
         settingsFile << """
             include 'a'
@@ -1094,7 +1103,6 @@ Searched in the following locations:
           - Doesn't say anything about usage (required 'compile')""")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {
         settingsFile << """
             include 'a'
@@ -1126,14 +1134,15 @@ Searched in the following locations:
             configurations.compile.attributes.attribute(usage, "compile")
 
             task resolveLenient {
-                def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
-                inputs.files lenientView.files
+                def lenientViewFiles = configurations.compile.incoming.artifactView({lenient(true)}).files
+                def lenientViewArtifacts = configurations.compile.incoming.artifactView({lenient(true)}).artifacts
+                inputs.files(lenientViewFiles)
                 doLast {
                     def resolvedFiles = ['c-jar1.jar']
-                    assert lenientView.files.collect { it.name } == resolvedFiles
-                    assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
-                    assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
-                    assert lenientView.artifacts.failures.size() == 3
+                    assert lenientViewFiles.collect { it.name } == resolvedFiles
+                    assert lenientViewArtifacts.collect { it.file.name } == resolvedFiles
+                    assert lenientViewArtifacts.artifactFiles.collect { it.name } == resolvedFiles
+                    assert lenientViewArtifacts.failures.size() == 3
                 }
             }
         """

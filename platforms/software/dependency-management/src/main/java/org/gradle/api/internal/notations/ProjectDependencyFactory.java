@@ -17,7 +17,6 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -33,18 +32,20 @@ public class ProjectDependencyFactory {
         this.factory = factory;
     }
 
-    public ProjectDependency createFromMap(ProjectFinder projectFinder, Map<? extends String, ?> map) {
+    public ProjectDependency createFromMap(Map<? extends String, ?> map) {
         return NotationParserBuilder.toType(ProjectDependency.class)
-                .converter(new ProjectDependencyMapNotationConverter(projectFinder, factory)).toComposite().parseNotation(map);
+                .converter(new ProjectDependencyMapNotationConverter(factory)).toComposite().parseNotation(map);
+    }
+
+    public ProjectDependency create(String projectPath) {
+        return factory.create(projectPath);
     }
 
     static class ProjectDependencyMapNotationConverter extends MapNotationConverter<ProjectDependency> {
 
-        private final ProjectFinder projectFinder;
         private final DefaultProjectDependencyFactory factory;
 
-        public ProjectDependencyMapNotationConverter(ProjectFinder projectFinder, DefaultProjectDependencyFactory factory) {
-            this.projectFinder = projectFinder;
+        public ProjectDependencyMapNotationConverter(DefaultProjectDependencyFactory factory) {
             this.factory = factory;
         }
 
@@ -52,7 +53,7 @@ public class ProjectDependencyFactory {
             @MapKey("path") String path,
             @MapKey("configuration") @Nullable String configuration
         ) {
-            ProjectDependency defaultProjectDependency = factory.create(projectFinder.resolveIdentityPath(path));
+            ProjectDependency defaultProjectDependency = factory.create(path);
             if (configuration != null) {
                 defaultProjectDependency.setTargetConfiguration(configuration);
             }

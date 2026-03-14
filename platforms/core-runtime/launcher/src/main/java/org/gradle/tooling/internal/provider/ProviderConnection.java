@@ -27,7 +27,6 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
@@ -63,6 +62,7 @@ import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
+import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
@@ -84,7 +84,6 @@ import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
-import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
@@ -115,11 +114,8 @@ public class ProviderConnection {
     private final PayloadSerializer payloadSerializer;
     private final BuildLayoutFactory buildLayoutFactory;
     private final DaemonClientFactory daemonClientFactory;
-    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor;
     private final ServiceRegistry sharedServices;
     private final FileCollectionFactory fileCollectionFactory;
-    private final GlobalUserInputReceiver userInputReceiver;
-    private final UserInputReader userInputReader;
     private final ShutdownCoordinator shutdownCoordinator;
     private final NotifyDaemonClientExecuter notifyDaemonClientExecuter;
     private final IsolatableSerializerRegistry isolatableSerializerRegistry;
@@ -130,31 +126,25 @@ public class ProviderConnection {
         ServiceRegistry sharedServices,
         BuildLayoutFactory buildLayoutFactory,
         DaemonClientFactory daemonClientFactory,
-        BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor,
         PayloadSerializer payloadSerializer,
         FileCollectionFactory fileCollectionFactory,
-        GlobalUserInputReceiver userInputReceiver,
-        UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
         NotifyDaemonClientExecuter notifyDaemonClientExecuter,
         IsolatableSerializerRegistry isolatableSerializerRegistry
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
-        this.embeddedExecutor = embeddedExecutor;
         this.payloadSerializer = payloadSerializer;
         this.sharedServices = sharedServices;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.userInputReceiver = userInputReceiver;
-        this.userInputReader = userInputReader;
         this.shutdownCoordinator = shutdownCoordinator;
         this.notifyDaemonClientExecuter = notifyDaemonClientExecuter;
         this.isolatableSerializerRegistry = isolatableSerializerRegistry;
     }
 
-    public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
+    public void configure(boolean verboseLogging, GradleVersion consumerVersion) {
         this.consumerVersion = consumerVersion;
-        LogLevel providerLogLevel = parameters.getVerboseLogging() ? LogLevel.DEBUG : LogLevel.INFO;
+        LogLevel providerLogLevel = verboseLogging ? LogLevel.DEBUG : LogLevel.INFO;
         LOGGER.debug("Configuring logging to level: {}", providerLogLevel);
         LoggingManagerInternal loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManager.setLevelInternal(providerLogLevel);
@@ -328,7 +318,12 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.captureSystemSources();
-            executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
+            executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(
+                sharedServices.get(GlobalUserInputReceiver.class),
+                sharedServices.get(UserInputReader.class),
+                standardInput,
+                sharedServices.get(BuildExecutor.class)
+            )));
         } else {
             ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
             loggingManager = requestSpecificLogging.get(LoggingManagerFactory.class).createLoggingManager();
