@@ -49,6 +49,7 @@ fun IO.emitAccessorsFor(
     // giving the generated accessors lower priority in Kotlin overload resolution.
     val useLowPriorityOverloadResolution = projectSchema.scriptTarget is Settings
     val moduleName = binDir?.name ?: "kotlin-dsl-accessors"
+    val classNamesFromTypeStrings = ClassNamesFromTypeStrings()
     val emittedClassNames =
         accessorsFor(projectSchema).map { accessor ->
             emitClassFor(
@@ -58,7 +59,8 @@ fun IO.emitAccessorsFor(
                 outputPackage,
                 format,
                 moduleName,
-                useLowPriorityOverloadResolution
+                useLowPriorityOverloadResolution,
+                importsRequiredBy(accessor, classNamesFromTypeStrings)
             )
         }.toList()
 
@@ -100,7 +102,8 @@ fun IO.emitClassFor(
     outputPackage: OutputPackage,
     format: AccessorFormat,
     moduleName: String,
-    useLowPriorityOverloadResolution: Boolean
+    useLowPriorityOverloadResolution: Boolean,
+    requiredImports: List<String>
 ): InternalName {
 
     val (simpleClassName, fragments) = fragmentsFor(accessor)
@@ -129,7 +132,7 @@ fun IO.emitClassFor(
     writeAccessorsTo(
         sourceFileFor(className, srcDir),
         sourceCode,
-        importsRequiredBy(accessor),
+        requiredImports,
         outputPackage.name
     )
 
@@ -169,22 +172,24 @@ fun IO.writeAccessorsBytecodeTo(
 
 
 private
-fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
+fun importsRequiredBy(accessor: Accessor, classNamesFromTypeStrings: ClassNamesFromTypeStrings): List<String> = accessor.run {
     when (this) {
-        is Accessor.ForExtension -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForTask -> importsRequiredBy(spec.type)
-        is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForModelDefault -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForProjectType -> importsRequiredBy(spec.modelType) + importsRequiredBy(spec.targetType) + listOf(Incubating::class.java.name, Project::class.java.name)
-        is Accessor.ForContainerElementFactory -> importsRequiredBy(spec.receiverType, spec.elementType) + listOf(Incubating::class.java.name)
+        is Accessor.ForExtension -> importsRequiredBy(classNamesFromTypeStrings, spec.receiver, spec.type)
+        is Accessor.ForTask -> importsRequiredBy(classNamesFromTypeStrings, spec.type)
+        is Accessor.ForContainerElement -> importsRequiredBy(classNamesFromTypeStrings, spec.receiver, spec.type)
+        is Accessor.ForModelDefault -> importsRequiredBy(classNamesFromTypeStrings, spec.receiver, spec.type)
+        is Accessor.ForProjectType -> importsRequiredBy(classNamesFromTypeStrings, spec.modelType) +
+            importsRequiredBy(classNamesFromTypeStrings, spec.targetType) + listOf(Incubating::class.java.name, Project::class.java.name)
+
+        is Accessor.ForContainerElementFactory -> importsRequiredBy(classNamesFromTypeStrings, spec.receiverType, spec.elementType) + listOf(Incubating::class.java.name)
         else -> emptyList()
     }
 }
 
 
 private
-fun importsRequiredBy(vararg candidateTypes: TypeAccessibility): List<String> =
-    importsRequiredBy(candidateTypes.asList())
+fun importsRequiredBy(classNamesFromTypeStrings: ClassNamesFromTypeStrings, vararg candidateTypes: TypeAccessibility): List<String> =
+    importsRequiredBy(candidateTypes.asList(), classNamesFromTypeStrings)
 
 
 internal

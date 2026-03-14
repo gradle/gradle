@@ -56,8 +56,6 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.runBlocking
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_NAME
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveKotlinTypeNames
-import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.typeProjectionStrings
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.getBooleanKotlinDslOption
@@ -283,14 +281,15 @@ object AccessorFormats {
 
 
 internal
-fun importsRequiredBy(candidateTypes: List<TypeAccessibility>): List<String> =
+fun importsRequiredBy(candidateTypes: List<TypeAccessibility>, classNamesFromTypeStrings: ClassNamesFromTypeStrings): List<String> =
     defaultPackageTypesIn(
         candidateTypes
             .filterIsInstance<TypeAccessibility.Accessible>().let { accessibleTypes ->
                 val ownImports = accessibleTypes.map { it.type.kotlinString }
                 val importsRequiredByOptInAnnotations = importsRequiredByOptInAnnotations(accessibleTypes)
                 if (importsRequiredByOptInAnnotations != null) importsRequiredByOptInAnnotations.toList() + ownImports else ownImports
-            }
+            },
+        classNamesFromTypeStrings
     )
 
 private fun importsRequiredByOptInAnnotations(accessibleTypes: List<TypeAccessibility.Accessible>): MutableSet<String>? {
@@ -329,9 +328,9 @@ private fun importsRequiredByOptInAnnotations(accessibleTypes: List<TypeAccessib
 }
 
 internal
-fun defaultPackageTypesIn(typeStrings: List<String>): List<String> =
+fun defaultPackageTypesIn(typeStrings: List<String>, classNamesFromTypeStrings: ClassNamesFromTypeStrings): List<String> =
     typeStrings
-        .flatMap { classNamesFromTypeString(it).all }
+        .flatMap { classNamesFromTypeStrings.classNamesFrom(it).all }
         .filter { '.' !in it }
         .distinct()
 
@@ -400,6 +399,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
         classPath.asFiles
     )
 
+    private val classNamesFromTypeStrings = ClassNamesFromTypeStrings()
 
     private val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
 
@@ -422,7 +422,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
         }
 
     private fun inaccessibilityReasonsFor(type: SchemaType): List<InaccessibilityReason> =
-        inaccessibilityReasonsFor(classNamesFromTypeString(type))
+        inaccessibilityReasonsFor(classNamesFromTypeStrings.classNamesFrom(type.kotlinString))
 
     private fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
         classNames.all.flatMap { inaccessibilityReasonsFor(it) }.let { inaccessibilityReasons ->
@@ -496,56 +496,6 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     override fun close() {
         classBytesRepository.close()
     }
-}
-
-
-internal
-class ClassNamesFromTypeString(
-    val all: List<String>,
-    val leaves: List<String>
-)
-
-
-internal
-fun classNamesFromTypeString(type: SchemaType): ClassNamesFromTypeString =
-    classNamesFromTypeString(type.kotlinString)
-
-
-internal
-fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
-    val all = mutableListOf<String>()
-    val leafs = mutableListOf<String>()
-    val buffer = StringBuilder()
-
-    fun nonPrimitiveKotlinType(): String? =
-        buffer.takeIf(StringBuilder::isNotEmpty)?.toString()?.let {
-            if (it in primitiveKotlinTypeNames || it in typeProjectionStrings) null
-            else it
-        }
-
-    typeString.forEach { char ->
-        when (char) {
-            '<' -> {
-                nonPrimitiveKotlinType()?.also { all.add(it) }
-                buffer.clear()
-            }
-
-            in " ,>" -> {
-                nonPrimitiveKotlinType()?.also {
-                    all.add(it)
-                    leafs.add(it)
-                }
-                buffer.clear()
-            }
-
-            else -> buffer.append(char)
-        }
-    }
-    nonPrimitiveKotlinType()?.also {
-        all.add(it)
-        leafs.add(it)
-    }
-    return ClassNamesFromTypeString(all, leafs)
 }
 
 

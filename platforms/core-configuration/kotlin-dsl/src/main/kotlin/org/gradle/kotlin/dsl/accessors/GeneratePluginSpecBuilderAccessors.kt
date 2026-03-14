@@ -313,7 +313,8 @@ fun BufferedWriter.appendSourceCodeForPluginDependencySpecAccessors(
 private
 fun defaultPackageTypesIn(pluginDependencySpecAccessors: List<PluginDependencySpecAccessor>) =
     defaultPackageTypesIn(
-        pluginImplementationClassesExposedBy(pluginDependencySpecAccessors)
+        pluginImplementationClassesExposedBy(pluginDependencySpecAccessors),
+        ClassNamesFromTypeStrings()
     )
 
 
