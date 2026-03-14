@@ -33,7 +33,7 @@ import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiv
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefineModelDefaults
 import org.gradle.internal.declarativedsl.evaluator.defaults.DEFAULTS_BLOCK_NAME
-import org.gradle.internal.declarativedsl.software.projectFeaturesComponent
+import org.gradle.internal.declarativedsl.features.projectFeaturesComponent
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 
 

@@ -74,7 +74,7 @@ internal
 class DefaultDeclarativeKotlinScriptEvaluator(
     private val schemaBuilder: InterpretationSchemaBuilder,
     documentChecks: Iterable<DocumentCheck>,
-    resolutionResultHandlers: Iterable<ResolutionResultHandler>,
+    resolutionResultHandlers: Iterable<ResolutionResultHandler>
 ) : DeclarativeKotlinScriptEvaluator {
 
     private
@@ -107,7 +107,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
                 scriptSource.fileName,
                 scriptSource.resource.text,
                 step,
-                ConversionStepContext(target, { classLoaderScope.localClassLoader }, { classLoaderScope.parent.localClassLoader },defaultAnalysisContext)
+                ConversionStepContext(target, { classLoaderScope.localClassLoader }, { classLoaderScope.parent.localClassLoader },defaultAnalysisContext, true)
             ).also { if (it is NotEvaluated) return it }
         }.lastOrNull() ?: throw DeclarativeDslNotEvaluatedException(scriptSource.fileName, emptyList())
 

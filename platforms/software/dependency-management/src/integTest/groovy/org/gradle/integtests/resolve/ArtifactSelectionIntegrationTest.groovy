@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 
@@ -181,7 +181,6 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         executed ":lib:jar", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:jar", ":app:resolve"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can create a view that selects different artifacts from the same dependency graph"() {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
@@ -269,10 +268,12 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
                 def view = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'classes') }
                 }
-                inputs.files view.files
+                def viewFiles = view.files
+                def viewArtifacts = view.artifacts
+                inputs.files viewFiles
                 doLast {
-                    assert view.files.collect { it.name } == ['lib.classes', 'lib-util.classes', 'ui.classes', 'some-classes-1.0.classes']
-                    assert view.artifacts.collect { it.id.displayName } == ['lib.classes (project :lib)', 'lib-util.classes', 'ui.classes (project :ui)', 'some-classes-1.0.classes (org:test2:1.0)']
+                    assert viewFiles.collect { it.name } == ['lib.classes', 'lib-util.classes', 'ui.classes', 'some-classes-1.0.classes']
+                    assert viewArtifacts.collect { it.id.displayName } == ['lib.classes (project :lib)', 'lib-util.classes', 'ui.classes (project :ui)', 'some-classes-1.0.classes (org:test2:1.0)']
                 }
             }
         """
@@ -1045,7 +1046,6 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         result.assertTasksScheduled(":app:resolveView")
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     def "fails when no variants match and no view attributes specified"() {
         ivyHttpRepo.module("test","test", "1.2").publish().allowAll()
 
@@ -1106,7 +1106,11 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         expect:
         fails "resolveView"
 
-        failure.assertHasDescription("Execution failed for task ':app:resolveView'.")
+        if (GradleContextualExecuter.configCache) {
+            failure.assertHasDescription("Configuration cache state could not be cached")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':app:resolveView'.")
+        }
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
 
         failure.assertHasCause("""No variants of project :lib match the consumer attributes:
@@ -1123,11 +1127,14 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
       - Other compatible attribute:
           - Doesn't say anything about usage (required 'api')""")
 
-        failure.assertHasCause("""No variants of thing.jar match the consumer attributes:
+        if (!GradleContextualExecuter.configCache) {
+            // File dependency errors are not included in the CC serialization cause chain
+            failure.assertHasCause("""No variants of thing.jar match the consumer attributes:
   - thing.jar:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
       - Other compatible attribute:
           - Doesn't say anything about usage (required 'api')""")
+        }
 
     }
 

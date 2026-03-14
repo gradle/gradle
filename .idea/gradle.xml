@@ -156,6 +156,7 @@
             <option value="$PROJECT_DIR$/platforms/core-execution/scoped-persistent-cache" />
             <option value="$PROJECT_DIR$/platforms/core-execution/snapshots" />
             <option value="$PROJECT_DIR$/platforms/core-execution/worker-main" />
+            <option value="$PROJECT_DIR$/platforms/core-execution/worker-process-services" />
             <option value="$PROJECT_DIR$/platforms/core-execution/workers" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/base-asm" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/base-services" />
@@ -200,6 +201,7 @@
             <option value="$PROJECT_DIR$/platforms/core-runtime/native" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/process-memory-services" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/process-services" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/process-services-api" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/report-rendering" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/serialization" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/service-lookup" />
