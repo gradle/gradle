@@ -220,7 +220,7 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             }
             yieldAll(
                 uniqueAccessorsFrom(
-                    configurationNames.map { it.target }.map(::configurationAccessorSpec)
+                    configurationNames.map { configurationAccessorSpec(it.target) }
                 ).map(Accessor::ForContainerElement)
             )
             yieldAll(configurationNames.map(Accessor::ForConfiguration))
