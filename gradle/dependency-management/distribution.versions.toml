@@ -22,6 +22,7 @@ gradleFileEvents = "0.2.8!!"
 gson = "2.13.1!!"
 guava = "33.4.6-jre"
 h2Mvstore = "2.4.240!!"
+mapdb = "3.1.0!!"
 httpcore = "4.4.14!!"
 inject = "1!!"
 ivy = "2.5.3!!"
@@ -98,6 +99,7 @@ groovyXml = { group = "org.apache.groovy", name = "groovy-xml", version.ref = "g
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 h2Mvstore = { group = "com.h2database", name = "h2-mvstore", version.ref = "h2Mvstore" }
+mapdb = { group = "org.mapdb", name = "mapdb", version.ref = "mapdb" }
 httpcore = { group = "org.apache.httpcomponents", name = "httpcore", version.ref = "httpcore" }
 inject = { group = "javax.inject", name = "javax.inject", version.ref = "inject" }
 ivy = { group = "org.apache.ivy", name = "ivy", version.ref = "ivy" }
