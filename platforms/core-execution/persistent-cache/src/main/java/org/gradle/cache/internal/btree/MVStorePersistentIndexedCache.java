@@ -56,8 +56,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final String MAP_NAME = "cache";
     private static final String STREAM_CHUNKS_MAP_NAME = "cache.chunks";
     private static final int CACHE_SIZE_MB = 32;
-    private static final int AUTO_COMMIT_BUFFER_SIZE_KB = 32 * 1024;
-    private static final int PAGE_SPLIT_SIZE = 4 * 1024;
+    private static final int PAGE_SPLIT_SIZE = 2 * 1024;
     private static final int KRYO_BUFFER_SIZE = 512;
     /** Sentinel value stored in the map to represent a removed entry. */
     private static final byte[] TOMBSTONE = new byte[0];
@@ -102,7 +101,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
         MVStore.Builder builder = new MVStore.Builder()
             .fileName(cacheFile.getPath())
             .cacheSize(CACHE_SIZE_MB)
-            .autoCommitBufferSize(AUTO_COMMIT_BUFFER_SIZE_KB)
+            .autoCommitDisabled()
             .pageSplitSize(PAGE_SPLIT_SIZE)
             .cacheConcurrency(1)
             .autoCompactFillRate(0);
