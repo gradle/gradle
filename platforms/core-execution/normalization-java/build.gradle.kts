@@ -11,7 +11,6 @@ dependencies {
     api(projects.hashing)
     api(projects.files)
     api(projects.javaApiExtractor)
-    api(projects.normalization)
     api(projects.snapshots)
 
     api(libs.jspecify)

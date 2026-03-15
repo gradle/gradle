@@ -77,6 +77,7 @@ dependencies {
     api(projects.modelReflect)
     api(projects.native)
     api(projects.normalization)
+    api(projects.normalizationApi)
     api(projects.normalizationJava)
     api(projects.persistentCache)
     api(projects.problemsApi)

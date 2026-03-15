@@ -25,6 +25,7 @@ dependencies {
     api(libs.jspecify)
     api(libs.inject)
 
+    implementation(projects.normalizationApi)
     implementation(projects.processServicesApi)
 
     implementation(projects.buildProcessServices)
