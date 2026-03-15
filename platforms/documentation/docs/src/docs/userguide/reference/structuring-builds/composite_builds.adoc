@@ -19,7 +19,7 @@
 A composite build is a build that includes other builds; those builds are known as included builds.
 
 [[composite_build_intro]]
-A composite build is similar to a Gradle multi-project build, except that instead of including `subprojects`, entire `builds` are included.
+A composite build is similar to a Gradle <<multi_project_builds.adoc#multi_project_builds,multi-project build>>, except that instead of including `subprojects`, entire `builds` are included.
 
 This is done either <<#settings_defined_composite,using the Settings file>> and adding a build using `includeBuild()`:
 
@@ -35,36 +35,102 @@ Or <<#command_line_composite,using the CLI flag>> `--include-build`:
 $ ./gradlew build --include-build my-utils
 ----
 
+[[composite_build_use_cases]]
+== When to Use Composite Builds
+
+Composite builds are useful in three broad scenarios:
+
+1. **Developing libraries and consumers together**: If you maintain a library that another project depends on, composite builds let you work across both at the same time without publishing the library first. +
+Gradle automatically substitutes the external dependency with a local source, so changes to the library are immediately visible in the consuming project.
+
+2. **Organizing large codebases**: Composite builds let you split a large codebase into independent builds that can each be opened and worked on in isolation (for example, in the IDE), while still being buildable together as a whole. +
+This is a common approach in monorepo setups.
+
+3. **Sharing build logic**: Composite builds are the <<best_practices_structuring_builds.adoc#favor_composite_builds,recommended way>> to structure and share custom build logic across projects. +
+<<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>> is _essentially_ an included build that Gradle manages automatically; a <<sharing_build_logic_between_subprojects.adoc#sec:sharing_logic_via_composite_build,`build-logic`>> build included via `includeBuild()` in your settings file is the same idea, made explicit.
+
 [[defining_composite_builds]]
 == Composite Build Layout
 
-Composite builds allow you to decompose a large multi-project build into smaller, more isolated chunks that can be worked on independently or together as needed.
-They also allow you to combine builds that are usually developed independently, for instance, when trying out a bug fix in a library that your application uses.
-
 Included builds do not share any configuration with other included builds.
 
-IMPORTANT: Each included build is configured and executed in isolation.
+IMPORTANT: Each included build is *configured* in isolation — included builds do not share repositories, plugins, or properties with one another or with the root build, but they can be *executed* together and depend on each other's tasks.
 
-The following example demonstrates how two Gradle builds, normally developed separately, can be combined into a composite build:
+Composite builds typically take one of two layouts depending on the use case: a *co-development* layout, where an included build lives outside the consumer and is substituted temporarily during development; or a *monorepo* layout, where an uber-root build knits together a set of independent builds that can also be worked on in isolation.
+
+NOTE: For reference, a *build tree* consists of the root build and all of its included builds, recursively.
+
+=== Co-development Layout Example
+
+The following example demonstrates *co-development* — temporarily substituting a dependency to work across a library and its consumer simultaneously.
+You simply include the library directly into the consumer build:
 
 [.multi-language-sample]
 =====
 [source, kotlin]
 ----
-my-composite                        // The root of the Composite Build
-├── settings.gradle.kts
+my-app/                             // The consumer build (your working directory)
+├── settings.gradle.kts             // includeBuild("../my-utils")
 ├── build.gradle.kts
-├── my-app                          // The application build (Included Build #1)
+└── app/
+    ├── build.gradle.kts            // Declares dependencies on 'number-utils' and 'string-utils'
+    └── src/main/java/...
+
+my-utils/                           // The library build (Included Build)
+├── settings.gradle.kts             // Defines 'number-utils' and 'string-utils' subprojects
+├── number-utils/
+│   ├── build.gradle.kts
+│   └── src/main/java/...
+└── string-utils/
+    ├── build.gradle.kts
+    └── src/main/java/...
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+my-app/                             // The consumer build (your working directory)
+├── settings.gradle                 // includeBuild("../my-utils")
+├── build.gradle
+└── app/
+    ├── build.gradle                // Declares dependencies on 'number-utils' and 'string-utils'
+    └── src/main/java/...
+
+my-utils/                           // The library build (Included Build)
+├── settings.gradle                 // Defines 'number-utils' and 'string-utils' subprojects
+├── number-utils/
+│   ├── build.gradle
+│   └── src/main/java/...
+└── string-utils/
+    ├── build.gradle
+    └── src/main/java/...
+----
+=====
+
+In this example, `my-utils` lives outside of `my-app` and is included temporarily during development. Once the library changes are published, the `includeBuild` can be removed.
+
+=== Monorepo Layout Example
+
+The following example demonstrates a *monorepo* layout in which an uber-root build knits together independent builds.
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+my-composite/                       // The root of the Composite Build
+├── settings.gradle.kts
+├── my-app/                         // The application build (Included Build #1)
 │   ├── settings.gradle.kts
-│   └── app
+│   └── app/
 │       ├── build.gradle.kts        // Declares dependencies on 'number-utils' and 'string-utils'
 │       └── src/main/java/...
-└── my-utils                        // The utility library build (Included Build #2)
+└── my-utils/                       // The utility library build (Included Build #2)
     ├── settings.gradle.kts         // Defines 'number-utils' and 'string-utils' subprojects
-    ├── number-utils
+    ├── number-utils/
     │   ├── build.gradle.kts
     │   └── src/main/java/...
-    └── string-utils
+    └── string-utils/
         ├── build.gradle.kts
         └── src/main/java/...
 ----
@@ -73,15 +139,14 @@ my-composite                        // The root of the Composite Build
 =====
 [source, groovy]
 ----
-my-composite                        // The root of the Composite Build
+my-composite/                       // The root of the Composite Build
 ├── settings.gradle
-├── build.gradle
-├── my-app                          // The application build (Included Build #1)
+├── my-app/                         // The application build (Included Build #1)
 │   ├── settings.gradle
-│   └── app
+│   └── app/
 │       ├── build.gradle            // Declares dependencies on 'number-utils' and 'string-utils'
 │       └── src/main/java/...
-└── my-utils                        // The utility library build (Included Build #2)
+└── my-utils/                       // The utility library build (Included Build #2)
     ├── settings.gradle             // Defines 'number-utils' and 'string-utils' subprojects
     ├── number-utils
     │   ├── build.gradle
@@ -101,7 +166,7 @@ In this example, `my-composite` is a composite build that includes the `my-app` 
 
 | *`my-composite`*
 | *Composite Root*
-| The entry point. It doesn't contain code but "knits" other builds together via `settings.gradle`.
+| The entry point. It doesn't contain code but "knits" other builds together via `settings.gradle(.kts)`.
 
 | *`my-app`*
 | *Consumer Build*
@@ -197,7 +262,7 @@ $ ./gradlew :included-build:subproject-a:compileJava
 > Task :included-build:subproject-a:compileJava
 ----
 
-Project and task names can be <<command_line_interface.adoc#sec:name_abbreviation,abbreviated>>:
+Build, project, and task names can all be <<command_line_interface.adoc#sec:name_abbreviation,abbreviated>>:
 
 [source,bash]
 ----
@@ -284,7 +349,7 @@ It is a common mistake to attempt to use `project()` notation to depend on a mod
 
 IMPORTANT: Included builds are not subprojects.
 
-Each build in a composite remains a separate project hierarchy.
+Each build in a composite has its own project hierarchy.
 You cannot use project paths (e.g., `project(":other-build:module")`) to reference a project across build boundaries.
 Doing so will result in an `UnknownProjectException`.
 
@@ -354,10 +419,10 @@ So that the main build can reference it:
 .app/build.gradle.kts
 ----
 dependencies {
-    // WRONG: This will fail because ":core-schema" is not in this build's hierarchy
+    // ❌ This will fail because ":core-schema" is not in this build's hierarchy
     implementation(project(":core-schema"))
 
-    // CORRECT: Gradle sees this GAV and finds the matching project in the included build
+    // ✅ Gradle sees this GAV and finds the matching project in the included build
     implementation("com.example.data:core-schema:1.0.0")
 }
 ----
@@ -368,10 +433,10 @@ dependencies {
 .app/build.gradle
 ----
 dependencies {
-    // WRONG: This will fail because ":core-schema" is not in this build's hierarchy
+    // ❌ This will fail because ":core-schema" is not in this build's hierarchy
     implementation project(":core-schema")
 
-    // CORRECT: Gradle sees this GAV and finds the matching project in the included build
+    // ✅ Gradle sees this GAV and finds the matching project in the included build
     implementation "com.example.data:core-schema:1.0.0"
 }
 ----
@@ -388,8 +453,9 @@ A critical aspect of included builds is that they are executed in *isolation*.
 
 This has specific implications for how configuration is (or is not) shared:
 
-- *Gradle Properties*: `gradle.properties` files defined in the root build are not visible to included builds. Each included build must define its own properties or properties must be passed via the CLI.
-- *Shared Configuration*: Included builds do not share any configuration with the root build or other included builds. This includes repositories, plugin management, or dependency versions defined in `buildSrc` or version catalogs.
+- *Gradle Properties*: `gradle.properties` files defined in the root build are not visible to included builds. Each included build must define its own properties or properties must be passed via the CLI. +
+Note that this applies to user-defined properties. Gradle runtime properties (such as `org.gradle.configuration-cache`) are a special case — they are only read from the *root build* and applied to the entire invocation. Any such properties defined in an included build's `gradle.properties` are ignored.
+- *Shared Configuration*: Included builds do not share any configuration with the root build or other included builds. This includes repositories, plugin management, or dependency versions defined in <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>> or version catalogs.
 
 Continuing from the example above, where properties are defined in the CLI and in the root `gradle.properties` file:
 
