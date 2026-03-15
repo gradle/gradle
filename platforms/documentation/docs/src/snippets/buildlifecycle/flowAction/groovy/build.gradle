@@ -16,13 +16,13 @@ abstract class PrintBuildResultPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project target) {
-        flowScope.always(PrintBuildResult) {
+        flowScope.always(BuildResultPrinter) {
             parameters.buildResult.set(flowProviders.buildWorkResult)
         }
     }
 }
 
-abstract class PrintBuildResult implements FlowAction<PrintBuildResult.Parameters> {
+abstract class BuildResultPrinter implements FlowAction<BuildResultPrinter.Parameters> {
 
     interface Parameters extends FlowParameters {
         @Input

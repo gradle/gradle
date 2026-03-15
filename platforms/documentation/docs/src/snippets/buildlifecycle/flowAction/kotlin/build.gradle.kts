@@ -17,13 +17,13 @@ abstract class PrintBuildResultPlugin : Plugin<Project> {
     abstract val flowProviders: FlowProviders
 
     override fun apply(target: Project) {
-        flowScope.always(PrintBuildResult::class.java) {
+        flowScope.always(BuildResultPrinter::class.java) {
             parameters.buildResult.set(flowProviders.buildWorkResult)
         }
     }
 }
 
-abstract class PrintBuildResult : FlowAction<PrintBuildResult.Parameters> {
+abstract class BuildResultPrinter : FlowAction<BuildResultPrinter.Parameters> {
 
     interface Parameters : FlowParameters {
         @get:Input
