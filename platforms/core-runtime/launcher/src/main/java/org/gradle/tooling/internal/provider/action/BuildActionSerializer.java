@@ -142,6 +142,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isVfsVerboseLogging());
             valueSerializer.write(encoder, startParameter.getConfigurationCache());
             valueSerializer.write(encoder, startParameter.getIsolatedProjects());
+            valueSerializer.write(encoder, startParameter.getIsolatedProjectsSync());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
             encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreInputsDuringStore());
             encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreUnsupportedBuildEventsListeners());
@@ -241,6 +242,7 @@ public class BuildActionSerializer {
             startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(valueSerializer.read(decoder));
             startParameter.setIsolatedProjects(valueSerializer.read(decoder));
+            startParameter.setIsolatedProjectsSync(valueSerializer.read(decoder));
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
             startParameter.setConfigurationCacheIgnoreInputsDuringStore(decoder.readBoolean());
             startParameter.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(decoder.readBoolean());

@@ -90,6 +90,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheHeapDumpDir(),
         new ConfigurationCacheFineGrainedPropertyTracking(),
         new IsolatedProjectsOption(),
+        new IsolatedProjectsSyncOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
         new TaskGraphOption(),
@@ -685,6 +686,19 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setIsolatedProjects(Option.Value.value(value));
+        }
+    }
+
+    public static class IsolatedProjectsSyncOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.sync";
+
+        public IsolatedProjectsSyncOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setIsolatedProjectsSync(Option.Value.value(value));
         }
     }
 
