@@ -646,15 +646,15 @@ fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run 
     putAll(schema.containerElements)
     putContainerElementFactoryEntries(schema.containerElementFactories)
     putProjectFeatureEntries(schema.projectFeatureEntries)
-    putAllSorted(schema.configurations.map { it.target })
+    putConfigurationEntries(schema.configurations)
     hash()
 }
 
 
 private
-fun Hasher.putAllSorted(strings: List<String>) {
-    putInt(strings.size)
-    strings.sorted().forEach(::putString)
+fun Hasher.putConfigurationEntries(configurations: List<ConfigurationEntry<String>>) {
+    putInt(configurations.size)
+    configurations.sortedBy { it.target }.forEach { putString(it.target) }
 }
 
 
