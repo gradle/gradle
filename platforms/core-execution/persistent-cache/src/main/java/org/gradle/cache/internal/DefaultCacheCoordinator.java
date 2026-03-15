@@ -31,7 +31,6 @@ import org.gradle.cache.LockOptions;
 import org.gradle.cache.LockTimeoutException;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.MapDBPersistentIndexedCache;
-import org.gradle.cache.internal.btree.MVStorePersistentIndexedCache;
 import org.gradle.cache.internal.btree.PersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.Cast;
@@ -362,7 +361,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     }
 
     <K, V> PersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return new MVStorePersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
+        return new MapDBPersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
     }
 
     /**
