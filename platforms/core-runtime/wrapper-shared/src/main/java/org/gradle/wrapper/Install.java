@@ -177,7 +177,7 @@ public class Install {
             networkRetryTimeoutMs));
 
         int attempts = networkRetries + 1;
-        Exception lasException = null;
+        Exception lastException = null;
         for (int attempt = 1; attempt <= attempts; attempt++) {
             try {
                 File tempDownloadFile = new File(localTargetFile.getParentFile(), localTargetFile.getName() + ".part");
@@ -191,9 +191,8 @@ public class Install {
                 tempDownloadFile.renameTo(localTargetFile);
 
                 return;
-            }
-            catch (IOException ioException) {
-                lasException = ioException;
+            } catch (IOException ioException) {
+                lastException = ioException;
 
                 logger.log(String.format("Attempt %d/%d failed. Reason: %s",
                     attempt,
@@ -206,7 +205,7 @@ public class Install {
             }
         }
 
-        throw lasException;
+        throw lastException;
     }
 
     private static void waitFor(int timeoutMs) {
