@@ -293,9 +293,11 @@ fun CharSequence.kebabCaseToPascalCase() =
     kebabCaseToCamelCase().uppercaseFirstChar()
 
 
+private val KEBAB_PATTERN = "-[a-z]".toRegex()
+
 private
 fun CharSequence.kebabCaseToCamelCase() =
-    replace("-[a-z]".toRegex()) { it.value.drop(1).uppercase(Locale.US) }
+    replace(KEBAB_PATTERN) { it.value.drop(1).uppercase(Locale.US) }
 
 
 private
