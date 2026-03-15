@@ -22,14 +22,13 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
-import it.unimi.dsi.fastutil.longs.LongSets;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.internal.GUtil;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -39,7 +38,7 @@ public class OutputEventTransformer implements OutputEventListener {
     // A map from progress operation id seen in event -> progress operation id that should be forwarded
     private final Map<OperationIdentifier, OperationIdentifier> effectiveProgressOperation = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
     // A set of progress operations that have been forwarded
-    private final LongSet forwarded = LongSets.synchronize(new LongOpenHashSet());
+    private final Set<OperationIdentifier> forwarded = Collections.newSetFromMap(new ConcurrentHashMap<OperationIdentifier, Boolean>());
 
     private final OutputEventListener listener;
     private final Object lock;
@@ -54,7 +53,7 @@ public class OutputEventTransformer implements OutputEventListener {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
             if (!startEvent.isBuildOperationStart()) {
-                forwarded.add(startEvent.getProgressOperationId().getId());
+                forwarded.add(startEvent.getProgressOperationId());
                 OperationIdentifier parentProgressOperationId = startEvent.getParentProgressOperationId();
                 if (parentProgressOperationId != null) {
                     OperationIdentifier mappedId = effectiveProgressOperation.get(parentProgressOperationId);
@@ -67,7 +66,7 @@ public class OutputEventTransformer implements OutputEventListener {
             }
 
             if (startEvent.getParentProgressOperationId() == null || GUtil.isTrue(startEvent.getLoggingHeader()) || GUtil.isTrue(startEvent.getStatus()) || startEvent.getBuildOperationCategory() != BuildOperationCategory.UNCATEGORIZED) {
-                forwarded.add(startEvent.getProgressOperationId().getId());
+                forwarded.add(startEvent.getProgressOperationId());
                 OperationIdentifier parentProgressOperationId = startEvent.getParentProgressOperationId();
                 if (parentProgressOperationId != null) {
                     OperationIdentifier mappedId = effectiveProgressOperation.get(parentProgressOperationId);
@@ -87,12 +86,12 @@ public class OutputEventTransformer implements OutputEventListener {
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
             OperationIdentifier mappedEvent = effectiveProgressOperation.remove(completeEvent.getProgressOperationId());
-            if (mappedEvent == null && forwarded.remove(completeEvent.getProgressOperationId().getId())) {
+            if (mappedEvent == null && forwarded.remove(completeEvent.getProgressOperationId())) {
                 invokeListener(event);
             }
         } else if (event instanceof ProgressEvent) {
             ProgressEvent progressEvent = (ProgressEvent) event;
-            if (forwarded.contains(progressEvent.getProgressOperationId().getId())) {
+            if (forwarded.contains(progressEvent.getProgressOperationId())) {
                 invokeListener(event);
             }
         } else if (event instanceof RenderableOutputEvent) {

@@ -33,7 +33,6 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(projects.concurrent)
-    implementation(libs.fastutil)
     implementation(projects.io)
     implementation(projects.messaging)
     implementation(projects.serviceRegistryBuilder)
