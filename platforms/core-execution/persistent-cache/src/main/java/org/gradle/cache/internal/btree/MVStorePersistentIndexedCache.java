@@ -52,7 +52,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
 
     private final File cacheFile;
     private final Serializer<V> valueSerializer;
-    private final KeyHasher<K> keyHasher;
+    private final FastKeyHasher<K> keyHasher;
     private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
     private MVStore store;
     private MVMap<Long, byte[]> map;
@@ -60,7 +60,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     public MVStorePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this.cacheFile = cacheFile;
         this.valueSerializer = valueSerializer;
-        this.keyHasher = new KeyHasher<>(keySerializer);
+        this.keyHasher = new FastKeyHasher<>(keySerializer);
         try {
             doOpen();
         } catch (Exception e) {

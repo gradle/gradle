@@ -362,7 +362,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     }
 
     <K, V> PersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return new MapDBPersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
+        return new MVStorePersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
     }
 
     /**
