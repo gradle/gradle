@@ -514,6 +514,7 @@ class PerformanceTestExtension(
             }
             destinationDirectory = project.layout.buildDirectory
             archiveFileName = "test-results-${junitXmlDir.name}.zip"
+            isZip64 = true
         }
 }
 
