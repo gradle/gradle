@@ -49,6 +49,7 @@ ansiControlSequenceUtil = { group = "net.rubygrapefruit", name = "ansi-control-s
 archunit = { group = "com.tngtech.archunit", name = "archunit", version.ref = "archunit" }
 archunitJunit5 = { group = "com.tngtech.archunit", name = "archunit-junit5", version.ref = "archunit" }
 archunitJunit5Api = { group = "com.tngtech.archunit", name = "archunit-junit5-api", version.ref = "archunit" }
+asmUtil = { group = "org.ow2.asm", name = "asm-util", version.ref = "asm" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
 awaitility = { group = "org.awaitility", name = "awaitility-kotlin", version.ref = "awaitility" }
 bytebuddy = { group = "net.bytebuddy", name = "byte-buddy", version.ref = "bytebuddy" }

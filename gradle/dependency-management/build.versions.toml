@@ -5,6 +5,7 @@ checkstyle = "10.25.0"
 develocity = "4.3.2"
 groovy = "4.0.29"
 javaparser = "3.18.0"
+javaPoet = "1.13.0"
 log4j="2.25.3" # CVE-2025-68161 on lower versions
 
 [libraries]
@@ -36,6 +37,7 @@ japiCmpPlugin = { module = "me.champeau.gradle:japicmp-gradle-plugin", version =
 javaAssist = { module = "org.javassist:javassist", version = "3.30.2-GA" }
 javaParserCore = { module = "com.github.javaparser:javaparser-core", version.ref = "javaparser" }
 javaParserSymbolSolver = { module = "com.github.javaparser:javaparser-symbol-solver-core", version.ref = "javaparser" }
+javaPoet = { module = "com.squareup:javapoet", version.ref = "javaPoet" }
 jaxb = { module = "com.sun.xml.bind:jaxb-impl", version = "4.0.5" }
 jhighlight = { module = "com.uwyn:jhighlight", version = "1.0" }
 jmhPlugin = { module = "me.champeau.jmh:jmh-gradle-plugin", version = "0.7.2" }
