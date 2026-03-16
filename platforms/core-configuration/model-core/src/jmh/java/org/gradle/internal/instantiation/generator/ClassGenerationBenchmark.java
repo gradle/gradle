@@ -310,32 +310,67 @@ public class ClassGenerationBenchmark {
         }
 
         @Input
-        public String getLabel() { return label; }
-        public void setLabel(String label) { this.label = label; }
+        public String getLabel() {
+            return label;
+        }
+
+        public void setLabel(String label) {
+            this.label = label;
+        }
 
         @Input
-        public Boolean getVerbose() { return verbose; }
-        public void setVerbose(Boolean verbose) { this.verbose = verbose; }
+        public Boolean getVerbose() {
+            return verbose;
+        }
+
+        public void setVerbose(Boolean verbose) {
+            this.verbose = verbose;
+        }
 
         @Input
-        public Integer getCount() { return count; }
-        public void setCount(Integer count) { this.count = count; }
+        public Integer getCount() {
+            return count;
+        }
+
+        public void setCount(Integer count) {
+            this.count = count;
+        }
 
         @Input
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
 
         @Input
-        public String getCategory() { return category; }
-        public void setCategory(String category) { this.category = category; }
+        public String getCategory() {
+            return category;
+        }
+
+        public void setCategory(String category) {
+            this.category = category;
+        }
 
         @Input
-        public String getVersion() { return version; }
-        public void setVersion(String version) { this.version = version; }
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
 
         @Input
-        public Boolean getEnabled() { return enabled; }
-        public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+        public Boolean getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(Boolean enabled) {
+            this.enabled = enabled;
+        }
     }
 
     public interface ServiceA {}
