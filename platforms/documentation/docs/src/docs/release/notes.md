@@ -21,7 +21,7 @@ The following issues were resolved:
 * [OSC 9;4 progress bar not cleared on SIGINT](https://github.com/gradle/gradle/issues/37022)
 * [projects task fails due to "Incorrect lifecycle state" error](https://github.com/gradle/gradle/issues/37045)
     
-We recommend upgrading to Gradle @version@ instead of 9.4.0.
+We recommend upgrading to Gradle @version@.
 
 ---
 
