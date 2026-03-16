@@ -33,7 +33,7 @@ class ServicePluginTest extends PluginTest {
         given:
         buildFile << """
             dependencies {
-                integrationTestImplementation 'junit:junit:4.13'
+                integrationTestImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
             }
         """
 
@@ -41,7 +41,7 @@ class ServicePluginTest extends PluginTest {
         new File(testProjectDir, 'src/integrationTest/java/com/myorg/SomeIntegrationTest.java') << """
             package com.myorg;
 
-            import org.junit.Test;
+            import org.junit.jupiter.api.Test;
 
             public class SomeIntegrationTest {
                 @Test

@@ -36,7 +36,7 @@ class ServicePluginTest : PluginTest() {
     fun `can use integrationTest configuration to define dependencies`() {
         buildFile.appendText("""
             dependencies {
-                integrationTestImplementation("junit:junit:4.13")
+                integrationTestImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
             }
         """)
 
@@ -44,7 +44,7 @@ class ServicePluginTest : PluginTest() {
         testProjectDir.newFile("src/integrationTest/java/com/myorg/SomeIntegrationTest.java").writeText("""
             package com.myorg;
 
-            import org.junit.Test;
+            import org.junit.jupiter.api.Test;
 
             public class SomeIntegrationTest {
                 @Test
