@@ -17,15 +17,19 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.work.DefaultWorkerLimits;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.work.WorkerThreadPool;
+import org.gradle.internal.work.WorkerThreadPoolHelper;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Deque;
-import java.util.LinkedList;
+import javax.annotation.concurrent.GuardedBy;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
+class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T>, WorkerThreadPool {
     private enum QueueState {
         Working, Finishing, Cancelled, Done
     }
@@ -43,10 +47,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final Condition workAvailable = lock.newCondition();
     private final Condition operationsComplete = lock.newCondition();
     private QueueState queueState = QueueState.Working;
-    private int workerCount;
     private int pendingOperations;
-    private final Deque<T> workQueue = new LinkedList<>();
-    private final LinkedList<Throwable> failures = new LinkedList<>();
+    private final List<Throwable> failures = new ArrayList<>();
+    @GuardedBy("lock")
+    private final WorkerThreadPoolHelper<T> helper;
 
     DefaultBuildOperationQueue(
         boolean allowAccessToProjectState,
@@ -60,6 +64,14 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         this.context = context;
         this.queueWorker = queueWorker;
         this.parent = parent;
+        // `context.getMaxConcurrency() - 1` because main thread executes work as well. See https://github.com/gradle/gradle/issues/3273
+        int maxWorkerTasks = context.requiresWorkerLease()
+            ? Math.max(1, context.getMaxConcurrency() - 1)
+            : context.getMaxConcurrency();
+        this.helper = new WorkerThreadPoolHelper<>(
+            new DefaultWorkerLimits(maxWorkerTasks),
+            token -> context.getExecutor().execute(new WorkerRunnable(token, parent))
+        );
     }
 
     @Override
@@ -72,18 +84,30 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             if (queueState == QueueState.Cancelled) {
                 return;
             }
-            workQueue.add(operation);
+            helper.submitWork(operation);
             pendingOperations++;
             workAvailable.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
 
-            // `context.getMaxConcurrency() - 1` because main thread executes work as well. See https://github.com/gradle/gradle/issues/3273
-            // TODO This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
-            int maxWorkerTasks = context.requiresWorkerLease() ? context.getMaxConcurrency() - 1 : context.getMaxConcurrency();
+    @Override
+    public void notifyBlockingWorkStarting() {
+        lock.lock();
+        try {
+            helper.notifyBlockingWorkStarting();
+        } finally {
+            lock.unlock();
+        }
+    }
 
-            if (workerCount == 0 || workerCount < maxWorkerTasks) {
-                context.getExecutor().execute(new WorkerRunnable(parent));
-                workerCount++;
-            }
+    @Override
+    public void notifyBlockingWorkFinished() {
+        lock.lock();
+        try {
+            helper.notifyBlockingWorkFinished();
+            workAvailable.signalAll();
         } finally {
             lock.unlock();
         }
@@ -97,8 +121,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 return;
             }
             queueState = QueueState.Cancelled;
-            completeOperations(workQueue.size());
-            workQueue.clear();
+            completeOperations(helper.getQueueSize());
+            helper.clearQueue();
             workAvailable.signalAll();
         } finally {
             lock.unlock();
@@ -113,7 +137,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         // have a worker lease. This ensures that all worker leases are being utilized,
         // regardless of the bounds of the thread pool.
         if (context.requiresWorkerLease()) {
-            new WorkerRunnable(parent).run();
+            new WorkerRunnable(null, parent).runOperations();
         }
 
         waitForWorkToComplete();
@@ -197,42 +221,61 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private class WorkerRunnable implements Runnable {
 
+        private final WorkerThreadPoolHelper.@Nullable WorkerToken token;
         private final @Nullable BuildOperationRef parent;
 
-        public WorkerRunnable(@Nullable BuildOperationRef parent) {
+        public WorkerRunnable(WorkerThreadPoolHelper.@Nullable WorkerToken token, @Nullable BuildOperationRef parent) {
+            this.token = token;
             this.parent = parent;
         }
 
         @Override
         public void run() {
-            CurrentBuildOperationRef.instance().with(parent, this::runOperations);
+            workerLeases.setOwningThreadPool(DefaultBuildOperationQueue.this);
+            try {
+                runOperations();
+            } finally {
+                workerLeases.setOwningThreadPool(null);
+            }
         }
 
         private void runOperations() {
-            try {
-                T operation;
-                while ((operation = waitForNextOperation()) != null) {
-                    runBatch(operation);
+            CurrentBuildOperationRef.instance().with(parent, () -> {
+                try {
+                    T operation;
+                    while ((operation = waitForNextOperation()) != null) {
+                        runBatch(operation);
+                    }
+                } catch (Throwable t) {
+                    addFailure(t);
+                } finally {
+                    invalidateIfNeeded();
                 }
-            } catch (Throwable t) {
-                addFailure(t);
-            } finally {
-                shutDown();
-            }
+            });
         }
 
         @Nullable
         private T waitForNextOperation() {
             lock.lock();
             try {
-                while (queueState == QueueState.Working && workQueue.isEmpty()) {
+                // If the token was already invalidated (e.g. in runBatch), exit immediately
+                // to avoid becoming a zombie thread stuck in await().
+                if (token != null && !token.isValid()) {
+                    return null;
+                }
+                while (queueState == QueueState.Working && helper.isQueueEmpty()) {
+                    if (helper.isExtraWorker()) {
+                        // We should exit, immediately invalidate our token to ensure the count goes down now.
+                        invalidateIfNeeded();
+                        return null;
+                    }
                     try {
                         workAvailable.await();
                     } catch (InterruptedException e) {
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
-                return getNextOperation();
+                return helper.pollWork();
             } finally {
                 lock.unlock();
             }
@@ -285,19 +328,20 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 }
                 runOperation(operation);
                 operationCount++;
-                operation = getNextOperation();
+
+                lock.lock();
+                try {
+                    if (helper.isExtraWorker()) {
+                        // We should exit, immediately invalidate our token to ensure the count goes down now.
+                        invalidateIfNeeded();
+                        break;
+                    }
+                    operation = helper.pollWork();
+                } finally {
+                    lock.unlock();
+                }
             }
             return operationCount;
-        }
-
-        @Nullable
-        private T getNextOperation() {
-            lock.lock();
-            try {
-                return workQueue.pollFirst();
-            } finally {
-                lock.unlock();
-            }
         }
 
         private void runOperation(T operation) {
@@ -308,10 +352,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             }
         }
 
-        private void shutDown() {
+        private void invalidateIfNeeded() {
             lock.lock();
             try {
-                workerCount--;
+                if (token != null) {
+                    token.invalidateIfNeeded();
+                }
             } finally {
                 lock.unlock();
             }
