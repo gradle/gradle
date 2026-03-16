@@ -19,7 +19,7 @@ The following issues were resolved:
 * [9.4.0 seems to include build directory path in the key for build script compilation cache entries](https://github.com/gradle/gradle/issues/36964)
 * [Test Report: Nested: File name too long](https://github.com/gradle/gradle/issues/36996)
 * [OSC 9;4 progress bar not cleared on SIGINT](https://github.com/gradle/gradle/issues/37022)
-* [projects task fails due to "Incorrect lifecycle state" error](https://github.com/gradle/gradle/issues/37045)
+* [Projects task fails due to "Incorrect lifecycle state" error](https://github.com/gradle/gradle/issues/37045)
     
 We recommend upgrading to Gradle @version@.
 
