@@ -35,6 +35,7 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -54,7 +55,6 @@ import static com.google.common.collect.Sets.newIdentityHashSet;
 /**
  * The mutation methods on this implementation are NOT threadsafe, and callers must synchronize access to these methods.
  */
-@SuppressWarnings({"FieldCanBeLocal", "unused"})
 @NullMarked
 public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPlan {
     private final Set<Node> entryNodes = new LinkedHashSet<>();
@@ -173,29 +173,53 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         discoverNodeRelationships(queue);
     }
 
-    @SuppressWarnings({"NonApiType"}) //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void discoverNodeRelationships(LinkedList<Node> queue) {
         if (parallelTaskDependencyResolution) {
-            discoverNodeRelationshipsParallel(queue);
+            Map<LocalTaskNode, ResolvedNodeRelationships> preResolved = preResolveLocalTaskNodeDependenciesInParallel(queue);
+            discoverNodeRelationshipsSequential(queue, preResolved);
         } else {
-            discoverNodeRelationshipsSequential(queue);
+            discoverNodeRelationshipsSequential(queue, Collections.emptyMap());
         }
     }
 
     @SuppressWarnings("NonApiType")
-    private void discoverNodeRelationshipsSequential(LinkedList<Node> queue) {
+    private void discoverNodeRelationshipsSequential(LinkedList<Node> queue, Map<LocalTaskNode, ResolvedNodeRelationships> preResolved) {
         Set<Node> visiting = new HashSet<>();
         while (!queue.isEmpty()) {
             Node node = queue.getFirst();
-            if (!prepareNodeForDiscovery(node)) {
+            node.prepareForScheduling();
+            if (node.getDependenciesProcessed() || node.isCannotRunInAnyPlan()) {
+                // Have already visited this node or have already executed it - skip it
                 queue.removeFirst();
                 continue;
             }
 
+            boolean filtered = !nodeSatisfiesTaskFilter(node);
+            if (filtered) {
+                // Task is not required - skip it
+                queue.removeFirst();
+                node.dependenciesProcessed();
+                node.filtered();
+                filteredNodes.add(node);
+                continue;
+            }
+            node.require();
+
             if (visiting.add(node)) {
                 // Have not seen this node before - add its dependencies to the head of the queue and leave this
                 // node in the queue
-                node.resolveDependencies(dependencyResolver);
+                if (node instanceof LocalTaskNode) {
+                    LocalTaskNode localNode = (LocalTaskNode) node;
+                    ResolvedNodeRelationships resolved = preResolved.get(localNode);
+                    if (resolved != null) {
+                        localNode.applyRelationships(resolved);
+                    } else {
+                        localNode.resolveDependencies(dependencyResolver);
+                    }
+                } else {
+                    node.resolveDependencies(dependencyResolver);
+                }
                 for (Node successor : node.getHardSuccessors()) {
                     successor.maybeInheritOrdinalAsDependency(node.getGroup().asOrdinal());
                 }
@@ -222,99 +246,44 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     }
 
     /**
-     * Wave-based parallel discovery. Each wave collects all frontier nodes, resolves
-     * {@link LocalTaskNode}s in parallel (grouped by project), and resolves other node types
-     * sequentially. Newly discovered nodes form the next wave.
+     * Pre-resolves {@link LocalTaskNode} relationships in parallel using BFS waves, without
+     * mutating the graph. Returns a map of pre-resolved relationships keyed by node.
      */
     @SuppressWarnings("NonApiType")
-    private void discoverNodeRelationshipsParallel(LinkedList<Node> queue) {
-        Set<Node> processed = new HashSet<>();
+    private Map<LocalTaskNode, ResolvedNodeRelationships> preResolveLocalTaskNodeDependenciesInParallel(LinkedList<Node> initialQueue) {
+        Map<LocalTaskNode, ResolvedNodeRelationships> preResolved = new HashMap<>();
+        Set<LocalTaskNode> seen = new HashSet<>();
 
-        while (!queue.isEmpty()) {
-            List<LocalTaskNode> localTaskNodes = new ArrayList<>();
-            List<Node> otherNodes = new ArrayList<>();
-            Set<Node> waveNodes = new HashSet<>();
-
-            while (!queue.isEmpty()) {
-                Node node = queue.removeFirst();
-                if (processed.contains(node)) {
-                    continue;
-                }
-                if (!prepareNodeForDiscovery(node)) {
-                    processed.add(node);
-                    continue;
-                }
-                if (!waveNodes.add(node)) {
-                    continue;
-                }
-
-                if (node instanceof LocalTaskNode) {
-                    localTaskNodes.add((LocalTaskNode) node);
-                } else {
-                    otherNodes.add(node);
-                }
-            }
-
-            if (localTaskNodes.isEmpty() && otherNodes.isEmpty()) {
-                break;
-            }
-
-            List<ResolvedNodeRelationships> allResolved = resolveLocalTaskNodesInParallel(localTaskNodes);
-
-            for (Node node : otherNodes) {
-                node.resolveDependencies(dependencyResolver);
-            }
-
-            for (ResolvedNodeRelationships resolved : allResolved) {
-                LocalTaskNode node = resolved.getNode();
-                node.applyRelationships(resolved);
-                applyPostResolution(node, queue, processed);
-            }
-            for (Node node : otherNodes) {
-                applyPostResolution(node, queue, processed);
-            }
+        List<LocalTaskNode> currentWave = new ArrayList<>();
+        for (Node node : initialQueue) {
+            addToWaveIfNew(node, seen, currentWave);
         }
+
+        while (!currentWave.isEmpty()) {
+            List<ResolvedNodeRelationships> waveResults = resolveLocalTaskNodesDependenciesInParallel(currentWave);
+            List<LocalTaskNode> nextWave = new ArrayList<>();
+
+            for (ResolvedNodeRelationships resolved : waveResults) {
+                preResolved.put(resolved.getNode(), resolved);
+                for (Node dependency : resolved.getDependencies()) {
+                    addToWaveIfNew(dependency, seen, nextWave);
+                }
+                for (Node finalizer : resolved.getFinalizedBy()) {
+                    addToWaveIfNew(finalizer, seen, nextWave);
+                }
+            }
+
+            currentWave = nextWave;
+        }
+
+        return preResolved;
     }
 
-    /**
-     * Prepares a node for dependency discovery. Returns true if the node is ready for resolution.
-     */
-    private boolean prepareNodeForDiscovery(Node node) {
-        node.prepareForScheduling();
-        if (node.getDependenciesProcessed() || node.isCannotRunInAnyPlan()) {
-            return false;
-        }
-        if (!nodeSatisfiesTaskFilter(node)) {
-            node.dependenciesProcessed();
-            node.filtered();
-            filteredNodes.add(node);
-            return false;
-        }
-        node.require();
-        return true;
-    }
-
-    /**
-     * After a node has been resolved (dependencies known), apply ordinal inheritance,
-     * mark as processed, and enqueue newly discovered successors and finalizers.
-     */
-    @SuppressWarnings("NonApiType")
-    private void applyPostResolution(Node node, LinkedList<Node> queue, Set<Node> processed) {
-        for (Node successor : node.getHardSuccessors()) {
-            successor.maybeInheritOrdinalAsDependency(node.getGroup().asOrdinal());
-        }
-        node.dependenciesProcessed();
-        processed.add(node);
-
-        for (Node successor : node.getDependencySuccessors()) {
-            if (!processed.contains(successor)) {
-                queue.add(successor);
-            }
-        }
-        for (Node finalizer : node.getFinalizers()) {
-            finalizers.add(finalizer);
-            if (!processed.contains(finalizer)) {
-                queue.add(finalizer);
+    private static void addToWaveIfNew(Node node, Set<LocalTaskNode> seen, List<LocalTaskNode> wave) {
+        if (node instanceof LocalTaskNode) {
+            LocalTaskNode localNode = (LocalTaskNode) node;
+            if (!localNode.getDependenciesProcessed() && !localNode.isCannotRunInAnyPlan() && seen.add(localNode)) {
+                wave.add(localNode);
             }
         }
     }
@@ -324,7 +293,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
      * Each project group gets its own {@link TaskDependencyResolver} to avoid thread-safety issues
      * on the shared {@link org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext}.
      */
-    private List<ResolvedNodeRelationships> resolveLocalTaskNodesInParallel(List<LocalTaskNode> nodes) {
+    private List<ResolvedNodeRelationships> resolveLocalTaskNodesDependenciesInParallel(List<LocalTaskNode> nodes) {
         if (nodes.isEmpty()) {
             return new ArrayList<>();
         }
@@ -347,7 +316,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         // each acquiring its own project lock via fromMutableState.
         List<List<LocalTaskNode>> projectGroups = new ArrayList<>(byProject.values());
         ConcurrentLinkedQueue<ResolvedNodeRelationships> results = new ConcurrentLinkedQueue<>();
-
         workerLeaseService.runAsIsolatedTask(() -> {
             buildOperationExecutor.runAllWithAccessToProjectState(queue -> {
                 for (List<LocalTaskNode> group : projectGroups) {
