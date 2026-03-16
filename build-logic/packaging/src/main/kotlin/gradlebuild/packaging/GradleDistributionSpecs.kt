@@ -146,6 +146,7 @@ object GradleDistributionSpecs {
             include("gradlew.bat")
             include("version.txt")
             include("released-versions.json")
+            include("LICENSE")
             exclude("**/.gradle/")
         }
     }
