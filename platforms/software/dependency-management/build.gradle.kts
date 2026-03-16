@@ -79,7 +79,7 @@ dependencies {
     testImplementation(projects.softwareDiagnostics)
 
     testImplementation(projects.processServices)
-    testImplementation(libs.asmUtil)
+    testImplementation(testLibs.asmUtil)
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.groovyXml)
     testImplementation(libs.jsoup)
