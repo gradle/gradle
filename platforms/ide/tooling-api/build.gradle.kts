@@ -103,10 +103,6 @@ jvmCompile {
             // JSpecify annotations on static inner type return types
             usesJdkInternals = true
         }
-        named("testFixtures") {
-            // The cross version tests depend on the test fixtures
-            targetJvmVersion = 8
-        }
     }
 }
 
