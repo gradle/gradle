@@ -10,14 +10,17 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
-We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
-
-This patch release includes bug fixes and improvements.
+Gradle @version@ is the first patch release for Gradle 9.4.0. (released [@releaseDate@](https://gradle.org/releases/)).
 
 The following issues were resolved:
 
-* TODO
-
+* [SourceDistributionProvider contains hardcoded distributionUrl referring to https://services.gradle.org](https://github.com/gradle/gradle/issues/27863)
+* [9.4.0: Unable to find a variant with the requested capability: coordinates 'org.jetbrains.kotlin:kotlin-gradle-plugin-api-gradle813'](https://github.com/gradle/gradle/issues/36961)
+* [9.4.0 seems to include build directory path in the key for build script compilation cache entries](https://github.com/gradle/gradle/issues/36964)
+* [Test Report: Nested: File name too long](https://github.com/gradle/gradle/issues/36996)
+* [OSC 9;4 progress bar not cleared on SIGINT](https://github.com/gradle/gradle/issues/37022)
+* [Projects task fails due to "Incorrect lifecycle state" error](https://github.com/gradle/gradle/issues/37045)
+    
 We recommend upgrading to Gradle @version@.
 
 ---
