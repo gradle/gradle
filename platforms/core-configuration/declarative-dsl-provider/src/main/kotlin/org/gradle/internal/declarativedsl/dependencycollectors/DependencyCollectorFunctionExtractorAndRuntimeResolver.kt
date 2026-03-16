@@ -59,6 +59,7 @@ internal
 class DependencyCollectorFunctionExtractorAndRuntimeResolver(
     private val gavDependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature,
     private val dependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature,
+    private val moduleDependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature,
     private val projectDependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature
 ) : FunctionExtractor, RuntimeFunctionResolver {
 
@@ -75,7 +76,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
 
     private
     fun expandToOverloads(host: SchemaBuildingHost, produceDeclaration: (DataParameter, DataTypeRef) -> List<DependencyCollectorDeclaration>): List<DependencyCollectorDeclaration> =
-        listOf(gavDependencyParam, dependencyParam, projectDependencyParam).flatMap {
+        listOf(gavDependencyParam, dependencyParam, moduleDependencyParam, projectDependencyParam).flatMap {
             val signature = it(host)
             produceDeclaration(signature.parameter, signature.lambdaReceiverType)
         }
@@ -207,6 +208,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             val dependencyCollector = collectorAccessor.kCallable.call(checkNotNull(receiver)) as DependencyCollector
             when (val dependency = binding.values.single()) {
                 is ProjectDependency -> dependencyCollector.add(dependency)
+                is ModuleDependency -> dependencyCollector.add(dependency)
                 is Dependency -> dependencyCollector.add(dependency)
                 is String -> dependencyCollector.add(dependency)
                 else -> error("Cannot declare dependency of type: ${dependency!!.javaClass}")
@@ -222,6 +224,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             lateinit var target : Dependency
             when (val dependency = binding.values.single()) {
                 is ProjectDependency -> dependencyCollector.add(dependency, Action { target = it })
+                is ModuleDependency -> dependencyCollector.add(dependency, Action { target = it })
                 is Dependency -> dependencyCollector.add(dependency, Action { target = it })
                 is String -> dependencyCollector.add(dependency, Action { target = it })
                 else -> error("Cannot declare dependency of type: ${dependency!!.javaClass}")

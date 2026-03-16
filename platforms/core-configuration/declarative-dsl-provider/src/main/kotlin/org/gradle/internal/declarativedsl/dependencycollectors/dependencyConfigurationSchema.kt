@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.dependencycollectors
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
@@ -73,6 +74,12 @@ class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionC
             DependencyFunctionSignature(
                 DefaultDataParameter("dependency", host.modelTypeRef(typeOf<Dependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
                 host.modelTypeRef(typeOf<Dependency>()).orError()
+            )
+        },
+        moduleDependencyParam = { host ->
+            DependencyFunctionSignature(
+                DefaultDataParameter("dependency", host.modelTypeRef(typeOf<ModuleDependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
+                host.modelTypeRef(typeOf<ModuleDependency>()).orError()
             )
         },
         projectDependencyParam = { host ->
