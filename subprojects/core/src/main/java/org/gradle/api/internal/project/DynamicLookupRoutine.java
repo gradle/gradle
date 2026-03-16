@@ -38,4 +38,17 @@ public interface DynamicLookupRoutine {
     @Nullable Object invokeMethod(DynamicObject receiver, String name, Object... args);
 
     DynamicInvokeResult tryGetProperty(DynamicObject receiver, String name);
+
+    /**
+     * Called when {@link org.gradle.api.Project#findProperty}, {@link org.gradle.api.Project#hasProperty},
+     * {@link org.gradle.api.Project#property}, or {@link org.gradle.api.Project#getProperties} is directly
+     * invoked on the given project.
+     * <p>
+     * Implementations may use this to report violations for these APIs being used in modes where they
+     * are not supported, such as Isolated Projects.
+     *
+     * @param project the project on which the API is being invoked
+     * @param methodName the method name (e.g., {@code "findProperty"})
+     */
+    default void onProjectPropertyApiAccess(ProjectInternal project, String methodName) {}
 }

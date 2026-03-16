@@ -524,17 +524,20 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
             problem("Build file 'a/build.gradle': line 2: Project ':a' cannot dynamically look up a $kind in the parent project ':'")
+            if (apiName != null) {
+                problem("Build file 'a/build.gradle': line 2: Project ':a' cannot use 'Project.$apiName' as these APIs are not supported with Isolated Projects")
+            }
         }
 
         where:
-        kind       | setExpr         | expr
-        "property" | "ext.foo = 1"   | "foo"
-        "property" | "ext.foo = 1"   | "hasProperty('foo')"
-        "property" | "ext.foo = 1"   | "property('foo')"
-        "property" | "ext.foo = 1"   | "findProperty('foo')"
-        "property" | "ext.foo = 1"   | "getProperty('foo')"
-        "property" | "ext.foo = 1"   | "properties"
-        "method"   | "def foo() { }" | "foo()"
+        kind       | setExpr         | expr                  | apiName
+        "property" | "ext.foo = 1"   | "foo"                 | null
+        "property" | "ext.foo = 1"   | "hasProperty('foo')"  | "hasProperty"
+        "property" | "ext.foo = 1"   | "property('foo')"     | "property"
+        "property" | "ext.foo = 1"   | "findProperty('foo')" | "findProperty"
+        "property" | "ext.foo = 1"   | "getProperty('foo')"  | null
+        "property" | "ext.foo = 1"   | "properties"          | "properties"
+        "method"   | "def foo() { }" | "foo()"               | null
     }
 
     def 'no duplicate problems reported for dynamic property lookup in transitive parents'() {
@@ -583,7 +586,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             o.invokeMethod('bar', new Object[] {})
             o.setProperty('baz', 1)
 
-            assert project.hasProperty('baz')
+            assert project.ext.has('baz')
         """
 
         when:
@@ -764,23 +767,23 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        expr                                                       | setup
-        "files()"                                                  | ""
-        "files() + files()"                                        | ""
-        "fileTree(buildDir)"                                       | ""
-        "fileTree(buildDir) + fileTree(rootDir)"                   | ""
-        "resources.text.fromFile('1.txt', 'UTF-8')"                | ""
-        "fromTask"                                                 | "def fromTask = new Object() { def buildDependencies = tasks.help.taskDependencies }"
-        "artifacts.add('default', new File('a.txt'))"              | "configurations.create('default')"
-        "configurations.compileClasspath"                          | "plugins { id('java') }"
-        "configurations.compileClasspath.dependencies"             | "plugins { id('java') }"
-        "sourceSets.main.java"                                     | "plugins { id('java') }"
-        "sourceSets.main.output"                                   | "plugins { id('java') }"
-        "configurations.apiElements.allArtifacts"                  | "plugins { id('java') }"
-        "configurations.apiElements.allArtifacts.toList()[0]"      | "plugins { id('java') }"
-        "testing.suites.test"                                      | "plugins { id('java'); id('jvm-test-suite') }"
-        "testing.suites.test.targets.toList()[0]"                  | "plugins { id('java'); id('jvm-test-suite') }"
-        "publishing.publications.maven.artifacts.toList()[0]"      | "plugins { id('java'); id('maven-publish') }; publishing.publications.create('maven', MavenPublication) { from(components['java']) }"
+        expr                                                  | setup
+        "files()"                                             | ""
+        "files() + files()"                                   | ""
+        "fileTree(buildDir)"                                  | ""
+        "fileTree(buildDir) + fileTree(rootDir)"              | ""
+        "resources.text.fromFile('1.txt', 'UTF-8')"           | ""
+        "fromTask"                                            | "def fromTask = new Object() { def buildDependencies = tasks.help.taskDependencies }"
+        "artifacts.add('default', new File('a.txt'))"         | "configurations.create('default')"
+        "configurations.compileClasspath"                     | "plugins { id('java') }"
+        "configurations.compileClasspath.dependencies"        | "plugins { id('java') }"
+        "sourceSets.main.java"                                | "plugins { id('java') }"
+        "sourceSets.main.output"                              | "plugins { id('java') }"
+        "configurations.apiElements.allArtifacts"             | "plugins { id('java') }"
+        "configurations.apiElements.allArtifacts.toList()[0]" | "plugins { id('java') }"
+        "testing.suites.test"                                 | "plugins { id('java'); id('jvm-test-suite') }"
+        "testing.suites.test.targets.toList()[0]"             | "plugins { id('java'); id('jvm-test-suite') }"
+        "publishing.publications.maven.artifacts.toList()[0]" | "plugins { id('java'); id('maven-publish') }; publishing.publications.create('maven', MavenPublication) { from(components['java']) }"
     }
 
     def "mentions the specific project and build file in getDependencies(...) problems"() {
@@ -969,5 +972,28 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         then:
         outputContains "a.version = v1"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36998")
+    def "reports problem when build script uses Project.#methodName"() {
+        buildFile << """
+            $expr
+        """
+
+        when:
+        isolatedProjectsFails("help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":")
+            problem("Build file 'build.gradle': line 2: Project ':' cannot use 'Project.$apiName' as these APIs are not supported with Isolated Projects")
+        }
+
+        where:
+        methodName     | expr                   | apiName
+        "findProperty" | "findProperty('name')" | "findProperty"
+        "property"     | "property('name')"     | "property"
+        "hasProperty"  | "hasProperty('name')"  | "hasProperty"
+        "properties"   | "def p = properties"   | "properties"
     }
 }

@@ -162,7 +162,12 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     // used by Groovy dynamic dispatch
     protected boolean hasPropertyMissing(String name) {
         onMutableStateAccess("hasProperty");
-        return delegate.hasProperty(name);
+        CrossProjectPropertyApiAccessFlag.enter();
+        try {
+            return delegate.hasProperty(name);
+        } finally {
+            CrossProjectPropertyApiAccessFlag.leave();
+        }
     }
 
     @Override
@@ -462,27 +467,47 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public boolean hasProperty(String propertyName) {
         onMutableStateAccess("hasProperty");
-        return delegate.hasProperty(propertyName);
+        CrossProjectPropertyApiAccessFlag.enter();
+        try {
+            return delegate.hasProperty(propertyName);
+        } finally {
+            CrossProjectPropertyApiAccessFlag.leave();
+        }
     }
 
     @Override
     public Map<String, ? extends @Nullable Object> getProperties() {
         onMutableStateAccess("properties");
-        return delegate.getProperties();
+        CrossProjectPropertyApiAccessFlag.enter();
+        try {
+            return delegate.getProperties();
+        } finally {
+            CrossProjectPropertyApiAccessFlag.leave();
+        }
     }
 
     @Nullable
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
         onMutableStateAccess("property");
-        return delegate.property(propertyName);
+        CrossProjectPropertyApiAccessFlag.enter();
+        try {
+            return delegate.property(propertyName);
+        } finally {
+            CrossProjectPropertyApiAccessFlag.leave();
+        }
     }
 
     @Nullable
     @Override
     public Object findProperty(String propertyName) {
         onMutableStateAccess("findProperty");
-        return delegate.findProperty(propertyName);
+        CrossProjectPropertyApiAccessFlag.enter();
+        try {
+            return delegate.findProperty(propertyName);
+        } finally {
+            CrossProjectPropertyApiAccessFlag.leave();
+        }
     }
 
     @Override

@@ -82,6 +82,9 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
+import org.gradle.features.internal.binding.ProjectFeatureApplicator;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -122,9 +125,6 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.features.internal.binding.ProjectFeatureApplicator;
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
-import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -1135,7 +1135,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @SuppressWarnings("JavadocReference")
     @Nullable
     public Object getProperty(String propertyName) {
-        return property(propertyName);
+        return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
     }
 
     /**
@@ -1158,11 +1158,17 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
+        if (CrossProjectPropertyApiAccessFlag.isNotActive()) {
+            dynamicLookupRoutine.onProjectPropertyApiAccess(this, "property");
+        }
         return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
     }
 
     @Override
     public Object findProperty(String propertyName) {
+        if (CrossProjectPropertyApiAccessFlag.isNotActive()) {
+            dynamicLookupRoutine.onProjectPropertyApiAccess(this, "findProperty");
+        }
         return dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName);
     }
 
@@ -1173,11 +1179,17 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public boolean hasProperty(String propertyName) {
+        if (CrossProjectPropertyApiAccessFlag.isNotActive()) {
+            dynamicLookupRoutine.onProjectPropertyApiAccess(this, "hasProperty");
+        }
         return dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName);
     }
 
     @Override
     public Map<String, ? extends @Nullable Object> getProperties() {
+        if (CrossProjectPropertyApiAccessFlag.isNotActive()) {
+            dynamicLookupRoutine.onProjectPropertyApiAccess(this, "properties");
+        }
         return dynamicLookupRoutine.getProperties(extensibleDynamicObject);
     }
 

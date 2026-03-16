@@ -21,6 +21,7 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.project.DynamicLookupRoutine;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -76,10 +77,16 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     }
 
     public Map<String, ? extends @Nullable Object> getProperties() {
+        if (target instanceof ProjectInternal) {
+            dynamicLookupRoutine.onProjectPropertyApiAccess((ProjectInternal) target, "properties");
+        }
         return dynamicLookupRoutine.getProperties(dynamicObject);
     }
 
     public boolean hasProperty(String property) {
+        if (target instanceof ProjectInternal) {
+            dynamicLookupRoutine.onProjectPropertyApiAccess((ProjectInternal) target, "hasProperty");
+        }
         return dynamicLookupRoutine.hasProperty(dynamicObject, property);
     }
 

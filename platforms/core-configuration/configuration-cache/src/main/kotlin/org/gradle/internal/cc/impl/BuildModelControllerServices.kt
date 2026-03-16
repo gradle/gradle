@@ -142,9 +142,15 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
         @Provides
         fun createDynamicLookupRoutine(
             dynamicCallContextTracker: DynamicCallContextTracker,
-            buildModelParameters: BuildModelParameters
+            buildModelParameters: BuildModelParameters,
+            problemsListener: ProblemsListener,
+            problemFactory: ProblemFactory
         ): DynamicLookupRoutine = when {
-            buildModelParameters.isIsolatedProjects -> TrackingDynamicLookupRoutine(dynamicCallContextTracker)
+            buildModelParameters.isIsolatedProjects -> IsolatedProjectsAwareDynamicLookupRoutine(
+                TrackingDynamicLookupRoutine(dynamicCallContextTracker),
+                problemsListener,
+                problemFactory
+            )
             else -> DefaultDynamicLookupRoutine()
         }
     }
