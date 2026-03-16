@@ -78,6 +78,12 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
+    crossVersionTestImplementation(projects.toolingApi) {
+        capabilities {
+            requireCapability("${project.group}:tooling-api-crossVersionTestModels")
+        }
+    }
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 

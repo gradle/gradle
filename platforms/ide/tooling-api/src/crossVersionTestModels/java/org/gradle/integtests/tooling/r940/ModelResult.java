@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
 
 package org.gradle.integtests.tooling.r940;
 
-import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.idea.IdeaProject;
+import java.io.Serializable;
+import java.util.List;
 
-/**
- * Example build action used in the r940 cross-version tooling API tests.
- */
-public class FetchIdeaModel implements BuildAction<IdeaProject> {
-    @Override
-    public IdeaProject execute(BuildController controller) {
-        return controller.getModel(IdeaProject.class);
+class ModelResult implements Serializable {
+    final List<String> successfullyQueriedProjects;
+    final List<String> failedToQueryProjects;
+
+    ModelResult(List<String> successfullyQueriedProjects, List<String> failedToQueryProjects) {
+        this.successfullyQueriedProjects = successfullyQueriedProjects;
+        this.failedToQueryProjects = failedToQueryProjects;
     }
 }
