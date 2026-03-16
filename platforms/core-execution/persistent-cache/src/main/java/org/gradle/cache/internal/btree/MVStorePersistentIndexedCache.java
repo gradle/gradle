@@ -55,8 +55,8 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final Logger LOGGER = LoggerFactory.getLogger(MVStorePersistentIndexedCache.class);
     private static final String MAP_NAME = "cache";
     private static final String STREAM_CHUNKS_MAP_NAME = "cache.chunks";
-    private static final int CACHE_SIZE_MB = 32;
-    private static final int PAGE_SPLIT_SIZE = 2 * 1024;
+    private static final int CACHE_SIZE_MB = 8;
+    private static final int PAGE_SPLIT_SIZE = 1024;
     private static final int KRYO_BUFFER_SIZE = 512;
     /** Sentinel value stored in the map to represent a removed entry. */
     private static final byte[] TOMBSTONE = new byte[0];
