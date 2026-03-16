@@ -55,7 +55,6 @@ import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import org.gradle.internal.declarativedsl.schemaBuilder.parameterTypeToRef
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import kotlin.reflect.KFunction
-import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.kotlinFunction
 
@@ -157,8 +156,8 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
     override fun augmentationsProviders(): List<AugmentationsProvider> = listOf(
         object : AugmentationsProvider {
             override fun augmentations(host: SchemaBuildingHost): Map<FqName, List<AssignmentAugmentation>> {
-                val mapSignatureFunction: KFunction<*> = this::class.memberFunctions.single { it.name == "mapSignature" }
-                val listSignatureFunction: KFunction<*> = this::class.memberFunctions.single { it.name == "listSignature" }
+                val mapSignatureFunction: KFunction<Map<Any, Any>> = ::mapSignature
+                val listSignatureFunction: KFunction<List<Any>> = ::listSignature
 
                 return mapOf(
                     DefaultFqName.parse(List::class.qualifiedName!!) to listOf(
@@ -203,20 +202,22 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
                     )
                 )
             }
-
-            /** Declared just for getting the List<T> type reflection */
-            @Suppress("UnusedPrivateMember") // used via reflection
-            private fun <T> listSignature(param: List<T>) = param
-
-            /** Declared just for getting the List<T> type reflection */
-            @Suppress("UnusedPrivateMember") // used via reflection
-            private fun <K, V> mapSignature(param: Map<K, V>) = param
         })
+
 
     private val AUGMENTATION_FUNCTION_PACKAGE = ::builtinListAugmentation.javaMethod!!.declaringClass.`package`.name
     private val LIST_AUGMENTATION_FUNCTION_NAME = ::builtinListAugmentation.name
     private val MAP_AUGMENTATION_FUNCTION_NAME = ::builtinMapAugmentation.name
 }
+
+/** Declared just for getting the List<T> type reflection; Declared at the top level to workaround KT-85025. */
+@Suppress("UnusedPrivateMember") // used via reflection
+private fun <T> listSignature(param: List<T>) = param
+
+/** Declared just for getting the Map<K, V> type reflection; Declared at the top level to workaround KT-85025. */
+@Suppress("UnusedPrivateMember") // used via reflection
+private fun <K, V> mapSignature(param: Map<K, V>) = param
+
 
 fun builtinListAugmentation(lhs: Any, rhs: List<*>): Any =
     when (lhs) {
