@@ -24,20 +24,24 @@ class DefaultBuildOperationListenerManagerTest extends Specification {
     def broadcaster = manager.broadcaster
     def events = []
 
-    def id1 = new OperationIdentifier(1)
-    def op1 = BuildOperationDescriptor.displayName("1").build(id1, null)
-    def id2 = new OperationIdentifier(2)
-    def op2 = BuildOperationDescriptor.displayName("2").build(id2, null)
-
     def startEvent = new OperationStartEvent(0)
     def progressEvent = new OperationProgressEvent(0, null)
     def finishEvent = new OperationFinishEvent(0, 0, null, null)
+
+    private long nextId = 1
+
+    private BuildOperationDescriptor nextOp(String displayName) {
+        def id = new OperationIdentifier(nextId++)
+        BuildOperationDescriptor.displayName(displayName).build(id, null)
+    }
 
     def "notifies start and progress in registration order, finish in reverse registration order"() {
         given:
         manager.addListener(recordingListener("1"))
         manager.addListener(recordingListener("2"))
         manager.addListener(recordingListener("3"))
+        def op1 = nextOp("1")
+        def op2 = nextOp("2")
 
         when:
         broadcaster.started(op1, startEvent)
@@ -47,78 +51,128 @@ class DefaultBuildOperationListenerManagerTest extends Specification {
 
         then:
         events == [
-            start("1", id1),
-            start("2", id1),
-            start("3", id1),
-            start("1", id2),
-            start("2", id2),
-            start("3", id2),
-            finished("3", id1),
-            finished("2", id1),
-            finished("1", id1),
-            finished("3", id2),
-            finished("2", id2),
-            finished("1", id2),
+            start("1", op1.id),
+            start("2", op1.id),
+            start("3", op1.id),
+            start("1", op2.id),
+            start("2", op2.id),
+            start("3", op2.id),
+            finished("3", op1.id),
+            finished("2", op1.id),
+            finished("1", op1.id),
+            finished("3", op2.id),
+            finished("2", op2.id),
+            finished("1", op2.id),
         ]
     }
 
-    def "does not forward progress notifications outside of start and finish"() {
+    def "does not forward progress or finished for operations whose started was not seen"() {
+        given:
+        def op1 = nextOp("1")
+
+        // Register listener after op1's ID is allocated — but before started is broadcast
+        manager.addListener(recordingListener("1"))
+
+        def op2 = nextOp("2")
+
+        when:
+        // op1 started is delivered to listener "1" since it's in the list
+        broadcaster.started(op1, startEvent)
+        broadcaster.started(op2, startEvent)
+        broadcaster.progress(op1.id, progressEvent)
+        broadcaster.progress(op2.id, progressEvent)
+        broadcaster.finished(op1, finishEvent)
+        broadcaster.finished(op2, finishEvent)
+
+        then:
+        // Listener sees all events for both ops — ID allocation order doesn't matter,
+        // only whether started() was delivered
+        events == [
+            start("1", op1.id),
+            start("1", op2.id),
+            progress("1", op1.id),
+            progress("1", op2.id),
+            finished("1", op1.id),
+            finished("1", op2.id),
+        ]
+    }
+
+    def "does not forward progress or finished if started was not delivered to listener"() {
+        given:
+        def op1 = nextOp("1")
+
+        // Broadcast started before any listeners are registered
+        broadcaster.started(op1, startEvent)
+
+        // Now register a listener — it missed started for op1
+        manager.addListener(recordingListener("1"))
+
+        def op2 = nextOp("2")
+
+        when:
+        broadcaster.started(op2, startEvent)
+        broadcaster.progress(op1.id, progressEvent)
+        broadcaster.progress(op2.id, progressEvent)
+        broadcaster.finished(op1, finishEvent)
+        broadcaster.finished(op2, finishEvent)
+
+        then:
+        // Listener correctly sees only op2 — it missed started for op1,
+        // so progress and finished for op1 are filtered out
+        events == [
+            start("1", op2.id),
+            progress("1", op2.id),
+            finished("1", op2.id),
+        ]
+    }
+
+    def "listener registered between two listeners sees operations started after registration"() {
         given:
         manager.addListener(recordingListener("1"))
-        manager.addListener(new RecordingListener("2") {
-            @Override
-            void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-                super.started(buildOperation, startEvent)
-                broadcaster.progress(buildOperation.id, progressEvent)
-            }
+        manager.addListener(recordingListener("2"))
 
-            @Override
-            void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-                super.finished(buildOperation, finishEvent)
-                broadcaster.progress(buildOperation.id, progressEvent)
-            }
-        })
+        def op1 = nextOp("1")
+
         manager.addListener(recordingListener("3"))
+
+        def op2 = nextOp("2")
 
         when:
         broadcaster.started(op1, startEvent)
         broadcaster.started(op2, startEvent)
-        broadcaster.progress(id1, progressEvent)
-        broadcaster.progress(id2, progressEvent)
+        broadcaster.progress(op1.id, progressEvent)
+        broadcaster.progress(op2.id, progressEvent)
         broadcaster.finished(op1, finishEvent)
         broadcaster.finished(op2, finishEvent)
 
         then:
         events == [
-            start("1", id1),
-            start("2", id1),
-            progress("1", id1),
-            progress("2", id1),
-            start("3", id1),
+            // All listeners see started for op1 (all were registered when started was broadcast)
+            start("1", op1.id),
+            start("2", op1.id),
+            start("3", op1.id),
 
-            start("1", id2),
-            start("2", id2),
-            progress("1", id2),
-            progress("2", id2),
-            start("3", id2),
+            start("1", op2.id),
+            start("2", op2.id),
+            start("3", op2.id),
 
-            progress("1", id1),
-            progress("2", id1),
-            progress("3", id1),
+            // All listeners see progress for both ops
+            progress("1", op1.id),
+            progress("2", op1.id),
+            progress("3", op1.id),
 
-            progress("1", id2),
-            progress("2", id2),
-            progress("3", id2),
+            progress("1", op2.id),
+            progress("2", op2.id),
+            progress("3", op2.id),
 
-            finished("3", id1),
-            finished("2", id1),
-            progress("1", id1),
-            finished("1", id1),
+            // All listeners see finished for both ops (reverse order)
+            finished("3", op1.id),
+            finished("2", op1.id),
+            finished("1", op1.id),
 
-            finished("3", id2),
-            finished("2", id2),
-            progress("1", id2),
-            finished("1", id2)
+            finished("3", op2.id),
+            finished("2", op2.id),
+            finished("1", op2.id),
         ]
     }
 

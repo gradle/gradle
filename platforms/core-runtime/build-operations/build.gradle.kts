@@ -11,6 +11,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(libs.fastutil)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
