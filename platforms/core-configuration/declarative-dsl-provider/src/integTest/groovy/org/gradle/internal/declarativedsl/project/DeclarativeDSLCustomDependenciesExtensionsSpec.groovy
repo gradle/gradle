@@ -472,6 +472,45 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         outputContains("commons-lang3-3.8.1.jar")
     }
 
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    def "can add a testFixture dependency in declarative DSL in Kotlin"() {
+        given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
+        file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << defineDependenciesExtensionWithTestFixturesModifierKotlin()
+        file("build-logic/src/main/kotlin/com/example/restricted/LibraryExtension.kt") << defineLibraryExtensionKotlin()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTasks()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild(true)
+
+        and: "a project that has testFixtures"
+        file("platform/build.gradle") << """
+            plugins {
+                id 'java-library'
+                id 'java-test-fixtures'
+            }
+
+            dependencies {
+                testFixturesApi("org.apache.commons:commons-lang3:3.8.1")
+            }
+        """
+
+        and: "a lib project that uses the platform"
+        file("lib/build.gradle.dcl") << """
+            library {
+                dependencies {
+                    implementation(testFixtures(project(":platform")))
+                }
+            }
+        """
+
+        and: "a root project including both of these projects"
+        file("settings.gradle") << defineSettings() + 'include("lib", "platform")'
+
+        expect:
+        succeeds(":lib:resolveImplementation")
+        outputContains("commons-lang3-3.8.1.jar")
+    }
+
     def "can configure a platform using DependencyCollector in declarative DSL by converting a BOM"() {
         given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
         file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtensionWithPlatformModifiers()
@@ -666,6 +705,22 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                         }
                     }
                 }
+            }
+        """
+    }
+
+    private String defineDependenciesExtensionWithTestFixturesModifierKotlin() {
+        //language=kotlin
+        return """
+            package com.example.restricted
+
+            import org.gradle.api.artifacts.dsl.DependencyCollector
+            import org.gradle.api.artifacts.dsl.GradleDependencies
+            import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers
+
+            interface DependenciesExtension : GradleDependencies, TestFixturesDependencyModifiers {
+                val api: DependencyCollector
+                val implementation: DependencyCollector
             }
         """
     }
