@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.configuration.Help
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
@@ -229,9 +228,8 @@ assert repositories.size() == 1
         errorOutput.contains("Could not find method maven() for arguments")
     }
 
-    @ToBeFixedForConfigurationCache(because = "resolves configuration at execution time through configuration container")
     def "cannot reference script level configure method from async closure in named container configure closure when that closure would fail with MME if applied to a new element"() {
-        buildFile << """
+        buildFile """
 plugins {
     id 'distribution'
 }
@@ -248,19 +246,19 @@ configurations {
 }
 
 task resolve {
-    dependsOn configurations.conf
+    dependsOn(configurations.conf)
+    def files = configurations.conf.files
     doFirst {
-        configurations.conf.files // Trigger `afterResolve`
-        assert distributions*.name.contains('myDist')
+        println files
+        println "Distributions: " + distributions*.name
     }
 }
-
-assert configurations*.name.contains('conf')
 """
 
         expect:
         fails "resolve"
         errorOutput.contains("Could not find method myDist() for arguments")
+        outputDoesNotContain("Distributions:")
     }
 
     def "reports missing method from inside configure closure"() {
