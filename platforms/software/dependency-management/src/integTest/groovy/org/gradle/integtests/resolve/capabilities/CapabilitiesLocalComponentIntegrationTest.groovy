@@ -53,10 +53,11 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         failure.assertHasCause("""Module 'test:b' has been rejected:
-   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root project :' (compileClasspath)]""")
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root project 'test'' (compileClasspath)]""")
     }
 
     def 'fails to resolve undeclared test fixture'() {
+        settingsFile << "rootProject.name = 'test'\n"
         buildFile << """
             apply plugin: 'java-library'
 
@@ -75,7 +76,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         succeeds 'dependencyInsight', '--configuration', 'compileClasspath', '--dependency', ':'
 
         then:
-        outputContains("Could not resolve root project :.")
+        outputContains("Could not resolve root project 'test'.")
     }
 
     def "can lazily define and request capability"() {

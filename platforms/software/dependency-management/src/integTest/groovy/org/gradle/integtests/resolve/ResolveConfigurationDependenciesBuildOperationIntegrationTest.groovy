@@ -496,6 +496,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         """
 
         settingsFile << """
+            rootProject.name = 'test'
             dependencyResolutionManagement {
                 repositories {
                     maven {
@@ -534,12 +535,12 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             assert op.result.resolvedDependenciesCount == 3
             def resolvedComponents = op.result.components
             assert resolvedComponents.size() == 8
-            assert resolvedComponents.'root project :'.repoId == null
+            assert resolvedComponents."root project 'test'".repoId == null
             assert resolvedComponents.'org.foo:direct1:1.0'.repoId == maven1Id
             assert resolvedComponents.'org.foo:direct2:1.0'.repoId == maven2Id
             assert resolvedComponents.'org.foo:transitive1:1.0'.repoId == maven1Id
             assert resolvedComponents.'org.foo:transitive2:1.0'.repoId == maven2Id
-            assert resolvedComponents.'project :child'.repoId == null
+            assert resolvedComponents."project ':child'".repoId == null
             assert resolvedComponents.'org.foo:child-transitive1:1.0'.repoId == maven1Id
             assert resolvedComponents.'org.foo:child-transitive2:1.0'.repoId == maven2Id
             return true

@@ -205,7 +205,7 @@ task verify {
 
         // Check generic component result
         def componentResult = result.components.iterator().next()
-        assert componentResult.id.displayName == "root project :"
+        assert componentResult.id.displayName == "root project '\${rootProject.name}'"
         assert componentResult instanceof $expectedComponentResult.name
 """
 
