@@ -166,28 +166,19 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     @Override
     public CrossBuildPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final List<String> channelPatterns, List<String> teamcityBuildIds) {
         return withConnection("load results", connection -> {
-            String buildIdQuery = teamcityBuildIdQueryFor(teamcityBuildIds);
-            String channelPatternQuery = channelPatternQueryFor(channelPatterns);
-            String executionsForNameSql = "select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (" + channelPatternQuery + buildIdQuery + ") order by startTime desc limit ?";
+            List<String> distinctChannelPatterns = distinctValues(channelPatterns);
+            List<String> distinctTeamcityBuildIds = distinctValues(teamcityBuildIds);
+            String historyProjection = "id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId";
+            String baseHistorySql = createHistoryFilterUnionSql(historyProjection, distinctChannelPatterns, distinctTeamcityBuildIds);
+            String executionsForNameSql = "select h.id, h.startTime, h.endTime, h.versionUnderTest, h.operatingSystem, h.jvm, h.vcsBranch, h.vcsCommit, h.testGroup, h.channel, h.host, h.teamCityBuildId from (" + baseHistorySql + ") as h order by h.startTime desc limit ?";
             String operationsForExecutionSql = "select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?";
             try (
                 PreparedStatement executionsForName = connection.prepareStatement(executionsForNameSql);
                 PreparedStatement operationsForExecution = connection.prepareStatement(operationsForExecutionSql);
             ) {
-                int idx = 0;
-                executionsForName.setString(++idx, experiment.getScenario().getClassName());
-                executionsForName.setString(++idx, experiment.getScenario().getTestName());
-                executionsForName.setString(++idx, experiment.getTestProject());
                 Timestamp minDate = Timestamp.valueOf(LocalDate.now().minusDays(maxDaysOld).atStartOfDay());
-                executionsForName.setTimestamp(++idx, minDate);
-                for (String channelPattern : channelPatterns) {
-                    executionsForName.setString(++idx, channelPattern);
-                }
-                for (String teamcityBuildId : teamcityBuildIds) {
-                    executionsForName.setString(++idx, teamcityBuildId);
-                }
-                executionsForName.setInt(++idx, mostRecentN);
-                List<Object> executionsForNameParams = createHistoryQueryParams(experiment, minDate, channelPatterns, teamcityBuildIds, mostRecentN);
+                bindHistoryQueryParams(executionsForName, experiment, minDate, distinctChannelPatterns, distinctTeamcityBuildIds, mostRecentN);
+                List<Object> executionsForNameParams = createHistoryQueryParams(experiment, minDate, distinctChannelPatterns, distinctTeamcityBuildIds, mostRecentN);
                 long executionsForNameStartTime = System.currentTimeMillis();
                 ResultSet executionsForNameRs = null;
                 try (ResultSet testExecutions = executionsForName.executeQuery()) {

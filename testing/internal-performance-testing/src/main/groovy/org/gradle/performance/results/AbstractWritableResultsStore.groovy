@@ -19,8 +19,11 @@ package org.gradle.performance.results
 import com.google.common.collect.ImmutableMap
 import groovy.transform.CompileStatic
 
+import java.sql.PreparedStatement
+import java.sql.SQLException
 import java.sql.Timestamp
 import java.time.LocalDateTime
+import java.util.LinkedHashSet
 
 @CompileStatic
 abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> implements WritableResultsStore<T> {
@@ -56,6 +59,55 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
 
     static String channelPatternQueryFor(List<String> channelPatterns) {
         return String.join(' or ', Collections.nCopies(channelPatterns.size(), "channel like ?"))
+    }
+
+    protected static List<String> distinctValues(List<String> values) {
+        return new ArrayList<>(new LinkedHashSet<>(values))
+    }
+
+    protected static String createHistoryFilterUnionSql(String selectColumns, List<String> channelPatterns, List<String> teamcityBuildIds) {
+        String baseSql = "select ${selectColumns} from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and "
+        List<String> branches = new ArrayList<>(2)
+        if (!channelPatterns.isEmpty()) {
+            branches.add(baseSql + "(" + channelPatternQueryFor(channelPatterns) + ")")
+        }
+        if (!teamcityBuildIds.isEmpty()) {
+            branches.add(baseSql + "teamcitybuildid in (${String.join(',', Collections.nCopies(teamcityBuildIds.size(), '?'))})")
+        }
+        if (branches.isEmpty()) {
+            return "select ${selectColumns} from testExecution where 1 = 0"
+        }
+        return String.join(" union distinct ", branches)
+    }
+
+    protected static void bindHistoryQueryParams(
+        PreparedStatement statement,
+        PerformanceExperiment experiment,
+        Timestamp minDate,
+        List<String> channelPatterns,
+        List<String> teamcityBuildIds,
+        int mostRecentN
+    ) throws SQLException {
+        int idx = 0
+        if (!channelPatterns.isEmpty()) {
+            statement.setString(++idx, experiment.getScenario().getClassName())
+            statement.setString(++idx, experiment.getScenario().getTestName())
+            statement.setString(++idx, experiment.getTestProject())
+            statement.setTimestamp(++idx, minDate)
+            for (String channelPattern : channelPatterns) {
+                statement.setString(++idx, channelPattern)
+            }
+        }
+        if (!teamcityBuildIds.isEmpty()) {
+            statement.setString(++idx, experiment.getScenario().getClassName())
+            statement.setString(++idx, experiment.getScenario().getTestName())
+            statement.setString(++idx, experiment.getTestProject())
+            statement.setTimestamp(++idx, minDate)
+            for (String teamcityBuildId : teamcityBuildIds) {
+                statement.setString(++idx, teamcityBuildId)
+            }
+        }
+        statement.setInt(++idx, mostRecentN)
     }
 
     protected static List<Object> createHistoryQueryParams(
