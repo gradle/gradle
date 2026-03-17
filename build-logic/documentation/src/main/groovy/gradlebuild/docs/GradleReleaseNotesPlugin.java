@@ -19,6 +19,7 @@ package gradlebuild.docs;
 import gradlebuild.buildutils.tasks.AbstractCheckOrUpdateContributorsInReleaseNotes;
 import gradlebuild.buildutils.tasks.CheckContributorsInReleaseNotes;
 import gradlebuild.buildutils.tasks.UpdateContributorsInReleaseNotes;
+import gradlebuild.buildutils.tasks.UpdateFixedIssuesInReleaseNotes;
 import gradlebuild.identity.extension.GradleModuleExtension;
 import gradlebuild.identity.extension.ModuleIdentity;
 import org.gradle.api.Plugin;
@@ -89,6 +90,14 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
         tasks.register("checkContributorsInReleaseNotes", CheckContributorsInReleaseNotes.class);
         tasks.register("updateContributorsInReleaseNotes", UpdateContributorsInReleaseNotes.class);
         tasks.withType(AbstractCheckOrUpdateContributorsInReleaseNotes.class).configureEach(task -> {
+            task.getGithubToken().set(project.getProviders().environmentVariable("GITHUB_TOKEN"));
+            task.getReleaseNotes().set(extension.getReleaseNotes().getMarkdownFile());
+            task.getMilestone().convention(project.getProviders().fileContents(project.getIsolated().getRootProject().getProjectDirectory().file("version.txt")).getAsText().map(String::trim));
+        });
+
+        tasks.register("updateFixedIssuesInReleaseNotes", UpdateFixedIssuesInReleaseNotes.class, task -> {
+            task.setGroup("release notes");
+            task.setDescription("Update the list of fixed issues in the release notes for a patch release.");
             task.getGithubToken().set(project.getProviders().environmentVariable("GITHUB_TOKEN"));
             task.getReleaseNotes().set(extension.getReleaseNotes().getMarkdownFile());
             task.getMilestone().convention(project.getProviders().fileContents(project.getIsolated().getRootProject().getProjectDirectory().file("version.txt")).getAsText().map(String::trim));
