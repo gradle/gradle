@@ -116,7 +116,7 @@ My custom configuration""")
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    def "if resolvable configuration without attributes and legacy configuration present, task reports resolvable config and prompts for legacy"() {
+    def "if resolvable configuration without attributes and legacy configuration present, task reports resolvable config and does not prompt for legacy"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -144,7 +144,6 @@ My custom configuration""")
         doesNotHaveLegacyLegend()
         doesNotHaveIncubatingLegend()
         hasConfigurationsLackingAttributesLegend()
-        promptsForRerunToFindMoreConfigurations()
     }
 
     def "if single resolvable configuration present with attributes, task reports it and them"() {
