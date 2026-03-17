@@ -30,6 +30,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
 
-    private final boolean parallelTaskDependencyResolution = Boolean.getBoolean("org.gradle.unsafe.parallel-task-dependency-resolution");
+    private final boolean parallelTaskDependencyResolution;
 
     private DefaultFinalizedExecutionPlan finalizedPlan;
     // An immutable copy of the final plan
@@ -92,7 +93,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         ExecutionNodeAccessHierarchy destroyableHierarchy,
         ResourceLockCoordinationService lockCoordinator,
         WorkerLeaseService workerLeaseService,
-        BuildOperationExecutor buildOperationExecutor
+        BuildOperationExecutor buildOperationExecutor,
+        boolean parallelTaskDependencyResolution
     ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
@@ -103,6 +105,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         this.workerLeaseService = workerLeaseService;
         this.buildOperationExecutor = buildOperationExecutor;
         this.ordinalNodeAccess = new OrdinalNodeAccess(ordinalGroupFactory);
+        this.parallelTaskDependencyResolution = parallelTaskDependencyResolution;
     }
 
     @Override
@@ -179,12 +182,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
             Map<LocalTaskNode, ResolvedNodeRelationships> preResolved = preResolveLocalTaskNodeDependenciesInParallel(queue);
             discoverNodeRelationshipsSequential(queue, preResolved);
         } else {
-            discoverNodeRelationshipsSequential(queue, Collections.emptyMap());
+            discoverNodeRelationshipsSequential(queue, null);
         }
     }
 
     @SuppressWarnings("NonApiType")
-    private void discoverNodeRelationshipsSequential(LinkedList<Node> queue, Map<LocalTaskNode, ResolvedNodeRelationships> preResolved) {
+    private void discoverNodeRelationshipsSequential(LinkedList<Node> queue, @Nullable Map<LocalTaskNode, ResolvedNodeRelationships> preResolved) {
         Set<Node> visiting = new HashSet<>();
         while (!queue.isEmpty()) {
             Node node = queue.getFirst();
@@ -209,13 +212,15 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
             if (visiting.add(node)) {
                 // Have not seen this node before - add its dependencies to the head of the queue and leave this
                 // node in the queue
-                if (node instanceof LocalTaskNode) {
+                if (preResolved != null && node instanceof LocalTaskNode) {
                     LocalTaskNode localNode = (LocalTaskNode) node;
-                    ResolvedNodeRelationships resolved = preResolved.get(localNode);
-                    if (resolved != null) {
-                        localNode.applyRelationships(resolved);
-                    } else {
+                    ResolvedNodeRelationships resolved = preResolved.remove(localNode);
+                    if (resolved == null) {
+                        // We preresolve only LocalTaskNodes, but not other nodes,
+                        // so if a task comes in the graph as an artifact transform dependency, we may not have preresolved dependencies for that task
                         localNode.resolveDependencies(dependencyResolver);
+                    } else {
+                        localNode.applyRelationships(resolved);
                     }
                 } else {
                     node.resolveDependencies(dependencyResolver);

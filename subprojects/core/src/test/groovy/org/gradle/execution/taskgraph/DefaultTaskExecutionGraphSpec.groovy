@@ -630,7 +630,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def workerLeaseService = Stub(WorkerLeaseService) {
             runAsIsolatedTask(_ as Factory) >> { Factory factory -> factory.create() }
         }
-        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator, workerLeaseService, new TestBuildOperationExecutor())
+        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator, workerLeaseService, new TestBuildOperationExecutor(), false)
     }
 
     def task(String name, Task... dependsOn = []) {

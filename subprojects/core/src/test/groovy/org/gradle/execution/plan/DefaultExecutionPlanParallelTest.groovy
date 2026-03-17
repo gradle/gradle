@@ -63,7 +63,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def workerLeaseService = Stub(WorkerLeaseService) {
             runAsIsolatedTask(_ as Factory) >> { Factory factory -> factory.create() }
         }
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator, workerLeaseService, new TestBuildOperationExecutor())
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator, workerLeaseService, new TestBuildOperationExecutor(), false)
     }
 
     Node priorityNode(Map<String, ?> options = [:]) {

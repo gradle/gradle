@@ -317,7 +317,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def planWorkerLeaseService = Stub(WorkerLeaseService) {
             runAsIsolatedTask(_ as Factory) >> { Factory factory -> factory.create() }
         }
-        def plan = new DefaultExecutionPlan(displayName, nodeFactory, new OrdinalGroupFactory(), dependencyResolver, hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.services.coordinationService, planWorkerLeaseService, new TestBuildOperationExecutor())
+        def plan = new DefaultExecutionPlan(displayName, nodeFactory, new OrdinalGroupFactory(), dependencyResolver, hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.services.coordinationService, planWorkerLeaseService, new TestBuildOperationExecutor(), false)
         def workPlan = Stub(BuildWorkPlan) {
             _ * stop() >> { plan.close() }
         }

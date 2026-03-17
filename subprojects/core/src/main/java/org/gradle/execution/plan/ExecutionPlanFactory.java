@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.scopes.Scope;
@@ -33,6 +34,7 @@ public class ExecutionPlanFactory {
     private final ResourceLockCoordinationService lockCoordinationService;
     private final WorkerLeaseService workerLeaseService;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final boolean parallelTaskDependencyResolution;
 
     public ExecutionPlanFactory(
         String displayName,
@@ -43,7 +45,8 @@ public class ExecutionPlanFactory {
         ExecutionNodeAccessHierarchy destroyableHierarchy,
         ResourceLockCoordinationService lockCoordinationService,
         WorkerLeaseService workerLeaseService,
-        BuildOperationExecutor buildOperationExecutor
+        BuildOperationExecutor buildOperationExecutor,
+        BuildModelParameters buildModelParameters
     ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
@@ -54,9 +57,10 @@ public class ExecutionPlanFactory {
         this.lockCoordinationService = lockCoordinationService;
         this.workerLeaseService = workerLeaseService;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.parallelTaskDependencyResolution = buildModelParameters.isParallelProjectConfiguration();
     }
 
     public ExecutionPlan createPlan() {
-        return new DefaultExecutionPlan(displayName, taskNodeFactory, ordinalGroupFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService, workerLeaseService, buildOperationExecutor);
+        return new DefaultExecutionPlan(displayName, taskNodeFactory, ordinalGroupFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService, workerLeaseService, buildOperationExecutor, parallelTaskDependencyResolution);
     }
 }
