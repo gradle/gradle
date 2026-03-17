@@ -20,7 +20,7 @@ import com.google.common.collect.Streams
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -1000,6 +1000,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         (outputDirs.parentFile.name as Set).size() == 2
     }
 
+    @UnsupportedWithConfigurationCache(because = "Under CC, project references from included builds are not found when transforms are resolved from the configuration cache entry")
     def "workspace id of project transforms is unique per build with included builds"() {
         // The setup here is in a way that the project path of the project dependency in the same build
         // is the same as the buildTreePath of the substituted project dependency in the included build.
@@ -1566,7 +1567,6 @@ resultsFile:
         failingTransform << (1..4)
     }
 
-    @ToBeFixedForConfigurationCache(because = "resolves external dependency when writing cache entry, rather than when running consuming task, so exception chain is different")
     def "failure in resolution propagates to chain (scheduled: #scheduled)"() {
         given:
         def module = mavenHttpRepo.module("test", "test", "1.3").publish()
@@ -1636,8 +1636,14 @@ resultsFile:
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
-        failure.assertResolutionFailure(":app:compile")
+        if (GradleContextualExecuter.configCache) {
+            // Under CC, the broken artifact download happens during configuration cache entry writing,
+            // so the error is reported as a cache serialization failure
+            failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+            failure.assertResolutionFailure(":app:compile")
+        }
         failure.hasErrorOutput("Received status code 500 from server: broken")
 
         where:
