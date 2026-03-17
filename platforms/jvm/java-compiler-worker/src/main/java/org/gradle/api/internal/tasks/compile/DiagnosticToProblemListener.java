@@ -198,6 +198,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         spec.details(formattedMessage);
     }
 
+    @SuppressWarnings("deprecation")
     private static void addSolution(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
         Severity severity = mapKindToSeverity(diagnostic.getKind());
         spec.severity(severity);
@@ -314,6 +315,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         return fileObject.getName();
     }
 
+    @SuppressWarnings("deprecation")
     private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
         switch (kind) {
             case ERROR:

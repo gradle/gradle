@@ -35,6 +35,7 @@ public interface MissingPropertyAnnotationHandler {
     MissingPropertyAnnotationHandler DO_NOTHING = (context, annotationMetadata, displayName) -> {};
 
 
+    @SuppressWarnings("deprecation")
     MissingPropertyAnnotationHandler MISSING_INPUT_OUTPUT_HANDLER = (context, annotationMetadata, displayName) -> context.visitPropertyProblem(problem -> {
         final String missingAnnotation = "MISSING_ANNOTATION";
         problem

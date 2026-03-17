@@ -93,6 +93,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
     }
 
+    @SuppressWarnings("deprecation")
     private void reportDeprecation(final DeprecatedFeatureUsage usage, final ProblemDiagnostics diagnostics) {
         InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
         Problem problem = reporter.internalCreate(new Action<InternalProblemSpec>() {

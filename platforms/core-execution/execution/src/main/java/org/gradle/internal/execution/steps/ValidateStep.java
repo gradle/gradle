@@ -130,6 +130,7 @@ public abstract class ValidateStep<
     private static final String UNKNOWN_IMPLEMENTATION_NESTED = "UNKNOWN_IMPLEMENTATION_NESTED";
     private static final String UNKNOWN_IMPLEMENTATION = "UNKNOWN_IMPLEMENTATION";
 
+    @SuppressWarnings("deprecation")
     private static void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
@@ -145,6 +146,7 @@ public abstract class ValidateStep<
         }
     }
 
+    @SuppressWarnings("deprecation")
     private static void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;

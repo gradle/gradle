@@ -72,6 +72,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
 
     private static final String CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES = "CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES";
 
+    @SuppressWarnings("deprecation")
     private static void validateNotOptionalPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
@@ -90,6 +91,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
 
     private static final String INCORRECT_USE_OF_INPUT_ANNOTATION = "INCORRECT_USE_OF_INPUT_ANNOTATION";
 
+    @SuppressWarnings("deprecation")
     private static void validateNotFileType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (File.class.isAssignableFrom(valueType)
             || RegularFile.class.isAssignableFrom(valueType)
@@ -111,6 +113,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         }
     }
 
+    @SuppressWarnings("deprecation")
     private static void validateNotDirectoryType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (Directory.class.isAssignableFrom(valueType)
             || DirectoryProperty.class.isAssignableFrom(valueType)) {
@@ -130,6 +133,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
 
     private static final String UNSUPPORTED_VALUE_TYPE = "UNSUPPORTED_VALUE_TYPE";
 
+    @SuppressWarnings("deprecation")
     private static void validateNotUrlType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         List<Class<?>> valueTypes = unpackValueTypesOf(propertyMetadata);
         if (valueTypes.stream().anyMatch(URL.class::isAssignableFrom)) {

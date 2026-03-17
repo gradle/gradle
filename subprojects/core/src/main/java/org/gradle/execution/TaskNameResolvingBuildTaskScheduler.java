@@ -77,6 +77,7 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
      *
      * @param plan execution plan containing requested tasks to validate
      */
+    @SuppressWarnings("deprecation")
     private void validateCompatibleTasksRequested(ExecutionPlan plan) {
         //noinspection ConstantValue support mocking in tests
         if (null != plan.getContents()) {

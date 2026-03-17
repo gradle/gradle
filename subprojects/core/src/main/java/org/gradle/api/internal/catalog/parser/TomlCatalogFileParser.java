@@ -155,6 +155,7 @@ public class TomlCatalogFileParser {
         return configureVersionCatalogError(builder, message, catalogProblemId, input -> input);
     }
 
+    @SuppressWarnings("deprecation")
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String label, VersionCatalogProblemId catalogProblemId, Function<InternalProblemSpec, InternalProblemSpec> locationDefiner) {
         InternalProblemSpec definingLocation = builder
             .id(screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())

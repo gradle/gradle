@@ -150,6 +150,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return new UnknownConfigurationException(String.format("Configuration with name '%s' not found.", name));
     }
 
+    @SuppressWarnings("deprecation")
     private RuntimeException failOnAttemptToAdd(String behavior) {
         GradleException ex = new GradleException(behavior);
         ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
@@ -315,6 +316,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         }
     }
 
+    @SuppressWarnings("deprecation")
     private RuntimeException failOnReservedName(String confName) {
         GradleException ex = new GradleException("The configuration " + confName + " was created explicitly. This configuration name is reserved for creation by Gradle.");
         ProblemId id = ProblemId.create("unexpected configuration usage", "Unexpected configuration usage", GradleCoreProblemGroup.configurationUsage());
@@ -364,6 +366,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return configuration;
     }
 
+    @SuppressWarnings("deprecation")
     private void validateNameIsAllowed(String name) {
         if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
             GradleException ex = new GradleException(String.format("Creating a configuration with a name that starts with 'detachedConfiguration' is not allowed.  Use a different name for the configuration '%s'", name));

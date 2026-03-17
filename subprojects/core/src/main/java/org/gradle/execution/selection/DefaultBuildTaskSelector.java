@@ -181,6 +181,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private static void configureProblem(ProblemSpec spec, String message, String requestedPath) {
         spec.contextualLabel(message);
         spec.severity(Severity.ERROR);

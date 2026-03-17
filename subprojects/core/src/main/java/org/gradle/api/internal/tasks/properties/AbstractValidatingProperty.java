@@ -48,6 +48,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
 
     private static final String VALUE_NOT_SET = "VALUE_NOT_SET";
 
+    @SuppressWarnings("deprecation")
     public static void reportValueNotSet(String propertyName, TypeValidationContext context, boolean hasConfigurableValue) {
         context.visitPropertyProblem(problem -> {
             ProblemSpec problemSpec = problem.forProperty(propertyName)
