@@ -11,7 +11,6 @@
                 <projects>
                   <project path="$PROJECT_DIR$/build-logic" />
                   <project path="$PROJECT_DIR$/build-logic/binary-compatibility" />
-                  <project path="$PROJECT_DIR$/build-logic/build-init-samples" />
                   <project path="$PROJECT_DIR$/build-logic/build-update-utils" />
                   <project path="$PROJECT_DIR$/build-logic/buildquality" />
                   <project path="$PROJECT_DIR$/build-logic/cleanup" />
@@ -74,7 +73,6 @@
             <option value="$PROJECT_DIR$/build-logic-settings/default-settings-plugins" />
             <option value="$PROJECT_DIR$/build-logic-settings/version-catalogs" />
             <option value="$PROJECT_DIR$/build-logic/binary-compatibility" />
-            <option value="$PROJECT_DIR$/build-logic/build-init-samples" />
             <option value="$PROJECT_DIR$/build-logic/build-update-utils" />
             <option value="$PROJECT_DIR$/build-logic/buildquality" />
             <option value="$PROJECT_DIR$/build-logic/cleanup" />
