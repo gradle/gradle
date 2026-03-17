@@ -286,7 +286,7 @@ class ConfigurationCacheState(
             writeBuildTreeScopedState(gradle)
         }
         val buildEventListeners = buildEventListenersOf(gradle)
-        writeBuildsInTree(rootBuild, buildEventListeners)
+        writeBuildsInTree(buildEventListeners)
     }
 
     private
@@ -299,7 +299,7 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun WriteContext.writeBuildsInTree(rootBuild: BuildState, buildEventListeners: List<RegisteredBuildServiceProvider<*, *>>) {
+    suspend fun WriteContext.writeBuildsInTree(buildEventListeners: List<RegisteredBuildServiceProvider<*, *>>) {
         val requiredBuildServicesPerBuild = buildEventListeners.groupBy { it.buildIdentifier }
         val builds = mutableMapOf<BuildState, BuildToStore>()
         host.visitBuilds { state ->
