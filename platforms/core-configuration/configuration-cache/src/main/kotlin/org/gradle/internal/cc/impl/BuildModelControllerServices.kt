@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
 import org.gradle.api.internal.project.DynamicLookupRoutine
+import org.gradle.api.internal.project.DynamicLookupRoutineFactory
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
@@ -141,18 +142,29 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
 
         @Provides
         fun createDynamicLookupRoutine(
-            dynamicCallContextTracker: DynamicCallContextTracker,
+            dynamicCallContextTracker: DynamicCallContextTracker
+        ): DynamicLookupRoutine =
+            TrackingDynamicLookupRoutine(dynamicCallContextTracker)
+
+        @Provides
+        fun createDynamicLookupRoutineFactory(
+            dynamicLookupRoutine: DynamicLookupRoutine,
             buildModelParameters: BuildModelParameters,
             problemsListener: ProblemsListener,
             problemFactory: ProblemFactory
-        ): DynamicLookupRoutine = when {
-            buildModelParameters.isIsolatedProjects -> IsolatedProjectsAwareDynamicLookupRoutine(
-                TrackingDynamicLookupRoutine(dynamicCallContextTracker),
-                problemsListener,
-                problemFactory
-            )
-            else -> DefaultDynamicLookupRoutine()
-        }
+        ): DynamicLookupRoutineFactory =
+            if (buildModelParameters.isIsolatedProjects) {
+                DynamicLookupRoutineFactory { project ->
+                    IsolatedProjectsAwareDynamicLookupRoutine(
+                        dynamicLookupRoutine,
+                        project,
+                        problemsListener,
+                        problemFactory
+                    )
+                }
+            } else {
+                DynamicLookupRoutineFactory { _ -> dynamicLookupRoutine }
+            }
     }
 
     private
@@ -169,6 +181,12 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
         @Provides
         fun createDynamicLookupRoutine(): DynamicLookupRoutine =
             DefaultDynamicLookupRoutine()
+
+        @Provides
+        fun createDynamicLookupRoutineFactory(
+            dynamicLookupRoutine: DynamicLookupRoutine
+        ): DynamicLookupRoutineFactory =
+            DynamicLookupRoutineFactory { _ -> dynamicLookupRoutine }
     }
 
     private

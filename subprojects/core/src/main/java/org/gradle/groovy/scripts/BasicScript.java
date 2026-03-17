@@ -44,7 +44,11 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     @Override
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
-        dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
+        if (target instanceof ProjectInternal) {
+            dynamicLookupRoutine = ((ProjectInternal) target).getServices().get(DynamicLookupRoutine.class);
+        } else {
+            dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
+        }
         setScriptTarget(target);
     }
 
@@ -77,16 +81,10 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     }
 
     public Map<String, ? extends @Nullable Object> getProperties() {
-        if (target instanceof ProjectInternal) {
-            dynamicLookupRoutine.onProjectPropertyApiAccess((ProjectInternal) target, "properties");
-        }
         return dynamicLookupRoutine.getProperties(dynamicObject);
     }
 
     public boolean hasProperty(String property) {
-        if (target instanceof ProjectInternal) {
-            dynamicLookupRoutine.onProjectPropertyApiAccess((ProjectInternal) target, "hasProperty");
-        }
         return dynamicLookupRoutine.hasProperty(dynamicObject, property);
     }
 

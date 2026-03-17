@@ -26,16 +26,20 @@ import org.gradle.internal.metaobject.DynamicObject
 
 
 /**
- * A [DynamicLookupRoutine] that wraps another routine and reports an Isolated Projects violation
- * whenever the explicit Project property API ([ProjectInternal.findProperty],
- * [ProjectInternal.hasProperty], [ProjectInternal.property], [ProjectInternal.getProperties])
- * is accessed.
+ * A project-scoped [DynamicLookupRoutine] that reports Isolated Projects violations
+ * when the explicit Project property API is accessed from a build script.
  *
- * The violation is reported via [ProblemsListener.onProblem] using deferred severity, so the build
- * continues to collect all problems before failing after the configuration-cache store phase.
+ * Violations are reported from the routine's own methods:
+ * - [invokeMethod] reports when the method name is `"property"` or `"findProperty"`
+ *   (these are script-level method calls like `property('name')`)
+ * - [findProperty], [hasProperty], and [getProperties] always report
+ *   (all call paths to these are explicit API calls)
+ * - [property] does **not** report, because it is shared with [BasicScript.getProperty]
+ *   for implicit property access (`version`, `tasks`, etc.)
  */
 internal class IsolatedProjectsAwareDynamicLookupRoutine(
     private val delegate: DynamicLookupRoutine,
+    private val project: ProjectInternal,
     private val problems: ProblemsListener,
     private val problemFactory: ProblemFactory
 ) : DynamicLookupRoutine {
@@ -50,21 +54,29 @@ internal class IsolatedProjectsAwareDynamicLookupRoutine(
     override fun setProperty(receiver: DynamicObject, name: String, value: Any?) =
         delegate.setProperty(receiver, name, value)
 
-    override fun hasProperty(receiver: DynamicObject, propertyName: String): Boolean =
-        delegate.hasProperty(receiver, propertyName)
+    override fun hasProperty(receiver: DynamicObject, propertyName: String): Boolean {
+        reportViolation("hasProperty")
+        return delegate.hasProperty(receiver, propertyName)
+    }
 
-    override fun getProperties(receiver: DynamicObject): Map<String, *>? =
-        delegate.getProperties(receiver)
+    override fun getProperties(receiver: DynamicObject): Map<String, *>? {
+        reportViolation("properties")
+        return delegate.getProperties(receiver)
+    }
 
     @Suppress("SpreadOperator")
-    override fun invokeMethod(receiver: DynamicObject, name: String, args: Array<Any>): Any? =
-        delegate.invokeMethod(receiver, name, *args)
+    override fun invokeMethod(receiver: DynamicObject, name: String, args: Array<Any>): Any? {
+        if (name == "property" || name == "findProperty") {
+            reportViolation(name)
+        }
+        return delegate.invokeMethod(receiver, name, *args)
+    }
 
     override fun tryGetProperty(receiver: DynamicObject, name: String): DynamicInvokeResult =
         delegate.tryGetProperty(receiver, name)
 
     @Suppress("ThrowingExceptionsWithoutMessageOrCause")
-    override fun onProjectPropertyApiAccess(project: ProjectInternal, methodName: String) {
+    private fun reportViolation(methodName: String) {
         val problem = problemFactory.problem {
             text("Project ")
             reference(project.identityPath.toString())

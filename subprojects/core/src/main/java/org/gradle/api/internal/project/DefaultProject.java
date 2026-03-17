@@ -1135,7 +1135,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @SuppressWarnings("JavadocReference")
     @Nullable
     public Object getProperty(String propertyName) {
-        return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
+        return property(propertyName);
     }
 
     /**
@@ -1158,17 +1158,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
-        if (CrossProjectPropertyApiAccessFlag.isNotActive()) {
-            dynamicLookupRoutine.onProjectPropertyApiAccess(this, "property");
-        }
         return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
     }
 
     @Override
     public Object findProperty(String propertyName) {
-        if (CrossProjectPropertyApiAccessFlag.isNotActive()) {
-            dynamicLookupRoutine.onProjectPropertyApiAccess(this, "findProperty");
-        }
         return dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName);
     }
 
@@ -1179,17 +1173,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public boolean hasProperty(String propertyName) {
-        if (CrossProjectPropertyApiAccessFlag.isNotActive()) {
-            dynamicLookupRoutine.onProjectPropertyApiAccess(this, "hasProperty");
-        }
         return dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName);
     }
 
     @Override
     public Map<String, ? extends @Nullable Object> getProperties() {
-        if (CrossProjectPropertyApiAccessFlag.isNotActive()) {
-            dynamicLookupRoutine.onProjectPropertyApiAccess(this, "properties");
-        }
         return dynamicLookupRoutine.getProperties(extensibleDynamicObject);
     }
 
