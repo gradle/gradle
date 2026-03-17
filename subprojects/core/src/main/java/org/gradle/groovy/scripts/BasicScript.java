@@ -21,7 +21,6 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.project.DynamicLookupRoutine;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -44,11 +43,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     @Override
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
-        if (target instanceof ProjectInternal) {
-            dynamicLookupRoutine = ((ProjectInternal) target).getServices().get(DynamicLookupRoutine.class);
-        } else {
-            dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
-        }
+        dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
         setScriptTarget(target);
     }
 

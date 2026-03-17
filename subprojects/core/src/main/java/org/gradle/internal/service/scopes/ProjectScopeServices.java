@@ -51,8 +51,6 @@ import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
-import org.gradle.api.internal.project.DynamicLookupRoutine;
-import org.gradle.api.internal.project.DynamicLookupRoutineFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScopedTaskResolver;
 import org.gradle.api.internal.project.ProjectState;
@@ -142,11 +140,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     public ProjectScopeServices(ProjectInternal project, LoggingManagerFactory loggingManagerInternalFactory) {
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
-    }
-
-    @Provides
-    protected DynamicLookupRoutine createDynamicLookupRoutine(DynamicLookupRoutineFactory factory) {
-        return factory.create(project);
     }
 
     @Provides
