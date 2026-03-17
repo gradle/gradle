@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -27,7 +28,6 @@ import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.FLAKY
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -300,7 +300,10 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         skipped(":producer", ":filteredConsumer")
     }
 
-    @ToBeFixedForConfigurationCache(skip = FLAKY, because = "Due to extra parallelism with cc missing dependencies detection can be flaky")
+    @ToBeFixedForConfigurationCache(
+        skip = FLAKY,
+        because = "Due to extra parallelism with cc missing dependencies detection can be flaky. See https://github.com/gradle/gradle/issues/27576"
+    )
     def "fails when missing dependencies using filtered inputs"() {
         file("src/main/java/MyClass.java").createFile()
         buildFile """
@@ -436,7 +439,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20391")
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "hard to reliably reproduce this corner case due to different evaluation order with CC")
     def "running tasks in parallel with exclusions does not cause incorrect builds"() {
         // This test is inspired by our build setup where we found this problem:
         // We zip the source distribution by using an archive task starting from the root project.

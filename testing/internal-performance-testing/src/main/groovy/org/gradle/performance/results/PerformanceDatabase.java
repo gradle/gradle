@@ -20,6 +20,9 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -32,17 +35,25 @@ public class PerformanceDatabase {
     private static final int MAX_LIFETIME_MS = 30 * 1000;
     private static final String PERFORMANCE_DB_URL_PROPERTY_NAME = "org.gradle.performance.db.url";
     private static final DateTimeFormatter PROFILING_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final String PROFILING_OUTPUT_PROPERTY = "org.gradle.performance.db.profiling.output";
     private final String databaseName;
     private final List<ConnectionAction<Void>> databaseInitializers;
     private HikariDataSource dataSource;
 
-    private static void logProfilingWithCallStack(String jsonPayload) {
+    static void logProfilingWithCallStack(String jsonPayload) {
         // Capture stack at call site. We'll still include this method in the trace, but skip it when printing.
         StackTraceElement[] stackTrace = new Exception("Call stack for profiling log").getStackTrace();
         String ts = LocalDateTime.now().format(PROFILING_TIMESTAMP_FORMATTER);
-        System.out.println("[Profiling] " + ts + " " + jsonPayload);
-        for (int i = 1; i < stackTrace.length; i++) {
-            System.out.println("[Profiling] \tat " + stackTrace[i]);
+        String profilingOutputPath = System.getProperty(PROFILING_OUTPUT_PROPERTY);
+        if (profilingOutputPath != null) {
+            try (PrintWriter pw = new PrintWriter(new FileWriter(profilingOutputPath, true))) {
+                pw.println(ts + " " + jsonPayload);
+                for (int i = 1; i < stackTrace.length; i++) {
+                    pw.println("\tat " + stackTrace[i]);
+                }
+            } catch (IOException e) {
+                System.err.println("Failed to write profiling output to " + profilingOutputPath + ": " + e.getMessage());
+            }
         }
     }
 

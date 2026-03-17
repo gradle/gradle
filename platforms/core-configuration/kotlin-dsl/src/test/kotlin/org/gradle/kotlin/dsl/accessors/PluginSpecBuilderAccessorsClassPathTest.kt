@@ -18,18 +18,16 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
-
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntry
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntryCache
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.pluginEntriesFrom
-
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.kotlin.dsl.support.zipTo
-
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.hasItems
@@ -37,14 +35,12 @@ import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
-
 import java.io.File
 import java.util.zip.ZipException
 
@@ -60,7 +56,7 @@ class PluginSpecBuilderAccessorsClassPathTest : TestWithClassPath() {
 
         // when:
         val exception = assertFailsWith(IllegalArgumentException::class) {
-            pluginEntriesFrom(emptyJar)
+            pluginEntriesFrom(emptyJar, NoCachePluginEntryCache)
         }
 
         // then:
@@ -90,9 +86,10 @@ class PluginSpecBuilderAccessorsClassPathTest : TestWithClassPath() {
         // when:
         withSynchronousIO {
             buildPluginDependencySpecAccessorsFor(
+                pluginEntryCache = NoCachePluginEntryCache,
                 pluginDescriptorsClassPath = classPathOf(pluginsJar),
                 srcDir = srcDir,
-                binDir = binDir
+                binDir = binDir,
             )
         }
 
@@ -193,4 +190,11 @@ class PluginSpecBuilderAccessorsClassPathTest : TestWithClassPath() {
                 }
             )
         }
+
+    object NoCachePluginEntryCache : PluginEntryCache {
+        override fun computeIfAbsent(
+            jar: File,
+            producer: (File) -> List<PluginEntry>
+        ): List<PluginEntry> = producer(jar)
+    }
 }

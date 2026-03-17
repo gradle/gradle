@@ -22,6 +22,30 @@ import spock.lang.Ignore
 
 class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
     def "plugin can contribute a custom tooling model"() {
+        file("buildSrc/src/main/java/CustomModel.java").java("""
+import java.io.Serializable;
+import java.util.*;
+public class CustomModel implements Serializable {
+    public String getValue() { return "greetings"; }
+    public Set<CustomThing> getThings() {
+        Set<CustomThing> customThings = new HashSet<>();
+        customThings.add(new CustomThing());
+        return customThings;
+    }
+    public Map<String, CustomThing> getThingsByName() {
+        Map<String, CustomThing> customThings = new HashMap<>();
+        customThings.put("thing", new CustomThing());
+        return customThings;
+    }
+}
+""")
+
+        file("buildSrc/src/main/java/CustomThing.java").java("""
+import java.io.Serializable;
+class CustomThing implements Serializable {
+}
+""")
+
         file('build.gradle') << """
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -29,13 +53,6 @@ import javax.inject.Inject
 
 apply plugin: CustomPlugin
 
-class CustomModel implements Serializable {
-    String getValue() { 'greetings' }
-    Set<CustomThing> getThings() { return [new CustomThing()] }
-    Map<String, CustomThing> getThingsByName() { return [thing: new CustomThing()] }
-}
-class CustomThing implements Serializable {
-}
 class CustomBuilder implements ToolingModelBuilder {
     boolean canBuild(String modelName) {
         return modelName == '${CustomModel.name}'

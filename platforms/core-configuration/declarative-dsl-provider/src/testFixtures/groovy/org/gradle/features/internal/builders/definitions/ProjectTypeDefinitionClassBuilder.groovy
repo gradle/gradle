@@ -123,14 +123,14 @@ class ProjectTypeDefinitionClassBuilder {
 
     String displayDefinitionPropertyValues() {
         return """
-            ${displayProperty("definition", "id", "definition.getId().get()")}
-            ${displayProperty("definition", "foo.bar", "definition.getFoo().getBar().get()")}
+            ${displayProperty("definition", "id", "definition.getId().getOrNull()")}
+            ${displayProperty("definition", "foo.bar", "definition.getFoo().getBar().getOrNull()")}
         """
     }
 
     String displayModelPropertyValues() {
         return """
-            ${displayProperty("model", "id", "model.getId().get()")}
+            ${displayProperty("model", "id", "model.getId().getOrNull()")}
         """
     }
 

@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
 @FluidDependenciesResolveTest
@@ -88,7 +88,6 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         'dependency scope'        | 'canBeResolved = false; canBeConsumed = false'
     }
 
-    @ToBeFixedForConfigurationCache(because = "Uses Configuration API")
     def "cannot resolve a configuration with role #role using #method"() {
         given:
         buildFile << """
@@ -102,8 +101,9 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task checkState {
+                def result = provider { configurations.internal.$method }
                 doLast {
-                    configurations.internal.$method
+                    println result.get()
                 }
             }
         """
@@ -118,7 +118,10 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails 'checkState'
-        failure.assertHasDescription("Execution failed for task ':checkState'.")
+
+        if (!GradleContextualExecuter.isConfigCache()) {
+            failure.assertHasDescription("Execution failed for task ':checkState'.")
+        }
         if ((method as String) in ['getResolvedConfiguration()']) {
             failure.assertHasCause("""Method call not allowed
   Calling configuration method '$method' is not allowed for configuration 'internal'

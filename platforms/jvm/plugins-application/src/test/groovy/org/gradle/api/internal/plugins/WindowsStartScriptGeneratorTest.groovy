@@ -128,7 +128,7 @@ class WindowsStartScriptGeneratorTest extends Specification {
         generator.generateScript(details, destination)
 
         then:
-        def appExecutionLine = destination.toString().readLines().find { it.startsWith('"%JAVA_EXE%"') }
+        def appExecutionLine = destination.toString().readLines().find { it.startsWith('endlocal & "%JAVA_EXE%"') }
         appExecutionLine.contains(entryPointArgs)
 
         where:

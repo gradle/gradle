@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.scripts.CompileScriptBuildOperationType
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
@@ -80,7 +81,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         getCompileBuildFileOperationsCount() == 4 // classpath + body for settings and for the 2 identical scripts
     }
 
-    @ToBeFixedForConfigurationCache(because = "test expect script evaluation")
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "identical build files are compiled once for distinct invocations"() {
         given:
@@ -109,8 +109,11 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         def scripts = scriptDetails()
-        scripts.size() == 3
-        scriptsAreReused(before, scripts)
+        if (GradleContextualExecuter.notConfigCache) {
+            scriptsAreReused(before, scripts)
+        } else {
+            assert scripts.isEmpty()
+        }
         getCompileBuildFileOperationsCount() == 0
     }
 
@@ -365,7 +368,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         getCompileBuildFileOperationsCount() == 2 // classpath + body for long running task
     }
 
-    @ToBeFixedForConfigurationCache(because = "changing buildscript files dependency")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/33875")
     def "build script is recompiled when project's classpath changes"() {
         createJarWithProperties("lib/foo.jar", [source: 1])
         root {
@@ -395,7 +398,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         getCompileBuildFileOperationsCount() == 1 // single classpath block
     }
 
-    @ToBeFixedForConfigurationCache(because = "changing buildscript files dependency")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/33875")
     def "build script is recompiled when parent project's classpath changes"() {
         createJarWithProperties("lib/foo.jar", [source: 1])
         root {
@@ -605,7 +608,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         allCompileOperations == 2 * (1 + iterations) // common + 1 build script per iteration
     }
 
-    @ToBeFixedForConfigurationCache(because = "test expect script evaluation")
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "script doesn't get recompiled if daemon disappears"() {
         root {
@@ -647,7 +649,11 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         def scripts = scriptDetails()
-        scriptsAreReused(before, scripts)
+        if (GradleContextualExecuter.notConfigCache) {
+            scriptsAreReused(before, scripts)
+        } else {
+            assert scripts.isEmpty()
+        }
         getCompileBuildFileOperationsCount() == 0
     }
 

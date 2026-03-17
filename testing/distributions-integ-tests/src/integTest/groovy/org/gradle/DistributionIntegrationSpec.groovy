@@ -74,6 +74,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "core-api",
         "core-flow-services-api",
         "core-kotlin-extensions",
+        "credentials",
+        "credentials-api",
         "daemon-logging",
         "daemon-main",
         "daemon-protocol",
@@ -121,6 +123,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "problems-rendering",
         "process-memory-services",
         "process-services",
+        "process-services-api",
         "project-features",
         "project-features-api",
         "report-rendering",
@@ -143,6 +146,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "tooling-api-provider",
         "versioned-cache",
         "worker-main",
+        "worker-process-services",
         "wrapper-shared",
     ]
 
@@ -174,7 +178,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        93
+        94
     }
 
     /**

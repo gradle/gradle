@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies
 
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
@@ -87,7 +88,8 @@ class DefaultProjectDependencyConstraintTest extends Specification {
             new CapabilityNotationParserFactory(false).create(),
             TestUtil.objectFactory(),
             AttributeTestUtil.attributesFactory(),
-            projectStateRegistry
+            projectStateRegistry,
+            new UnknownProjectFinder("")
         )
 
         def projectDependency = dependencyFactory.create(Path.ROOT)

@@ -227,14 +227,4 @@ public interface DomainObjectCollection<T> extends Collection<T> {
     default void disallowChanges() {
         throw new UnsupportedOperationException("disallowChanges() is not supported by this collection");
     }
-
-    /**
-     * Returns {@code false} if {@link DomainObjectCollection#disallowChanges()} has been called on this collection.
-     *
-     * @since 9.5.0
-     */
-    @Incubating
-    default boolean areChangesAllowed() {
-        return true;
-    }
 }

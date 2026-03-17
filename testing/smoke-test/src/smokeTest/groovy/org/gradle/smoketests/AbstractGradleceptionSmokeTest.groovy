@@ -90,7 +90,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
     }
 
     private SmokeTestGradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
-        runner(*(gradleArgs + ["-g", IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.absolutePath]))
+        runnerWithGradleUserHome(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir, *(gradleArgs as String[]))
             .withTestKitDir(testKitDir)
     }
 
@@ -104,4 +104,3 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         }
     }
 }
-
