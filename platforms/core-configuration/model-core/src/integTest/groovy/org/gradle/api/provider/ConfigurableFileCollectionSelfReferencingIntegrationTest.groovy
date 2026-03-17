@@ -22,7 +22,12 @@ import spock.lang.Issue
 class ConfigurableFileCollectionSelfReferencingIntegrationTest extends AbstractProviderOperatorIntegrationTest {
 
     @Issue("https://github.com/gradle/gradle/issues/32177")
-    def "ConfigurableFileCollection self-subtraction assignment '#description' throws meaningful error in Groovy DSL"() {
+    def "ConfigurableFileCollection subtraction assignment '#description' works correctly in Groovy DSL"() {
+        given:
+        file("a.txt").createFile()
+        file("b.txt").createFile()
+        file("c.txt").createFile()
+
         buildFile """
             abstract class MyTask extends DefaultTask {
                 @Internal
@@ -30,29 +35,30 @@ class ConfigurableFileCollectionSelfReferencingIntegrationTest extends AbstractP
 
                 @TaskAction
                 void run() {
-                    println("Result: " + input.files.collect { it.name })
+                    println("Result: " + input.files.collect { it.name }.sort())
                 }
             }
 
             tasks.register("myTask", MyTask) {
+                input.from("a.txt", "b.txt")
                 $statement
             }
         """
 
         when:
-        fails "myTask"
+        succeeds "myTask"
 
         then:
-        failureCauseContains("ConfigurableFileCollection does not support '-=' operator or assignment of subtraction via '-' operator or a minus() method")
+        outputContains(expected)
 
         where:
-        description                    | statement
-        "a -= b"                       | 'input -= files("a")'
-        "a = a - b"                    | 'input = input - files("a")'
-        "a = a.minus(b)"               | 'input = input.minus(files("a"))'
-        "a = (a - b) + c"              | 'input = (input - files("a")) + files("b")'
-        "a = c + (a - b)"              | 'input = files("b") + (input - files("a"))'
-        "a = d - a (a on right side)"  | 'input = files("d") - input'
+        description                    | statement                                                          | expected
+        "a -= b"                       | 'input -= files("b.txt")'                                          | 'Result: [a.txt]'
+        "a = a - b"                    | 'input = input - files("b.txt")'                                   | 'Result: [a.txt]'
+        "a = a.minus(b)"               | 'input = input.minus(files("b.txt"))'                              | 'Result: [a.txt]'
+        "a = (a - b) + c"              | 'input = (input - files("b.txt")) + files("c.txt")'                | 'Result: [a.txt, c.txt]'
+        "a = c + (a - b)"              | 'input = files("c.txt") + (input - files("b.txt"))'                | 'Result: [a.txt, c.txt]'
+        "a = d - a (a on right side)"  | 'input = files("a.txt", "b.txt", "c.txt") - input'                 | 'Result: [c.txt]'
     }
 
     def "ConfigurableFileCollection addition assignment '#description' works correctly in Groovy DSL"() {

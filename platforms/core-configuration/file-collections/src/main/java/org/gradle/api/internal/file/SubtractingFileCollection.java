@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
     private final AbstractFileCollection left;
@@ -69,6 +70,25 @@ public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
     @Override
     public boolean contains(File file) {
         return left.contains(file) && !right.contains(file);
+    }
+
+    @Override
+    public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
+        if (original == this) {
+            return supplier.get();
+        }
+        FileCollectionInternal newLeft = left.replace(original, supplier);
+        FileCollectionInternal newRight = right instanceof FileCollectionInternal
+            ? ((FileCollectionInternal) right).replace(original, supplier)
+            : null;
+        boolean leftChanged = newLeft != left;
+        boolean rightChanged = newRight != null && newRight != right;
+        if (leftChanged || rightChanged) {
+            FileCollectionInternal effectiveLeft = leftChanged ? newLeft : (FileCollectionInternal) left;
+            FileCollection effectiveRight = rightChanged ? newRight : right;
+            return (FileCollectionInternal) effectiveLeft.minus(effectiveRight);
+        }
+        return this;
     }
 
     private static class SubtractingExecutionTimeValue implements FileCollectionExecutionTimeValue {

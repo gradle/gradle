@@ -2050,7 +2050,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/8755#issuecomment-2075260802")
-    def "self-referencing using minus operator leads to StackOverflowError"() {
+    def "self-referencing using minus operator is handled correctly"() {
         given:
         def file1 = new File("1")
         def file2 = new File("2")
@@ -2059,18 +2059,17 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.from(file1, file2)
         def child1 = containing(file1)
 
-        when:
+        when: "right-side self-reference: child1 - collection = {file1} - {file1, file2} = {}"
         collection.setFrom(child1 - collection)
-        collection.files
 
         then:
-        thrown StackOverflowError
+        collection.files == [] as Set
 
-        when:
+        when: "left-side self-reference: collection - child1 = {file1, file2} - {file1} = {file2}"
+        collection.setFrom(file1, file2)
         collection.setFrom(collection - child1)
-        collection.files
 
         then:
-        thrown StackOverflowError
+        collection.files == [file2] as Set
     }
 }
