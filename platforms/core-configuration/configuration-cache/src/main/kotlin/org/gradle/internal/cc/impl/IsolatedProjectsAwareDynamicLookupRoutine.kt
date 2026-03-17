@@ -32,11 +32,10 @@ import org.gradle.internal.metaobject.DynamicObject
  * Violations are reported from the routine's own methods:
  * - [invokeMethod] reports when the method name is `"property"` or `"findProperty"`
  *   (these are script-level method calls like `property('name')`)
- * - [hasProperty] and [getProperties] always report
+ * - [findProperty], [hasProperty], and [getProperties] always report
  *   (all call paths to these are explicit API calls)
- * - [property] and [findProperty] do **not** report:
- *   [property] is shared with [BasicScript.getProperty] for implicit property access,
- *   and [findProperty] is already covered by [invokeMethod]
+ * - [property] does **not** report, because it is shared with [BasicScript.getProperty]
+ *   for implicit property access (`version`, `tasks`, etc.)
  */
 internal class IsolatedProjectsAwareDynamicLookupRoutine(
     private val delegate: DynamicLookupRoutine,

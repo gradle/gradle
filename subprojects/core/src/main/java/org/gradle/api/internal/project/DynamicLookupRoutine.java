@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Encapsulates the implementations of the common ways to interact with a {@link DynamicObject}.
  */
-@ServiceScope(Scope.Build.class)
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface DynamicLookupRoutine {
     @Nullable Object property(DynamicObject receiver, String propertyName) throws MissingPropertyException;
     @Nullable Object findProperty(DynamicObject receiver, String propertyName);

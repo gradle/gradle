@@ -1135,7 +1135,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @SuppressWarnings("JavadocReference")
     @Nullable
     public Object getProperty(String propertyName) {
-        return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
+        return property(propertyName);
     }
 
     /**
