@@ -30,9 +30,6 @@ import org.jspecify.annotations.Nullable;
  * This class is thread-safe, but the returned contexts must be closed by the same thread that opens them.
  */
 public final class EvaluationContext {
-
-    private static final int INITIAL_CAPACITY = 8;
-
     private static final EvaluationContext INSTANCE = new EvaluationContext();
 
     private final ThreadLocal<PerThreadContext> threadLocalContext = ThreadLocal.withInitial(() -> new PerThreadContext(null));
@@ -151,6 +148,19 @@ public final class EvaluationContext {
      * deeper stacks.
      */
     private final class PerThreadContext implements EvaluationScopeContext {
+        /**
+         * This was chosen by looking at the typical stack sizes on the
+         * Gradle build. We're trying to balance resizing vs wasted space.
+         *
+         * Most stacks were small (only 1 element). The biggest stack was 19 elements.
+         *
+         * This size represented about 85% of all contexts, so Gradle does
+         * no resizing in those cases.
+         *
+         * The extreme case still requires 2 resizings.
+         */
+        private static final int INITIAL_CAPACITY = 8;
+
         private final ReferenceArrayList<EvaluationOwner> stack;
 
         @Nullable
