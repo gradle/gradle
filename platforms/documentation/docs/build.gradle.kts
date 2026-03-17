@@ -16,7 +16,7 @@ plugins {
     // TODO: Apply asciidoctor in documentation plugin instead.
     id("org.asciidoctor.jvm.convert")
     id("gradlebuild.documentation")
-    id("gradlebuild.generate-samples")
+    id("org.gradle.samples")
     id("gradlebuild.android-home-warmup")
 }
 
@@ -28,10 +28,10 @@ androidHomeWarmup {
             // Both use compileSdk 36, and AGP < 9.0 uses build-tools 35.0.0
             SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.11.2"),
 
-            // Used by android-application sample (AGP 8.3.0)
+            // Used by android-application snippet (AGP 8.3.0)
             SdkVersion(compileSdk = 30, buildTools = "34.0.0", agpVersion = "8.3.0"),
 
-            // Used by structuring-software-projects/android-app sample (AGP 8.9.0)
+            // Used by structuring-software-projects/android-app snippet (AGP 8.9.0)
             SdkVersion(compileSdk = 28, buildTools = "35.0.0", agpVersion = "8.9.0"),
         ),
     )
@@ -54,8 +54,7 @@ configurations {
 }
 
 configurations.docsTestImplementation {
-    // The 'gradlebuild.generate-samples' plugin uses the 'org.gradle.samples' plugin from the old gradle/guides build, which pulls in slf4j-simple, which we don't want.
-    // Because this is done directly by the plugin application logic, we can't use a ComponentMetadataRule to exclude it.
+    // The 'org.gradle.samples' plugin from the old gradle/guides build pulls in slf4j-simple, which we don't want.
     // See: https://github.com/gradle/guides/blob/ba018cec535d90f75876bfcca29381d213a956cc/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/internal/SamplesDocumentationPlugin.java#L335
     exclude("org.slf4j", "slf4j-simple")
 }
@@ -95,6 +94,10 @@ dependencies {
     constraints {
         testImplementation(testLibs.jettyWebsocket)
     }
+}
+
+jvmCompile {
+    addCompilationFrom(sourceSets.docsTest)
 }
 
 java {
@@ -139,100 +142,6 @@ tasks.named<Sync>("stageDocs") {
 }
 
 samples {
-    templates {
-        val javaAndroidApplication by creating
-        val structuringSoftwareProjects by creating
-        val springBootWebApplication by creating {
-            target = "app"
-        }
-        val gradlePluginInJava by creating {
-            target = "greeting-plugin"
-        }
-        val gradlePluginInJavaInBuildSrc by creating {
-            sourceDirectory = gradlePluginInJava.sourceDirectory
-            target = "buildSrc"
-        }
-        val buildSrcPluginJavaModuleTransform by creating
-
-        val javaApplication by creating
-        val javaListLibrary by creating
-        val javaUtilitiesLibrary by creating
-        val javaListLibraryInMyLibrary by creating {
-            sourceDirectory = javaListLibrary.sourceDirectory
-            target = "my-library"
-        }
-        val javaUtilitiesLibraryInMyLibrary by creating {
-            sourceDirectory = javaUtilitiesLibrary.sourceDirectory
-            target = "my-library"
-        }
-        val javaApplicationAsSubproject by creating {
-            sourceDirectory = javaApplication.sourceDirectory
-            target = "application"
-        }
-        val javaListLibraryAsSubproject by creating {
-            sourceDirectory = javaListLibrary.sourceDirectory
-            target = "list"
-        }
-        val javaUtilitiesLibraryAsSubproject by creating {
-            sourceDirectory = javaUtilitiesLibrary.sourceDirectory
-            target = "utilities"
-        }
-
-        val javaJunit5TestForApplication by creating {
-            target = "application"
-        }
-        val javaJunit5TestForListLibrary by creating {
-            target = "list"
-        }
-        val javaJunit5TestForUtilitiesLibrary by creating {
-            target = "utilities"
-        }
-        val javaJunit5IntegrationTestForApplication by creating {
-            target = "application"
-        }
-        val javaJunit5IntegrationTestForUtilitiesLibrary by creating {
-            target = "utilities"
-        }
-
-        val javaModuleInfoForListLibrary by creating {
-            target = "list"
-        }
-        val javaModuleInfoForUtilitiesLibrary by creating {
-            target = "utilities"
-        }
-        val javaModuleInfoForApplication by creating {
-            target = "application"
-        }
-        val javaJunit5ModuleInfoForUtilitiesLibrary by creating {
-            target = "utilities"
-        }
-        val javaJunit5ModuleInfoForApplication by creating {
-            target = "application"
-        }
-
-        val groovyListLibrary by creating
-        val groovyUtilitiesLibrary by creating
-        val groovyListLibraryInMyLibrary by creating {
-            sourceDirectory = groovyListLibrary.sourceDirectory
-            target = "my-library"
-        }
-        val groovyUtilitiesLibraryInMyLibrary by creating {
-            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
-            target = "my-library"
-        }
-
-        val projectInfoPlugin by creating
-
-        val precompiledScriptPluginUtils by creating {
-            target = "convention-plugins"
-        }
-        val precompiledScriptPluginUtilsInBuildSrc by creating {
-            sourceDirectory = precompiledScriptPluginUtils.sourceDirectory
-            target = "buildSrc"
-        }
-        val problemsApiUsage by creating
-    }
-
     // TODO: Do this lazily so we don't need to walk the filesystem during configuration
     // iterate through each snippets and record their names and locations
     val directoriesOnly = FileFilter { it.isDirectory }
@@ -252,356 +161,6 @@ samples {
             readmeFile = file("src/snippets/default-readme.adoc")
             sampleDirectory = snippetDir
             promoted = false
-        }
-    }
-
-    publishedSamples {
-        val buildingAndroidApps by creating {
-            sampleDirectory = samplesRoot.dir("android-application")
-            description = "Build a simple Android app."
-            category = "Android"
-            common {
-                from(templates.named("javaAndroidApplication"))
-            }
-        }
-        val buildingSpringBootWebApplications by creating {
-            sampleDirectory = samplesRoot.dir("spring-boot-web-application")
-            description = "Build a simple Spring Boot application."
-            category = "Spring"
-            common {
-                from(templates.named("springBootWebApplication"))
-            }
-        }
-        val incubatingJvmMultiProjectWithAdditionalTestTypes by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-additional-test-types")
-            displayName = "Using additional test types with Test Suites (Incubating)"
-            description = "Add an additional test type (e.g. integration tests) to a project using the new Test Suites API."
-            category = "Java"
-
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5IntegrationTestForApplication"))
-
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5IntegrationTestForUtilitiesLibrary"))
-
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-            }
-        }
-        val incubatingJavaModulesMultiProjectWithIntegrationTests by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/modules-multi-project-with-integration-tests")
-            displayName = "Building Java Modules with Blackbox Tests with Test Suites (Incubating)"
-            description = "Build Java Modules with blackbox integration tests using the new Test Suites API."
-            category = "Java Modules"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaModuleInfoForListLibrary"))
-                from(templates.named("javaModuleInfoForUtilitiesLibrary"))
-                from(templates.named("javaModuleInfoForApplication"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-
-                from(templates.named("javaJunit5IntegrationTestForApplication"))
-                from(templates.named("javaJunit5ModuleInfoForApplication"))
-                from(templates.named("javaJunit5IntegrationTestForUtilitiesLibrary"))
-                from(templates.named("javaJunit5ModuleInfoForUtilitiesLibrary"))
-            }
-        }
-        val incubatingPublishingConventionPlugins by creating {
-            sampleDirectory = samplesRoot.dir("incubating/build-organization/publishing-convention-plugins")
-            displayName = "Sharing build logic in a multi-repo setup with Test Suites (Incubating)"
-            description = "Organize and publish build logic for reuse in other projects using the new Test Suites API."
-            category = "Java"
-
-            common {
-                from(templates.named("precompiledScriptPluginUtils"))
-            }
-        }
-        val jvmMultiProjectWithAdditionalTestTypes by creating {
-            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-additional-test-types")
-            displayName = "Using additional test types"
-            description = "Add an additional test type (e.g. integration tests) to a project."
-            category = "Java"
-
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5IntegrationTestForApplication"))
-
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5IntegrationTestForUtilitiesLibrary"))
-
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-            }
-        }
-        val jvmMultiProjectWithToolchains by creating {
-            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-toolchains")
-            displayName = "Using toolchains"
-            description = "Use toolchains to configure the JVM to use for compilation and testing."
-            category = "Java"
-
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5IntegrationTestForApplication"))
-
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5IntegrationTestForUtilitiesLibrary"))
-
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-            }
-        }
-        val javaModulesMultiProject by creating {
-            sampleDirectory = samplesRoot.dir("java/modules-multi-project")
-            displayName = "Building Java Modules"
-            description = "Build Java Modules and a modular Java application."
-            category = "Java Modules"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaModuleInfoForListLibrary"))
-                from(templates.named("javaModuleInfoForUtilitiesLibrary"))
-                from(templates.named("javaModuleInfoForApplication"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-            }
-        }
-        val javaModulesMultiProjectWithIntegrationTests by creating {
-            sampleDirectory = samplesRoot.dir("java/modules-multi-project-with-integration-tests")
-            displayName = "Building Java Modules with Blackbox Tests"
-            description = "Build Java Modules with blackbox integration tests."
-            category = "Java Modules"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaModuleInfoForListLibrary"))
-                from(templates.named("javaModuleInfoForUtilitiesLibrary"))
-                from(templates.named("javaModuleInfoForApplication"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-
-                from(templates.named("javaJunit5IntegrationTestForApplication"))
-                from(templates.named("javaJunit5ModuleInfoForApplication"))
-                from(templates.named("javaJunit5IntegrationTestForUtilitiesLibrary"))
-                from(templates.named("javaJunit5ModuleInfoForUtilitiesLibrary"))
-            }
-        }
-        val javaModulesWithTransform by creating {
-            sampleDirectory = samplesRoot.dir("java/modules-with-transform")
-            displayName = "Building Java Modules with Legacy Libraries"
-            description = "Build a modular Java application that integrates legacy libraries."
-            category = "Java Modules"
-            common {
-                from(templates.named("buildSrcPluginJavaModuleTransform"))
-            }
-        }
-        val jvmMultiProjectWithCodeCoverageDistribution by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-code-coverage-distribution")
-            displayName = "Aggregating code coverage with JaCoCo from an application/distribution (Incubating)"
-            description = "Report code coverage on the application/distribution of a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
-            category = "Java"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5TestForUtilitiesLibrary"))
-            }
-        }
-        val jvmMultiProjectWithCodeCoverageStandalone by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-code-coverage-standalone")
-            displayName = "Aggregating code coverage with JaCoCo using a standalone utility project (Incubating)"
-            description = "Report code coverage on a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
-            category = "Java"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5TestForUtilitiesLibrary"))
-            }
-        }
-        val jvmMultiProjectWithTestAggregationDistribution by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-test-aggregation-distribution")
-            displayName = "Aggregating test results of an application/distribution (Incubating)"
-            description = "Report all test results using the application/distribution of a multi-module project."
-            category = "Java"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5TestForUtilitiesLibrary"))
-            }
-        }
-        val jvmMultiProjectWithTestAggregationStandalone by creating {
-            sampleDirectory = samplesRoot.dir("incubating/java/jvm-multi-project-with-test-aggregation-standalone")
-            displayName = "Aggregating test results using a standalone utility project (Incubating)"
-            description = "Report all test results using a standalone utility project as part of a multi-module project."
-            category = "Java"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaJunit5TestForApplication"))
-                from(templates.named("javaJunit5TestForListLibrary"))
-                from(templates.named("javaJunit5TestForUtilitiesLibrary"))
-            }
-        }
-        val publishingJavaLibraries by creating {
-            sampleDirectory = samplesRoot.dir("java/library-publishing")
-            description = "Publish a Java library to a binary repository."
-            category = "Java"
-            common {
-                from(templates.named("javaListLibraryInMyLibrary"))
-                from(templates.named("javaUtilitiesLibraryInMyLibrary"))
-            }
-        }
-        val publishingGroovyLibraries by creating {
-            sampleDirectory = samplesRoot.dir("groovy/library-publishing")
-            description = "Publish a Groovy library to a binary repository."
-            category = "Groovy"
-            common {
-                from(templates.named("groovyListLibraryInMyLibrary"))
-                from(templates.named("groovyUtilitiesLibraryInMyLibrary"))
-            }
-        }
-
-        val gradlePlugin by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/gradle-plugin")
-            description = "Organize your build logic into a Gradle plugin written in Java."
-            category = "Build organization"
-            common {
-                from(templates.named("gradlePluginInJava"))
-            }
-        }
-
-        val conventionPlugins by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-convention-plugins")
-            displayName = "Sharing build logic between subprojects"
-            description = "Organize build logic into reusable pieces"
-            category = "Build organization"
-            common {
-                from(templates.named("precompiledScriptPluginUtilsInBuildSrc"))
-            }
-        }
-
-        val publishingConventionPlugins by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/publishing-convention-plugins")
-            displayName = "Sharing build logic in a multi-repo setup"
-            description = "Organize and publish build logic for reuse in other projects"
-            category = "Build organization"
-            common {
-                from(templates.named("precompiledScriptPluginUtils"))
-            }
-        }
-
-        val sharingConventionPluginsWithBuildLogic by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/sharing-convention-plugins-with-build-logic")
-            displayName = "Sharing convention plugins with build logic build"
-            description = "Reuse convention plugins in both main build and build logic build"
-            category = "Build organization"
-            common {
-                from(templates.named("javaApplicationAsSubproject"))
-                from(templates.named("javaUtilitiesLibraryAsSubproject"))
-                from(templates.named("javaListLibraryAsSubproject"))
-            }
-        }
-        val taskWithArguments by creating {
-            sampleDirectory = samplesRoot.dir("writing-tasks/task-with-arguments")
-            displayName = "Implementing Tasks with Command-line Arguments"
-            description = "Pass arguments to a custom task."
-            category = "Writing Custom Tasks"
-        }
-        val customTestTask by creating {
-            sampleDirectory = samplesRoot.dir("writing-tasks/custom-test-task")
-            displayName = "Implementing a task that runs tests"
-            description = "Running tests outside of the JVM."
-            category = "Writing Custom Tasks"
-        }
-        val tasksWithDependencyResolutionResultInputs by creating {
-            sampleDirectory = samplesRoot.dir("writing-tasks/tasks-with-dependency-resolution-result-inputs")
-            displayName = "Implementing tasks with dependency resolution result inputs"
-            description = "Consume dependency resolution result inputs in tasks."
-            category = "Writing Custom Tasks"
-        }
-
-        val publishingCredentials by creating {
-            sampleDirectory = samplesRoot.dir("credentials-handling/publishing-credentials")
-            description = "Publish to a password protected repository"
-            category = "Using Credentials"
-            common {
-                from(templates.named("javaListLibrary"))
-                from(templates.named("javaUtilitiesLibrary"))
-            }
-        }
-
-        val credentialsForExternalToolViaStdin by creating {
-            sampleDirectory = samplesRoot.dir("credentials-handling/pass-credentials-to-external-tool-via-stdin")
-            displayName = "Supply credentials to external tool"
-            description = "Pass credentials to an external tool via stdin using Gradle properties."
-            category = "Using Credentials"
-        }
-
-        val structuringSoftwareProjects by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/structuring-software-projects")
-            description = "Structuring a software product project with Gradle"
-            category = "Build organization"
-            common {
-                from(templates.named("structuringSoftwareProjects"))
-            }
-        }
-
-        val compositeBuildsBasics by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/basic")
-            description = "Defining and using a composite build"
-            category = "Build organization"
-        }
-
-        val compositeBuildsDeclaredSubstitutions by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/declared-substitution")
-            description = "Applying and testing changes in downstream dependencies without publishing."
-            category = "Build organization"
-        }
-
-        val compositeBuildsHierarchicalMultirepo by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/hierarchical-multirepo")
-            description = "Defining and using a composite build to combine multiple independent builds."
-            category = "Build organization"
-        }
-
-        val compositeBuildsPluginDevelopment by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/plugin-dev")
-            description = "Developing a Gradle plugin in a build without publishing."
-            category = "Build organization"
-        }
-
-        val crossProjectOutputSharing by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/cross-project-output-sharing")
-            displayName = "Sharing task outputs across projects in a multi-project build"
-            description = "Sharing a file made by a task in one Gradle project, with a task in another Gradle project."
-            category = "Build organization"
-        }
-
-        val problemsApiUsage by creating {
-            sampleDirectory = samplesRoot.dir("ide/problems-api-usage")
-            displayName = "Reporting and receiving problems via the Problems API"
-            description = "Reporting problems from plugins and consuming it in IDE integrations"
-            category = "IDE integration"
-            common {
-                from(templates.named("problemsApiUsage"))
-            }
         }
     }
 }
@@ -653,19 +212,6 @@ tasks.named<Test>("docsTest") {
     systemProperties.clear()
 
     filter {
-        // Only execute C++ sample tests on Linux because it is the configured target
-        if (!OperatingSystem.current().isLinux) {
-            excludeTestsMatching("org.gradle.docs.samples.*.building-cpp-*")
-        }
-        // Only execute Swift sample tests on OS X because it is the configured target
-        if (!OperatingSystem.current().isMacOsX) {
-            excludeTestsMatching("org.gradle.docs.samples.*.building-swift-*")
-        }
-        // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
-        if (javaVersion.isJava9Compatible) {
-            excludeTestsMatching("org.gradle.docs.samples.*.building-groovy-*")
-        }
-
         if (OperatingSystem.current().isWindows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model")
@@ -683,35 +229,33 @@ tasks.named<Test>("docsTest") {
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
             // Android requires Java 17+
-            excludeTestsMatching("org.gradle.docs.samples.*.building-android-*")
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects*android-app")
             // Umbrella build project also contains Android projects
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects_*_umbrella-build")
             // AGP AND KMP are tested on Java 17 only
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-*")
             // Spring Boot requires Java 17+
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects_*_build-server-application")
         }
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_21)) {
             // Sample requests Java 21
-            excludeTestsMatching("org.gradle.docs.samples.*.custom-test-task_*_consumer")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-writing-tasks-custom-test-task_*_consumer")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
             // Incompatible for unknown reasons, investigation ongoing
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-android-app")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects_*_build-android-app")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
             // SpotBugs doesn't support Java 23
-            excludeTestsMatching("org.gradle.docs.samples.*.publishing-convention-plugins*")
-            excludeTestsMatching("org.gradle.docs.samples.*.incubating-publishing-convention-plugins*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-publishing-convention-plugins*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-incubating-build-organization-publishing-convention-plugins*")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
             // Kotlin does not yet support 25 JDK target
-            excludeTestsMatching("org.gradle.docs.samples.*.building-kotlin-*")
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-kotlin-std-lib*")
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-use-convention-plugins-do_kotlin*")
         }
@@ -727,10 +271,7 @@ tasks.named<Test>("docsTest") {
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-native*")
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-swift*")
-            excludeTestsMatching("org.gradle.docs.samples.*.building-swift*")
-            // We don't have Android SDK installed on Mac M1 now
-            excludeTestsMatching("org.gradle.docs.samples.*.building-android-*")
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-build-organization-structuring-software-projects*android-app")
         }
     }
 
@@ -747,9 +288,6 @@ tasks.named<Test>("docsTest") {
             // Configuration cache samples enable configuration cache explicitly. We're not going to run them with the configuration cache executer.
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-configuration-cache-*")
             excludeTestsMatching("*WithoutCC*")
-
-            // Projects generated by gradle init enable configuration cache by default, no need to run them again.
-            excludeTestsMatching("org.gradle.docs.samples.*building-*")
 
             // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
             val testsForUnsupportedFeatures = listOf(
@@ -807,14 +345,14 @@ tasks.named<Test>("docsTest") {
             // These tests use third-party plugins at versions that may not support the configuration cache properly.
             // The tests should be removed from this list when the plugin is updated to the version that works with the configuration cache properly.
             val testsWithThirdPartyFailures = listOf(
-                "structuring-software-projects_groovy_aggregate-reports",
-                "structuring-software-projects_groovy_build-android-app",
-                "structuring-software-projects_groovy_build-server-application",
-                "structuring-software-projects_groovy_umbrella-build",
-                "structuring-software-projects_kotlin_aggregate-reports",
-                "structuring-software-projects_kotlin_build-android-app",
-                "structuring-software-projects_kotlin_build-server-application",
-                "structuring-software-projects_kotlin_umbrella-build",
+                "snippet-build-organization-structuring-software-projects_groovy_aggregate-reports",
+                "snippet-build-organization-structuring-software-projects_groovy_build-android-app",
+                "snippet-build-organization-structuring-software-projects_groovy_build-server-application",
+                "snippet-build-organization-structuring-software-projects_groovy_umbrella-build",
+                "snippet-build-organization-structuring-software-projects_kotlin_aggregate-reports",
+                "snippet-build-organization-structuring-software-projects_kotlin_build-android-app",
+                "snippet-build-organization-structuring-software-projects_kotlin_build-server-application",
+                "snippet-build-organization-structuring-software-projects_kotlin_umbrella-build",
             )
 
             // These tests cover features that the configuration cache doesn't support yet, but we plan to do that before hitting stable.
@@ -865,12 +403,6 @@ tasks.named<Test>("docsTest") {
     } else {
         filter {
             excludeTestsMatching("*WithCC*")
-            // samples generated by init tasks explicitly enable configuration cache,
-            // so we don't need to run them again
-            excludeTestsMatching("*building-*-applications_groovy_build*")
-            excludeTestsMatching("*building-*-applications_kotlin_build*")
-            excludeTestsMatching("*building-*-libraries_groovy_build*")
-            excludeTestsMatching("*building-*-libraries_kotlin_build*")
         }
     }
 }

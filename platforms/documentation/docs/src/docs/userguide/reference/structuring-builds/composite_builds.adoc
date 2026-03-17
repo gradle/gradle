@@ -92,15 +92,15 @@ Instead, it declares binary dependencies on the libraries produced by `my-utils`
 
 ++++
 <div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/samples/build-organization/composite-builds/basic">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/build-organization/composite-builds-basic">
     <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
   </a>
 </div>
 ++++
 
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="my-app/app/build.gradle.kts[tags=app_dependencies]"]
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
+include::sample[dir="snippets/build-organization/composite-builds-basic/kotlin",files="my-app/app/build.gradle.kts[tags=app_dependencies]"]
+include::sample[dir="snippets/build-organization/composite-builds-basic/groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
 ====
 
 [[command_line_composite]]
@@ -116,7 +116,7 @@ $ ./gradlew --include-build ../my-utils run
 ----
 [source,text]
 ----
-include::{samplesPath}/build-organization/composite-builds/basic/tests/basicCli.out[]
+include::sample[dir="snippets/build-organization/composite-builds-basic/tests",files="basicCli.out"]
 ----
 
 [[settings_defined_composite]]
@@ -129,8 +129,8 @@ The settings file can be used to add subprojects and included builds simultaneou
 Included builds are added by location:
 
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="settings.gradle.kts[tags=inc]"]
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="settings.gradle[tags=inc]"]
+include::sample[dir="snippets/build-organization/composite-builds-basic/kotlin",files="settings.gradle.kts[tags=inc]"]
+include::sample[dir="snippets/build-organization/composite-builds-basic/groovy",files="settings.gradle[tags=inc]"]
 ====
 
 [[separate_composite]]
@@ -138,15 +138,15 @@ In the example, the settings.gradle(.kts) file combines otherwise separate build
 
 ++++
 <div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/samples/build-organization/composite-builds/basic">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/build-organization/composite-builds-basic">
     <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
   </a>
 </div>
 ++++
 
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="settings.gradle.kts[]"]
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/build-organization/composite-builds-basic/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/build-organization/composite-builds-basic/groovy",files="settings.gradle[]"]
 ====
 
 To execute the `run` task in the `my-app` build from `my-composite`, run `./gradlew my-app:app:run`.
@@ -154,8 +154,8 @@ To execute the `run` task in the `my-app` build from `my-composite`, run `./grad
 You can optionally define a `run` task in `my-composite` that depends on `my-app:app:run` so that you can execute `./gradlew run`:
 
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="build.gradle.kts[tags=run]"]
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="build.gradle[tags=run]"]
+include::sample[dir="snippets/build-organization/composite-builds-basic/kotlin",files="build.gradle.kts[tags=run]"]
+include::sample[dir="snippets/build-organization/composite-builds-basic/groovy",files="build.gradle[tags=run]"]
 ====
 
 [[included_plugin_builds]]
@@ -287,15 +287,15 @@ For example, a single-project build called `anonymous-library`, produces a Java 
 
 ++++
 <div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/samples/build-organization/composite-builds/declared-substitution">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/build-organization/composite-builds-declared-substitution">
     <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
   </a>
 </div>
 ++++
 
 ====
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin/anonymous-library",files="build.gradle.kts[]"]
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy/anonymous-library",files="build.gradle[]"]
+include::sample[dir="snippets/build-organization/composite-builds-declared-substitution/kotlin/anonymous-library",files="build.gradle.kts[]"]
+include::sample[dir="snippets/build-organization/composite-builds-declared-substitution/groovy/anonymous-library",files="build.gradle[]"]
 ====
 
 When this build is included in a composite, it will attempt to substitute for the dependency module `undefined:anonymous-library` (`undefined` being the default value for `project.group`, and `anonymous-library` being the root project name).
@@ -304,8 +304,8 @@ Clearly, this isn't useful in a composite build.
 To use the unpublished library in a composite build, you can explicitly declare the substitutions that it provides:
 
 ====
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin",files="settings.gradle.kts[tags=composite_substitution]"]
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy",files="settings.gradle[tags=composite_substitution]"]
+include::sample[dir="snippets/build-organization/composite-builds-declared-substitution/kotlin",files="settings.gradle.kts[tags=composite_substitution]"]
+include::sample[dir="snippets/build-organization/composite-builds-declared-substitution/groovy",files="settings.gradle[tags=composite_substitution]"]
 ====
 
 With this configuration, the `my-app` composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of `anonymous-library`.
@@ -370,30 +370,30 @@ Using these APIs, it is possible to declare a dependency on a task in a particul
 
 ++++
 <div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/samples/build-organization/composite-builds/basic">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/build-organization/composite-builds-basic">
     <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
   </a>
 </div>
 ++++
 
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="build.gradle.kts[tags=run]"]
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="build.gradle[tags=run]"]
+include::sample[dir="snippets/build-organization/composite-builds-basic/kotlin",files="build.gradle.kts[tags=run]"]
+include::sample[dir="snippets/build-organization/composite-builds-basic/groovy",files="build.gradle[tags=run]"]
 ====
 
 Or you can declare a dependency on tasks with a certain path in some or all of the included builds:
 
 ++++
 <div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/samples/build-organization/composite-builds/hierarchical-multirepo">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/build-organization/composite-builds-hierarchical-multirepo">
     <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
   </a>
 </div>
 ++++
 
 ====
-include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/kotlin",files="build.gradle.kts"]
-include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/groovy",files="build.gradle"]
+include::sample[dir="snippets/build-organization/composite-builds-hierarchical-multirepo/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/build-organization/composite-builds-hierarchical-multirepo/groovy",files="build.gradle"]
 ====
 
 [[current_limitations_and_future_work]]

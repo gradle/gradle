@@ -134,9 +134,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             inputs.dir(extension.getUserManual().getSnippets())
                 .withPropertyName("snippets")
                 .withPathSensitivity(PathSensitivity.RELATIVE);
-            inputs.dir(extension.getUserManual().getSamples())
-                .withPropertyName("samples")
-                .withPathSensitivity(PathSensitivity.RELATIVE);
 
             Provider<Directory> stylesDir = extension.getUserManual().getStagedDocumentation().dir("css");
             inputs.dir(stylesDir)
@@ -177,8 +174,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("gradleVersion90", "9.0.0");
             attributes.put("gradleVersion8", "8.14.4");
             attributes.put("snippetsPath", "snippets");
-            // Make sure the 'raw' location of the samples is available in all AsciidoctorTasks to access files with expected outputs in the 'tests' folder for inclusion in READMEs
-            attributes.put("samplesPath", extension.getUserManual().getStagingRoot().dir("raw/samples").get().getAsFile());
             task.attributes(attributes);
         });
 
@@ -198,16 +193,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.eachFile(fcd -> fcd.setRelativePath(RelativePath.parse(true, fcd.getName())));
             });
 
-            // From the snippets and the samples, filter out files generated if the build contained was ever executed
+            // From the snippets, filter out files generated if the build contained was ever executed
             task.from(extension.getUserManual().getSnippets(), sub -> {
                 sub.into("snippets");
-                sub.exclude("**/.gradle/**");
-                sub.exclude("**/build/**");
-                sub.setIncludeEmptyDirs(false);
-            });
-            task.from(extension.getUserManual().getSamples(), sub -> {
-                sub.into("samples");
-                sub.exclude("**/*.adoc");
                 sub.exclude("**/.gradle/**");
                 sub.exclude("**/build/**");
                 sub.setIncludeEmptyDirs(false);
@@ -293,7 +281,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             userManual.getStagingRoot().convention(extension.getStagingRoot().dir("usermanual"));
             // TODO: These should be generated too
             userManual.getSnippets().convention(layout.getProjectDirectory().dir("src/snippets"));
-            userManual.getSamples().convention(layout.getProjectDirectory().dir("src/samples"));
             userManual.getStagedDocumentation().convention(userguideFlattenSources.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
             userManual.getRenderedDocumentation().from(userguide);
         });
@@ -317,7 +304,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         String versionUrl = DOCS_GRADLE_ORG + project.getVersion();
         attributes.put("groovyDslPath", versionUrl + "/dsl");
         attributes.put("javadocPath", versionUrl + "/javadoc");
-        attributes.put("samplesPath", versionUrl + "/samples");
         attributes.put("kotlinDslPath", versionUrl + "/kotlin-dsl");
         // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
         // TODO: This breaks the provider
@@ -331,7 +317,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation()); // working/usermanual/raw/
             task.getJavadocRoot().convention(layout.getBuildDirectory().dir("javadoc"));
             task.getReleaseNotesFile().convention(layout.getProjectDirectory().file("src/docs/release/notes.md"));
-            task.getSamplesRoot().convention(layout.getBuildDirectory().dir("working/samples/docs"));
             task.dependsOn(tasks.named("javadocAll"));
             task.dependsOn(tasks.named("assembleSamples"));
         });
