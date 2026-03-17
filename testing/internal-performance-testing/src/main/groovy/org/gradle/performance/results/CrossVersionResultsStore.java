@@ -268,6 +268,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                     executionsForName.setString(++idx, teamcityBuildId);
                 }
                 executionsForName.setInt(++idx, mostRecentN);
+                List<Object> executionsForNameParams = createHistoryQueryParams(experiment, minDate, channelPatterns, teamcityBuildIds, mostRecentN);
 
                 long executionsForNameStartTime = System.currentTimeMillis();
                 ResultSet executionsForNameRs = null;
@@ -299,7 +300,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                         allBranches.add(performanceResults.getVcsBranch());
                     }
                 } finally {
-                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("executionsForName", executionsForNameSql, List.of(experiment.getScenario().getClassName(), experiment.getScenario().getTestName(), experiment.getTestProject(), minDate), executionsForNameRs, executionsForNameStartTime).toJson());
+                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("executionsForName", executionsForNameSql, executionsForNameParams, executionsForNameRs, executionsForNameStartTime).toJson());
                 }
 
                 operationsForExecution.setFetchSize(10 * results.size());
@@ -315,6 +316,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                     operationsForExecution.setString(++idx, teamcityBuildId);
                 }
                 operationsForExecution.setInt(++idx, mostRecentN);
+                List<Object> operationsForExecutionParams = createHistoryQueryParams(experiment, minDate, channelPatterns, teamcityBuildIds, mostRecentN);
 
                 long operationsForExecutionStartTime = System.currentTimeMillis();
                 ResultSet operationsForExecutionRs = null;
@@ -338,7 +340,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                         }
                     }
                 } finally {
-                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("operationsForExecution", operationsForExecutionSql, List.of(experiment.getScenario().getClassName(), experiment.getScenario().getTestName(), experiment.getTestProject(), minDate), operationsForExecutionRs, operationsForExecutionStartTime).toJson());
+                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("operationsForExecution", operationsForExecutionSql, operationsForExecutionParams, operationsForExecutionRs, operationsForExecutionStartTime).toJson());
                 }
                 return new CrossVersionPerformanceTestHistory(experiment, new ArrayList<>(allVersions), new ArrayList<>(allBranches), Lists.newArrayList(results.values()));
             }
