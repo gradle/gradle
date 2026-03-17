@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GeneralDataSpec;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -111,6 +112,7 @@ public abstract class DefaultTaskSelector implements TaskSelector {
 
     private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
         ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().asString())));
+        spec.severity(Severity.ERROR);
         return spec;
     }
 

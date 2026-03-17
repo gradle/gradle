@@ -18,6 +18,7 @@ package org.gradle.internal.execution.impl
 
 import org.gradle.api.problems.Problem
 import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
@@ -62,6 +63,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
                 .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
                 .details("Test")
+                .severity(Severity.ERROR)
         }
 
         when:
@@ -85,6 +87,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem-1", "Validation error #1", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
+                .severity(Severity.ERROR)
                 .details("Test")
         }
         validationContext.forType(SecondaryJobType, true).visitTypeProblem {
@@ -92,6 +95,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem-2", "Validation error #2", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
+                .severity(Severity.ERROR)
                 .details("Test")
         }
         when:
@@ -118,6 +122,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem", "Validation warning", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
+                .severity(Severity.WARNING)
                 .details("Test")
         }
         when:
@@ -146,6 +151,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
+                .severity(Severity.ERROR)
                 .details("Test")
         }
         typeContext.visitTypeProblem {
@@ -153,6 +159,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
+                .severity(Severity.WARNING)
                 .details("Test")
         }
 

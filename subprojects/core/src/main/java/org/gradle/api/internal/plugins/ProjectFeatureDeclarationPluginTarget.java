@@ -20,20 +20,21 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.features.annotations.BindsProjectFeature;
+import org.gradle.features.annotations.BindsProjectType;
 import org.gradle.api.initialization.Settings;
+import org.gradle.features.annotations.RegistersProjectFeatures;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.features.annotations.BindsProjectFeature;
-import org.gradle.features.annotations.BindsProjectType;
-import org.gradle.features.annotations.RegistersProjectFeatures;
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -116,6 +117,7 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
                 problem.withAnnotationType(projectTypePluginImplClass)
                     .id("missing-software-type", "Missing project feature annotation", GradleCoreProblemGroup.validation().type())
                     .contextualLabel("is registered as a project feature plugin but does not expose a project feature")
+                    .severity(Severity.ERROR)
                     .details("This class was registered as a project feature plugin, but it does not expose a project feature. Project feature plugins must expose at least one project feature via either a @BindsProjectType or @BindsProjectFeature annotation on the plugin class.")
                     .solution("Remove " + projectTypePluginImplClass.getSimpleName() + " from the @RegistersSoftwareTypes or @RegistersProjectFeatures annotation on " + registeringPlugin.getSimpleName())
             );

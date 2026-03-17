@@ -29,6 +29,7 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 
@@ -198,7 +199,9 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     private static void addSolution(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
+        Severity severity = mapKindToSeverity(diagnostic.getKind());
+        spec.severity(severity);
+        if (severity == Severity.ERROR) {
             spec.solution(CompilationFailedException.RESOLUTION_MESSAGE);
         }
     }
@@ -309,6 +312,20 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private static String getPath(JavaFileObject fileObject) {
         return fileObject.getName();
+    }
+
+    private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
+        switch (kind) {
+            case ERROR:
+                return Severity.ERROR;
+            case WARNING:
+            case MANDATORY_WARNING:
+                return Severity.WARNING;
+            case NOTE:
+            case OTHER:
+            default:
+                return Severity.ADVICE;
+        }
     }
 
     public List<Problem> getReportedProblems() {
