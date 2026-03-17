@@ -513,6 +513,8 @@ public class DirectorySnapshotter {
         }
 
         private String getInternedFileName(Path path) {
+            // Path also has getFileName() but it creates additional allocations,
+            // and since this is on a hot path we optimized it
             String absolutePath = path.toString();
             int lastSep = absolutePath.lastIndexOf(File.separatorChar);
             return intern(lastSep < 0 ? absolutePath : absolutePath.substring(lastSep + 1));
