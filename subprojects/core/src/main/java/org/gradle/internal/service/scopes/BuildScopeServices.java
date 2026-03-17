@@ -338,7 +338,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ExecutionNodeAccessHierarchies executionNodeAccessHierarchies,
         ResourceLockCoordinationService lockCoordinationService,
         WorkerLeaseService workerLeaseService,
-        BuildOperationExecutor buildOperationExecutor
+        BuildOperationExecutor buildOperationExecutor,
+        BuildModelParameters buildModelParameters
     ) {
         return new ExecutionPlanFactory(
             build.getDisplayName().getDisplayName(),
@@ -349,7 +350,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             executionNodeAccessHierarchies.getDestroyableHierarchy(),
             lockCoordinationService,
             workerLeaseService,
-            buildOperationExecutor
+            buildOperationExecutor,
+            buildModelParameters
         );
     }
 
