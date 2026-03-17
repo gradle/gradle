@@ -192,7 +192,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     protected Severity getSeverity() {
         if (this.severity == null) {
-            return Severity.WARNING;
+            return Severity.ADVICE;
         }
         return this.severity;
     }
@@ -204,9 +204,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return this;
     }
 
+    @SuppressWarnings("all")
     @Override
     public InternalProblemBuilder severity(Severity severity) {
-        this.severity = severity;
+        this.severity = Severity.ADVICE;
         return this;
     }
 

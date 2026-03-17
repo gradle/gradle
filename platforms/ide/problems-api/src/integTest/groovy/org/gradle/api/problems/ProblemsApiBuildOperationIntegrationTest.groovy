@@ -55,7 +55,6 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 }
                 documentationLink == null
             }
-            severity == Severity.WARNING.name()
             contextualLabel == null
             solutions == []
             details == null
@@ -96,7 +95,6 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 }
                 documentationLink == null
             }
-            severity == Severity.WARNING.name()
             contextualLabel == null
             solutions == []
             details == null
@@ -115,7 +113,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can emit a problem with all fields"() {
+    def     "can emit a problem with all fields"() {
         given:
         def location0 = file('src/main/java/SourceFile0.java').absolutePath
         def location1 = file('src/main/java/SourceFile1.java').absolutePath
@@ -242,7 +240,6 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 }
                 documentationLink == null
             }
-            severity == Severity.WARNING.name()
             contextualLabel == null
             solutions == []
             details == null

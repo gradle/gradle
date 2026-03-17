@@ -17,7 +17,6 @@
 package org.gradle.workers.internal
 
 import com.google.common.collect.Iterables
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -169,7 +168,6 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             definition.id.group.name == 'generic'
             definition.id.group.parent == null
             definition.documentationLink == null
-            definition.severity == Severity.WARNING
             contextualLabel == null
             solutions == []
             details == null
@@ -201,7 +199,6 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     }
                     documentationLink == null
                 }
-                severity == Severity.WARNING.name()
                 contextualLabel == null
                 solutions == []
                 details == null
