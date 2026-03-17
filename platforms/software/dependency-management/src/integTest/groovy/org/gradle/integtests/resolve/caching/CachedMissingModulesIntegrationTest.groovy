@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -450,7 +450,6 @@ Required by:
         run 'retrieve'
     }
 
-    @ToBeFixedForConfigurationCache(because = "HTTP server interactions are different when CC is enabled")
     def "cached missing module is ignored when no module for dynamic version is available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -481,20 +480,23 @@ Required by:
     }
     task retrieve(type: Sync) {
         into 'libs'
-        from configurations.conf2
+        from configurations.conf2.files
     }
     """
 
         and:
+        repo1Module.rootMetaData.expectGet()
+        repo2Module.rootMetaData.expectGet()
         repo1Module.pom.expectGetMissing()
         repo2Module.pom.expectGetMissing()
         fails 'cache'
-        failure.assertHasCause("Could not find group:projectA:1.0.")
+        failure.assertHasCause("Could not resolve all files for configuration ':conf2'.")
+        failure.assertHasCause("Could not find any matches for group:projectA:1.+ as no versions of group:projectA are available.")
 
         when:
         server.resetExpectations()
-        repo1Module.rootMetaData.expectGet()
-        repo2Module.rootMetaData.expectGet()
+        repo1Module.rootMetaData.expectHead()
+        repo2Module.rootMetaData.expectHead()
         repo1Module.pom.expectGetMissing()
         repo2Module.pom.expectGetMissing()
 
@@ -538,15 +540,16 @@ Required by:
 
         when:
         server.resetExpectations()
-        // TODO - should not need to do this
-        repo1Module.pom.expectHeadMissing()
+        if (!GradleContextualExecuter.configCache) {
+            // TODO - should not need to do this
+            repo1Module.pom.expectHeadMissing()
+        }
 
         then:
         run 'retrieve'
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "hit each remote repo only once per build and missing module"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -578,11 +581,12 @@ Required by:
             }
 
             task resolveConfig1 {
+                def result = provider {
+                    configurations.config1.incoming.resolutionResult.allDependencies
+                }
                 doLast {
-                   configurations.config1.incoming.resolutionResult.allDependencies{
-                        assert it instanceof UnresolvedDependencyResult
-                   }
-               }
+                    assert result.get().every { it instanceof UnresolvedDependencyResult }
+                }
             }
         """
 
@@ -594,10 +598,11 @@ Required by:
                 config2 'group:projectA:1.0'
             }
             task resolveConfig2 {
+                def result = provider {
+                    configurations.config2.incoming.resolutionResult.allDependencies
+                }
                 doLast {
-                    configurations.config2.incoming.resolutionResult.allDependencies{
-                        assert it instanceof UnresolvedDependencyResult
-                    }
+                    assert result.get().every { it instanceof UnresolvedDependencyResult }
                 }
             }
         """
