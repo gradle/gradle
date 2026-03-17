@@ -205,18 +205,52 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
 
-        throwOnSelfSubtraction(fileCollection);
+        if (fileCollection != null) {
+            // Check for self-subtraction patterns that the replace() mechanism cannot handle.
+            // Note: direct self-references (e.g. in 'property += other' or 'property = property + other') are fine —
+            // the replace() mechanism in addItem() substitutes 'this' with a snapshot of its previous value.
+            // However, when 'this' appears as an operand of a SubtractingFileCollection, replace() won't reach it
+            // (AbstractFileCollection.replace() only matches 'this == original', not children), so we must throw.
+            checkForSelfSubtractionInStructure(fileCollection, false);
+        }
 
-        // Don't allow a += b or a = (a + b), this is not support
+        setFrom(Cast.castNullable(FileCollection.class, object));
+    }
+
+    /**
+     * Visits the structure of a file collection to detect self-subtraction patterns that would cause a StackOverflow.
+     * <p>
+     * When {@code throwOnSelf} is {@code false} (used for the top-level call), a direct reference to {@code this}
+     * inside a {@link CompositeFileCollection} is allowed — the {@code replace()} mechanism in
+     * {@code UnresolvedItemsCollector.addItem()} will substitute it with a snapshot.
+     * <p>
+     * When {@code throwOnSelf} is {@code true} (used when checking operands of a subtraction), any reference to
+     * {@code this} is an error, because {@code replace()} does not recurse into {@link SubtractingFileCollection}.
+     */
+    private void checkForSelfSubtractionInStructure(FileCollectionInternal fileCollection, boolean throwOnSelf) {
         fileCollection.visitStructure(new FileCollectionStructureVisitor() {
             @Override
-            public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
-                if (DefaultConfigurableFileCollection.this == fileCollection) {
-                    throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
+            public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal visited) {
+                if (DefaultConfigurableFileCollection.this == visited) {
+                    if (throwOnSelf) {
+                        throw new UnsupportedOperationException("ConfigurableFileCollection does not support '-=' operator or assignment of subtraction via '-' operator or a minus() method");
+                    }
+                    // Stop recursion here; replace() will handle this self-reference correctly
+                    return false;
+                }
+                if (visited instanceof SubtractingFileCollection) {
+                    SubtractingFileCollection subtraction = (SubtractingFileCollection) visited;
+                    // replace() does not recurse into SubtractingFileCollection operands, so check both sides
+                    checkForSelfSubtractionInStructure(subtraction.getLeft(), true);
+                    FileCollectionInternal right = Cast.castNullable(FileCollectionInternal.class, subtraction.getRight());
+                    if (right != null) {
+                        checkForSelfSubtractionInStructure(right, true);
+                    }
+                    return false;
                 }
                 // Only visit the children of a CompositeFileCollection but not other types of FileCollections,
                 // since we might accidentally resolve them, for example we don't want to resolve Configurations
-                return fileCollection instanceof CompositeFileCollection;
+                return visited instanceof CompositeFileCollection;
             }
 
             @Override
@@ -236,20 +270,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             }
         });
-
-        setFrom(Cast.castNullable(FileCollection.class, object));
-    }
-
-    // We don't support 'a -= b' in Groovy DSL due to the inherent self-referencing.
-    // At the same time, Groovy always rewrites that as 'a = a - b'
-    // and at runtime all these options look the same as 'a = a.minus(b)', and we can't distinguish
-    private void throwOnSelfSubtraction(FileCollectionInternal fileCollection) {
-        if (fileCollection instanceof SubtractingFileCollection) {
-            SubtractingFileCollection subtraction = (SubtractingFileCollection) fileCollection;
-            if (DefaultConfigurableFileCollection.this == subtraction.getLeft()) {
-                throw new UnsupportedOperationException("ConfigurableFileCollection does not support '-=' operator or assignment of subtraction via '-' operator or a minus() method");
-            }
-        }
     }
 
     @Override
