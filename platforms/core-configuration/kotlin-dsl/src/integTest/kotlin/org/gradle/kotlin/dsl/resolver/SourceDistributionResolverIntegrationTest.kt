@@ -10,6 +10,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 import java.util.UUID
@@ -61,9 +62,10 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `can download source distribution`() {
         val gradleVersion = distribution.version
-        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
+        val srcDistribution = srcDistributionOrSkip()
 
         withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
             val server = HttpServer()
@@ -108,9 +110,10 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     }
 
     @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `can download source distribution when repositories are declared in settings`() {
         val gradleVersion = distribution.version
-        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
+        val srcDistribution = srcDistributionOrSkip()
 
         withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
             val server = HttpServer()
@@ -181,7 +184,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     @LeaksFileHandles
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from wrapper without touching the fallback server`() {
-        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
+        val srcDistribution = srcDistributionOrSkip()
         val gradleVersion = distribution.version
 
         withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
@@ -222,7 +225,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     @LeaksFileHandles
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from fallback when custom repo does not have it`() {
-        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
+        val srcDistribution = srcDistributionOrSkip()
         val gradleVersion = distribution.version
 
         withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
@@ -266,8 +269,8 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     @LeaksFileHandles
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from local file when src zip is next to bin zip`() {
-        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
-        val binDistribution = IntegrationTestBuildContext.INSTANCE.binDistribution!!
+        val srcDistribution = srcDistributionOrSkip()
+        val binDistribution = binDistributionOrSkip()
         val gradleVersion = distribution.version.version
 
         withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
@@ -292,8 +295,8 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     @LeaksFileHandles
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from fallback when wrapper uses a local file distribution without src zip`() {
-        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution!!
-        val binDistribution = IntegrationTestBuildContext.INSTANCE.binDistribution!!
+        val srcDistribution = srcDistributionOrSkip()
+        val binDistribution = binDistributionOrSkip()
         val gradleVersion = distribution.version
 
         withOwnGradleUserHomeDir("need fresh cache for artifact resolution") {
@@ -401,6 +404,19 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
     private val GradleVersion.artifactFileName: String
         get() = "gradle-${version}-src.zip"
+
+    private fun srcDistributionOrSkip(): File {
+        val srcDistribution = IntegrationTestBuildContext.INSTANCE.srcDistribution
+        assumeTrue("srcDistribution is not available for this test execution.", srcDistribution != null)
+        return srcDistribution!!
+    }
+
+    private fun binDistributionOrSkip(): File {
+        val binDistribution = IntegrationTestBuildContext.INSTANCE.binDistribution
+        assumeTrue("binDistribution is not available for this test execution.", binDistribution != null)
+        return binDistribution!!
+    }
+
     private fun testStandardCustomRepoLayout(distributionFileName: String) {
         val baseUrl = "https://my-host.org/my-path/distributions"
         withCustomGradleProperties("$baseUrl/$distributionFileName")
