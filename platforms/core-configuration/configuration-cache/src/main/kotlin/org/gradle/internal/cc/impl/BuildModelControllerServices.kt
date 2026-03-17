@@ -148,23 +148,15 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
 
         @Provides
         fun createDynamicLookupRoutineFactory(
-            dynamicLookupRoutine: DynamicLookupRoutine,
             buildModelParameters: BuildModelParameters,
             problemsListener: ProblemsListener,
             problemFactory: ProblemFactory
         ): DynamicLookupRoutineFactory =
-            if (buildModelParameters.isIsolatedProjects) {
-                DynamicLookupRoutineFactory { project ->
-                    IsolatedProjectsAwareDynamicLookupRoutine(
-                        dynamicLookupRoutine,
-                        project,
-                        problemsListener,
-                        problemFactory
-                    )
-                }
-            } else {
-                DynamicLookupRoutineFactory { _ -> dynamicLookupRoutine }
-            }
+            IsolatedProjectsDynamicLookupRoutineFactory(
+                buildModelParameters.isIsolatedProjects,
+                problemsListener,
+                problemFactory
+            )
     }
 
     private
@@ -183,10 +175,8 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
             DefaultDynamicLookupRoutine()
 
         @Provides
-        fun createDynamicLookupRoutineFactory(
-            dynamicLookupRoutine: DynamicLookupRoutine
-        ): DynamicLookupRoutineFactory =
-            DynamicLookupRoutineFactory { _ -> dynamicLookupRoutine }
+        fun createDynamicLookupRoutineFactory(): DynamicLookupRoutineFactory =
+            IsolatedProjectsDynamicLookupRoutineFactory(false, null, null)
     }
 
     private

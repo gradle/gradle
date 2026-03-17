@@ -18,11 +18,22 @@ package org.gradle.api.internal.project;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
+
+import java.util.function.Consumer;
 
 /**
- * Factory for creating project-scoped {@link DynamicLookupRoutine} instances.
+ * Factory for creating project-scoped violation reporters for the explicit
+ * Project property API (findProperty, property, hasProperty, getProperties).
+ *
+ * <p>When Isolated Projects is enabled, the factory returns a reporter that
+ * records a deferred violation. When disabled, it returns {@code null}.</p>
  */
 @ServiceScope(Scope.Build.class)
 public interface DynamicLookupRoutineFactory {
-    DynamicLookupRoutine create(ProjectInternal project);
+    /**
+     * Creates a violation reporter for the given project, or {@code null} if
+     * property API violations should not be reported.
+     */
+    @Nullable Consumer<String> createViolationReporter(ProjectInternal project);
 }
