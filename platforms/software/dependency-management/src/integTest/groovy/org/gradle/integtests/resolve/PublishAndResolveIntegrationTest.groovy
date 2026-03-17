@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.util.internal.TextUtil
 
@@ -35,7 +35,6 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve static dependency published by a dependent task in the same project"() {
         given:
         buildFile << """
@@ -52,11 +51,16 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         """
 
         expect:
+        if (GradleContextualExecuter.configCache) {
+            // Under CC, resolution occurs during cache entry writing before tasks execute.
+            // Pre-publish so the artifact exists when CC serializes the resolve task's inputs.
+            // Can't just rely on the dependsOn to run publish first - waiting until task execution time is too late.
+            succeeds ':publish'
+        }
         succeeds resolveTask
         versionIsCopiedAndExists("api", "1.1")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve static dependency published by a dependent task in another project in the same build"() {
         settingsFile << """
             include ':child'
@@ -88,11 +92,13 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         """
 
         expect:
+        if (GradleContextualExecuter.configCache) {
+            succeeds ':publish'
+        }
         succeeds ":child:${resolveTask}"
         versionIsCopiedAndExists("api", "1.1", "child/")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve dynamic dependency published by a dependent task"() {
         ivyRepo.module('org.gradle.test', 'api', '1.0').publish()
 
@@ -111,11 +117,13 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         """
 
         expect:
+        if (GradleContextualExecuter.configCache) {
+            succeeds ':publish'
+        }
         succeeds resolveTask
         versionIsCopiedAndExists("api", "1.1")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve dependency published by a custom publishing task"() {
         def tmpRepo = new IvyFileRepository(file("tmp-repo"))
         tmpRepo.module('org.gradle.test', 'api', '1.1').publish()
@@ -139,6 +147,9 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         """
 
         expect:
+        if (GradleContextualExecuter.configCache) {
+            succeeds ':customPublish'
+        }
         succeeds resolveTask
         versionIsCopiedAndExists("api", "1.1")
     }
@@ -186,12 +197,13 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
             }
 
             task ${resolveTask}(type: Copy) {
+                def rootDirPath = rootDir.path
                 dependsOn ":publish"
                 from {
                     configurations.testartifacts
                 }
                 into "\${buildDir}/copies"
-                eachFile { println it.file.path - rootDir.path }
+                eachFile { println it.file.path - rootDirPath }
             }
         """
     }
