@@ -17,10 +17,12 @@
 package org.gradle.smoketests
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.test.fixtures.Flaky
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/5130")
 class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
     def "can build documentation with configuration cache enabled"() {
