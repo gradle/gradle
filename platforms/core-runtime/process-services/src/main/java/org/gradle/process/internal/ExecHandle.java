@@ -46,6 +46,14 @@ public interface ExecHandle extends Describable {
     ExecHandleState getState();
 
     /**
+     * Sends the given signal to the process.
+     *
+     * @throws UnsupportedOperationException if called on Windows
+     * @throws IllegalStateException if the process has not started yet
+     */
+    void sendSignal(int signal);
+
+    /**
      * Aborts the process, blocking until the process has exited. Does nothing if the process has already completed.
      */
     void abort();

@@ -68,4 +68,12 @@ public interface GradleHandle {
      */
     boolean isRunning();
 
+    /**
+     * Sends a Unix signal to the build process. Unix/macOS only.
+     * Does not block until the build has finished.
+     */
+    default GradleHandle sendSignal(int signal) {
+        throw new UnsupportedOperationException("sendSignal() is not supported by this handle");
+    }
+
 }
