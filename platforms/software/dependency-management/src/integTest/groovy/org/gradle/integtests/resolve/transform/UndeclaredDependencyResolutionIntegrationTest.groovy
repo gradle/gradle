@@ -17,12 +17,11 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 // This tests current behaviour, not desired behaviour
 class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
-    @ToBeFixedForConfigurationCache(because = "Transform nodes are not serialized when transform of project artifact is not declared as a dependency of another node")
+    @UnsupportedWithConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
     def "task can query FileCollection containing the output of transform of project artifacts without declaring this access"() {
         setupBuildWithProjectArtifactTransforms()
         taskQueriesFilesWithoutDeclaringInput()
@@ -78,7 +77,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "Transform nodes are not serialized when transform of project artifact is not declared as a dependency of another node")
+    @UnsupportedWithConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
     def "task can query FileCollection containing the output of chained transform of project artifacts without declaring this access"() {
         setupBuildWithChainedProjectArtifactTransforms()
         taskQueriesFilesWithoutDeclaringInput()
