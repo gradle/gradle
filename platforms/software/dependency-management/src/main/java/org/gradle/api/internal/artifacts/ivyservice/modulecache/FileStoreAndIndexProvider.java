@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.service.scopes.Scope;
@@ -25,9 +26,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public class FileStoreAndIndexProvider {
     private final CachedExternalResourceIndex<String> externalResourceIndex;
     private final ExternalResourceFileStore externalResourceFileStore;
-    private final ArtifactIdentifierFileStore artifactIdentifierFileStore;
+    private final ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> artifactIdentifierFileStore;
 
-    public FileStoreAndIndexProvider(CachedExternalResourceIndex<String> externalResourceIndex, ExternalResourceFileStore externalResourceFileStore, ArtifactIdentifierFileStore artifactIdentifierFileStore) {
+    public FileStoreAndIndexProvider(CachedExternalResourceIndex<String> externalResourceIndex, ExternalResourceFileStore externalResourceFileStore, ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> artifactIdentifierFileStore) {
         this.externalResourceIndex = externalResourceIndex;
         this.externalResourceFileStore = externalResourceFileStore;
         this.artifactIdentifierFileStore = artifactIdentifierFileStore;
@@ -41,7 +42,7 @@ public class FileStoreAndIndexProvider {
         return externalResourceFileStore;
     }
 
-    public ArtifactIdentifierFileStore getArtifactIdentifierFileStore() {
+    public ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> getArtifactIdentifierFileStore() {
         return artifactIdentifierFileStore;
     }
 }
