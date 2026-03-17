@@ -47,13 +47,6 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
             }
 
             ${withFooTransformedDependency("org.test:included:1.0")}
-
-            tasks.register("syncFoo", Sync) {
-                from(configurations.runtimeClasspath.incoming.artifactView {
-                    attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "foo")
-                }.files)
-                into(layout.buildDirectory)
-            }
         """
 
         when:
@@ -99,13 +92,6 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
             }
 
             ${withFooTransformedDependency("org.test:lib:1.0")}
-
-            tasks.register("syncFoo", Sync) {
-                from(configurations.runtimeClasspath.incoming.artifactView {
-                    attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "foo")
-                }.files)
-                into(layout.buildDirectory)
-            }
         """
 
         when:
@@ -113,6 +99,108 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
 
         then:
         file("build/lib-1.0.jar.foo").exists()
+    }
+
+    def "can use a project from included build in buildscript classpath and as transform input in another included build"() {
+        buildFile("build-logic/settings.gradle", """
+            include(":lib")
+        """)
+        buildFile("build-logic/lib/build.gradle", """
+            plugins {
+                id("java-library")
+            }
+            group = "org.test"
+            version = "1.0"
+        """)
+
+        buildFile("consumer/settings.gradle", """
+            includeBuild("../build-logic")
+        """)
+        buildFile("consumer/build.gradle", """
+            import org.gradle.api.artifacts.transform.TransformParameters
+            buildscript {
+                dependencies {
+                    classpath("org.test:lib:1.0")
+                }
+            }
+
+            plugins {
+                id("java-library")
+            }
+
+            ${withFooTransformedDependency("org.test:lib:1.0")}
+        """)
+
+        settingsFile """
+            includeBuild("consumer")
+            includeBuild("build-logic")
+        """
+
+        buildFile """
+            tasks.register("run") {
+                dependsOn(gradle.includedBuild("consumer").task(":syncFoo"))
+            }
+        """
+
+        when:
+        configurationCacheRun "run"
+
+        then:
+        file("consumer/build/lib-1.0.jar.foo").exists()
+    }
+
+    def "can use a project from included build logic build as transform input in another included build"() {
+        buildFile("build-logic/settings.gradle", """
+            include(":lib")
+        """)
+        buildFile("build-logic/build.gradle", """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+        """)
+        file("build-logic/src/main/groovy/my-plugin.gradle") << """
+            println 'In script plugin'
+        """
+        buildFile("build-logic/lib/build.gradle", """
+            plugins {
+                id("java-library")
+            }
+            group = "org.test"
+            version = "1.0"
+        """)
+
+        buildFile("consumer/settings.gradle", """
+            pluginManagement {
+                includeBuild("../build-logic")
+            }
+            includeBuild("../build-logic")
+        """)
+        buildFile("consumer/build.gradle", """
+            import org.gradle.api.artifacts.transform.TransformParameters
+            plugins {
+                id("my-plugin")
+                id("java-library")
+            }
+
+            ${withFooTransformedDependency("org.test:lib:1.0")}
+        """)
+
+        settingsFile """
+            includeBuild("consumer")
+            includeBuild("build-logic")
+        """
+
+        buildFile """
+            tasks.register("run") {
+                dependsOn(gradle.includedBuild("consumer").task(":syncFoo"))
+            }
+        """
+
+        when:
+        configurationCacheRun "run"
+
+        then:
+        file("consumer/build/lib-1.0.jar.foo").exists()
     }
 
     private static withFooTransformedDependency(String dependency) {
@@ -132,6 +220,13 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
                     to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "foo")
                 }
                 implementation("$dependency")
+            }
+
+             tasks.register("syncFoo", Sync) {
+                from(configurations.runtimeClasspath.incoming.artifactView {
+                    attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "foo")
+                }.files)
+                into(layout.buildDirectory)
             }
         """
     }

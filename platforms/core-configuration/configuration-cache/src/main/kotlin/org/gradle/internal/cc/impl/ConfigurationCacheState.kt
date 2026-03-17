@@ -311,20 +311,26 @@ class ConfigurationCacheState(
                 builds[state.owner] = builds.getValue(state.owner).hasChildren()
             }
         }
-        val buildTreeState = StoredBuildTreeState(requiredBuildServicesPerBuild, buildMap {
-            rootBuild.mutableModel.taskGraph.collectScheduledWork().scheduledNodes
+        val buildTreeState = StoredBuildTreeState(requiredBuildServicesPerBuild, collectTransformedProjectsPerBuild(builds))
+        writeCollection(builds.values) { build ->
+            writeBuildState(build, buildTreeState)
+        }
+    }
+
+    private fun collectTransformedProjectsPerBuild(builds: MutableMap<BuildState, BuildToStore>): Map<BuildIdentifier, Set<Path>> {
+        val result = mutableMapOf<BuildIdentifier, MutableSet<Path>>()
+        builds.keys.forEach { buildState ->
+            buildState.mutableModel.taskGraph.collectScheduledWork().scheduledNodes
                 .asSequence()
                 .filterIsInstance<TransformStepNode>()
                 .forEach { node ->
                     val id = node.inputArtifact.id.componentIdentifier
                     if (id is ProjectComponentIdentifier) {
-                        computeIfAbsent(id.build) { mutableSetOf() }.add(Path.path(id.projectPath))
+                        result.computeIfAbsent(id.build) { mutableSetOf() }.add(Path.path(id.projectPath))
                     }
                 }
-        })
-        writeCollection(builds.values) { build ->
-            writeBuildState(build, buildTreeState)
         }
+        return result
     }
 
     private
@@ -337,9 +343,9 @@ class ConfigurationCacheState(
     private
     suspend fun WriteContext.writeBuildState(build: BuildToStore, buildTreeState: StoredBuildTreeState) {
         val state = build.build
-        val includedBuildProjectsToTransformInRootBuild = buildTreeState.transformedProjectsPerBuild.getOrDefault(build.build.buildIdentifier, emptySet())
+        val includedBuildProjectsToTransform = buildTreeState.getTransformedProjectsOfBuild(state)
         when {
-            build.hasNoWork && includedBuildProjectsToTransformInRootBuild.isEmpty() -> {
+            build.hasNoWork && includedBuildProjectsToTransform.isEmpty() -> {
                 writeEnum(BuildType.BuildWithNoWork)
                 writeBuildWithNoWork(state)
             }
@@ -352,7 +358,7 @@ class ConfigurationCacheState(
             state is IncludedBuildState -> {
                 writeEnum(BuildType.IncludedBuild)
                 writeIncludedBuild(state, buildTreeState) {
-                    build.hasWork || build.hasChildren || it.projectPath in includedBuildProjectsToTransformInRootBuild
+                    build.hasWork || build.hasChildren || it.projectPath in includedBuildProjectsToTransform
                 }
             }
 
@@ -487,7 +493,14 @@ class ConfigurationCacheState(
             val scheduledWork = gradle.taskGraph.collectScheduledWork()
             withDebugFrame({ "Gradle" }) {
                 writeGradleState(gradle)
-                val projects = collectProjects(buildState.projects, scheduledWork.scheduledNodes, gradle.serviceOf(), shouldStoreProject)
+                val transformInputProjects = buildTreeState.getTransformedProjectsOfBuild(buildState)
+                val projects = collectProjects(
+                    buildState.projects,
+                    scheduledWork.scheduledNodes,
+                    gradle.serviceOf(),
+                    shouldStoreProject,
+                    transformInputProjects
+                )
                 writeProjects(gradle, projects)
                 writeRequiredBuildServicesOf(buildState, buildTreeState)
             }
@@ -874,14 +887,15 @@ class ConfigurationCacheState(
         projects: BuildProjectRegistry,
         nodes: List<Node>,
         relevantProjectsRegistry: RelevantProjectsRegistry,
-        shouldStoreProject: (ProjectState) -> Boolean
+        shouldStoreProject: (ProjectState) -> Boolean,
+        transformInputProjects: Set<Path>
     ): List<CachedProjectState> {
         val relevantProjects = relevantProjectsRegistry.relevantProjects(nodes)
         return projects.allProjects
             .filter(shouldStoreProject)
             .map { project ->
                 val mutableModel = project.mutableModel
-                if (relevantProjects.contains(project)) {
+                if (relevantProjects.contains(project) || project.projectPath in transformInputProjects) {
                     mutableModel.layout.buildDirectory.finalizeValue()
                     ProjectWithWork(
                         project.projectPath,
@@ -979,8 +993,11 @@ class ConfigurationCacheState(
 internal
 class StoredBuildTreeState(
     val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<BuildServiceProvider<*, *>>>,
-    val transformedProjectsPerBuild: Map<BuildIdentifier, MutableSet<Path>>
-)
+    val transformedProjectsPerBuild: Map<BuildIdentifier, Set<Path>>
+) {
+    fun getTransformedProjectsOfBuild(build: BuildState): Set<Path> =
+        transformedProjectsPerBuild[build.buildIdentifier].orEmpty()
+}
 
 
 internal
