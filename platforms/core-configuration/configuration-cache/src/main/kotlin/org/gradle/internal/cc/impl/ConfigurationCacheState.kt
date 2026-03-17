@@ -286,7 +286,7 @@ class ConfigurationCacheState(
             writeBuildTreeScopedState(gradle)
         }
         val buildEventListeners = buildEventListenersOf(gradle)
-        writeBuildsInTree(buildEventListeners)
+        writeBuildsInTree(rootBuild, buildEventListeners)
     }
 
     private
@@ -299,7 +299,7 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun WriteContext.writeBuildsInTree(buildEventListeners: List<RegisteredBuildServiceProvider<*, *>>) {
+    suspend fun WriteContext.writeBuildsInTree(rootBuild: BuildState, buildEventListeners: List<RegisteredBuildServiceProvider<*, *>>) {
         val requiredBuildServicesPerBuild = buildEventListeners.groupBy { it.buildIdentifier }
         val builds = mutableMapOf<BuildState, BuildToStore>()
         host.visitBuilds { state ->
@@ -311,29 +311,20 @@ class ConfigurationCacheState(
                 builds[state.owner] = builds.getValue(state.owner).hasChildren()
             }
         }
-        writeCollection(builds.values) { build ->
-            writeBuildState(
-                build,
-                StoredBuildTreeState(requiredBuildServicesPerBuild)
-            )
-        }
-    }
-
-    private
-    fun includedBuildProjectsToTransformInRootBuild(build: BuildState): List<Path> {
-        if (build !is IncludedBuildState) return emptyList()
-        return build.mutableModel.root.taskGraph.collectScheduledWork().scheduledNodes
-            .filterIsInstance<TransformStepNode>()
-            .mapNotNull { node ->
-                val id = node.inputArtifact.id.componentIdentifier
-                (id as? ProjectComponentIdentifier)?.let {
-                    if (it.build.buildPath == build.identityPath.asString()) {
-                        Path.path(it.projectPath)
-                    } else {
-                        null
+        val buildTreeState = StoredBuildTreeState(requiredBuildServicesPerBuild, buildMap {
+            rootBuild.mutableModel.taskGraph.collectScheduledWork().scheduledNodes
+                .asSequence()
+                .filterIsInstance<TransformStepNode>()
+                .forEach { node ->
+                    val id = node.inputArtifact.id.componentIdentifier
+                    if (id is ProjectComponentIdentifier) {
+                        computeIfAbsent(id.build) { mutableSetOf() }.add(Path.path(id.projectPath))
                     }
                 }
-            }
+        })
+        writeCollection(builds.values) { build ->
+            writeBuildState(build, buildTreeState)
+        }
     }
 
     private
@@ -346,7 +337,7 @@ class ConfigurationCacheState(
     private
     suspend fun WriteContext.writeBuildState(build: BuildToStore, buildTreeState: StoredBuildTreeState) {
         val state = build.build
-        val includedBuildProjectsToTransformInRootBuild = includedBuildProjectsToTransformInRootBuild(state)
+        val includedBuildProjectsToTransformInRootBuild = buildTreeState.transformedProjectsPerBuild.getOrDefault(build.build.buildIdentifier, emptySet())
         when {
             build.hasNoWork && includedBuildProjectsToTransformInRootBuild.isEmpty() -> {
                 writeEnum(BuildType.BuildWithNoWork)
@@ -361,7 +352,7 @@ class ConfigurationCacheState(
             state is IncludedBuildState -> {
                 writeEnum(BuildType.IncludedBuild)
                 writeIncludedBuild(state, buildTreeState) {
-                    build.hasWork || it.projectPath in includedBuildProjectsToTransformInRootBuild
+                    build.hasWork || build.hasChildren || it.projectPath in includedBuildProjectsToTransformInRootBuild
                 }
             }
 
@@ -987,7 +978,8 @@ class ConfigurationCacheState(
 
 internal
 class StoredBuildTreeState(
-    val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<BuildServiceProvider<*, *>>>
+    val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<BuildServiceProvider<*, *>>>,
+    val transformedProjectsPerBuild: Map<BuildIdentifier, MutableSet<Path>>
 )
 
 

@@ -79,9 +79,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private List<Task> allTasks = Collections.emptyList();
     private boolean hasFiredWhenReady;
 
-    @Nullable
-    private ScheduledWork collectedScheduledWork = null;
-
     public DefaultTaskExecutionGraph(
         PlanExecutor planExecutor,
         NodeExecutor nodeExecutor,
@@ -294,17 +291,13 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public ScheduledWork collectScheduledWork() {
-        if (collectedScheduledWork != null) {
-            return collectedScheduledWork;
-        }
         MutableReference<ScheduledWork> result = MutableReference.of(null);
         executionPlan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
             result.set(new ScheduledWork(nodes, entryNodes));
         });
         ScheduledWork scheduledWork = result.get();
         Preconditions.checkState(scheduledWork != null, "No scheduled work found");
-        collectedScheduledWork = scheduledWork;
-        return collectedScheduledWork;
+        return scheduledWork;
     }
 
     @Override
@@ -327,7 +320,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         executionPlan.close();
         executionPlan = FinalizedExecutionPlan.EMPTY;
         allTasks = Collections.emptyList();
-        collectedScheduledWork = null;
     }
 
     /**
