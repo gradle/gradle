@@ -1,8 +1,8 @@
 Detailed task information for libs
 
 Paths
-     :api:libs
-     :webapp:libs
+     :api:libs (registered in build file 'api/build.gradle')
+     :webapp:libs (registered in build file 'webapp/build.gradle')
 
 Type
      Task (org.gradle.api.Task)

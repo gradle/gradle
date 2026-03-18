@@ -1,7 +1,7 @@
 Detailed task information for projectInfo
 
 Path
-     :projectInfo
+     :projectInfo (registered by plugin 'com.example.project-info')
 
 Type
      ProjectInfoTask (com.example.ProjectInfoTask)

@@ -12,7 +12,7 @@
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':compileJava'.
+Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').
 > Compilation failed; see the compiler output below.
   /home/user/gradle/samples/src/main/java/module-info.java:2: error: module not found: com.google.gson
       requires com.google.gson;          // real module

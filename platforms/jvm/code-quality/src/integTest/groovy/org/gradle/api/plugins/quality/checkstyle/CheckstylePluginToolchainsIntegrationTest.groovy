@@ -220,7 +220,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         fails("checkstyleMain")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered by plugin 'org.gradle.checkstyle').")
         failure.assertHasCause("Checkstyle 10.24.0 is not compatible with the configured JVM (1.8).")
         failure.assertHasResolution("Find a compatible version of Checkstyle at https://checkstyle.org/releasenotes.html.")
         failure.assertHasResolution("Configure the toolchain used by Checkstyle at https://docs.gradle.org/current/userguide/checkstyle_plugin.html#sec:checkstyle_configuration.")

@@ -2,5 +2,5 @@
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':hangingTask'.
+Execution failed for task ':hangingTask' (registered in build file 'build.gradle').
 > Timeout has been exceeded

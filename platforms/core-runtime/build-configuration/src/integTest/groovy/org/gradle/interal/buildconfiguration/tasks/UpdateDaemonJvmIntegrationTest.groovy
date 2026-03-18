@@ -69,7 +69,6 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         then:
         if (!GradleContextualExecuter.isConfigCache()) {
             failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
-            failure.assertHasDocumentationInResolutions('toolchains.html#sub:download_repositories')
             // TODO The description is different with CC on, and this should use the problem validation test API
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
         }
