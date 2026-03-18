@@ -171,10 +171,9 @@ public class Install {
 
     private void forceFetch(File localTargetFile, URI distributionUrl, int networkRetries, int networkRetryTimeoutMs) throws Exception {
 
-        logger.log(String.format(
-            "Fetching distribution. Retry settings: %d attempts, %d ms timeout",
-            networkRetries,
-            networkRetryTimeoutMs));
+        logger.log(String.format("Fetching distribution%s.",
+            networkRetries <= 0 ? "" : String.format(" (retrying %d times, with a timeout of %d ms)", networkRetries, networkRetryTimeoutMs)
+        ));
 
         int attempts = networkRetries + 1;
         Exception lastException = null;

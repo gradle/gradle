@@ -42,7 +42,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     private static final String DEFAULT_TOKEN = "token"
 
     private String getDefaultBaseUrl() {
-        return getDefaultBaseUrl(false);
+        return getDefaultBaseUrl(false)
     }
 
     private String getDefaultBaseUrl(boolean uppercaseHost) {
@@ -103,7 +103,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         assertThat(result.output, containsString('hello'))
-        assertThat(result.output, containsString("Fetching distribution. Retry settings: 0 attempts, 0 ms timeout"));
+        assertThat(result.output, containsString("Fetching distribution."))
         verifyDistributionDownloaded()
 
         when:
@@ -236,9 +236,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = wrapperExecuter.runWithFailure()
 
         then:
-        assertThat(failure.output, containsString("Fetching distribution. Retry settings: 0 attempts, 0 ms timeout"));
+        assertThat(failure.output, containsString("Fetching distribution."))
         failure.assertHasErrorOutput("Server returned HTTP response code: 500 for URL")
-        assertThat(failure.output, containsString("Attempt 1/1 failed. Reason: Server returned HTTP response code: 500"));
+        assertThat(failure.output, containsString("Attempt 1/1 failed. Reason: Server returned HTTP response code: 500"))
         assert failure.output.readLines().findAll{ it.contains(
             "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 1
     }
@@ -271,9 +271,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         then:
         def attemps = retries + 1
 
-        assertThat(result.output, containsString("Fetching distribution. Retry settings: $retries attempts, $retryTimeoutMs ms timeout"));
-        assertThat(result.output, containsString("Attempt 1/$attemps failed. Reason: Server returned HTTP response code: 500"));
-        assertThat(result.output, containsString("Attempt 2/$attemps failed. Reason: Server returned HTTP response code: 500"));
+        assertThat(result.output, containsString("Fetching distribution (retrying $retries times, with a timeout of $retryTimeoutMs ms)."))
+        assertThat(result.output, containsString("Attempt 1/$attemps failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(result.output, containsString("Attempt 2/$attemps failed. Reason: Server returned HTTP response code: 500"))
         assert result.output.readLines().findAll{ it.contains(
             "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 3
 
@@ -309,11 +309,11 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         then:
         def attemps = retries + 1
 
-        assertThat(failure.output, containsString("Fetching distribution. Retry settings: $retries attempts, $retryTimeoutMs ms timeout"));
+        assertThat(failure.output, containsString("Fetching distribution (retrying $retries times, with a timeout of $retryTimeoutMs ms)."))
         failure.assertHasErrorOutput("Server returned HTTP response code: 500 for URL")
-        assertThat(failure.output, containsString("Attempt 1/$attemps failed. Reason: Server returned HTTP response code: 500"));
-        assertThat(failure.output, containsString("Attempt 2/$attemps failed. Reason: Server returned HTTP response code: 500"));
-        assertThat(failure.output, containsString("Attempt 3/$attemps failed. Reason: Server returned HTTP response code: 500"));
+        assertThat(failure.output, containsString("Attempt 1/$attemps failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(failure.output, containsString("Attempt 2/$attemps failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(failure.output, containsString("Attempt 3/$attemps failed. Reason: Server returned HTTP response code: 500"))
 
         assert elapsedTime >= retries * retryTimeoutMs
 
