@@ -1,7 +1,7 @@
 Detailed task information for processUrl
 
 Path
-     :processUrl
+     :processUrl (registered in build file 'build.gradle')
 
 Type
      UrlProcess (UrlProcess)

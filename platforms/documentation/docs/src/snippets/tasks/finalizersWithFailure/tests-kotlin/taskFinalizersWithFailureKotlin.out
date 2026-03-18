@@ -4,7 +4,7 @@ taskY
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':taskX'.
+Execution failed for task ':taskX' (registered in build file 'build.gradle.kts').
 > java.lang.RuntimeException (no error message)
 
 * Try:

@@ -78,7 +78,7 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engine
 Plugin and build authors can now lock domain object collections to prevent further modifications using the new `disallowChanges()` method:
 
 - Once `disallowChanges()` is called, elements can no longer be added to or removed from the collection.
-- Invoking this method does not force the realization of lazy items previously added to the collection. 
+- Invoking this method does not force the realization of lazy items previously added to the collection.
 - This lock applies only to the collection itself. Individual objects within the collection can still be modified.
 
 ```kotlin
@@ -97,9 +97,9 @@ myCollection.remove(main)         // this will fail
 
 #### GitHub permalinks in Gradle Wrapper and application start scripts
 
-Gradle Wrapper scripts and application start scripts now include links to the GitHub source templates they were generated from. 
+Gradle Wrapper scripts and application start scripts now include links to the GitHub source templates they were generated from.
 
-Previously, these links always pointed to the latest template versions rather than the version used to generate the script. 
+Previously, these links always pointed to the latest template versions rather than the version used to generate the script.
 In this release, scripts link to the exact template version they were generated from.
 
 #### Explicit bind address for client-daemon and cross-daemon communication
@@ -113,6 +113,36 @@ Setting `GRADLE_DAEMON_BIND_ADDRESS` to an IP address or hostname will skip auto
 ```text
 GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
 ```
+
+### Diagnostics and reporting improvements
+
+Gradle provides built-in reporting tasks to help you understand and troubleshoot your build.
+
+#### Task provenance in reports and failure messages
+
+Gradle now displays _provenance_ information for tasks — the plugin or build script that registered each task.
+This makes it easier to understand where tasks come from and diagnose failures in complex builds with many plugins.
+
+**Task reports:** The `tasks` report now supports a `--provenance` option that shows where each task was registered:
+
+```text
+> ./gradlew tasks --provenance
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project. (registered by plugin 'org.gradle.language.base.plugins.LifecycleBasePlugin')
+build - Assembles and tests this project. (registered by plugin 'org.gradle.language.base.plugins.LifecycleBasePlugin')
+```
+
+**Help task:** When using `help --task`, the output now includes provenance alongside each task path.
+
+**Failure messages:** When a task fails, the error message now indicates where the failing task was registered, helping you quickly identify the responsible plugin or script:
+
+```text
+Execution failed for task ':app:compileJava' (registered by plugin 'org.gradle.api.plugins.JavaPlugin').
+```
+
+Provenance is omitted from failure messages for verification failures (e.g., test failures), since those are expected outcomes rather than configuration issues.
 
 ### Tooling and IDE integration
 

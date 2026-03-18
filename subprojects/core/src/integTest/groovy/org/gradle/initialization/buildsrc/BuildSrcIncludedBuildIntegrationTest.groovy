@@ -319,7 +319,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails("help")
         then:
-        failure.assertHasDescription("Execution failed for task ':included:compileJava'.")
+        failure.assertHasDescription("Execution failed for task ':included:compileJava' (registered in build file 'build.gradle').")
         failure.assertHasCause("Compilation failed; see the compiler output below.")
     }
 

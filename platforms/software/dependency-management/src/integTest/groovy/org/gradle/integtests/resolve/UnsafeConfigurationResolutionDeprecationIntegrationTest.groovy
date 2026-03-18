@@ -123,7 +123,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         fails(":resolve")
 
         then:
-        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
             it.assertHasCause("Resolution of the configuration ':bar' was attempted without an exclusive lock. This is unsafe and not allowed.")
         }
         failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")

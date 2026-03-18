@@ -326,7 +326,6 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                 }
             }
         """
-
         writeTestDefinitions()
 
         when:

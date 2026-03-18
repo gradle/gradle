@@ -176,7 +176,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         expect:
         fails("checkstyleMain")
         outputContains("Running checkstyle with toolchain '${jdk.javaHome.absolutePath}'.")
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered by plugin 'org.gradle.checkstyle').")
         failure.assertHasErrorOutput("Name 'class1' must match pattern")
         failure.assertHasResolutions(SCAN)
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
@@ -220,7 +220,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         fails("checkstyleMain")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered by plugin 'org.gradle.checkstyle').")
         failure.assertHasCause("Checkstyle 10.24.0 is not compatible with the configured JVM (1.8).")
         failure.assertHasResolution("Find a compatible version of Checkstyle at https://checkstyle.org/releasenotes.html.")
         failure.assertHasResolution("Configure the toolchain used by Checkstyle at https://docs.gradle.org/current/userguide/checkstyle_plugin.html#sec:checkstyle_configuration.")

@@ -54,7 +54,7 @@ class ConfigurationCacheStableConfigurationCacheIntegrationTest extends Abstract
         configurationCacheFails ':problematic'
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':problematic'.")
+        failureDescriptionStartsWith("Execution failed for task ':problematic' (registered in build file 'build.gradle').")
         failureHasCause("Invocation of 'Task.project' by task ':problematic' at execution time is unsupported with the configuration cache.")
         problems.assertResultHasProblems(failure) {
             withProblem "Build file 'build.gradle': line 2: invocation of 'Task.project' at execution time is unsupported with the configuration cache."

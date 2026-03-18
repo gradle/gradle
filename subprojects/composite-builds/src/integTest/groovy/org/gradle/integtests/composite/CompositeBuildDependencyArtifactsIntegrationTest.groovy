@@ -612,7 +612,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure
-            .assertHasDescription("Execution failed for task ':buildB:jar'")
+            .assertHasDescription("Execution failed for task ':buildB:jar' (registered by plugin 'org.gradle.java').")
             .assertHasCause("jar task failed")
     }
 
@@ -640,7 +640,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure
-            .assertHasDescription("Execution failed for task ':buildC:jar'")
+            .assertHasDescription("Execution failed for task ':buildC:jar' (registered by plugin 'org.gradle.java').")
             .assertHasCause("jar task failed")
     }
 
@@ -680,7 +680,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':buildB:b2:jar'.")
+        failure.assertHasDescription("Execution failed for task ':buildB:b2:jar' (registered by plugin 'org.gradle.java').")
         executed(":buildB:b1:jar", ":resolve", ":buildB:b2:jar")
         notExecuted(":resolveCompile")
     }
