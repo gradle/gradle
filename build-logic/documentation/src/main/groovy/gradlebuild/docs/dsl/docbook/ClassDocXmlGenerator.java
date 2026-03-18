@@ -24,7 +24,6 @@ import org.w3c.dom.Element;
 
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
 
 /**
  * Generates a synthetic DOM element that is structurally identical to the per-class DSL XML files,
@@ -32,8 +31,6 @@ import java.util.regex.Pattern;
  * to participate in DSL documentation generation.
  */
 public class ClassDocXmlGenerator {
-
-    private static final Pattern GETTER_PATTERN = Pattern.compile("(get|is|set).+");
 
     /**
      * Generates a DOM element matching the structure of the per-class XML files:
@@ -63,7 +60,7 @@ public class ClassDocXmlGenerator {
             if (property.isDslHidden()) {
                 continue;
             }
-            if (property.getRawCommentText() == null || property.getRawCommentText().trim().isEmpty()) {
+            if (!hasDescriptionProse(property.getRawCommentText())) {
                 continue;
             }
             propertyNames.add(property.getName());
@@ -72,20 +69,23 @@ public class ClassDocXmlGenerator {
         root.appendChild(buildTableSection(document, "Properties", propertyNames));
 
         // Methods section — exclude getters/setters (already represented as properties)
+        // A method name is only included if ALL overloads with that name have Javadoc
+        // and none are hidden, since ClassDocMethodsBuilder processes all overloads.
         Set<String> propertyMethodNames = collectPropertyMethodNames(classMetaData);
-        TreeSet<String> methodNames = new TreeSet<>();
+        TreeSet<String> candidateMethodNames = new TreeSet<>();
+        Set<String> excludedMethodNames = new TreeSet<>();
         for (MethodMetaData method : classMetaData.getDeclaredMethods()) {
-            if (method.isDslHidden()) {
-                continue;
-            }
-            if (method.getRawCommentText() == null || method.getRawCommentText().trim().isEmpty()) {
-                continue;
-            }
             if (propertyMethodNames.contains(method.getName())) {
                 continue;
             }
-            methodNames.add(method.getName());
+            if (method.isDslHidden() || !hasDescriptionProse(method.getRawCommentText())) {
+                excludedMethodNames.add(method.getName());
+            } else {
+                candidateMethodNames.add(method.getName());
+            }
         }
+        TreeSet<String> methodNames = new TreeSet<>(candidateMethodNames);
+        methodNames.removeAll(excludedMethodNames);
 
         root.appendChild(buildTableSection(document, "Methods", methodNames));
 
@@ -117,6 +117,24 @@ public class ClassDocXmlGenerator {
 
         section.appendChild(table);
         return section;
+    }
+
+    /**
+     * Checks if the raw Javadoc comment contains meaningful prose description,
+     * not just tags like {@code @return}, {@code @param}, {@code {@inheritDoc}}, etc.
+     */
+    private static boolean hasDescriptionProse(String rawCommentText) {
+        if (rawCommentText == null) {
+            return false;
+        }
+        // Strip leading * from each line (raw Javadoc format)
+        String stripped = rawCommentText.replaceAll("(?m)^\\s*\\*\\s?", "");
+        // Remove inline tags like {@inheritDoc}, {@link ...}, {@code ...}
+        stripped = stripped.replaceAll("\\{@[^}]*}", "");
+        // Remove block tags (@param, @return, @since, @see, etc.) and everything after them
+        stripped = stripped.replaceAll("(?m)^@\\w+.*$", "");
+        // Check if there's any meaningful text left
+        return !stripped.trim().isEmpty();
     }
 
     private static Set<String> collectPropertyMethodNames(ClassMetaData classMetaData) {
