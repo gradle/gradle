@@ -154,35 +154,84 @@ doesn't improve accuracy, just prevents the misleading "100%".
 
 ### Fix B: Add a new `CALCULATE_TASK_GRAPH` category and track it
 
-1. Add a new category to `BuildOperationCategory`:
-   ```java
-   // BuildOperationCategory.java
-   CALCULATE_TASK_GRAPH(true, false, false),
-   ```
+The `+1` for task graph and `+1` for each CC operation are carried on the **operation descriptor**
+via `totalProgress(1)`. `BuildStatusRenderer` reads them via `phaseHasMoreProgress(startEvent.getTotalProgress())`
+when it sees the operation start — the same pattern used by `CONFIGURE_BUILD` for nested builds.
 
-2. Set it on the task graph build operation:
-   ```java
-   // BuildOperationFiringBuildWorkPreparer.java:112
-   return BuildOperationDescriptor.displayName(...)
-       .progressDisplayName(buildingTaskGraphDisplayName(gradle))
-       .metadata(BuildOperationCategory.CALCULATE_TASK_GRAPH)  // ← add this
-       ...
-   ```
+**Do NOT pre-add +1 in `BuildOperationFiringProjectsPreparer`** — that would tightly couple
+configuration to scheduling and would leave the bar stuck at ~99% if the task graph op ever didn't fire.
 
-3. Track it in `BuildStatusRenderer` similarly to how `CONFIGURE_BUILD` is tracked — add 1 to the
-   total when the operation starts and decrement (update) when it completes:
-   ```java
-   // BuildStatusRenderer.java — in the ProgressStartEvent block:
-   } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CALCULATE_TASK_GRAPH
-              && currentPhase == Phase.Configuring) {
-       phaseHasMoreProgress(startEvent); // add 1 to total
-       currentPhaseChildren.add(startEvent.getProgressOperationId());
-   }
-   ```
-   The total progress passed by this operation would be 1 (or 0 initially, then use `moreProgress(1)`).
+#### Step 1 — New category in `BuildOperationCategory.java`
+
+```java
+// platforms/core-runtime/base-services/src/main/java/org/gradle/internal/operations/BuildOperationCategory.java
+CALCULATE_TASK_GRAPH(true, false, false),
+```
+
+#### Step 2 — Set category + `totalProgress(1)` on the task graph operation
+
+```java
+// BuildOperationFiringBuildWorkPreparer.java:110-119
+@Override
+public BuildOperationDescriptor.Builder description() {
+    return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
+        .progressDisplayName(buildingTaskGraphDisplayName(gradle))
+        .metadata(BuildOperationCategory.CALCULATE_TASK_GRAPH)  // ← new
+        .totalProgress(1)                                        // ← new
+        .details(...);
+}
+```
+
+#### Step 3 — Set category + `totalProgress(1)` on CC store and load operations
+
+```kotlin
+// ConfigurationCacheBuildOperations.kt:57-59  (store)
+BuildOperationDescriptor
+    .displayName("Store configuration cache state")
+    .progressDisplayName("Storing configuration cache state")
+    .metadata(BuildOperationCategory.CALCULATE_TASK_GRAPH) // or a dedicated CC category
+    .totalProgress(1)                                       // ← new
+
+// ConfigurationCacheBuildOperations.kt:41-44  (load)
+BuildOperationDescriptor
+    .displayName("Load configuration cache state")
+    .progressDisplayName("Loading configuration cache state")
+    .metadata(BuildOperationCategory.CALCULATE_TASK_GRAPH) // or a dedicated CC category
+    .totalProgress(1)                                       // ← new
+```
+
+#### Step 4 — Track in `BuildStatusRenderer`
+
+Unlike `CONFIGURE_BUILD` (which only adds to total, not tracked for completion), these operations
+need **both**: add to total when they start AND increment current when they complete.
+
+```java
+// BuildStatusRenderer.java — new branch in the ProgressStartEvent block (78-95)
+} else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CALCULATE_TASK_GRAPH
+           && currentPhase == Phase.Configuring) {
+    phaseHasMoreProgress(startEvent);                           // total += 1
+    currentPhaseChildren.add(startEvent.getProgressOperationId()); // track for completion
+}
+```
+
+When the operation completes, it is already in `currentPhaseChildren`, so the existing
+`phaseProgressed` path fires automatically and calls `progressBar.update()` → `current++`.
+
+#### Resulting sequence (non-CC, N projects)
+
+```
+CONFIGURE_ROOT_BUILD starts  → total = N,   current = 0  →  0%
+CONFIGURE_PROJECT × N done   → total = N,   current = N  → 100%  (brief, no render tick expected)
+CALCULATE_TASK_GRAPH starts  → total = N+1, current = N  → ~99%
+CALCULATE_TASK_GRAPH done    → total = N+1, current = N+1 → 100%  (truly done)
+RUN_MAIN_TASKS               → Executing phase begins
+```
+
+The brief 100% at step 2 is harmless — steps 2 and 3 happen synchronously with no render tick
+between them (`UpdateNowEvent` is time-based).
 
 **Pros:** Accurate — 100% truly means configuration + task graph calculation are done.
-**Cons:** Requires new category; the task graph operation needs `totalProgress(1)` added.
+**Cons:** Requires new category; the task graph and CC operations each need `totalProgress(1)` added.
 
 ---
 
