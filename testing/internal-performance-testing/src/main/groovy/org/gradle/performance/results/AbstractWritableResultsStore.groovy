@@ -65,17 +65,58 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
         return new ArrayList<>(new LinkedHashSet<>(values))
     }
 
+    /**
+     * Builds a UNION-based history query for testExecution lookups.
+     *
+     * Why this exists:
+     * - The old single-query form used one large OR predicate:
+     *   {@code (... channel like ? ... OR teamcitybuildid in (...))}.
+     * - On MySQL, that shape can trigger unstable plans (e.g. broad startTime scans).
+     * - Splitting into two selective branches and joining with {@code UNION DISTINCT}
+     *   gives the optimizer a more predictable path.
+     *
+     * Query shape produced:
+     * - Channel branch (only when {@code channelPatterns} is non-empty):
+     *   {@code select <columns> from testExecution ... and (channel like ? or ...)}
+     * - Build ID branch (only when {@code teamcityBuildIds} is non-empty):
+     *   {@code select <columns> from testExecution ... and teamcitybuildid in (?, ...)}
+     * - Branches are combined using {@code union distinct}.
+     *
+     * Parameter binding contract:
+     * - This method only generates SQL text.
+     * - Parameter order is defined by {@link #bindHistoryQueryParams}:
+     *   1) channel branch fixed params + channel patterns
+     *   2) build-id branch fixed params + build IDs
+     *   3) any outer query params (e.g. LIMIT) are bound by callers.
+     *
+     * Edge cases:
+     * - If both lists are empty, returns a no-op query
+     *   ({@code select ... from testExecution where 1 = 0}) to keep SQL valid.
+     */
     protected static String createHistoryFilterUnionSql(String selectColumns, List<String> channelPatterns, List<String> teamcityBuildIds) {
-        String baseSql = "select ${selectColumns} from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and "
+        String baseSqlTemplate = """
+            select %s
+            from testExecution
+            where testClass = ?
+              and testId = ?
+              and testProject = ?
+              and startTime >= ?
+              and %s
+            """
         List<String> branches = new ArrayList<>(2)
         if (!channelPatterns.isEmpty()) {
-            branches.add(baseSql + "(" + channelPatternQueryFor(channelPatterns) + ")")
+            branches.add(baseSqlTemplate.formatted(selectColumns, "(${channelPatternQueryFor(channelPatterns)})"))
         }
         if (!teamcityBuildIds.isEmpty()) {
-            branches.add(baseSql + "teamcitybuildid in (${String.join(',', Collections.nCopies(teamcityBuildIds.size(), '?'))})")
+            String teamCityBuildIdInClause = "teamcitybuildid in (${String.join(',', Collections.nCopies(teamcityBuildIds.size(), '?'))})"
+            branches.add(baseSqlTemplate.formatted(selectColumns, teamCityBuildIdInClause))
         }
         if (branches.isEmpty()) {
-            return "select ${selectColumns} from testExecution where 1 = 0"
+            return """
+                select ${selectColumns}
+                from testExecution
+                where 1 = 0
+                """
         }
         return String.join(" union distinct ", branches)
     }
