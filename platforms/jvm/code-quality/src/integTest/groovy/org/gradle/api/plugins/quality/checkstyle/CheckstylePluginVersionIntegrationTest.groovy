@@ -129,7 +129,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered by plugin 'org.gradle.checkstyle').")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.assertHasErrorOutput("Name 'class1' must match pattern")
         file("build/reports/checkstyle/main.sarif").assertDoesNotExist()
@@ -167,7 +167,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         fails("check")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered by plugin 'org.gradle.checkstyle').")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.assertNotOutput(message)
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))

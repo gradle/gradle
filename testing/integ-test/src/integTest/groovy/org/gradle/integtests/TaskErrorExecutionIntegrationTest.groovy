@@ -116,7 +116,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(5)
-        failure.assertHasDescription("Execution failed for task ':a:a' (registered in build file 'b/build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':a:a' (registered in build file 'b${File.separatorChar}build.gradle').")
         failure.assertHasCause("broken")
     }
 

@@ -59,10 +59,10 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         where:
         buildScriptPath                 | task                      | expectedFailureDescription
         "build.gradle"                  | "foo"                     | "Execution failed for task ':foo' (registered in build file 'build.gradle')."
-        "lib/build.gradle"              | "foo"                     | "Execution failed for task ':lib:foo' (registered in build file 'lib/build.gradle')."
-        "buildSrc/build.gradle"         | "buildSrc:foo"            | "Execution failed for task ':buildSrc:foo' (registered in build file 'buildSrc/build.gradle')."
-        "included/build.gradle"         | "included:foo"            | "Execution failed for task ':included:foo' (registered in build file 'included/build.gradle')."
-        "included/otherLib/build.gradle"| "included:otherLib:foo"   | "Execution failed for task ':included:otherLib:foo' (registered in build file 'included/otherLib/build.gradle')."
+        "lib/build.gradle"              | "foo"                     | "Execution failed for task ':lib:foo' (registered in build file 'lib${File.separatorChar}build.gradle')."
+        "buildSrc/build.gradle"         | "buildSrc:foo"            | "Execution failed for task ':buildSrc:foo' (registered in build file 'buildSrc${File.separatorChar}build.gradle')."
+        "included/build.gradle"         | "included:foo"            | "Execution failed for task ':included:foo' (registered in build file 'included${File.separatorChar}build.gradle')."
+        "included/otherLib/build.gradle"| "included:otherLib:foo"   | "Execution failed for task ':included:otherLib:foo' (registered in build file 'included${File.separatorChar}otherLib${File.separatorChar}build.gradle')."
     }
 
     def "can report task provenance when registered in #buildScriptPath with Kotlin DSL"() {
@@ -100,10 +100,10 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         where:
         buildScriptPath                     | task                      | expectedFailureDescription
         "build.gradle.kts"                  | "foo"                     | "Execution failed for task ':foo' (registered in build file 'build.gradle.kts')."
-        "lib/build.gradle.kts"              | "foo"                     | "Execution failed for task ':lib:foo' (registered in build file 'lib/build.gradle.kts')."
-        "buildSrc/build.gradle.kts"         | "buildSrc:foo"            | "Execution failed for task ':buildSrc:foo' (registered in build file 'buildSrc/build.gradle.kts')."
-        "included/build.gradle.kts"         | "included:foo"            | "Execution failed for task ':included:foo' (registered in build file 'included/build.gradle.kts')."
-        "included/otherLib/build.gradle.kts"| "included:otherLib:foo"   | "Execution failed for task ':included:otherLib:foo' (registered in build file 'included/otherLib/build.gradle.kts')."
+        "lib/build.gradle.kts"              | "foo"                     | "Execution failed for task ':lib:foo' (registered in build file 'lib${File.separatorChar}build.gradle.kts')."
+        "buildSrc/build.gradle.kts"         | "buildSrc:foo"            | "Execution failed for task ':buildSrc:foo' (registered in build file 'buildSrc${File.separatorChar}build.gradle.kts')."
+        "included/build.gradle.kts"         | "included:foo"            | "Execution failed for task ':included:foo' (registered in build file 'included${File.separatorChar}build.gradle.kts')."
+        "included/otherLib/build.gradle.kts"| "included:otherLib:foo"   | "Execution failed for task ':included:otherLib:foo' (registered in build file 'included${File.separatorChar}otherLib${File.separatorChar}build.gradle.kts')."
     }
 
     def "task added in afterEvaluate reports provenance"() {
@@ -243,7 +243,7 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         fails(":included:foo")
 
         then:
-        failureDescriptionContains("Execution failed for task ':included:foo' (registered in settings file 'included/settings.gradle').")
+        failureDescriptionContains("Execution failed for task ':included:foo' (registered in settings file 'included${File.separatorChar}settings.gradle').")
         failureCauseContains("Failure!")
     }
 

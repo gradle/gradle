@@ -82,7 +82,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         then:
         result.assertTaskScheduled(":buildB:broken")
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':buildB:broken' (registered in build file '../buildB/build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildB:broken' (registered in build file '..${File.separatorChar}buildB${File.separatorChar}build.gradle').")
     }
 
     def "does not compile build script when build script classpath cannot be built"() {
@@ -142,7 +142,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         result.assertTaskScheduled(":buildB:broken")
         failure.assertHasFailures(2)
         failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
-        failure.assertHasDescription("Execution failed for task ':buildB:broken' (registered in build file '../buildB/build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildB:broken' (registered in build file '..${File.separatorChar}buildB${File.separatorChar}build.gradle').")
     }
 
     def "build fails when task in root build fails"() {

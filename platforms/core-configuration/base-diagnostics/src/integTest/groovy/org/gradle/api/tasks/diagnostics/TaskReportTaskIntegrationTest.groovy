@@ -78,8 +78,8 @@ task sayHello {
         output.contains("""
 Build tasks
 -----------
-sub1:sayHello (registered in build file 'sub1/build.gradle')
-sub2:sayHello (registered in build file 'sub2/build.gradle')""")
+sub1:sayHello (registered in build file 'sub1${File.separatorChar}build.gradle')
+sub2:sayHello (registered in build file 'sub2${File.separatorChar}build.gradle')""")
     }
 
     def "shows Custom task defined in build file when run with --provenance"() {

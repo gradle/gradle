@@ -432,13 +432,13 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         outputContains("build C finished")
 
         events(14)
-        loggedOncePerBuild("buildFinished failure=org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken' (registered in build file '../buildB/build.gradle').", [":buildB"])
+        loggedOncePerBuild("buildFinished failure=org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken' (registered in build file '..${File.separatorChar}buildB${File.separatorChar}build.gradle').", [":buildB"])
         loggedOncePerBuild("buildFinished failure=null", [":buildC"])
         // Root build also receives the failures from its children, including the buildFinished { } failures
-        loggedOncePerBuild("buildFinished failure=[org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken' (registered in build file '../buildB/build.gradle')., java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]", [":"])
+        loggedOncePerBuild("buildFinished failure=[org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken' (registered in build file '..${File.separatorChar}buildB${File.separatorChar}build.gradle')., java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]", [":"])
 
         failure.assertHasFailures(4)
-        failure.assertHasDescription("Execution failed for task ':buildB:broken' (registered in build file '../buildB/build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildB:broken' (registered in build file '..${File.separatorChar}buildB${File.separatorChar}build.gradle').")
             .assertHasFileName("Build file '${buildB.buildFile}'")
         failure.assertHasDescription("build A broken")
             .assertHasFileName("Build file '${buildA.buildFile}'")
