@@ -43,7 +43,7 @@ class ConfigurableFileCollectionSelfReferencingIntegrationTest extends AbstractP
         fails "myTask"
 
         then:
-        failureCauseContains("ConfigurableFileCollection does not support '-=' operator or assignment of subtraction via '-' operator or a minus() method")
+        failureCauseContains("ConfigurableFileCollection does not support self-referencing through the '-' operator or minus() method")
 
         where:
         description      | statement
