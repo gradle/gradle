@@ -28,6 +28,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.process.ArgWriter;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -43,10 +44,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -480,12 +477,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
                     effectiveArguments.add(arg);
                     continue;
                 }
-                if (arg.contains("\\") || arg.contains("/")) {
-                    // In case of a file path, we need to escape backslashes and spaces
-                    arg = arg.replace("\\", "\\\\");
-                    // Hint from https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html#java-command-line-argument-files, section "java Command-Line Argument Files"
-                    arg = arg.replace(" ", "\" \"");
-                }
                 argsFileContents.add(arg);
             }
             if (!argsFileContents.isEmpty()) {
@@ -500,9 +491,8 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     private void createArgsFile(List<String> argsFileContents, List<String> effectiveArguments) throws IOException {
-        Path argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt").toPath();
-        effectiveArguments.add("@" + argsFile.toAbsolutePath());
-        Files.write(argsFile, argsFileContents, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+        File argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt");
+        effectiveArguments.addAll(ArgWriter.argsFileGenerator(argsFile, ArgWriter.javaStyleFactory()).apply(argsFileContents));
     }
 
     private static Manifest toManifest(FileCollection classpath) {
