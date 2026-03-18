@@ -20,14 +20,9 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
-import org.gradle.tooling.FetchModelResult
-import org.gradle.tooling.model.gradle.BasicGradleProject
-import org.gradle.tooling.model.gradle.GradleBuild
 
-import static org.gradle.integtests.tooling.r940.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.EDITABLE_BUILDS_FIRST
-import static org.gradle.integtests.tooling.r940.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.ROOT_BUILD_FIRST
+import static org.gradle.integtests.tooling.r940.ModelAction.QueryStrategy.EDITABLE_BUILDS_FIRST
+import static org.gradle.integtests.tooling.r940.ModelAction.QueryStrategy.ROOT_BUILD_FIRST
 
 @ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.4.0')
@@ -206,70 +201,5 @@ class CustomPlugin implements Plugin<Project> {
         ""                          | EDITABLE_BUILDS_FIRST | []
         " with configure-on-demand" | ROOT_BUILD_FIRST      | IP_CONFIGURE_ON_DEMAND_FLAGS
         " with configure-on-demand" | EDITABLE_BUILDS_FIRST | IP_CONFIGURE_ON_DEMAND_FLAGS
-    }
-
-    static class ModelAction implements BuildAction<ModelResult>, Serializable {
-        static enum QueryStrategy {
-            ROOT_BUILD_FIRST,
-            EDITABLE_BUILDS_FIRST
-        }
-
-        QueryStrategy queryStrategy
-
-        ModelAction(QueryStrategy queryStrategy) {
-            this.queryStrategy = queryStrategy
-        }
-
-        @Override
-        ModelResult execute(BuildController controller) {
-            GradleBuild gradleBuild = controller.fetch(GradleBuild.class).model
-            assert gradleBuild != null
-            List<String> successfulQueriedProjects = []
-            List<String> failedQueriedProjects = []
-            if (queryStrategy == ROOT_BUILD_FIRST) {
-                queryRootBuild(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects)
-                queryEditableBuilds(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects)
-            } else {
-                queryEditableBuilds(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects)
-                queryRootBuild(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects)
-            }
-            return new ModelResult(successfulQueriedProjects, failedQueriedProjects)
-        }
-
-        private void queryRootBuild(BuildController controller, GradleBuild gradleBuild, List<String> successfulQueriedProjects, List<String> failedQueriedProjects) {
-            for (BasicGradleProject project : gradleBuild.projects) {
-                queryModelForProject(controller, project, successfulQueriedProjects, failedQueriedProjects)
-            }
-        }
-
-        private void queryEditableBuilds(BuildController controller, GradleBuild gradleBuild, List<String> successfulQueriedProjects, List<String> failedQueriedProjects) {
-            for (GradleBuild includedBuild : gradleBuild.editableBuilds) {
-                for (BasicGradleProject project : includedBuild.projects) {
-                    queryModelForProject(controller, project, successfulQueriedProjects, failedQueriedProjects)
-                }
-            }
-        }
-
-        void queryModelForProject(BuildController controller, BasicGradleProject project, List<String> successfulQueriedProjects, List<String> failedQueriedProjects) {
-            FetchModelResult<CustomModel> result = controller.fetch(project, CustomModel.class)
-            if (result.failures.empty) {
-                assert result.model.value == 'greetings'
-                successfulQueriedProjects.add(project.name)
-            } else {
-                println "Failed to query 'CustomModel' for project '${project.name}' with: ${result.failures.collect { it.message }.join('\n')}"
-                assert result.model == null
-                failedQueriedProjects.add(project.name)
-            }
-        }
-    }
-
-    static class ModelResult implements Serializable {
-        final List<String> successfullyQueriedProjects
-        final List<String> failedToQueryProjects
-
-        ModelResult(List<String> successfullyQueriedProjects, List<String> failedToQueryProjects) {
-            this.successfullyQueriedProjects = successfullyQueriedProjects
-            this.failedToQueryProjects = failedToQueryProjects
-        }
     }
 }
