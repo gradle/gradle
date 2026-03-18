@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 /**
  * Generates a synthetic DOM element that is structurally identical to the per-class DSL XML files,
@@ -31,6 +32,9 @@ import java.util.TreeSet;
  * to participate in DSL documentation generation.
  */
 public class ClassDocXmlGenerator {
+
+    private static final Pattern GETTER_NAME = Pattern.compile("(get|is)\\p{javaUpperCase}.*");
+    private static final Pattern SETTER_NAME = Pattern.compile("set\\p{javaUpperCase}.*");
 
     /**
      * Generates a DOM element matching the structure of the per-class XML files:
@@ -68,14 +72,17 @@ public class ClassDocXmlGenerator {
 
         root.appendChild(buildTableSection(document, "Properties", propertyNames));
 
-        // Methods section — exclude getters/setters (already represented as properties)
+        // Methods section — exclude standard getters/setters (already represented as properties).
+        // A standard getter has 0 params (get*/is*), a standard setter has 1 param (set*).
+        // Parameterized methods like getByName(String) are NOT standard getters and should
+        // appear as methods even though the metadata system creates properties from them.
         // A method name is only included if ALL overloads with that name have Javadoc
         // and none are hidden, since ClassDocMethodsBuilder processes all overloads.
         Set<String> propertyMethodNames = collectPropertyMethodNames(classMetaData);
         TreeSet<String> candidateMethodNames = new TreeSet<>();
         Set<String> excludedMethodNames = new TreeSet<>();
         for (MethodMetaData method : classMetaData.getDeclaredMethods()) {
-            if (propertyMethodNames.contains(method.getName())) {
+            if (propertyMethodNames.contains(method.getName()) && isStandardAccessor(method)) {
                 continue;
             }
             if (method.isDslHidden() || !hasDescriptionProse(method.getRawCommentText())) {
@@ -121,7 +128,8 @@ public class ClassDocXmlGenerator {
 
     /**
      * Checks if the raw Javadoc comment contains meaningful prose description,
-     * not just tags like {@code @return}, {@code @param}, {@code {@inheritDoc}}, etc.
+     * not just tags like {@code @return}, {@code @param}, etc.
+     * Treats {@code {@inheritDoc}} as valid prose since the description is inherited from the parent.
      */
     private static boolean hasDescriptionProse(String rawCommentText) {
         if (rawCommentText == null) {
@@ -129,7 +137,11 @@ public class ClassDocXmlGenerator {
         }
         // Strip leading * from each line (raw Javadoc format)
         String stripped = rawCommentText.replaceAll("(?m)^\\s*\\*\\s?", "");
-        // Remove inline tags like {@inheritDoc}, {@link ...}, {@code ...}
+        // {@inheritDoc} counts as valid prose since the description comes from the parent
+        if (stripped.contains("{@inheritDoc}")) {
+            return true;
+        }
+        // Remove inline tags like {@link ...}, {@code ...}
         stripped = stripped.replaceAll("\\{@[^}]*}", "");
         // Remove block tags (@param, @return, @since, @see, etc.) and everything after them
         stripped = stripped.replaceAll("(?m)^@\\w+.*$", "");
@@ -148,5 +160,23 @@ public class ClassDocXmlGenerator {
             }
         }
         return names;
+    }
+
+    /**
+     * Returns true if the method is a standard JavaBeans accessor:
+     * a getter with 0 params or a setter with 1 param.
+     * Parameterized methods like getByName(String) are not standard accessors
+     * and should appear as methods in the DSL docs.
+     */
+    private static boolean isStandardAccessor(MethodMetaData method) {
+        String name = method.getName();
+        int paramCount = method.getParameters().size();
+        if (GETTER_NAME.matcher(name).matches()) {
+            return paramCount == 0;
+        }
+        if (SETTER_NAME.matcher(name).matches()) {
+            return paramCount == 1;
+        }
+        return false;
     }
 }

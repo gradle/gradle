@@ -273,6 +273,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Internal
     @ToBeReplacedByLazyProperty
     public String getExecutable() {
+        /**
+         * {@inheritDoc}
+         */
         return forkOptions.getExecutable();
     }
 
@@ -307,6 +310,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @ToBeReplacedByLazyProperty
     public Map<String, @Nullable Object> getSystemProperties() {
+        /**
+         * {@inheritDoc}
+         */
         return forkOptions.getSystemProperties();
     }
 
@@ -342,6 +348,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @ToBeReplacedByLazyProperty
     public FileCollection getBootstrapClasspath() {
+        /**
+         * {@inheritDoc}
+         */
         return forkOptions.getBootstrapClasspath();
     }
 
@@ -405,6 +414,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ToBeReplacedByLazyProperty
     @Nullable
     public String getMaxHeapSize() {
+        /**
+         * {@inheritDoc}
+         */
         return forkOptions.getMaxHeapSize();
     }
 
@@ -422,6 +434,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @ToBeReplacedByLazyProperty
     public List<String> getJvmArgs() {
+        /**
+         * {@inheritDoc}
+         */
         return forkOptions.getJvmArgs();
     }
 
@@ -431,6 +446,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @ToBeReplacedByLazyProperty
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        /**
+         * {@inheritDoc}
+         */
         return forkOptions.getJvmArgumentProviders();
     }
 
@@ -474,6 +492,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @ToBeReplacedByLazyProperty
     public boolean getEnableAssertions() {
+        /**
+         * {@inheritDoc}
+         */
         return forkOptions.getEnableAssertions();
     }
 
@@ -491,6 +512,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @ToBeReplacedByLazyProperty
     public boolean getDebug() {
+        /**
+         * {@inheritDoc}
+         */
         return forkOptions.getDebug();
     }
 
@@ -592,6 +616,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Internal
     @ToBeReplacedByLazyProperty
     public Map<String, Object> getEnvironment() {
+        /**
+         * {@inheritDoc}
+         */
         return forkOptions.getEnvironment();
     }
 
@@ -710,6 +737,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     private void validateExecutableMatchesToolchain() {
         File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
+        /**
+         * {@inheritDoc}
+         */
         String customExecutable = getExecutable();
         JavaExecutableUtils.validateExecutable(
             customExecutable, "Toolchain from `executable` property",
@@ -751,6 +781,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         // TODO: JUnit6 requires Java 17+
         // Gradle should produce a better error message when using JUnit 6 with incompatible JVMs.
 
+        /**
+         * {@inheritDoc}
+         */
         if (getDebug()) {
             getLogger().info("Running tests for remote debugging.");
         }
@@ -1227,6 +1260,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Internal
     @ToBeReplacedByLazyProperty
     public long getForkEvery() {
+        /**
+         * {@inheritDoc}
+         */
         return getDebug() ? 0 : forkEvery;
     }
 
@@ -1263,6 +1299,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Internal
     @ToBeReplacedByLazyProperty
     public int getMaxParallelForks() {
+        /**
+         * {@inheritDoc}
+         */
         return getDebug() ? 1 : maxParallelForks;
     }
 

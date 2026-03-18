@@ -86,14 +86,26 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         ConfigurableFilePermissions defaultDirPermissions = getFileSystemOperations().permissions(FileSystem.DEFAULT_DIR_MODE);
         ConfigurableFilePermissions defaultFilePermissions = getFileSystemOperations().permissions(FileSystem.DEFAULT_FILE_MODE);
 
+        /**
+         * {@inheritDoc}
+         */
         getDirPermissions().convention(defaultDirPermissions);
+        /**
+         * {@inheritDoc}
+         */
         getFilePermissions().convention(defaultFilePermissions);
 
         Provider<Boolean> useFileSystemPermissions = getProject().getProviders()
             .gradleProperty(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY)
             .map(transformer(value -> Boolean.parseBoolean(value.trim())))
             .orElse(false);
+        /**
+         * {@inheritDoc}
+         */
         getDirPermissions().set(useFileSystemPermissions.map(transformer(fileSystemPermissions -> fileSystemPermissions ? null : defaultDirPermissions)));
+        /**
+         * {@inheritDoc}
+         */
         getFilePermissions().set(useFileSystemPermissions.map(transformer(fileSystemPermissions -> fileSystemPermissions ? null : defaultFilePermissions)));
     }
 
@@ -311,7 +323,13 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 9.0.0
      */
     public void useFileSystemPermissions() {
+        /**
+         * {@inheritDoc}
+         */
         getFilePermissions().set(getProject().getProviders().provider(() -> null));
+        /**
+         * {@inheritDoc}
+         */
         getDirPermissions().set(getProject().getProviders().provider(() -> null));
     }
 

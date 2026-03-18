@@ -208,11 +208,23 @@ abstract class DslMigrationAnalysisTask extends DefaultTask {
         for (MethodMetaData method : classMetaData.declaredMethods) {
             if (method.dslHidden) continue
             if (method.rawCommentText == null || method.rawCommentText.trim().isEmpty()) continue
-            if (propertyMethodNames.contains(method.name)) continue
+            if (propertyMethodNames.contains(method.name) && isStandardAccessor(method)) continue
             members.methods << method.name
         }
 
         return members
+    }
+
+    private static boolean isStandardAccessor(MethodMetaData method) {
+        def name = method.name
+        def paramCount = method.parameters.size()
+        if (name =~ /^(get|is)\p{javaUpperCase}/) {
+            return paramCount == 0
+        }
+        if (name =~ /^set\p{javaUpperCase}/) {
+            return paramCount == 1
+        }
+        return false
     }
 
     private static class XmlMembers {
