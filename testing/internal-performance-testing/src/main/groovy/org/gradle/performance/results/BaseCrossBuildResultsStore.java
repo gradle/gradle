@@ -220,7 +220,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                                 List<String> cleanTasks = toList(resultSet.getObject(7));
                                 List<String> args = toList(resultSet.getObject(3));
                                 List<String> gradleOpts = toList(resultSet.getObject(4));
-                                Boolean daemon = (Boolean) resultSet.getObject(5);
+                                Boolean daemon = toNullableBoolean(resultSet.getObject(5));
                                 BuildDisplayInfo displayInfo = new BuildDisplayInfo(experiment.getTestProject(), displayName, tasksToRun, cleanTasks, args, gradleOpts, daemon);
 
                                 MeasuredOperation operation = new MeasuredOperation();

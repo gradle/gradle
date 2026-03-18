@@ -128,6 +128,19 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
         return params
     }
 
+    protected static Boolean toNullableBoolean(Object value) {
+        if (value == null) {
+            return null
+        }
+        if (value instanceof Boolean) {
+            return (Boolean) value
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue() != 0
+        }
+        return Boolean.valueOf(value.toString())
+    }
+
     @Override
     public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentDurationsInMillis() {
         return this.<Map<PerformanceExperimentOnOs, Long>>withConnection("load estimated runtimes") { connection ->

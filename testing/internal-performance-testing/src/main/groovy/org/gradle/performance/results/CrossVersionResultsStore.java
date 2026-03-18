@@ -278,7 +278,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                         performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
                         performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
                         performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
-                        performanceResults.setDaemon((Boolean) testExecutions.getObject(8));
+                        performanceResults.setDaemon(toNullableBoolean(testExecutions.getObject(8)));
                         performanceResults.setOperatingSystem(testExecutions.getString(9));
                         performanceResults.setJvm(testExecutions.getString(10));
                         performanceResults.setVcsBranch(mapVcsBranch(primaryChannelPattern, testExecutions.getString(11).trim()));
