@@ -199,6 +199,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 javaLauncher = javaToolchains.launcherFor {
                     languageVersion = JavaLanguageVersion.of(17)
                 }
+                args "--module", "does-not-exist"
             }
 
             compileJava {

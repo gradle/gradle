@@ -428,10 +428,14 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
         // Try to shorten command-line if necessary
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
-            if (javaModuleDetector == null) {
-                return shortenJava8Arguments(arguments);
-            } else {
+            // TODO: This is an ugly check that relies on Java 9 command-line
+            // arguments to detect that we're about to run on Java 9+
+            // This should actually base this decision (and support for modules)
+            // off of the detected version of Java we're about to use.
+            if (arguments.contains("--module") || arguments.contains("--module--path")) {
                 return shortenJava9Arguments(arguments);
+            } else {
+                return shortenJava8Arguments(arguments);
             }
         }
 
