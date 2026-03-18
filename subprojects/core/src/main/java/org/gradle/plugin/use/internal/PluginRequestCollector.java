@@ -85,7 +85,7 @@ public class PluginRequestCollector {
                 PluginRequestInternal second = iterator.next();
 
                 InvalidPluginRequestException exception = new InvalidPluginRequestException(second, "Plugin with id '" + key + "' was already requested at line " + first.getLineNumber());
-                throw new LocationAwareException(exception, second.getScriptDisplayName(), second.getLineNumber());
+                throw new LocationAwareException(exception, scriptSource.getFileName(), second.getScriptDisplayName(), second.getLineNumber());
             }
         }
         return pluginRequests;

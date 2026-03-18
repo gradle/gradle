@@ -18,6 +18,7 @@ package org.gradle.internal.logging;
 
 import org.gradle.internal.UncheckedException;
 
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -38,5 +39,20 @@ public class ConsoleRenderer {
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    /**
+     * Renders a path name as a file URL that is likely recognized by consoles,
+     * optionally including a line number suffix.
+     *
+     * @param path the file path to render
+     * @param lineNumber the optional line number to append
+     */
+    public String asClickableFileUrl(File path, @Nullable Integer lineNumber) {
+        String url = asClickableFileUrl(path);
+        if (lineNumber != null) {
+            url = url + ":" + lineNumber;
+        }
+        return url;
     }
 }

@@ -61,7 +61,7 @@ public final class ExceptionMetadataHelper {
             if (laeLineNumber != null) {
                 metadata.put(METADATA_KEY_LINE_NUMBER, laeLineNumber.toString());
             }
-            metadata.put(METADATA_KEY_LOCATION, lae.getLocation());
+            metadata.put(METADATA_KEY_LOCATION, lae.describeLocation());
         }
 
         if (t instanceof MultiCauseException) {

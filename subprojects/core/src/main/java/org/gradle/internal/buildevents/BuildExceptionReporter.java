@@ -30,6 +30,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.FailureResolutionAware;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.exceptions.NonGradleCause;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
 import org.gradle.internal.exceptions.ResolutionProvider;
@@ -255,8 +256,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
 
         @Override
-        protected void visitLocation(String location) {
-            failureDetails.location.text(location);
+        protected void visitLocationException(LocationAwareException exception) {
+            failureDetails.location.text(exception.describeClickableLocation());
         }
 
         @Override

@@ -17,6 +17,7 @@
 package org.gradle.internal.buildevents
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -57,5 +58,27 @@ throw new BadException()
         then:
         failureCauseContains("BOOM self")
         result.assertHasErrorOutput("Caused by: java.lang.Throwable: [CIRCULAR REFERENCE: java.lang.Exception: BOOM self]")
+    }
+
+    def "build file path with spaces produces clickable file URI in failure output"() {
+        given:
+        def projectDir = file("project with spaces")
+        def settings = projectDir.file("settings.gradle")
+        settings.text = ""
+        def buildScript = projectDir.file("build.gradle")
+        buildScript.text = """
+            // line 1
+            this is not valid groovy
+        """
+
+        when:
+        inDirectory(projectDir)
+        fails("help")
+
+        then:
+        failure.assertHasFileName("Build file '${buildScript}'")
+        failure.assertHasLineNumber(3)
+        def expectedUrl = new ConsoleRenderer().asClickableFileUrl(buildScript, 3)
+        result.assertHasErrorOutput("(Clickable link: " + expectedUrl + ")")
     }
 }

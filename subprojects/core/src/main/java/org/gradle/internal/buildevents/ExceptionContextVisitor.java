@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildevents;
 
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.util.internal.TreeVisitor;
 
@@ -23,7 +24,7 @@ public abstract class ExceptionContextVisitor extends TreeVisitor<Failure> {
 
     protected abstract void visitCause(Failure cause);
 
-    protected abstract void visitLocation(String location);
+    protected abstract void visitLocationException(LocationAwareException location);
 
     /**
      * Should be called after each time this visitor has finished visiting.

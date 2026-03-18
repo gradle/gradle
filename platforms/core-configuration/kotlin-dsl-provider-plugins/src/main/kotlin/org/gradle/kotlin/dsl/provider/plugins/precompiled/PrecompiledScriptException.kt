@@ -34,6 +34,6 @@ private
 fun reduceCause(cause: Throwable?): Throwable? =
     when (cause) {
         is InvocationTargetException -> reduceCause(cause.targetException)
-        is LocationAwareException -> if (cause.location == null && cause.cause != null) reduceCause(cause.cause!!) else cause
+        is LocationAwareException -> if (cause.describeLocation() == null && cause.cause != null) reduceCause(cause.cause!!) else cause
         else -> cause
     }

@@ -19,8 +19,10 @@ package org.gradle.kotlin.dsl.integration
 import okhttp3.HttpUrl
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okio.Path.Companion.toPath
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
@@ -44,6 +46,9 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import spock.lang.Issue
 
+
+private fun formatClickableLink(file: java.io.File, lineNumber: Int = 1): String =
+    "(Clickable link: ${ConsoleRenderer().asClickableFileUrl(file, lineNumber)})"
 
 class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
@@ -616,6 +621,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
                 * Where:
                 Build file '${buildFile.canonicalPath}' line: 1
+                  ${formatClickableLink(buildFile)}
 
                 * What went wrong:
                 Script compilation error:
@@ -664,6 +670,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
                     * Where:
                     Build file '${buildFile.canonicalPath}' line: 1
+                      ${formatClickableLink(buildFile)}
 
                     * What went wrong:
                     Script compilation errors:
