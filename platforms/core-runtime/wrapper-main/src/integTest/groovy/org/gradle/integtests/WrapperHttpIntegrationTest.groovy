@@ -103,6 +103,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         assertThat(result.output, containsString('hello'))
+        assertThat(result.output, containsString("Fetching distribution. Retry settings: 0 attempts, 0 ms timeout"));
         verifyDistributionDownloaded()
 
         when:
@@ -113,7 +114,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    def "recovers from failed download"() {
+    def "download succeeds even if there were previous failures"() {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         prepareWrapper(getDefaultBaseUrl()).run()
@@ -190,8 +191,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         given:
         server.withBearerAuthentication(DEFAULT_TOKEN)
         file("gradle.properties") << """
-    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
-"""
+            systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+        """
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         prepareWrapper(getDefaultBaseUrl()).run()
         server.expectAndBlock(server.get("/$TEST_DISTRIBUTION_URL"))
@@ -221,25 +222,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         failure.assertHasErrorOutput("Downloading from http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL failed: timeout (5000ms)")
-    }
-
-    @Issue('https://github.com/gradle/gradle/issues/18124')
-    def "succeeds for default retries settings"() {
-        given:
-        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultBaseUrl()).run()
-        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
-
-        when:
-        def result = wrapperExecuter.run()
-
-        then:
-        assertThat(result.output, containsString("Fetching distribution. Retry settings: 0 attempts, 0 ms timeout"));
-
-        assert result.output.readLines().findAll{ it.contains(
-            "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 1
-
-        verifyDistributionDownloaded()
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18124')
