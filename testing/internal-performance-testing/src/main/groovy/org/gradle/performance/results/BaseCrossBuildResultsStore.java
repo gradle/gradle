@@ -42,40 +42,6 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 import static org.gradle.performance.results.ResultsStoreHelper.toList;
 
 public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> extends AbstractWritableResultsStore<R> {
-    private static final String INSERT_OPERATION_SQL = """
-        insert into testOperation(
-            testExecution, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks
-        ) values (?, ?, ?, ?, ?, ?, ?, ?)
-        """;
-    private static final String INSERT_EXECUTION_SQL = """
-        insert into testExecution(
-            testClass, testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm,
-            vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId
-        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
-    private static final String INSERT_EXECUTION_EXPERIMENT_SQL = """
-        insert into testExecutionExperiment(testId, testProject, testClass, resultType)
-        values (?, ?, ?, ?)
-        """;
-    private static final String GET_PERFORMANCE_EXPERIMENTS_SQL = """
-        select testClass, testId, testProject
-        from testExecutionExperiment
-        where resultType = ?
-        order by testClass, testId, testProject
-        """;
-    private static final String EXECUTIONS_FOR_NAME_SQL_TEMPLATE = """
-        select h.id, h.startTime, h.endTime, h.versionUnderTest, h.operatingSystem, h.jvm, h.vcsBranch,
-               h.vcsCommit, h.testGroup, h.channel, h.host, h.teamCityBuildId
-        from (%s) as h
-        order by h.startTime desc
-        limit ?
-        """;
-    private static final String OPERATIONS_FOR_EXECUTION_SQL = """
-        select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks
-        from testOperation
-        where testExecution = ?
-        """;
-
     private final String resultType;
 
     public BaseCrossBuildResultsStore(String resultType) {
@@ -94,7 +60,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     private void batchInsertOperation(Connection connection, R results, long executionId) throws SQLException {
-        String sql = INSERT_OPERATION_SQL;
+        String sql = "insert into testOperation(testExecution, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?)";
         long startTime = System.currentTimeMillis();
         int[] batchResult = null;
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -108,7 +74,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     private long insertExecution(Connection connection, R results) throws SQLException {
-        String sql = INSERT_EXECUTION_SQL;
+        String sql = "insert into testExecution(testClass, testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         long startTime = System.currentTimeMillis();
         Boolean executeResult = null;
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -138,7 +104,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     private void insertExecutionExperiment(Connection connection, R results) throws SQLException {
-        String sql = INSERT_EXECUTION_EXPERIMENT_SQL;
+        String sql = "insert into testExecutionExperiment(testId, testProject, testClass, resultType) values (?, ?, ?, ?)";
         long startTime = System.currentTimeMillis();
         Boolean executeResult = null;
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -171,7 +137,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     @Override
     public List<PerformanceExperiment> getPerformanceExperiments() {
         return withConnection("load test history", connection -> {
-            String sql = GET_PERFORMANCE_EXPERIMENTS_SQL;
+            String sql = "select testClass, testId, testProject from testExecutionExperiment where resultType = ? order by testClass, testId, testProject";
             long startTime = System.currentTimeMillis();
             ResultSet rs = null;
 
@@ -203,8 +169,8 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             List<String> distinctTeamcityBuildIds = distinctValues(teamcityBuildIds);
             String historyProjection = "id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId";
             String baseHistorySql = createHistoryFilterUnionSql(historyProjection, distinctChannelPatterns, distinctTeamcityBuildIds);
-            String executionsForNameSql = EXECUTIONS_FOR_NAME_SQL_TEMPLATE.formatted(baseHistorySql);
-            String operationsForExecutionSql = OPERATIONS_FOR_EXECUTION_SQL;
+            String executionsForNameSql = "select h.id, h.startTime, h.endTime, h.versionUnderTest, h.operatingSystem, h.jvm, h.vcsBranch, h.vcsCommit, h.testGroup, h.channel, h.host, h.teamCityBuildId from (" + baseHistorySql + ") as h order by h.startTime desc limit ?";
+            String operationsForExecutionSql = "select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?";
             try (
                 PreparedStatement executionsForName = connection.prepareStatement(executionsForNameSql);
                 PreparedStatement operationsForExecution = connection.prepareStatement(operationsForExecutionSql);
