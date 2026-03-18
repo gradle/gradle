@@ -373,6 +373,7 @@
                         <li><a href="../userguide/worker_api.html">Parallel Task Execution</a></li>
                         <li><a href="../userguide/custom_tasks.html">Advanced Task Development</a></li>
                         <li><a href="../userguide/build_services.html">Shared Build Services</a></li>
+                        <li><a href="../userguide/task_configuration_avoidance.html">Task Configuration Avoidance</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#plugin-development" aria-expanded="false" aria-controls="plugin-development">Plugins</a>
@@ -388,6 +389,27 @@
                         <li><a href="../userguide/init_scripts.html">Initialization Scripts & Init Plugins</a></li>
                         <li><a href="../userguide/test_kit.html">Testing with TestKit</a></li>
                         <li><a href="../userguide/plugin_reference.html">Core Plugins</a></li>
+                        <li><a class="nav-dropdown" data-toggle="collapse" href="#core-plugins-list" aria-expanded="false" aria-controls="core-plugins-list">Core Plugin Reference</a>
+                            <ul id="core-plugins-list">
+                                <li><a href="../userguide/antlr_plugin.html">ANTLR Plugin</a></li>
+                                <li><a href="../userguide/base_plugin.html">Base Plugin</a></li>
+                                <li><a href="../userguide/build_dashboard_plugin.html">Build Dashboard Plugin</a></li>
+                                <li><a href="../userguide/build_init_plugin.html">Build Init Plugin</a></li>
+                                <li><a href="../userguide/checkstyle_plugin.html">Checkstyle Plugin</a></li>
+                                <li><a href="../userguide/codenarc_plugin.html">CodeNarc Plugin</a></li>
+                                <li><a href="../userguide/distribution_plugin.html">Distribution Plugin</a></li>
+                                <li><a href="../userguide/ear_plugin.html">EAR Plugin</a></li>
+                                <li><a href="../userguide/eclipse_plugin.html">Eclipse Plugin</a></li>
+                                <li><a href="../userguide/idea_plugin.html">IntelliJ IDEA Plugin</a></li>
+                                <li><a href="../userguide/jacoco_plugin.html">JaCoCo Plugin</a></li>
+                                <li><a href="../userguide/java_gradle_plugin.html">Java Gradle Plugin</a></li>
+                                <li><a href="../userguide/play_plugin.html">Play Plugin</a></li>
+                                <li><a href="../userguide/pmd_plugin.html">PMD Plugin</a></li>
+                                <li><a href="../userguide/project_report_plugin.html">Project Report Plugin</a></li>
+                                <li><a href="../userguide/visual_studio_plugin.html">Visual Studio Plugin</a></li>
+                                <li><a href="../userguide/war_plugin.html">WAR Plugin</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#managing-dependencies" aria-expanded="false" aria-controls="managing-dependencies">Dependencies</a>
@@ -463,6 +485,7 @@
                                 <li><a href="../userguide/publishing_customization.html">Customizing Publishing</a></li>
                                 <li><a href="../userguide/publishing_maven.html">Maven Publish Plugin</a></li>
                                 <li><a href="../userguide/publishing_ivy.html">Ivy Publish Plugin</a></li>
+                                <li><a href="../userguide/signing_plugin.html">Signing Plugin</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -487,6 +510,11 @@
                                         <li><a href="../userguide/java_platform_plugin.html">Java Platform Plugin</a></li>
                                         <li><a href="../userguide/groovy_plugin.html">Groovy Plugin</a></li>
                                         <li><a href="../userguide/scala_plugin.html">Scala Plugin</a></li>
+                                        <li><a href="../userguide/java_plugin.html">Java Plugin</a></li>
+                                        <li><a href="../userguide/java_library_distribution_plugin.html">Java Library Distribution Plugin</a></li>
+                                        <li><a href="../userguide/jacoco_report_aggregation_plugin.html">JaCoCo Report Aggregation Plugin</a></li>
+                                        <li><a href="../userguide/jvm_test_suite_plugin.html">JVM Test Suite Plugin</a></li>
+                                        <li><a href="../userguide/test_report_aggregation_plugin.html">Test Report Aggregation Plugin</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -495,12 +523,20 @@
                             <ul id="cpp">
                                 <li><a href="../userguide/building_cpp_projects.html">Building C++ projects</a></li>
                                 <li><a href="../userguide/cpp_testing.html">Testing C++ projects</a></li>
+                                <li><a href="../userguide/cpp_application_plugin.html">C++ Application Plugin</a></li>
+                                <li><a href="../userguide/cpp_library_plugin.html">C++ Library Plugin</a></li>
+                                <li><a href="../userguide/cpp_unit_test_plugin.html">C++ Unit Test Plugin</a></li>
+                                <li><a href="../userguide/native_software.html">Building Native Software</a></li>
                             </ul>
                         </li>
                         <li><a class="nav-dropdown" data-toggle="collapse" href="#swift" aria-expanded="false" aria-controls="swift">Swift Builds</a>
                             <ul id="swift">
                                 <li><a href="../userguide/building_swift_projects.html">Building Swift projects</a></li>
                                 <li><a href="../userguide/swift_testing.html">Testing Swift projects</a></li>
+                                <li><a href="../userguide/swift_application_plugin.html">Swift Application Plugin</a></li>
+                                <li><a href="../userguide/swift_library_plugin.html">Swift Library Plugin</a></li>
+                                <li><a href="../userguide/xctest_plugin.html">XCTest Plugin</a></li>
+                                <li><a href="../userguide/xcode_plugin.html">Xcode Plugin</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -515,6 +551,7 @@
                         <li><a href="../userguide/best_practices_tasks.html">Best Practices for Tasks</a></li>
                         <li><a href="../userguide/best_practices_performance.html">Best Practices for Performance</a></li>
                         <li><a href="../userguide/best_practices_security.html">Best Practices for Security</a></li>
+                        <li><a href="../userguide/tags_reference.html">Tags Reference</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#advanced-topics" aria-expanded="false" aria-controls="advanced-topics">Other Topics</a>
@@ -603,6 +640,7 @@
             <h3 id="reference">More Resources</h3>
             <ul>
                 <li><a href="../userguide/glossary.html">Glossary</a></li>
+                <li><a href="../userguide/licenses.html">Licenses</a></li>
                 <li><a href="../userguide/userguide_single.html">Single Page Version</a></li>
             </ul>
         </nav>
