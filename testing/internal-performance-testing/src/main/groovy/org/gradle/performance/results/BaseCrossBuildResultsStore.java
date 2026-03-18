@@ -42,6 +42,15 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 import static org.gradle.performance.results.ResultsStoreHelper.toList;
 
 public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> extends AbstractWritableResultsStore<R> {
+
+    private static final String EXECUTIONS_FOR_NAME_SQL_TEMPLATE = """
+        select h.id, h.startTime, h.endTime, h.versionUnderTest, h.operatingSystem, h.jvm, h.vcsBranch,
+               h.vcsCommit, h.testGroup, h.channel, h.host, h.teamCityBuildId
+        from (%s) as h
+        order by h.startTime desc
+        limit ?
+        """;
+
     private final String resultType;
 
     public BaseCrossBuildResultsStore(String resultType) {
@@ -169,7 +178,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             List<String> distinctTeamcityBuildIds = distinctValues(teamcityBuildIds);
             String historyProjection = "id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId";
             String baseHistorySql = createHistoryFilterUnionSql(historyProjection, distinctChannelPatterns, distinctTeamcityBuildIds);
-            String executionsForNameSql = "select h.id, h.startTime, h.endTime, h.versionUnderTest, h.operatingSystem, h.jvm, h.vcsBranch, h.vcsCommit, h.testGroup, h.channel, h.host, h.teamCityBuildId from (" + baseHistorySql + ") as h order by h.startTime desc limit ?";
+            String executionsForNameSql = EXECUTIONS_FOR_NAME_SQL_TEMPLATE.formatted(baseHistorySql);
             String operationsForExecutionSql = "select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?";
             try (
                 PreparedStatement executionsForName = connection.prepareStatement(executionsForNameSql);
