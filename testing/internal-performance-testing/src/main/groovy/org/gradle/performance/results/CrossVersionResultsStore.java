@@ -247,7 +247,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             String executionsForNameSql = "select h.id, h.startTime, h.endTime, h.targetVersion, h.tasks, h.args, h.gradleOpts, h.daemon, h.operatingSystem, h.jvm, h.vcsBranch, h.vcsCommit, h.channel, h.host, h.cleanTasks, h.teamCityBuildId from (" + baseHistorySql + ") as h order by h.startTime desc limit ?";
             String operationExecutionIdsSql = createHistoryFilterUnionSql("id, startTime", distinctChannelPatterns, distinctTeamcityBuildIds);
             String operationsForExecutionSql = "select version, testExecution, totalTime from testOperation "
-                + "where testExecution in (select t.id from (" + operationExecutionIdsSql + ") as t order by t.startTime desc limit ?)";
+                + "join (select t.id from (" + operationExecutionIdsSql + ") as t order by t.startTime desc limit ?) as executionIds on executionIds.id = testOperation.testExecution";
             try (
                 PreparedStatement executionsForName = connection.prepareStatement(executionsForNameSql);
                 PreparedStatement operationsForExecution = connection.prepareStatement(operationsForExecutionSql);
