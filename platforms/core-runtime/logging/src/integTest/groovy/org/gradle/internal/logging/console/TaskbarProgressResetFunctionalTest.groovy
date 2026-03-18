@@ -61,14 +61,16 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         buildFile << """
             task block {
                 doFirst {
-                    Thread.sleep(10_000)
+                    ${server.callFromBuild("block")}
                 }
             }
         """
+        def block = server.expectAndBlock("block")
 
         when:
         def gradle = executer.withTasks("block").start()
 
+        block.waitForAllPendingCalls()
         // Wait until the progress bar has started emitting OSC 9;4 sequences.
         ConcurrentTestUtil.poll {
             assert gradle.standardOutput.contains(OSC_PROGRESS_PREFIX)
@@ -76,6 +78,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
 
         gradle.sendSignal(SIGINT)
         gradle.waitForFailure()
+        block.releaseAll()
 
         then:
         gradle.standardOutput.contains(OSC_RESET)
