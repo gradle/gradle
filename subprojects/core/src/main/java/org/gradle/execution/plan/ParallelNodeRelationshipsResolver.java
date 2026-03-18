@@ -67,6 +67,7 @@ class ParallelNodeRelationshipsResolver {
     @SuppressWarnings("NonApiType")
     Map<LocalTaskNode, ResolvedNodeRelationships> resolve(LinkedList<Node> initialQueue) {
         Map<LocalTaskNode, ResolvedNodeRelationships> preResolved = new HashMap<>();
+        Map<ProjectInternal, TaskDependencyResolver> resolverByProject = new HashMap<>();
         Set<LocalTaskNode> seen = new HashSet<>();
 
         List<LocalTaskNode> currentWave = new ArrayList<>();
@@ -75,7 +76,7 @@ class ParallelNodeRelationshipsResolver {
         }
 
         while (!currentWave.isEmpty()) {
-            List<ResolvedNodeRelationships> waveResults = resolveWaveInParallel(currentWave);
+            List<ResolvedNodeRelationships> waveResults = resolveWaveInParallel(currentWave, resolverByProject);
             List<LocalTaskNode> nextWave = new ArrayList<>();
 
             for (ResolvedNodeRelationships resolved : waveResults) {
@@ -99,7 +100,7 @@ class ParallelNodeRelationshipsResolver {
      * Each project group gets its own {@link TaskDependencyResolver} to avoid thread-safety issues
      * on the shared {@link org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext}.
      */
-    private List<ResolvedNodeRelationships> resolveWaveInParallel(List<LocalTaskNode> nodes) {
+    private List<ResolvedNodeRelationships> resolveWaveInParallel(List<LocalTaskNode> nodes, Map<ProjectInternal, TaskDependencyResolver> resolverByProject) {
         if (nodes.isEmpty()) {
             return new ArrayList<>();
         }
@@ -125,7 +126,8 @@ class ParallelNodeRelationshipsResolver {
         workerLeaseService.runAsIsolatedTask(() -> {
             buildOperationExecutor.runAllWithAccessToProjectState(queue -> {
                 for (List<LocalTaskNode> group : projectGroups) {
-                    TaskDependencyResolver resolver = dependencyResolver.newResolver();
+                    ProjectInternal project = group.get(0).getOwningProject();
+                    TaskDependencyResolver resolver = resolverByProject.computeIfAbsent(project, p -> dependencyResolver.newResolver());
                     queue.add(new RunnableBuildOperation() {
                         @Override
                         public void run(BuildOperationContext context) {
