@@ -58,6 +58,8 @@ public class StartParameterInternal extends StartParameter {
     private boolean enableProblemReportGeneration = true;
     private boolean daemonJvmCriteriaConfigured = false;
     private Option.Value<Boolean> parallelToolingModelBuilding = Option.Value.defaultValue(false);
+    private @Nullable String develocityUrl;
+    private @Nullable String develocityPluginVersion;
 
     public StartParameterInternal() {
     }
@@ -340,6 +342,24 @@ public class StartParameterInternal extends StartParameter {
 
     public void setParallelToolingModelBuilding(Option.Value<Boolean> parallelToolingModelBuilding) {
         this.parallelToolingModelBuilding = parallelToolingModelBuilding;
+    }
+
+    @Nullable
+    public String getDevelocityUrl() {
+        return develocityUrl;
+    }
+
+    public void setDevelocityUrl(@Nullable String develocityUrl) {
+        this.develocityUrl = develocityUrl;
+    }
+
+    @Nullable
+    public String getDevelocityPluginVersion() {
+        return develocityPluginVersion;
+    }
+
+    public void setDevelocityPluginVersion(@Nullable String develocityPluginVersion) {
+        this.develocityPluginVersion = develocityPluginVersion;
     }
 
     public BuildLayoutConfiguration toBuildLayoutConfiguration() {

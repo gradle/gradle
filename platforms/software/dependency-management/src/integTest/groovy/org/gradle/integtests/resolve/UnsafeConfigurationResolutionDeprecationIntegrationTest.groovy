@@ -210,10 +210,10 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         "incoming.resolutionResult.root"                              | _
         "incoming.resolutionResult.rootComponent.get()"               | _
         "incoming.artifacts.artifactFiles.files"                      | _
-        "incoming.artifacts.artifacts"                                | "org.gradle.api.artifacts.result.ArtifactResult"
+        "incoming.artifacts.artifacts"                                | _
         "incoming.artifactView { }.files.files"                       | _
-        "incoming.artifactView { }.artifacts.artifacts"               | "org.gradle.api.artifacts.result.ArtifactResult"
-        "incoming.artifactView { }.artifacts.resolvedArtifacts.get()" | "org.gradle.api.artifacts.result.ArtifactResult"
+        "incoming.artifactView { }.artifacts.artifacts"               | _
+        "incoming.artifactView { }.artifacts.resolvedArtifacts.get()" | _
         "incoming.artifactView { }.artifacts.failures"                | _
         "incoming.artifactView { }.artifacts.artifactFiles.files"     | _
         "resolve()"                                                   | _

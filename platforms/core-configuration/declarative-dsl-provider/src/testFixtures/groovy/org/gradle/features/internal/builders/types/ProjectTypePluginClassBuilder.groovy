@@ -34,10 +34,6 @@ class ProjectTypePluginClassBuilder {
     final ProjectTypeDefinitionClassBuilder definition
     String projectTypePluginClassName = "ProjectTypeImplPlugin"
     String name = "testProjectType"
-    String conventions = """
-        definition.getId().convention("<no id>");
-        definition.getFoo().getBar().convention("bar");
-    """
 
     ProjectTypePluginClassBuilder(ProjectTypeDefinitionClassBuilder definition) {
         this.definition = definition
@@ -52,16 +48,6 @@ class ProjectTypePluginClassBuilder {
 
     ProjectTypePluginClassBuilder name(String name) {
         this.name = name
-        return this
-    }
-
-    ProjectTypePluginClassBuilder conventions(String conventions) {
-        this.conventions = conventions
-        return this
-    }
-
-    ProjectTypePluginClassBuilder withoutConventions() {
-        this.conventions = null
         return this
     }
 
@@ -103,7 +89,6 @@ class ProjectTypePluginClassBuilder {
                             Services services = context.getObjectFactory().newInstance(Services.class);
 
                             System.out.println("Binding " + ${definition.publicTypeClassName}.class.getSimpleName());
-                            ${conventions == null ? "" : conventions}
 
                             ${definition.buildModelMapping}
 

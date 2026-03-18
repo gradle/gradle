@@ -23,6 +23,7 @@ import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.OptionCategory;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -59,6 +60,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
@@ -123,9 +125,9 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static class BuiltInActionCreator implements CommandLineActionCreator {
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
-            parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
-            parser.option(VERSION, "version").hasDescription("Prints version information and exits.");
-            parser.option(VERSION_CONTINUE, "show-version").hasDescription("Prints version information and continues.");
+            parser.option(HELP, "?", "help").hasDescription("Shows this help message.").hasCategory(OptionCategory.HELP);
+            parser.option(VERSION, "version").hasDescription("Prints version information and exits.").hasCategory(OptionCategory.HELP);
+            parser.option(VERSION_CONTINUE, "show-version").hasDescription("Prints version information and continues.").hasCategory(OptionCategory.HELP);
         }
 
         @Override
@@ -254,7 +256,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         public void execute(ExecutionListener executionListener) {
             ServiceRegistry basicServices = createBasicGlobalServices(loggingServices);
             BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
-                new BuildLayoutFactory(),
+                basicServices.get(BuildLayoutFactory.class),
                 basicServices.get(FileCollectionFactory.class));
             buildEnvironmentConfigurationConverter.configure(parser);
 
@@ -342,6 +344,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             InitialPropertiesConverter propertiesConverter = new InitialPropertiesConverter();
             BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
             LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory());
+            Map<String, String> environmentVariables = System.getenv();
 
             BuildLayoutResult buildLayout = buildLayoutConverter.defaultValues();
 
@@ -366,10 +369,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
 
                 // Calculate the logging configuration
-                loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), loggingConfiguration);
+                loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), environmentVariables, loggingConfiguration);
 
                 // Get configuration for showing the welcome message
-                welcomeMessageConverter.convert(parsedCommandLine, properties.getProperties(), welcomeMessageConfiguration);
+                welcomeMessageConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, welcomeMessageConfiguration);
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }

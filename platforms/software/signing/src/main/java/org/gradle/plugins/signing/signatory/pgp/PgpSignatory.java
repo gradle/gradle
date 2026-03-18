@@ -18,16 +18,17 @@ package org.gradle.plugins.signing.signatory.pgp;
 import org.bouncycastle.bcpg.BCPGOutputStream;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;
+import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureGenerator;
 import org.bouncycastle.openpgp.PGPUtil;
-import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
-import org.bouncycastle.openpgp.operator.bc.BcPBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
-import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.signing.signatory.SignatorySupport;
+import org.gradle.plugins.signing.signatory.internal.pgp.PgpSignatoryUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,13 +40,28 @@ import java.io.OutputStream;
 public class PgpSignatory extends SignatorySupport {
 
     private final String name;
-    private final PGPSecretKey secretKey;
-    private final PGPPrivateKey privateKey;
+    private final Provider<PGPSecretKey> secretKey;
+    private final Provider<PGPPrivateKey> privateKey;
 
-    public PgpSignatory(String name, PGPSecretKey secretKey, String password) {
+    /**
+     * Creates a PGP signatory from secret and private key.
+     * <p>
+     * <b>Warning</b>: the dependencies of providers aren't exposed anywhere.
+     * Consider using {@link PgpSignatoryFactory} to create instances of this class instead.
+     *
+     * @param name the name of the signatory
+     * @param secretKey the secret key
+     * @param privateKey the private key extracted from the secret key
+     */
+    PgpSignatory(String name, Provider<PGPSecretKey> secretKey, Provider<PGPPrivateKey> privateKey) {
         this.name = name;
         this.secretKey = secretKey;
-        this.privateKey = createPrivateKey(secretKey, password);
+        this.privateKey = privateKey;
+    }
+
+    // This is a legacy constructor. It is a public API, so it has to be preserved, but it shouldn't be used internally.
+    public PgpSignatory(String name, PGPSecretKey secretKey, String password) {
+        this(name, Providers.of(secretKey), Providers.of(PgpSignatoryUtil.extractPrivateKey(secretKey, password)));
     }
 
     @Override
@@ -75,7 +91,7 @@ public class PgpSignatory extends SignatorySupport {
 
     @Override
     public String getKeyId() {
-        PgpKeyId id = new PgpKeyId(secretKey.getKeyID());
+        PgpKeyId id = new PgpKeyId(secretKey.get().getKeyID());
         return id.getAsHex();
     }
 
@@ -97,19 +113,13 @@ public class PgpSignatory extends SignatorySupport {
 
     public PGPSignatureGenerator createSignatureGenerator() {
         try {
-            BcPGPContentSignerBuilder builder = new BcPGPContentSignerBuilder(secretKey.getPublicKey().getAlgorithm(), PGPUtil.SHA512);
-            PGPSignatureGenerator generator = new PGPSignatureGenerator(builder, secretKey.getPublicKey());
+            PGPPublicKey publicKey = this.secretKey.get().getPublicKey();
+            PGPPrivateKey privateKey = this.privateKey.get();
+
+            BcPGPContentSignerBuilder builder = new BcPGPContentSignerBuilder(publicKey.getAlgorithm(), PGPUtil.SHA512);
+            PGPSignatureGenerator generator = new PGPSignatureGenerator(builder, publicKey);
             generator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
             return generator;
-        } catch (PGPException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private PGPPrivateKey createPrivateKey(PGPSecretKey secretKey, String password) {
-        try {
-            PBESecretKeyDecryptor decryptor = new BcPBESecretKeyDecryptorBuilder(new BcPGPDigestCalculatorProvider()).build(password.toCharArray());
-            return secretKey.extractPrivateKey(decryptor);
         } catch (PGPException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

@@ -41,6 +41,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     String baseVersion = GradleVersion.current().baseVersion.version
 
     def coreLibsModules = [
+        "ant",
+        "ant-api",
         "base-asm",
         "base-diagnostics",
         "base-services",
@@ -72,6 +74,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "core-api",
         "core-flow-services-api",
         "core-kotlin-extensions",
+        "credentials",
+        "credentials-api",
         "daemon-logging",
         "daemon-main",
         "daemon-protocol",
@@ -119,6 +123,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "problems-rendering",
         "process-memory-services",
         "process-services",
+        "process-services-api",
         "project-features",
         "project-features-api",
         "report-rendering",
@@ -141,6 +146,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "tooling-api-provider",
         "versioned-cache",
         "worker-main",
+        "worker-process-services",
         "wrapper-shared",
     ]
 
@@ -172,7 +178,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        92
+        94
     }
 
     /**
@@ -381,6 +387,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-java-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-groovy-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-enterprise-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ant-impl-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ant-worker-${baseVersion}.jar"))
 
         // Agents
         assertIsGradleJar(contentsDir.file("lib/agents/gradle-instrumentation-agent-${baseVersion}.jar"))

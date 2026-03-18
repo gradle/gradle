@@ -757,17 +757,6 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         thrown(IllegalStateException)
     }
 
-    def "areChangesAllowed reflects state correctly"() {
-        expect:
-        container.areChangesAllowed()
-
-        when:
-        container.disallowChanges()
-
-        then:
-        !container.areChangesAllowed()
-    }
-
     interface Subtype extends CharSequence {}
 
     static <T> Collection<T> collect(Iterable<T> iterable) {

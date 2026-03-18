@@ -196,11 +196,6 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
         ((DomainObjectCollectionInternal<T>) delegate).disallowChanges();
     }
 
-    @Override
-    public boolean areChangesAllowed() {
-        return ((DomainObjectCollectionInternal<T>) delegate).areChangesAllowed();
-    }
-
     @Internal
     @Override
     public String getDisplayName() {

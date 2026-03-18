@@ -42,11 +42,15 @@ public abstract class NoVariantsWithMatchingCapabilitiesFailureDescriber extends
 
         Set<CapabilitySelector> capabilities = failure.getCapabilitySelectors();
         if (capabilities.size() == 1) {
-            sb.append("Unable to find a variant with the requested capability: ");
-            sb.append(capabilities.iterator().next().getDisplayName());
+            sb.append("Unable to find a variant of '")
+                .append(failure.getTargetComponent())
+                .append("' with the requested capability: ")
+                .append(capabilities.iterator().next().getDisplayName());
         } else {
-            sb.append("Unable to find a variant with the requested capabilities: ");
-            sb.append("[").append(capabilities.stream().map(CapabilitySelector::getDisplayName).collect(Collectors.joining(", "))).append("]");
+            sb.append("Unable to find a variant of '")
+                .append(failure.getTargetComponent())
+                .append("' with the requested capabilities: ")
+                .append("[").append(capabilities.stream().map(CapabilitySelector::getDisplayName).collect(Collectors.joining(", "))).append("]");
         }
 
         sb.append(":\n");

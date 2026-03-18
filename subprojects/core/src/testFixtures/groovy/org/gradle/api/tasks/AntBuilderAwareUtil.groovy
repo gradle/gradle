@@ -25,7 +25,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MinimalFileTree
-import org.gradle.api.internal.project.DefaultAntBuilder
+import org.gradle.api.internal.project.ant.BasicAntBuilder
 
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
@@ -38,7 +38,7 @@ class AntBuilderAwareUtil {
     }
 
     static def assertSetContains(FileCollection set, Set<String> filenames, Iterable<FileCollection.AntType> types, boolean generic = true) {
-        AntBuilder ant = new DefaultAntBuilder(null, null)
+        AntBuilder ant = new BasicAntBuilder()
         ant.antProject.addTaskDefinition('test', FileListTask)
 
         if (generic) {

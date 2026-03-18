@@ -49,6 +49,13 @@ abstract class AdHocPerformanceScenario(
             text("runs", "40", display = ParameterDisplay.PROMPT, allowEmpty = false)
             text("warmups", "10", display = ParameterDisplay.PROMPT, allowEmpty = false)
             text(
+                "generateDiffs",
+                "true",
+                display = ParameterDisplay.PROMPT,
+                allowEmpty = false,
+                description = "Whether to generate differential flame graphs after profiling",
+            )
+            text(
                 "scenario",
                 "",
                 display = ParameterDisplay.PROMPT,
@@ -101,7 +108,7 @@ abstract class AdHocPerformanceScenario(
                         performanceTestCommandLine(
                             "clean performance:%testProject%PerformanceAdHocTest --tests \"%scenario%\"",
                             "%performance.baselines%",
-                            """--warmups %warmups% --runs %runs% --checks %checks% --profiler %profiler% %additional.gradle.parameters%""",
+                            """--warmups %warmups% --runs %runs% --checks %checks% --profiler %profiler% --generate-diffs %generateDiffs% %additional.gradle.parameters%""",
                             os,
                             arch,
                             "%testJavaVersion%",

@@ -46,5 +46,5 @@ public interface DependencyFactoryInternal extends DependencyFactory {
 
     Dependency createDependency(Object dependencyNotation);
 
-    ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);
+    ProjectDependency createProjectDependencyFromMap(Map<? extends String, ? extends Object> map);
 }

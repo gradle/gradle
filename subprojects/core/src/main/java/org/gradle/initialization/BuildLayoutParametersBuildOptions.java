@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.BasicFileResolver;
+import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
@@ -55,6 +56,11 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setGradleUserHomeDir(resolver.transform(value));
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     public static class ProjectDirOption extends StringBuildOption<BuildLayoutParameters> {
@@ -68,6 +74,11 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
             File projectDir = resolver.transform(value);
             settings.setCurrentDir(projectDir);
             settings.setProjectDir(projectDir);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 }

@@ -1,8 +1,8 @@
 # ADR-0004 - Use a platform-oriented architecture for Gradle
 
-## Date
+## Status
 
-2024-02-07
+- ACCEPTED on 2024-02-07
 
 ## Context
 
@@ -93,10 +93,6 @@ Provides build logic, libraries, test suites and infrastructure to support devel
 #### Documentation
 
 Provides cross-cutting Gradle documentation and samples, along with the infrastructure to write, test, publish and host the documentation.
-
-## Status
-
-ACCEPTED
 
 ## Consequences
 

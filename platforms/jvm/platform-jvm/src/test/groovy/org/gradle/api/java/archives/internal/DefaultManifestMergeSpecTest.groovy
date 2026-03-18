@@ -21,14 +21,17 @@ import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.ManifestMergeDetails
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-
 class DefaultManifestMergeSpecTest extends Specification {
+    def static final DEFAULT_MANIFEST_CHARSET = TestUtil.providerFactory().provider { ManifestInternal.DEFAULT_CONTENT_CHARSET }
     def static final MANIFEST_VERSION_MAP = ['Manifest-Version': '1.0']
+    def fileResolver = Mock(FileResolver)
 
     DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec()
+
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -40,14 +43,13 @@ class DefaultManifestMergeSpecTest extends Specification {
     }
 
     def mergeWithFileAndObjectManifest() {
-        def fileResolver = Mock(FileResolver)
-        DefaultManifest baseManifest = new DefaultManifest(fileResolver)
+        DefaultManifest baseManifest = newManifest()
         def baseMap = baseManifest.attributes + ([key1: 'value1', key2: 'value2', key3: 'value3'] as LinkedHashMap)
         def baseSectionMap = [keysec1: 'valueSec1', keysec2: 'valueSec2', keysec3: 'valueSec3']
         baseManifest.attributes(baseMap)
         baseManifest.attributes(baseSectionMap, 'section')
 
-        DefaultManifest otherManifest = new DefaultManifest(fileResolver)
+        DefaultManifest otherManifest = newManifest()
         def otherMap = [key1: 'value1other', key4: 'value4other', key5: 'value5other'] as LinkedHashMap
         def otherSectionMap = [keysec1: 'value1Secother', keysec4: 'value4Secother', keysec5: 'value5Secother']
         otherManifest.attributes(otherMap)
@@ -55,7 +57,7 @@ class DefaultManifestMergeSpecTest extends Specification {
 
         TestFile manifestFile = tmpDir.file('somefile')
         fileResolver.resolve(manifestFile) >> manifestFile
-        DefaultManifest fileManifest = new DefaultManifest(fileResolver)
+        DefaultManifest fileManifest = newManifest()
         def fileMap = [key2: 'value2File', key4: 'value4File', key6: 'value6File'] as LinkedHashMap
         def fileSectionMap = [keysec2: 'value2Secfile', keysec4: 'value5Secfile', keysec6: 'value6Secfile']
         fileManifest.attributes(fileMap)
@@ -74,35 +76,37 @@ class DefaultManifestMergeSpecTest extends Specification {
     }
 
     def mergeWithExcludeAction() {
-        DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
+        when:
+        DefaultManifest baseManifest = newManifest()
         baseManifest.attributes key1: 'value1', key2: 'value2'
-        mergeSpec.from(new DefaultManifest(Mock(FileResolver)))
+        mergeSpec.from(newManifest())
         mergeSpec.eachEntry {ManifestMergeDetails details ->
             if (details.getKey() == 'key2') {
                 details.exclude()
             }
         }
 
-        expect:
-        mergeSpec.merge(baseManifest, Mock(FileResolver)).attributes == [key1: 'value1'] + MANIFEST_VERSION_MAP
+        then:
+        mergeSpec.merge(baseManifest, fileResolver).attributes == [key1: 'value1'] + MANIFEST_VERSION_MAP
     }
 
     def mergeWithNestedFrom() {
-        DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver)).attributes(key1: 'value1')
-        DefaultManifest mergeManifest = new DefaultManifest(Mock(FileResolver)).attributes(key2: 'value2')
-        DefaultManifest nestedMergeManifest = new DefaultManifest(Mock(FileResolver)).attributes(key3: 'value3')
+        given:
+        DefaultManifest baseManifest = newManifest().attributes(key1: 'value1')
+        DefaultManifest mergeManifest = newManifest().attributes(key2: 'value2')
+        DefaultManifest nestedMergeManifest = newManifest().attributes(key3: 'value3')
         mergeManifest.from(nestedMergeManifest)
         mergeSpec.from(mergeManifest)
 
         expect:
-        mergeSpec.merge(baseManifest, Mock(FileResolver)).attributes == [key1: 'value1', key2: 'value2', key3: 'value3'] +
+        mergeSpec.merge(baseManifest, fileResolver).attributes == [key1: 'value1', key2: 'value2', key3: 'value3'] +
                 MANIFEST_VERSION_MAP
     }
 
     def mergeWithChangeValueAction() {
-        DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
+        DefaultManifest baseManifest = newManifest()
         baseManifest.attributes key1: 'value1', key2: 'value2'
-        mergeSpec.from(new DefaultManifest(Mock(FileResolver)))
+        mergeSpec.from(newManifest())
         mergeSpec.eachEntry {ManifestMergeDetails details ->
             if (details.getKey() == 'key2') {
                 details.setValue('newValue2')
@@ -110,13 +114,13 @@ class DefaultManifestMergeSpecTest extends Specification {
         }
 
         expect:
-        mergeSpec.merge(baseManifest, Mock(FileResolver)).attributes == [key1: 'value1', key2: 'newValue2'] + MANIFEST_VERSION_MAP
+        mergeSpec.merge(baseManifest, fileResolver).attributes == [key1: 'value1', key2: 'newValue2'] + MANIFEST_VERSION_MAP
     }
 
     def mergeWithActionOnSection() {
-        DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
+        DefaultManifest baseManifest = newManifest()
         baseManifest.attributes('section', key1: 'value1')
-        mergeSpec.from(new DefaultManifest(Mock(FileResolver)).attributes('section', key2: 'mergeValue2'))
+        mergeSpec.from(newManifest().attributes('section', key2: 'mergeValue2'))
         mergeSpec.eachEntry {ManifestMergeDetails details ->
             if (details.getBaseValue() != null && details.getMergeValue() == null) {
                 details.exclude();
@@ -124,31 +128,31 @@ class DefaultManifestMergeSpecTest extends Specification {
         }
 
         expect:
-        mergeSpec.merge(baseManifest, Mock(FileResolver)).sections.section == [key2: 'mergeValue2']
+        mergeSpec.merge(baseManifest, fileResolver).sections.section == [key2: 'mergeValue2']
     }
 
     def mergeWithForeignManifest() {
-        DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
+        DefaultManifest baseManifest = newManifest()
         baseManifest.attributes key1: 'value1'
-        Manifest foreign = new CustomManifestInternalWrapper(new DefaultManifest(Mock(FileResolver)).attributes( key2: 'value2'))
+        Manifest foreign = new CustomManifestInternalWrapper(newManifest().attributes( key2: 'value2'), DEFAULT_MANIFEST_CHARSET)
         mergeSpec.from(foreign)
 
         expect:
-        mergeSpec.merge(baseManifest, Mock(FileResolver)).attributes == [key1: 'value1', key2: 'value2'] + MANIFEST_VERSION_MAP
+        mergeSpec.merge(baseManifest, fileResolver).attributes == [key1: 'value1', key2: 'value2'] + MANIFEST_VERSION_MAP
     }
 
     def mergeShouldWinByDefault() {
-        DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
+        DefaultManifest baseManifest = newManifest()
         baseManifest.attributes key1: 'value1'
-        mergeSpec.from(new DefaultManifest(Mock(FileResolver)).attributes(key1: 'mergeValue1'))
+        mergeSpec.from(newManifest().attributes(key1: 'mergeValue1'))
 
         expect:
-        mergeSpec.merge(baseManifest, Mock(FileResolver)).attributes == [key1: 'mergeValue1'] + MANIFEST_VERSION_MAP
+        mergeSpec.merge(baseManifest, fileResolver).attributes == [key1: 'mergeValue1'] + MANIFEST_VERSION_MAP
     }
 
     def addActionByAnonymousInnerClass() {
-        DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
-        mergeSpec.from(new DefaultManifest(Mock(FileResolver)).attributes(key1: 'value1'))
+        DefaultManifest baseManifest = newManifest()
+        mergeSpec.from(newManifest().attributes(key1: 'value1'))
         mergeSpec.eachEntry(new Action() {
             void execute(def mergeDetails) {
                 if (mergeDetails.key == 'key1') {
@@ -158,6 +162,10 @@ class DefaultManifestMergeSpecTest extends Specification {
         })
 
         expect:
-        mergeSpec.merge(baseManifest, Mock(FileResolver)).attributes == MANIFEST_VERSION_MAP
+        mergeSpec.merge(baseManifest, fileResolver).attributes == MANIFEST_VERSION_MAP
+    }
+
+    private DefaultManifest newManifest() {
+        return new DefaultManifest(fileResolver)
     }
 }

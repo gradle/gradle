@@ -270,11 +270,11 @@ project.description = text
         concurrent.finished()
     }
 
-    static void distributionProgressMessage(connector, String message) {
+    static void distributionProgressMessage(ToolingApiConnector connector, String message) {
         connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: { it.description = message })
     }
 
-    static void distributionOperation(connector, Closure operation) {
+    static void distributionOperation(ToolingApiConnector connector, Closure operation) {
         connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: operation)
     }
 

@@ -246,6 +246,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         SubClassOfParentDefinition           | ParentBuildModel           | "build model is same as registered definition's inherited build model"
         ParentDefinition                     | SubClassOfParentBuildModel | "build model is sub class of registered definition's build model"
         SubClassOfParentBuildModelDefinition | ParentBuildModel           | "build model is super class of registered definition's build model"
+        DefinitionWithNoBuildModel           | DefinitionWithNoBuildModel | "definition is the same with no build model"
     }
 
     def "can declare two plugins with the same feature name if they bind to different targets (#description)"() {
@@ -305,10 +306,11 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         implementations.get("test").size() == 2
 
         where:
-        targetType       | anotherTargetType       | description
-        ParentDefinition | AnotherParentDefinition | "different definitions"
-        ParentBuildModel | AnotherParentBuildModel | "different build models"
-        ParentDefinition | AnotherParentBuildModel | "different definition and build model"
+        targetType                 | anotherTargetType                 | description
+        ParentDefinition           | AnotherParentDefinition           | "different definitions"
+        ParentBuildModel           | AnotherParentBuildModel           | "different build models"
+        ParentDefinition           | AnotherParentBuildModel           | "different definition and build model"
+        DefinitionWithNoBuildModel | AnotherDefinitionWithNoBuildModel | "different definitions with no build model"
     }
 
     private interface ParentDefinition extends Definition<ParentBuildModel> { }
@@ -324,6 +326,10 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
     private interface AnotherParentDefinition extends Definition<AnotherParentBuildModel> { }
 
     private interface AnotherParentBuildModel extends BuildModel { }
+
+    private interface DefinitionWithNoBuildModel extends Definition<BuildModel.None> { }
+
+    private interface AnotherDefinitionWithNoBuildModel extends Definition<BuildModel.None> { }
 
     private interface TestDefinition extends Definition<TestModel> { }
 

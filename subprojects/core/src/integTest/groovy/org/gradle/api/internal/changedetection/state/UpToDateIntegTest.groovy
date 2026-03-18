@@ -194,7 +194,7 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         type << ["dir", "file"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "TaskExecutionGraph.beforeTask")
+    @ToBeFixedForConfigurationCache(because = "TaskExecutionGraph.beforeTask, https://github.com/gradle/gradle/issues/36700")
     @Issue("https://github.com/gradle/gradle/issues/15397")
     def "can add a file input in a task execution listener"() {
         buildFile << """
