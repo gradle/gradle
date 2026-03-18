@@ -423,7 +423,7 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         succeeds("resolve")
 
         then:
-        def deprecationOperations = buildOps.all().findAll { !it.progress(DefaultDeprecatedUsageProgressDetails).isEmpty() }
+        def deprecationOperations = buildOps.getRecords().findAll { !it.progress(DefaultDeprecatedUsageProgressDetails).isEmpty() }
         deprecationOperations.findAll { op ->
             if (!op.details.containsKey("applicationId")) {
                 return false

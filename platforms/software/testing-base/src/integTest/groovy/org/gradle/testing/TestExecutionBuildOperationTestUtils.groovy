@@ -18,14 +18,14 @@ package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.integtests.fixtures.TestableBuildOperationRecord
 
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 abstract class TestExecutionBuildOperationTestUtils {
 
 
-    static void assertTestNg(BuildOperationRecord rootTestOp, BuildOperationsFixture operations) {
+    static void assertTestNg(TestableBuildOperationRecord rootTestOp, BuildOperationsFixture operations) {
         def executorTestOps = operations.children(rootTestOp, ExecuteTestBuildOperationType)
         assert executorTestOps.size() == 1
         assert executorTestOps[0].details.testDescriptor.name.startsWith("Gradle Test Executor ")
@@ -56,7 +56,7 @@ abstract class TestExecutionBuildOperationTestUtils {
         assert testOutput*.details.output.destination == ["StdOut", "StdErr"]
     }
 
-    static void assertJunit(BuildOperationRecord rootTestOp, BuildOperationsFixture operations) {
+    static void assertJunit(TestableBuildOperationRecord rootTestOp, BuildOperationsFixture operations) {
         def executorTestOps = operations.children(rootTestOp, ExecuteTestBuildOperationType)
         assert executorTestOps.size() == 1
         assert executorTestOps[0].details.testDescriptor.name.startsWith("Gradle Test Executor ")
