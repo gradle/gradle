@@ -94,10 +94,13 @@ import java.util.concurrent.Callable;
  */
 @CacheableTask
 public abstract class JavaCompile extends AbstractCompile implements HasCompileOptions {
+    private static final String DISABLE_INCREMENTAL_COMPILE_PROPERTY = "org.gradle.java.disable-incremental-compile";
+    private static final String DISABLE_INCREMENTAL_COMPILE_ENV_VARIABLE = "ORG_GRADLE_JAVA_DISABLE_INCREMENTAL_COMPILE";
 
     private final FileCollection stableSources;
     private final ModularitySpec modularity;
     private File previousCompilationDataFile;
+    private final Provider<Boolean> incrementalCompileDisabled;
 
     public JavaCompile() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -112,6 +115,12 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
 
         getJavaCompiler().convention(javaCompilerConvention);
         getJavaCompiler().finalizeValueOnRead();
+
+        incrementalCompileDisabled = getProviderFactory().systemProperty(DISABLE_INCREMENTAL_COMPILE_PROPERTY)
+            .orElse(getProviderFactory().gradleProperty(DISABLE_INCREMENTAL_COMPILE_PROPERTY))
+            .orElse(getProviderFactory().environmentVariable(DISABLE_INCREMENTAL_COMPILE_ENV_VARIABLE))
+            .map(Boolean::parseBoolean)
+            .orElse(false);
 
         getOptions().getIncrementalAfterFailure().convention(true);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(getOptions(), getOutputs());
@@ -144,11 +153,16 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @TaskAction
     protected void compile(InputChanges inputs) {
         DefaultJavaCompileSpec spec = createSpec();
-        if (!getOptions().isIncremental()) {
-            performFullCompilation(spec);
-        } else {
+        if (shouldPerformIncrementalCompilation()) {
             performIncrementalCompilation(inputs, spec);
+        } else {
+            performFullCompilation(spec);
         }
+    }
+
+    private boolean shouldPerformIncrementalCompilation() {
+        boolean incrementalCompileDisabled = this.incrementalCompileDisabled.get();
+        return !incrementalCompileDisabled && getOptions().isIncremental();
     }
 
     private void performIncrementalCompilation(InputChanges inputs, DefaultJavaCompileSpec spec) {

@@ -889,6 +889,7 @@ Gradle offers several ways to optimize Java compilation:
 
 * A. Run the compiler in a separate process
 * B. Use `implementation` visibility for internal dependencies
+* C. Disable incremental compilation on stateless machines
 
 ==== A. Run the compiler as a separate process
 
@@ -961,6 +962,23 @@ dependencies {
 
 Switching to `implementation` for internal-only dependencies is one of the most impactful changes you can make to improve build performance in large, modular codebases.
 
+==== C. Disable incremental compilation on stateless machines
+
+Incremental compilation is only useful when Gradle has the previous compilation history.
+If that history is not available, incremental compilation provides no benefit, and may add a significant overhead.
+This is common on CI agents that start from a clean workspace and do not retain local build state.
+
+Writing the incremental compilation state is I/O intensive.
+On machines with slow disks or limited IOPS, it can be useful to disable incremental compilation to avoid the overhead.
+
+You can disable incremental compilation for all `JavaCompile` tasks in the build with one of the following mechanisms:
+
+* System property: `-Dorg.gradle.java.disable-incremental-compile=true`
+* Gradle property: `org.gradle.java.disable-incremental-compile=true`
+* Environment variable: `ORG_GRADLE_JAVA_DISABLE_INCREMENTAL_COMPILE=true`
+
+This build-wide override takes precedence over any `options.incremental` setting in the build script.
+
 [[optimize_android_projects]]
 == 12. Optimize Android Projects
 
@@ -1015,6 +1033,9 @@ tasks.withType(JavaCompile).configureEach {
 ----
 =====
 ====
+
+To disable incremental Java compilation for all `JavaCompile` tasks in a build, set `org.gradle.java.disable-incremental-compile=true` as a system property, Gradle property, or environment variable (`ORG_GRADLE_JAVA_DISABLE_INCREMENTAL_COMPILE=true`).
+This override takes precedence over `options.incremental`.
 
 === Use Compile Avoidance
 
