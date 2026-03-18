@@ -62,6 +62,18 @@ class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
         return new ManagedFactories.ListPropertyManagedFactory(TestUtil.propertyFactory())
     }
 
+    def "list property can be set to a mapped version of itself"() {
+        given:
+        def property = property()
+        property.set(["a", "b", "c"])
+
+        when:
+        property.set(property.map { it.findAll { it != "b" } })
+
+        then:
+        property.get() == ["a", "c"]
+    }
+
     static class ListPropertyCircularFunctionEvaluationTest extends CollectionPropertySpec.CollectionPropertyCircularChainEvaluationTest<String, List<String>> {
         @Override
         DefaultListProperty<String> property() {

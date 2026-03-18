@@ -92,4 +92,23 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
             return leftValue.addPathsFrom(rightValue);
         }
     }
+
+    @Override
+    public boolean containsProviderInChain(ProviderInternal<?> target) {
+        return this == target || left.containsProviderInChain(target) || right.containsProviderInChain(target);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+        if (this == target) {
+            return (ProviderInternal<S>) replacement;
+        }
+        ProviderInternal<T> newLeft = left.substituteProvider(target, replacement);
+        ProviderInternal<? extends T> newRight = right.substituteProvider(target, replacement);
+        if (newLeft == left && newRight == right) {
+            return (ProviderInternal<S>) this;
+        }
+        return (ProviderInternal<S>) new OrElseProvider<>(newLeft, newRight);
+    }
 }

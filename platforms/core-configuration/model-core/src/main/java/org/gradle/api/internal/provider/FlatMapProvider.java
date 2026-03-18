@@ -91,6 +91,24 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     @Override
+    public boolean containsProviderInChain(ProviderInternal<?> target) {
+        return this == target || provider.containsProviderInChain(target);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <R> ProviderInternal<R> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+        if (this == target) {
+            return (ProviderInternal<R>) replacement;
+        }
+        ProviderInternal<? extends T> newProvider = provider.substituteProvider(target, replacement);
+        if (newProvider == provider) {
+            return (ProviderInternal<R>) this;
+        }
+        return (ProviderInternal<R>) new FlatMapProvider<>(newProvider, transformer);
+    }
+
+    @Override
     protected String toStringNoReentrance() {
         return "flatmap(" + provider + ")";
     }

@@ -16,21 +16,31 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
-
-import java.util.function.Consumer
+import spock.lang.Specification
 
 class OrElseFixedValueProviderTest {
-    static class OrElseFixedValueProviderCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
-        @Override
-        ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
-            return new OrElseFixedValueProvider<String>(baseProvider, "B")
+    static class OrElseFixedValueProviderCircularChainEvaluationTest extends Specification implements UsesStringProperty {
+        def "setting property to an orElse fixed-value version of itself uses original value when present"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(new OrElseFixedValueProvider<String>(property, "fallback"))
+
+            then:
+            property.get() == "hello"
         }
 
-        @Override
-        List<Consumer<ProviderInternal<?>>> safeConsumers() {
-            return super.safeConsumers() + [ProviderConsumer.CALCULATE_PRESENCE] as List<Consumer<ProviderInternal<?>>>
+        def "setting property to an orElse fixed-value version of itself falls back when absent"() {
+            given:
+            def property = property()
+
+            when:
+            property.set(new OrElseFixedValueProvider<String>(property, "fallback"))
+
+            then:
+            property.get() == "fallback"
         }
     }
 }

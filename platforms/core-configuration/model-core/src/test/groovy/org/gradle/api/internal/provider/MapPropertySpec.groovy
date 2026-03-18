@@ -1523,6 +1523,17 @@ The value of this property is derived from: <source>""")
         1 * transform.transform(_)
     }
 
+    def "map property can be set to a mapped version of itself"() {
+        given:
+        property.set([a: "1", b: "2", c: "3"])
+
+        when:
+        property.set(property.map { it.findAll { k, v -> k != "b" } })
+
+        then:
+        property.get() == [a: "1", c: "3"]
+    }
+
     def "can alternate insert and put"() {
         when:
         property.insert("k1", "1")

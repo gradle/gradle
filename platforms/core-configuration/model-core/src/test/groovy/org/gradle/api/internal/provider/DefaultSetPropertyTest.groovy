@@ -69,6 +69,18 @@ class DefaultSetPropertyTest extends CollectionPropertySpec<Set<String>> {
         property.get() as List == ["123", "abc", "456", "def"]
     }
 
+    def "set property can be set to a mapped version of itself"() {
+        given:
+        def property = property()
+        property.set(["a", "b", "c"] as Set)
+
+        when:
+        property.set(property.map { it.findAll { it != "b" } as Set })
+
+        then:
+        property.get() == ["a", "c"] as Set
+    }
+
     static class SetPropertyCircularFunctionEvaluationTest extends CollectionPropertySpec.CollectionPropertyCircularChainEvaluationTest<String, Set<String>> {
         @Override
         DefaultSetProperty<String> property() {

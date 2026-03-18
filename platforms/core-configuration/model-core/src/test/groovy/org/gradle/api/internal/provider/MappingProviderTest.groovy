@@ -17,9 +17,9 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
+import spock.lang.Specification
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.ManagedFactory
 
@@ -92,10 +92,21 @@ class MappingProviderTest extends ProviderSpec<String> {
         }
     }
 
-    static class MappingProviderCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
-        @Override
-        ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
-            return new MappingProvider(String, baseProvider, { it })
+    // MappingProvider extends TransformBackedProvider. When a property is set to such a provider
+    // that references itself (property.set(MappingProvider(property, ...))), DefaultProperty detects
+    // the self-reference and breaks the cycle by substituting a shallow copy. So no circular
+    // evaluation exception is thrown — instead, the pattern works as expected.
+    static class MappingProviderCircularChainEvaluationTest extends Specification implements UsesStringProperty {
+        def "setting property to a mapped version of itself breaks the cycle"() {
+            given:
+            def property = property().value("hello")
+            def provider = new MappingProvider(String, property, { it.reverse() })
+
+            when:
+            property.set(provider)
+
+            then:
+            property.get() == "olleh"
         }
     }
 }
