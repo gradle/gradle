@@ -70,7 +70,7 @@ public class WrapperExecutor {
                 config.setNetworkTimeout(getProperty(NETWORK_TIMEOUT_PROPERTY, config.getNetworkTimeout()));
                 config.setValidateDistributionUrl(getProperty(VALIDATE_DISTRIBUTION_URL, config.getValidateDistributionUrl()));
                 config.setRetries(getProperty(RETRIES_PROPERTY, config.getRetries()));
-                config.setRetryTimeout(getProperty(RETRY_TIMEOUT_PROPERTY, config.getRetryTimeout()));
+                config.setRetryTimeoutMs(getProperty(RETRY_TIMEOUT_PROPERTY, config.getRetryTimeoutMs()));
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
             }

@@ -61,11 +61,11 @@ public class WrapperConfiguration {
         return retries;
     }
 
-    public void setRetryTimeout(int retryTimeoutMs) {
+    public void setRetryTimeoutMs(int retryTimeoutMs) {
         this.retryTimeoutMs = retryTimeoutMs;
     }
 
-    public int getRetryTimeout() {
+    public int getRetryTimeoutMs() {
         return retryTimeoutMs;
     }
 

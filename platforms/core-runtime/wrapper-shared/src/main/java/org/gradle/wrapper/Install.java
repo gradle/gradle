@@ -108,7 +108,7 @@ public class Install {
             try {
                 boolean needsDownload = !localZipFile.isFile() || failed;
                 if (needsDownload) {
-                    forceFetch(localZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeout());
+                    forceFetch(localZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeoutMs());
                 }
 
                 deleteLocalTopLevelDirs(distDir);
@@ -136,7 +136,7 @@ public class Install {
             URI distributionUrl = distribution.resolve(distribution.getPath() + SHA_256);
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + SHA_256);
 
-            forceFetch(tmpZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeout());
+            forceFetch(tmpZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeoutMs());
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(tmpZipFile), "UTF-8"));
             try {
