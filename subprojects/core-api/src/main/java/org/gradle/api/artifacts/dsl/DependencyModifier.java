@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.Cast;
 
 import javax.inject.Inject;
@@ -41,12 +42,14 @@ import javax.inject.Inject;
  * @implNote All implementations of {@code modify(...)} delegate to {@link #modifyImplementation(ModuleDependency)}.
  * <p>
  * Changes to this interface may require changes to the
- * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
- * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
+ * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL},
+ * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL} and
+ * {@link org.gradle.internal.declarativedsl.dependencycollectors.DependencyCollectorFunctionExtractorAndRuntimeResolver for Declarative DSL}.
  *
  * @since 8.0
  */
 @NonExtensible
+@HiddenInDefinition
 @SuppressWarnings("JavadocReference")
 public abstract class DependencyModifier {
     /**
