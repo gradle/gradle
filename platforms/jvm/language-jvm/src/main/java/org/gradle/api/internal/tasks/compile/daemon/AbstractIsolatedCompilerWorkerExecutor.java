@@ -41,11 +41,11 @@ abstract public class AbstractIsolatedCompilerWorkerExecutor implements Compiler
     abstract IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions);
 
     @Override
-    public DefaultWorkResult execute(CompilerParameters parameters, DaemonForkOptions daemonForkOptions, Set<Class<?>> additionalWhitelistedClasses) {
+    public DefaultWorkResult execute(CompilerParameters parameters, DaemonForkOptions daemonForkOptions, Set<Class<?>> additionalAllowedClasses) {
         IsolatedClassLoaderWorkerRequirement workerRequirement = getIsolatedWorkerRequirement(daemonForkOptions);
         BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);
 
-        return worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerWorkAction.class, parameters, workerRequirement, additionalWhitelistedClasses));
+        return worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerWorkAction.class, parameters, workerRequirement, additionalAllowedClasses));
     }
 
 }

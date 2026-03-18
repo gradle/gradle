@@ -80,7 +80,7 @@ public class ExternalModuleComponentResolverFactory {
     private final BuildCommencedTimeProvider timeProvider;
     private final VersionComparator versionComparator;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final RepositoryDisabler repositoryBlacklister;
+    private final RepositoryDisabler repositoryDisabler;
     private final VersionParser versionParser;
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final CalculatedValueFactory calculatedValueFactory;
@@ -100,7 +100,7 @@ public class ExternalModuleComponentResolverFactory {
         BuildCommencedTimeProvider timeProvider,
         VersionComparator versionComparator,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        RepositoryDisabler repositoryBlacklister,
+        RepositoryDisabler repositoryDisabler,
         VersionParser versionParser,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
         CalculatedValueFactory calculatedValueFactory,
@@ -113,7 +113,7 @@ public class ExternalModuleComponentResolverFactory {
         this.timeProvider = timeProvider;
         this.versionComparator = versionComparator;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.repositoryBlacklister = repositoryBlacklister;
+        this.repositoryDisabler = repositoryDisabler;
         this.versionParser = versionParser;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
         this.listener = listener;
@@ -164,7 +164,7 @@ public class ExternalModuleComponentResolverFactory {
                 moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository, moduleResolveStateFactory);
             }
 
-            moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
+            moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryDisabler);
             moduleComponentRepository = filterRepository(repository, moduleComponentRepository);
             moduleComponentRepository = maybeApplyDependencyVerification(moduleComponentRepository, dependencyVerificationEnabled);
 
