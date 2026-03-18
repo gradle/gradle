@@ -12,7 +12,6 @@ dependencies {
     api(projects.files)
     api(projects.modelCore)
     api(projects.processServices)
-    api(projects.processServicesApi)
     api(projects.serviceProvider)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
@@ -23,6 +22,7 @@ dependencies {
 
     implementation(projects.fileCollections)
     implementation(projects.javaCompilerWorker)
+    implementation(projects.processServicesApi)
 
     implementation(libs.guava)
     implementation(libs.slf4jApi)
