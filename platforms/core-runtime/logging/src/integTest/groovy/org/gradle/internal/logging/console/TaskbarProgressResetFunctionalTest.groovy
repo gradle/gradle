@@ -61,7 +61,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         buildFile << """
             task block {
                 doFirst {
-                    Thread.sleep(10_000)
+                    Thread.sleep(60_000)
                 }
             }
         """
