@@ -171,6 +171,10 @@ public class Install {
 
     private void forceFetch(File localTargetFile, URI distributionUrl, int networkRetries, int networkRetryTimeoutMs) throws Exception {
 
+        // retry parameter values smaller than the defaults will be handled as the defaults
+        networkRetries = Math.max(DEFAULT_NETWORK_RETRIES, networkRetries);
+        networkRetryTimeoutMs = Math.max(DEFAULT_NETWORK_RETRY_TIMEOUT_MS, networkRetryTimeoutMs);
+
         logger.log(String.format("Fetching distribution%s.",
             networkRetries <= 0 ? "" : String.format(" (retrying %d times, with a timeout of %d ms)", networkRetries, networkRetryTimeoutMs)
         ));
