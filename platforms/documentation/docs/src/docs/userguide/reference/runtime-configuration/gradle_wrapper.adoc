@@ -135,10 +135,10 @@ Disables the validation of the configured distribution URL.
 Enables the validation of the configured distribution URL. Enabled by default.
 
 `--retries`::
-The number of retries to attempt when downloading the Gradle distribution. The default value is `0`.
+The number of retries to attempt when downloading the Gradle distribution. The default value is `0`, meaning retrying is disabled, downloading will be attempted a single time.
 
 `--retry-timeout-ms`::
-The timeout in milliseconds to wait between download retries. The default value is `2000`.
+The timeout in milliseconds to wait between download retries (if enabled, see `--retries`). The default value is `0`, meaning that there won't be any delay between two successive download attempts.
 
 If the distribution URL is configured with `--gradle-version` or `--gradle-distribution-url`, the URL is validated by sending a HEAD request in the case of the `https` scheme or by checking the existence of the file in the case of the `file` scheme.
 

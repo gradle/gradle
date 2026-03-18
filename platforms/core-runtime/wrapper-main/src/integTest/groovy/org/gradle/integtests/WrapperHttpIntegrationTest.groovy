@@ -254,7 +254,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         def retries=2
-        def retryTimeoutMs=1000
+        def retryTimeoutMs=0
 
         file('gradle/wrapper/gradle-wrapper.properties') << """
             retries=$retries
@@ -283,7 +283,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18124')
-    def "fails with retries and retry timeout"() {
+    def "fails with retries and retry timeout (#retryTimeoutMs ms)"() {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
@@ -293,7 +293,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         def retries=2
-        def retryTimeoutMs=1000
 
         file('gradle/wrapper/gradle-wrapper.properties') << """
             retries=$retries
@@ -319,6 +318,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         assert failure.output.readLines().findAll{ it.contains(
             "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 3
+
+        where:
+        retryTimeoutMs << [0, 500]
     }
 
     def "downloads wrapper via proxy"() {
