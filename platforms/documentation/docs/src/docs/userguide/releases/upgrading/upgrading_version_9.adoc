@@ -41,53 +41,50 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Plugins requested by precompiled settings plugins are now resolved in the build that compiles them
+==== Plugins requested by precompiled settings plugins are now validated at compile time
 
-When a precompiled settings plugin (`*.settings.gradle.kts`) declares a plugin in a `plugins {}` block, that
-plugin request is now resolved against the dependencies of the build that compiles the plugin.
+Gradle now validates plugin requests in precompiled settings plugins (`*.settings.gradle.kts`) during compilation, failing the build if a requested plugin cannot be resolved.
+This matches the existing behavior for precompiled script plugins targeting `Project`.
 
-Previously, if a precompiled settings plugin was never applied, it could contain an invalid plugin request
-without being detected:
+Previously, if a precompiled settings plugin was never applied, invalid plugin requests in its `plugins {}` block went undetected until the plugin was used by a consuming build, at which point the build would fail unexpectedly.
 
-.buildSrc/src/main/kotlin/my-precompiled-plugin.settings.gradle.kts
 [source,kotlin]
+.buildSrc/src/main/kotlin/my-precompiled-plugin.settings.gradle.kts
 ----
 plugins {
-    id("com.example.invalid.plugin") // a plugin that does not exist in the dependencies
+    id("com.example.invalid.plugin") // now fails at compile time if unresolvable
 }
 ----
 
-If such a plugin was published, the invalid request would only fail later, when the plugin was used by a
-consuming build. Gradle now validates these plugin requests during compilation and fails the build if the
-requested plugin cannot be resolved. This behavior now matches that of precompiled script plugins targeting `Project`.
-
-Avoid invalid plugin requests in unused precompiled settings plugins.
+If you have precompiled settings plugins that are declared but not currently applied, check their `plugins {}` blocks and remove or fix any plugin requests that cannot be resolved from the compiling build's dependencies.
 
 ==== Calling `.values()` on environment variables or system properties now tracked by Configuration Cache
 
-Gradle <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, tracks>> accesses to environment variables and system properties during configuration time to record them as inputs to the Configuration Cache, so the cache entry is invalidated when those variables change.
+Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` now records all environment variables or system properties as Configuration Cache inputs.
+This is consistent with how <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, `.forEach()` calls are already tracked>>.
 
-Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` records **all** environment variables or system properties respectively as inputs to the Configuration Cache, similarly to how `.forEach()` calls are tracked in previous versions.
-If your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, you may experience more frequent Configuration Cache invalidations.
+As a result, if your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, any change to any environment variable or system property will invalidate the Configuration Cache entry, not just the ones your build actually uses.
+If you experience unexpected cache invalidations after upgrading, check whether your build or any plugins call `.values()` on these maps, and consider switching to targeted property lookups instead.
 
 ==== Dependency lockfiles are generated with a platform-independent line ending
 
-Dependency lockfiles now use a platform independent line ending (`\n`) instead of the system default.
-Existing lockfiles written with Windows line endings can still be read, but new lockfiles generated will only use platform independent line endings.
+Dependency lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
+Existing lockfiles using Windows line endings (CRLF, `\r\n`) can still be read, but newly generated lockfiles will always use LF.
 
-During the next lock update using Gradle 9.5.0 or above, if the lockfiles were previously generated with Windows line endings, all line endings will be changed, regardless of whether dependencies have changed.
+When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed, this is expected and only happens once.
 
 ==== The Windows start script has been reworked to improve usability
+
 The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
-However, this change may have unintended side effects due to certain checks being removed and slight changes in behavior.
 
-The new script features multiple changes:
+If you use a custom start script template or invoke `gradlew.bat` from another batch file, review the changes below as some may affect your build.
 
-- No check of the `OS` variable is performed since Gradle does not support versions of Windows that are not NT-based.
-- `endlocal` is used before invoking the application so the local environment changes of the script do not affect the invoked process.
-Environment variables intended for the invoked process should be set before the `gradlew.bat` invocation.
-- `& CALL` is used after invoking the application to remove the "Terminate batch job (Y/N)?" prompt.
-- `exit /b` has been changed to `"%COMSPEC%" /c exit`. This allows the use of `&&` and `||` when invoking the script from another batch file.
+The new script includes the following changes:
+
+- The `OS` variable check has been removed, since Gradle no longer supports non-NT-based versions of Windows.
+- `endlocal` is now called before invoking the application, so environment variable changes made inside the script do not leak into the invoked process. Any environment variables needed by the application must be set before calling `gradlew.bat`.
+- `& CALL` is now used after invoking the application, which suppresses the "Terminate batch job (Y/N)?" prompt. If your scripts rely on this prompt for flow control, they will need to be updated.
+- `exit /b` has been replaced with `"%COMSPEC%" /c exit`, enabling the use of `&&` and `||` operators when calling the script from another batch file.
 
 ==== Upgrade to Kotlin 2.3.10
 
@@ -97,10 +94,14 @@ The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetB
 
 [[deprecate_exit_environment_var]]
 ==== Deprecation of setting an exit environment variable
-`CreateStartScripts.getExitEnvironmentVariable()` and `CreateStartScripts.setExitEnvironmentVariable(String)` have been deprecated and will be removed in Gradle 10.0.0.
-Due to the changes in the Windows start script template, these functions no longer have any effect with the default templates.
 
-It is recommended that custom start script templates are updated to not rely on this functionality.
+link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#getExitEnvironmentVar()[`CreateStartScripts.getExitEnvironmentVar()`] and link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#setExitEnvironmentVar(java.lang.String)[`CreateStartScripts.setExitEnvironmentVar(String)`] have been deprecated and will be removed in Gradle 10.0.0.
+
+As of this release, these methods are no-ops and have no effect, even with custom start script templates.
+This is a result of the link:https://github.com/gradle/gradle/pull/36510[Windows start script template no longer using an exit environment variable].
+
+If you are using a custom start script template that references the exit environment variable, update your template to remove this dependency.
+There is no replacement API, the exit environment variable concept has been removed entirely.
 
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
@@ -331,7 +332,6 @@ testing {
     }
 }
 ----
-
 
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier

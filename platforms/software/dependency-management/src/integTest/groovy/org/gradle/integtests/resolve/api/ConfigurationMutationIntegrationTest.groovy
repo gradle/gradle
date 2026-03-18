@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
@@ -194,7 +194,7 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause("Bad user code")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
+    @UnsupportedWithConfigurationCache(because = "There is no way to add configuration logic after resolution with the CC")
     def "cannot add withDependencies rule after configuration has been used"() {
         when:
         buildFile << """
@@ -423,7 +423,7 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         succeeds("resolve")
 
         then:
-        def deprecationOperations = buildOps.all().findAll { !it.progress(DefaultDeprecatedUsageProgressDetails).isEmpty() }
+        def deprecationOperations = buildOps.getRecords().findAll { !it.progress(DefaultDeprecatedUsageProgressDetails).isEmpty() }
         deprecationOperations.findAll { op ->
             if (!op.details.containsKey("applicationId")) {
                 return false

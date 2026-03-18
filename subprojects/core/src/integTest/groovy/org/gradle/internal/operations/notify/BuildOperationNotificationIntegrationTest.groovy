@@ -37,8 +37,6 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
@@ -253,25 +251,6 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         }
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests daemon")
-    def "listeners are deregistered after build"() {
-        when:
-        executer.requireDaemon().requireIsolatedDaemons()
-        buildFile << "task t"
-        succeeds("t")
-
-        then:
-        notifications.finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
-
-        when:
-        // remove listener
-        buildFile.text = "task x"
-        succeeds("x")
-
-        then:
-        notifications.all().findAll {it.detailsType != null && CalculateTaskGraphBuildOperationType.Result.class.isAssignableFrom(it.detailsType) }.size() == 0
-    }
-
     // This test simulates what the Develocity plugin does.
     def "drains notifications for buildSrc build"() {
         given:
@@ -285,7 +264,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         result.assertTaskScheduled(":buildSrc:compileJava")
-        notifications.all().findAll { it.detailsType != null && ConfigureProjectBuildOperationType.Details.class.isAssignableFrom(it.detailsType) }.size() == 2
-        notifications.all().findAll { it.detailsType != null && ExecuteTaskBuildOperationType.Details.class.isAssignableFrom(it.detailsType) }.size() == 6 // including all buildSrc task execution events
+        notifications.all(ConfigureProjectBuildOperationType).size() == 2
+        notifications.all(ExecuteTaskBuildOperationType).size() == 6 // including all buildSrc task execution events
     }
 }

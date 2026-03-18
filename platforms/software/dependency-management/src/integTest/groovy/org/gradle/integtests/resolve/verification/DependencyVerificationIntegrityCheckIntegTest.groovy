@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
@@ -306,7 +305,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         given:
         terseConsoleOutput(false)
@@ -342,11 +340,13 @@ This can indicate that a dependency has been compromised. Please carefully verif
             }
 
             task resolve {
+                def firstResolutionProvider = providers.provider { $firstResolution }
+                def secondResolutionProvider = providers.provider { configurations.testRuntimeClasspath.files }
                 doLast {
                     println "First resolution"
-                    println $firstResolution
+                    println firstResolutionProvider.get()
                     println "Second resolution"
-                    println configurations.testRuntimeClasspath.files
+                    println secondResolutionProvider.get()
                 }
             }
         """

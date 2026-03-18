@@ -105,7 +105,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
                 apply plugin: 'scala'
                 dependencies {
                     implementation("${scalaDependency(version.toString())}")
-                    implementation(project(":java").sourceSets.main.output)
+                    implementation(project.project(":java").sourceSets.main.output)
                 }
             }
         """

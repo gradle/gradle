@@ -44,6 +44,16 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
         this.file = file;
     }
 
+    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier,
+                                         ResolvedVariantResult variant,
+                                         Class<? extends Artifact> type,
+                                         File file) {
+        this.identifier = identifier;
+        this.variant = variant;
+        this.type = type;
+        this.file = file;
+    }
+
     @Override
     public String toString() {
         return identifier.getDisplayName();

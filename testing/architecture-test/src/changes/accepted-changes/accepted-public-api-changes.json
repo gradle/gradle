@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Method org.gradle.api.JavaVersion.toClassVersion()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.quality.Checkstyle",
             "member": "Method org.gradle.api.plugins.quality.Checkstyle.getConfigDirectory()",
             "acceptation": "Make explicit properties into managed properties",

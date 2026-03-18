@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -34,7 +35,8 @@ import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.internal.SafeFileLocationUtils;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.file.Deleter;
@@ -59,7 +61,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Base64;
 import java.util.stream.Collectors;
 
 /**
@@ -71,26 +73,31 @@ import java.util.stream.Collectors;
 public abstract class GenericHtmlTestReportGenerator implements TestReportGenerator {
 
     private static final Logger LOG = Logging.getLogger(GenericHtmlTestReportGenerator.class);
+    private static final HashFunction HASHER = Hashing.farmHashFingerprint64();
+
+    @VisibleForTesting
+    public static String hashSegment(String name) {
+        byte[] hashBytes = HASHER.hashUnencodedChars(name).asBytes();
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(hashBytes);
+    }
 
     public static String getFilePath(org.gradle.util.Path path, boolean isLeaf) {
-        String filePath;
         if (path.segmentCount() == 0) {
-            filePath = "index.html";
-        } else if (isLeaf && !Objects.equals(path.getName(), "index")) {
-            // Avoid using a directory for each leaf node unless its name clashes (i.e. "index")
+            return "index.html";
+        } else if (isLeaf) {
+            // Avoid using a directory for each leaf node
             // This reduces VFS overhead from many directories for large test suites
             String prefix = String.join("/", Iterables.transform(
                 path.getParent().segments(),
-                name -> SafeFileLocationUtils.toSafeFileName(name, true)
+                GenericHtmlTestReportGenerator::hashSegment
             ));
-            filePath = prefix + (prefix.isEmpty() ? "" : "/") + SafeFileLocationUtils.toSafeFileName(path.getName() + ".html", false);
+            return prefix + (prefix.isEmpty() ? "" : "/") + hashSegment(path.getName()) + ".html";
         } else {
-            filePath = String.join("/", Iterables.transform(
+            return String.join("/", Iterables.transform(
                 path.segments(),
-                name -> SafeFileLocationUtils.toSafeFileName(name, true)
+                GenericHtmlTestReportGenerator::hashSegment
             )) + "/index.html";
         }
-        return filePath;
     }
 
     private static String getFilePath(TestTreeModel tree) {

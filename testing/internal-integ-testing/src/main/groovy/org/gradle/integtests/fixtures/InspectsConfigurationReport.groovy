@@ -72,18 +72,19 @@ trait InspectsConfigurationReport {
     }
 
     void promptsForRerunToFindMoreConfigurations() {
-        outputContains("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable), and configurations without attributes.")
+        outputContains("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
     }
 
-    void promptsForRerunToFindMoreVariants() {
-        outputContains("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable), and variants without attributes.")
+    void promptsForRerunToFindMoreVariants(boolean includeVariantsWithoutAttributes = false) {
+        outputContains("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable)${ includeVariantsWithoutAttributes ? ", and variants without attributes." : "" }")
     }
 
     void doesNotPromptForRerunToFindMoreConfigurations() {
-        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable), and configurations without attributes.")
+        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
     }
 
     void doesNotPromptForRerunToFindMoreVariants() {
+        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable)")
         outputDoesNotContain("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable), and variants without attributes.")
     }
 
@@ -97,9 +98,5 @@ trait InspectsConfigurationReport {
 
     void hasConfigurationsLackingAttributesLegend() {
         outputContains("(n) Configuration lacks attributes, and may encounter problems when used for variant-aware dependency resolution.")
-    }
-
-    void doesNotHaveConfigurationsLackingAttributesLegend() {
-        outputDoesNotContain("(n) Configuration lacks attributes, and may encounter problems when used for variant-aware dependency resolution.")
     }
 }

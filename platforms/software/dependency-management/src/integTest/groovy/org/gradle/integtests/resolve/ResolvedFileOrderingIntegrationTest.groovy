@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolvedFileOrderingIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
@@ -42,7 +41,6 @@ class ResolvedFileOrderingIntegrationTest extends AbstractDependencyResolutionTe
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "result includes files from local and external components and file dependencies in a fixed order and with duplicates removed"() {
         mavenRepo.module("org", "test", "1.0")
             .artifact(classifier: 'from-main')
@@ -79,20 +77,36 @@ class ResolvedFileOrderingIntegrationTest extends AbstractDependencyResolutionTe
             }
 
             task show {
-                doLast {
-                    println "artifacts 1: " + configurations.compile.incoming.artifacts.collect { it.file.name }
-                    println "artifacts 2: " + configurations.compile.incoming.artifactView { }.artifacts.collect { it.file.name }
-                    println "artifacts 3: " + configurations.compile.incoming.artifactView { lenient = true }.artifacts.collect { it.file.name }
+                def compile = providers.provider { configurations.compile }
 
-                    println "files 1: " + configurations.compile.collect { it.name }
-                    println "files 2: " + configurations.compile.incoming.files.collect { it.name }
-                    println "files 3: " + configurations.compile.incoming.artifacts.artifactFiles.collect { it.name }
-                    println "files 4: " + configurations.compile.incoming.artifactView { }.files.collect { it.name }
-                    println "files 5: " + configurations.compile.incoming.artifactView { }.artifacts.artifactFiles.collect { it.name }
-                    println "files 6: " + configurations.compile.incoming.artifactView { lenient = true }.files.collect { it.name }
-                    println "files 7: " + configurations.compile.incoming.artifactView { lenient = true }.artifacts.artifactFiles.collect { it.name }
-                    println "files 8: " + configurations.compile.incoming.artifactView { componentFilter { true } }.files.collect { it.name }
-                    println "files 9: " + configurations.compile.incoming.artifactView { componentFilter { true } }.artifacts.artifactFiles.collect { it.name }
+                def artifacts1 = compile.map { it.incoming.artifacts.collect { it.file.name } }
+                def artifacts2 = compile.map { it.incoming.artifactView { }.artifacts.collect { it.file.name } }
+                def artifacts3 = compile.map { it.incoming.artifactView { lenient = true }.artifacts.collect { it.file.name } }
+
+                def files1 = compile.map { it.collect { it.name } }
+                def files2 = compile.map { it.incoming.files.collect { it.name } }
+                def files3 = compile.map { it.incoming.artifacts.artifactFiles.collect { it.name } }
+                def files4 = compile.map { it.incoming.artifactView { }.files.collect { it.name } }
+                def files5 = compile.map { it.incoming.artifactView { }.artifacts.artifactFiles.collect { it.name } }
+                def files6 = compile.map { it.incoming.artifactView { lenient = true }.files.collect { it.name } }
+                def files7 = compile.map { it.incoming.artifactView { lenient = true }.artifacts.artifactFiles.collect { it.name } }
+                def files8 = compile.map { it.incoming.artifactView { componentFilter { true } }.files.collect { it.name } }
+                def files9 = compile.map { it.incoming.artifactView { componentFilter { true } }.artifacts.artifactFiles.collect { it.name } }
+                
+                doLast {
+                    println "artifacts 1: " + artifacts1.get()
+                    println "artifacts 2: " + artifacts2.get()
+                    println "artifacts 3: " + artifacts3.get()
+
+                    println "files 1: " + files1.get()
+                    println "files 2: " + files2.get()
+                    println "files 3: " + files3.get()
+                    println "files 4: " + files4.get()
+                    println "files 5: " + files5.get()
+                    println "files 6: " + files6.get()
+                    println "files 7: " + files7.get()
+                    println "files 8: " + files8.get()
+                    println "files 9: " + files9.get()
                 }
             }
         """

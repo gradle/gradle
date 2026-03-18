@@ -19,12 +19,10 @@ package org.gradle.integtests.resolve.api
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
     // region Roleless (Implicit LEGACY Role) Configurations
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "default usage for roleless configuration is to allow anything"() {
         given:
         buildFile << """
@@ -32,20 +30,16 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 custom
             }
 
-            tasks.register('checkConfUsage') {
-                doLast {
-                    assert configurations.custom.canBeConsumed
-                    assert configurations.custom.canBeResolved
-                    assert configurations.custom.canBeDeclared
-                    assert !configurations.custom.deprecatedForConsumption
-                    assert !configurations.custom.deprecatedForResolution
-                    assert !configurations.custom.deprecatedForDeclarationAgainst
-                }
-            }
+            assert configurations.custom.canBeConsumed
+            assert configurations.custom.canBeResolved
+            assert configurations.custom.canBeDeclared
+            assert !configurations.custom.deprecatedForConsumption
+            assert !configurations.custom.deprecatedForResolution
+            assert !configurations.custom.deprecatedForDeclarationAgainst
         """
 
         expect:
-        succeeds('checkConfUsage')
+        succeeds('help')
     }
 
     def "can create configuration named #configuration with same legacy behavior"() {

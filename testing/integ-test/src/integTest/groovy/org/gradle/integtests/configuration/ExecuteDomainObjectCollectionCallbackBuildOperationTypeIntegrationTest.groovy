@@ -23,7 +23,7 @@ import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.internal.ExecuteListenerBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.integtests.fixtures.TestableBuildOperationRecord
 
 class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest extends AbstractIntegrationSpec {
 
@@ -462,11 +462,11 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
             }"""
     }
 
-    private List<BuildOperationRecord> findCallbackActionBuildOps(String markerOutput) {
+    private List<TestableBuildOperationRecord> findCallbackActionBuildOps(String markerOutput) {
         return ops.all(ExecuteDomainObjectCollectionCallbackBuildOperationType, { it.progress.size() == 1 && it.progress[0].details.spans[0].text.startsWith(markerOutput) })
     }
 
-    private BuildOperationRecord findCallbackActionBuildOp(String markerOutput) {
+    private TestableBuildOperationRecord findCallbackActionBuildOp(String markerOutput) {
         def ops = findCallbackActionBuildOps(markerOutput)
         assert ops.size() == 1
         ops[0]
