@@ -50,7 +50,7 @@ class DslDocModel {
 
     gradlebuild.docs.dsl.docbook.model.ClassDoc findClassDoc(String className) {
         gradlebuild.docs.dsl.docbook.model.ClassDoc classDoc = classes[className]
-        if (classDoc == null && getFileForClass(className).isFile()) {
+        if (classDoc == null && (getFileForClass(className).isFile() || classMetaData.find(className) != null)) {
             return getClassDoc(className)
         }
         return classDoc
@@ -85,11 +85,14 @@ class DslDocModel {
                     extensionMetaData = new gradlebuild.docs.dsl.docbook.model.ClassExtensionMetaData(className)
                 }
                 File classFile = getFileForClass(className)
-                if (!classFile.isFile()) {
-                    throw new RuntimeException("Docbook source file not found for class '$className' in $classDocbookDir.")
+                def classContent
+                if (classFile.isFile()) {
+                    XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
+                    classContent = provider.parse(classFile)
+                } else {
+                    classContent = ClassDocXmlGenerator.generate(classMetaData, document)
                 }
-                XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
-                def doc = new gradlebuild.docs.dsl.docbook.model.ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData)
+                def doc = new gradlebuild.docs.dsl.docbook.model.ClassDoc(className, classContent, document, classMetaData, extensionMetaData)
                 docBuilder.build(doc)
                 return doc
             } catch (ClassDocGenerationException e) {

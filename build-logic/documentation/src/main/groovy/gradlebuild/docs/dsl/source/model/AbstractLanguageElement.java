@@ -27,6 +27,7 @@ public abstract class AbstractLanguageElement implements LanguageElement, Serial
     private String rawCommentText;
     private final List<String> annotationNames = new ArrayList<String>();
     private String replacement;
+    private boolean dslHidden;
 
     protected AbstractLanguageElement() {
     }
@@ -73,6 +74,14 @@ public abstract class AbstractLanguageElement implements LanguageElement, Serial
 
     public void setReplacement(String replacement) {
         this.replacement = replacement;
+    }
+
+    public boolean isDslHidden() {
+        return dslHidden;
+    }
+
+    public void setDslHidden(boolean dslHidden) {
+        this.dslHidden = dslHidden;
     }
 
     public void resolveTypes(Transformer<String, String> transformer) {
