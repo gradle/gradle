@@ -37,7 +37,7 @@ public abstract class WrapperPlugin implements Plugin<Project> {
                 wrapper.getNetworkTimeout().convention(WrapperDefaults.NETWORK_TIMEOUT);
                 wrapper.getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
                 wrapper.getRetries().convention(WrapperDefaults.RETRIES);
-                wrapper.getRetries().convention(WrapperDefaults.RETRY_TIMEOUT_MS);
+                wrapper.getRetryTimeoutMs().convention(WrapperDefaults.RETRY_TIMEOUT_MS);
             });
         }
     }
