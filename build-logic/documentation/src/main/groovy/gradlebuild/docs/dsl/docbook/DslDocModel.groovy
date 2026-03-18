@@ -50,7 +50,7 @@ class DslDocModel {
 
     gradlebuild.docs.dsl.docbook.model.ClassDoc findClassDoc(String className) {
         gradlebuild.docs.dsl.docbook.model.ClassDoc classDoc = classes[className]
-        if (classDoc == null && (getFileForClass(className).isFile() || classMetaData.find(className) != null)) {
+        if (classDoc == null && getFileForClass(className).isFile()) {
             return getClassDoc(className)
         }
         return classDoc
