@@ -71,7 +71,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         failureHasCause('Invalid task configuration')
         failureCauseContains('Toolchain download repositories have not been configured.')
         failure.assertHasResolution('Configure toolchain download repositories in your build settings.')
-        failure.assertHasDocumentationInResolutions('toolchains.html#sub:download_repositories')
+        failure.assertHasResolution("For more information, see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories")
 
     }
 
@@ -329,7 +329,7 @@ tasks.named("updateDaemonJvm") {
         failureHasCause("Invalid task configuration")
         failureCauseContains("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
         failure.assertHasResolution('Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.')
-        failure.assertHasDocumentationInResolutions('gradle_daemon.html#sec:daemon_jvm_provisioning')
+        failure.assertHasResolution('For more information, see https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_provisioning')
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
