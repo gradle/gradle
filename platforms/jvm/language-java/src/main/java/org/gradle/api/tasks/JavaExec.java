@@ -129,10 +129,19 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
 
         Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory().provider(this::jvmArgsConventionValue);
+        /**
+         * {@inheritDoc}
+         */
         javaExecSpec.getJvmArguments().convention(jvmArgumentsConvention);
 
         javaExecSpec.getMainClass().convention(getMainClass());
+        /**
+         * {@inheritDoc}
+         */
         javaExecSpec.getMainModule().convention(getMainModule());
+        /**
+         * {@inheritDoc}
+         */
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
 
         JavaToolchainService javaToolchainService = getJavaToolchainService();
@@ -154,6 +163,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     public void exec() {
         validateExecutableMatchesToolchain();
 
+        /**
+         * {@inheritDoc}
+         */
         List<String> jvmArgs = javaExecSpec.getJvmArguments().getOrNull();
         if (jvmArgs != null) {
             javaExecSpec.setExtraJvmArgs(jvmArgs);
@@ -206,6 +218,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public List<String> getJvmArgs() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getJvmArguments().get();
     }
 
@@ -214,6 +229,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(List<String> arguments) {
+        /**
+         * {@inheritDoc}
+         */
         javaExecSpec.getJvmArguments().empty();
         jvmArgs(arguments);
     }
@@ -223,6 +241,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(Iterable<?> arguments) {
+        /**
+         * {@inheritDoc}
+         */
         javaExecSpec.getJvmArguments().empty();
         jvmArgs(arguments);
     }
@@ -239,6 +260,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
 
     private void addJvmArguments(Iterable<?> arguments) {
         for (Object arg : arguments) {
+            /**
+             * {@inheritDoc}
+             */
             javaExecSpec.getJvmArguments().add(arg.toString());
         }
     }
@@ -258,6 +282,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public Map<String, @Nullable Object> getSystemProperties() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getSystemProperties();
     }
 
@@ -293,6 +320,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public FileCollection getBootstrapClasspath() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getBootstrapClasspath();
     }
 
@@ -356,6 +386,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @ToBeReplacedByLazyProperty
     @Nullable
     public String getMaxHeapSize() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getMaxHeapSize();
     }
 
@@ -373,6 +406,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public boolean getEnableAssertions() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getEnableAssertions();
     }
 
@@ -390,6 +426,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public boolean getDebug() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getDebug();
     }
 
@@ -407,6 +446,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaDebugOptions getDebugOptions() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getDebugOptions();
     }
 
@@ -437,6 +479,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public List<String> getArgs() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getArgs();
     }
 
@@ -504,6 +549,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public List<CommandLineArgumentProvider> getArgumentProviders() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getArgumentProviders();
     }
 
@@ -531,6 +579,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getClasspath();
     }
 
@@ -605,6 +656,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal
     @ToBeReplacedByLazyProperty
     public File getWorkingDir() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getWorkingDir();
     }
 
@@ -640,6 +694,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal
     @ToBeReplacedByLazyProperty
     public Map<String, Object> getEnvironment() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getEnvironment();
     }
 
@@ -694,6 +751,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal
     @ToBeReplacedByLazyProperty
     public InputStream getStandardInput() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getStandardInput();
     }
 
@@ -732,6 +792,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal
     @ToBeReplacedByLazyProperty
     public OutputStream getErrorOutput() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getErrorOutput();
     }
 
@@ -761,6 +824,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal
     @ToBeReplacedByLazyProperty
     public List<String> getCommandLine() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getCommandLine();
     }
 
@@ -770,6 +836,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getJvmArgumentProviders();
     }
 
@@ -778,6 +847,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public ListProperty<String> getJvmArguments() {
+        /**
+         * {@inheritDoc}
+         */
         return javaExecSpec.getJvmArguments();
     }
 

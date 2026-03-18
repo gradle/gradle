@@ -131,7 +131,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This breaks the provider
             options.addStringOption("-add-stylesheet", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
             options.addStringOption("source", "8");
-            options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
+            options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:", "gradle.dsl.hidden:Xa:DSL Hidden:");
             // TODO: This breaks the provider
             task.getInputs().dir(javadocs.getJavaPackageListLoc());
             var javaApiLink = javadocs.getJavaApi().map(URI::toString).map(v -> {

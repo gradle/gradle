@@ -131,6 +131,9 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
 
     private ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails> computeProjectsWithConfigurations() {
         return ProjectsWithConfigurations.from(
+            /**
+             * {@inheritDoc}
+             */
             getProjects(),
             ProjectDetails::withNameAndPath,
             HtmlDependencyReportTask::getConfigurationsWhichCouldHaveDependencyInfo

@@ -26,6 +26,8 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.comments.Comment;
 import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.javadoc.Javadoc;
+import com.github.javaparser.javadoc.JavadocBlockTag;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.LiteralStringValueExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
@@ -155,6 +157,9 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
         findAnnotations(methodDeclaration, methodMetaData);
         extractParameters(methodDeclaration, methodMetaData);
 
+        boolean hidden = hasDslHiddenTag(methodDeclaration);
+        methodMetaData.setDslHidden(hidden);
+
         Matcher matcher = GETTER_METHOD_NAME.matcher(name);
         if (matcher.matches()) {
             int startName = matcher.start(2);
@@ -162,6 +167,9 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
             PropertyMetaData property = getCurrentClass().addReadableProperty(propName, returnType, rawCommentText, methodMetaData);
             methodMetaData.getAnnotationTypeNames().forEach(property::addAnnotationTypeName);
             property.setReplacement(methodMetaData.getReplacement());
+            if (hidden) {
+                property.setDslHidden(true);
+            }
             return;
         }
 
@@ -247,6 +255,13 @@ public class SourceMetaDataVisitor extends VoidVisitorAdapter<ClassMetaDataRepos
 
     private String getJavadocComment(NodeWithJavadoc<?> node) {
         return node.getJavadocComment().map(Comment::getContent).orElse("");
+    }
+
+    private boolean hasDslHiddenTag(NodeWithJavadoc<?> node) {
+        return node.getJavadoc()
+            .map(Javadoc::getBlockTags)
+            .map(tags -> tags.stream().anyMatch(tag -> tag.getTagName().equals("gradle.dsl.hidden")))
+            .orElse(false);
     }
 
 }

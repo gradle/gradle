@@ -25,6 +25,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import gradlebuild.docs.dsl.docbook.AssembleDslDocTask;
+import gradlebuild.docs.dsl.docbook.DslMigrationAnalysisTask;
 import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask;
 
 /**
@@ -50,6 +51,14 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
         TaskProvider<ExtractDslMetaDataTask> dslMetaData = tasks.register("dslMetaData", ExtractDslMetaDataTask.class, task -> {
             task.source(extension.getDocumentedSource());
             task.getDestinationFile().convention(dslReference.getStagingRoot().file("dsl-meta-data.bin"));
+        });
+
+        tasks.register("dslMigrationAnalysis", DslMigrationAnalysisTask.class, task -> {
+            task.setGroup("documentation");
+            task.setDescription("Analyzes DSL XML files for migration to auto-generated docs.");
+            task.getClassMetaDataFile().convention(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile));
+            task.getClassDocbookDirectory().convention(dslReference.getRoot());
+            task.getReportFile().convention(dslReference.getStagingRoot().file("dsl-migration-report.txt"));
         });
 
         TaskProvider<AssembleDslDocTask> dslDocbook = tasks.register("dslDocbook", AssembleDslDocTask.class, task -> {

@@ -98,6 +98,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
             getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(transformer(FilePermissions::toUnixNumeric)))
                 .optional(true);
+            /**
+             * {@inheritDoc}
+             */
             getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(transformer(FilePermissions::toUnixNumeric)))
                 .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
@@ -188,6 +191,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     @ToBeReplacedByLazyProperty
     public boolean isCaseSensitive() {
+        /**
+         * {@inheritDoc}
+         */
         return getMainSpec().isCaseSensitive();
     }
 
@@ -206,6 +212,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     @ToBeReplacedByLazyProperty
     public boolean getIncludeEmptyDirs() {
+        /**
+         * {@inheritDoc}
+         */
         return getMainSpec().getIncludeEmptyDirs();
     }
 
@@ -232,6 +241,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     @ToBeReplacedByLazyProperty
     public DuplicatesStrategy getDuplicatesStrategy() {
+        /**
+         * {@inheritDoc}
+         */
         return getRootSpec().getDuplicatesStrategy();
     }
 
@@ -422,6 +434,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     @ToBeReplacedByLazyProperty
     public Set<String> getIncludes() {
+        /**
+         * {@inheritDoc}
+         */
         return getMainSpec().getIncludes();
     }
 
@@ -441,6 +456,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     @ToBeReplacedByLazyProperty
     public Set<String> getExcludes() {
+        /**
+         * {@inheritDoc}
+         */
         return getMainSpec().getExcludes();
     }
 
@@ -539,6 +557,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     @Internal
     public Property<ConfigurableFilePermissions> getFilePermissions() {
+        /**
+         * {@inheritDoc}
+         */
         return getMainSpec().getFilePermissions();
     }
 

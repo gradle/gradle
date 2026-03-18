@@ -182,6 +182,9 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     @Internal
     @ToBeReplacedByLazyProperty
     public Set<String> getIncludes() {
+        /**
+         * {@inheritDoc}
+         */
         return patternSet.getIncludes();
     }
 

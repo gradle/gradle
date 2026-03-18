@@ -150,6 +150,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Override
     @ToBeReplacedByLazyProperty
     public List<String> getCommandLine() {
+        /**
+         * {@inheritDoc}
+         */
         return execSpec.getCommandLine();
     }
 
@@ -257,6 +260,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Override
     @ToBeReplacedByLazyProperty
     public Map<String, Object> getEnvironment() {
+        /**
+         * {@inheritDoc}
+         */
         return execSpec.getEnvironment();
     }
 
@@ -311,6 +317,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Override
     @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
     public InputStream getStandardInput() {
+        /**
+         * {@inheritDoc}
+         */
         return execSpec.getStandardInput();
     }
 
@@ -349,6 +358,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Override
     @ToBeReplacedByLazyProperty(comment = "Should this be lazy? Probably not because it's a stream", unreported = true)
     public OutputStream getErrorOutput() {
+        /**
+         * {@inheritDoc}
+         */
         return execSpec.getErrorOutput();
     }
 

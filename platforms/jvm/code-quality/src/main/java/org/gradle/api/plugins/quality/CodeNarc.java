@@ -113,6 +113,9 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
             newReport.getOutputLocation().set(report.getOutputLocation());
             return newReport;
         }).collect(Collectors.toList()));
+        /**
+         * {@inheritDoc}
+         */
         parameters.getIgnoreFailures().set(getIgnoreFailures());
         parameters.getSource().setFrom(getSource());
     }

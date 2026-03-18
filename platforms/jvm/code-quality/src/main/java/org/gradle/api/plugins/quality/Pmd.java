@@ -94,6 +94,9 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
         if (getRuleSetConfig() != null) {
             parameters.getRuleSetConfigFiles().from(getRuleSetConfig().asFile());
         }
+        /**
+         * {@inheritDoc}
+         */
         parameters.getIgnoreFailures().set(getIgnoreFailures());
         parameters.getConsoleOutput().set(isConsoleOutput());
         parameters.getStdOutIsAttachedToTerminal().set(stdOutIsAttachedToTerminal());
