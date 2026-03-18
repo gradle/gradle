@@ -19,36 +19,27 @@ package org.gradle.execution.plan;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.AbstractCollection;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.Sets.newIdentityHashSet;
@@ -66,8 +57,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
     private final ResourceLockCoordinationService lockCoordinator;
-    private final WorkerLeaseService workerLeaseService;
-    private final BuildOperationExecutor buildOperationExecutor;
     private Spec<? super Task> filter = Specs.satisfyAll();
     private int order = 0;
     private boolean continueOnFailure;
@@ -75,10 +64,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> finalizers = new LinkedHashSet<>();
     private final OrdinalNodeAccess ordinalNodeAccess;
+    @Nullable
+    private final ParallelNodeRelationshipsResolver parallelNodeRelationshipsResolver;
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
 
-    private final boolean parallelTaskDependencyResolution;
 
     private DefaultFinalizedExecutionPlan finalizedPlan;
     // An immutable copy of the final plan
@@ -102,10 +92,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         this.outputHierarchy = outputHierarchy;
         this.destroyableHierarchy = destroyableHierarchy;
         this.lockCoordinator = lockCoordinator;
-        this.workerLeaseService = workerLeaseService;
-        this.buildOperationExecutor = buildOperationExecutor;
         this.ordinalNodeAccess = new OrdinalNodeAccess(ordinalGroupFactory);
-        this.parallelTaskDependencyResolution = parallelTaskDependencyResolution;
+        this.parallelNodeRelationshipsResolver = parallelTaskDependencyResolution
+            ? new ParallelNodeRelationshipsResolver(dependencyResolver, workerLeaseService, buildOperationExecutor)
+            : null;
     }
 
     @Override
@@ -178,8 +168,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void discoverNodeRelationships(LinkedList<Node> queue) {
-        if (parallelTaskDependencyResolution) {
-            Map<LocalTaskNode, ResolvedNodeRelationships> preResolved = preResolveLocalTaskNodeDependenciesInParallel(queue);
+        if (parallelNodeRelationshipsResolver != null) {
+            Map<LocalTaskNode, ResolvedNodeRelationships> preResolved = parallelNodeRelationshipsResolver.resolve(queue);
             discoverNodeRelationshipsSequential(queue, preResolved);
         } else {
             discoverNodeRelationshipsSequential(queue, null);
@@ -248,105 +238,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
                 }
             }
         }
-    }
-
-    /**
-     * Pre-resolves {@link LocalTaskNode} relationships in parallel using BFS waves, without
-     * mutating the graph. Returns a map of pre-resolved relationships keyed by node.
-     */
-    @SuppressWarnings("NonApiType")
-    private Map<LocalTaskNode, ResolvedNodeRelationships> preResolveLocalTaskNodeDependenciesInParallel(LinkedList<Node> initialQueue) {
-        Map<LocalTaskNode, ResolvedNodeRelationships> preResolved = new HashMap<>();
-        Set<LocalTaskNode> seen = new HashSet<>();
-
-        List<LocalTaskNode> currentWave = new ArrayList<>();
-        for (Node node : initialQueue) {
-            addToWaveIfNew(node, seen, currentWave);
-        }
-
-        while (!currentWave.isEmpty()) {
-            List<ResolvedNodeRelationships> waveResults = resolveLocalTaskNodesDependenciesInParallel(currentWave);
-            List<LocalTaskNode> nextWave = new ArrayList<>();
-
-            for (ResolvedNodeRelationships resolved : waveResults) {
-                preResolved.put(resolved.getNode(), resolved);
-                for (Node dependency : resolved.getDependencies()) {
-                    addToWaveIfNew(dependency, seen, nextWave);
-                }
-                for (Node finalizer : resolved.getFinalizedBy()) {
-                    addToWaveIfNew(finalizer, seen, nextWave);
-                }
-            }
-
-            currentWave = nextWave;
-        }
-
-        return preResolved;
-    }
-
-    private static void addToWaveIfNew(Node node, Set<LocalTaskNode> seen, List<LocalTaskNode> wave) {
-        if (node instanceof LocalTaskNode) {
-            LocalTaskNode localNode = (LocalTaskNode) node;
-            if (!localNode.getDependenciesProcessed() && !localNode.isCannotRunInAnyPlan() && seen.add(localNode)) {
-                wave.add(localNode);
-            }
-        }
-    }
-
-    /**
-     * Resolves {@link LocalTaskNode}s in parallel, grouped by owning project.
-     * Each project group gets its own {@link TaskDependencyResolver} to avoid thread-safety issues
-     * on the shared {@link org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext}.
-     */
-    private List<ResolvedNodeRelationships> resolveLocalTaskNodesDependenciesInParallel(List<LocalTaskNode> nodes) {
-        if (nodes.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        Map<ProjectInternal, List<LocalTaskNode>> byProject = new LinkedHashMap<>();
-        for (LocalTaskNode node : nodes) {
-            byProject.computeIfAbsent(node.getOwningProject(), k -> new ArrayList<>()).add(node);
-        }
-
-        if (byProject.size() == 1) {
-            // When there's only one project, we can resolve dependencies on the calling thread.
-            List<ResolvedNodeRelationships> results = new ArrayList<>();
-            for (LocalTaskNode node : nodes) {
-                results.add(node.resolveRelationships(dependencyResolver));
-            }
-            return results;
-        }
-
-        // Release the calling thread's all-projects lock and resolve project groups in parallel,
-        // each acquiring its own project lock via fromMutableState.
-        List<List<LocalTaskNode>> projectGroups = new ArrayList<>(byProject.values());
-        ConcurrentLinkedQueue<ResolvedNodeRelationships> results = new ConcurrentLinkedQueue<>();
-        workerLeaseService.runAsIsolatedTask(() -> {
-            buildOperationExecutor.runAllWithAccessToProjectState(queue -> {
-                for (List<LocalTaskNode> group : projectGroups) {
-                    TaskDependencyResolver resolver = dependencyResolver.newResolver();
-                    queue.add(new RunnableBuildOperation() {
-                        @Override
-                        public void run(BuildOperationContext context) {
-                            ProjectState projectState = group.get(0).getOwningProject().getOwner();
-                            projectState.fromMutableState(project -> {
-                                for (LocalTaskNode node : group) {
-                                    results.add(node.resolveRelationships(resolver));
-                                }
-                                return null;
-                            });
-                        }
-
-                        @Override
-                        public BuildOperationDescriptor.Builder description() {
-                            return BuildOperationDescriptor.displayName("Resolve task dependencies for project " + group.get(0).getOwningProject());
-                        }
-                    });
-                }
-            });
-        });
-
-        return new ArrayList<>(results);
     }
 
     private boolean nodeSatisfiesTaskFilter(Node successor) {
