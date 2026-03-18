@@ -35,20 +35,22 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
     def "requested and filtered tasks are exposed"() {
-        createDirs("a", "b", "a/c")
-        settingsFile << """
+        def subprojects = ["a", "b", "a/c"]
+        createDirs(*subprojects)
+        settingsFile """
             include "a"
             include "b"
             include "a:c"
         """
 
-        buildFile << """
-            allprojects {
+        (subprojects + ".").each { dir ->
+            buildFile "$dir/build.gradle", """
                 task otherTask
                 task someTask
                 someTask.dependsOn otherTask
-            }
-        """
+            """
+        }
+
         when:
         succeeds('help')
 
@@ -86,20 +88,22 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     }
 
     def "task plan is exposed"() {
-        createDirs("a", "b", "a/c")
-        settingsFile << """
+        def subprojects = ["a", "b", "a/c"]
+        createDirs(*subprojects)
+        settingsFile """
             include "a"
             include "b"
             include "a:c"
         """
 
-        buildFile << """
-            allprojects {
+        (subprojects + ".").each { dir ->
+            buildFile "$dir/build.gradle", """
                 task otherTask
                 task someTask
                 someTask.dependsOn otherTask
-            }
-        """
+            """
+        }
+
         when:
         succeeds('someTask')
 
