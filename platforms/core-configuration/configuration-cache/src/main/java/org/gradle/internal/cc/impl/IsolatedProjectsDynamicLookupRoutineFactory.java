@@ -33,13 +33,13 @@ import java.util.function.Consumer;
 class IsolatedProjectsDynamicLookupRoutineFactory implements DynamicLookupRoutineFactory {
 
     private final boolean isolatedProjects;
-    private final ProblemsListener problemsListener;
-    private final ProblemFactory problemFactory;
+    private final @Nullable ProblemsListener problemsListener;
+    private final @Nullable ProblemFactory problemFactory;
 
     IsolatedProjectsDynamicLookupRoutineFactory(
         boolean isolatedProjects,
-        ProblemsListener problemsListener,
-        ProblemFactory problemFactory
+        @Nullable ProblemsListener problemsListener,
+        @Nullable ProblemFactory problemFactory
     ) {
         this.isolatedProjects = isolatedProjects;
         this.problemsListener = problemsListener;

@@ -29,6 +29,7 @@ internal class IsolatedProjectsPropertyApiViolationReporter(
     private val problems: ProblemsListener,
     private val problemFactory: ProblemFactory
 ) {
+    @Suppress("ThrowingExceptionsWithoutMessageOrCause")
     fun reportViolation(methodName: String) {
         val problem = problemFactory.problem {
             text("Project ")
