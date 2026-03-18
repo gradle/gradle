@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.DynamicLookupRoutineFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.configuration.problems.ProblemFactory;
 import org.gradle.internal.configuration.problems.ProblemsListener;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -28,6 +29,7 @@ import java.util.function.Consumer;
  * Java implementation of DynamicLookupRoutineFactory to avoid Kotlin lambda
  * class loading issues during script initialization.
  */
+@NullMarked
 class IsolatedProjectsDynamicLookupRoutineFactory implements DynamicLookupRoutineFactory {
 
     private final boolean isolatedProjects;

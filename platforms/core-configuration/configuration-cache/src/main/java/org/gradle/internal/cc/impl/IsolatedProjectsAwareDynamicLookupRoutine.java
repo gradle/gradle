@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl;
 
+import org.jspecify.annotations.NullMarked;
+
 import org.gradle.api.internal.project.DelegatingDynamicLookupRoutine;
 import org.gradle.api.internal.project.DynamicLookupRoutine;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -34,6 +36,7 @@ import java.util.Map;
  * pass-through for {@code invokeMethod}, which is required by the dynamic call tracking
  * infrastructure.</p>
  */
+@NullMarked
 class IsolatedProjectsAwareDynamicLookupRoutine extends DelegatingDynamicLookupRoutine {
 
     @SuppressWarnings("unused")
