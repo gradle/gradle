@@ -15,62 +15,20 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.internal.properties.GradlePropertiesController;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.jspecify.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.Map;
 
 public class TestBuildScopeServices extends BuildScopeServices {
 
-    public TestBuildScopeServices(BuildModelControllerServices.Supplier supplier) {
-        super(supplier);
+    public TestBuildScopeServices(BuildDefinition buildDefinition, BuildState buildState) {
+        super(buildDefinition, buildState);
     }
 
     @Provides
     protected DefaultProjectDescriptorRegistry createProjectDescriptorRegistry() {
         return new DefaultProjectDescriptorRegistry();
-    }
-
-    @Override
-    @Provides
-    protected GradleProperties createGradleProperties(BuildState buildState, GradlePropertiesController gradlePropertiesController) {
-        return new EmptyGradleProperties();
-    }
-
-    @Provides
-    protected BuildCancellationToken createBuildCancellationToken() {
-        return new DefaultBuildCancellationToken();
-    }
-
-    private static class EmptyGradleProperties implements GradleProperties {
-        @Nullable
-        @Override
-        public String find(String propertyName) {
-            return null;
-        }
-
-        @Override
-        public Map<String, String> getProperties() {
-            return Collections.emptyMap();
-        }
-
-        @Override
-        public Map<String, String> getPropertiesWithPrefix(String prefix) {
-            return Collections.emptyMap();
-        }
-
-        @Override
-        public @Nullable Object findUnsafe(String propertyName) {
-            return null;
-        }
     }
 }

@@ -295,7 +295,7 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
 
     }
 
-    private class CachedDependencyResolutionControl extends AbstractResolutionControl<ModuleIdentifier, Set<ModuleVersionIdentifier>> implements DependencyResolutionControl {
+    private static class CachedDependencyResolutionControl extends AbstractResolutionControl<ModuleIdentifier, Set<ModuleVersionIdentifier>> implements DependencyResolutionControl {
 
         private CachedDependencyResolutionControl(ModuleIdentifier request, Set<ModuleVersionIdentifier> result, long ageMillis, long keepForMillis) {
             super(request, result, ageMillis, keepForMillis);

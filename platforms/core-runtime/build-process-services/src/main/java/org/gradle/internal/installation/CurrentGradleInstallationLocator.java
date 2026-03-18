@@ -17,6 +17,7 @@
 package org.gradle.internal.installation;
 
 import org.gradle.internal.classloader.ClasspathUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -50,7 +51,7 @@ abstract class CurrentGradleInstallationLocator {
         }
     }
 
-    private static File findDistDir(Class<?> clazz) {
+    private static @Nullable File findDistDir(Class<?> clazz) {
         File codeSource = ClasspathUtil.getClasspathForClass(clazz);
         if (codeSource.isFile()) {
             return determineDistRootDir(codeSource);
@@ -73,7 +74,7 @@ abstract class CurrentGradleInstallationLocator {
      * @param codeSource Code source of JAR file
      * @return Distribution root directory
      */
-    private static File determineDistRootDir(File codeSource) {
+    private static @Nullable File determineDistRootDir(File codeSource) {
         File parentDir = codeSource.getParentFile();
 
         if (parentDir.getName().equals("lib")) {

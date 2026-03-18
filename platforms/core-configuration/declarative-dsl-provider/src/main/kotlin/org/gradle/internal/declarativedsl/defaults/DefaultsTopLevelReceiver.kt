@@ -17,9 +17,6 @@
 package org.gradle.internal.declarativedsl.defaults
 
 import org.gradle.api.file.ProjectLayout
-import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
 
 
@@ -27,10 +24,6 @@ import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguring
  * Represents a top-level receiver for processing the defaults block in the Settings DSL.
  */
 interface DefaultsTopLevelReceiver {
-    @Configuring
-    @AccessFromCurrentReceiverOnly
-    fun defaults(defaults: DefaultsConfiguringBlock.() -> Unit)
-
-    @get:Restricted
+    val defaults: DefaultsConfiguringBlock
     val layout: ProjectLayout
 }

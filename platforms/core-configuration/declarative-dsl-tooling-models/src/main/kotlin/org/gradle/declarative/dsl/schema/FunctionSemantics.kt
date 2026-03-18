@@ -97,7 +97,6 @@ sealed interface FunctionSemantics : Serializable {
         }
 
         override val configuredType: DataTypeRef
-            get() = if (returnType is ConfiguredObject) returnValueType else accessor.objectType
 
         override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement
     }

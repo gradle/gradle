@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class DefaultServiceRegistryServiceAccessTest extends Specification {
 
-    TestRegistry registry = new TestRegistry()
+    ServiceRegistry registry = new DefaultServiceRegistry("test registry")
 
     def "can use private service as a dependency within the same service provider"() {
         given:
@@ -42,7 +42,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         registry.get(TestService)
         then:
         def e = thrown(UnknownServiceException)
-        withoutTestClassName(e.message) == "No service of type TestService available in TestRegistry."
+        withoutTestClassName(e.message) == "No service of type TestService available in test registry."
     }
 
     def "can use private service as a dependency in constructor-based injection within the same service provider"() {
@@ -66,7 +66,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         registry.get(TestService)
         then:
         def e = thrown(UnknownServiceException)
-        withoutTestClassName(e.message) == "No service of type TestService available in TestRegistry."
+        withoutTestClassName(e.message) == "No service of type TestService available in test registry."
     }
 
     def "private service is reused within the same service provider"() {
@@ -131,7 +131,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         registry.get(TestService)
         then:
         def e = thrown(UnknownServiceException)
-        withoutTestClassName(e.message) == "No service of type TestService available in TestRegistry."
+        withoutTestClassName(e.message) == "No service of type TestService available in test registry."
     }
 
     def "cannot use private services as dependencies in sibling providers"() {
@@ -184,7 +184,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
             TestService create() { new TestServiceImpl() }
         })
 
-        def registry = new TestRegistry(parentRegistry)
+        def registry = new DefaultServiceRegistry(parentRegistry)
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             ServiceWithDependency create(TestService ts) { new ServiceWithDependency(ts) }
@@ -233,7 +233,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
             Integer create2() { 2 }
         })
 
-        def registry = new TestRegistry(parentRegistry)
+        def registry = new DefaultServiceRegistry(parentRegistry)
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             @PrivateService
@@ -298,7 +298,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         withoutTestClassName(e.message) == 'Cannot create service of type TestService using method <anonymous>.create() as there is a problem with parameter #1 of type Integer.'
         def cause = e.cause
         cause instanceof ServiceLookupException
-        withoutTestClassName(cause.message).contains('Multiple services of type Integer available in TestRegistry:')
+        withoutTestClassName(cause.message).contains('Multiple services of type Integer available in test registry:')
         withoutTestClassName(cause.message).contains('- Service Integer via <anonymous>.create1()')
         withoutTestClassName(cause.message).contains('- Service Integer via <anonymous>.create2()')
     }
@@ -322,15 +322,6 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
 
         void close() {
             closed = true
-        }
-    }
-
-    private static class TestRegistry extends DefaultServiceRegistry {
-        TestRegistry() {
-        }
-
-        TestRegistry(ServiceRegistry parent) {
-            super(parent)
         }
     }
 

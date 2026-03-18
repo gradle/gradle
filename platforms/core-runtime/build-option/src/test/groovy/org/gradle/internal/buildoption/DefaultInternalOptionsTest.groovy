@@ -22,50 +22,75 @@ class DefaultInternalOptionsTest extends Specification {
     def sysProps = [:]
     def options = new DefaultInternalOptions(sysProps)
 
-    def "locates value for boolean option"() {
-        sysProps["prop1"] = "true"
-        sysProps["prop2"] = ""
-        sysProps["prop3"] = "false"
-        sysProps["prop4"] = "not anything much"
+    def "locates value for boolean option #description"() {
+        sysProps["org.gradle.internal.prop1"] = sysProp
 
-        expect:
-        def value1 = options.getOption(new InternalFlag("prop1", false))
-        value1.get()
-        value1.explicit
+        when:
+        def value = options.getOption(new InternalFlag("org.gradle.internal.prop1"))
 
-        def value2 = options.getOption(new InternalFlag("prop2", false))
-        value2.get()
-        value2.explicit
+        then:
+        value.explicit
+        value.get() == result
 
-        def value3 = options.getOption(new InternalFlag("prop3", true))
-        !value3.get()
-        value3.explicit
-
-        def value4 = options.getOption(new InternalFlag("prop4", false))
-        value4.get()
-        value4.explicit
+        where:
+        description                    | sysProp         | result
+        "for true"                     | "true"          | true
+        "case-insensitively for true"  | "TrUe"          | true
+        "for false"                    | "false"         | false
+        "case-insensitively for false" | "FaLsE"         | false
+        "for empty string"             | ""              | false
+        "anything else"                | "anything else" | false
     }
 
     def "uses default for boolean option when system property is not set"() {
         expect:
-        def value = options.getOption(new InternalFlag("prop", true))
-        value.get()
+        def value = options.getOption(new InternalFlag("org.gradle.internal.prop", defaultValue))
         !value.explicit
+        value.get() == defaultValue
+
+        where:
+        defaultValue << [true, false]
     }
 
     def "locates value for int option"() {
-        sysProps["prop1"] = "12"
+        sysProps["org.gradle.internal.prop1"] = "12"
 
         expect:
-        def value = options.getOption(new IntegerInternalOption("prop1", 45))
+        def value = options.getOption(new IntegerInternalOption("org.gradle.internal.prop1", 45))
         value.get() == 12
         value.explicit
     }
 
     def "uses default for int option when system property is not set"() {
         expect:
-        def value = options.getOption(new IntegerInternalOption("prop", 23))
+        def value = options.getOption(new IntegerInternalOption("org.gradle.internal.prop", 23))
         value.get() == 23
         !value.explicit
+    }
+
+    def "throws if #option name does not start with expected prefix"() {
+        when:
+        create("org.gradle.feature.flag")
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.startsWith("Internal property name must start with 'org.gradle.internal.'")
+
+        when:
+        create("org.gradle.internal-feature")
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message.startsWith("Internal property name must start with 'org.gradle.internal.'")
+
+        when:
+        create("just.feature")
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message.startsWith("Internal property name must start with 'org.gradle.internal.'")
+
+        where:
+        option                  | create
+        "InternalFlag"          | { String it -> new InternalFlag(it) }
+        "IntegerInternalOption" | { String it -> new IntegerInternalOption(it, 0) }
+        "StringInternalOption"  | { String it -> StringInternalOption.of(it, "") }
     }
 }

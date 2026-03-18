@@ -33,6 +33,7 @@ public class BuildScopedTaskResolver implements TaskResolver {
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public Task resolveTask(Path path) {
         String targetTaskName = path.getName();
         if (targetTaskName == null) {

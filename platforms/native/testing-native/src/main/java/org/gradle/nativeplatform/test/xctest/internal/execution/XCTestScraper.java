@@ -36,6 +36,7 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Deque;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,16 +55,18 @@ class XCTestScraper implements TextStream {
     private final Clock clock;
     private final String rootTestSuiteId;
     private final Deque<XCTestDescriptor> testDescriptors;
+    private final Map<String, Object> testSuiteIds;
     private TestDescriptorInternal lastDescriptor;
     private StringBuilder textBuilder = new StringBuilder();
 
-    XCTestScraper(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, Clock clock, String rootTestSuiteId, Deque<XCTestDescriptor> testDescriptors) {
+    XCTestScraper(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, Clock clock, String rootTestSuiteId, Deque<XCTestDescriptor> testDescriptors, Map<String, Object> testSuiteIds) {
         this.processor = processor;
         this.destination = destination;
         this.idGenerator = idGenerator;
         this.clock = clock;
         this.rootTestSuiteId = rootTestSuiteId;
         this.testDescriptors = testDescriptors;
+        this.testSuiteIds = testSuiteIds;
     }
 
     @Override
@@ -90,6 +93,7 @@ class XCTestScraper implements TextStream {
 
                     if (started) {
                         TestDescriptorInternal testDescriptor = new DefaultTestClassDescriptor(idGenerator.generateId(), testSuite);  // Using DefaultTestClassDescriptor to fake JUnit test
+                        testSuiteIds.put(testSuite, testDescriptor.getId());
                         processor.started(testDescriptor, new TestStartEvent(clock.getCurrentTime()));
                         testDescriptors.push(new XCTestDescriptor(testDescriptor));
                     } else {
@@ -103,6 +107,8 @@ class XCTestScraper implements TextStream {
                         }
 
                         processor.completed(testDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime(), resultType));
+                        // No longer should get any events needing this test suite id, clean up
+                        testSuiteIds.remove(testSuite);
                     }
                 } else if (token.equals("Test Case")) {
                     // (macOS) Looks like: Test Case '-[AppTest.PassingTestSuite testCanPassTestCaseWithAssertion]' started.
@@ -127,7 +133,8 @@ class XCTestScraper implements TextStream {
 
                     if (started) {
                         TestDescriptorInternal testDescriptor = new DefaultTestMethodDescriptor(idGenerator.generateId(), testSuite, testCase);
-                        processor.started(testDescriptor, new TestStartEvent(clock.getCurrentTime()));
+                        Object parentId = testSuiteIds.get(testSuite);
+                        processor.started(testDescriptor, new TestStartEvent(clock.getCurrentTime(), parentId));
                         testDescriptors.push(new XCTestDescriptor(testDescriptor));
                     } else {
                         XCTestDescriptor xcTestDescriptor = testDescriptors.pop();

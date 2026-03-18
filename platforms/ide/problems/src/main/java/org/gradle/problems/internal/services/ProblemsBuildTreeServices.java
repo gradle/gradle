@@ -28,8 +28,6 @@ import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
 import org.gradle.api.problems.internal.TaskIdentity;
-import org.gradle.composite.ResilientIssuesRecorder;
-import org.gradle.composite.internal.DefaultResilientIssuesRecorder;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -49,6 +47,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.problems.internal.NoOpProblemReportCreator;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
+import org.gradle.problems.internal.emitters.ConsoleProblemEmitter;
 import org.gradle.problems.internal.impl.DefaultProblemsReportCreator;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
@@ -81,22 +80,18 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ResilientIssuesRecorder createResilientIssuesRecorder(FailureFactory failureFactory){
-        return new DefaultResilientIssuesRecorder(failureFactory);
-    }
-
-    @Provides
     ProblemSummarizer createProblemSummarizer(
         BuildOperationProgressEventEmitter eventEmitter,
         CurrentBuildOperationRef currentBuildOperationRef,
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
         ProblemReportCreator problemReportCreator,
-        WorkExecutionTracker workExecutionTracker
+        WorkExecutionTracker workExecutionTracker,
+        StartParameterInternal startParameter
     ) {
         return new DefaultProblemSummarizer(eventEmitter,
             currentBuildOperationRef,
-            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter)),
+            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter), new ConsoleProblemEmitter(startParameter.getWarningMode())),
             internalOptions,
             problemReportCreator,
             id -> {

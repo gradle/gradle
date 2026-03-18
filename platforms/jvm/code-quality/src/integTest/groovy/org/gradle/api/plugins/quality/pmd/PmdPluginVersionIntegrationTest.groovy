@@ -173,6 +173,12 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
                 reports {
                     xml.required = false
                     html.outputLocation = file("htmlReport.html")
+                    csv.required = true
+                    csv.outputLocation = file("csvReport.csv")
+                    codeClimate.required = true
+                    codeClimate.outputLocation = file("codeClimateReport.json")
+                    sarif.required = true
+                    sarif.outputLocation = file("sarifReport.json")
                 }
             }
         """
@@ -181,6 +187,42 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         succeeds("check")
         !file("build/reports/pmd/main.xml").exists()
         file("htmlReport.html").exists()
+        file("csvReport.csv").exists()
+        file("codeClimateReport.json").exists()
+        file("sarifReport.json").exists()
+    }
+
+    def "default file locations for reports are sensible"() {
+        goodCode()
+        buildFile << """
+            pmdMain {
+                reports {
+                    xml.required = true
+                    html.required = true
+                    csv.required = true
+                    codeClimate.required = true
+                    sarif.required = true
+                }
+            }
+        """
+
+        expect:
+        succeeds("check")
+        file("build/reports/pmd/main.xml").exists()
+        file("build/reports/pmd/main.html").exists()
+        file("build/reports/pmd/main.csv").exists()
+        file("build/reports/pmd/main.codeclimate.json").exists()
+        file("build/reports/pmd/main.sarif.json").exists()
+    }
+
+    def "only xml and html reports are required by default"() {
+        goodCode()
+
+        expect:
+        succeeds("check")
+        file("build/reports/pmd/").assertHasDescendants(
+            "main.xml", "main.html", "test.xml", "test.html"
+        )
     }
 
     def "use custom rule set files"() {

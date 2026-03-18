@@ -41,10 +41,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
-import org.gradle.api.artifacts.result.ArtifactResult
-import org.gradle.api.artifacts.result.ComponentArtifactsResult
 import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.artifacts.result.UnresolvedComponentResult
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
@@ -59,8 +56,8 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
-import org.gradle.api.internal.artifacts.configurations.DefaultResolvableConfiguration
 import org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration
+import org.gradle.api.internal.artifacts.configurations.DefaultResolvableConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler
@@ -74,10 +71,7 @@ import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs.DefaultArtifactView
 import org.gradle.api.internal.artifacts.result.DefaultArtifactResolutionResult
-import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult
-import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
-import org.gradle.api.internal.artifacts.result.DefaultUnresolvedComponentResult
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
@@ -137,7 +131,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(1)
+            totalProblemsCount = 1
             withUniqueProblems(
                 "Build file 'build.gradle': line 9: accessing non-serializable type '${serviceType.name}'"
             )
@@ -176,7 +170,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(1)
+            totalProblemsCount = 1
             withUniqueProblems(
                 "Build file 'build.gradle': line 14: accessing non-serializable type '${serviceType.name}'"
             )
@@ -227,12 +221,12 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(6)
+            totalProblemsCount = 6
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '$concreteTypeName', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -245,11 +239,11 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(3)
+            totalProblemsCount = 3
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache."
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -306,9 +300,6 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultResolvedArtifact               | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.resolvedArtifacts.first()"
         DefaultArtifactView                   | ArtifactView                   | "project.configurations.maybeCreate('some').incoming.artifactView {}"
         DefaultArtifactResolutionResult       | ArtifactResolutionResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute()"
-        DefaultComponentArtifactsResult       | ComponentArtifactsResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute().components.first()"
-        DefaultUnresolvedComponentResult      | UnresolvedComponentResult      | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '100').withArtifacts(JvmLibrary).execute().components.first()"
-        DefaultResolvedArtifactResult         | ArtifactResult                 | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary, SourcesArtifact).execute().components.first().getArtifacts(SourcesArtifact).first()"
 
         // direct BuildService reference, build services must always be referenced via their providers
         'SomeBuildService'                    | BuildService                   | "project.gradle.sharedServices.registerIfAbsent('service', SomeBuildService) {}.get()"
@@ -360,13 +351,13 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(9)
+            totalProblemsCount = 9
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         when:
@@ -379,12 +370,12 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(6)
+            totalProblemsCount = 6
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -438,12 +429,12 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(4)
+            totalProblemsCount = 4
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '$concreteTypeName', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -455,11 +446,11 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(2)
+            totalProblemsCount = 2
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache."
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -520,13 +511,13 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(6)
+            totalProblemsCount = 6
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         when:
@@ -538,12 +529,12 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(4)
+            totalProblemsCount = 4
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:

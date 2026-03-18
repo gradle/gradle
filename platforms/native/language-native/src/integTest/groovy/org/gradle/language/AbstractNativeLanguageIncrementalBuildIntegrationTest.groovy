@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.internal.GUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -55,7 +55,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     String getSourceType() {
-        GUtil.toCamelCase(app.sourceType)
+        TextUtil.toCamelCase(app.sourceType)
     }
 
     def "setup"() {

@@ -59,6 +59,7 @@ class JUnit4CategoriesNotSupportedIntegrationTest extends AbstractSampleIntegrat
         fails('test')
 
         then:
-        failure.assertThatCause(matchesRegexp(/Could not start Gradle Test Executor \d+: JUnit Categories defined but declared JUnit version does not support Categories\./))
+        failure.assertThatCause(matchesRegexp(~/Could not start Gradle Test Executor \d+\./))
+        failure.assertHasCause("JUnit Categories defined but declared JUnit version does not support Categories.")
     }
 }

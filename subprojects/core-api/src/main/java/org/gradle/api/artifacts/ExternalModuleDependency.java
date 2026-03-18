@@ -15,15 +15,20 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHiddenMembers;
+
 /**
  * <p>A {@code ExternalModuleDependency} is a {@link Dependency} on a module outside the current project hierarchy.</p>
  */
+@DeclarativeWithHiddenMembers
 public interface ExternalModuleDependency extends ExternalDependency {
     /**
      * Indicates that the given dependency can have different content for the same identifier.
      *
      * @see #setChanging(boolean)
      */
+    @HiddenInDefinition
     boolean isChanging();
 
     /**
@@ -35,6 +40,7 @@ public interface ExternalModuleDependency extends ExternalDependency {
      * check for a change in the remote repository, even if a local entry exists.
      * @return this
      */
+    @HiddenInDefinition
     ExternalModuleDependency setChanging(boolean changing);
 
     /**

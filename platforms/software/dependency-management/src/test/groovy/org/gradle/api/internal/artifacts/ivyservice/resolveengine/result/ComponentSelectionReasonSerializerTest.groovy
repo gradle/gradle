@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.result.ComponentSelectionDescriptor
-import org.gradle.api.artifacts.result.ComponentSelectionReason
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.internal.Describables
 import org.gradle.internal.serialize.AbstractDecoder
@@ -81,21 +80,23 @@ class ComponentSelectionReasonSerializerTest extends SerializerSpec {
         withoutDuplicate.length > withDuplicate.length
     }
 
-    void check(ComponentSelectionDescriptor... reasons) {
-        def reason = ComponentSelectionReasons.of(reasons)
+    void check(ComponentSelectionDescriptorInternal... reasons) {
+        def reason = ComponentSelectionReasons.of(ImmutableSet.copyOf(reasons))
         def result = serialize(reason, serializer)
         assert result == reason
     }
 
-    private static ComponentSelectionReason withReason(String reason) {
+    private static ComponentSelectionReasonInternal withReason(String reason) {
         ComponentSelectionReasons.of(ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of(reason)))
     }
 
-    private static ComponentSelectionReason withReasons(String... reasons) {
+    private static ComponentSelectionReasonInternal withReasons(String... reasons) {
         int idx = -1
-        ComponentSelectionReasons.of(reasons.collect {
-            reason(++idx).withDescription(Describables.of(it))
-        }.toArray(new ComponentSelectionDescriptorInternal[0]))
+        ComponentSelectionReasons.of(
+            Arrays.asList(reasons).stream()
+                .map(it -> reason(++idx).withDescription(Describables.of(it)))
+                .collect(ImmutableSet.toImmutableSet())
+        )
     }
 
     private static ComponentSelectionDescriptorInternal reason(int idx) {

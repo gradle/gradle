@@ -169,12 +169,13 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         buildFile """
             task untrackedTrackWithReason(type: UnspecifiedCacheabilityTask) {
                 doNotTrackState("Untracked for testing from API")
+                doNotTrackStateIf("Untracked for testing conditional") { true }
             }
         """
         when:
         withBuildCache().run "untrackedTrackWithReason"
         then:
-        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task is untracked because: Untracked for testing from API"
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Task is untracked because: Untracked for testing from API; Untracked for testing conditional"
     }
 
 

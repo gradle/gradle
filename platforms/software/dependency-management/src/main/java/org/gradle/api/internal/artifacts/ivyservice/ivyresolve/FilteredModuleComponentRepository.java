@@ -85,6 +85,16 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         return delegate.getComponentMetadataSupplier();
     }
 
+    @Override
+    public boolean isContinueOnConnectionFailure() {
+        return delegate.isContinueOnConnectionFailure();
+    }
+
+    @Override
+    public boolean isRepositoryDisabled() {
+        return delegate.isRepositoryDisabled();
+    }
+
     private class FilteringAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
 
@@ -121,7 +131,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
             return whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
                     () -> delegate.estimateMetadataFetchingCost(moduleComponentIdentifier),
-                    () -> MetadataFetchingCost.FAST);
+                    () -> MetadataFetchingCost.CHEAP);
         }
 
         private void whenModulePresent(ModuleIdentifier id, @Nullable ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {

@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -24,7 +25,7 @@ import spock.lang.Issue
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender')
-    @ToBeFixedForConfigurationCache
+    @UnsupportedWithConfigurationCache(because = "https://github.com/nebula-plugins/nebula-dependency-recommender-plugin/issues/147")
     def 'nebula recommender plugin'() {
         when:
         buildFile << """
@@ -70,7 +71,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         """
 
         then:
-        runner('groovydoc', '-s').build()
+        runner('groovydoc', '-s').expectDeprecationWarning("The DomainObjectCollection.findAll(Closure) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#findAll_removal", "https://github.com/nebula-plugins/gradle-info-plugin/issues/115").build()
     }
 
     @Ignore("https://github.com/nebula-plugins/gradle-lint-plugin/issues/417")

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -28,13 +29,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.Build.class)
 @Incubating
+@HasInternalProtocol
 public interface TestEventReporterFactory {
     /**
-     * Returns an object that can be used to report test events.
-     *
-     * <p>
-     * When closed, it will throw if the root node has been failed.
-     * </p>
+     * Returns an object that can be used to report test events with the default behavior of failing the test task if there are test failures.
      *
      * @param rootName the name for the root node of the test tree
      * @param binaryResultsDirectory the directory to write binary test results to
@@ -44,9 +42,30 @@ public interface TestEventReporterFactory {
      *
      * @since 8.13
      */
-    GroupTestEventReporter createTestEventReporter(
+    default GroupTestEventReporter createTestEventReporter(
         String rootName,
         Directory binaryResultsDirectory,
         Directory htmlReportDirectory
+    ) {
+        return createTestEventReporter(rootName, binaryResultsDirectory, htmlReportDirectory, true);
+    }
+
+    /**
+     * Returns an object that can be used to report test events.
+     *
+     * @param rootName the name for the root node of the test tree
+     * @param binaryResultsDirectory the directory to write binary test results to
+     * @param htmlReportDirectory the directory to write HTML test reports to
+     * @param closeThrowsOnTestFailures determines if this reporter should throw upon close if the root node has been failed, or do nothing
+     *
+     * @return the test event reporter
+     *
+     * @since 9.3.0
+     */
+    GroupTestEventReporter createTestEventReporter(
+        String rootName,
+        Directory binaryResultsDirectory,
+        Directory htmlReportDirectory,
+        boolean closeThrowsOnTestFailures
     );
 }

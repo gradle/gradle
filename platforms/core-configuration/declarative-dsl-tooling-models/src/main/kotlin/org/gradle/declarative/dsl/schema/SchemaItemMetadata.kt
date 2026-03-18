@@ -30,7 +30,8 @@ sealed interface SchemaItemMetadata : Serializable
 @ToolingModelContract(
     subTypes = [
         ContainerElementFactory::class,
-        ProjectFeatureOrigin::class
+        ProjectFeatureOrigin::class,
+        ConfigureFromGetterOrigin::class
     ]
 )
 sealed interface SchemaMemberOrigin : SchemaItemMetadata
@@ -47,4 +48,9 @@ interface ProjectFeatureOrigin : SchemaMemberOrigin {
     val targetDefinitionClassName: String?
     val targetBuildModelClassName: String?
     //TODO: feature owner plugin ID?
+}
+
+interface ConfigureFromGetterOrigin : SchemaMemberOrigin {
+    val javaClassName: String
+    val memberName: String
 }

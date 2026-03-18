@@ -30,8 +30,8 @@ import org.gradle.integtests.fixtures.RedirectStdIn
 import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.buildtree.BuildActionRunner
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.execution.InputVisitor
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.properties.InputBehavior
@@ -69,7 +69,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
     def globalListenerManager = new DefaultListenerManager(Scope.Global)
     def userHomeListenerManager = globalListenerManager.createChild(Scope.UserHome)
-    def inputListeners = new DefaultWorkInputListeners(globalListenerManager)
+    def inputListeners = new DefaultWorkInputListeners()
     def changeListeners = new DefaultFileChangeListeners(userHomeListenerManager)
     List<Deployment> deployments = []
     def continuousExecutionGate = new DefaultContinuousExecutionGate()
@@ -384,11 +384,11 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private void declareInput(File file) {
-        def valueSupplier = Stub(UnitOfWork.InputFileValueSupplier) {
+        def valueSupplier = Stub(InputVisitor.InputFileValueSupplier) {
             getFiles() >> TestFiles.fixed(file)
         }
         inputListeners.broadcastFileSystemInputsOf(Stub(UnitOfWork) {
-            visitRegularInputs(_ as InputVisitor) >> { InputVisitor visitor ->
+            visitMutableInputs(_ as InputVisitor) >> { InputVisitor visitor ->
                 visitor.visitInputFileProperty("test", PRIMARY, valueSupplier)
             }
         }, EnumSet.allOf(InputBehavior))

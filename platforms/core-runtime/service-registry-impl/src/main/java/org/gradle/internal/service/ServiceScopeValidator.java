@@ -180,8 +180,7 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
         return "service scopes " + join(", ", scopes, aClass -> "'" + aClass.getSimpleName() + "'");
     }
 
-    @Nullable
-    private static Class<? extends Scope>[] scopeOf(Class<?> serviceType) {
+    private static Class<? extends Scope> @Nullable [] scopeOf(Class<?> serviceType) {
         ServiceScope scopeAnnotation = serviceType.getAnnotation(ServiceScope.class);
         return scopeAnnotation != null ? scopeAnnotation.value() : null;
     }

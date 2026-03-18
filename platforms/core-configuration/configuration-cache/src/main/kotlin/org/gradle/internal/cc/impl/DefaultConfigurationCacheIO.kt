@@ -171,6 +171,7 @@ class DefaultConfigurationCacheIO internal constructor(
         writeNullableString(key.identityPath?.asString())
         writeString(key.modelName)
         writeNullableString(key.parameterHash?.toString())
+        writeBoolean(key.isResilient)
     }
 
     override fun writeCandidateEntries(stateFile: ConfigurationCacheStateFile, entries: List<CandidateEntry>) {
@@ -183,7 +184,6 @@ class DefaultConfigurationCacheIO internal constructor(
         !stateFile.exists -> {
             emptyList()
         }
-
         else -> withReadContextFor(stateFile, customClassDecoder = NullClassDecoder) {
             readStrings().map { CandidateEntry(it) }
         }
@@ -194,7 +194,8 @@ class DefaultConfigurationCacheIO internal constructor(
         val path = readNullableString()?.let { Path.path(it) }
         val modelName = readString()
         val parameterHash = readNullableString()?.let(HashCode::fromString)
-        return ModelKey(path, modelName, parameterHash)
+        val isResilient = readBoolean()
+        return ModelKey(path, modelName, parameterHash, isResilient)
     }
 
     private
@@ -221,13 +222,12 @@ class DefaultConfigurationCacheIO internal constructor(
         loadAfterStore: Boolean,
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?
-    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
-        return readConfigurationCacheState(stateFile) { state ->
+    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> =
+        readConfigurationCacheState(stateFile) { state ->
             state.run {
                 readRootBuildState(graph, graphBuilder, loadAfterStore)
             }
         }
-    }
 
     override fun WriteContext.writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) =
         // we share the string encoder with the root build, but not the shared object encoder

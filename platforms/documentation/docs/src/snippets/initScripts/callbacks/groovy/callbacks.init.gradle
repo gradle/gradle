@@ -1,0 +1,117 @@
+import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+
+println("[INIT] Gradle ${gradle.gradleVersion}")
+println("")
+
+// tag::beforesettings[]
+// 1. beforeSettings: tweak start parameters / log early info
+// before the build settings have been loaded and evaluated.
+gradle.beforeSettings {
+    println("[beforeSettings] gradleUserHome = ${gradle.gradleUserHomeDir}")
+
+    // Example: default to --parallel if an env var is set
+    if (System.getenv("CI") == "true") {
+        println("[beforeSettings] Enabling parallel execution on CI")
+        gradle.startParameter.parallelProjectExecutionEnabled = true
+    } else {
+        println("[beforeSettings] Disabling parallel execution, not on CI")
+        gradle.startParameter.parallelProjectExecutionEnabled = false
+    }
+
+    println("")
+}
+// end::beforesettings[]
+
+// tag::settingsevaluated[]
+// 2. settingsEvaluated: adjust build layout / repositories / scan config
+// when the build settings have been loaded and evaluated.
+gradle.settingsEvaluated { settings ->
+    println("[settingsEvaluated] rootProject = ${settings.rootProject.name}")
+
+    // Example: enforce a company-wide pluginManagement repo
+    settings.pluginManagement.repositories.with {
+        println("[settingsEvaluated] Ensuring company plugin repo is configured")
+        mavenCentral()
+    }
+
+    println("")
+}
+// end::settingsevaluated[]
+
+// tag::projectsloaded[]
+// 3. projectsLoaded: we know the full project graph, but nothing configured yet
+// to be called when the projects for the build have been created from the settings.
+gradle.projectsLoaded {
+    println "[projectsLoaded] Projects discovered: " + rootProject.allprojects.collect { it.name }.join(', ')
+
+    // Example: Add a custom property (using the extra properties extension)
+    allprojects {
+        println("[projectsLoaded] Setting extra property on ${name}")
+        extensions.extraProperties["isInitScriptConfigured"] = true
+    }
+}
+// end::projectsloaded[]
+
+// tag::beforeproject[]
+// to be called immediately before a project is evaluated.
+gradle.lifecycle.beforeProject {
+    println("[lifecycle.beforeProject] Started configuring ${path}")
+}
+
+// 4. beforeProject: runs before each build.gradle(.kts) is evaluated
+// to be called immediately before a project is evaluated.
+gradle.beforeProject { project ->
+    println("[beforeProject] Started configuring ${project.path}")
+
+    println("[beforeProject] Setup a global build directory for ${project.name}")
+    project.layout.buildDirectory.set(
+        project.layout.projectDirectory.dir("build")
+    )
+}
+// end::beforeproject[]
+
+// tag::afterproject[]
+// 5. afterProject: runs after each build.gradle(.kts) is evaluated
+// to be called immediately after a project is evaluated.
+gradle.afterProject { project ->
+    println("[afterProject] Finished configuring ${project.path}")
+
+    // Example: apply the Java plugin to all projects that don’t have any plugin yet
+    if (project.plugins.hasPlugin("java")) {
+        println("[afterProject] ${project.path} already has the java plugin")
+    } else {
+        println("[afterProject] Applying java plugin to ${project.path}")
+        project.apply(plugin: "java")
+    }
+}
+
+// to be called immediately after a project is evaluated.
+gradle.lifecycle.afterProject {
+    println("[lifecycle.afterProject] Finished configuring ${path}")
+}
+// end::afterproject[]
+
+// tag::projectsevaluated[]
+// 6. projectsEvaluated: all projects are fully configured, safe for cross-project checks
+// to be called when all projects for the build have been evaluated.
+gradle.projectsEvaluated {
+    // end::projectsevaluated[]
+    println("")
+    // tag::projectsevaluated[]
+    println("[projectsEvaluated] All projects evaluated")
+
+    // Example: globally configure the java plugin
+    allprojects { project ->
+        def javaExtension = project.extensions.findByType(JavaPluginExtension)
+        if(javaExtension) {
+            if (javaExtension.toolchain.languageVersion.orNull != null) {
+                println("[projectsEvaluated] ${path} uses Java plugin with toolchain ${javaExtension.toolchain.displayName}")
+            } else {
+                println("[projectsEvaluated] WARNING: ${path} uses Java plugin but no toolchain is configured, setting Java 17")
+                javaExtension.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+            }
+        }
+    }
+}
+// end::projectsevaluated[]

@@ -24,7 +24,7 @@ import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.impl.DefaultExecutionProblemHandler;
 import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
-import org.gradle.internal.execution.steps.CaptureIncrementalStateBeforeExecutionStep;
+import org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
@@ -33,8 +33,8 @@ import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
-import org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
+import org.gradle.internal.execution.steps.ResolveMutableCachingStateStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.ValidateStep;
@@ -70,14 +70,14 @@ public class TestExecutionEngineFactory {
         ExecutionProblemHandler problemHandler = new DefaultExecutionProblemHandler(validationWarningReporter, virtualFileSystem);
         // @formatter:off
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationRunner,
+            new IdentifyStep<>(buildOperationRunner, classloaderHierarchyHasher,
             new IdentityCacheStep<>(progressEventEmitter,
             new AssignMutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
-            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(problemHandler,
+            new CaptureMutableStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
+            new ValidateStep.Mutable<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,
-            new ResolveIncrementalCachingStateStep<>(buildCacheController, false,
+            new ResolveMutableCachingStateStep<>(buildCacheController, false,
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
@@ -85,7 +85,7 @@ public class TestExecutionEngineFactory {
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-            new ExecuteStep<>(buildOperationRunner
+            new ExecuteStep.Mutable(buildOperationRunner
         )))))))))))))))),
             problems);
         // @formatter:on

@@ -82,7 +82,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                         }
                     }.files)
                 }
-                
+
                 tasks.register('resolveAll', Resolve) {
                     artifacts.from(configurations.producerArtifacts)
                     artifacts.from(configurations.producerArtifacts.incoming.artifactView {
@@ -192,7 +192,7 @@ Artifacts
 
     def 'consumer resolves jar variant of producer'() {
         file('consumer/build.gradle') << '''
-            resolve {
+            tasks.resolve {
                 expectations = [ 'producer-jar.txt' ]
             }
         '''
@@ -202,7 +202,7 @@ Artifacts
 
     def 'consumer resolves javadoc variant of producer'() {
         file('consumer/build.gradle') << '''
-            resolveJavadoc {
+            tasks.resolveJavadoc {
                 expectations = [ 'producer-javadoc.txt' ]
             }
         '''
@@ -212,7 +212,7 @@ Artifacts
 
     def 'consumer resolves other variant of producer'() {
         file('consumer/build.gradle') << '''
-            resolveOther {
+            tasks.resolveOther {
                 expectations = [ 'producer-other.txt' ]
             }
         '''
@@ -222,7 +222,7 @@ Artifacts
 
     def 'consumer resolves all variants of producer'() {
         file('consumer/build.gradle') << '''
-            resolveAll {
+            tasks.resolveAll {
                 expectations = [ 'producer-jar.txt', 'producer-javadoc.txt', 'producer-other.txt' ]
             }
         '''
@@ -246,7 +246,7 @@ Artifacts
             }
         '''
         file('consumer/build.gradle') << '''
-            resolve {
+            tasks.resolve {
                 expectations = ['producer-jar.txt', 'direct-jar.txt', 'transitive-jar.txt']
             }
         '''
@@ -270,7 +270,7 @@ Artifacts
             }
         '''
         file('consumer/build.gradle') << '''
-            resolveJavadoc {
+            tasks.resolveJavadoc {
                 expectations = ['producer-javadoc.txt', 'direct-javadoc.txt', 'transitive-javadoc.txt']
             }
         '''
@@ -294,7 +294,7 @@ Artifacts
             }
         '''
         file('consumer/build.gradle') << '''
-            resolveOther {
+            tasks.resolveOther {
                 expectations = ['producer-other.txt', 'direct-other.txt', 'transitive-other.txt']
             }
         '''
@@ -318,7 +318,7 @@ Artifacts
             }
         '''
         file('consumer/build.gradle') << '''
-            resolveOther {
+            tasks.resolveOther {
                 expectations = ['producer-other.txt']
             }
         '''

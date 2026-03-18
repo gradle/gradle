@@ -17,7 +17,8 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
@@ -26,7 +27,7 @@ class PropertyIntegrationTest extends AbstractIntegrationSpec {
     def "can use property as task input"() {
         given:
         taskTypeWritesPropertyValueToFile()
-        buildFile << """
+        buildFile """
 
 task thing(type: SomeTask) {
     prop = providers.systemProperty('prop')
@@ -66,7 +67,7 @@ task thing(type: SomeTask) {
 
     def "can define task with abstract Property<#type> getter"() {
         given:
-        buildFile << """
+        buildFile """
             class Param<T> {
                 T display
                 String toString() { display.toString() }
@@ -101,7 +102,7 @@ task thing(type: SomeTask) {
 
     def "can define task with abstract nested property"() {
         given:
-        buildFile << """
+        buildFile """
             interface NestedType {
                 @Input
                 Property<String> getProp()
@@ -137,7 +138,7 @@ task thing(type: SomeTask) {
 
     def "fails when property with no value is queried"() {
         given:
-        buildFile << """
+        buildFile """
             abstract class SomeTask extends DefaultTask {
                 @Internal
                 abstract Property<String> getProp()
@@ -159,13 +160,9 @@ task thing(type: SomeTask) {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 
-    @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
-        reason = "Config cache does not support extensions during execution, so cause does not include any provenance information"
-    )
     def "fails when property with no value because source property has no value is queried"() {
         given:
-        buildFile << """
+        buildFile """
             interface SomeExtension {
                 Property<String> getSource()
             }
@@ -197,16 +194,22 @@ task thing(type: SomeTask) {
 
         then:
         failure.assertHasDescription("Execution failed for task ':thing'.")
-        failure.assertHasCause("""Cannot query the value of task ':thing' property 'prop' because it has no value available.
+        if (GradleContextualExecuter.isConfigCache()) {
+            failure.assertHasCause("""Cannot query the value of task ':thing' property 'prop' because it has no value available.
+The value of this property is derived from:
+  - Gradle property 'ABC'""")
+        } else {
+            failure.assertHasCause("""Cannot query the value of task ':thing' property 'prop' because it has no value available.
 The value of this property is derived from:
   - extension 'custom2' property 'source'
   - extension 'custom1' property 'source'
   - Gradle property 'ABC'""")
+        }
     }
 
     def "can use property with no value as optional ad hoc task input property"() {
         given:
-        buildFile << """
+        buildFile """
 
 def prop = project.objects.property(String)
 
@@ -225,40 +228,38 @@ task thing {
         output.contains("prop = null")
     }
 
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#268")
     def "reports failure due to broken @Input task property"() {
         taskTypeWritesPropertyValueToFile()
-        buildFile << """
-
-task thing(type: SomeTask) {
-    prop = providers.provider { throw new RuntimeException("broken") }
-    outputFile = layout.buildDirectory.file("out.txt")
-}
-
+        buildFile """
+            task thing(type: SomeTask) {
+                prop = providers.provider { throw new RuntimeException("broken") }
+                outputFile = layout.buildDirectory.file("out.txt")
+            }
         """
 
         when:
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
-        failure.assertHasCause("Failed to calculate the value of task ':thing' property 'prop'.")
+        if (GradleContextualExecuter.isConfigCache()) {
+            failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:thing` of type `SomeTask`: error writing value of type 'org.gradle.api.internal.provider.DefaultProperty'")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':thing'.")
+            failure.assertHasCause("Failed to calculate the value of task ':thing' property 'prop'.")
+        }
         failure.assertHasCause("broken")
     }
 
-    @ToBeFixedForConfigurationCache(because = "configuration cache captures provider value")
     def "task @Input property calculation is called once only when task executes"() {
         taskTypeWritesPropertyValueToFile()
-        buildFile << """
-
-task thing(type: SomeTask) {
-    prop = providers.provider {
-        println("calculating value")
-        return "value"
-    }
-    outputFile = layout.buildDirectory.file("out.txt")
-}
-
+        buildFile """
+            task thing(type: SomeTask) {
+                prop = providers.provider {
+                    println("calculating value")
+                    return "value"
+                }
+                outputFile = layout.buildDirectory.file("out.txt")
+            }
         """
 
         when:
@@ -272,7 +273,8 @@ task thing(type: SomeTask) {
 
         then:
         result.assertTaskSkipped(":thing")
-        output.count("calculating value") == 1
+        def expectedCount = GradleContextualExecuter.isConfigCache() ? 0 : 1
+        output.count("calculating value") == expectedCount
 
         when:
         run("help")
@@ -281,9 +283,9 @@ task thing(type: SomeTask) {
         output.count("calculating value") == 0
     }
 
-    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
+    @UnsupportedWithConfigurationCache(because = "https://github.com/gradle/configuration-cache/issues/46")
     def "does not calculate task @Input property value when task is skipped due to @SkipWhenEmpty on another property"() {
-        buildFile << """
+        buildFile """
 
 class SomeTask extends DefaultTask {
     @Input
@@ -314,7 +316,7 @@ task thing(type: SomeTask) {
 
     def "can set property value from DSL using a value or a provider"() {
         given:
-        buildFile << """
+        buildFile """
 class SomeExtension {
     final Property<String> prop
 
@@ -351,7 +353,7 @@ assert tasks.t.prop.get() == "changed"
 
     def "can set String property value using a GString"() {
         given:
-        buildFile << """
+        buildFile """
 class SomeExtension {
     final Property<String> prop
 
@@ -382,7 +384,7 @@ assert custom.prop.get() == "value 4"
 
     def "can set Long property value using an Integer"() {
         given:
-        buildFile << """
+        buildFile """
             interface SomeExtension {
                 Property<Long> getProp()
             }
@@ -408,7 +410,7 @@ assert custom.prop.get() == "value 4"
 
     def "can set Enum property value using an string"() {
         given:
-        buildFile << """
+        buildFile """
             enum MyEnumOptions {
                 FIRST, SECOND, THIRD, FORTH
             }
@@ -443,134 +445,49 @@ assert custom.prop.get() == "value 4"
         succeeds()
     }
 
-    @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
-        reason = "Config cache does not support extensions during execution, leading to 'Could not get unknown property 'custom' for task ':wrongValueTypeDsl' of type org.gradle.api.DefaultTask."
-    )
-    def "reports failure to set property value using incompatible type"() {
+    def "reports failure to set property value using incompatible type (#errorType)"() {
         given:
-        buildFile << """
-class SomeExtension {
-    final Property<String> prop
+        buildFile """
+            abstract class StringPropTask extends DefaultTask {
+              @Internal
+              abstract Property<String> getProp()
 
-    @javax.inject.Inject
-    SomeExtension(ObjectFactory objects) {
-        prop = objects.property(String)
-    }
-}
+              @Inject
+              abstract ObjectFactory getObjectFactory()
 
-extensions.create('custom', SomeExtension)
+              @Inject
+              abstract ProviderFactory getProviderFactory()
+            }
 
-task wrongValueTypeDsl {
-    doLast {
-        custom.prop = 123
-    }
-}
-
-task wrongValueTypeApi {
-    doLast {
-        custom.prop.set(123)
-    }
-}
-
-task wrongPropertyTypeDsl {
-    doLast {
-        custom.prop = objects.property(Integer)
-    }
-}
-
-task wrongPropertyTypeApi {
-    doLast {
-        custom.prop.set(objects.property(Integer))
-    }
-}
-
-task wrongRuntimeType {
-    doLast {
-        custom.prop = providers.provider { 123 }
-        custom.prop.get()
-    }
-}
-
-task wrongConventionValueType {
-    doLast {
-        custom.prop.convention(123)
-    }
-}
-
-task wrongConventionPropertyType {
-    doLast {
-        custom.prop.convention(objects.property(Integer))
-    }
-}
-
-task wrongConventionRuntimeValueType {
-    doLast {
-        custom.prop.convention(providers.provider { 123 })
-        custom.prop.get()
-    }
-}
-"""
+            tasks.register("someTask", StringPropTask) {
+                doLast {
+                    ${setter}
+                }
+            }
+        """
 
         when:
-        fails("wrongValueTypeDsl")
+        fails("someTask")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
+        failure.assertHasDescription("Execution failed for task ':someTask'.")
+        def expectedCause = "Cannot ${setter.contains(".get()") ? "get" : "set"} the value of task ':someTask' property 'prop' of type java.lang.String ${typeDescription}"
+        failure.assertHasCause(expectedCause)
 
-        when:
-        fails("wrongValueTypeApi")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueTypeApi'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
-
-        when:
-        fails("wrongPropertyTypeDsl")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
-
-        when:
-        fails("wrongPropertyTypeApi")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
-
-        when:
-        fails("wrongRuntimeType")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeType'.")
-        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
-
-        when:
-        fails("wrongConventionValueType")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':wrongConventionValueType'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
-
-        when:
-        fails("wrongConventionPropertyType")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':wrongConventionPropertyType'.")
-        failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
-
-        when:
-        fails("wrongConventionRuntimeValueType")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':wrongConventionRuntimeValueType'.")
-        failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
+        where:
+        errorType                             | setter                                                          | typeDescription
+        "wrong type, dsl"                     | "prop = 123"                                                    | "using an instance of type java.lang.Integer."
+        "wrong type, api"                     | "prop.set(123)"                                                 | "using an instance of type java.lang.Integer."
+        "wrong Property type, dsl"            | "prop = objectFactory.property(Integer)"                        | "using a provider of type java.lang.Integer."
+        "wrong Property type, api"            | "prop.set(objectFactory.property(Integer))"                     | "using a provider of type java.lang.Integer."
+        "wrong runtime type"                  | "prop = providerFactory.provider { 123 }; prop.get()"           | "as the provider associated with this property returned a value of type java.lang.Integer."
+        "wrong convention value type"         | "prop.convention(123)"                                          | "using an instance of type java.lang.Integer."
+        "wrong convention Property type"      | "prop.convention(objectFactory.property(Integer))"              | "using a provider of type java.lang.Integer."
+        "wrong convention runtime value type" | "prop.convention(providerFactory.provider { 123 }); prop.get()" | "as the provider associated with this property returned a value of type java.lang.Integer."
     }
 
     def "fails when specialized factory method is not used"() {
-        buildFile << """
+        buildFile """
             objects.property($declaration)
         """
 
@@ -590,7 +507,7 @@ task wrongConventionRuntimeValueType {
     }
 
     def "fails when instantiating managed type without specialized property types"() {
-        buildFile << """
+        buildFile """
             interface SomeType {
                 Property<$declaration> getProp()
             }
@@ -613,7 +530,10 @@ task wrongConventionRuntimeValueType {
         'RegularFile'         | 'RegularFile' | 'RegularFileProperty'
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(
+        value = IntegTestPreconditions.NotParallelExecutor,
+        reason = "--parallel is specified explicitly, no need to run with multiple executor types"
+    )
     @Issue("https://github.com/gradle/gradle/issues/12811")
     def "multiple tasks can have property values calculated from a shared finalize on read property instance with value derived from dependency resolution"() {
         createDirs("producer", "consumer")
@@ -622,7 +542,7 @@ task wrongConventionRuntimeValueType {
             include 'consumer'
         """
         taskTypeWritesPropertyValueToFile()
-        buildFile << """
+        buildFile """
             project(':producer') {
                 def t = task producer(type: SomeTask) {
                     prop = "producer"
@@ -669,8 +589,11 @@ task wrongConventionRuntimeValueType {
         file("consumer/build/consumer2.txt").text == "producer"
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotParallelExecutor,
+        reason = "--parallel is specified explicitly, no need to run with multiple executor types"
+    )
     @Issue("https://github.com/gradle/gradle/issues/12969")
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
     def "task can have property value derived from dependency resolution result when another task has input files derived from same result"() {
         createDirs("producer", "consumer")
         settingsFile << """
@@ -678,7 +601,7 @@ task wrongConventionRuntimeValueType {
             include 'consumer'
         """
         taskTypeWritesPropertyValueToFile()
-        buildFile << """
+        buildFile """
             project(':producer') {
                 def t = task producer(type: SomeTask) {
                     prop = "producer"
@@ -727,7 +650,7 @@ task wrongConventionRuntimeValueType {
     }
 
     def taskTypeWritesPropertyValueToFile() {
-        buildFile << """
+        buildFile """
             class SomeTask extends DefaultTask {
                 @Input
                 final Property<String> prop = project.objects.property(String)
@@ -746,7 +669,7 @@ task wrongConventionRuntimeValueType {
     @Issue("https://github.com/gradle/gradle/issues/10248#issuecomment-592528234")
     def "can use findProperty from a closure passed to ConfigureUtil.configure via an extension"() {
         when:
-        buildFile << """
+        buildFile """
         class SomeExtension {
             def innerThing(Closure closure) {
                 org.gradle.util.internal.ConfigureUtil.configure(closure, new InnerThing())

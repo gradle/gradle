@@ -20,6 +20,19 @@ dependencies {
 }
 // end::dependency-constraints[]
 
+// tag::dependency-strictly[]
+dependencies {
+    constraints {
+        implementation("com.google.guava:guava") {
+            version {
+                strictly("33.1.0-jre")
+            }
+            because("avoid older versions with known issues")
+        }
+    }
+}
+// end::dependency-strictly[]
+
 tasks.register<Copy>("copyLibs") {
     from(configurations.compileClasspath)
     into(layout.buildDirectory.dir("libs"))

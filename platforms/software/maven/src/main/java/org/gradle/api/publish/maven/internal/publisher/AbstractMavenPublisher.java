@@ -191,7 +191,6 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
 
     protected abstract Metadata createSnapshotMetadata(MavenNormalizedPublication publication, String groupId, String artifactId, String version, ExternalResourceRepository repository, ExternalResourceName metadataResource);
 
-    @NullMarked
     private static class SnapshotMetadataResult {
         public final ExternalResourceName snapshotMetadataPath;
         public final Metadata snapshotMetadata;

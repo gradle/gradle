@@ -25,6 +25,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ public class DefaultResourceLockStatistics implements ResourceLockStatistics {
 
     @Override
     public void measureLockAcquisition(Iterable<? extends Describable> locks, Runnable runnable) {
-        measure("Blocked on", locks, () -> {
+        measure("Blocked on", locks, (Factory<@Nullable Void>) () -> {
             Timer timer = Time.startTimer();
             runnable.run();
             totalBlockedTime.addAndGet(timer.getElapsedMillis());
@@ -56,7 +57,7 @@ public class DefaultResourceLockStatistics implements ResourceLockStatistics {
     }
 
     @Override
-    public <T> T measure(String operation, Iterable<? extends Describable> locks, Factory<T> factory) {
+    public <T extends @Nullable Object> T measure(String operation, Iterable<? extends Describable> locks, Factory<T> factory) {
         return buildOperationRunner.call(new CallableBuildOperation<T>() {
             @Override
             public T call(BuildOperationContext context) {

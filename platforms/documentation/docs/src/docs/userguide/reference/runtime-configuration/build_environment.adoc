@@ -131,6 +131,11 @@ You can place the `gradle.properties` file in the root directory of your project
 
 When resolving properties, Gradle first looks in the user-level `gradle.properties` file located in `GRADLE_USER_HOME`, then in the project-level `gradle.properties` file, and finally in the `gradle.properties` file located in `GRADLE_HOME`, with user-level properties taking precedence over project-level and installation-level properties.
 
+[NOTE]
+====
+See <<best_practices_general.adoc#do_not_use_gradle_properties_in_subprojects,our Best Practice recommendation>> on where to locate `gradle.properties` for further guidance.
+====
+
 [[sec:project_properties]]
 == Project properties
 
@@ -195,11 +200,16 @@ A simple way to handle this is through an `isCI` project property:
 ====
 include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+====
+
+[source,bash]
 ----
 $ ./gradlew performRelease -PisCI=true --quiet
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
-====
 
 Note that running `./gradlew performRelease` yields the same results as long as your `gradle.properties` file includes `isCI=true`:
 
@@ -212,6 +222,9 @@ isCI=true
 [source,bash]
 ----
 $ ./gradlew performRelease --quiet
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
 
@@ -432,6 +445,13 @@ _Default is `.gradle`._
 Enable (`true`) or disable (`false`) the generation of `build/reports/problems-report.html`. `true` is the default.
 The report is generated with problems provided to the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
 
+`org.gradle.tooling.parallel=(true,false)` since-gradle-label:9.4.0[]::
+
+Allows running <<service_injection.adoc#toolingmodelbuilderregistry,Tooling Model Builders>> in parallel, which can improve IDE Sync times.
+An explicit value will override `org.gradle.parallel` in this context.
++
+_Default is the value of `org.gradle.parallel`._
+
 `org.gradle.unsafe.isolated-projects=(true,false)`::
 Enables project isolation, which enables configuration caching.
 +
@@ -515,6 +535,19 @@ Specifies the `GRADLE_USER_HOME` directory for Gradle to store its global config
 +
 Defaults to `USER_HOME/.gradle` if not set.
 
+`GRADLE_DAEMON_BIND_ADDRESS`::
+Specifies the IP address or hostname that Gradle uses to bind the local socket for client-daemon and cross-daemon communication.
++
+By default, Gradle automatically selects the loopback address (or wildcard address as a fallback) for this socket.
+This may not work correctly in environments with specific network configurations, such as multiple network interfaces, multiple TCP/IP stacks etc.
++
+Setting this variable skips auto-detection and uses the provided address directly:
++
+[source,text]
+----
+GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
+----
+
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM.
 +
@@ -526,3 +559,4 @@ Overrides for the default Gradle library repository.
 Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
 +
 Useful override to specify an internally hosted repository if your company uses a firewall/proxy.
+

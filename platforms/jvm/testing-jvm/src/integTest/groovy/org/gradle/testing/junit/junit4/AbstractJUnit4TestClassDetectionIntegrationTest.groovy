@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.junit.AbstractJUnitTestClassDetectionIntegrationTest
 
 abstract class AbstractJUnit4TestClassDetectionIntegrationTest extends AbstractJUnitTestClassDetectionIntegrationTest {
@@ -79,12 +79,11 @@ abstract class AbstractJUnit4TestClassDetectionIntegrationTest extends AbstractJ
         executer.withTasks('test').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('org.gradle.TestsOnInner').assertTestPassed('ok')
-        result.testClass('org.gradle.TestsOnInner$SomeInner').assertTestPassed('ok')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.TestsOnInner', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath('org.gradle.TestsOnInner$SomeInner', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         if (supportsEmptyClassWithRunner) {
-            result.testClass('org.gradle.EmptyRunWithSubclass').assertTestsExecuted('ok')
-            result.testClass('org.gradle.EmptyRunWithSubclass').assertTestPassed('ok')
+            results.testPath('org.gradle.EmptyRunWithSubclass', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         }
     }
 

@@ -27,5 +27,7 @@ public class TestWithFailureInConfigMethod {
     }
 
     @Test
-    public void someTest() {}
+    public void someTest() {
+        System.out.println("Some test");
+    }
 }

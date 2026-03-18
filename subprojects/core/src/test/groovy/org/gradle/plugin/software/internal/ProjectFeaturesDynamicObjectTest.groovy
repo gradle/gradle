@@ -17,8 +17,15 @@
 package org.gradle.plugin.software.internal
 
 import org.gradle.api.internal.DynamicObjectAware
-import org.gradle.api.internal.plugins.TargetTypeInformation
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.TargetTypeInformation
 import org.gradle.api.model.ObjectFactory
+import org.gradle.features.internal.binding.ProjectFeatureApplicator
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureImplementation
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal
+import org.gradle.features.internal.binding.ProjectFeaturesDynamicObject
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -30,6 +37,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         it.getTargetDefinitionType() >> new TargetTypeInformation.DefinitionTargetTypeInformation(Object.class)
     }
     def context = Mock(ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext)
+    def featureApplication = Mock(ProjectFeatureApplicator.FeatureApplication)
     def projectFeaturesDynamicObject
 
     def setup() {
@@ -40,15 +48,36 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         projectFeaturesDynamicObject = services.get(ObjectFactory.class).newInstance(ProjectFeaturesDynamicObject, dynamicObjectAware, context)
     }
 
-    def "applies project feature when configured"() {
+    def "applies project type when configured"() {
+        def foo = TestUtil.objectFactory().newInstance(Foo)
+
+        when:
+        projectFeaturesDynamicObject.invokeMethod("foo", closureArg { bar = 'baz' })
+
+        then:
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
+        1 * projectFeatureApplicator.registerFeatureApplicationFor(dynamicObjectAware, projectTypeImplementation) >> featureApplication
+        2 * featureApplication.getDefinitionInstance() >> foo
+        1 * featureApplication.isProjectType() >> true
+        1 * projectFeatureApplicator.applyFeatures()
+
+        and:
+        foo.bar == 'baz'
+    }
+
+    def "creates, but does not apply project feature when configured"() {
         def foo = new Foo()
 
         when:
         projectFeaturesDynamicObject.invokeMethod("foo", closureArg { bar = 'baz' })
 
         then:
-        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": projectTypeImplementation]
-        1 * projectFeatureApplicator.applyFeatureTo(dynamicObjectAware, projectTypeImplementation) >> foo
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
+        1 * projectFeatureApplicator.registerFeatureApplicationFor(dynamicObjectAware, projectTypeImplementation) >> featureApplication
+        2 * featureApplication.getDefinitionInstance() >> foo
+        1 * featureApplication.isProjectType() >> false
+        0 * featureApplication.apply()
+        0 * projectFeatureApplicator.applyFeatures()
 
         and:
         foo.bar == 'baz'
@@ -60,7 +89,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         0 * projectFeatureRegistry.getProjectFeatureImplementations()
-        0 * projectFeatureApplicator.applyFeatureTo(_, _)
+        0 * projectFeatureApplicator.registerFeatureApplicationFor(_, _)
 
         and:
         thrown(MissingPropertyException)
@@ -72,7 +101,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
         then:
         0 * projectFeatureRegistry.getProjectFeatureImplementations()
-        0 * projectFeatureApplicator.applyFeatureTo(_, _)
+        0 * projectFeatureApplicator.registerFeatureApplicationFor(_, _)
 
         and:
         thrown(MissingMethodException)
@@ -83,8 +112,8 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         projectFeaturesDynamicObject.invokeMethod("fizz", closureArg { bar = 'baz' })
 
         then:
-        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": projectTypeImplementation]
-        0 * projectFeatureApplicator.applyFeatureTo(_, _)
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
+        0 * projectFeatureApplicator.registerFeatureApplicationFor(_, _)
 
         and:
         thrown(MissingMethodException)
@@ -95,15 +124,17 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         assert projectFeaturesDynamicObject.hasMethod("foo", closureArg {})
 
         then:
-        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": projectTypeImplementation]
-        0 * projectFeatureApplicator.applyFeatureTo(_, _)
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
+        0 * projectFeatureApplicator.registerFeatureApplicationFor(_, _)
     }
 
     private static Object[] closureArg(Closure closure) {
         return [closure]
     }
 
-    class Foo {
+    static class Foo implements Definition<Baz> {
         String bar
     }
+
+    interface Baz extends BuildModel { }
 }

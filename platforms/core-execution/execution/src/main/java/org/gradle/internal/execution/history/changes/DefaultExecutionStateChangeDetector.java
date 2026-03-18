@@ -34,7 +34,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         Describable executable,
         PreviousExecutionState lastExecution,
         BeforeExecutionState thisExecution,
-        IncrementalInputProperties incrementalInputProperties
+        IncrementalInputProperties incrementalInputProperties,
+        boolean hasOverlappingOutputs
     ) {
         // Capture changes in execution outcome
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(
@@ -80,7 +81,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             thisExecution.getOutputFileLocationSnapshots().keySet(),
             "Output",
             executable);
-        ImmutableSortedMap<String, FileSystemSnapshot> remainingPreviouslyProducedOutputs = thisExecution.getDetectedOverlappingOutputs().isPresent()
+        ImmutableSortedMap<String, FileSystemSnapshot> remainingPreviouslyProducedOutputs = hasOverlappingOutputs
             ? findOutputsStillPresentSincePreviousExecution(lastExecution.getOutputFilesProducedByWork(), thisExecution.getOutputFileLocationSnapshots())
             : thisExecution.getOutputFileLocationSnapshots();
         OutputFileChanges outputFileChanges = new OutputFileChanges(

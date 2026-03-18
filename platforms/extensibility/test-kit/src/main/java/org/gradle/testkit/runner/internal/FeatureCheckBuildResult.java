@@ -25,6 +25,7 @@ import org.gradle.testkit.runner.internal.feature.FeatureCheck;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.io.BufferedReader;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -50,6 +51,12 @@ public class FeatureCheckBuildResult implements BuildResult {
     public String getOutput() {
         outputFeatureCheck.verify();
         return delegateBuildResult.getOutput();
+    }
+
+    @Override
+    public BufferedReader getOutputReader() {
+        outputFeatureCheck.verify();
+        return delegateBuildResult.getOutputReader();
     }
 
     @Override

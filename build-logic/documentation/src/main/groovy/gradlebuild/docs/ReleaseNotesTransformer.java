@@ -36,7 +36,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * HTML post-processor for the generated Release Notes page.
@@ -50,7 +49,6 @@ public class ReleaseNotesTransformer extends FilterReader {
     private File baseCss;
     private File releaseNotesCss;
     private File releaseNotesJavascript;
-    private Set<File> jqueryFiles;
 
     public ReleaseNotesTransformer(Reader original) {
         super(original);
@@ -76,7 +74,7 @@ public class ReleaseNotesTransformer extends FilterReader {
     }
 
     private Reader transform(Reader in) throws IOException {
-        if (jqueryFiles == null || releaseNotesJavascript == null || baseCss == null || releaseNotesCss == null) {
+        if (releaseNotesJavascript == null || baseCss == null || releaseNotesCss == null) {
             throw new GradleException("filter isn't ready to transform");
         }
 
@@ -158,19 +156,16 @@ public class ReleaseNotesTransformer extends FilterReader {
 
         head.appendElement("link")
             .attr("rel", "stylesheet")
-            .attr("href", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css");
+            .attr("href", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css");
 
         head.appendElement("script")
-            .attr("src", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js");
+            .attr("src", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js");
 
         head.appendElement("script")
             .append("hljs.highlightAll();");
     }
 
     private void addJavascriptToHead(Document document) {
-        for (File jquery : this.jqueryFiles) {
-            appendFileContentsTo(document.head(), "<script type='text/javascript'>", jquery, "</script>");
-        }
         appendFileContentsTo(document.head(), "<script type='text/javascript'>", releaseNotesJavascript, "</script>");
     }
 
@@ -263,10 +258,6 @@ public class ReleaseNotesTransformer extends FilterReader {
             String anchorName = heading.text().toLowerCase(Locale.ROOT).replaceAll(" ", "-");
             heading.attr("id", anchorName);
         }
-    }
-
-    public void setJqueryFiles(Set<File> jqueryFiles) {
-        this.jqueryFiles = jqueryFiles;
     }
 
     public void setBaseCss(File baseCss) {

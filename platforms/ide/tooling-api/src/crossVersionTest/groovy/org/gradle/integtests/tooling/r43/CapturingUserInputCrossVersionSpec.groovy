@@ -23,26 +23,41 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Timeout
 
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.PROMPT
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.YES
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.answerOutput
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPlugin
-import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPluginApplication
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @TargetGradleVersion(">=4.3")
 @Timeout(120)
 class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
+
     def setup() {
         if (!dist.toolingApiStdinInEmbeddedModeSupported) {
             // Did not work in embedded mode in older versions
             toolingApi.requireDaemons()
         }
 
-        file('buildSrc/src/main/java/BuildScanPlugin.java') << buildScanPlugin()
-        file('build.gradle') << buildScanPluginApplication()
+        file('buildSrc/src/main/java/BuildScanPlugin.java') << """
+            import org.gradle.api.Project;
+            import org.gradle.api.Plugin;
+
+            import org.gradle.api.internal.project.ProjectInternal;
+            import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
+
+            public class BuildScanPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    BuildScanUserInputHandler userInputHandler = ((ProjectInternal) project).getServices().get(BuildScanUserInputHandler.class);
+                    Boolean accepted = userInputHandler.askYesNoQuestion("Accept license?");
+                    System.out.println("License accepted: " + accepted);
+                }
+            }
+        """
+        file('build.gradle') << """
+            apply plugin: BuildScanPlugin
+
+            task doSomething
+        """
     }
+
 
     def "can capture user input if standard input was provided"() {
         when:
@@ -51,8 +66,8 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        output.contains(PROMPT)
-        output.contains(answerOutput(true))
+        output.contains("Accept license? [yes, no]")
+        output.contains("License accepted: true")
     }
 
     def "cannot capture user input if standard input was not provided"() {
@@ -62,8 +77,8 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        !output.contains(PROMPT)
-        output.contains(answerOutput(null))
+        !output.contains("Accept license? [yes, no]")
+        output.contains("License accepted: null")
     }
 
     private void runBuildWithStandardInput(ProjectConnection connection) {
@@ -76,10 +91,10 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
             .run(resultHandler)
 
         poll(60) {
-            assert getOutput().contains(PROMPT)
+            assert getOutput().contains("Accept license? [yes, no]")
         }
 
-        stdinWriter.write((YES + System.getProperty('line.separator')).bytes)
+        stdinWriter.write(("yes" + System.getProperty('line.separator')).bytes)
         stdinWriter.close()
 
         resultHandler.finished()
@@ -87,10 +102,11 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private static BuildLauncher basicBuildConfiguration(ProjectConnection connection) {
-        connection.newBuild().forTasks(DUMMY_TASK_NAME)
+        connection.newBuild().forTasks("doSomething")
     }
 
     private String getOutput() {
         stdout.toString()
     }
+
 }

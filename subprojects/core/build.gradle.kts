@@ -1,19 +1,12 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Public and internal 'core' Gradle APIs with implementation"
 
 configurations {
     register("reports")
-}
-
-tasks.classpathManifest {
-    optionalProjects.add("gradle-kotlin-dsl")
-    // The gradle-runtime-api-info.jar is added by a 'distributions-...' project if it is on the (integration test) runtime classpath.
-    // It contains information services in ':core' need to reason about the complete Gradle distribution.
-    // To allow parts of ':core' code to be instantiated in unit tests without relying on this functionality, the dependency is optional.
-    optionalProjects.add("gradle-runtime-api-info")
 }
 
 // Instrumentation interceptors for tests
@@ -32,29 +25,16 @@ dependencyAnalysis {
     }
 }
 jvmCompile {
-    addCompilationFrom(testInterceptors) {
-        // By default, test interceptors compile to the same JVM version as the production code.
-        targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
-    }
+    addCompilationFrom(testInterceptors)
 }
 
 val testInterceptorsImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
 
-errorprone {
-    disabledChecks.addAll(
-        "NonApiType", // 1 occurrences
-        "NonCanonicalType", // 16 occurrences
-        "ReferenceEquality", // 2 occurrences
-        "StreamResourceLeak", // 6 occurrences
-        "TypeParameterShadowing", // 1 occurrences
-        "TypeParameterUnusedInFormals", // 2 occurrences
-        "UndefinedEquals", // 1 occurrences
-    )
-}
-
 dependencies {
+    api(projects.ant)
+    api(projects.antApi)
     api(projects.baseAsm)
     api(projects.baseServices)
     api(projects.baseServicesGroovy)
@@ -63,14 +43,18 @@ dependencies {
     api(projects.buildCacheLocal)
     api(projects.buildCachePackaging)
     api(projects.buildCacheSpi)
+    api(projects.buildDiscovery)
+    api(projects.buildDiscoveryImpl)
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildProcessServices)
     api(projects.classloaders)
     api(projects.cli)
+    api(projects.collections)
     api(projects.concurrent)
     api(projects.coreApi)
+    api(projects.credentialsApi)
     api(projects.declarativeDslApi)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)
@@ -95,9 +79,8 @@ dependencies {
     api(projects.normalizationJava)
     api(projects.persistentCache)
     api(projects.problemsApi)
-    api(projects.processMemoryServices)
     api(projects.processServices)
-    api(projects.requestHandlerWorker)
+    api(projects.processServicesApi)
     api(projects.resources)
     api(projects.scopedPersistentCache)
     api(projects.serialization)
@@ -108,9 +91,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.versionedCache)
-    api(projects.workerMain)
 
-    api(libs.ant)
     api(libs.asm)
     api(libs.asmTree)
     api(libs.groovy)
@@ -118,35 +99,37 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
     api(libs.jsr305)
-    api(libs.nativePlatform)
 
+    implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
-    implementation(projects.groovyLoader)
+    implementation(projects.daemonLogging)
     implementation(projects.inputTracking)
-    implementation(projects.io)
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
+    implementation(projects.processMemoryServices)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.coreFlowServicesApi) {
         because("DefaultBuildServicesRegistry has ordering dependency with FlowScope")
     }
     implementation(projects.projectFeaturesApi)
+    implementation(projects.workerProcessServices)
 
+    implementation(libs.ant)
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.errorProneAnnotations)
     implementation(libs.fastutil)
-    implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
     implementation(libs.groovyXml)
+    implementation(libs.nativePlatform)
     implementation(libs.slf4jApi)
     implementation(libs.tomlj) {
         // Used for its nullability annotations, not needed at runtime
         exclude("org.checkerframework", "checker-qual")
     }
-    implementation(libs.jnrConstants)
+
 
     compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")
@@ -158,10 +141,12 @@ dependencies {
     runtimeOnly(libs.groovyDatetime)
     runtimeOnly(libs.groovyDoc)
     runtimeOnly(libs.groovyNio)
+    runtimeOnly(projects.groovyLoader)
 
     testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)
     testImplementation(projects.platformNative)
+    testImplementation(projects.io)
     testImplementation(projects.testingBase)
     testImplementation(libs.jsoup)
     testImplementation(libs.log4jToSlf4j)
@@ -229,6 +214,7 @@ dependencies {
     testFixturesImplementation(projects.normalizationJava)
     testFixturesImplementation(projects.persistentCache)
     testFixturesImplementation(projects.snapshots)
+    testFixturesImplementation(projects.ant)
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.asm)
     testFixturesImplementation(libs.guava)
@@ -259,9 +245,14 @@ dependencies {
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.baseDiagnostics))
+    testImplementation(testFixtures(projects.processServices))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.time))
+
+    testRuntimeOnly(projects.distributionsCore) {
+        because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
+    }
 
     integTestImplementation(projects.workers)
     integTestImplementation(projects.dependencyManagement)
@@ -270,18 +261,21 @@ dependencies {
     integTestImplementation(projects.daemonServices)
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
-    integTestImplementation(libs.jetty)
-    integTestImplementation(libs.littleproxy)
+    integTestImplementation(testLibs.jetty)
+    integTestImplementation(testLibs.littleproxy)
     integTestImplementation(testFixtures(projects.native))
     integTestImplementation(testFixtures(projects.fileTemp))
-
-    testRuntimeOnly(projects.distributionsCore) {
-        because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")
-    }
+    integTestImplementation(testFixtures(projects.launcher))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
     }
+
+    crossVersionTestImplementation(projects.internalIntegTesting)
+    crossVersionTestImplementation(testLibs.spockJUnit4) {
+        because("Required for @org.junit.Rule")
+    }
+
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 
     annotationProcessor(projects.internalInstrumentationProcessor)
@@ -291,6 +285,15 @@ dependencies {
     testInterceptorsImplementation(testFixtures(projects.core))
     "testInterceptorsAnnotationProcessor"(projects.internalInstrumentationProcessor)
     "testInterceptorsAnnotationProcessor"(platform(projects.distributionsDependencies))
+}
+
+gradleModule {
+    computedRuntimes {
+        // Auto-generated by `:checkTargetRuntimes --fix`
+        client = true
+        daemon = true
+        worker = true
+    }
 }
 
 strictCompile {

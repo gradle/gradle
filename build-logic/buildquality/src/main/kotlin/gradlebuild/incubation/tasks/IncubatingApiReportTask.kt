@@ -1,8 +1,8 @@
 package gradlebuild.incubation.tasks
 
 import gradlebuild.incubation.action.IncubatingApiReportWorkAction
-import gradlebuild.modules.extension.ExternalModulesExtension
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
@@ -25,9 +25,10 @@ import javax.inject.Inject
 abstract class IncubatingApiReportTask : DefaultTask() {
 
     private val additionalClasspath = project.objects.fileCollection().apply {
+        val libs = project.the<VersionCatalogsExtension>().named("libs")
         from(
             project.configurations.detachedConfiguration(
-                project.dependencies.create(project.the<ExternalModulesExtension>().futureKotlin("compiler-embeddable"))
+                project.dependencies.create(libs.findLibrary("kotlinCompilerEmbeddable").get().get())
             )
         )
     }

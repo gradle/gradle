@@ -25,7 +25,6 @@ The Build Dashboard plugin can be used to generate a single HTML dashboard that 
 
 To use the Build Dashboard plugin, include the following in your build script:
 
-.Using the Build Dashboard plugin
 ====
 include::sample[dir="snippets/base/buildDashboard/kotlin",files="build.gradle.kts[tags=use-build-dashboard-plugin]"]
 include::sample[dir="snippets/base/buildDashboard/groovy",files="build.gradle[tags=use-build-dashboard-plugin]"]

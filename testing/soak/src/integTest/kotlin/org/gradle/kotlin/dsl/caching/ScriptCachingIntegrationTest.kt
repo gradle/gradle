@@ -36,6 +36,8 @@ import org.gradle.kotlin.dsl.execution.ProgramParser
 import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.util.GradleVersion
+import org.jetbrains.kotlin.incremental.deleteRecursivelyOrThrow
 import org.junit.Test
 import java.util.UUID
 
@@ -59,12 +61,10 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 }
                 // then: single compilation and classloading
                 compilationCache {
-                    misses(settingsFile, rootBuildFile, leftBuildFile)
-                    hits(rightBuildFile)
+                    misses(settingsFile, rootBuildFile, leftBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(settingsFile, rootBuildFile, leftBuildFile)
-                    hits(rightBuildFile)
+                    misses(settingsFile, rootBuildFile, leftBuildFile, rightBuildFile)
                 }
             }
 
@@ -95,8 +95,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     hits(leftBuildFile, rootBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(rootBuildFile, leftBuildFile)
-                    hits(rightBuildFile)
+                    misses(rootBuildFile, leftBuildFile, rightBuildFile)
                 }
             }
         }
@@ -182,14 +181,10 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
                 // then: compilation and classloading
                 compilationCache {
-                    misses(leftBuildFile)
-                    hits(rightBuildFile.stage1) // same buildscript block, target type and classpath
-                    misses(rightBuildFile.stage2) // different classpath
+                    misses(leftBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(leftBuildFile)
-                    hits(rightBuildFile.stage1)
-                    misses(rightBuildFile.stage2)
+                    misses(leftBuildFile, rightBuildFile)
                 }
             }
 
@@ -214,9 +209,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     hits(leftBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(leftBuildFile)
-                    hits(rightBuildFile.stage1)
-                    misses(rightBuildFile.stage2)
+                    misses(leftBuildFile, rightBuildFile)
                 }
             }
         }
@@ -239,7 +232,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             """
         )
         val settingsFile = cachedSettingsFile(withSettings(""), false, false)
-        val buildFile = cachedBuildFile(withBuildScript("""task<MyTask>("myTask")"""), true)
+        val buildFile = cachedBuildFile(withBuildScript("""tasks.register<MyTask>("myTask")"""), true)
 
         // and: kotlin-dsl cache assertions
         fun KotlinDslCacheFixture.assertCacheHits(run: Int) {
@@ -280,7 +273,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
     fun `writes build cache entries`() {
-        val result = expectCacheEntriesWritten(5, false)
+        val result = expectBuildCacheEntriesWritten(5, false)
         result.assertOutputContains("Stored cache entry for Kotlin DSL version catalog plugin accessors")
         result.assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
         result.assertOutputContains("Stored cache entry for Kotlin DSL accessors")
@@ -290,23 +283,91 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
     fun `writes no build cache entries when script caching disabled`() {
-        val result = expectCacheEntriesWritten(3, true)
+        val result = expectBuildCacheEntriesWritten(3, true)
         result.assertOutputContains("Stored cache entry for Kotlin DSL version catalog plugin accessors")
         result.assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
         result.assertOutputContains("Stored cache entry for Kotlin DSL accessors")
         result.assertNotOutput("Stored cache entry for Kotlin DSL script compilation")
     }
 
+    @Test
+    fun `kotlin script compilation is relocatable`() {
+        val sameContent = randomScriptContent()
+        withOwnGradleUserHomeDir("verifying local build cache content") {
+            // One build populates the build-cache
+            withProjectRoot(file("top")) {
+                withMultiProjectBuild(
+                    settings = sameContent, root = sameContent,
+                    left = sameContent, right = sameContent,
+                ).apply {
+                    buildForCacheInspection("help", "--build-cache").apply {
+                        compilationCache {
+                            misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                        }
+                        classLoadingCache {
+                            misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                        }
+                        assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
+                        assertOutputContains("Stored cache entry for Kotlin DSL accessors for root project 'top'")
+                        assertOutputContains("Stored cache entry for Kotlin DSL accessors for project ':left'")
+                        assertNotOutput("Stored cache entry for Kotlin DSL accessors for project ':right'") // Same as :left
+                        assertOutputContains("Stored cache entry for Kotlin DSL script compilation (Project/TopLevel/stage1)")
+                        assertOutputContains("Stored cache entry for Kotlin DSL script compilation (Project/TopLevel/stage2)")
+                        assertNotOutput("Loaded cache entry for Kotlin DSL script compilation (Project/TopLevel/stage1)")
+                        assertNotOutput("Loaded cache entry for Kotlin DSL script compilation (Project/TopLevel/stage2)")
+                    }
+                }
+            }
+
+            // Stop daemon and cleanup caches
+            buildForCacheInspection("--stop")
+            executer.gradleUserHomeDir
+                .resolve("caches/${GradleVersion.current().version}/kotlin-dsl")
+                .apply { require(isDirectory) { "$this is not a directory" } }
+                .deleteRecursivelyOrThrow()
+
+            // Another build with a different daemon in a different location can reuse build-cache entries
+            withProjectRoot(file("bottom")) {
+                withMultiProjectBuild(
+                    settings = sameContent, root = sameContent,
+                    left = sameContent, right = sameContent,
+                ).apply {
+                    buildForCacheInspection("help", "--build-cache").apply {
+                        compilationCache {
+                            hits(rootBuildFile, leftBuildFile, rightBuildFile)
+                        }
+                        classLoadingCache {
+                            misses(rootBuildFile, leftBuildFile, rightBuildFile)
+                        }
+                        assertOutputContains("Loaded cache entry for Kotlin DSL plugin specs accessors")
+                        assertOutputContains("Loaded cache entry for Kotlin DSL accessors for root project 'bottom'")
+                        assertOutputContains("Loaded cache entry for Kotlin DSL accessors for project ':left'")
+                        assertNotOutput("Loaded cache entry for Kotlin DSL accessors for project ':right'") // Same as :left
+                        assertOutputContains("Loaded cache entry for Kotlin DSL script compilation (Project/TopLevel/stage1)")
+                        assertOutputContains("Loaded cache entry for Kotlin DSL script compilation (Project/TopLevel/stage2)")
+                        assertNotOutput("Stored cache entry for Kotlin DSL script compilation (Project/TopLevel/stage1)")
+                        assertNotOutput("Stored cache entry for Kotlin DSL script compilation (Project/TopLevel/stage2)")
+                    }
+                }
+            }
+        }
+    }
+
     private
-    fun expectCacheEntriesWritten(expectedEntryCount: Int, scriptCachingDisabled: Boolean): ExecutionResult {
+    fun expectBuildCacheEntriesWritten(
+        expectedEntryCount: Int,
+        scriptCachingDisabled: Boolean,
+        scriptContent: String = randomScriptContent(),
+    ): ExecutionResult {
         return withOwnGradleUserHomeDir("verifying local build cache content") {
+
             withSettings(
                 """
                     enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-                    ${randomScriptContent()}
+                    $scriptContent
                 """.trimIndent()
             )
-            withBuildScriptIn(".", randomScriptContent())
+            withBuildScriptIn(".", scriptContent)
             withFolders {
                 "gradle" {
                     withFile(

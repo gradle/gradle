@@ -27,31 +27,60 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
     BuildTestFile buildB
     BuildTestFile buildC
     ResolveTestFixture resolve
-    List arguments = []
+
+    def getCommon() {
+        """
+            plugins {
+                id("java-library")
+            }
+
+            // Add additional configurations that do not bring in build dependencies,
+            // allowing us to verify the structure of the dependency graph without making
+            // the task graph cycle checker angry.
+            configurations {
+                resolvable("graph") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "no-build-deps"))
+                    }
+                }
+                consumable("graphElements") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "no-build-deps"))
+                    }
+                    outgoing.artifact(file("\${project.name}-\${version}.jar"))
+                }
+            }
+        """
+    }
 
     def setup() {
-        resolve = new ResolveTestFixture(buildA.buildFile)
+        resolve = new ResolveTestFixture(buildA)
 
-        buildA.buildFile << """
-            task resolveArtifacts(type: Copy) {
-                from configurations.compileClasspath
-                into 'libs'
+        // AbstractCompositeBuildIntegrationTest automatically adds content to the buildA build file,
+        // preventing us from using the plugins block.
+        buildA.buildFile.text = """
+            ${common}
+            group = 'org.test'
+            version = '1.0'
+            repositories {
+                maven {
+                    url = "${mavenRepo.uri}"
+                }
             }
+            ${resolve.configureProject("graph", "runtimeClasspath")}
         """
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java-library'
-                }
-            """
+            [delegate, project("b1"), project("b2")].each { p ->
+                p.buildFile << common
+            }
         }
         includedBuilds << buildB
 
         buildC = singleProjectBuild("buildC") {
-            buildFile << """
-                apply plugin: 'java-library'
-            """
+            buildFile << common
         }
         includedBuilds << buildC
     }
@@ -63,8 +92,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         dependency buildC, "org.test:buildB:1.0"
 
         when:
-        resolve.withoutBuildingArtifacts()
-        resolveSucceeds(":checkDeps")
+        resolveSucceeds(":checkGraph")
 
         then:
         checkGraph {
@@ -83,7 +111,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         }
 
         when:
-        resolveFails(":resolveArtifacts")
+        resolveFails(":checkRuntimeClasspath")
 
         then:
         failure.assertHasDescription("""Circular dependency between the following tasks:
@@ -100,7 +128,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
 
         def buildD = singleProjectBuild("buildD") {
             buildFile << """
-                apply plugin: 'java-library'
+                $common
                 dependencies {
                     implementation "org.test:buildB:1.0"
                 }
@@ -109,8 +137,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         includedBuilds << buildD
 
         when:
-        resolve.withoutBuildingArtifacts()
-        resolveSucceeds(":checkDeps")
+        resolveSucceeds(":checkGraph")
 
         then:
         checkGraph {
@@ -133,7 +160,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         }
 
         when:
-        resolveFails(":resolveArtifacts")
+        resolveFails(":checkRuntimeClasspath")
 
         then:
         failure.assertHasDescription("""Circular dependency between the following tasks:
@@ -147,18 +174,15 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
     def "dependency cycle between different projects of included builds"() {
         given:
         dependency "org.test:b1:1.0"
-        buildB.buildFile << """
-            project(':b1') {
-                dependencies {
-                    implementation "org.test:buildC:1.0"
-                }
+        buildB.project("b1").buildFile << """
+            dependencies {
+                implementation "org.test:buildC:1.0"
             }
         """
         dependency buildC, "org.test:b2:1.0"
 
         when:
-        resolve.withoutBuildingArtifacts()
-        resolveSucceeds(":checkDeps")
+        resolveSucceeds(":checkGraph")
 
         then:
         checkGraph {
@@ -177,7 +201,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         }
 
         and:
-        resolveSucceeds(":resolveArtifacts")
+        resolveSucceeds(":checkRuntimeClasspath")
     }
 
     def "compile-only dependency cycle between included builds"() {
@@ -185,15 +209,13 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         dependency "org.test:buildB:1.0"
         dependency buildB, "org.test:buildC:1.0"
         buildC.buildFile << """
-            apply plugin: 'java-library'
             dependencies {
                 compileOnly "org.test:buildB:1.0"
             }
         """
 
         when:
-        resolve.withoutBuildingArtifacts()
-        resolveSucceeds(":checkDeps")
+        resolveSucceeds(":checkGraph")
 
         then: // No cycle when building dependency graph
         checkGraph {
@@ -208,7 +230,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         }
 
         when:
-        resolveFails(":resolveArtifacts")
+        resolveFails(":checkRuntimeClasspath")
 
         then:
         failure.assertHasDescription("""Circular dependency between the following tasks:
@@ -225,21 +247,21 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
             dependencies {
                 implementation "org.test:b1:1.0"
             }
-            project(':b1') {
-                dependencies {
-                    implementation "org.test:b2:1.0"
-                }
+        """
+        buildB.project("b1").buildFile << """
+            dependencies {
+                implementation "org.test:b2:1.0"
             }
-            project(':b2') {
-                dependencies {
-                    implementation "org.test:b1:1.0"
-                }
+        """
+
+        buildB.project("b2").buildFile << """
+            dependencies {
+                implementation "org.test:b1:1.0"
             }
         """
 
         when:
-        resolve.withoutBuildingArtifacts()
-        resolveSucceeds(":checkDeps")
+        resolveSucceeds(":checkGraph")
 
         then:
         checkGraph {
@@ -259,7 +281,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         }
 
         when:
-        resolveFails(":resolveArtifacts")
+        resolveFails(":checkRuntimeClasspath")
 
         then:
         failure.assertHasDescription("""Circular dependency between the following tasks:
@@ -271,31 +293,30 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
     @Issue("https://github.com/gradle/gradle/issues/6229")
     def "cross-build dependencies without task cycle"() {
         given:
-        def buildD = multiProjectBuild("buildD", ['buildD-api', 'buildD-impl'])
-        buildD.buildFile << """
-        subprojects {
-            apply plugin: "java-library"
-        }
-        project(":buildD-impl") {
-            dependencies {
-                api(project(":buildD-api"))
-                implementation("org.test:buildE-api:1.0")
+        def buildD = multiProjectBuild("buildD", ['buildD-api', 'buildD-impl']) {
+            [delegate, project("buildD-api"), project("buildD-impl")].each { p ->
+                p.buildFile << common
             }
+            project("buildD-impl").buildFile << """
+                dependencies {
+                    api(project(":buildD-api"))
+                    implementation("org.test:buildE-api:1.0")
+                }
+            """
         }
-        """
         includedBuilds << buildD
-        def buildE = multiProjectBuild("buildE", ['buildE-api', 'buildE-impl'])
-        buildE.buildFile << """
-        subprojects {
-            apply plugin: "java-library"
-        }
-        project(":buildE-impl") {
-            dependencies {
-                api(project(":buildE-api"))
-                implementation("org.test:buildD-api:1.0")
+
+        def buildE = multiProjectBuild("buildE", ['buildE-api', 'buildE-impl']) {
+            [delegate, project("buildE-api"), project("buildE-impl")].each { p ->
+                p.buildFile << common
             }
+            project("buildE-impl").buildFile << """
+                dependencies {
+                    api(project(":buildE-api"))
+                    implementation("org.test:buildD-api:1.0")
+                }
+            """
         }
-        """
         includedBuilds << buildE
 
         when:
@@ -319,15 +340,13 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
                 dependsOn gradle.includedBuild('buildB').task(':b1:resolveJars')
             }
         """
-        buildB.buildFile << """
-            project(':b1') {
-                dependencies {
-                    implementation "org.test:buildC:1.0"
-                }
-                task resolveJars(type: Copy) {
-                    from configurations.runtimeClasspath
-                    into "\$buildDir/jars"
-                }
+        buildB.project("b1").buildFile << """
+            dependencies {
+                implementation "org.test:buildC:1.0"
+            }
+            task resolveJars(type: Copy) {
+                from configurations.runtimeClasspath
+                into "\$buildDir/jars"
             }
         """
         dependency buildC, "org.test:b2:1.0"
@@ -376,19 +395,66 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
      \\--- :buildB:b (*)""")
     }
 
+    def "declaring a dependency on the resolving project's module coordinates without a substitution is deprecated"() {
+        given:
+        dependency(buildA, "org.test:buildB:1.0")
+        dependency(buildB, "org.test:buildA:1.0")
+
+        buildA.buildFile << """
+            ${mavenTestRepository()}
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Depending on the resolving project's module coordinates has been deprecated. This will fail with an error in Gradle 10. Use a project dependency instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#module_identity_for_root_component")
+        resolveSucceeds(":checkGraph")
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
+                compositeSubstitute()
+                edge("org.test:buildA:1.0", ":buildA", "org.test:buildA:1.0")
+            }
+        }
+    }
+
+    def "declaring a dependency on the resolving project's module coordinates with a substitution succeeds"() {
+        given:
+        dependency(buildA, "org.test:buildB:1.0")
+        dependency(buildB, "org.test:buildA:1.0")
+
+        buildA.buildFile << """
+            ${mavenTestRepository()}
+
+            configurations.configureEach {
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module('org.test:buildA:1.0')).using(project(':'))
+                }
+            }
+        """
+
+        when:
+        resolveSucceeds(":checkGraph")
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
+                compositeSubstitute()
+                edge("org.test:buildA:1.0", ":buildA", "org.test:buildA:1.0")
+            }
+        }
+    }
+
     protected void resolveSucceeds(String task) {
-        resolve.prepare()
-        super.execute(buildA, task, arguments)
+        execute(buildA, task)
     }
 
     protected void resolveFails(String task) {
-        resolve.prepare()
-        super.fails(buildA, task, arguments)
+        fails(buildA, task)
     }
 
 
     void checkGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
-        resolve.expectGraph {
+        resolve.expectGraph(":") {
             root(":", "org.test:buildA:1.0", closure)
         }
     }

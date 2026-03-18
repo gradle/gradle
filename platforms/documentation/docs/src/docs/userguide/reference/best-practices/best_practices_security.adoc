@@ -44,3 +44,62 @@ The official SHA-256 checksums can be found on the link:https://gradle.org/relea
 
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
 
+[[validate_wrapper_checksum]]
+== Validate the Gradle Wrapper on every Upgrade
+
+The Gradle Wrapper runs before your build logic and can deeply affect your build.
+You should treat any change to the Wrapper as security-sensitive.
+
+Validate the Wrapper JAR and distribution settings every time you upgrade Gradle.
+
+=== Explanation
+
+When you update Gradle, two Wrapper files typically change:
+
+- `gradle/wrapper/gradle-wrapper.jar`
+- `gradle/wrapper/gradle-wrapper.properties` (`distributionUrl` and optionally `distributionSha256Sum`)
+
+You should verify that:
+
+- The **Wrapper JAR** is the official binary published by Gradle (not tampered with).
+- The **Wrapper JAR checksum** matches one of the values published at link:https://gradle.org/release-checksums[gradle.org/release-checksums].
+- The **distribution URL** points to the expected Gradle release.
+- The **distribution checksum** (if configured via `distributionSha256Sum`) matches the release you intend to use (also listed on link:https://gradle.org/release-checksums[gradle.org/release-checksums]).
+
+Running an unverified Wrapper risks executing untrusted code before any of your build’s safeguards run.
+
+==== Do this
+
+If you use link:https://github.com/features/actions[GitHub Actions], you can use the link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[Gradle Wrapper validation action].
+
+This action validates the checksum of every `gradle-wrapper.jar` in your repository and fails the build if it finds any unknown JAR:
+
+[source,yaml]
+.github/workflows/gradle-wrapper-validation.yml
+----
+name: Validate Gradle Wrapper
+on:
+  pull_request:
+    paths:
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'gradle/wrapper/**'
+
+jobs:
+  wrapper-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Recommended action (new namespace)
+      - name: Verify Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v3
+----
+
+=== References
+
+- <</gradle_wrapper.adoc#configuring_checksum_verification,Gradle Wrapper checksum verification>>
+- link:https://gradle.org/release-checksums[Gradle release checksums]
+
+=== Tags
+
+`<<tags_reference.adoc#tag:wrapper,#wrapper>>`

@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,14 +37,27 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
     private final Class<E> enumClass;
     private final List<E> possibleValues;
 
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, String deprecatedProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+    public EnumBuildOption(
+        String displayName,
+        Class<E> enumClass,
+        E[] possibleValues,
+        String gradleProperty,
+        @Nullable String deprecatedProperty,
+        CommandLineOptionConfiguration... commandLineOptionConfigurations
+    ) {
         super(gradleProperty, deprecatedProperty, commandLineOptionConfigurations);
         this.displayName = displayName;
         this.enumClass = enumClass;
         this.possibleValues = Collections.unmodifiableList(Arrays.asList(possibleValues));
     }
 
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+    public EnumBuildOption(
+        String displayName,
+        Class<E> enumClass,
+        E[] possibleValues,
+        String gradleProperty,
+        CommandLineOptionConfiguration... commandLineOptionConfigurations
+    ) {
         this(displayName, enumClass, possibleValues, gradleProperty, null, commandLineOptionConfigurations);
     }
 
@@ -73,11 +87,11 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
         }
     }
 
-    private void applyTo(String value, T settings, Origin origin) {
+    private void applyTo(String value, T settings, @Nullable Origin origin) {
         applyTo(getValue(value), settings, origin);
     }
 
-    private E getValue(String value) {
+    private E getValue(@Nullable String value) {
         E enumValue = null;
         if (value != null) {
             enumValue = tryGetValue(value);
@@ -94,6 +108,7 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
         return enumValue;
     }
 
+    @Nullable
     private E tryGetValue(String value) {
         try {
             return Enum.valueOf(enumClass, value);
@@ -102,5 +117,5 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
         }
     }
 
-    public abstract void applyTo(E value, T settings, Origin origin);
+    public abstract void applyTo(E value, T settings, @Nullable Origin origin);
 }

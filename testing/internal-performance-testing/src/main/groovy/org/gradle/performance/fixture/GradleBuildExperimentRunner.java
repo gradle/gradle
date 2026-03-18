@@ -193,7 +193,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setTargets(invocationSpec.getTasksToRun())
             .setGradleUserHome(determineGradleUserHome(invocationSpec))
             .setMeasureConfigTime(false)
-            .setMeasuredBuildOperations(experiment.getMeasuredBuildOperations())
+            .setBuildOperationMeasurements(experiment.getBuildOperationMeasurements())
             .setMeasureGarbageCollection(measureGarbageCollection)
             .setBuildLog(invocationSpec.getBuildLog())
             .setStudioInstallDir(invocationSpec.getStudioInstallDir())
@@ -222,11 +222,12 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .add(jvmOptsFromGradleProperties)
             .addAll(invocationSpec.getJvmArguments())
             .build();
+        boolean isBuildOperationsTrace = false;
         return new GradleScenarioDefinition(
             OutputDirSelectorUtil.fileSafeNameFor(experimentSpec.getDisplayName()),
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
-            new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false, invocationSpec.getClientJvmArguments()),
+            new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false, false, invocationSpec.getClientJvmArguments()),
             experimentSpec.getInvocation().getBuildAction(),
             cleanTasks.isEmpty()
                 ? BuildAction.NO_OP
@@ -238,7 +239,8 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             invocationSettings.getBuildCount(),
             invocationSettings.getOutputDir(),
             actualJvmArgs,
-            invocationSettings.getMeasuredBuildOperations()
+            invocationSettings.getBuildOperationMeasurements(),
+            isBuildOperationsTrace
         );
     }
 

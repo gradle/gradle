@@ -151,7 +151,7 @@ public abstract class AstUtils {
         return closureExpression == null ? null : new ScriptBlock(methodName, methodCall, closureExpression);
     }
 
-    public static Pair<ClassExpression, ClosureExpression> getClassAndClosureArgs(MethodCall methodCall) {
+    public static @Nullable Pair<ClassExpression, ClosureExpression> getClassAndClosureArgs(MethodCall methodCall) {
         if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
             return null;
         }
@@ -164,7 +164,7 @@ public abstract class AstUtils {
         }
     }
 
-    public static ClassExpression getClassArg(MethodCall methodCall) {
+    public static @Nullable ClassExpression getClassArg(MethodCall methodCall) {
         if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
             return null;
         }
@@ -177,7 +177,7 @@ public abstract class AstUtils {
         }
     }
 
-    public static ClosureExpression getSingleClosureArg(MethodCall methodCall) {
+    public static @Nullable ClosureExpression getSingleClosureArg(MethodCall methodCall) {
         if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
             return null;
         }
@@ -190,8 +190,7 @@ public abstract class AstUtils {
         }
     }
 
-    @Nullable
-    public static ScriptBlock detectScriptBlock(Statement statement, Predicate<? super ScriptBlock> predicate) {
+    public static @Nullable ScriptBlock detectScriptBlock(Statement statement, Predicate<? super ScriptBlock> predicate) {
         ScriptBlock scriptBlock = detectScriptBlock(statement);
         if (scriptBlock != null && predicate.apply(scriptBlock)) {
             return scriptBlock;
@@ -200,8 +199,7 @@ public abstract class AstUtils {
         }
     }
 
-    @Nullable
-    public static ScriptBlock detectScriptBlock(Statement statement, final Collection<String> names) {
+    public static @Nullable ScriptBlock detectScriptBlock(Statement statement, final Collection<String> names) {
         return detectScriptBlock(statement, new Predicate<ScriptBlock>() {
             @Override
             public boolean apply(ScriptBlock input) {
@@ -214,13 +212,11 @@ public abstract class AstUtils {
         return constantExpression.getType().getName().equals(type.getName());
     }
 
-    @Nullable
-    public static ConstantExpression hasSingleConstantStringArg(MethodCallExpression call) {
+    public static @Nullable ConstantExpression hasSingleConstantStringArg(MethodCallExpression call) {
         return hasSingleConstantArgOfType(call, String.class);
     }
 
-    @Nullable
-    public static ConstantExpression hasSingleConstantArgOfType(MethodCallExpression call, Class<?> type) {
+    public static @Nullable ConstantExpression hasSingleConstantArgOfType(MethodCallExpression call, Class<?> type) {
         Expression arguments = call.getArguments();
         if (arguments instanceof ArgumentListExpression) {
             ArgumentListExpression argumentList = (ArgumentListExpression) arguments;
@@ -238,8 +234,7 @@ public abstract class AstUtils {
         return null;
     }
 
-    @Nullable
-    public static PropertyExpression hasSinglePropertyExpressionArgument(MethodCallExpression call) {
+    public static @Nullable PropertyExpression hasSinglePropertyExpressionArgument(MethodCallExpression call) {
         ArgumentListExpression argumentList = (ArgumentListExpression) call.getArguments();
         if (argumentList.getExpressions().size() == 1) {
             Expression argumentExpression = argumentList.getExpressions().get(0);

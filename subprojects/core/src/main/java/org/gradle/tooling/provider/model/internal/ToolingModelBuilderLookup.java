@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.provider.model.internal;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -33,7 +34,7 @@ public interface ToolingModelBuilderLookup {
     /**
      * Locates a builder for a project-scoped model.
      */
-    Builder locateForClientOperation(String modelName, boolean parameter, ProjectState target) throws UnknownModelException;
+    Builder locateForClientOperation(String modelName, boolean parameter, ProjectState target, ProjectInternal project) throws UnknownModelException;
 
     /**
      * Locates a builder for a build-scoped model.

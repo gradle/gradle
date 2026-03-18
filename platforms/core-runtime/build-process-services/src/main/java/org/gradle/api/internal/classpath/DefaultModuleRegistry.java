@@ -15,341 +15,161 @@
  */
 package org.gradle.api.internal.classpath;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
+ * Responsible for loading {@link Module modules} from a {@link GradleInstallation}.
+ * <p>
+ * A gradle installation contains a number of directories, each of which may contain modules.
+ * Modules are defined by a properties file, where the properties file is named
+ * {@code moduleName.properties}. The layout of each module directory is Gradle version
+ * independent. Different Gradle versions should not attempt to assume the structure of
+ * another version's module registry.
+ * <p>
+ * Each module is implemented by a single jar. The name of the jar is included in the module
+ * properties file, and the jar is expected to live next to the properties file.
  */
-public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsProvider {
-    private static final Spec<File> SATISFY_ALL = element -> true;
+@NullMarked
+public class DefaultModuleRegistry implements ModuleRegistry {
 
-    @Nullable
     private final GradleInstallation gradleInstallation;
-    private final Map<String, Module> modules = new HashMap<>();
-    private final Map<String, Module> externalModules = new HashMap<>();
-    private final List<File> classpath = new ArrayList<>();
-    private final Map<String, File> classpathJars = new LinkedHashMap<>();
+    private final Map<String, Optional<Module>> modules = new ConcurrentHashMap<>();
 
     public DefaultModuleRegistry(@Nullable GradleInstallation gradleInstallation) {
-        this(ClassPath.EMPTY, gradleInstallation);
-    }
+        if (gradleInstallation == null) {
+            throw new IllegalArgumentException("A Gradle installation is required to execute Gradle.");
+        }
 
-    public DefaultModuleRegistry(ClassPath additionalModuleClassPath, @Nullable GradleInstallation gradleInstallation) {
-        this(DefaultModuleRegistry.class.getClassLoader(), additionalModuleClassPath, gradleInstallation);
-    }
-
-    private DefaultModuleRegistry(ClassLoader classLoader, ClassPath additionalModuleClassPath, @Nullable GradleInstallation gradleInstallation) {
         this.gradleInstallation = gradleInstallation;
-
-        for (File classpathFile : new EffectiveClassPath(classLoader).plus(additionalModuleClassPath).getAsFiles()) {
-            classpath.add(classpathFile);
-            if (classpathFile.isFile() && !classpathJars.containsKey(classpathFile.getName())) {
-                classpathJars.put(classpathFile.getName(), classpathFile);
-            }
-        }
-    }
-
-    @Override
-    public List<File> getGlobalCacheRoots() {
-        ImmutableList.Builder<File> builder = ImmutableList.builder();
-        if (gradleInstallation != null) {
-            builder.addAll(gradleInstallation.getLibDirs());
-        }
-        builder.addAll(classpath);
-        return builder.build();
-    }
-
-    @Override
-    public ClassPath getAdditionalClassPath() {
-        return gradleInstallation == null ? DefaultClassPath.of(classpath) : ClassPath.EMPTY;
-    }
-
-    @Override
-    public Module getExternalModule(String name) {
-        Module module = externalModules.get(name);
-        if (module == null) {
-            module = loadExternalModule(name);
-            externalModules.put(name, module);
-        }
-        return module;
-    }
-
-    private Module loadExternalModule(String name) {
-        File externalJar = findJar(name, SATISFY_ALL);
-        if (externalJar == null) {
-            if (gradleInstallation == null) {
-                throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in classpath: %s.", name, classpath));
-            }
-            throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, gradleInstallation.getGradleHome()));
-        }
-        return new DefaultModule(name, Collections.singleton(externalJar), Collections.emptySet());
-    }
-
-    @Override
-    public Module getModule(String name) {
-        Module module = modules.get(name);
-        if (module == null) {
-            module = loadModule(name);
-            modules.put(name, module);
-        }
-        return module;
     }
 
     @Override
     @Nullable
-    public Module findModule(String name) {
-        Module module = modules.get(name);
-        if (module == null) {
-            module = loadOptionalModule(name);
-            if (module != null) {
-                modules.put(name, module);
+    public Module findModule(String moduleName) {
+        return modules.computeIfAbsent(moduleName, n -> {
+            File propertiesFile = findPropertiesFile(moduleName);
+            if (propertiesFile != null) {
+                return Optional.of(createModule(moduleName, propertiesFile));
+            } else {
+                return Optional.empty();
             }
-        }
-        return module;
+        }).orElse(null);
     }
 
-    private Module loadModule(String moduleName) {
-        Module module = loadOptionalModule(moduleName);
+    @Override
+    public Module getModule(String name) throws UnknownModuleException {
+        Module module = findModule(name);
         if (module != null) {
             return module;
         }
-        if (gradleInstallation == null) {
-            throw new UnknownModuleException(String.format("Cannot locate manifest for module '%s' in classpath: %s.", moduleName, classpath));
-        }
-        throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", moduleName, gradleInstallation.getGradleHome()));
-    }
-
-    private Module loadOptionalModule(final String moduleName) {
-        File jarFile = findJar(moduleName, jarFile1 -> hasModuleProperties(moduleName, jarFile1));
-        if (jarFile != null) {
-            Set<File> implementationClasspath = new LinkedHashSet<>();
-            implementationClasspath.add(jarFile);
-            Properties properties = loadModuleProperties(moduleName, jarFile);
-            return module(moduleName, properties, implementationClasspath);
-        }
-
-        String resourceName = getClasspathManifestName(moduleName);
-        Set<File> implementationClasspath = new LinkedHashSet<>();
-        findImplementationClasspath(moduleName, implementationClasspath);
-        for (File file : implementationClasspath) {
-            if (file.isDirectory()) {
-                File propertiesFile = new File(file, resourceName);
-                if (propertiesFile.isFile()) {
-                    Properties properties = GUtil.loadProperties(propertiesFile);
-                    return module(moduleName, properties, implementationClasspath);
-                }
-            }
-        }
-        return null;
-    }
-
-    private Module module(String moduleName, Properties properties, Set<File> implementationClasspath) {
-        String[] runtimeJarNames = split(properties.getProperty("runtime"));
-        Set<File> runtimeClasspath = findDependencyJars(moduleName, runtimeJarNames);
-
-        String[] projects = split(properties.getProperty("projects"));
-        String[] optionalProjects = split(properties.getProperty("optional"));
-        return new DefaultModule(moduleName, implementationClasspath, runtimeClasspath, projects, optionalProjects);
-    }
-
-    private Set<File> findDependencyJars(String moduleName, String[] jarNames) {
-        Set<File> runtimeClasspath = new LinkedHashSet<>();
-        for (String jarName : jarNames) {
-            runtimeClasspath.add(findDependencyJar(moduleName, jarName));
-        }
-        return runtimeClasspath;
-    }
-
-    private Set<Module> getModules(String[] projectNames) {
-        Set<Module> modules = new LinkedHashSet<>();
-        for (String project : projectNames) {
-            modules.add(getModule(project));
-        }
-        return modules;
-    }
-
-    private String[] split(String value) {
-        if (value == null) {
-            return new String[0];
-        }
-        value = value.trim();
-        if (value.length() == 0) {
-            return new String[0];
-        }
-        return value.split(",");
-    }
-
-    private void findImplementationClasspath(String name, Collection<File> implementationClasspath) {
-        String projectDirName = projectDirNameFrom(name);
-        List<String> suffixesForProjectDir = getClasspathSuffixesForProjectDir(projectDirName);
-        for (File file : classpath) {
-            if (file.isDirectory()) {
-                String path = file.getAbsolutePath();
-                for (String suffix : suffixesForProjectDir) {
-                    if (path.endsWith(suffix)) {
-                        implementationClasspath.add(file);
-                    }
-                }
-            }
-        }
-    }
-
-    private static String projectDirNameFrom(String moduleName) {
-        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(moduleName);
-        matcher.matches();
-        return matcher.group(1);
+        throw new UnknownModuleException(String.format("Cannot find module '%s' in distribution directory '%s'.", name, gradleInstallation.getGradleHome()));
     }
 
     /**
-     * Provides the locations where the classes and resources of a Gradle module can be found
-     * when running in embedded mode from the IDE.
-     *
-     * <ul>
-     * <li>In Eclipse, they are in the bin/ folder.</li>
-     * <li>In IDEA (native import), they are in the out/production/ folder.</li>
-     * </ul>
-     *
-     * In both cases we also include the static and generated resources of the project.
+     * Find the properties file corresponding to the module with the given name.
      */
-    private List<String> getClasspathSuffixesForProjectDir(String projectDirName) {
-        List<String> suffixes = new ArrayList<>();
-
-        suffixes.add(("/" + projectDirName + "/out/production/classes").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/out/production/resources").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/bin").replace('/', File.separatorChar));
-
-        suffixes.add(("/" + projectDirName + "/src/main/resources").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/classes/java/main").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/classes/groovy/main").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/resources/main").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/generated-resources/main").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/generated-resources/test").replace('/', File.separatorChar));
-        return suffixes;
-    }
-
-    private Properties loadModuleProperties(String name, File jarFile) {
-        try (ZipFile zipFile = new ZipFile(jarFile)) {
-            String entryName = getClasspathManifestName(name);
-            ZipEntry entry = zipFile.getEntry(entryName);
-            if (entry == null) {
-                throw new IllegalStateException("Did not find " + entryName + " in " + jarFile.getAbsolutePath());
-            }
-            try (InputStream is = zipFile.getInputStream(entry)) {
-                return GUtil.loadProperties(is);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not load properties for module '%s' from %s", name, jarFile), e);
-        }
-    }
-
-    private boolean hasModuleProperties(String name, File jarFile) {
-        try (ZipFile zipFile = new ZipFile(jarFile)) {
-            String entryName = getClasspathManifestName(name);
-            ZipEntry entry = zipFile.getEntry(entryName);
-            return entry != null;
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not load properties for module '%s' from %s", name, jarFile), e);
-        }
-    }
-
-    private String getClasspathManifestName(String moduleName) {
-        return moduleName + "-classpath.properties";
-    }
-
-    private File findJar(String name, Spec<File> allowedJarFiles) {
-        Pattern pattern = Pattern.compile(Pattern.quote(name) + "-\\d.*\\.jar");
-        if (gradleInstallation != null) {
-            for (File libDir : gradleInstallation.getLibDirs()) {
-                for (File file : libDir.listFiles()) {
-                    if (pattern.matcher(file.getName()).matches()) {
-                        return file;
-                    }
-                }
+    private @Nullable File findPropertiesFile(String name) {
+        for (File libDir : gradleInstallation.getLibDirs()) {
+            File propertiesFile = new File(libDir, name + ".properties");
+            if (propertiesFile.isFile()) {
+                return propertiesFile;
             }
         }
-        for (File file : classpath) {
-            if (pattern.matcher(file.getName()).matches() && allowedJarFiles.isSatisfiedBy(file)) {
-                return file;
-            }
-        }
+
         return null;
     }
 
-    private File findDependencyJar(String module, String name) {
-        File jarFile = classpathJars.get(name);
-        if (jarFile != null) {
-            return jarFile;
-        }
-        if (gradleInstallation == null) {
-            throw new IllegalArgumentException(String.format("Cannot find JAR '%s' required by module '%s' using classpath.", name, module));
-        }
-        for (File libDir : gradleInstallation.getLibDirs()) {
-            jarFile = new File(libDir, name);
-            if (jarFile.isFile()) {
-                return jarFile;
+    /**
+     * Given a properties file, load the module it describes into a {@link Module} instance.
+     *
+     * @throws RuntimeException If properties file is invalid or describes an invalid module.
+     */
+    private static DefaultModule createModule(String moduleName, File propertiesFile) {
+        Properties properties = GUtil.loadProperties(propertiesFile);
+
+        List<String> dependencies = split(getProperty("dependencies", properties, propertiesFile));
+
+        // Some modules have no implementation jar, like platforms/BOMs or those derived
+        // from components which use external "available-at" variants, like kotlinx.
+        ClassPath classpath = ClassPath.EMPTY;
+        String jarFileName = properties.getProperty("jarFile");
+        if (jarFileName != null) {
+            File jarFile = new File(propertiesFile.getParent(), jarFileName);
+            if (!jarFile.exists()) {
+                throw new IllegalArgumentException(String.format("Cannot find JAR '%s' required by module '%s' distribution directory.", jarFileName, moduleName));
             }
+            classpath = DefaultClassPath.of(jarFile);
         }
-        throw new IllegalArgumentException(String.format("Cannot find JAR '%s' required by module '%s' using classpath or distribution directory '%s'", name, module, gradleInstallation.getGradleHome()));
+
+        String group = properties.getProperty("alias.group");
+        String name = properties.getProperty("alias.name");
+        String version = properties.getProperty("alias.version");
+        Module.ModuleAlias alias = null;
+        if (group != null && name != null && version != null) {
+            alias = new DefaultModuleAlias(group, name, version);
+        } else if (group != null || name != null || version != null) {
+            throw new IllegalArgumentException(String.format("Cannot create module '%s' with partial module alias.", moduleName));
+        }
+
+        return new DefaultModule(moduleName, classpath, dependencies, alias);
     }
 
-    private class DefaultModule implements Module {
+    private static String getProperty(String propertyName, Properties properties, File propertiesFile) {
+        String value = properties.getProperty(propertyName);
+        if (value == null) {
+            throw new IllegalArgumentException(String.format(
+                "Missing required property '%s' in module properties file '%s'.",
+                propertyName,
+                propertiesFile.getAbsolutePath()
+            ));
+        }
+        return value;
+    }
+
+    private static List<String> split(String value) {
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return Arrays.asList(trimmed.split(","));
+    }
+
+    private static class DefaultModule implements Module {
 
         private final String name;
-        private final String[] projects;
-        private final String[] optionalProjects;
+        private final List<String> dependencyNames;
         private final ClassPath implementationClasspath;
-        private final ClassPath runtimeClasspath;
-        private final ClassPath classpath;
+        private final @Nullable ModuleAlias alias;
 
-        public DefaultModule(String name, Set<File> implementationClasspath, Set<File> runtimeClasspath, String[] projects, String[] optionalProjects) {
+        public DefaultModule(
+            String name,
+            ClassPath implementationClasspath,
+            List<String> dependencyNames,
+            @Nullable ModuleAlias alias
+        ) {
             this.name = name;
-            this.projects = projects;
-            this.optionalProjects = optionalProjects;
-            this.implementationClasspath = DefaultClassPath.of(implementationClasspath);
-            this.runtimeClasspath = DefaultClassPath.of(runtimeClasspath);
-            Set<File> classpath = new LinkedHashSet<>();
-            classpath.addAll(implementationClasspath);
-            classpath.addAll(runtimeClasspath);
-            this.classpath = DefaultClassPath.of(classpath);
-        }
-
-        public DefaultModule(String name, Set<File> singleton, Set<File> files) {
-            this(name, singleton, files, NO_PROJECTS, NO_PROJECTS);
+            this.implementationClasspath = implementationClasspath;
+            this.dependencyNames = dependencyNames;
+            this.alias = alias;
         }
 
         @Override
-        public String toString() {
-            return "module '" + name + "'";
-        }
-
-        @Override
-        public Set<Module> getRequiredModules() {
-            return getModules(projects);
+        public String getName() {
+            return name;
         }
 
         @Override
@@ -358,58 +178,49 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsPr
         }
 
         @Override
-        public ClassPath getRuntimeClasspath() {
-            return runtimeClasspath;
+        public List<String> getDependencyNames() {
+            return dependencyNames;
         }
 
         @Override
-        public ClassPath getClasspath() {
-            return classpath;
+        public @Nullable ModuleAlias getAlias() {
+            return alias;
         }
 
         @Override
-        public Set<Module> getAllRequiredModules() {
-            Set<Module> modules = new LinkedHashSet<>();
-            collectRequiredModules(modules);
-            return modules;
+        public String toString() {
+            return "module '" + name + "'";
         }
 
-        @Override
-        public ClassPath getAllRequiredModulesClasspath() {
-            ClassPath classPath = ClassPath.EMPTY;
-            for (Module module : getAllRequiredModules()) {
-                classPath = classPath.plus(module.getClasspath());
-            }
-            return classPath;
-        }
-
-        private void collectRequiredModules(Set<Module> modules) {
-            if (!modules.add(this)) {
-                return;
-            }
-            for (Module module : getRequiredModules()) {
-                collectDependenciesOf(module, modules);
-            }
-            for (String optionalProject : optionalProjects) {
-                Module module = findModule(optionalProject);
-                if (module != null) {
-                    collectDependenciesOf(module, modules);
-                }
-            }
-        }
-
-        private void collectDependenciesOf(Module module, Set<Module> modules) {
-            ((DefaultModule) module).collectRequiredModules(modules);
-        }
-
-        private Module findModule(String optionalProject) {
-            try {
-                return getModule(optionalProject);
-            } catch (UnknownModuleException ex) {
-                return null;
-            }
-        }
     }
 
-    private static final String[] NO_PROJECTS = new String[0];
+    public static class DefaultModuleAlias implements Module.ModuleAlias {
+
+        private final String group;
+        private final String name;
+        private final String version;
+
+        private DefaultModuleAlias(String group, String name, String version) {
+            this.group = group;
+            this.name = name;
+            this.version = version;
+        }
+
+        @Override
+        public String getGroup() {
+            return group;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String getVersion() {
+            return version;
+        }
+
+    }
+
 }

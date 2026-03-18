@@ -15,21 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
-import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,16 +43,16 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
 
     private final ComponentIdentifierSerializer componentIdentifierSerializer;
     private final AttributeContainerSerializer attributeContainerSerializer;
-    private final CapabilitySerializer capabilitySerializer;
+    private final ListSerializer<Capability> capabilitySerializer;
 
     public ResolvedVariantResultSerializer(ComponentIdentifierSerializer componentIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
         this.componentIdentifierSerializer = componentIdentifierSerializer;
         this.attributeContainerSerializer = attributeContainerSerializer;
-        this.capabilitySerializer = new CapabilitySerializer();
+        this.capabilitySerializer = new ListSerializer<>(new CapabilitySerializer());
     }
 
     @Override
-    public ResolvedVariantResult read(Decoder decoder) throws IOException {
+    public ResolvedVariantResult read(Decoder decoder) throws Exception {
         int index = decoder.readSmallInt();
         if (index == -1) {
             return null;
@@ -63,7 +61,7 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
             ComponentIdentifier owner = componentIdentifierSerializer.read(decoder);
             String variantName = decoder.readString();
             AttributeContainer attributes = attributeContainerSerializer.read(decoder);
-            ImmutableCapabilities capabilities = readCapabilities(decoder);
+            ImmutableList<Capability> capabilities = capabilitySerializer.read(decoder);
             read.add(null);
             ResolvedVariantResult externalVariant = read(decoder);
             DefaultResolvedVariantResult result = new DefaultResolvedVariantResult(owner, Describables.of(variantName), attributes, capabilities, externalVariant);
@@ -73,20 +71,8 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
         return read.get(index);
     }
 
-    private ImmutableCapabilities readCapabilities(Decoder decoder) throws IOException {
-        int size = decoder.readSmallInt();
-        if (size == 0) {
-            return ImmutableCapabilities.EMPTY;
-        }
-        ImmutableSet.Builder<ImmutableCapability> capabilities = ImmutableSet.builderWithExpectedSize(size);
-        for (int i = 0; i < size; i++) {
-            capabilities.add(capabilitySerializer.read(decoder));
-        }
-        return new ImmutableCapabilities(capabilities.build());
-    }
-
     @Override
-    public void write(Encoder encoder, ResolvedVariantResult variant) throws IOException {
+    public void write(Encoder encoder, ResolvedVariantResult variant) throws Exception {
         if (variant == null) {
             encoder.writeSmallInt(-1);
             return;
@@ -99,17 +85,10 @@ public class ResolvedVariantResultSerializer implements Serializer<ResolvedVaria
             componentIdentifierSerializer.write(encoder, variant.getOwner());
             encoder.writeString(variant.getDisplayName());
             attributeContainerSerializer.write(encoder, variant.getAttributes());
-            writeCapabilities(encoder, variant.getCapabilities());
+            capabilitySerializer.write(encoder, variant.getCapabilities());
             write(encoder, variant.getExternalVariant().orElse(null));
         } else {
             encoder.writeSmallInt(index);
-        }
-    }
-
-    private void writeCapabilities(Encoder encoder, List<Capability> capabilities) throws IOException {
-        encoder.writeSmallInt(capabilities.size());
-        for (Capability capability : capabilities) {
-            capabilitySerializer.write(encoder, capability);
         }
     }
 

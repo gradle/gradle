@@ -134,7 +134,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
 
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
-        org.gradle.api.credentials.PasswordCredentials credentials = TestCredentialUtil.defaultPasswordCredentials('testuser', 'password')
+        HttpServer.PasswordCredentials credentials = new HttpServer.PasswordCredentials('testuser', 'password')
         configureRepositoryCredentials(credentials.username, credentials.password, "ivy")
         buildFile << publicationBuild(version, group, ivyHttpRepo.uri)
 
@@ -160,7 +160,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
 
     def "can publish to authenticated repository using inline credentials and #authScheme auth"() {
         given:
-        PasswordCredentials credentials = TestCredentialUtil.defaultPasswordCredentials('testuser', 'password')
+        HttpServer.PasswordCredentials credentials = new HttpServer.PasswordCredentials('testuser', 'password')
         buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy","""
         credentials(PasswordCredentials) {
             username = "${credentials.username}"
@@ -528,7 +528,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         buildFile << publicationBuildWithCredentialsProvider('2', 'org.gradle', ivyHttpRepo.uri)
 
         and:
-        PasswordCredentials credentials = TestCredentialUtil.defaultPasswordCredentials('testuser', 'password')
+        HttpServer.PasswordCredentials credentials = new HttpServer.PasswordCredentials('testuser', 'password')
         expectPublishModuleWithCredentials(module, credentials)
 
         when:
@@ -567,7 +567,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         configureRepositoryCredentials("foo", "bar", "ivy")
         buildFile << publicationBuild(version, group, ivyHttpRepo.uri)
         server.authenticationScheme = AuthScheme.BASIC
-        org.gradle.api.credentials.PasswordCredentials credentials = TestCredentialUtil.defaultPasswordCredentials('foo', 'bar')
+        HttpServer.PasswordCredentials credentials = new HttpServer.PasswordCredentials('foo', 'bar')
         expectPublishModuleWithCredentials(module, credentials)
 
         when:
@@ -615,7 +615,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
             """
     }
 
-    private static void expectPublishModuleWithCredentials(IvyHttpModule module, org.gradle.api.credentials.PasswordCredentials credentials) {
+    private static void expectPublishModuleWithCredentials(IvyHttpModule module, HttpServer.PasswordCredentials credentials) {
         module.jar.expectPut(credentials)
         module.jar.sha1.expectPut(credentials)
         module.jar.sha256.expectPut(credentials)

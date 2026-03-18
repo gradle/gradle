@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.gcs.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsRepository
@@ -43,7 +43,6 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractMavenPublishIntegTest
         executer.withArgument("-D${GCS_DISABLE_AUTH_PROPERTY}=true")
     }
 
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "should fail with an authentication error"() {
         setup:
         settingsFile << "rootProject.name = '${projectName}'"

@@ -16,6 +16,7 @@
 
 package org.gradle.api.logging.configuration;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
@@ -42,9 +43,26 @@ public interface LoggingConfiguration {
     ConsoleOutput getConsoleOutput();
 
     /**
+     * Returns the type of characters that should be written to the console.
+     * Defaults to {@link ConsoleUnicodeSupport#Auto}
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    ConsoleUnicodeSupport getConsoleUnicodeSupport();
+
+    /**
      * Specifies the style of logging output that should be written to the console.
      */
     void setConsoleOutput(ConsoleOutput consoleOutput);
+
+    /**
+     * Specifies the use of Unicode characters in the console output.
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    void setConsoleUnicodeSupport(ConsoleUnicodeSupport unicodeSupport);
 
     /**
      * Specifies which type of warnings should be written to the console.

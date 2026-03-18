@@ -19,16 +19,15 @@ package org.gradle.api.internal.plugins
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.features.annotations.BindsProjectFeature
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.properties.annotations.PropertyMetadata
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -42,13 +41,11 @@ class ProjectFeatureDeclarationPluginTargetTest extends Specification {
     def metadataStore = Mock(TypeMetadataStore)
     def registrationPluginTypeMetadata = Mock(TypeMetadata)
     def registrationTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
-    def registersSoftwareTypes = Mock(RegistersSoftwareTypes)
     def registersProjectFeatures = Mock(RegistersProjectFeatures)
     def projectTypePluginMetadata = Mock(TypeMetadata)
     def projectTypePluginAnnotationMetadata = Mock(TypeAnnotationMetadata)
     def projectFeaturePluginMetadata = Mock(TypeMetadata)
     def projectFeaturePluginAnnotationMetadata = Mock(TypeAnnotationMetadata)
-    def propertyMetadata = Mock(PropertyMetadata)
 
     def "adds project feature plugins for ecosystem plugin that declare #type"() {
         when:
@@ -57,32 +54,27 @@ class ProjectFeatureDeclarationPluginTargetTest extends Specification {
         then: // setup property metadata
         _ * inspectionScheme.getMetadataStore() >> metadataStore
         1 * metadataStore.getTypeMetadata(registrationPlugin.class) >> registrationPluginTypeMetadata
-        2 * registrationPluginTypeMetadata.getTypeAnnotationMetadata() >> registrationTypeAnnotationMetadata
+        1 * registrationPluginTypeMetadata.getTypeAnnotationMetadata() >> registrationTypeAnnotationMetadata
 
         and: // setup expectations for project type registration
+        1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersProjectFeatures.class) >> Optional.of(registersProjectFeatures)
+        1 * registersProjectFeatures.value() >> (hasProjectTypes ? [ProjectTypePlugin.class] : []) + (hasProjectFeatures ? [ProjectFeaturePlugin.class] : [])
+
         if (hasProjectTypes) {
-            1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.of(registersSoftwareTypes)
-            1 * registersSoftwareTypes.value() >> [ProjectTypePlugin.class]
             1 * metadataStore.getTypeMetadata(ProjectTypePlugin.class) >> projectTypePluginMetadata
             1 * projectTypePluginMetadata.getTypeAnnotationMetadata() >> projectTypePluginAnnotationMetadata
             1 * projectTypePluginAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.of(Stub(BindsProjectType))
             1 * projectFeatureDeclarations.addDeclaration("com.example.test", ProjectTypePlugin.class, null)
-        } else {
-            1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.empty()
         }
         _ * projectTypePluginMetadata.getPropertiesMetadata() >> []
 
         and: // setup expectations for project feature registration
         if (hasProjectFeatures) {
-            1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersProjectFeatures.class) >> Optional.of(registersProjectFeatures)
-            1 * registersProjectFeatures.value() >> [ProjectFeaturePlugin.class]
             1 * metadataStore.getTypeMetadata(ProjectFeaturePlugin.class) >> projectFeaturePluginMetadata
             2 * projectFeaturePluginMetadata.getTypeAnnotationMetadata() >> projectFeaturePluginAnnotationMetadata
             1 * projectFeaturePluginAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
             1 * projectFeaturePluginAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(Stub(BindsProjectFeature))
             1 * projectFeatureDeclarations.addDeclaration("com.example.test", ProjectFeaturePlugin.class, null)
-        } else {
-            1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersProjectFeatures.class) >> Optional.empty()
         }
         _ * projectFeaturePluginMetadata.getPropertiesMetadata() >> []
 
@@ -90,35 +82,10 @@ class ProjectFeatureDeclarationPluginTargetTest extends Specification {
         1 * delegate.applyImperative("com.example.test", registrationPlugin)
 
         where:
-        type                                | hasProjectTypes | hasProjectFeatures
+        type                               | hasProjectTypes | hasProjectFeatures
         "both project types and features"  | true            | true
         "only project types"               | true            | false
         "only project features"            | false           | true
-    }
-
-    def "adds project type plugins for plugin that declares project types using SoftwareType annotation"() {
-        when:
-        pluginTarget.applyImperative("com.example.test", registrationPlugin)
-
-        then: // setup property metadata
-        _ * inspectionScheme.getMetadataStore() >> metadataStore
-        1 * metadataStore.getTypeMetadata(registrationPlugin.class) >> registrationPluginTypeMetadata
-        2 * registrationPluginTypeMetadata.getTypeAnnotationMetadata() >> registrationTypeAnnotationMetadata
-        1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.of(registersSoftwareTypes)
-        1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersProjectFeatures.class) >> Optional.empty()
-        1 * registersSoftwareTypes.value() >> [ProjectTypePlugin.class]
-        1 * metadataStore.getTypeMetadata(ProjectTypePlugin.class) >> projectTypePluginMetadata
-        1 * projectTypePluginMetadata.getPropertiesMetadata() >> [propertyMetadata]
-        2 * projectTypePluginMetadata.getTypeAnnotationMetadata() >> projectTypePluginAnnotationMetadata
-        1 * projectTypePluginAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
-        1 * projectTypePluginAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.empty()
-
-        and: // returns property metadata with an annotation
-        1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(Stub(SoftwareType))
-        1 * projectFeatureDeclarations.addDeclaration("com.example.test", ProjectTypePlugin.class, null)
-
-        and:
-        1 * delegate.applyImperative("com.example.test", registrationPlugin)
     }
 
     def "throws exception when plugins are declared that do not expose project types"() {
@@ -130,45 +97,12 @@ class ProjectFeatureDeclarationPluginTargetTest extends Specification {
         1 * metadataStore.getTypeMetadata(registrationPlugin.class) >> registrationPluginTypeMetadata
         1 * registrationPluginTypeMetadata.getTypeAnnotationMetadata() >> registrationTypeAnnotationMetadata
         1 * registrationPluginTypeMetadata.getType() >> registrationPlugin.class
-        1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.of(registersSoftwareTypes)
-        1 * registersSoftwareTypes.value() >> [ProjectTypePlugin.class]
+        1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersProjectFeatures.class) >> Optional.of(registersProjectFeatures)
+        1 * registersProjectFeatures.value() >> [ProjectTypePlugin.class]
         1 * metadataStore.getTypeMetadata(ProjectTypePlugin.class) >> projectTypePluginMetadata
-        1 * projectTypePluginMetadata.getPropertiesMetadata() >> [propertyMetadata]
         2 * projectTypePluginMetadata.getTypeAnnotationMetadata() >> projectTypePluginAnnotationMetadata
         1 * projectTypePluginAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
         1 * projectTypePluginAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.empty()
-
-        and: // returns metadata with no annotation present
-        1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.empty()
-
-        and:
-        def e = thrown(DefaultMultiCauseException)
-        e.hasCause(InvalidUserDataException)
-    }
-
-    def "throws exception when plugins are declared that expose multiple project types"() {
-        given:
-        def anotherPropertyMetadata = Mock(PropertyMetadata)
-
-        when:
-        pluginTarget.applyImperative(null, registrationPlugin)
-
-        then: // setup property metadata
-        2 * inspectionScheme.getMetadataStore() >> metadataStore
-        1 * metadataStore.getTypeMetadata(registrationPlugin.class) >> registrationPluginTypeMetadata
-        1 * registrationPluginTypeMetadata.getTypeAnnotationMetadata() >> registrationTypeAnnotationMetadata
-        1 * registrationPluginTypeMetadata.getType() >> registrationPlugin.class
-        1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.of(registersSoftwareTypes)
-        1 * registersSoftwareTypes.value() >> [ProjectTypePlugin.class]
-        1 * metadataStore.getTypeMetadata(ProjectTypePlugin.class) >> projectTypePluginMetadata
-        1 * projectTypePluginMetadata.getPropertiesMetadata() >> [propertyMetadata, anotherPropertyMetadata]
-        2 * projectTypePluginMetadata.getTypeAnnotationMetadata() >> projectTypePluginAnnotationMetadata
-        1 * projectTypePluginAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
-        1 * projectTypePluginAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.empty()
-
-        and: // returns multiple properties with annotation present
-        1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(Stub(SoftwareType))
-        1 * anotherPropertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(Stub(SoftwareType))
 
         and:
         def e = thrown(DefaultMultiCauseException)
@@ -182,8 +116,7 @@ class ProjectFeatureDeclarationPluginTargetTest extends Specification {
         then:
         1 * inspectionScheme.getMetadataStore() >> metadataStore
         1 * metadataStore.getTypeMetadata(registrationPlugin.class) >> registrationPluginTypeMetadata
-        2 * registrationPluginTypeMetadata.getTypeAnnotationMetadata() >> registrationTypeAnnotationMetadata
-        1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.empty()
+        1 * registrationPluginTypeMetadata.getTypeAnnotationMetadata() >> registrationTypeAnnotationMetadata
         1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersProjectFeatures.class) >> Optional.empty()
 
         and:

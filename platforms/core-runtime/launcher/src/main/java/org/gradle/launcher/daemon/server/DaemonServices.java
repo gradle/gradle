@@ -69,9 +69,9 @@ import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
 
 import java.io.File;
-import java.util.UUID;
 
 import static org.gradle.internal.FileUtils.canonicalize;
+import static org.gradle.launcher.daemon.server.DaemonLogFile.getDaemonLogFileName;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
@@ -106,8 +106,7 @@ public class DaemonServices implements ServiceRegistrationProvider {
     @Provides
     protected DaemonLogFile createDaemonLogFile(DaemonContext daemonContext, DaemonDir daemonDir) {
         final Long pid = daemonContext.getPid();
-        String fileName = "daemon-" + (pid == null ? UUID.randomUUID() : pid) + ".out.log";
-        return new DaemonLogFile(new File(daemonDir.getVersionedDir(), fileName));
+        return new DaemonLogFile(new File(daemonDir.getVersionedDir(), getDaemonLogFileName(pid)));
     }
 
     @Provides

@@ -26,19 +26,20 @@ import org.junit.platform.engine.support.hierarchical.Node;
 import static org.gradle.docs.samples.BucketClassTestDescriptor.BUCKET_CLASS_SEGMENT;
 import static org.gradle.docs.samples.SamplesTestEngine.SAMPLES_TEST_ENGINE_UID;
 import static org.gradle.docs.samples.SamplesTestEngine.getBucketClassName;
+import static org.gradle.docs.samples.SamplesTestEngine.getNormalizedSampleId;
 
 public class SampleTestDescriptor extends AbstractTestDescriptor implements Node<SamplesEngineExecutionContext> {
     public static final String SAMPLE_SEGMENT = "sample";
     private final Sample sample;
     private final IntegrationTestSamplesRunner samplesRunner;
 
-    public static UniqueId getSampleUid(String sampleId) {
-        String className = getBucketClassName(sampleId);
-        return SAMPLES_TEST_ENGINE_UID.append(BUCKET_CLASS_SEGMENT, className).append(SAMPLE_SEGMENT, sampleId);
+    public static UniqueId getSampleUid(Sample sample) {
+        String className = getBucketClassName(sample);
+        return SAMPLES_TEST_ENGINE_UID.append(BUCKET_CLASS_SEGMENT, className).append(SAMPLE_SEGMENT, getNormalizedSampleId(sample));
     }
 
     protected SampleTestDescriptor(Sample sample, IntegrationTestSamplesRunner samplesRunner) {
-        super(getSampleUid(sample.getId()), sample.getId(), MethodSource.from(getBucketClassName(sample.getId()), sample.getId()));
+        super(getSampleUid(sample),  getNormalizedSampleId(sample), MethodSource.from(getBucketClassName(sample), getNormalizedSampleId(sample)));
         this.sample = sample;
         this.samplesRunner = samplesRunner;
     }

@@ -223,6 +223,37 @@ dependencies {
         succeeds 'dependencies'
     }
 
+    def 'does not warn about changing modules when all are ignored'() {
+        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    ignoredDependencies.add('org:bar')
+}
+
+repositories {
+    maven {
+        name = 'repo'
+        url = "${mavenRepo.uri}"
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:bar:1.0-SNAPSHOT'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        outputDoesNotContain('contains changing modules')
+    }
+
     def "can update a single lock entry when using #version"() {
         ['bar', 'baz', 'foo'].each { artifactId ->
             mavenRepo.module('org', artifactId, '1.0').publish()

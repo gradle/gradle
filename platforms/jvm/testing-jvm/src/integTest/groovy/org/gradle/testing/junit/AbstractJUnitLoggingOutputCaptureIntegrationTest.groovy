@@ -33,8 +33,9 @@ abstract class AbstractJUnitLoggingOutputCaptureIntegrationTest extends Abstract
             test {
                 ${configureTestFramework}
                 reports.junitXml.outputPerTestCase = true
+
                 // JUnit 5's test name contains parentheses
-                onOutput { test, event -> print "\${test.toString().replace('()(', '(')} -> \$event.message" }
+                addTestOutputListener { test, event -> print "\${test.toString().replace('()(', '(')} -> \$event.message" }
             }
         """.stripIndent()
     }

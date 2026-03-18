@@ -189,46 +189,59 @@ project(":project2") {
 
     def "ivy-publish plugin uses target project name for project dependency when target project does not have ivy-publish plugin applied"() {
         given:
-        createDirs("project1", "project2")
         settingsFile << """
-include "project1", "project2"
+            include "project1", "project2"
         """
 
-        buildFile << """
-allprojects {
-    group = "org.gradle.test"
-    version = "1.0"
-}
-
-project(":project1") {
-    apply plugin: "java-library"
-    apply plugin: "ivy-publish"
-
-    dependencies {
-        api project(":project2")
-    }
-
-    publishing {
-        repositories {
-            ivy { url = "${ivyRepo.uri}" }
-        }
-        publications {
-            ivy(IvyPublication) {
-                from components.java
+        file("project1/build.gradle") << """
+            plugins {
+                id("java-library")
+                id("ivy-publish")
             }
-        }
-    }
-}
-project(":project2") {
-    apply plugin: 'java'
-    base {
-        archivesName = "changed"
-    }
-}
+
+            group = "org.gradle.test"
+            version = "1.0"
+
+            dependencies {
+                api project(":project2")
+            }
+
+            publishing {
+                repositories {
+                    ivy { url = "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        file("project2/build.gradle") << """
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
+
+            base {
+                archivesName = "changed"
+            }
+
+            group = "org.gradle.test"
+            version = "1.0"
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
         """
 
         when:
-        run "publish"
+        run ":project1:publish"
 
         then:
         project1.assertPublishedAsJavaModule()
@@ -237,54 +250,65 @@ project(":project2") {
 
     def "ivy-publish plugin publishes project dependency excludes in descriptor"() {
         given:
-        createDirs("project1", "project2")
         settingsFile << """
-include 'project1', 'project2'
-"""
+            include 'project1', 'project2'
+        """
 
-        buildFile << """
-allprojects {
-    group = 'org.gradle.test'
-    version = '1.0'
-}
-
-project(':project1') {
-    apply plugin: 'java'
-
-    ${mavenCentralRepository()}
-
-    dependencies {
-        implementation 'commons-logging:commons-logging:1.2'
-    }
-}
-
-project(':project2') {
-    apply plugin: "java"
-    apply plugin: "ivy-publish"
-
-    version = '2.0'
-
-    dependencies {
-        implementation project(":project1"), {
-            exclude group: 'commons-logging', module: 'commons-logging'
-        }
-    }
-
-    publishing {
-        repositories {
-            ivy { url = "${ivyRepo.uri}" }
-        }
-        publications {
-            ivy(IvyPublication) {
-                from components.java
+        file("project1/build.gradle") << """
+            plugins {
+                id("java-library")
+                id("ivy-publish")
             }
-        }
-    }
-}
-"""
+
+            group = 'org.gradle.test'
+            version = '1.0'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation 'commons-logging:commons-logging:1.2'
+            }
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        file("project2/build.gradle") << """
+            plugins {
+                id("java-library")
+                id("ivy-publish")
+            }
+
+            group = 'org.gradle.test'
+            version = '2.0'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation project(":project1"), {
+                    exclude group: 'commons-logging', module: 'commons-logging'
+                }
+            }
+
+            publishing {
+                repositories {
+                    ivy { url = "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
 
         when:
-        run "publish"
+        run ":project2:publish"
 
         then:
         project2.assertPublishedAsJavaModule()

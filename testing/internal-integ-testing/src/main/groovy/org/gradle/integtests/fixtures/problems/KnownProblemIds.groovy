@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.problems
 
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.internal.jvm.SupportedJavaVersions
 
 class KnownProblemIds {
@@ -50,16 +51,21 @@ class KnownProblemIds {
     }
 
     private static final Map<String, String> KNOWN_GROUPS = [
+        // Top level
         'problems-api': 'Problems API',
         'validation': 'Validation',
         'configuration-usage': 'Configuration usage',
         'compilation': 'Compilation',
+        'daemon-toolchain' : 'Daemon toolchain',
+        'dependency-version-catalog': 'Version catalog',
         'deprecation': 'Deprecation',
-        'compilation:java': 'Java compilation',
         'plugin-application': 'Plugin application',
         'task-selection': 'Task selection',
-        'dependency-version-catalog': 'Version catalog',
+
+        // Sub-groups
         'compilation:groovy-dsl': 'Groovy DSL script compilation',
+        'compilation:java': 'Java compilation',
+        'daemon-toolchain:configuration-generation' : 'Gradle configuration generation',
         'validation:property-validation': 'Property validation problems',
         'validation:type-validation': 'Gradle type validation',
         'validation:configuration-cache': 'Configuration cache',
@@ -67,8 +73,13 @@ class KnownProblemIds {
         // dependency resolution failures
         'dependency-variant-resolution': 'Dependency variant resolution',
 
+        // DCL
+        'scripts:dcl-schema': 'DCL Schema issues',
+
         // groups from integration tests
-        'generic': 'Generic'
+        'generic': 'Generic',
+        'sample-problems': 'Sample Problems',
+        'scripts': 'Scripts',
     ]
 
     /**
@@ -86,14 +97,15 @@ class KnownProblemIds {
         // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
         'compilation:java:compiler.*' : ['.*'],
         'compilation:java:initialization-failed': ['Java compilation initialization error'],
-        'dependency-version-catalog:alias-not-finished': ['version catalog error'],
-        'dependency-version-catalog:invalid-dependency-notation': ['Dependency version catalog problem'],
-        'dependency-version-catalog:reserved-alias-name': ['version catalog error'],
-        'dependency-version-catalog:catalog-file-does-not-exist': ['version catalog error'],
-        'dependency-version-catalog:toml-syntax-error': ['Dependency version catalog problem'],
-        'dependency-version-catalog:too-many-import-files': ['version catalog error'],
-        'dependency-version-catalog:too-many-import-invocation': ['version catalog error'],
-        'dependency-version-catalog:no-import-files': ['version catalog error'],
+        'daemon-toolchain:configuration-generation:task-configuration' : ['Invalid task configuration'],
+        'dependency-version-catalog:alias-not-finished': [VersionCatalogProblemId.ALIAS_NOT_FINISHED.displayName],
+        'dependency-version-catalog:invalid-dependency-notation': [VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION.displayName],
+        'dependency-version-catalog:reserved-alias-name': [VersionCatalogProblemId.RESERVED_ALIAS_NAME.displayName],
+        'dependency-version-catalog:catalog-file-does-not-exist': [VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST.displayName],
+        'dependency-version-catalog:toml-syntax-error': [VersionCatalogProblemId.TOML_SYNTAX_ERROR.displayName],
+        'dependency-version-catalog:too-many-import-files': [VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName],
+        'dependency-version-catalog:too-many-import-invocation': [VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.displayName],
+        'dependency-version-catalog:no-import-files': [VersionCatalogProblemId.NO_IMPORT_FILES.displayName],
         'deprecation:buildsrc-script': ['BuildSrc script has been deprecated.'],
         'deprecation:custom-task-action': ['Custom Task action has been deprecated.'],
         'deprecation:executing-gradle-on-jvm-versions-and-lower': ['Executing Gradle on JVM versions ' + (SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1) + ' and lower has been deprecated.'],
@@ -164,6 +176,23 @@ class KnownProblemIds {
 
         'dependency-variant-resolution:unknown-resolution-failure': ['Unknown resolution failure'],
 
+        // DCL schema building issues:
+        // The messages might be reworded, keeping them as a wildcard for now
+        'scripts:dcl-schema:declaration-visible-and-hidden': ['.*'],
+        'scripts:dcl-schema:declaration-hidden-type-used-in-definition': ['.*'],
+        'scripts:dcl-schema:illegal-usage-of-type-parameter-bound-by-class': ['.*'],
+        'scripts:dcl-schema:illegal-variance-in-parameterized-type-usage': ['.*'],
+        'scripts:dcl-schema:non-classifiable-type': ['.*'],
+        'scripts:dcl-schema:unit-adding-function-with-lambda': ['.*'],
+        'scripts:dcl-schema:unrecognized-member': ['.*'],
+        'scripts:dcl-schema:unsupported-generic-container-type': ['.*'],
+        'scripts:dcl-schema:unsupported-map-factory': ['.*'],
+        'scripts:dcl-schema:unsupported-nullable-read-only-property': ['.*'],
+        'scripts:dcl-schema:unsupported-nullable-type': ['.*'],
+        'scripts:dcl-schema:unsupported-pair-factory': ['.*'],
+        'scripts:dcl-schema:unsupported-type-parameter-as-container-type': ['.*'],
+        'scripts:dcl-schema:unsupported-vararg-type': ['.*'],
+
         // integration test problems
         'deprecation:some-indirect-deprecation': ['Some indirect deprecation has been deprecated.'],
         'deprecation:some-invocation-feature': ['Some invocation feature has been deprecated.'],
@@ -183,5 +212,7 @@ class KnownProblemIds {
         'generic:type9': ['This is the heading problem text9'],
         'generic:type11': ['inner'],
         'generic:type12': ['outer'],
+        'sample-problems:prototype-project': ['Project is a prototype'],
+        'scripts:multiple-scripts': ['Multiple scripts'],
     ]
 }

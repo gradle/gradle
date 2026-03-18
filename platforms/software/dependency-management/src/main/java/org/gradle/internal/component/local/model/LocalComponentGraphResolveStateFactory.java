@@ -192,6 +192,7 @@ public class LocalComponentGraphResolveStateFactory {
         }
 
         @Override
+        @SuppressWarnings("NonCanonicalType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public void visitConsumableVariants(Consumer<LocalVariantGraphResolveState> visitor) {
             model.applyToMutableState(p -> {
                 DefaultLocalVariantGraphResolveStateBuilder.DependencyCache cache =

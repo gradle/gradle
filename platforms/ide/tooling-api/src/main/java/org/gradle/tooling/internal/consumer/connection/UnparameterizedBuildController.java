@@ -26,6 +26,7 @@ import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
+import org.gradle.tooling.internal.consumer.DefaultFetchModelResult;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
@@ -44,6 +45,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 abstract class UnparameterizedBuildController extends HasCompatibilityMapping implements BuildController {
     private final ProtocolToModelAdapter adapter;
     private final ObjectGraphAdapter resultAdapter;
@@ -52,6 +55,7 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     private final File rootDir;
 
     public UnparameterizedBuildController(ProtocolToModelAdapter adapter, ModelMapping modelMapping, VersionDetails gradleVersion, File rootDir) {
+        super(gradleVersion);
         this.adapter = adapter;
         // Treat all models returned to the action as part of the same object graph
         this.resultAdapter = adapter.newGraph();
@@ -197,22 +201,31 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
-    public <M> FetchModelResult<Model, M> fetch(Class<M> modelType) {
+    public <M> FetchModelResult<M> fetch(Class<M> modelType) {
         return fetch(null, modelType, null, null);
     }
 
     @Override
-    public <T extends Model, M> FetchModelResult<T, M> fetch(T target, Class<M> modelType) {
+    public <M> FetchModelResult<M> fetch(Model target, Class<M> modelType) {
         return fetch(target, modelType, null, null);
     }
 
     @Override
-    public <M, P> FetchModelResult<Model, M> fetch(Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+    public <M, P> FetchModelResult<M> fetch(Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
         return fetch(null, modelType, parameterType, parameterInitializer);
     }
 
+    /**
+     * This is implemented just for backward compatibility.
+     * Actual implementation for newer Gradle versions is {@link FetchAwareBuildControllerAdapter#fetch(Model, Class, Class, Action)}
+     */
     @Override
-    public <T extends Model, M, P> FetchModelResult<T, M> fetch(@Nullable T target, Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
-        throw new UnsupportedVersionException(String.format("Gradle version %s does not support resilient model fetching.", gradleVersion.getVersion()));
+    public <M, P> FetchModelResult<M> fetch(@Nullable Model target, Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+        try {
+            Object model = getModel(target, modelType, parameterType, parameterInitializer);
+            return DefaultFetchModelResult.success(uncheckedNonnullCast(model));
+        } catch (Exception e) {
+            return DefaultFetchModelResult.failure(e);
+        }
     }
 }

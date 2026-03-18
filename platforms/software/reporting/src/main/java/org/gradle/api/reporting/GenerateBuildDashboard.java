@@ -206,6 +206,9 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
         @Override
         public boolean equals(Object obj) {
+            if (!(obj instanceof ReportState)) {
+                return false;
+            }
             ReportState other = (ReportState) obj;
             return name.equals(other.name) && destination.equals(other.destination) && available == other.available;
         }

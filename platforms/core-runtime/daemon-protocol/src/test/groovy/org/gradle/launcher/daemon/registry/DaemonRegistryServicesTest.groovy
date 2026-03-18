@@ -22,7 +22,8 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.remote.internal.inet.SocketInetAddress
-import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
@@ -35,16 +36,22 @@ import static org.gradle.internal.nativeintegration.services.NativeServices.Nati
 import static org.gradle.launcher.daemon.server.api.DaemonState.Idle
 
 class DaemonRegistryServicesTest extends Specification {
-    def lockManager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), Stub(FileLockContentionHandler))
-    def chmod = Stub(Chmod)
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
-    def parent = new DefaultServiceRegistry() {{
-        add(FileLockManager, lockManager)
-        add(Chmod, chmod)
-    }}
+    @Rule
+    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
-    def registry(baseDir) {
-        new DefaultServiceRegistry(parent).addProvider(new DaemonRegistryServices(tmp.createDir(baseDir)))
+    def parentRegistry = ServiceRegistryBuilder.builder()
+        .provider {
+            it.add(FileLockManager, new DefaultFileLockManager(Stub(ProcessMetaDataProvider), Stub(FileLockContentionHandler)))
+            it.add(Chmod, Stub(Chmod))
+        }.build()
+
+    ServiceRegistry registry(baseDir) {
+        ServiceRegistryBuilder.builder()
+            .parent(parentRegistry)
+            .provider(new DaemonRegistryServices(tmp.createDir(baseDir)))
+            .build()
     }
 
     def "same daemon registry instance is used for same daemon registry file across service instances"() {
@@ -52,8 +59,6 @@ class DaemonRegistryServicesTest extends Specification {
         registry("a").get(DaemonRegistry).is(registry("a").get(DaemonRegistry))
         !registry("a").get(DaemonRegistry).is(registry("b").get(DaemonRegistry))
     }
-
-    @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 
     def "the registry can be concurrently written to"() {
         when:
@@ -73,7 +78,7 @@ class DaemonRegistryServicesTest extends Specification {
                     [],
                     false,
                     NativeServicesMode.ENABLED,
-                        DaemonPriority.NORMAL
+                    DaemonPriority.NORMAL
                 )
                 registry.store(new DaemonInfo(
                     new SocketInetAddress(localhost, (int) (8888 + idx)), context, "foo-$idx".bytes, Idle))

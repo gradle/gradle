@@ -16,20 +16,22 @@
 
 package org.gradle.internal.buildoption;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Map;
 
 public class DefaultInternalOptions implements InternalOptions {
-    private final Map<String, String> startParameterSystemProperties;
+    private final Map<String, String> properties;
 
-    public DefaultInternalOptions(Map<String, String> startParameterSystemProperties) {
-        this.startParameterSystemProperties = startParameterSystemProperties;
+    public DefaultInternalOptions(Map<String, String> properties) {
+        this.properties = properties;
     }
 
     @Override
-    public <T> Option.Value<T> getOption(InternalOption<T> option) {
-        String value = startParameterSystemProperties.get(option.getSystemPropertyName());
+    public <T extends @Nullable Object> Option.Value<T> getOption(InternalOption<T> option) {
+        String value = properties.get(option.getPropertyName());
         if (value == null) {
-            value = System.getProperty(option.getSystemPropertyName());
+            value = System.getProperty(option.getPropertyName());
         }
         if (value == null) {
             return Option.Value.defaultValue(option.getDefaultValue());

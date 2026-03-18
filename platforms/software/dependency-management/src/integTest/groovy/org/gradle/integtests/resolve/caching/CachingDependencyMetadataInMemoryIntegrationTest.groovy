@@ -47,11 +47,11 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
                 }
             }
             //runs second, purges repo
-            task purgeRepo(type: Delete, dependsOn: resolveOne) {
+            task purgeRepo(type: Delete, dependsOn: tasks.resolveOne) {
                 delete "${mavenRepo.uri}"
             }
             //runs last, still works even though local repo is empty
-            task resolveTwo(dependsOn: purgeRepo) {
+            task resolveTwo(dependsOn: tasks.purgeRepo) {
                 def files = configurations.two
                 doLast {
                     println "Resolved " + files*.name
@@ -85,7 +85,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
         file("build.gradle") << """
             $common
 
-            resolveConf.dependsOn(':impl:resolveConf')
+            tasks.resolveConf.dependsOn(':impl:resolveConf')
         """
 
         file("impl/build.gradle") << common

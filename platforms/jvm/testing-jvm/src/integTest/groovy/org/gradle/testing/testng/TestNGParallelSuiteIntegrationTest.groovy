@@ -17,14 +17,21 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
-class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
+@TargetCoverage({ TestNGCoverage.SUPPORTS_ICLASS_LISTENER })
+class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
+
     def setup() {
         buildFile << """
             apply plugin: 'java'
@@ -71,7 +78,7 @@ class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec {
         run("test")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.testClass("Foo0Test").assertTestsExecuted("test")
         result.testClass("Foo199Test").assertTestsExecuted("test")
     }

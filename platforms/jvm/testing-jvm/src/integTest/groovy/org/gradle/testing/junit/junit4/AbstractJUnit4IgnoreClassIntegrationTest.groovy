@@ -105,8 +105,8 @@ abstract class AbstractJUnit4IgnoreClassIntegrationTest extends AbstractJUnitIgn
         run('check')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.assertTestClassesExecuted('org.gradle.CustomIgnoredTest')
-        result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0, 0).assertTestsSkipped("first test run", "second test run", "third test run")
+        result.testClass('org.gradle.CustomIgnoredTest').assertTestCount(3, 0).assertTestsSkipped("first test run", "second test run", "third test run")
     }
 }

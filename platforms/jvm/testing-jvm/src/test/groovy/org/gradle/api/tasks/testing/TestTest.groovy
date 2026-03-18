@@ -363,6 +363,8 @@ class TestTest extends AbstractConventionTaskTest {
         suiteDescriptor.id >> "suite"
         suiteDescriptor.parent >> null
         suiteDescriptor.composite >> true
+        suiteDescriptor.name >> "suite"
+        suiteDescriptor.displayName >> "suite"
 
         testDescriptor.id >> "test"
         testDescriptor.parent >> suiteDescriptor

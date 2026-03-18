@@ -37,6 +37,9 @@ class MavenS3ProxiedRepoIntegrationTest extends AbstractS3DependencyResolutionTe
     def setup() {
         proxyServer.start()
         module = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
+        executer.beforeExecute {
+            executer.withArgument("-Daws.java.v1.disableDeprecationAnnouncement=true")
+        }
     }
 
     def "should proxy requests using HTTP system proxy settings"() {

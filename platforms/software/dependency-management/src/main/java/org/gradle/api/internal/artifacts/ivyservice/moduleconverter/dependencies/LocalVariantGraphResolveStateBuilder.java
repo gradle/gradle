@@ -67,6 +67,7 @@ public interface LocalVariantGraphResolveStateBuilder {
      * dependency representations for these types so when constructing leaf configuration metadata
      * (resolvable and consumable), these conversions do not need to be executed multiple times.
      */
+    @SuppressWarnings("NonCanonicalType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     class DependencyCache {
         private final Map<String, DefaultLocalVariantGraphResolveStateBuilder.DependencyState> cache = new HashMap<>();
 

@@ -15,16 +15,21 @@
  */
 package org.gradle.internal.buildtree;
 
-import org.gradle.StartParameter;
+import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.Describables;
-import org.gradle.internal.RunDefaultTasksExecutionRequest;
+import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.WorkTypeAware;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -41,25 +46,19 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     private final BuildTreeModelCreator modelCreator;
     private final BuildTreeFinishExecutor finishExecutor;
     private final StateTransitionController<State> state;
-    private final StartParameter startParameter;
-    private final BuildModelParameters buildModelParameters;
 
     public DefaultBuildTreeLifecycleController(
         BuildLifecycleController buildLifecycleController,
         BuildTreeWorkController workController,
         BuildTreeModelCreator modelCreator,
         BuildTreeFinishExecutor finishExecutor,
-        StateTransitionControllerFactory controllerFactory,
-        StartParameter startParameter,
-        BuildModelParameters buildModelParameters
+        StateTransitionControllerFactory controllerFactory
     ) {
         this.buildLifecycleController = buildLifecycleController;
         this.workController = workController;
         this.modelCreator = modelCreator;
         this.finishExecutor = finishExecutor;
         this.state = controllerFactory.newController(Describables.of("build tree state"), State.NotStarted);
-        this.startParameter = startParameter;
-        this.buildModelParameters = buildModelParameters;
     }
 
     @Override
@@ -74,22 +73,37 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void scheduleAndRunTasks(@Nullable EntryTaskSelector selector) {
-        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector));
+        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector).getExecutionResultOrThrow());
     }
 
     @Override
     public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
-            if (runTasks && isEligibleToRunTasks()) {
-                ExecutionResult<Void> result = workController.scheduleAndRunRequestedTasks(null);
-                if (!result.getFailures().isEmpty()) {
-                    return result.asFailure();
-                }
+            ExecutionResult<Void> taskRunResult = ExecutionResult.succeeded();
+            if (runTasks) {
+                taskRunResult = runTasks();
             }
-            T model = modelCreator.fromBuildModel(action);
-            return ExecutionResult.succeeded(model);
+            // Allow model action to run even if tasks failed
+            ExecutionResult<T> modelResult = runFromBuildModel(action);
+            return modelResult.withFailures(taskRunResult);
         });
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action) {
+        Try<T> model = Try.ofFailable(() -> modelCreator.fromBuildModel(action));
+        return model.getFailure().isPresent()
+            ? ExecutionResult.failed(BuildActionExecutionException.wrap(model.getFailure().get()))
+            : ExecutionResult.succeeded(model.get());
+    }
+
+    private ExecutionResult<Void> runTasks() {
+        TaskRunResult result = workController.scheduleAndRunRequestedTasks(null);
+        if (!result.getScheduleResult().isSuccessful()) {
+            return result.getScheduleResult();
+        }
+        return result.getExecutionResultOrThrow();
     }
 
     @Override
@@ -98,19 +112,6 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             T result = buildLifecycleController.withSettings(action);
             return ExecutionResult.succeeded(result);
         });
-    }
-
-    // Temporary workaround to make incremental sync work. IDEA requires to execute `help` task
-    // to prevent default tasks be executed during sync. This is forcing all projects configuration.
-    // Must be removed as soon as IDEA will use appropriate API for avoiding any tasks to be executed.
-    private Boolean isEligibleToRunTasks() {
-        boolean isIsolatedProjectsEnabled = buildModelParameters.isIsolatedProjects();
-        boolean isDefaultTasksRequested = startParameter.getTaskRequests().size() == 1 &&
-            startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest;
-        boolean isHelpTaskOnly = startParameter.getTaskRequests().size() == 1 &&
-            startParameter.getTaskRequests().get(0).getArgs().contains("help");
-
-        return !isIsolatedProjectsEnabled || !(isDefaultTasksRequested || isHelpTaskOnly);
     }
 
     private <T> T runBuild(Supplier<ExecutionResult<? extends T>> action) {
@@ -129,5 +130,24 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
             return result.getValue();
         });
+    }
+
+    @NullMarked
+    @Contextual
+    @VisibleForTesting
+    static class BuildActionExecutionException extends GradleException implements WorkTypeAware {
+
+        private BuildActionExecutionException(Throwable cause) {
+            super(cause.getMessage(), cause);
+        }
+
+        @Override
+        public String getWorkType() {
+            return "BuildAction";
+        }
+
+        public static BuildActionExecutionException wrap(Throwable throwable) {
+            return new BuildActionExecutionException(throwable);
+        }
     }
 }

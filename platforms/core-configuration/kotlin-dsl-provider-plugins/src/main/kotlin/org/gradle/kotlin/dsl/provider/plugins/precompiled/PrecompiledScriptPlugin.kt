@@ -22,19 +22,15 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.ListProperty
-
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.KotlinScriptHashing
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
-
 import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
-
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.NameUtils
-
 import java.io.File
 import java.util.Locale
 
@@ -119,7 +115,7 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
     }
 
     val hashString by lazy {
-        PrecompiledScriptDependenciesResolver.hashOfNormalisedString(scriptText)
+        KotlinScriptHashing.hashOfNormalisedString(scriptText)
     }
 
     val scriptText: String

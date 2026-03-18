@@ -30,11 +30,13 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.StringTextResource
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.Interpreter
+import org.gradle.kotlin.dsl.execution.KotlinMetadataCompatibilityChecker
 import org.gradle.kotlin.dsl.execution.ProgramId
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -45,6 +47,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.file.Path
 
 
 /**
@@ -54,12 +57,14 @@ import java.net.URLClassLoader
 fun eval(
     script: String,
     target: Any,
+    buildTreeRootDir: File,
     baseCacheDir: File,
     baseTempDir: File,
     scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
     scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) {
     SimplifiedKotlinScriptEvaluator(
+        buildTreeRootDir,
         baseCacheDir,
         baseTempDir,
         scriptCompilationClassPath,
@@ -74,14 +79,19 @@ fun eval(
  * A simplified Service Registry, suitable for cheaper testing of the DSL outside of Gradle.
  */
 private
-class SimplifiedKotlinDefaultServiceRegistry(
-    private val baseTempDir: File,
-) : DefaultServiceRegistry() {
-    init {
-        register {
-            add(GradleUserHomeTemporaryFileProvider::class.java, GradleUserHomeTemporaryFileProvider { baseTempDir })
+fun simplifiedKotlinDefaultServiceRegistry(
+    baseTempDir: File,
+): ServiceRegistry {
+
+    return ServiceRegistryBuilder.builder()
+        .displayName("test registry")
+        .provider { registration ->
+            registration.add(GradleUserHomeTemporaryFileProvider::class.java, GradleUserHomeTemporaryFileProvider { baseTempDir })
+            registration.add(KotlinMetadataCompatibilityChecker::class.java, object : KotlinMetadataCompatibilityChecker {
+                override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
+            })
         }
-    }
+        .build()
 }
 
 
@@ -90,15 +100,16 @@ class SimplifiedKotlinDefaultServiceRegistry(
  */
 private
 class SimplifiedKotlinScriptEvaluator(
+    private val buildTreeRootDirFile: File,
     private val baseCacheDir: File,
     private val baseTempDir: File,
     private val scriptCompilationClassPath: ClassPath,
-    private val serviceRegistry: ServiceRegistry = SimplifiedKotlinDefaultServiceRegistry(baseTempDir),
+    private val serviceRegistry: ServiceRegistry = simplifiedKotlinDefaultServiceRegistry(baseTempDir),
     private val scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) : AutoCloseable {
 
     fun eval(script: String, target: Any, topLevelScript: Boolean = false) {
-        Interpreter(InterpreterHost()).eval(
+        Interpreter(InterpreterHost(), TestBuildOperationRunner()).eval(
             target,
             scriptSourceFor(script),
             Hashing.md5().hashString(script),
@@ -136,12 +147,16 @@ class SimplifiedKotlinScriptEvaluator(
     private
     fun scriptSourceFor(script: String): ScriptSource = mock {
         on { fileName } doReturn "script.gradle.kts"
+        on { className } doReturn "Script_gradle"
         on { shortDisplayName } doReturn Describables.of("<test script>")
         on { resource } doReturn StringTextResource("<test script>", script)
     }
 
     private
     inner class InterpreterHost : Interpreter.Host {
+
+        override val buildTreeRootDir: Path
+            get() = buildTreeRootDirFile.toPath()
 
         override fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry =
             serviceRegistry

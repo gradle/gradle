@@ -95,10 +95,10 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.publish()
 
         buildFile << """
-            resolveSources {
+            tasks.resolveSources {
                 expectedFiles = []
             }
-            resolveJavadoc {
+            tasks.resolveJavadoc {
                 expectedFiles = []
             }
         """
@@ -149,7 +149,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.publish()
 
         buildFile << """
-            resolveSources {
+            tasks.resolveSources {
                 expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
             }
         """
@@ -202,7 +202,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.publish()
 
         buildFile << """
-            resolveJavadoc {
+            tasks.resolveJavadoc {
                 expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
             }
         """
@@ -271,7 +271,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.publish()
 
         buildFile << """
-            resolveJavadoc {
+            tasks.resolveJavadoc {
                 expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
             }
         """
@@ -287,7 +287,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
 
         and:
         buildFile << """
-            resolveSources {
+            tasks.resolveSources {
                 expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
             }
         """
@@ -321,7 +321,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.publish()
 
         buildFile << """
-            resolveSources {
+            tasks.resolveSources {
                 expectedFiles = ['transitive-1.0-sources.jar']
             }
         """
@@ -340,10 +340,10 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.publish()
 
         buildFile << """
-            resolveSources {
+            tasks.resolveSources {
                 expectedFiles = []
             }
-            resolveJavadoc {
+            tasks.resolveJavadoc {
                 expectedFiles = []
             }
         """
@@ -366,7 +366,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.publish()
 
         buildFile << """
-            resolveSources {
+            tasks.resolveSources {
                 expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
             }
         """
@@ -389,7 +389,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.publish()
 
         buildFile << """
-            resolveJavadoc {
+            tasks.resolveJavadoc {
                 expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
             }
         """
@@ -412,7 +412,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.publish()
 
         buildFile << """
-            resolveSources {
+            tasks.resolveSources {
                 expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
             }
         """
@@ -428,7 +428,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
 
         and:
         buildFile << """
-            resolveJavadoc {
+            tasks.resolveJavadoc {
                 expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
             }
         """
@@ -448,7 +448,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.publish()
 
         buildFile << """
-            resolveSources {
+            tasks.resolveSources {
                 expectedFiles = ['transitive-1.0-sources.jar']
             }
         """

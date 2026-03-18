@@ -16,11 +16,12 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.CleanableStore;
+import org.gradle.cache.HasCleanupAction;
 
 /**
  * A visitor to a cache instance.  See {@link CacheFactory#visitCaches(CacheVisitor)}.
  */
 public interface CacheVisitor {
-    void visit(PersistentCache cache);
+    <T extends CleanableStore & HasCleanupAction> void visit(T cache);
 }

@@ -148,10 +148,10 @@ public class TextResourceScriptSourceTest {
 
     @Test
     public void usesScriptFileNameToBuildDescriptionWhenUsingHttpUri() throws URISyntaxException {
-        ScriptSource source = forUri(new URI("http://www.gradle.org/unknown.txt"));
-        assertThat(source.getDisplayName(), equalTo("<file-type> 'http://www.gradle.org/unknown.txt'"));
-        assertThat(source.getShortDisplayName().getDisplayName(), equalTo("<file-type> 'http://www.gradle.org/unknown.txt'"));
-        assertThat(source.getLongDisplayName().getDisplayName(), equalTo("<file-type> 'http://www.gradle.org/unknown.txt'"));
+        ScriptSource source = forUri(new URI("https://www.gradle.org/unknown.txt"));
+        assertThat(source.getDisplayName(), equalTo("<file-type> 'https://www.gradle.org/unknown.txt'"));
+        assertThat(source.getShortDisplayName().getDisplayName(), equalTo("<file-type> 'https://www.gradle.org/unknown.txt'"));
+        assertThat(source.getLongDisplayName().getDisplayName(), equalTo("<file-type> 'https://www.gradle.org/unknown.txt'"));
     }
 
     @Test
@@ -168,8 +168,8 @@ public class TextResourceScriptSourceTest {
 
     @Test
     public void usesScriptUriForFileNameUsingHttpUri() throws URISyntaxException {
-        ScriptSource source = forUri(new URI("http://www.gradle.org/unknown.txt"));
-        assertThat(source.getFileName(), equalTo("http://www.gradle.org/unknown.txt"));
+        ScriptSource source = forUri(new URI("https://www.gradle.org/unknown.txt"));
+        assertThat(source.getFileName(), equalTo("https://www.gradle.org/unknown.txt"));
     }
 
     @Test

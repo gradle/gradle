@@ -18,6 +18,7 @@ package org.gradle.internal.time;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 
 public class TimeFormatting {
 
@@ -79,6 +80,7 @@ public class TimeFormatting {
             return result.toString();
         }
 
+        // TODO Consider rewriting this using Duration methods once we move to Java 9+
         long days = duration / MILLIS_PER_DAY;
         duration = duration % MILLIS_PER_DAY;
         if (days > 0) {
@@ -101,5 +103,28 @@ public class TimeFormatting {
         result.append(BigDecimal.valueOf(duration).divide(BigDecimal.valueOf(MILLIS_PER_SECOND)).setScale(secondsScale, RoundingMode.HALF_UP));
         result.append("s");
         return result.toString();
+    }
+
+    public static Duration parseDurationVeryTerse(String text) {
+        String[] dayAndRest = splitOrFirstEmpty(text, "d");
+        String[] hourAndRest = splitOrFirstEmpty(dayAndRest[1], "h");
+        String[] minuteAndRest = splitOrFirstEmpty(hourAndRest[1], "m");
+        String[] secondAndRest = splitOrFirstEmpty(minuteAndRest[1], "s");
+        long days = dayAndRest[0].isEmpty() ? 0 : Long.parseLong(dayAndRest[0]);
+        long hours = hourAndRest[0].isEmpty() ? 0 : Long.parseLong(hourAndRest[0]);
+        long minutes = minuteAndRest[0].isEmpty() ? 0 : Long.parseLong(minuteAndRest[0]);
+        BigDecimal seconds = secondAndRest[0].isEmpty() ? BigDecimal.ZERO : new BigDecimal(secondAndRest[0]);
+        return Duration.ofDays(days)
+            .plusHours(hours)
+            .plusMinutes(minutes)
+            .plusMillis(seconds.multiply(BigDecimal.valueOf(MILLIS_PER_SECOND)).longValue());
+    }
+
+    private static String[] splitOrFirstEmpty(String text, String delimiter) {
+        String[] parts = text.split(delimiter, 2);
+        if (parts.length == 1) {
+            return new String[] {"", text};
+        }
+        return parts;
     }
 }

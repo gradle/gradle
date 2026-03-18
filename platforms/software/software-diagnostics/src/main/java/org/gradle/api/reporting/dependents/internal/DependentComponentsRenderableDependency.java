@@ -38,6 +38,7 @@ public class DependentComponentsRenderableDependency extends AbstractRenderableD
         return of(componentSpec, internalProtocol, new LinkedHashSet<>());
     }
 
+    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol, LinkedHashSet<DependentComponentsRenderableDependency> children) {
         ComponentSpecIdentifier id = internalProtocol.getIdentifier();
         String name = DependentComponentsUtils.getBuildScopedTerseName(id);
@@ -71,6 +72,7 @@ public class DependentComponentsRenderableDependency extends AbstractRenderableD
     private final boolean testSuite;
     private final LinkedHashSet<? extends RenderableDependency> children;
 
+    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable, boolean testSuite, LinkedHashSet<? extends RenderableDependency> children) {
         checkNotNull(id, "id must not be null");
         checkNotNull(emptyToNull(name), "name must not be null nor empty");

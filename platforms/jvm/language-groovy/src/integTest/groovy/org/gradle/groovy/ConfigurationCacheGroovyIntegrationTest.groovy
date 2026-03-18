@@ -16,6 +16,7 @@
 
 package org.gradle.groovy
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
@@ -150,7 +151,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     protected void assertTestsExecuted(String testClass, String... testNames) {
-        new DefaultTestExecutionResult(testDirectory)
+        new DefaultTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
             .testClass(testClass)
             .assertTestsExecuted(testNames)
     }

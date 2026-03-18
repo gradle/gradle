@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.CollectingTestOutputEventListener
@@ -40,14 +41,15 @@ class CookieHeaderTest extends Specification {
         .withSslContextFactory(sslContextFactory)
         .withRedirectVerifier({})
         .build()
-    HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
+
+    HttpClient client = new ApacheCommonsHttpClientFactory(new DocumentationRegistry()).createClient(settings)
 
     def "cookie header with attributes #attributes can be parsed"() {
         httpServer.start()
         httpServer.expect("/cookie", ['GET'],
             new RespondWithCookieAction("some", attributes))
         when:
-        client.performGet("${httpServer.address}/cookie", false)
+        client.performGet(URI.create("${httpServer.address}/cookie"), ImmutableMap.of())
 
         then:
         listener.events*.message.forEach { assert !it.contains('Invalid cookie header:') }

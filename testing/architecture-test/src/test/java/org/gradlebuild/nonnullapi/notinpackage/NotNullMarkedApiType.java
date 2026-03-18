@@ -16,5 +16,10 @@
 
 package org.gradlebuild.nonnullapi.notinpackage;
 
+import org.jspecify.annotations.NullMarked;
+
 public interface NotNullMarkedApiType {
+    @NullMarked
+    interface NullMarkedNestedApiType {
+    }
 }

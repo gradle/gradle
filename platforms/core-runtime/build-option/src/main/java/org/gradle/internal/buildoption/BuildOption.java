@@ -39,5 +39,16 @@ public interface BuildOption<T> extends Option {
 
     void applyFromCommandLine(ParsedCommandLine options, T settings);
 
+    @Nullable
     String getDeprecatedProperty();
+
+    /**
+     * Optionally support setting this build option from an environment variable.
+     * <P>
+     * This is currently implemented at the option level without default support in the different options.
+     *
+     * @param envVars The set of environment variables available
+     * @param settings The target for application
+     */
+    void applyFromEnvVar(Map<String, String> envVars, T settings);
 }

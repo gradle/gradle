@@ -38,9 +38,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultManifestMergeSpec implements ManifestMergeSpec {
-    List<Object> mergePaths = new ArrayList<Object>();
     private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<Action<? super ManifestMergeDetails>>();
-    private String contentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
+
+    private final List<Object> mergePaths = new ArrayList<Object>();
+    private String contentCharset = ManifestInternal.DEFAULT_CONTENT_CHARSET;
 
     @Override
     public String getContentCharset() {
@@ -76,7 +77,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     }
 
     public DefaultManifest merge(Manifest baseManifest, PathToFileResolver fileResolver) {
-        String baseContentCharset = baseManifest instanceof ManifestInternal ? ((ManifestInternal) baseManifest).getContentCharset() : DefaultManifest.DEFAULT_CONTENT_CHARSET;
+        Provider<String> baseContentCharset = baseManifest instanceof ManifestInternal ? ((ManifestInternal)baseManifest).getContentCharset() : null;
         DefaultManifest mergedManifest = new DefaultManifest(fileResolver, baseContentCharset);
         mergedManifest.getAttributes().putAll(baseManifest.getAttributes());
         mergedManifest.getSections().putAll(baseManifest.getSections());
@@ -152,7 +153,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         if (mergePath instanceof Manifest) {
             return ((Manifest) mergePath).getEffectiveManifest();
         }
-        return new DefaultManifest(mergePath, fileResolver, contentCharset);
+        return new DefaultManifest(fileResolver, contentCharset).read(mergePath);
     }
 
     public List<Object> getMergePaths() {

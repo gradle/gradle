@@ -16,12 +16,16 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
 
-@EventScope(Scope.BuildTree::class)
+/**
+ * Receives events of various "environmental things" being accessed by the build logic, like reading files or environment variables.
+ * These events are not sent through {@code ListenerManager}.
+ */
+@ServiceScope(Scope.BuildTree::class)
 interface UndeclaredBuildInputListener {
     /**
      * Called when an undeclared system property read happens.

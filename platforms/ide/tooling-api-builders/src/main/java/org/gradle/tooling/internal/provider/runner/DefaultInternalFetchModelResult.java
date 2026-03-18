@@ -25,20 +25,13 @@ import java.io.Serializable;
 import java.util.Collection;
 
 @NullMarked
-class DefaultInternalFetchModelResult<T, M> implements InternalFetchModelResult<M>, Serializable {
-    private final @Nullable T target;
+class DefaultInternalFetchModelResult<M> implements InternalFetchModelResult<M>, Serializable {
     private final @Nullable M model;
     private final Collection<InternalFailure> failures;
 
-    public DefaultInternalFetchModelResult(@Nullable T target, @Nullable M model, Collection<InternalFailure> failures) {
-        this.target = target;
+    public DefaultInternalFetchModelResult(@Nullable M model, Collection<InternalFailure> failures) {
         this.model = model;
         this.failures = failures;
-    }
-
-    @Override
-    public @Nullable T getTarget() {
-        return target;
     }
 
     @Override

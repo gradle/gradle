@@ -98,6 +98,7 @@ Code contributions should follow these guidelines to maximize the chance of them
 * For error messages related changes, follow the [ErrorMessages Guide](contributing/ErrorMessages.md).
 * Add Javadoc for new methods and classes, following the [Javadoc Style Guide](contributing/JavadocStyleGuide.md). Javadoc is *required* for new public, top-level types.
 * For new features, the feature should be mentioned in the [Release Notes](platforms/documentation/docs/src/docs/release/notes.md).
+* Use American English spelling in code, comments, and documentation (e.g., "color" not "colour", "initialize" not "initialise"). See [ADR-0009](architecture/standards/0009-use-american-english.md) for details.
 
 Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The Gradle CI system will verify this, but here are some pointers that will avoid surprises:
 
@@ -331,7 +332,7 @@ For more information on the configuration cache, see the [user manual](https://d
 
 ### Remote build cache
 
-Gradle, Inc runs a set of remote build cache nodes to speed up local builds when developing Gradle. By default, the build is [configured](https://github.com/gradle/gradle-org-conventions-plugin#what-it-does) to use the build cache node in the EU region.
+Gradle Technologies runs a set of remote build cache nodes to speed up local builds when developing Gradle. By default, the build is [configured](https://github.com/gradle/gradle-org-conventions-plugin#what-it-does) to use the build cache node in the EU region.
 
 The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can use a different build cache node by specifying `-Ddevelocity.edge.discovery=false -DcacheNode=us` for a build cache node in the US or `-Ddevelocity.edge.discovery=false -DcacheNode=au` for a build cache node in Australia.
 

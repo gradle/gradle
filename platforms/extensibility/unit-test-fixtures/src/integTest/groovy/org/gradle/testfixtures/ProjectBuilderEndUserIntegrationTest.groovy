@@ -16,10 +16,13 @@
 
 package org.gradle.testfixtures
 
+import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
@@ -35,7 +38,12 @@ import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
+class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.SPOCK
+    }
 
     def setup() {
         buildFile << """
@@ -117,7 +125,8 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec imple
         fails('test')
 
         then:
-        testFailed(containsString(SupportedJavaVersionsExpectations.getIncompatibleDaemonJvmVersionErrorMessage("Gradle", jdk.javaVersionMajor)))
+        def expectedJavaVersion = JavaVersion.toVersion(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)
+        testFailed(containsString("java.lang.UnsupportedClassVersionError: org/gradle/testfixtures/ProjectBuilder has been compiled by a more recent version of the Java Runtime (class file version ${expectedJavaVersion.toClassVersion()}.0), this version of the Java Runtime only recognizes class file versions up to ${jdk.javaVersion.toClassVersion()}.0"))
 
         where:
         jdk << AvailableJavaHomes.getUnsupportedDaemonJdks()
@@ -193,19 +202,22 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     void testPassed() {
-        def results = new DefaultTestExecutionResult(testDirectory)
-        results.assertTestClassesExecuted('Test')
-        results.testClass('Test').assertTestPassed('test')
+        def results = resultsFor()
+        results.assertTestPathsExecuted(":Test:test")
+        results.testPath(":Test:test").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     void testFailed(Matcher<String> matcher) {
-        def results = new DefaultTestExecutionResult(testDirectory)
-        results.assertTestClassesExecuted('Test')
-        results.testClass('Test').assertTestFailed('test', matcher)
+        def results = resultsFor()
+        results.assertTestPathsExecuted(":Test:test")
+        results.testPath(":Test:test").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(matcher)
     }
 
     void assertTestStdout(Matcher<String> matcher) {
-        def results = new DefaultTestExecutionResult(testDirectory)
-        results.testClass('Test').assertStdout(matcher)
+        def results = resultsFor()
+        results.assertTestPathsExecuted(":Test:test")
+        results.testPath(":Test:test").onlyRoot().assertStdout(matcher)
     }
 }

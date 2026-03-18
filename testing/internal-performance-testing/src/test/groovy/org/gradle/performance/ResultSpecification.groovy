@@ -24,7 +24,6 @@ import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildPerformanceTestHistory
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.CrossVersionPerformanceTestHistory
-import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.PerformanceExperiment
 import org.gradle.performance.results.PerformanceScenario
@@ -71,24 +70,6 @@ abstract class ResultSpecification extends Specification {
                 vcsCommits: ["abcdef"],
                 channel: channel,
                 startTime: new Date().time
-        )
-        options.each { key, value -> results."$key" = value }
-        return results
-    }
-
-    GradleVsMavenBuildPerformanceResults gradleVsMavenBuildResults(Map<String, ?> options = [:]) {
-        def results = new GradleVsMavenBuildPerformanceResults(
-                testClass: "org.gradle.performance.MyGradleVsMavenPerformanceTest",
-                testId: "test-id",
-                testProject: 'test-project',
-                testGroup: "test-group",
-                jvm: "java 7",
-                versionUnderTest: "Gradle 1.0",
-                operatingSystem: "windows",
-                host: "me",
-                startTime: 100,
-                vcsBranch: "master",
-                vcsCommits: ["abcdef"]
         )
         options.each { key, value -> results."$key" = value }
         return results

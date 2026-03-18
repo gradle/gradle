@@ -84,6 +84,11 @@ public class ProjectLifecycleController implements Closeable {
         return project;
     }
 
+    public ProjectInternal getMutableModelEvenAfterFailure() {
+        controller.assertInStateOrLaterIgnoringFailures(State.Created);
+        return project;
+    }
+
     public void ensureSelfConfigured() {
         controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> project.evaluateUnchecked());
     }

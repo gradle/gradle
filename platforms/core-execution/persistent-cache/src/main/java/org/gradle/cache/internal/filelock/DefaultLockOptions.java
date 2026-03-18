@@ -18,23 +18,32 @@ package org.gradle.cache.internal.filelock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.gradle.cache.FileLockManager.LockMode.Shared;
+
 public class DefaultLockOptions implements LockOptions {
 
-    private FileLockManager.LockMode mode;
-    private boolean crossVersion;
+    private final FileLockManager.LockMode mode;
+    private final boolean crossVersion;
+    private final boolean ensureAcquiredLockRepresentsStateOnFileSystem;
 
-    private DefaultLockOptions(FileLockManager.LockMode mode, boolean crossVersion) {
+    private DefaultLockOptions(FileLockManager.LockMode mode, boolean crossVersion, boolean ensureAcquiredLockRepresentsStateOnFileSystem) {
         this.mode = mode;
         this.crossVersion = crossVersion;
+        this.ensureAcquiredLockRepresentsStateOnFileSystem = ensureAcquiredLockRepresentsStateOnFileSystem;
     }
 
     public static DefaultLockOptions mode(FileLockManager.LockMode lockMode) {
-        return new DefaultLockOptions(lockMode, false);
+        return new DefaultLockOptions(lockMode, false, false);
     }
 
     public DefaultLockOptions useCrossVersionImplementation() {
-        crossVersion = true;
-        return this;
+        return new DefaultLockOptions(mode, true, ensureAcquiredLockRepresentsStateOnFileSystem);
+    }
+
+    public DefaultLockOptions ensureAcquiredLockRepresentsStateOnFileSystem() {
+        checkArgument(this.mode != Shared && !crossVersion, "Shared or cross-version locks are not supported with ensureAcquiredLockRepresentsStateOnFileSystem() option.");
+        return new DefaultLockOptions(mode, crossVersion, true);
     }
 
     @Override
@@ -48,8 +57,13 @@ public class DefaultLockOptions implements LockOptions {
     }
 
     @Override
+    public boolean isEnsureAcquiredLockRepresentsStateOnFileSystem() {
+        return ensureAcquiredLockRepresentsStateOnFileSystem;
+    }
+
+    @Override
     public LockOptions copyWithMode(FileLockManager.LockMode mode) {
-        return new DefaultLockOptions(mode, crossVersion);
+        return new DefaultLockOptions(mode, crossVersion, ensureAcquiredLockRepresentsStateOnFileSystem);
     }
 
     @Override
@@ -57,6 +71,7 @@ public class DefaultLockOptions implements LockOptions {
         return "DefaultLockOptions{" +
             "mode=" + mode +
             ", crossVersion=" + crossVersion +
+            ", ensureAcquiredLockRepresentsStateOnFileSystem=" + ensureAcquiredLockRepresentsStateOnFileSystem +
             '}';
     }
 
@@ -70,21 +85,16 @@ public class DefaultLockOptions implements LockOptions {
         }
 
         DefaultLockOptions that = (DefaultLockOptions) o;
-
-        if (crossVersion != that.crossVersion) {
-            return false;
-        }
-        if (mode != that.mode) {
-            return false;
-        }
-
-        return true;
+        return crossVersion == that.crossVersion
+            && ensureAcquiredLockRepresentsStateOnFileSystem == that.ensureAcquiredLockRepresentsStateOnFileSystem
+            && mode == that.mode;
     }
 
     @Override
     public int hashCode() {
         int result = mode.hashCode();
         result = 31 * result + (crossVersion ? 1 : 0);
+        result = 31 * result + (ensureAcquiredLockRepresentsStateOnFileSystem ? 1 : 0);
         return result;
     }
 }

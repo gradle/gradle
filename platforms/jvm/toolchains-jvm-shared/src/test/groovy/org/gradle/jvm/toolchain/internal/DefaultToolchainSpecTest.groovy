@@ -24,6 +24,9 @@ import org.gradle.util.Matchers
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion.*
+import static org.gradle.jvm.toolchain.internal.DefaultToolchainSpecTest.SpecValidity.*
+
 class DefaultToolchainSpecTest extends Specification {
     JavaToolchainSpec createSpec() {
         TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
@@ -68,5 +71,43 @@ class DefaultToolchainSpecTest extends Specification {
         !Matchers.strictlyEquals(spec11Vendor1.toKey(), spec11Vendor2.toKey())
         Matchers.strictlyEquals(spec21Native.toKey(), spec21Native.toKey())
         !Matchers.strictlyEquals(spec21.toKey(), spec21Native.toKey())
+    }
+
+    def "spec is #validity when #reason"() {
+        given:
+        def spec = createSpec() as DefaultToolchainSpec
+
+        when:
+        if (vendor != null) {
+            spec.vendor.set(vendor)
+        }
+        if (languageVersion != null) {
+            spec.languageVersion.set(languageVersion)
+        }
+
+        then:
+        spec.valid == validity.isValid
+
+        where:
+        reason                                          | languageVersion            | vendor                 | validity
+        "language version is not set"                   | null                       | JvmVendorSpec.ADOPTIUM | INVALID
+        "language version is set to UNKNOWN"            | UNKNOWN                    | JvmVendorSpec.ADOPTIUM | INVALID
+        "language version is set"                       | JavaLanguageVersion.of(11) | JvmVendorSpec.ADOPTIUM | VALID
+        "both language version and vendor are not set"  | null                       | null                   | VALID
+    }
+
+    enum SpecValidity {
+        VALID, INVALID
+
+        final boolean isValid
+
+        SpecValidity() {
+            this.isValid = this.name() == "VALID"
+        }
+
+        @Override
+        String toString() {
+            return this.name().toLowerCase()
+        }
     }
 }

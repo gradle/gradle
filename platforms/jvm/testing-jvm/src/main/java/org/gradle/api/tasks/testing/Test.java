@@ -20,10 +20,12 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -36,9 +38,8 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.internal.tasks.testing.worker.TestWorker;
 import org.gradle.api.jvm.ModularitySpec;
@@ -66,8 +67,10 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -89,6 +92,8 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -99,6 +104,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
@@ -141,9 +147,11 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *   jvmArgs('-XX:MaxPermSize=256m')
  *
  *   // listen to events in the test execution lifecycle
- *   beforeTest { descriptor -&gt;
- *      logger.lifecycle("Running test: " + descriptor)
- *   }
+ *   addTestListener(new TestListener() {
+ *      void beforeTest(TestDescriptor descriptor) {
+ *          logger.lifecycle("Running test: " + descriptor)
+ *      }
+ *   })
  *
  *   // fail the 'test' task on the first test failure
  *   failFast = true
@@ -152,7 +160,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *   dryRun = true
  *
  *   // listen to standard out and standard error of the test JVM(s)
- *   onOutput { descriptor, event -&gt;
+ *   addTestOutputListener { descriptor, event -&gt;
  *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
  *   }
  * }
@@ -166,10 +174,10 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 @NullMarked
 @CacheableTask
 public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Test.class);
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
-    private final Property<JavaLauncher> javaLauncher;
 
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
@@ -179,6 +187,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
+
+    @Nullable
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
@@ -188,18 +198,13 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         classpath = objectFactory.fileCollection();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();
-        stableClasspath.from(new Callable<Object>() {
-            @Override
-            public Object call() {
-                return getClasspath();
-            }
-        });
+        stableClasspath.from((Callable<Object>) this::getClasspath);
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
-        javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
-        javaLauncher.finalizeValueOnRead();
+        getJavaLauncher().convention(createJavaLauncherConvention());
+        getJavaLauncher().finalizeValueOnRead();
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
@@ -658,6 +663,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
+        if (!getTestFramework().supportsNonClassBasedTesting() && !getTestDefinitionDirs().isEmpty()) {
+            throw new GradleException("The " + getTestFramework().getDisplayName() + " test framework does not support resource-based testing.");
+        }
+
         validateExecutableMatchesToolchain();
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
@@ -666,7 +675,37 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+        Set<File> candidateTestDefinitionDirs = determineCandidateTestDefinitionDirs();
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
+            getCandidateClassFiles(), isScanForTestClasses(), candidateTestDefinitionDirs,
+            getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+    }
+
+    private Set<File> determineCandidateTestDefinitionDirs() {
+        return getTestDefinitionDirs().getFiles().stream()
+            .filter(this::isValidDefinitionDir)
+            .filter(this::matchesPatternSet)
+            .collect(Collectors.toSet());
+    }
+
+    private boolean isValidDefinitionDir(File dir) {
+        if (!dir.exists()) {
+            LOGGER.warn("Test definitions directory does not exist: " + dir.getAbsolutePath());
+            return false;
+        } else if (!dir.isDirectory()) {
+            LOGGER.warn("Test definitions directory is not a directory: " + dir.getAbsolutePath());
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private boolean matchesPatternSet(File dir) {
+        ConfigurableFileTree fileTree = getObjectFactory().fileTree();
+        fileTree.from(dir);
+        fileTree.include(patternSet.getIncludes());
+        fileTree.exclude(patternSet.getExcludes());
+        return !fileTree.isEmpty();
     }
 
     private void validateExecutableMatchesToolchain() {
@@ -678,17 +717,21 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     private Set<String> getPreviousFailedTestClasses() {
-        TestResultSerializer serializer = new TestResultSerializer(getBinaryResultsDirectory().getAsFile().get());
-        if (serializer.isHasResults()) {
-            final Set<String> previousFailedTestClasses = new HashSet<String>();
-            serializer.read(new Action<TestClassResult>() {
-                @Override
-                public void execute(TestClassResult testClassResult) {
-                    if (testClassResult.getFailuresCount() > 0) {
-                        previousFailedTestClasses.add(testClassResult.getClassName());
+        SerializableTestResultStore store = new SerializableTestResultStore(getBinaryResultsDirectory().getAsFile().get().toPath());
+        if (store.hasResults()) {
+            final Set<String> previousFailedTestClasses = new HashSet<>();
+            try {
+                store.forEachResult((id, parentId, result, ranges) -> {
+                    // Test class descriptors set both name and class name to the test class name
+                    if (result.getName().equals(result.getClassName())) {
+                        if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                            previousFailedTestClasses.add(result.getClassName());
+                        }
                     }
-                }
-            });
+                });
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
             return previousFailedTestClasses;
         } else {
             return Collections.emptySet();
@@ -705,6 +748,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                 SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION - 1
             ));
         }
+        // TODO: JUnit6 requires Java 17+
+        // Gradle should produce a better error message when using JUnit 6 with incompatible JVMs.
 
         if (getDebug()) {
             getLogger().info("Running tests for remote debugging.");
@@ -741,6 +786,12 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         }
         reasons.addAll(super.getNoMatchingTestErrorReasons());
         return reasons;
+    }
+
+    @Override
+    protected int getReportEntrySkipLevels() {
+        // Add 1 for the workers, plus any additional levels required by the test framework
+        return super.getReportEntrySkipLevels() + 1 + getTestFramework().getAdditionalReportEntrySkipLevels();
     }
 
     /**
@@ -845,6 +896,19 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     /**
+     * Returns directories to scan for non-class-based test definition files.
+     *
+     * @return The directories holding non-class-based test definition files.
+     * @since 9.4.0
+     */
+    @Incubating
+    @InputFiles
+    @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getTestDefinitionDirs();
+
+    /**
      * Sets the directories to scan for compiled test sources.
      *
      * Typically, this would be configured to use the output of a source set:
@@ -939,8 +1003,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return testFramework.get();
     }
 
+    /**
+     * Do not call this method.
+     * @deprecated This will be removed in Gradle 10
+     */
+    @Deprecated
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        // TODO: Deprecate and remove this method
+        DeprecationLogger.deprecateMethod(Test.class, "testFramework(Closure)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_test_methods")
+            .nagUser();
         options(testFrameworkConfigure);
         return getTestFramework();
     }
@@ -1249,9 +1321,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 6.7
      */
     @Nested
-    public Property<JavaLauncher> getJavaLauncher() {
-        return javaLauncher;
-    }
+    public abstract Property<JavaLauncher> getJavaLauncher();
 
     @Override
     boolean testsAreNotFiltered() {

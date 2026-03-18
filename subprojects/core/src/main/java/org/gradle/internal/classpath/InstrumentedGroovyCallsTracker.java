@@ -62,11 +62,9 @@ public interface InstrumentedGroovyCallsTracker {
      */
     void markCurrentCallAsIntercepted(String callableName, CallKind kind);
 
-    @NullMarked
     interface EntryPointCallSite {
     }
 
-    @NullMarked
     enum CallKind {
         GET_PROPERTY, SET_PROPERTY, INVOKE_METHOD
     }

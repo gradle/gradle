@@ -17,7 +17,9 @@
 package org.gradle.internal.declarativedsl.evaluator.defaults
 
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.CustomAccessorType.ProjectFeature
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
@@ -25,7 +27,6 @@ import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.transformation.OriginReplacement.replaceReceivers
 import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
-import org.gradle.internal.declarativedsl.evaluator.projectTypes.SOFTWARE_TYPE_ACCESSOR_PREFIX
 import java.io.Serializable
 
 
@@ -71,26 +72,27 @@ interface ApplyModelDefaultsHandler : ResolutionResultHandler {
 }
 
 
-internal
-fun findUsedProjectFeatureNames(resolutionResult: ResolutionResult): Set<String> {
-    fun ConfigureAccessor.projectFeatureNameOrNull(): String? =
-        if (this is ConfigureAccessor.Custom)
-            customAccessorIdentifier.removePrefix("$SOFTWARE_TYPE_ACCESSOR_PREFIX:").takeIf { it != customAccessorIdentifier }
-        else null
+fun ConfigureAccessor.projectFeatureAccessorIdOrNull(): ProjectFeatureIdentifier? =
+    if (this is ConfigureAccessor.Custom && accessorIdentifier.type is ProjectFeature)
+        accessorIdentifier as ProjectFeatureIdentifier
+    else null
 
+
+internal
+fun findUsedProjectFeatureIds(resolutionResult: ResolutionResult): Set<ProjectFeatureIdentifier> {
     return resolutionResult.nestedObjectAccess
         .mapNotNullTo(mutableSetOf()) {
-            (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.projectFeatureNameOrNull()
+            (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.projectFeatureAccessorIdOrNull()
         }
 }
 
 
 interface ModelDefaultsRepository {
-    fun findDefaults(featureName: String): ModelDefaultsResolutionResults?
+    fun findDefaults(featureId: ProjectFeatureIdentifier): ModelDefaultsResolutionResults?
 }
 
 fun defaultsForAllUsedProjectFeatures(modelDefaultsRepository: ModelDefaultsRepository, resolutionResult: ResolutionResult) =
-    findUsedProjectFeatureNames(resolutionResult).mapNotNull(modelDefaultsRepository::findDefaults)
+    findUsedProjectFeatureIds(resolutionResult).mapNotNull(modelDefaultsRepository::findDefaults)
 
 
 

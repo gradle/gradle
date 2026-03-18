@@ -25,8 +25,14 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.execution.ExecutionContext;
+import org.gradle.internal.execution.Identity;
+import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
@@ -123,25 +129,25 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     @Override
-    public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-        TransformWorkspaceIdentity transformWorkspaceIdentity = createIdentity(identityInputs, identityFileInputs);
+    public Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
+        TransformWorkspaceIdentity transformWorkspaceIdentity = createIdentity(scalarInputs, fileInputs);
         emitIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity);
         return transformWorkspaceIdentity;
     }
 
-    protected abstract TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
+    protected abstract TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs);
 
     @Override
-    public WorkOutput execute(ExecutionRequest executionRequest) {
+    public WorkOutput execute(ExecutionContext executionContext) {
         transformExecutionListener.beforeTransformExecution(transform, subject);
         try {
-            return executeWithinTransformerListener(executionRequest);
+            return executeWithinTransformerListener(executionContext);
         } finally {
             transformExecutionListener.afterTransformExecution(transform, subject);
         }
     }
 
-    private WorkOutput executeWithinTransformerListener(ExecutionRequest executionRequest) {
+    private WorkOutput executeWithinTransformerListener(ExecutionContext executionRequest) {
         TransformExecutionResult result = buildOperationRunner.call(new CallableBuildOperation<TransformExecutionResult>() {
             @Override
             public TransformExecutionResult call(BuildOperationContext context) {
@@ -203,20 +209,13 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     @Override
-    public ExecutionBehavior getExecutionBehavior() {
-        return transform.requiresInputChanges()
-            ? ExecutionBehavior.INCREMENTAL
-            : ExecutionBehavior.NON_INCREMENTAL;
-    }
-
-    @Override
     public void visitImplementations(ImplementationVisitor visitor) {
         visitor.visitImplementation(transform.getImplementationClass());
     }
 
     @Override
     @OverridingMethodsMustInvokeSuper
-    public void visitIdentityInputs(InputVisitor visitor) {
+    public void visitImmutableInputs(InputVisitor visitor) {
         // Emulate secondary inputs as a single property for now
         visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transform::getSecondaryInputHash);
         visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, () ->
@@ -228,7 +227,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
                 ? inputArtifact.getAbsolutePath()
                 : inputArtifact.getName());
         visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
-            new InputFileValueSupplier(
+            new InputVisitor.InputFileValueSupplier(
                 dependencies,
                 transform.getInputArtifactDependenciesNormalizer(),
                 transform.getInputArtifactDependenciesDirectorySensitivity(),
@@ -247,7 +246,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     protected void visitInputArtifact(InputVisitor visitor) {
         visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
-            new InputFileValueSupplier(
+            new InputVisitor.InputFileValueSupplier(
                 inputArtifactProvider,
                 transform.getInputArtifactNormalizer(),
                 transform.getInputArtifactDirectorySensitivity(),
@@ -260,9 +259,9 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         File outputDir = getOutputDir(workspace);
         File resultsFile = getResultsFile(workspace);
         visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
-            OutputFileValueSupplier.fromStatic(outputDir, fileCollectionFactory.fixed(outputDir)));
+            OutputVisitor.OutputFileValueSupplier.fromStatic(outputDir, fileCollectionFactory.fixed(outputDir)));
         visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
-            OutputFileValueSupplier.fromStatic(resultsFile, fileCollectionFactory.fixed(resultsFile)));
+            OutputVisitor.OutputFileValueSupplier.fromStatic(resultsFile, fileCollectionFactory.fixed(resultsFile)));
     }
 
     @Override

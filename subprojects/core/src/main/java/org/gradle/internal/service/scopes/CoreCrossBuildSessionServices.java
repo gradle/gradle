@@ -18,10 +18,9 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
-import org.gradle.configuration.internal.DefaultDynamicCallContextTracker;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
-import org.gradle.configuration.internal.DynamicCallContextTracker;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.code.DefaultUserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -58,7 +57,6 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     void configure(ServiceRegistration registration) {
         registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
         registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
-        registration.add(DynamicCallContextTracker.class, DefaultDynamicCallContextTracker.class);
     }
 
     @Provides
@@ -116,8 +114,8 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    BuildOperationTrace createBuildOperationTrace(BuildOperationListenerManager buildOperationListenerManager, CrossBuildSessionParameters buildSessionParameters) {
-        return new BuildOperationTrace(buildSessionParameters.getStartParameter(), buildOperationListenerManager);
+    BuildOperationTrace createBuildOperationTrace(InternalOptions internalOptions, CrossBuildSessionParameters parameters, BuildOperationListenerManager buildOperationListenerManager) {
+        return new BuildOperationTrace(parameters.getUserActionRootDirectory(), internalOptions, buildOperationListenerManager);
     }
 
     @Provides

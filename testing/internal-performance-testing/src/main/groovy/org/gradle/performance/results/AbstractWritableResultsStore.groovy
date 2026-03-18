@@ -58,6 +58,24 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
         return String.join(' or ', Collections.nCopies(channelPatterns.size(), "channel like ?"))
     }
 
+    protected static List<Object> createHistoryQueryParams(
+        PerformanceExperiment experiment,
+        Timestamp minDate,
+        List<String> channelPatterns,
+        List<String> teamcityBuildIds,
+        int mostRecentN
+    ) {
+        List<Object> params = new ArrayList<>(5 + channelPatterns.size() + teamcityBuildIds.size())
+        params.add(experiment.getScenario().getClassName())
+        params.add(experiment.getScenario().getTestName())
+        params.add(experiment.getTestProject())
+        params.add(minDate)
+        params.addAll(channelPatterns)
+        params.addAll(teamcityBuildIds)
+        params.add(mostRecentN)
+        return params
+    }
+
     @Override
     public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentDurationsInMillis() {
         return this.<Map<PerformanceExperimentOnOs, Long>>withConnection("load estimated runtimes") { connection ->

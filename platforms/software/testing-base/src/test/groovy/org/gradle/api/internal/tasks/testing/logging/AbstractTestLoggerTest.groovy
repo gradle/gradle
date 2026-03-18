@@ -154,6 +154,19 @@ event"""
 
     }
 
+    def "log metadata event"() {
+        createLogger(LogLevel.INFO)
+
+        when:
+        logger.logEvent(methodDescriptor, TestLogEvent.METADATA, """metadata emitted""")
+
+
+        then:
+        textOutputFactory.output == """
+OuterSuiteClass > InnerSuiteClass > TestClass > a test METADATA
+metadata emitted"""
+    }
+
     def "log test method event with lowest display granularity"() {
         createLogger(LogLevel.INFO, 0)
 

@@ -20,12 +20,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
-import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 
 /**
  * A plugin for projects wishing to build native binary components from Windows Resource sources.
  *
- * <p>Automatically includes the {@link WindowsResourceScriptPlugin} for core Windows Resource source support and the {@link NativeComponentPlugin} for native component support.</p>
+ * <p>Automatically includes the {@link WindowsResourceScriptPlugin} for core Windows Resource source support and the {@link NativeComponentModelPlugin} for native component support.</p>
  *
  * <ul>
  * <li>Creates a {@link org.gradle.language.rc.tasks.WindowsResourceCompile} task for each {@link org.gradle.language.rc.WindowsResourceSet} to compile the sources.</li>

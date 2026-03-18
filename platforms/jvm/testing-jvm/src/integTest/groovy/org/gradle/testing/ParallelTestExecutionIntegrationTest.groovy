@@ -16,11 +16,10 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
@@ -129,9 +128,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    // TODO:configuration-cache test currently flaky since cc might run tests in parallel
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "cc might cause tests to run in parallel")
-    def "does not run tests from multiple tasks from the same project in parallel"() {
+    def "running tests from multiple tasks from the same project in parallel"() {
         withBlockingJUnitTests(2)
         withBlockingJUnitTests(2, "other")
         buildFile.clear()
@@ -154,10 +151,15 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-
-        def tests = blockingServer.concurrent("test_1", "test_2")
-        def other = blockingServer.concurrent("other_1", "other_2")
-        blockingServer.expectInAnyOrder(tests, other)
+        // CC lets tests from multiple tasks from the same project run in parallel
+        if (GradleContextualExecuter.isConfigCache()) {
+            def tests = blockingServer.concurrent("test_1", "test_2", "other_1", "other_2")
+            blockingServer.expectInAnyOrder(tests)
+        } else { // but vintage executer doesn't
+            def tests = blockingServer.concurrent("test_1", "test_2")
+            def other = blockingServer.concurrent("other_1", "other_2")
+            blockingServer.expectInAnyOrder(tests, other)
+        }
 
         when:
         executer.withArguments("--parallel", "--max-workers=4")

@@ -16,11 +16,11 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
-abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
+abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVersionIntegrationTest implements VerifiesGenericTestReportResults {
     def "can run spock tests with mock of class using gradleApi"() {
         file("build.gradle") << """
             plugins {
@@ -108,10 +108,9 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass("UnrollTest").assertTestCount(2, 0, 0)
-            .assertTestPassed('can test 1')
-            .assertTestPassed('can test 2')
+        def results = resultsFor(testDirectory)
+        results.testPath("UnrollTest").onlyRoot().assertChildCount(1, 0)
+        results.testPathPreNormalized(":UnrollTest:can test #type").onlyRoot().assertChildCount(2, 0).assertOnlyChildrenExecuted("can test 1", "can test 2")
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4358')
@@ -129,6 +128,7 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
 
             class Sub extends Base {
                 def ok() {
+                    System.out.println("Hello")
                     expect: "success"
                 }
             }
@@ -137,8 +137,11 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass("Sub").assertTestCount(2, 0, 0)
+        def result = resultsFor()
+        // These assertions are not redundant
+        // :Sub:ok asserts on the Sub/ok/index.html, while :Sub asserts on the Sub/index.html
+        result.testPath(":Sub:ok").getSingleRootRunCount() == 2
+        result.testPath(":Sub").onlyRoot().assertChildCount(2, 0)
     }
 
     private void writeSpockDependencies() {

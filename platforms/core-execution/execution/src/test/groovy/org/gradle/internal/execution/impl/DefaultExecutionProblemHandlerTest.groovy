@@ -22,6 +22,7 @@ import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
+import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
@@ -40,7 +41,7 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
 
 class DefaultExecutionProblemHandlerTest extends Specification implements ValidationMessageChecker {
 
-    def identity = Mock(UnitOfWork.Identity)
+    def identity = Mock(Identity)
     def work = Stub(UnitOfWork)
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)

@@ -22,10 +22,7 @@ import org.gradle.internal.file.FileException;
 import java.io.File;
 import java.io.IOException;
 
-// Used via FQCN
-@SuppressWarnings("unused")
 public class Jdk7FileCanonicalizer implements FileCanonicalizer {
-    @SuppressWarnings("Since15")
     @Override
     public File canonicalize(File file) throws FileException {
         try {

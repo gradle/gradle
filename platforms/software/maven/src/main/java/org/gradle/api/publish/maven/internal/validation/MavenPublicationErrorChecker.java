@@ -132,7 +132,6 @@ public abstract class MavenPublicationErrorChecker extends PublicationErrorCheck
         }).collect(Collectors.joining("\n"));
     }
 
-    @NullMarked
     private enum ArtifactDifference {
         FILE,
         CLASSIFIER,

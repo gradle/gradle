@@ -16,6 +16,12 @@
 
 package org.gradle.kotlin.dsl.dcl
 
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import kotlin.test.Test
@@ -80,9 +86,9 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
                 import org.gradle.api.Plugin
                 import org.gradle.api.initialization.Settings
-                import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+                import ${RegistersProjectFeatures::class.qualifiedName}
 
-                @RegistersSoftwareTypes(MyPlugin::class)
+                @${RegistersProjectFeatures::class.simpleName}(MyPlugin::class)
                 class MyEcosystemPlugin : Plugin<Settings> {
                     override fun apply(settings: Settings) = Unit
                 }
@@ -158,26 +164,37 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 import org.gradle.api.Project
                 import org.gradle.api.Named
                 import org.gradle.api.NamedDomainObjectContainer
-                import org.gradle.api.internal.plugins.software.SoftwareType
                 import javax.inject.Inject
+                import ${BindsProjectType::class.java.name}
+                import ${ProjectTypeBinding::class.java.name}
+                import ${ProjectTypeBindingBuilder::class.java.name}
+                import ${Definition::class.java.name}
+                import ${BuildModel::class.java.name}
+                import org.gradle.features.dsl.bindProjectType
 
                 @RequiresOptIn("Some Experimental API", RequiresOptIn.Level.ERROR)
                 annotation class SomeExperimentalApi
 
                 @OptIn(SomeExperimentalApi::class)
                 @Suppress("deprecation")
+                @${BindsProjectType::class.java.simpleName}(MyPlugin.Binding::class)
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
-                    @get:SoftwareType(name = "myProjectType")
-                    abstract val myProjectType: MyExtension
+                    class Binding : ${ProjectTypeBinding::class.java.simpleName} {
+                        override fun bind(builder: ${ProjectTypeBindingBuilder::class.java.simpleName}) {
+                            builder.bindProjectType("myProjectType") { definition: MyExtension, model -> }
+                        }
+                    }
 
                     override fun apply(project: Project) = Unit
                 }
 
                 @SomeExperimentalApi
                 @Suppress("deprecation")
-                abstract class MyExtension {
-                    abstract val myElements: NamedDomainObjectContainer<MyElement>
+                interface MyExtension : ${Definition::class.java.simpleName}<Model> {
+                    val myElements: NamedDomainObjectContainer<MyElement>
                 }
+
+                interface Model : ${BuildModel::class.java.simpleName} { }
 
                 @SomeExperimentalApi
                 abstract class MyElement(val elementName: String) : Named {

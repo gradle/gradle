@@ -160,7 +160,6 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
     }
 
     def "url can be specified with trailing slash"() {
-        httpBuildCacheServer.start()
         def buildCacheUrl = URI.create("${httpBuildCacheServer.uri}/")
         settingsFile.text = useHttpBuildCache(buildCacheUrl)
 
@@ -285,7 +284,6 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         settingsFile.text = useHttpBuildCache(httpBuildCacheServer.uri)
 
         when:
-        executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
 
         then:
@@ -329,7 +327,6 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         """
 
         when:
-        executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
         then:
         output.contains "response status 401: Unauthorized"
@@ -377,7 +374,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         noneSkipped()
         and:
         // Only one store operation, not one per redirect
-        compileJavaStoreOperations().size() == 1
+        assertSingleCompileJavaStoreOperation()
 
         expect:
         withBuildCache().run "clean"
@@ -515,18 +512,16 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         }
 
         when:
-        executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
         then:
         noneSkipped()
         and:
-        def storeOps = compileJavaStoreOperations()
-        storeOps.size() == 1
-        storeOps.first().failure.contains("response status 401: Unauthorized")
+        def storeOp = assertSingleCompileJavaStoreOperation()
+        storeOp.failure.contains("response status 401: Unauthorized")
     }
 
-    private List<BuildOperationRecord> compileJavaStoreOperations() {
-        buildOperations.all(BuildCacheRemoteStoreBuildOperationType) {
+    private BuildOperationRecord assertSingleCompileJavaStoreOperation() {
+        buildOperations.only(BuildCacheRemoteStoreBuildOperationType) {
             buildOperations.parentsOf(it).any {
                 it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":compileJava"
             }

@@ -72,7 +72,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
 
     private static final String CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES = "CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES";
 
-    private void validateNotOptionalPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+    private static void validateNotOptionalPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
                 problem
@@ -90,7 +90,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
 
     private static final String INCORRECT_USE_OF_INPUT_ANNOTATION = "INCORRECT_USE_OF_INPUT_ANNOTATION";
 
-    private void validateNotFileType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+    private static void validateNotFileType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (File.class.isAssignableFrom(valueType)
             || RegularFile.class.isAssignableFrom(valueType)
             || RegularFileProperty.class.isAssignableFrom(valueType)
@@ -111,7 +111,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         }
     }
 
-    private void validateNotDirectoryType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+    private static void validateNotDirectoryType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (Directory.class.isAssignableFrom(valueType)
             || DirectoryProperty.class.isAssignableFrom(valueType)) {
             validationContext.visitPropertyProblem(problem ->

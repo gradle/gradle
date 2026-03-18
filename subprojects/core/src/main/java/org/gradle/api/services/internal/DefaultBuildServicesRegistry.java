@@ -220,7 +220,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Nullable
     private <T extends BuildService<P>, P extends BuildServiceParameters> P instantiateParametersOf(Class<T> implementationType) {
-        Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
+        Class<P> parameterType = isolationScheme.parameterTypeForOrNull(implementationType);
         return parameterType != null
             ? paramsInstantiator.newInstance(parameterType)
             : null;

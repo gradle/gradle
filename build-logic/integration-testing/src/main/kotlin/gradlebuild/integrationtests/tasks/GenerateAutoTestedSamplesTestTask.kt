@@ -83,7 +83,7 @@ abstract class GenerateAutoTestedSamplesTestTask @Inject constructor(@Internal v
         if (!sampleStart.matcher(fileContent).find()) {
             return
         }
-        val className = relativePath.substringAfterLast("/").toString().replace(".groovy", "AutoTestedSamplesTest").replace(".java", "AutoTestedSamplesTest")
+        val className = relativePath.substringAfterLast("/").replace(".groovy", "AutoTestedSamplesTest").replace(".java", "AutoTestedSamplesTest")
         val targetFilePath = "${relativePath.substringBeforeLast("/")}/${className}.groovy"
         val targetFile = outputDir.file(targetFilePath).get().asFile
         targetFile.parentFile.mkdirs()

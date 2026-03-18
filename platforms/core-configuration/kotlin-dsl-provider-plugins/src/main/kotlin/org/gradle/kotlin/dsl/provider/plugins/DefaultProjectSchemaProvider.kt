@@ -34,6 +34,7 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.deprecation.DeprecatableConfiguration
 import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
+import org.gradle.kotlin.dsl.accessors.NestedModelEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
@@ -42,7 +43,7 @@ import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.isDclEnabledForScriptTarget
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import java.lang.reflect.Modifier
 import kotlin.reflect.KVisibility
 
@@ -70,6 +71,7 @@ internal class DefaultProjectSchemaProvider(
                     targetSchema.modelDefaults,
                     targetSchema.containerElementFactories,
                     targetSchema.projectFeatureEntries,
+                    targetSchema.nestedModels,
                     scriptTarget
                 ).map(::SchemaType)
             }
@@ -132,7 +134,8 @@ internal class DefaultProjectSchemaProvider(
             containerElements,
             buildModelDefaults,
             dclSchema?.projectFeatures.orEmpty(),
-            dclSchema?.containerElementFactories.orEmpty()
+            dclSchema?.containerElementFactories.orEmpty(),
+            dclSchema?.nestedModels.orEmpty()
         )
     }
 }
@@ -146,7 +149,8 @@ data class TargetTypedSchema(
     // DCL:
     val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>,
     val projectFeatureEntries: List<ProjectFeatureEntry<TypeOf<*>>>,
-    val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>
+    val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>,
+    val nestedModels: List<NestedModelEntry<TypeOf<*>>>
 )
 
 

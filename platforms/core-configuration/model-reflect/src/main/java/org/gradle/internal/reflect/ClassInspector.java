@@ -20,11 +20,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class ClassInspector {
 
@@ -33,11 +36,24 @@ public class ClassInspector {
      */
     public static ClassDetails inspect(Class<?> type) {
         MutableClassDetails classDetails = new MutableClassDetails(type);
-        visitGraph(type, classDetails);
+        visitGraph(type, current -> {
+            if (!current.equals(type)) {
+                classDetails.superType(current);
+            }
+            inspectClass(current, classDetails);
+        });
         return classDetails;
     }
 
-    private static void visitGraph(Class<?> type, MutableClassDetails classDetails) {
+    public static List<Method> inspectMethods(Class<?> type) {
+        ArrayList<Method> methods = new ArrayList<>();
+        visitGraph(type, current -> {
+            Collections.addAll(methods, current.getDeclaredMethods());
+        });
+        return methods;
+    }
+
+    private static void visitGraph(Class<?> type, Consumer<Class<?>> visitor) {
         Set<Class<?>> seen = new HashSet<Class<?>>();
         Deque<Class<?>> queue = new ArrayDeque<Class<?>>();
 
@@ -50,10 +66,7 @@ public class ClassInspector {
             if (!seen.add(current)) {
                 continue;
             }
-            if (!current.equals(type)) {
-                classDetails.superType(current);
-            }
-            inspectClass(current, classDetails);
+            visitor.accept(current);
             Collections.addAll(queue, current.getInterfaces());
         }
     }

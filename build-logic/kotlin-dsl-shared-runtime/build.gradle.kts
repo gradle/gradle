@@ -6,8 +6,8 @@ description = "Provides Kotlin DSL code that is shared between build-logic and r
 
 dependencies {
     compileOnly(platform("gradlebuild:build-platform"))
-    compileOnly(kotlin("stdlib"))
-    compileOnly("org.ow2.asm:asm-tree")
-    compileOnly("com.google.code.findbugs:jsr305")
-    compileOnly("org.jspecify:jspecify")
+    compileOnly(libs.kotlinStdlib)
+    compileOnly(libs.asmTree)
+    compileOnly(libs.jsr305)
+    compileOnly(libs.jspecify)
 }

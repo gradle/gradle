@@ -70,7 +70,6 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
         cache.close();
     }
 
-    @NullMarked
     private static class FileSerializer implements Serializer<File> {
         @Override
         public File read(Decoder decoder) throws Exception {
@@ -83,7 +82,6 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
         }
     }
 
-    @NullMarked
     private static class JvmInstallationMetadataSerializer implements Serializer<JvmInstallationMetadata> {
         @Override
         public JvmInstallationMetadata read(Decoder decoder) throws Exception {

@@ -21,12 +21,15 @@ import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.util.TestUtil
 
-class ValidateStepTest extends StepSpec<BeforeExecutionContext> {
+abstract class ValidateStepTest<C extends BeforeExecutionContext> extends StepSpec<C> {
 
     def problemHandler = Mock(ExecutionProblemHandler)
-    def step = new ValidateStep<>(problemHandler, delegate)
     def delegateResult = Mock(Result)
     def problems = TestUtil.problemsService()
+
+    def step = createStep()
+
+    protected abstract ValidateStep<C, Result> createStep()
 
     def setup() {
         def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
@@ -49,5 +52,18 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> {
         validated
         0 * _
     }
+}
 
+class ImmutableValidateStepTest extends ValidateStepTest<ImmutableBeforeExecutionContext> {
+    @Override
+    protected ValidateStep<ImmutableBeforeExecutionContext, Result> createStep() {
+        return new ValidateStep.Immutable<>(problemHandler, delegate)
+    }
+}
+
+class MutableValidateStepTest extends ValidateStepTest<MutableBeforeExecutionContext> {
+    @Override
+    protected ValidateStep<MutableBeforeExecutionContext, Result> createStep() {
+        return new ValidateStep.Mutable<>(problemHandler, delegate)
+    }
 }

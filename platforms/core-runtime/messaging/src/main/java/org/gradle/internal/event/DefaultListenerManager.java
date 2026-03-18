@@ -47,13 +47,14 @@ import static org.gradle.util.internal.CollectionUtils.join;
 
 public class DefaultListenerManager implements ScopedListenerManager {
     private static final List<Class<? extends Annotation>> ANNOTATIONS = ImmutableList.of(StatefulListener.class, ListenerService.class);
-    private final Map<Object, ListenerDetails> allListeners = new LinkedHashMap<Object, ListenerDetails>();
-    private final Map<Object, ListenerDetails> allLoggers = new LinkedHashMap<Object, ListenerDetails>();
-    private final Map<Class<?>, EventBroadcast<?>> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast<?>>();
-    private final List<Registration> pendingServices = new ArrayList<Registration>();
-    private final List<Registration> pendingRegistrations = new ArrayList<Registration>();
+    private final Map<Object, ListenerDetails> allListeners = new LinkedHashMap<>();
+    private final Map<Object, ListenerDetails> allLoggers = new LinkedHashMap<>();
+    private final Map<Class<?>, EventBroadcast<?>> broadcasters = new ConcurrentHashMap<>();
+    private final List<Registration> pendingServices = new ArrayList<>();
+    private final List<Registration> pendingRegistrations = new ArrayList<>();
     private final Object lock = new Object();
     private final Class<? extends Scope> scope;
+    @Nullable
     private final DefaultListenerManager parent;
 
     public DefaultListenerManager(Class<? extends Scope> scope) {
@@ -178,26 +179,32 @@ public class DefaultListenerManager implements ScopedListenerManager {
     @Override
     public <T> AnonymousListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
         assertCanBroadcast(listenerClass);
-        return new AnonymousListenerBroadcast<T>(listenerClass, getBroadcasterInternal(listenerClass).getDispatch(true));
+        return new AnonymousListenerBroadcast<>(listenerClass, getBroadcasterInternal(listenerClass).getDispatch(true));
     }
 
     private <T> EventBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
+        // Try once before locking to avoid contention
+        EventBroadcast<T> broadcaster = Cast.uncheckedCast(broadcasters.get(listenerClass));
+        if (broadcaster != null) {
+            return broadcaster;
+        }
         synchronized (lock) {
-            EventBroadcast<T> broadcaster = Cast.uncheckedCast(broadcasters.get(listenerClass));
+            broadcaster = Cast.uncheckedCast(broadcasters.get(listenerClass));
             if (broadcaster == null) {
                 if (listenerClass.getAnnotation(StatefulListener.class) != null) {
-                    broadcaster = new ParallelEventBroadcast<T>(listenerClass);
+                    broadcaster = new ParallelEventBroadcast<>(listenerClass);
                 } else {
-                    broadcaster = new ExclusiveEventBroadcast<T>(listenerClass);
+                    broadcaster = new ExclusiveEventBroadcast<>(listenerClass);
                 }
 
-                broadcasters.put(listenerClass, broadcaster);
                 for (ListenerDetails listener : allListeners.values()) {
                     broadcaster.maybeAdd(listener);
                 }
                 for (ListenerDetails logger : allLoggers.values()) {
                     broadcaster.maybeSetLogger(logger);
                 }
+
+                broadcasters.put(listenerClass, broadcaster);
             }
             return broadcaster;
         }
@@ -235,7 +242,7 @@ public class DefaultListenerManager implements ScopedListenerManager {
         private final ListenerDispatch dispatch;
         private final ListenerDispatch dispatchNoLogger;
 
-        private final Set<ListenerDetails> listeners = new LinkedHashSet<ListenerDetails>();
+        private final Set<ListenerDetails> listeners = new LinkedHashSet<>();
 
         @Nullable
         private volatile ProxyDispatchAdapter<T> source;
@@ -266,11 +273,12 @@ public class DefaultListenerManager implements ScopedListenerManager {
             return includeLogger ? dispatch : dispatchNoLogger;
         }
 
+        @SuppressWarnings("DataFlowIssue")
         T getBroadcaster() {
             if (source == null) {
                 synchronized (this) {
                     if (source == null) {
-                        source = new ProxyDispatchAdapter<T>(dispatch, type);
+                        source = new ProxyDispatchAdapter<>(dispatch, type);
                     }
                 }
             }
@@ -417,7 +425,7 @@ public class DefaultListenerManager implements ScopedListenerManager {
     private class ExclusiveEventBroadcast<T> extends EventBroadcast<T> {
 
         private final ReentrantLock broadcasterLock = new ReentrantLock();
-        private final List<Runnable> queuedOperations = new LinkedList<Runnable>();
+        private final List<Runnable> queuedOperations = new LinkedList<>();
 
         public ExclusiveEventBroadcast(Class<T> type) {
             super(type);
@@ -425,32 +433,17 @@ public class DefaultListenerManager implements ScopedListenerManager {
 
         @Override
         protected void doAdd(final ListenerDetails listener) {
-            executeNowOrLater(new Runnable() {
-                @Override
-                public void run() {
-                    ExclusiveEventBroadcast.super.doAdd(listener);
-                }
-            });
+            executeNowOrLater(() -> ExclusiveEventBroadcast.super.doAdd(listener));
         }
 
         @Override
         protected void doRemove(final ListenerDetails listener) {
-            executeNowOrLater(new Runnable() {
-                @Override
-                public void run() {
-                    ExclusiveEventBroadcast.super.doRemove(listener);
-                }
-            });
+            executeNowOrLater(() -> ExclusiveEventBroadcast.super.doRemove(listener));
         }
 
         @Override
         protected void doSetLogger(final ListenerDetails candidate) {
-            executeNowOrLater(new Runnable() {
-                @Override
-                public void run() {
-                    ExclusiveEventBroadcast.super.doSetLogger(candidate);
-                }
-            });
+            executeNowOrLater(() -> ExclusiveEventBroadcast.super.doSetLogger(candidate));
         }
 
         /**

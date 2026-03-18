@@ -28,8 +28,6 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def "can combine artifact notation and constraints"() {
-        resolve.expectDefaultConfiguration(useMaven() ? 'runtime' : 'default')
-
         given:
         repository {
             'org:foo:1.0' {
@@ -74,8 +72,6 @@ class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDepe
     }
 
     def "The first artifact is used as replacement for metadata if multiple artifacts are declared using #declaration"() {
-        resolve.expectDefaultConfiguration(useMaven() ? 'runtime' : 'default')
-
         given:
         repository {
             'org:foo:1.0' {

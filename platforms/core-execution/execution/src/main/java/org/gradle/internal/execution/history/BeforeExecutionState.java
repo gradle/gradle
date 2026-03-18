@@ -21,8 +21,6 @@ import org.gradle.internal.execution.steps.AfterExecutionResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.Optional;
-
 /**
  * Captures the state of a {@link org.gradle.internal.execution.UnitOfWork} before execution.
  */
@@ -42,11 +40,4 @@ public interface BeforeExecutionState extends ExecutionInputState {
      * @see AfterExecutionResult#getAfterExecutionOutputState()
      */
     ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileLocationSnapshots();
-
-    /**
-     * Returns overlapping outputs if they are detected.
-     *
-     * @see org.gradle.internal.execution.UnitOfWork#getOverlappingOutputHandling()
-     */
-    Optional<OverlappingOutputs> getDetectedOverlappingOutputs();
 }

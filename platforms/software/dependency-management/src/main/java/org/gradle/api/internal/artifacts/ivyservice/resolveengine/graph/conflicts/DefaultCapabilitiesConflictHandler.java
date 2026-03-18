@@ -28,7 +28,6 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -157,6 +156,18 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     @Override
     public boolean hasConflicts() {
         return !conflicts.isEmpty();
+    }
+
+    @Override
+    public boolean hasConflictFor(NodeState node) {
+        for (ConflictedNodesTracker tracker : capabilityWithoutVersionToTracker.values()) {
+            for (NodeState conflictedNode : tracker) {
+                if (conflictedNode == node) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -291,10 +302,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
         private boolean removeIf(Predicate<? super NodeState> pre) {
             return currentConflictedNodes.removeIf(pre);
-        }
-
-        private void addAll(Collection<NodeState> extraNodes) {
-            currentConflictedNodes.addAll(extraNodes);
         }
 
         private boolean add(NodeState node) {

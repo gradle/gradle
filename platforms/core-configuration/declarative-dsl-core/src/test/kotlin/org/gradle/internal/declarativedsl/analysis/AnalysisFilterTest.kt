@@ -18,8 +18,6 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -27,26 +25,14 @@ import org.junit.Test
 
 
 private
-class TopLevelForAnalysisFilterTest {
-    @get:Restricted
+interface TopLevelForAnalysisFilterTest {
     val n1: NestedForAnalysisFilterTest
-        get() = TODO()
-
-    @get:Restricted
     val n2: NestedForAnalysisFilterTest
-        get() = TODO()
-
-    @Configuring
-    fun n1(fn: NestedForAnalysisFilterTest.() -> Unit): Unit = TODO()
-
-    @Configuring
-    fun n2(fn: NestedForAnalysisFilterTest.() -> Unit): Unit = TODO()
 }
 
 
 private
 class NestedForAnalysisFilterTest {
-    @get:Restricted
     var x = 1
 }
 

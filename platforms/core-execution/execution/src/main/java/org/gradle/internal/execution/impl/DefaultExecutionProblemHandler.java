@@ -22,6 +22,7 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.execution.ExecutionProblemHandler;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -58,7 +59,7 @@ public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
     }
 
     @Override
-    public void handleReportedProblems(UnitOfWork.Identity identity, UnitOfWork work, WorkValidationContext validationContext) {
+    public void handleReportedProblems(Identity identity, UnitOfWork work, WorkValidationContext validationContext) {
         InternalProblems problemsService = validationContext.getProblemsService();
         InternalProblemReporter reporter = problemsService.getInternalReporter();
         List<InternalProblem> problems = validationContext.getProblems();

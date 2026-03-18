@@ -16,21 +16,16 @@
 
 package org.gradle.integtests.resolve.catalog
 
-
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 abstract class AbstractVersionCatalogIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     final BuildOperationsFixture operations = new BuildOperationsFixture(executer, testDirectoryProvider)
-    final ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
 
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
-        """
-        settingsFile << """
             dependencyResolutionManagement {
                 repositories {
                     maven {
@@ -39,8 +34,7 @@ abstract class AbstractVersionCatalogIntegrationTest extends AbstractHttpDepende
                 }
             }
         """
-        resolve.expectDefaultConfiguration("runtime")
-        resolve.prepare()
         executer.withPluginRepositoryMirrorDisabled() // otherwise the plugin portal fixture doesn't work!
     }
+
 }

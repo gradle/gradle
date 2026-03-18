@@ -42,8 +42,6 @@ public interface ProblemReporter {
 
     /**
      * Configures and reports a new problem.
-     * <p>
-     * The spec must specify the problem label and the category. Any additional configuration is optional.
      *
      * @param problemId the problem id
      * @param spec the problem configuration
@@ -69,10 +67,6 @@ public interface ProblemReporter {
 
     /**
      * Configures a new problem, reports it, and uses it to throw a new exception.
-     * <p>
-     * An exception must be provided in the spec.
-     * <p>
-     * The spec must specify the exception, the problem label, and the category. Any additional configuration is optional.
      *
      * @param exception the exception to throw after reporting the problems
      * @param problemId the problem id
@@ -84,10 +78,6 @@ public interface ProblemReporter {
 
     /**
      * Configures a new problem, reports it, and uses it to throw a new exception.
-     * <p>
-     * An exception must be provided in the spec.
-     * <p>
-     * The spec must specify the exception, the problem label, and the category. Any additional configuration is optional.
      *
      * @param exception the exception to throw after reporting the problems
      * @param problem the problem to report

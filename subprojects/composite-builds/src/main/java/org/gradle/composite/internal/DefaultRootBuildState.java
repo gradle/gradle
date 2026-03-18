@@ -96,7 +96,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public File getBuildRootDir() {
-        return getBuildController().getGradle().getServices().get(BuildLayout.class).getRootDirectory();
+        return getBuildServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override

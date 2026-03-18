@@ -20,6 +20,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -67,7 +68,7 @@ public interface ProjectLeaseRegistry {
      * If no locks were held at the time the method was called, then no attempt will be made to reacquire a lock on completion.
      * While blocking to reacquire the project lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
      */
-    <T> T runAsIsolatedTask(Factory<T> action);
+    <T extends @Nullable Object> T runAsIsolatedTask(Factory<T> action);
 
     /**
      * Releases any project state locks or task execution locks currently held by the current thread and executes the {@link Factory}.
@@ -87,13 +88,18 @@ public interface ProjectLeaseRegistry {
     boolean isAllowedUncontrolledAccessToAnyProject();
 
     /**
-     * Performs some blocking action. If the current thread is allowed to make changes to project locks, then release all locks
+     * {@link #blocking(Factory)}, but returns no result.
+     */
+    void blocking(Runnable action);
+
+    /**
+     * Performs some blocking action, returning the result. If the current thread is allowed to make changes to project locks, then release all locks
      * then run the action and reacquire any locks.
      * If the current thread is not allowed to make changes to the project locks (via {@link #whileDisallowingProjectLockChanges(Factory)},
      * then it is safe to run the action without releasing the project locks. The worker lease is, however, released prior to running the
      * action and reacquired at the end.
      */
-    void blocking(Runnable action);
+    <T extends @Nullable Object> T blocking(Factory<T> action);
 
     /**
      * Runs the given action and disallows the current thread from attempting to acquire or release any project locks.

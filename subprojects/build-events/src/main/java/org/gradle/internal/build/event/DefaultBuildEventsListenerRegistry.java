@@ -60,10 +60,10 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TransferQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -199,8 +199,8 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         @Nullable
         private final UserCodeSource registrationPoint;
         private final ManagedExecutor executor;
-        private final BlockingQueue<Object> events = new LinkedBlockingQueue<>();
-        private final AtomicReference<Exception> failure = new AtomicReference<>();
+        private final TransferQueue<Object> events = new LinkedTransferQueue<>();
+        private final AtomicReference<Throwable> failure = new AtomicReference<>();
 
         public AbstractListener(@Nullable UserCodeSource registrationPoint, ExecutorFactory executorFactory) {
             this.registrationPoint = registrationPoint;
@@ -226,8 +226,8 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
                 }
                 try {
                     handle(Cast.uncheckedNonnullCast(next));
-                } catch (Exception e) {
-                    failure.set(e);
+                } catch (Throwable t) {
+                    failure.set(t);
                     break;
                 }
             }
@@ -251,7 +251,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         public void close() {
             events.add(END);
             executor.stop(60, TimeUnit.SECONDS);
-            Exception failure = this.failure.get();
+            Throwable failure = this.failure.get();
             if (failure != null) {
                 throw UncheckedException.throwAsUncheckedException(failure);
             }

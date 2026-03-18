@@ -1,0 +1,286 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.fixtures.configurationcache
+
+import groovy.json.JsonSlurper
+import org.gradle.util.internal.ConfigureUtil
+import org.hamcrest.Matcher
+
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.Matchers.greaterThanOrEqualTo
+import static org.hamcrest.MatcherAssert.assertThat
+import static org.junit.Assert.assertTrue
+
+/**
+ * A fixture to perform assertions on the contents of the Configuration Cache Report.
+ */
+abstract class ConfigurationCacheReportFixture {
+    protected ConfigurationCacheReportFixture() {}
+
+    /**
+     * Creates a fixture for the absent report. The provided project root is used for error messages only
+     *
+     * @param projectRoot the root directory for the build in which the report was expected to be
+     * @return the fixture
+     */
+    static ConfigurationCacheReportFixture forAbsentReport(File projectRoot) {
+        return new NoReportFixture(projectRoot)
+    }
+
+    /**
+     * Creates a fixture for an existing report. This method also asserts that the report exists and is readable.
+     *
+     * @param reportFile the HTML report file
+     * @return the fixture
+     */
+    static ConfigurationCacheReportFixture forReportFile(File reportFile) {
+        return new ExistingReportFixture(reportFile)
+    }
+
+    /**
+     * Asserts that the report has specified problems, inputs, and incompatible tasks.
+     *
+     * @param specClosure the content assertions
+     */
+    void assertContents(@DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure) {
+        HasConfigurationCacheProblemsSpec spec = ConfigurationCacheProblemsFixture.newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
+        spec.checkReportProblems = true
+        assertContents(spec)
+    }
+
+    protected abstract void assertContents(HasConfigurationCacheProblemsSpec spec)
+
+    /**
+     * Asserts that the report contains no problems. This passes if the report is not present.
+     */
+    void assertHasNoProblems() {
+        assertContents {
+            totalProblemsCount = 0
+        }
+    }
+
+    private static class NoReportFixture extends ConfigurationCacheReportFixture {
+        private final File projectRoot
+
+        NoReportFixture(File projectRoot) {
+            this.projectRoot = projectRoot
+        }
+
+        @Override
+        protected void assertContents(HasConfigurationCacheProblemsSpec spec) {
+            assert !spec.hasProblems():
+                "Expected report to have problems but no report is available in '$projectRoot'"
+            assert !needsReport(spec.inputs):
+                "Expected report to have inputs but no report is available in '$projectRoot'"
+            assert !needsReport(spec.incompatibleTasks):
+                "Expected report to have incompatible task but no report is available in '$projectRoot'"
+        }
+
+        private boolean needsReport(ItemSpec itemSpec) {
+            return itemSpec != ItemSpec.IGNORING && itemSpec != ItemSpec.EXPECTING_NONE
+        }
+
+        @Override
+        void assertHasNoProblems() {}
+    }
+
+    private static class ExistingReportFixture extends ConfigurationCacheReportFixture {
+        private final File reportFile
+        private final Map<String, Object> jsModel
+
+        ExistingReportFixture(File reportFile) {
+            this.reportFile = reportFile
+            this.jsModel = readJsModelFrom(reportFile)
+        }
+
+        @Override
+        String toString() {
+            return "CC Report with ${(jsModel.diagnostics as List).size()} entries at $reportFile"
+        }
+
+        protected static Map<String, Object> readJsModelFrom(File reportFile) {
+            assertTrue("HTML report HTML file '$reportFile' not found", reportFile.isFile())
+
+            // ConfigurationCacheReport ensures the pure json model can be read
+            // by looking for `// begin-report-data` and `// end-report-data`
+            def jsonText = linesBetween(reportFile, '// begin-report-data', '// end-report-data')
+            assert jsonText: "malformed report file"
+            new JsonSlurper().parseText(jsonText) as Map<String, Object>
+        }
+
+        private static String linesBetween(File file, String beginLine, String endLine) {
+            return file.withReader('utf-8') { reader ->
+                reader.lines().iterator()
+                    .dropWhile { it != beginLine }
+                    .drop(1)
+                    .takeWhile { it != endLine }
+                    .collect()
+                    .join('\n')
+            }
+        }
+
+        @Override
+        protected void assertContents(HasConfigurationCacheProblemsSpec spec) {
+            assertProblemsHtmlReport(spec)
+            assertInputs(spec)
+            assertIncompatibleTasks(spec)
+        }
+
+        private void assertInputs(HasConfigurationCacheProblemsSpec spec) {
+            assertItems('input', spec.inputs)
+        }
+
+        private void assertIncompatibleTasks(HasConfigurationCacheProblemsSpec spec) {
+            assertItems('incompatibleTask', spec.incompatibleTasks)
+        }
+
+        private void assertItems(String kind, ItemSpec spec) {
+            if (spec == ItemSpec.IGNORING) {
+                return
+            }
+
+            List<Matcher<String>> expectedItems = spec instanceof ItemSpec.ExpectingSome
+                ? spec.itemMatchers.collect()
+                : []
+
+
+            List<Map<String, Object>> items = (jsModel.diagnostics as List<Map<String, Object>>).findAll { it[kind] != null }
+            List<String> unexpectedItems = items.collect { formatItemForAssert(it, kind) }.reverse()
+            for (int i in expectedItems.indices.reverse()) {
+                def expectedItem = expectedItems[i]
+                for (int j in unexpectedItems.indices) {
+                    if (expectedItem.matches(unexpectedItems[j])) {
+                        expectedItems.removeAt(i)
+                        unexpectedItems.removeAt(j)
+                        break
+                    }
+                }
+            }
+            if (!(spec instanceof ItemSpec.IgnoreUnexpected)) {
+                assert unexpectedItems.isEmpty(): "Unexpected '$kind' items $unexpectedItems found in the report, expecting $expectedItems"
+            }
+            assert expectedItems.isEmpty(): "Expecting $expectedItems in the report, found $unexpectedItems"
+        }
+
+        private static String formatItemForAssert(Map<String, Object> item, String kind) {
+            def trace = formatTrace(item['trace'][0])
+            List<Map<String, Object>> itemFragments = item[kind]
+            def message = formatStructuredMessage(itemFragments)
+            "${trace}: ${message}"
+        }
+
+        private static String formatStructuredMessage(List<Map<String, Object>> fragments) {
+            fragments.collect {
+                // See StructuredMessage.Fragment
+                it['text'] ?: "'${it['name']}'"
+            }.join('')
+        }
+
+        private static String formatTrace(Map<String, Object> trace) {
+            def kind = trace['kind']
+            // See org.gradle.internal.configuration.problems.DecoratedReportProblemJsonSource.writePropertyTrace
+            // TODO(mlopatkin): We're converting these back and forth, can we have a single source of truth for the JSON format?
+            return switch (kind) {
+                case "Field", "PropertyUsage", "InputProperty", "OutputProperty" -> trace['name']
+
+                case "VirtualProperty" -> trace['name']
+                case "SystemProperty" -> trace['name']
+                case "Task" -> trace['path']
+                case "Bean" -> trace['type']
+                case "Project" -> "Project '${trace['path']}'"
+                case "BuildLogic" -> trace['location'].toString().capitalize() // Build file 'build.gradle'
+                case "BuildLogicClass" -> trace['type']
+                case "Gradle" -> "Gradle runtime"
+                case "Unknown" -> "Unknown"
+                default -> throw new IllegalArgumentException("Unexpected trace kind '$kind'")
+            }
+        }
+
+        private void assertProblemsHtmlReport(HasConfigurationCacheProblemsSpec spec) {
+            def uniqueProblemCount = spec.uniqueProblems.size()
+            def totalProblemCount = spec.totalProblemsCount == null ? uniqueProblemCount : spec.totalProblemsCount
+            def problemsWithStackTraceCount = spec.problemsWithStackTraceCount == null ? uniqueProblemCount : spec.problemsWithStackTraceCount
+            assert (spec.totalProblemsCount != null ||
+                spec.problemsWithStackTraceCount != null ||
+                !spec.uniqueProblems.empty ||
+                spec.incompatibleTasks instanceof ItemSpec.ExpectingSome ||
+                spec.inputs instanceof ItemSpec.ExpectingSome):
+                "The spec suggests the report shouldn't be generated but it was"
+
+            if (spec.enforceTotalProblemCount) {
+                assertThat(
+                    "HTML report JS model has wrong number of total problem(s)",
+                    jsModel.totalProblemCount,
+                    equalTo(totalProblemCount)
+                )
+            } else {
+                assertThat(
+                    "HTML report JS model does not have the minimum number of total problem(s)",
+                    jsModel.totalProblemCount,
+                    greaterThanOrEqualTo(uniqueProblemCount)
+                )
+            }
+            assertThat(
+                "HTML report JS model has wrong number of problem(s) with stacktrace",
+                numberOfProblemsWithStacktrace(),
+                equalTo(problemsWithStackTraceCount)
+            )
+
+            if (spec.checkReportProblems) {
+                def problems = problemsFromModel()
+                for (int i in spec.uniqueProblems.indices) {
+                    // note that matchers for problem messages in report don't contain location prefixes
+                    def actualProblem = problems[i]
+                    def actualMessage = formatStructuredMessage(actualProblem["problem"])
+                    def expectedProblem = spec.uniqueProblems[i]
+
+                    assert expectedProblem.problemText.matches(actualMessage): "Expected problem message at #$i to be ${expectedProblem.problemText}, but was: ${actualMessage}"
+
+                    if (expectedProblem.traceSpec) {
+                        def trace = actualProblem['trace'] as List
+                        assertLocationMatches(i, trace, expectedProblem.traceSpec)
+                    }
+                }
+            }
+        }
+
+        private void assertLocationMatches(int index, List<Object> trace, TraceSpec location) {
+            def traceList = trace.collect { formatTrace(it) }.reverse(true)
+
+            assert location.locationMatchers.size() <= traceList.size():
+                "Expected at most ${traceList.size()} location matchers for problem #${index} but got ${location.locationMatchers.size()}. Trace: ${traceList}"
+
+            for (int i = 0; i < location.locationMatchers.size(); i++) {
+                assert location.locationMatchers[i].matches(traceList[i]):
+                    "Expected trace for problem #${index} at position $i to match ${location.locationMatchers[i]}, but was: ${traceList[i]}. Full trace: ${traceList}"
+            }
+        }
+
+        /**
+         * Collects all "diagnostics" that are actual problems.
+         */
+        private List<Object> problemsFromModel() {
+            return (jsModel.diagnostics as List<Object>)
+                .findAll { it['problem'] != null }
+        }
+
+        private int numberOfProblemsWithStacktrace() {
+            return (jsModel.diagnostics as List<Object>).count { it['problem'] != null && it['error']?.getAt('parts') != null }
+        }
+    }
+
+}

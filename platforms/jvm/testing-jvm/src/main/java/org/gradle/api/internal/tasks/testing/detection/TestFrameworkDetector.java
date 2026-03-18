@@ -16,13 +16,17 @@
 package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 
 import java.io.File;
 import java.util.List;
 
+/**
+ * Detects what classes are test classes for the test framework.
+ */
 public interface TestFrameworkDetector {
-    void startDetection(TestClassProcessor testClassProcessor);
+    void startDetection(TestDefinitionProcessor<? super ClassTestDefinition> testDefinitionProcessor);
 
     boolean processTestClass(RelativeFile testClassFile);
 

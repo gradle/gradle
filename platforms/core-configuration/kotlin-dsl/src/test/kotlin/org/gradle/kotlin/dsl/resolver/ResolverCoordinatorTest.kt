@@ -5,6 +5,7 @@ import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.junit.Test
 
 
+@Suppress("DEPRECATION")
 class ResolverCoordinatorTest {
 
     @Test

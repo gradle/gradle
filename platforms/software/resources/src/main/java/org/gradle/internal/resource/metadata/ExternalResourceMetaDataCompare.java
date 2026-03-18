@@ -61,6 +61,8 @@ public abstract class ExternalResourceMetaDataCompare {
             return false;
         }
 
-        return localContentLength == remoteContentLength && remoteLastModified.equals(localLastModified);
+        return localContentLength == remoteContentLength
+            && localLastModified != null
+            && remoteLastModified.getTime() == localLastModified.getTime();
     }
 }

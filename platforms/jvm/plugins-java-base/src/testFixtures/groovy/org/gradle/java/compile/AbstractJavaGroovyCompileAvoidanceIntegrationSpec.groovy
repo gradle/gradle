@@ -96,7 +96,10 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
             allprojects {
                 configurations.apiElements.outgoing.variants {
                     classes {
-                        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES))
+                        attributes {
+                            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_API))
+                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.CLASSES))
+                        }
                         artifact file: ${language.compileTaskName}.destinationDirectory.asFile.get(), builtBy: ${language.compileTaskName}
                         artifact file: emptyDirs.destinationDir, builtBy: emptyDirs
                         artifact file: processResources.destinationDir, builtBy: processResources

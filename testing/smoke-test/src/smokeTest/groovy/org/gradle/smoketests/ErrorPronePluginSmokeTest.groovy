@@ -33,14 +33,13 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
             ${mavenCentralRepository()}
 
-            if (JavaVersion.current().java8) {
-                dependencies {
-                    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
-                }
-            }
-
             dependencies {
-                errorprone("com.google.errorprone:error_prone_core:2.8.0")
+                if (JavaVersion.current() < JavaVersion.VERSION_21) {
+                    // ErrorProne 2.43.0+ requires JDK 21+
+                    errorprone("com.google.errorprone:error_prone_core:2.42.0")
+                } else {
+                    errorprone("com.google.errorprone:error_prone_core:2.43.0")
+                }
             }
 
             tasks.withType(JavaCompile).configureEach {

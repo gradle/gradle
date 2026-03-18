@@ -15,24 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/* package */ abstract class MessageBuilderHelper {
-    public static final String PATH_SEPARATOR = " --> ";
+public final class MessageBuilderHelper {
 
     private MessageBuilderHelper() { /* not instantiable */ }
 
-    public static List<String> formattedPathsTo(EdgeState edge) {
+    public static List<String> formattedPathsTo(DependencyGraphEdge edge) {
         return findPathsTo(edge).stream().map(path -> {
-            String header = Iterables.getLast(path).getSelector().getDependencyMetadata().isConstraint() ? "Constraint" : "Dependency";
+            String header = Iterables.getLast(path).getDependencyMetadata().isConstraint() ? "Constraint" : "Dependency";
             String formattedPath = streamNodeNames(path)
                 .collect(Collectors.joining(" --> "));
 
@@ -40,27 +43,27 @@ import java.util.stream.Stream;
         }).collect(Collectors.toList());
     }
 
-    /* package */ static List<List<String>> segmentedPathsTo(EdgeState edge) {
+    public static ImmutableList<ImmutableList<String>> findPathNamesTo(DependencyGraphEdge edge) {
         return findPathsTo(edge).stream()
-            .map(p -> streamNodeNames(p).collect(Collectors.toList()))
-            .collect(Collectors.toList());
+            .map(p -> streamNodeNames(p).collect(ImmutableList.toImmutableList()))
+            .collect(ImmutableList.toImmutableList());
     }
 
-    private static List<List<EdgeState>> findPathsTo(EdgeState edge) {
-        List<List<EdgeState>> acc = new ArrayList<>(1);
+    public static List<List<DependencyGraphEdge>> findPathsTo(DependencyGraphEdge edge) {
+        List<List<DependencyGraphEdge>> acc = new ArrayList<>(1);
         pathTo(edge, new ArrayList<>(), acc, new HashSet<>());
         return acc;
     }
 
-    private static void pathTo(EdgeState edge, List<EdgeState> currentPath, List<List<EdgeState>> accumulator, Set<NodeState> alreadySeen) {
-        NodeState from = edge.getFrom();
+    private static void pathTo(DependencyGraphEdge edge, List<DependencyGraphEdge> currentPath, List<List<DependencyGraphEdge>> accumulator, Set<DependencyGraphNode> alreadySeen) {
+        DependencyGraphNode from = edge.getFrom();
         if (alreadySeen.add(from)) {
             currentPath.add(edge);
 
-            List<EdgeState> incomingEdges = from.getIncomingEdges();
+            Collection<? extends DependencyGraphEdge> incomingEdges = from.getIncomingEdges();
             if (!incomingEdges.isEmpty()) {
-                for (EdgeState dependent : incomingEdges) {
-                    List<EdgeState> otherPath = new ArrayList<>(currentPath);
+                for (DependencyGraphEdge dependent : incomingEdges) {
+                    List<DependencyGraphEdge> otherPath = new ArrayList<>(currentPath);
                     pathTo(dependent, otherPath, accumulator, alreadySeen);
                 }
             } else {
@@ -70,9 +73,7 @@ import java.util.stream.Stream;
         }
     }
 
-    private static Stream<String> streamNodeNames(List<EdgeState> path) {
-        return path.stream()
-            .map(EdgeState::getFrom)
-            .map(NodeState::getDisplayName);
+    private static Stream<String> streamNodeNames(List<DependencyGraphEdge> path) {
+        return path.stream().map(edge -> edge.getFrom().getDisplayName());
     }
 }

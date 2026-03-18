@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Issue
@@ -26,8 +27,8 @@ class HttpResourceAccessorIntegrationTest extends ConcurrentSpecification {
 
     @Issue("GRADLE-3574")
     def "should not generate any concurrent exception"() {
-        def http = Mock(HttpClientHelper) {
-            performGet(uri.toString(), _) >> Mock(HttpClientResponse)
+        def http = Mock(HttpClient) {
+            performGet(uri, _ as ImmutableMap) >> Mock(HttpClient.Response)
         }
         def httpResourceAccessor = new HttpResourceAccessor(http)
 

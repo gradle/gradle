@@ -56,7 +56,9 @@ public class IvyResolver extends ExternalResourceResolver {
         @Nullable InstantiatingAction<ComponentMetadataListerDetails> componentMetadataVersionListerFactory,
         ImmutableMetadataSources metadataSources,
         MetadataArtifactProvider metadataArtifactProvider,
-        Instantiator injector, ChecksumService checksumService
+        Instantiator injector,
+        ChecksumService checksumService,
+        boolean continueOnConnectionFailure
     ) {
         super(
             descriptor,
@@ -70,7 +72,8 @@ public class IvyResolver extends ExternalResourceResolver {
             componentMetadataSupplierFactory,
             componentMetadataVersionListerFactory,
             injector,
-            checksumService);
+            checksumService,
+            continueOnConnectionFailure);
         this.dynamicResolve = dynamicResolve;
         this.m2Compatible = descriptor.isM2Compatible();
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();

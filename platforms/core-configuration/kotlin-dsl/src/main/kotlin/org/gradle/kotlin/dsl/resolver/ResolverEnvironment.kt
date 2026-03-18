@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl.resolver
 
 import java.io.File
@@ -25,6 +27,7 @@ import java.net.URI
  *
  * See `GradleScriptTemplateProvider` in `jetbrains/kotlin`.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 typealias Environment = Map<String, Any?>
 
@@ -32,6 +35,7 @@ typealias Environment = Map<String, Any?>
 /**
  * Path of the root directory of the IntelliJ project.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 val Environment.projectRoot: File
     get() = get("projectRoot") as File
@@ -40,6 +44,7 @@ val Environment.projectRoot: File
 /**
  * Path of the local Gradle installation as configured in IntelliJ.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 val Environment.gradleHome: File?
     get() = get("gradleHome") as? File
@@ -48,6 +53,7 @@ val Environment.gradleHome: File?
 /**
  * URI of the remote Gradle distribution as configured in IntelliJ.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 val Environment.gradleUri: URI?
     get() = get("gradleUri") as? URI
@@ -56,6 +62,7 @@ val Environment.gradleUri: URI?
 /**
  * Version of Gradle as configured in IntelliJ.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 val Environment.gradleVersion: String?
     get() = get("gradleVersion") as? String
@@ -64,6 +71,7 @@ val Environment.gradleVersion: String?
 /**
  * Path of the Gradle user home as configured in IntelliJ.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 val Environment.gradleUserHome: File?
     get() = path("gradleUserHome")
@@ -72,6 +80,7 @@ val Environment.gradleUserHome: File?
 /**
  * JAVA_HOME to use for Gradle as configured in IntelliJ.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 val Environment.gradleJavaHome: File?
     get() = path("gradleJavaHome")
@@ -80,6 +89,7 @@ val Environment.gradleJavaHome: File?
 /**
  * Gradle options as configured in IntelliJ.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 val Environment.gradleOptions: List<String>
     get() = stringList("gradleOptions")
@@ -88,6 +98,7 @@ val Environment.gradleOptions: List<String>
 /**
  * Gradle JVM options as configured in IntelliJ.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 val Environment.gradleJvmOptions: List<String>
     get() = stringList("gradleJvmOptions")
@@ -96,6 +107,7 @@ val Environment.gradleJvmOptions: List<String>
 /**
  * Gradle environment variables as configured in IntelliJ.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 val Environment.gradleEnvironmentVariables: Map<String, String>
     get() = stringMap("gradleEnvironmentVariables")
@@ -105,6 +117,7 @@ val Environment.gradleEnvironmentVariables: Map<String, String>
  * Environment flag to enabled short circuiting TAPI resolution when script
  * is changed outside classpath blocks. Defaults to false.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 val Map<String, Any?>?.isShortCircuitEnabled: Boolean
     get() = this?.get("gradleKotlinDslScriptDependenciesResolverShortCircuit") == true

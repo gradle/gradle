@@ -17,6 +17,9 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
+import org.gradle.internal.concurrent.ExecutorPolicy
+import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.concurrent.ManagedExecutorImpl
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -27,7 +30,6 @@ import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -73,7 +75,12 @@ class DefaultBuildOperationQueueTest extends Specification {
         workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(threads), ResourceLockStatistics.NO_OP) {}
         workerRegistry.startProjectExecution(true)
         lease = workerRegistry.startWorker()
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker(), null)
+        def executionContext = new BuildOperationExecutionContext(
+            new ManagedExecutorImpl(Executors.newFixedThreadPool(threads), new ExecutorPolicy.CatchAndRecordFailures()),
+            threads,
+            true
+        )
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executionContext, new SimpleWorker(), null)
     }
 
     def "cleanup"() {
@@ -122,9 +129,14 @@ class DefaultBuildOperationQueueTest extends Specification {
                 println "started worker in thread ${Thread.currentThread().id} (waiting for ${expectedWorkerCount - workersStarted.incrementAndGet()}).."
             }
         }
-        def executor = Mock(Executor)
+        def executor = Mock(ManagedExecutor)
         def delegateExecutor = Executors.newFixedThreadPool(threads)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executor, new SimpleWorker(), null)
+        def executionContext = new BuildOperationExecutionContext(
+            executor,
+            threads,
+            true
+        )
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executionContext, new SimpleWorker(), null)
 
         println "expecting ${expectedWorkerCount} concurrent work processors to be started..."
 

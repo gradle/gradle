@@ -280,6 +280,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public int compareTo(RelativePath o) {
         int len1 = segments.length;
         int len2 = o.segments.length;

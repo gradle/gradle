@@ -24,7 +24,7 @@ import org.spockframework.runtime.model.SpecInfo
 /**
  * Test extension enforcing the {@link Requires} annotation in Spock (note, that this is a separate class from Spock's own {@link spock.lang.Requires}).
  * <p>
- * If you need a new combination of {@link TestPrecondition} classes, go to {@code subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv} and simply add it.
+ * If you need a new combination of {@link TestPrecondition} classes, go to {@code testing/internal-testing/src/main/resources/valid-precondition-combinations.csv} and simply add it.
  * <p>
  * See the <a href="https://github.com/gradle/gradle/tree/master/subprojects/predicate-tester">predicate-tester</a> project to learn about where we use the information.
  *
@@ -37,7 +37,7 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
     /**
      * Default constructor.
      * <p>
-     * This will automatically load {@code subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv}.
+     * This will automatically load {@code testing/internal-testing/src/main/resources/valid-precondition-combinations.csv}.
      */
     RequiresExtension() {
         this(PredicatesFile.DEFAULT_ACCEPTED_COMBINATIONS)

@@ -137,14 +137,10 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
     public TransientConfigurationResults load(final SelectedArtifactResults artifactResults) {
         synchronized (lock) {
             return cache.load(() -> {
-                try {
-                    return binaryData.read(decoder -> deserialize(decoder, artifactResults, buildOperationExecutor, resolutionHost));
-                } finally {
-                    try {
-                        binaryData.close();
-                    } catch (IOException e) {
-                        throw throwAsUncheckedException(e);
-                    }
+                try (BinaryStore.BinaryData reader = binaryData) {
+                    return reader.read(decoder -> deserialize(decoder, artifactResults, buildOperationExecutor, resolutionHost));
+                } catch (IOException e) {
+                    throw throwAsUncheckedException(e);
                 }
             });
         }

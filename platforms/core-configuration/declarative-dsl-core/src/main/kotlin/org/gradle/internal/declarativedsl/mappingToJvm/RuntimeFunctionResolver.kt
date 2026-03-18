@@ -24,7 +24,7 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.Workarounds
-import org.gradle.internal.declarativedsl.hasDeclarativeAnnotation
+import org.gradle.internal.declarativedsl.hasHiddenInDefinitionAnnotation
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -98,7 +98,7 @@ class DefaultRuntimeFunctionResolver(
                     addAll(matchingCandidates)
                     removeIf { !parametersMatch(it, schemaFunction) }
                     if (size > 1) {
-                        removeIf { !matchesAnnotationsRecursively(it, receiverClass, hasDeclarativeAnnotation) }
+                        removeIf { matchesAnnotationsRecursively(it, receiverClass, hasHiddenInDefinitionAnnotation) }
                     }
                 }
                 val finalResolution = if (refinedResolutions.size == 1) refinedResolutions[0] else
@@ -110,7 +110,7 @@ class DefaultRuntimeFunctionResolver(
                             ) { f -> f.toString() }
                         }"
                     )
-                return RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(finalResolution, configureLambdaHandler))
+                RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(finalResolution, configureLambdaHandler))
             }
         }
 

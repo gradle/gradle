@@ -51,15 +51,15 @@ public class DefaultCleanupProgressMonitor implements CleanupProgressMonitor {
     }
 
     private void updateProgress() {
-        buildOperationContext.progress(mandatoryNumber(deleted, " entry", " entries") + " deleted"
-            + optionalNumber(", ", skipped, " skipped"));
+        buildOperationContext.progress(mandatoryNumber(deleted) + " deleted"
+            + optionalNumber(skipped));
     }
 
-    private static String mandatoryNumber(long value, String singular, String plural) {
-        return value == 1 ? value + singular : value + plural;
+    private static String mandatoryNumber(long value) {
+        return value == 1 ? value + " entry" : value + " entries";
     }
 
-    private static String optionalNumber(String separator, long value, String description) {
-        return value == 0 ? "" : separator + value + description;
+    private static String optionalNumber(long value) {
+        return value == 0 ? "" : ", " + value + " skipped";
     }
 }

@@ -16,21 +16,28 @@
 
 package org.gradle.testing.junit.platform
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
-
-class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
+abstract class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def setup() {
         executer.noExtraLogging()
         buildScriptWithJupiterDependencies("""
             test {
                 useJUnitPlatform()
             }
-        """)
+        """, getJupiterVersion())
     }
 
-    def buildScriptWithJupiterDependencies(script, String version = LATEST_JUPITER_VERSION) {
+    abstract String getJupiterVersion()
+
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.JUNIT_JUPITER
+    }
+
+    def buildScriptWithJupiterDependencies(script, String version) {
         buildFile.clear()
         buildFile("""
             apply plugin: 'java'

@@ -40,6 +40,7 @@ import java.util.List;
  * attribute.
  */
 public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends AbstractJVMVersionTooNewFailureDescriber {
+    @SuppressWarnings("InlineFormatString")
     private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency resolution is looking for a library compatible with JVM runtime version %s, but '%s' is only compatible with JVM runtime version %s or newer.";
 
     @Override

@@ -104,14 +104,15 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration"() {
-        def resolveRelease = new ResolveTestFixture(buildFile, '_compileFreeRelease')
-        def resolveDebug = new ResolveTestFixture(buildFile, '_compileFreeDebug')
+        def resolve = new ResolveTestFixture(testDirectory)
 
         given:
         createDirs("a", "b")
-        file('settings.gradle') << """rootProject.name='test'
-include 'a', 'b'
-"""
+        file('settings.gradle') << """
+            rootProject.name='test'
+            include 'a', 'b'
+        """
+
         buildFile << """
             $typeDefs
 
@@ -145,15 +146,17 @@ include 'a', 'b'
                 ${fooAndBarJars()}
             }
         """
-        def origFile = buildFile.text
+
+        file("a/build.gradle") << """
+            ${resolve.configureProject("_compileFreeRelease", "_compileFreeDebug")}
+        """
 
         when:
-        resolveRelease.prepare()
-        run ':a:checkDeps'
+        run ':a:check_compileFreeRelease'
 
         then:
-        result.assertTasksScheduled(':b:barJar', ':a:checkDeps')
-        resolveRelease.expectGraph {
+        result.assertTasksScheduled(':b:barJar', ':a:check_compileFreeRelease')
+        resolve.expectGraph(":a") {
             root(":a", "test:a:") {
                 project(':b', 'test:b:') {
                     variant 'bar', [flavor: 'free', buildType: 'release']
@@ -163,13 +166,11 @@ include 'a', 'b'
         }
 
         when:
-        buildFile.text = origFile
-        resolveDebug.prepare()
-        run ':a:checkDeps'
+        run ':a:check_compileFreeDebug'
 
         then:
-        result.assertTasksScheduled(':b:fooJar', ':a:checkDeps')
-        resolveDebug.expectGraph {
+        result.assertTasksScheduled(':b:fooJar', ':a:check_compileFreeDebug')
+        resolve.expectGraph(":a") {
             root(":a", "test:a:") {
                 project(':b', 'test:b:') {
                     variant 'foo', [flavor: 'free', buildType: 'debug']
@@ -298,9 +299,9 @@ include 'a', 'b'
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                freeDebug fooJar
-                freeRelease fooJar
-                bar barJar
+                freeDebug tasks.fooJar
+                freeRelease tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -506,7 +507,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
                destinationDirectory = buildDir
             }
             artifacts {
-                'default' barJar
+                'default' tasks.barJar
             }
         """
 
@@ -823,9 +824,9 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                'default' defaultJar
-                foo fooJar
-                bar barJar
+                'default' tasks.defaultJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -883,9 +884,9 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                'default' defaultJar
-                foo fooJar
-                bar barJar
+                'default' tasks.defaultJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1107,8 +1108,8 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                debug fooJar
-                compile barJar
+                debug tasks.fooJar
+                compile tasks.barJar
             }
         """
 
@@ -1263,8 +1264,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1344,8 +1345,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1426,8 +1427,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar, foo2Jar
-                bar barJar, bar2Jar
+                foo tasks.fooJar, tasks.foo2Jar
+                bar tasks.barJar, tasks.bar2Jar
             }
         """
 
@@ -1515,8 +1516,8 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1605,8 +1606,8 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                _compileFreeDebug(fooJar)
-                _compileFreeRelease(barJar)
+                _compileFreeDebug(tasks.fooJar)
+                _compileFreeRelease(tasks.barJar)
             }
         """
 
@@ -1776,8 +1777,8 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1837,9 +1838,9 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                'default' defaultJar
-                foo fooJar
-                bar barJar
+                'default' tasks.defaultJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1860,8 +1861,8 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         '''
     }

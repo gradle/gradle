@@ -37,8 +37,12 @@ public class WrapperExecutor {
     private final File propertiesFile;
     private final WrapperConfiguration config = new WrapperConfiguration();
 
+    public static File wrapperPropertiesForProjectDirectory(File projectDir) {
+        return new File(projectDir, "gradle/wrapper/gradle-wrapper.properties");
+    }
+
     public static WrapperExecutor forProjectDirectory(File projectDir) {
-        return new WrapperExecutor(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties());
+        return new WrapperExecutor(wrapperPropertiesForProjectDirectory(projectDir), new Properties());
     }
 
     public static WrapperExecutor forWrapperPropertiesFile(File propertiesFile) {

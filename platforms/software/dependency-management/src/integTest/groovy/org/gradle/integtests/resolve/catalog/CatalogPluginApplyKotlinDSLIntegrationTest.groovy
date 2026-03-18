@@ -16,14 +16,13 @@
 
 package org.gradle.integtests.resolve.catalog
 
-import org.gradle.integtests.resolve.PluginDslSupport
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class CatalogPluginApplyKotlinDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
+class CatalogPluginApplyKotlinDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest {
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
@@ -46,13 +45,10 @@ dependencyResolutionManagement {
         }
     }
 }"""
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 alias(libs.plugins.${alias.replace('-', '.')})
             }
-
-            apply(from="fixture.gradle")
         """
 
         when:

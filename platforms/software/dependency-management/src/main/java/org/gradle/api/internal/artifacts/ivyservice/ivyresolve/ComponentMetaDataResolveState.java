@@ -83,4 +83,12 @@ class ComponentMetaDataResolveState {
     public boolean canMakeFurtherAttempts() {
         return !searchedRemotely;
     }
+
+    boolean isContinueOnConnectionFailure() {
+        return repository.isContinueOnConnectionFailure();
+    }
+
+    public boolean isRepositoryDisabled() {
+        return repository.isRepositoryDisabled();
+    }
 }

@@ -22,51 +22,53 @@ repositories {
 }
 
 dependencies {
-    reports("jquery:jquery.min:3.5.1@js")
-    reports("flot:flot:0.8.1:min@js")
+    reports(variantOf(libs.jquery) { artifactType("js") })
+    reports(variantOf(testLibs.flot) { classifier("min"); artifactType("js") })
 
     api(projects.baseServices)
-    api(projects.coreApi)
-    api(projects.internalIntegTesting)
+    api(projects.internalDistributionTesting)
+
+    runtimeOnly(projects.coreApi)
     api(projects.internalTesting)
     api(projects.stdlibJavaExtensions)
-    api(projects.persistentCache)
     api(projects.reportRendering)
     api(projects.time)
     api(projects.toolingApi)
 
-    api(libs.gradleProfiler) {
-        because("Consumers need to instantiate BuildMutators")
-    }
+    api(testLibs.gradleProfiler) { because("Consumers need to instantiate BuildMutators") }
+    api(testLibs.gradleProfilerBuildAction)
+    api(testLibs.gradleProfilerBuildOperationsMeasuring)
     api(libs.guava)
     api(libs.groovy)
     api(libs.jacksonAnnotations)
     api(libs.jatl)
-    api(libs.jettyServer)
-    api(libs.jettyWebApp)
+    api(testLibs.jettyServer)
+    api(testLibs.jettyWebApp)
     api(libs.jspecify)
-    api(libs.junit)
-    api(libs.spock)
+    api(testLibs.junit)
+    api(testLibs.spock)
 
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.core)
-    implementation(projects.wrapperShared)
+    implementation(projects.internalIntegTesting)
+    implementation(projects.projectFeaturesApi)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.commonsMath)
     implementation(libs.groovyJson)
-    implementation(libs.hikariCP)
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
-    implementation(libs.jettyUtil)
-    implementation(libs.joptSimple)
     implementation(libs.slf4jApi)
+    implementation(testLibs.commonsMath)
+    implementation(testLibs.hikariCP)
+    implementation(testLibs.jettyUtil)
+    implementation(testLibs.joptSimple)
+    implementation(testLibs.junit5JupiterApi)
 
     runtimeOnly(libs.jclToSlf4j)
-    runtimeOnly(libs.jetty)
-    runtimeOnly(libs.mySqlConnector)
+    runtimeOnly(testLibs.jetty)
+    runtimeOnly(testLibs.mySqlConnector)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

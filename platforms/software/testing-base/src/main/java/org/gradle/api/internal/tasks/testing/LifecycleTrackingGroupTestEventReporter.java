@@ -25,10 +25,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 @NullMarked
-class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEventReporter<GroupTestEventReporter> implements GroupTestEventReporter {
+class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEventReporter<DefaultGroupTestEventReporter> implements GroupTestEventReporterInternal {
     private final Set<LifecycleTrackingTestEventReporter<?>> children = new HashSet<>();
 
-    LifecycleTrackingGroupTestEventReporter(GroupTestEventReporter delegate) {
+    LifecycleTrackingGroupTestEventReporter(DefaultGroupTestEventReporter delegate) {
         super(delegate);
     }
 
@@ -52,7 +52,14 @@ class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEvent
 
     @Override
     public TestEventReporter reportTest(String name, String displayName) {
-        LifecycleTrackingTestEventReporter<TestEventReporter> child = new LifecycleTrackingTestEventReporter<>(delegate.reportTest(name, displayName));
+        LifecycleTrackingTestEventReporter<DefaultTestEventReporter> child = new LifecycleTrackingTestEventReporter<>(delegate.reportTest(name, displayName));
+        children.add(child);
+        return child;
+    }
+
+    @Override
+    public TestEventReporter reportTestDirectly(TestDescriptorInternal testDescriptor) {
+        LifecycleTrackingTestEventReporter<DefaultTestEventReporter> child = new LifecycleTrackingTestEventReporter<>(delegate.reportTestDirectly(testDescriptor));
         children.add(child);
         return child;
     }
@@ -60,6 +67,13 @@ class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEvent
     @Override
     public GroupTestEventReporter reportTestGroup(String name) {
         LifecycleTrackingGroupTestEventReporter child = new LifecycleTrackingGroupTestEventReporter(delegate.reportTestGroup(name));
+        children.add(child);
+        return child;
+    }
+
+    @Override
+    public GroupTestEventReporter reportTestGroupDirectly(TestDescriptorInternal testDescriptor) {
+        LifecycleTrackingGroupTestEventReporter child = new LifecycleTrackingGroupTestEventReporter(delegate.reportTestGroupDirectly(testDescriptor));
         children.add(child);
         return child;
     }

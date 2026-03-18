@@ -17,14 +17,16 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
-import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
 import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import org.gradle.internal.SystemProperties
 import spock.lang.Issue
 import spock.lang.Specification
 
-import static java.util.Collections.emptyList
+import java.time.Instant
+
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
@@ -42,12 +44,12 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test", SUCCESS, 15, startTime + 25))
-        result.add(new TestMethodResult(2, "some test two", SUCCESS, 15, startTime + 30))
-        result.add(new TestMethodResult(3, "some failing test", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
-        result.add(new TestMethodResult(4, "some skipped test", SKIPPED, 10, startTime + 45))
-        result.add(new TestMethodResult(5, "some assumption failure test", SKIPPED, 10, startTime + 50).setAssumptionFailure("assumption failed", "[assumption-failure-stack-trace]", "AssumptionViolationException"))
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [])
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 15, startTime + 25, []))
+        result.add(new TestMethodResult(2, "some test two", "some test two", SUCCESS, 15, startTime + 30, []))
+        result.add(new TestMethodResult(3, "some failing test", "some failing test", FAILURE, 10, startTime + 40, []).addFailure("failure message", "[stack-trace]", "ExceptionType"))
+        result.add(new TestMethodResult(4, "some skipped test", "some skipped test", SKIPPED, 10, startTime + 45, []))
+        result.add(new TestMethodResult(5, "some assumption failure test", "some assumption failure test", SKIPPED, 10, startTime + 50, []).setAssumptionFailure("assumption failed", "[assumption-failure-stack-trace]", "AssumptionViolationException"))
 
         provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
         provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
@@ -57,7 +59,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
-            .assertTestCount(5, 2, 1, 0)
+            .assertTestCount(5, 2, 1)
             .assertTestFailed("some failing test", equalTo('failure message'))
             .assertTestsSkipped("some skipped test", "some assumption failure test")
             .assertTestsExecuted("some test", "some test two", "some failing test")
@@ -94,8 +96,8 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList(), null)))
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [])
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, []))
         _ * provider.writeAllOutput(_, _, _)
 
         when:
@@ -105,9 +107,104 @@ class JUnitXmlResultWriterSpec extends Specification {
         xml == """<?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28.049Z" hostname="localhost" time="0.3">
   <properties/>
-  <testcase name="some test" classname="com.foo.FooTest" time="0.2"/>
+  <testcase name="some test" classname="com.foo.FooTest" time="0.1"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
+</testsuite>
+"""
+    }
+
+    def "writes properties into XML"() {
+        given:
+        def options = new JUnitXmlResultOptions(false, false, true, true)
+
+        and:
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new DefaultTestKeyValueDataEvent(Instant.now(), Collections.singletonMap("classKey", "value"))])
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, [new DefaultTestKeyValueDataEvent(Instant.now(), Collections.singletonMap("testKey", "value"))]))
+        _ * provider.writeAllOutput(_, _, _)
+
+        when:
+        def xml = getXml(result, options)
+
+        then:
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28.049Z" hostname="localhost" time="0.3">
+  <properties>
+    <property name="classKey" value="value"/>
+  </properties>
+  <testcase name="some test" classname="com.foo.FooTest" time="0.1">
+    <properties>
+      <property name="testKey" value="value"/>
+    </properties>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
+"""
+    }
+
+    def "writes file attachments into XML"() {
+        given:
+        def options = new JUnitXmlResultOptions(false, false, true, true)
+        def classFile = new File("sub/class.file").toPath()
+        def testFile = new File("sub/sub/test.file").toPath()
+
+        and:
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new DefaultTestFileAttachmentDataEvent(Instant.now(), classFile, "application/json")])
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, [new DefaultTestFileAttachmentDataEvent(Instant.now(), testFile, "text/plain")]))
+        provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
+        provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
+
+        when:
+        def xml = getXml(result, options)
+
+        then:
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28.049Z" hostname="localhost" time="0.3">
+  <properties/>
+  <testcase name="some test" classname="com.foo.FooTest" time="0.1">
+    <system-out><![CDATA[
+[[ATTACHMENT|sub/sub/test.file]]
+]]></system-out>
+  </testcase>
+  <system-out><![CDATA[1st output message
+2nd output message
+
+[[ATTACHMENT|sub/class.file]]
+]]></system-out>
+  <system-err><![CDATA[err]]></system-err>
+</testsuite>
+"""
+    }
+
+    def "writes file attachments into XML when sysout is disabled"() {
+        given:
+        def options = new JUnitXmlResultOptions(false, false, false, true)
+        def classFile = new File("sub/class.file").toPath()
+        def testFile = new File("sub/sub/test.file").toPath()
+
+        and:
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new DefaultTestFileAttachmentDataEvent(Instant.now(), classFile, "application/json")])
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, [new DefaultTestFileAttachmentDataEvent(Instant.now(), testFile, "text/plain")]))
+        provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
+        provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
+
+        when:
+        def xml = getXml(result, options)
+
+        then:
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28.049Z" hostname="localhost" time="0.3">
+  <properties/>
+  <testcase name="some test" classname="com.foo.FooTest" time="0.1">
+    <system-out><![CDATA[
+[[ATTACHMENT|sub/sub/test.file]]
+]]></system-out>
+  </testcase>
+  <system-out><![CDATA[
+[[ATTACHMENT|sub/class.file]]
+]]></system-out>
+  <system-err><![CDATA[err]]></system-err>
 </testsuite>
 """
     }
@@ -117,8 +214,8 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some \ud8d3\ude01 test", FAILURE, 200, 300).addFailure("<> encoded!\ud8d3\ude02", "<non ascii:\ud8d3\ude02 \u0302>", "<Exception\ud8d3\ude29>"))
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [])
+        result.add(new TestMethodResult(1, "some \ud8d3\ude01 test", "some \ud8d3\ude01 test", FAILURE, 200, 300, []).addFailure("<> encoded!\ud8d3\ude02", "<non ascii:\ud8d3\ude02 \u0302>", "<Exception\ud8d3\ude29>"))
         provider.writeAllOutput(_, StdErr, _) >> { args -> args[2].write("with \ud8d3\ude31CDATA end token: ]]> some ascii: ż") }
         provider.writeAllOutput(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: \ud8d3\udd20ż") }
 
@@ -138,7 +235,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.IgnoredTest", startTime)
+        TestClassResult result = new TestClassResult(1, "com.foo.IgnoredTest", "com.foo.IgnoredTest", startTime, [])
 
         when:
         def xml = getXml(result, options)
@@ -201,15 +298,15 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(3, "some failing test", FAILURE, 10, startTime + 40))
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [])
+        result.add(new TestMethodResult(3, "some failing test", "some failing test", FAILURE, 10, startTime + 40, []))
 
         when:
         def xml = getXml(result, options)
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
-            .assertTestCount(1, 0, 1, 0)
+            .assertTestCount(1, 0, 1)
             .assertTestFailed("some failing test")
     }
 
@@ -219,11 +316,11 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", displayName, startTime)
-        result.add(new TestMethodResult(1, "some test", "some test displayName", SUCCESS, 15, startTime + 25))
-        result.add(new TestMethodResult(2, "some test two", "some test two displayName", SUCCESS, 15, startTime + 30))
-        result.add(new TestMethodResult(3, "some failing test", "some failing test displayName", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
-        result.add(new TestMethodResult(4, "some skipped test", "some skipped test displayName", SKIPPED, 10, startTime + 45))
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", displayName, startTime, [])
+        result.add(new TestMethodResult(1, "some test", "some test displayName", SUCCESS, 15, startTime + 25, []))
+        result.add(new TestMethodResult(2, "some test two", "some test two displayName", SUCCESS, 15, startTime + 30, []))
+        result.add(new TestMethodResult(3, "some failing test", "some failing test displayName", FAILURE, 10, startTime + 40, []).addFailure("failure message", "[stack-trace]", "ExceptionType"))
+        result.add(new TestMethodResult(4, "some skipped test", "some skipped test displayName", SKIPPED, 10, startTime + 45, []))
 
         provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
         provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
@@ -233,7 +330,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", writtenName, TestResultOutputAssociation.WITH_SUITE)
-            .assertTestCount(4, 1, 1, 0)
+            .assertTestCount(4, 1, 1)
             .assertTestFailed("some failing test displayName", equalTo('failure message'))
             .assertTestsSkipped("some skipped test displayName")
             .assertTestsExecuted("some test displayName", "some test two displayName", "some failing test displayName")
@@ -361,7 +458,7 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     private JUnitXmlResultWriter getGenerator(JUnitXmlResultOptions options) {
-        return new JUnitXmlResultWriter("localhost", provider, options)
+        return new JUnitXmlResultWriter(new File("").toPath(), "localhost", provider, options)
     }
 
     private BuildableTestResultsProvider.BuildableTestClassResult generateTestClassWithOutput(BuildableTestResultsProvider provider) {

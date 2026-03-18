@@ -16,11 +16,10 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public interface AfterExecutionOutputFilter<C extends WorkspaceContext> {
-    ImmutableSortedMap<String, FileSystemSnapshot> filterOutputs(C context, BeforeExecutionState beforeExecutionState, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsAfterExecution);
+    ImmutableSortedMap<String, FileSystemSnapshot> filterOutputs(C context, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshotsAfterExecution);
 
-    AfterExecutionOutputFilter<WorkspaceContext> NO_FILTER = (context, beforeExecutionState, outputSnapshotsAfterExecution) -> outputSnapshotsAfterExecution;
+    AfterExecutionOutputFilter<WorkspaceContext> NO_FILTER = (context, outputSnapshotsAfterExecution) -> outputSnapshotsAfterExecution;
 }

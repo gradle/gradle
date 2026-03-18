@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@ package org.gradle.testing.junit.jupiter
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
-@TargetCoverage({ JUNIT_JUPITER })
+@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
 class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec implements JUnitJupiterMultiVersionTest {
     String singularCategoryOrTagName = "tag"
     String pluralCategoryOrTagName = "tags"
@@ -126,15 +127,18 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
         run('test')
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('TagATests', 'TagADTests', 'MixedTests')
-        result.testClass("TagATests").assertTestCount(4, 0, 0)
-        result.testClass("TagATests").assertTestsExecuted('tagAOk1', 'tagAOk2', 'tagAOk3', 'tagAOk4')
-        result.testClass("TagADTests").assertTestCount(3, 0, 0)
-        result.testClass("TagADTests").assertTestsExecuted('tagAOk1', 'tagAOk2', 'tagDOk4')
-        result.testClass("MixedTests").assertTestCount(2, 0, 0)
-        result.testClass("MixedTests").assertTestsExecuted('tagAOk1')
-        result.testClass("MixedTests").assertTestsSkipped('ignoredWithTagA')
+        def results = resultsFor(testDirectory)
+        results.assertAtLeastTestPathsExecuted('TagATests', 'TagADTests', 'MixedTests')
+        results.testPath("TagATests").onlyRoot()
+            .assertChildCount(4, 0)
+            .assertChildrenExecuted('tagAOk1', 'tagAOk2', 'tagAOk3', 'tagAOk4')
+        results.testPath("TagADTests").onlyRoot()
+            .assertChildCount(3, 0)
+            .assertChildrenExecuted('tagAOk1', 'tagAOk2', 'tagDOk4')
+        results.testPath("MixedTests").onlyRoot()
+            .assertChildCount(2, 0)
+            .assertChildrenExecuted('tagAOk1')
+            .assertChildrenSkipped('ignoredWithTagA')
     }
 
     def "can combine tags with custom extension"() {
@@ -252,14 +256,12 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
         run('test')
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('SomeLocaleTests')
-        result.testClass("SomeLocaleTests").assertTestCount(3, 0, 0)
-        result.testClass("SomeLocaleTests").assertTestsExecuted(
-            result.testCase('ok1(Locale)[1]', 'French'),
-            result.testCase('ok1(Locale)[2]', 'German'),
-            result.testCase('ok1(Locale)[3]', 'English')
-        )
+        def results = resultsFor(testDirectory)
+        results.testPath('SomeLocaleTests').onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':SomeLocaleTests:ok1(Locale)').onlyRoot()
+            .assertChildCount(3, 0)
+            .assertChildrenExecuted("ok1(Locale)[1]", "ok1(Locale)[2]", "ok1(Locale)[3]")
     }
 
     def "can run parameterized tests with tags"() {
@@ -338,9 +340,9 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('NestedTestsWithTags$TagOnMethodNoParam', 'NestedTestsWithTags$TagOnMethod', 'NestedTestsWithTags$TagOnClass')
-        result.testClass('NestedTestsWithTags$TagOnMethodNoParam').assertTestCount(1, 0, 0)
-        result.testClass('NestedTestsWithTags$TagOnMethod').assertTestCount(1, 0, 0)
-        result.testClass('NestedTestsWithTags$TagOnClass').assertTestCount(1, 0, 0)
+        result.testClass('NestedTestsWithTags$TagOnMethodNoParam').assertTestCount(1, 0)
+        result.testClass('NestedTestsWithTags$TagOnMethod').assertTestCount(1, 0)
+        result.testClass('NestedTestsWithTags$TagOnClass').assertTestCount(1, 0)
     }
 
     @Override

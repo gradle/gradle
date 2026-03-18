@@ -57,6 +57,9 @@
                 <td>removeTestListener</td>
             </tr>
             <tr>
+                <td>addTestMetadataListener</td>
+            </tr>
+            <tr>
                 <td>addTestOutputListener</td>
             </tr>
             <tr>

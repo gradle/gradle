@@ -23,7 +23,6 @@ It disables the default JAR archive generation of the Java plugin and adds a def
 
 To use the War plugin, include the following in your build script:
 
-.Using the War plugin
 ====
 include::sample[dir="snippets/webApplication/quickstart/kotlin",files="build.gradle.kts[tags=use-war-plugin]"]
 include::sample[dir="snippets/webApplication/quickstart/groovy",files="build.gradle[tags=use-war-plugin]"]
@@ -68,7 +67,6 @@ Dependencies declared here are thus visible to the `main` and `test` compilation
 This configuration should be used for dependencies required at runtime but which are provided by the environment in which the WAR is deployed.
 Dependencies declared here are only visible to the `main` and `test` runtime classpaths.
 
-
 [NOTE]
 ====
 It is important to note that these `provided` configurations work transitively.
@@ -98,7 +96,6 @@ The link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War] class in th
 
 Here is an example with the most important customization options:
 
-.Customization of war plugin
 ====
 include::sample[dir="snippets/webApplication/customized/kotlin",files="build.gradle.kts[tags=customization]"]
 include::sample[dir="snippets/webApplication/customized/groovy",files="build.gradle[tags=customization]"]

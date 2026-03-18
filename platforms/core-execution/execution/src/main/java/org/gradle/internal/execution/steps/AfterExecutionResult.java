@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.jspecify.annotations.Nullable;
 
@@ -25,9 +25,10 @@ import java.time.Duration;
 import java.util.Optional;
 
 public class AfterExecutionResult extends Result {
+    @Nullable
     private final ExecutionOutputState afterExecutionOutputState;
 
-    public AfterExecutionResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable ExecutionOutputState afterExecutionOutputState) {
+    public AfterExecutionResult(Duration duration, Try<Execution> execution, @Nullable ExecutionOutputState afterExecutionOutputState) {
         super(duration, execution);
         this.afterExecutionOutputState = afterExecutionOutputState;
     }

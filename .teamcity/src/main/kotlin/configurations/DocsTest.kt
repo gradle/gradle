@@ -36,7 +36,7 @@ class DocsTestTrigger(
     model: CIBuildModel,
     docsTestProject: DocsTestProject,
 ) : OsAwareBaseGradleBuildType(os = docsTestProject.os, init = {
-        id("${asDocsTestId(model, docsTestProject.os)}_Trigger")
+        id("${asDocsTestId(model, os)}_Trigger")
         name = docsTestProject.name + " (Trigger)"
         type = Type.COMPOSITE
 
@@ -80,13 +80,18 @@ class DocsTest(
             }
         }
 
+        failureConditions {
+            // Disabled due to https://github.com/gradle/gradle-private/issues/4927
+            javaCrash = false
+        }
+
         applyTestDefaults(
             model,
             this,
             "docs:docsTest docs:checkSamples",
             os = os,
             arch = os.defaultArch,
-            timeout = 60,
+            timeout = if (os == Os.WINDOWS || os == Os.LINUX) 90 else 60,
             extraParameters =
                 listOf(
                     buildScanTagParam(docsTestType.docsTestName),

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -33,7 +34,11 @@ import java.io.File;
 public interface MetadataFileSource extends PersistentModuleSource {
     int CODEC_ID = 1;
 
-    File getArtifactFile();
+    /**
+     * The backing file that produced the metadata. May be null if the
+     * backing file has been removed from the local cache.
+     */
+    @Nullable File getArtifactFile();
 
     ModuleComponentArtifactIdentifier getArtifactId();
 

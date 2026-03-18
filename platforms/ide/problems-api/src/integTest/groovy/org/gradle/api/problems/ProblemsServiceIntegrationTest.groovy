@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems
 
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -451,6 +452,99 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 details == "This is a huge amount of extremely and very relevant details for this problem$num"
                 solutions == ["solution"]
             }
+        }
+    }
+
+    def "problem report message is not rendered in the output if --warning-mode=none is set"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.contextualLabel("Some problem")
+            }
+        """
+
+        when:
+        executer.withWarningMode(WarningMode.None)
+        run("reportProblem")
+
+        then:
+        testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName).exists()
+        !output.contains(problemsReportOutputPrefix)
+        receivedProblem != null
+    }
+
+    def "problems are rendered on the console when WarningMode=all configured"() {
+        given:
+        withReportProblemTask """
+            ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("sample-problems", "Sample Problems");
+            ${ProblemId.name} problemId = ${ProblemId.name}.create("prototype-project", "Project is a prototype", problemGroup)
+            problems.getReporter().report(problemId) { spec ->
+                spec.contextualLabel("This is a prototype and not a guideline for modeling real-life projects")
+                spec.severity(Severity.WARNING)
+                spec.details("Complex build logic like the Problems API usage should be integrated into plugins")
+                spec.solution("Look up the samples index for real-life examples")
+                spec.documentedAt("https://example.com/some-problem")
+                spec.lineInFileLocation("/path/to/script", 20)
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        outputContains """
+Problem found: Project is a prototype (id: sample-problems:prototype-project)
+  This is a prototype and not a guideline for modeling real-life projects
+    Complex build logic like the Problems API usage should be integrated into plugins
+    Solution: Look up the samples index for real-life examples
+    Documentation: https://example.com/some-problem
+    Location: /path/to/script
+        """
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'sample-problems:prototype-project'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35914")
+    def "build failure message does not contain duplicate information"() {
+        given:
+        disableProblemsApiCheck()
+        def solution = 'Look up the samples index for real-life examples'
+        def docLink = 'https://example.com/some-problem'
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().throwing(new RuntimeException(), problemId) { spec ->
+                spec.solution("$solution")
+                spec.documentedAt("$docLink")
+            }
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        errorOutput.count(solution) == 1
+        errorOutput.count(docLink) == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36719")
+    def "minimal DeprecationLogger nagging can emit problems"() {
+        setup:
+        ignoreCleanupAssertions()
+        buildFile << """
+            org.gradle.internal.deprecation.DeprecationLogger
+                .deprecate("Feature")
+                .willBeRemovedInGradle10()
+                .undocumented()
+                .nagUser()
+        """
+        executer.expectDocumentedDeprecationWarning("Feature has been deprecated. This is scheduled to be removed in Gradle 10.")
+
+        expect:
+        succeeds("help")
+        verifyAll(receivedProblem) {
+            it.definition.id.group.name == 'deprecation'
         }
     }
 

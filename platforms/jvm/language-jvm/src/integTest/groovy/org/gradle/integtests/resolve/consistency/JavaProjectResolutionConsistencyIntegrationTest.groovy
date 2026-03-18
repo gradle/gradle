@@ -17,10 +17,11 @@
 package org.gradle.integtests.resolve.consistency
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def resolve = new ResolveTestFixture(testDirectory)
+
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
@@ -55,8 +56,9 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 runtimeOnly 'org:bar:1.0'
                 testImplementation 'org:baz:1.0'
             }
+
+            ${resolve.configureProject("runtimeClasspath", "testRuntimeClasspath")}
         """
-        def resolve = resolveClasspath 'runtime'
 
         when:
         foo.pom.expectGet()
@@ -66,7 +68,7 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         transitive10.pom.expectGet()
         transitive10.artifact.expectGet()
 
-        succeeds 'checkDeps'
+        succeeds ':checkRuntimeClasspath'
 
         then:
         resolve.expectGraph {
@@ -88,10 +90,9 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         }
 
         when:
-        resolve = resolveClasspath 'testRuntime'
         baz.pom.expectGet()
         baz.artifact.expectGet()
-        succeeds 'checkDeps'
+        succeeds ':checkTestRuntimeClasspath'
 
         then:
         resolve.expectGraph {
@@ -136,8 +137,8 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 implementation 'org:foo:1.0'
                 runtimeOnly 'org:bar:1.0'
             }
+            ${resolve.configureProject("compileClasspath")}
         """
-        def resolve = resolveClasspath 'compile'
 
         when:
         foo.pom.expectGet()
@@ -184,8 +185,8 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 customImplementation 'org:foo:1.0'
                 customRuntimeOnly 'org:bar:1.0'
             }
+            ${resolve.configureProject("customRuntimeClasspath")}
         """
-        def resolve = resolveClasspath 'customRuntime'
 
         when:
         foo.pom.expectGet()
@@ -217,14 +218,12 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         }
     }
 
-    ResolveTestFixture resolveClasspath(String name) {
-        def resolve = new ResolveTestFixture(buildFile, "${name}Classpath")
-        resolve.expectDefaultConfiguration((name =~ "[rR]untime") ? "runtime" : "compile")
-        resolve.prepare()
-        resolve
-    }
-
-    @ToBeFixedForConfigurationCache(because = "resolves configuration at execution time")
+    /**
+     * This test relies on resolution at configuration time - THIS BEHAVIOR SHOULD NOT BE DUPLICATED, in
+     * general, build authors should not force configurations to be resolved at configuration time.
+     * <p>
+     * For more details, see https://github.com/gradle/gradle/pull/36641.
+     */
     def "can declare a configuration which extends from a resolvable configuration which uses consistency"() {
         withRuntimeClasspathAsReference()
         def foo = mavenHttpRepo.module('org', 'foo', '1.0').publish()
@@ -239,15 +238,26 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 myCompileClasspath.extendsFrom(compileClasspath)
             }
 
+            ${resolve.configureProject("compileClasspath")}
         """
-        def resolve = resolveClasspath 'compile'
 
         buildFile << """
+            configurations.all {
+                incoming.beforeResolve {
+                    println("Resolving configuration: " + name)
+                }
+            }
+
             tasks.named('checkDeps') {
+                def myCompileClasspathDeps = configurations.myCompileClasspath
+                inputs.files myCompileClasspathDeps
+
+                // in order to trigger the bug, we need to resolve the configuration
+                // which extends from a resolvable configuration first
+                configurations.myCompileClasspath.resolve()
+
                 doFirst {
-                    // in order to trigger the bug, we need to resolve the configuration
-                    // which extends from a resolvable configuration first
-                    configurations.myCompileClasspath.resolve()
+                    println "myCompileClasspath dependencies: " + myCompileClasspathDeps.files
                 }
             }
         """
@@ -268,6 +278,9 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 constraint("org:foo:{strictly 1.0}", "org:foo:1.0")
             }
         }
+
+        and: "the configuration which extends from the resolvable configuration is resolved first"
+        output.indexOf("Resolving configuration: myCompileClasspath") < output.indexOf("Resolving configuration: compileClasspath")
     }
 
 

@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.checkstyle;
 
-import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.features.binding.BuildModel;
 import org.gradle.api.plugins.quality.CheckstyleReports;
 import org.gradle.api.provider.Provider;
 

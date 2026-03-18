@@ -18,6 +18,7 @@ package configurations
 
 import common.Os
 import common.applyDefaultSettings
+import common.setArtifactRules
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.ReuseBuilds
 import model.CIBuildModel
@@ -28,14 +29,14 @@ class PerformanceTestsPass(
     model: CIBuildModel,
     performanceTestProject: PerformanceTestProject,
 ) : OsAwareBaseGradleBuildType(
-        os = performanceTestProject.spec.os,
+        os = Os.LINUX,
         failStage = performanceTestProject.spec.failsStage,
         init = {
             id("${performanceTestProject.spec.asConfigurationId(model)}_Trigger")
             val performanceTestSpec = performanceTestProject.spec
             name = performanceTestProject.name + " (Trigger)"
 
-            val os = Os.LINUX
+            val os = os
             val type = performanceTestSpec.type
 
             applyDefaultSettings(os)
@@ -66,9 +67,11 @@ class PerformanceTestsPass(
                     "performanceTestReport"
                 }
 
-            artifactRules = """
+            setArtifactRules(
+                """
 testing/$performanceProjectName/build/performance-test-results.zip
-"""
+""",
+            )
             if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
                 val dependencyBuildIds =
                     performanceTestProject.performanceTests

@@ -104,16 +104,21 @@ abstract class AbstractJUnit4TestListenerIntegrationTest extends AbstractJUnitTe
         """.stripIndent()
 
         when:
+        executer.expectDocumentedDeprecationWarning("The AbstractTestTask.beforeTest(Closure) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the addTestListener(TestListener) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_test_methods")
+        executer.expectDocumentedDeprecationWarning("The AbstractTestTask.afterTest(Closure) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the addTestListener(TestListener) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_test_methods")
+        executer.expectDocumentedDeprecationWarning("The AbstractTestTask.beforeSuite(Closure) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the addTestListener(TestListener) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_test_methods")
+        executer.expectDocumentedDeprecationWarning("The AbstractTestTask.afterSuite(Closure) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the addTestListener(TestListener) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_test_methods")
+
         ExecutionResult result = executer.withTasks("test").run()
 
         then:
-        assert containsLine(result.getOutput(), "START [Test class SomeTest] [SomeTest]")
-        assert containsLine(result.getOutput(), "FINISH [Test class SomeTest] [SomeTest]")
-        assert containsLine(result.getOutput(), "START [Test testPass(SomeTest)] [testPass]")
-        assert containsLine(result.getOutput(), "FINISH [Test testPass(SomeTest)] [testPass] [null]")
-        assert containsLine(result.getOutput(), "START [Test testFail(SomeTest)] [testFail]")
-        assert containsLine(result.getOutput(), "FINISH [Test testFail(SomeTest)] [testFail] [java.lang.AssertionError: Some reason]")
-        assert containsLine(result.getOutput(), "START [Test testError(SomeTest)] [testError]")
-        assert containsLine(result.getOutput(), "FINISH [Test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]")
+        containsLine(result.getOutput(), "START [Test class SomeTest] [SomeTest]")
+        containsLine(result.getOutput(), "FINISH [Test class SomeTest] [SomeTest]")
+        containsLine(result.getOutput(), "START [Test testPass(SomeTest)] [testPass]")
+        containsLine(result.getOutput(), "FINISH [Test testPass(SomeTest)] [testPass] [null]")
+        containsLine(result.getOutput(), "START [Test testFail(SomeTest)] [testFail]")
+        containsLine(result.getOutput(), "FINISH [Test testFail(SomeTest)] [testFail] [java.lang.AssertionError: Some reason]")
+        containsLine(result.getOutput(), "START [Test testError(SomeTest)] [testError]")
+        containsLine(result.getOutput(), "FINISH [Test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]")
     }
 }

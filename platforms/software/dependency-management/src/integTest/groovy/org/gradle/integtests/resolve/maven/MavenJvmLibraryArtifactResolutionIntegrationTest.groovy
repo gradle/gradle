@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository
 
@@ -199,7 +199,6 @@ if (project.hasProperty('nocache')) {
         "when snapshot pom changes"   | "-Pnocache"
     }
 
-    @ToBeFixedForConfigurationCache(because = "does not check for missing artifact on second invocation")
     def "reports failure to resolve artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 
@@ -217,7 +216,7 @@ Searched in the following locations:
         module.pom.expectGetMissing()
 
         then:
-        fails("verify")
+        fails("verify", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
   - ${module.pom.uri}""")

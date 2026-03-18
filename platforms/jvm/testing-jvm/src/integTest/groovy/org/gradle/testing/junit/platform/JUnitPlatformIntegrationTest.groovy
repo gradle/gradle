@@ -16,17 +16,24 @@
 
 package org.gradle.testing.junit.platform
 
-import org.gradle.api.internal.tasks.testing.junit.JUnitSupport
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 import spock.lang.Timeout
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT5_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_PLATFORM
 import static org.hamcrest.CoreMatchers.containsString
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUPITER_VERSION
+    }
 
     def 'can work with junit-platform-runner'() {
         given:
@@ -61,9 +68,8 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         run('check')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('org.gradle.IgnoredTest')
-            .testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored1()")
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.IgnoredTest').onlyRoot().assertChildrenSkipped("testIgnored1()")
     }
 
     def 'can handle class-level error in #location method'() {
@@ -95,11 +101,11 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         fails('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('org.gradle.ClassErrorTest')
-            .testClass('org.gradle.ClassErrorTest')
-            .assertTestCount(successCount + 1, 1, 0)
-            .assertTestFailed(failedTestName, containsString(location))
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.ClassErrorTest').onlyRoot()
+            .assertChildCount(successCount + 1, 1)
+        results.testPathPreNormalized(":org.gradle.ClassErrorTest:$failedTestName").onlyRoot()
+            .assertFailureMessages(containsString(location))
 
         where:
         location     | beforeStatement      | afterStatement      | successCount | failedTestName
@@ -131,7 +137,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.ClassAssumeTest').assertTestCount(1, 0, 0)
+        new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.ClassAssumeTest').assertTestCount(1, 0)
     }
 
     def 'can handle repeated tests'() {
@@ -167,19 +173,21 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         fails('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecutedJudgementByHtml('org.gradle.RepeatTest')
-            .testClassByHtml('org.gradle.RepeatTest')
-            .assertTestCount(9, 1, 0)
-            .assertTestPassed('ok()[1]', 'ok 1/3')
-            .assertTestPassed('ok()[2]', 'ok 2/3')
-            .assertTestPassed('ok()[3]', 'ok 3/3')
-            .assertTestPassed('partialFail(RepetitionInfo)[1]', 'partialFail 1/3')
-            .assertTestFailed('partialFail(RepetitionInfo)[2]', 'partialFail 2/3', containsString('java.lang.RuntimeException'))
-            .assertTestPassed('partialFail(RepetitionInfo)[3]', 'partialFail 3/3')
-            .assertTestPassed('partialSkip(RepetitionInfo)[1]', 'partialSkip 1/3')
-            .assertTestSkipped('partialSkip(RepetitionInfo)[2]', 'partialSkip 2/3')
-            .assertTestPassed('partialSkip(RepetitionInfo)[3]', 'partialSkip 3/3')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.RepeatTest').onlyRoot()
+            .assertChildCount(3, 1)
+        results.testPathPreNormalized(':org.gradle.RepeatTest:ok()').onlyRoot()
+            .assertChildrenExecuted('ok()[1]', 'ok()[2]', 'ok()[3]')
+        results.testPathPreNormalized(':org.gradle.RepeatTest:partialFail(RepetitionInfo)').onlyRoot()
+            .assertChildrenExecuted('partialFail(RepetitionInfo)[1]')
+            .assertChildrenFailed('partialFail(RepetitionInfo)[2]')
+            .assertChildrenExecuted('partialFail(RepetitionInfo)[3]')
+        results.testPathPreNormalized(':org.gradle.RepeatTest:partialFail(RepetitionInfo):partialFail(RepetitionInfo)[2]').onlyRoot()
+            .assertFailureMessages(containsString('java.lang.RuntimeException'))
+        results.testPathPreNormalized(':org.gradle.RepeatTest:partialSkip(RepetitionInfo)').onlyRoot()
+            .assertChildrenExecuted('partialSkip(RepetitionInfo)[1]')
+            .assertChildrenSkipped('partialSkip(RepetitionInfo)[2]')
+            .assertChildrenExecuted('partialSkip(RepetitionInfo)[3]')
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4476')
@@ -207,9 +215,9 @@ public class UninstantiableExtension implements BeforeEachCallback {
         fails('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass(JUnitSupport.UNKNOWN_CLASS)
-            .assertTestFailed('initializationError', containsString('UninstantiableExtension'))
+        def results = resultsFor(testDirectory)
+        results.testPathPreNormalized(":engine_junit-jupiter:initializationError").onlyRoot()
+            .assertFailureMessages(containsString('UninstantiableExtension'))
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4427')
@@ -242,11 +250,14 @@ public class StaticInnerTest {
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.StaticInnerTest', 'org.gradle.StaticInnerTest$Nested', 'org.gradle.StaticInnerTest$Nested$Nested2')
-        result.testClass('org.gradle.StaticInnerTest').assertTestCount(1, 0, 0)
+        result.testClass('org.gradle.StaticInnerTest')
+            .assertTestCount(1, 0)
             .assertTestPassed('outside')
-        result.testClass('org.gradle.StaticInnerTest$Nested').assertTestCount(1, 0, 0)
+        result.testClass('org.gradle.StaticInnerTest$Nested')
+            .assertTestCount(1, 0)
             .assertTestPassed('inside')
-        result.testClass('org.gradle.StaticInnerTest$Nested$Nested2').assertTestCount(1, 0, 0)
+        result.testClass('org.gradle.StaticInnerTest$Nested$Nested2')
+            .assertTestCount(1, 0)
             .assertTestPassed('inside')
     }
 
@@ -259,7 +270,7 @@ public class StaticInnerTest {
                     ${key} ${value}
                 }
             }
-        """)
+        """, jupiterVersion)
         createSimpleJupiterTests()
 
         when:
@@ -273,7 +284,7 @@ public class StaticInnerTest {
             test {
                 useJUnitPlatform()
             }
-        """)
+        """, jupiterVersion)
 
         and:
         succeeds ':test'
@@ -301,7 +312,7 @@ public class StaticInnerTest {
                 systemProperty('junit.jupiter.execution.parallel.config.strategy', 'fixed')
                 systemProperty('junit.jupiter.execution.parallel.config.fixed.parallelism', '$numTestClasses')
             }
-        """)
+        """, version)
         file('src/test/java/org/gradle/Tests.java') << """
             package org.gradle;
 
@@ -333,18 +344,21 @@ public class StaticInnerTest {
         then:
         with(new DefaultTestExecutionResult(testDirectory)) {
             (1..numTestClasses).every { classNumber ->
-                testClass("org.gradle.Test$classNumber").assertTestCount(1, 0, 0)
+                testClass("org.gradle.Test$classNumber").assertTestCount(1, 0)
             }
         }
+
+        where:
+        version << JUNIT_JUPITER
     }
 
     @Issue("https://github.com/junit-team/junit5/issues/2028 and https://github.com/gradle/gradle/issues/12073")
-    def 'properly fails when engine fails during discovery #scenario'() {
+    def 'properly fails when engine fails during discovery #scenario with platform version #platformVersion'() {
         given:
         createSimpleJupiterTest()
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.platform:junit-platform-engine:${LATEST_PLATFORM_VERSION}'
+                testImplementation 'org.junit.platform:junit-platform-engine:${platformVersion}'
             }
         """
         file('src/test/java/EngineFailingDiscovery.java') << '''
@@ -372,9 +386,11 @@ public class StaticInnerTest {
         failure.assertHasCause('Test process encountered an unexpected problem.')
 
         where:
-        scenario       | extraArgs
-        "w/o filters"  | []
-        "with filters" | ['--tests', 'JUnitJupiterTest']
+        scenario       | extraArgs                         | platformVersion
+        "w/o filters"  | []                                | JUNIT_PLATFORM[0]
+        "with filters" | ['--tests', 'JUnitJupiterTest']   | JUNIT_PLATFORM[0]
+        "w/o filters"  | []                                | JUNIT_PLATFORM[1]
+        "with filters" | ['--tests', 'JUnitJupiterTest']   | JUNIT_PLATFORM[1]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23602")
@@ -415,11 +431,15 @@ public class StaticInnerTest {
         fails("test")
 
         then:
-        with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
-            assertTestPassed("passingTest")
-            assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
-            assertTestFailed("normalFailingTest", containsString("AssertionError"))
-        }
+        def results = resultsFor(testDirectory)
+        results.testPath("PoisonTest", "passingTest").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath("PoisonTest", "testWithUnserializableException").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
+        results.testPath("PoisonTest", "normalFailingTest").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("AssertionError"))
     }
 
     // When running embedded with test distribution, the remote distribution has a newer version of
@@ -459,19 +479,14 @@ public class StaticInnerTest {
         succeeds "test"
 
         where:
-        version << ["5.9.2", "5.6.3"]
+        version << [LATEST_JUPITER_VERSION, LATEST_JUNIT5_VERSION, "5.9.2", "5.6.3"]
     }
 
-    def 'properly fails when engine fails during execution'() {
+    def 'properly fails when engine fails during execution with platform version #platformVersion'() {
         given:
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.platform:junit-platform-engine:${LATEST_PLATFORM_VERSION}'
-            }
-            test {
-                afterSuite { descriptor, result ->
-                    println("afterSuite: \$descriptor -> \$result")
-                }
+                testImplementation 'org.junit.platform:junit-platform-engine:${platformVersion}'
             }
         """
         file('src/test/java/EngineFailingExecution.java') << '''
@@ -505,7 +520,11 @@ public class StaticInnerTest {
         fails('test')
 
         then:
+        failureDescriptionContains("Execution failed for task ':test'.")
         failureCauseContains('There were failing tests.')
-        outputContains("afterSuite: Test class UnknownClass -> FAILURE")
+        outputContains("EngineFailingExecution > initializationError FAILED")
+
+        where:
+        platformVersion << JUNIT_PLATFORM
     }
 }

@@ -25,7 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 @FluidDependenciesResolveTest
 class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
@@ -66,11 +66,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
         """
 
-        resolve.prepare("conf")
 
         expect:
         succeeds(":b:checkDeps")
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 edge("project :a", "org.gradle.test:a:1.3") {
                     selectedByRule()
@@ -108,7 +107,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 failOnVersionConflict()
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -152,7 +150,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -201,7 +198,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -239,7 +235,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -280,7 +275,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -323,7 +317,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -355,7 +348,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 it.useVersion '1.+'
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -388,7 +380,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -424,7 +415,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -457,7 +447,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -487,7 +476,6 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -643,7 +631,6 @@ Required by:
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -679,7 +666,6 @@ Required by:
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -718,7 +704,6 @@ Required by:
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -734,6 +719,52 @@ Required by:
                 }
             }
         }
+    }
+
+    def "can substitute using version catalog"() {
+        mavenRepo.module("org", "a", "1.0").publish()
+        mavenRepo.module("org", "b").dependsOn("org", "a", "2.0").publish()
+        mavenRepo.module("org", "a", "2.0").dependsOn("org", "c", "1.0").publish()
+        mavenRepo.module("org", "c").publish()
+        //a1
+        //b->a2->c
+
+        file("gradle/libs.versions.toml") << """
+            [libraries]
+            orgb = "org:b:1.0"
+        """
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org:a:1.0', 'foo:bar:baz'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.group == 'foo') {
+                    it.useTarget $accessSyntax
+                }
+            }
+        """
+
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:a:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                    module("org:c:1.0")
+                }
+                edge("foo:bar:baz", "org:b:1.0") {
+                    selectedByRule()
+                    module("org:a:2.0")
+                }
+            }
+        }
+
+        where:
+        accessSyntax << ["libs.orgb", "libs.orgb.get()"]
     }
 
     def "provides decent feedback when target module incorrectly specified"() {
@@ -758,6 +789,37 @@ Required by:
         failure.assertHasCause("Invalid format: 'foobar'")
     }
 
+    def "provides decent feedback when target module specified using deprecated ModuleVersionSelector"() {
+        mavenRepo.module("org", "b", "1.0").publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org:a:1.0'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                it.useTarget dependencies.constraints.create("org:b:1.0")
+            }
+        """
+        executer.expectDocumentedDeprecationWarning(
+            "Converting an instance of ModuleVersionSelector to ModuleComponentSelector has been deprecated. This will fail with an error in Gradle 10. Don't create or use ModuleVersionSelector instances and pass one of the other supported notations instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_moduleversionselector_to_modulecomponentselector"
+        )
+
+        when:
+        succeeds("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:b:1.0") {
+                    selectedByRule()
+                }
+            }
+        }
+    }
+
     def "substituted module version participates in conflict resolution"() {
         mavenRepo.module("org", "a", "2.0").dependsOn("org", "b", "2.0").publish()
         mavenRepo.module("org", "b", "2.0").dependsOn("org", "c", "2.0").publish()
@@ -776,7 +838,6 @@ Required by:
                 }
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -820,7 +881,6 @@ Required by:
                 conf 'org:b:3.0', 'org:b:4.0', 'org:a:1.0', 'org:a:2.0'
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -847,7 +907,7 @@ Required by:
         mavenRepo.module("org.test", "bar", "2.0").publish()
         mavenRepo.module("org", "baz", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url = "${mavenRepo.uri}" }
             }
@@ -867,13 +927,15 @@ Required by:
                     }
                 }
             }
+
+            ${resolve.configureProject("conf")}
+
             dependencies {
                 conf 'org:foo:1.0'
                 conf 'org:bar:1.0'
                 conf 'org:baz:1.0'
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -899,14 +961,25 @@ Required by:
     }
 
     String getCommon() {
-        """configurations { conf }
-        repositories {
-            maven { url = "${mavenRepo.uri}" }
-        }
-        task resolveConf {
-            def files = configurations.conf
-            doLast { files.files }
-        }
+        """
+            configurations {
+                conf
+            }
+
+            ${resolve.configureProject("conf")}
+
+            repositories {
+                maven {
+                    url = "${mavenRepo.uri}"
+                }
+            }
+
+            task resolveConf {
+                def files = configurations.conf
+                doLast {
+                    files.files
+                }
+            }
         """
     }
 }

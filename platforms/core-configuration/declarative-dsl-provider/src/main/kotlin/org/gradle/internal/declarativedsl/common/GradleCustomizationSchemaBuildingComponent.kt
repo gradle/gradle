@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.common
 
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
-import org.gradle.internal.declarativedsl.evaluationSchema.MinimalSchemaBuildingComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.gradleConfigureLambdas
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported

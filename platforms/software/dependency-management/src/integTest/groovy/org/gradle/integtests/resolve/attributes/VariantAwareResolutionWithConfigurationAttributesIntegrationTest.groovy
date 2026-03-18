@@ -18,7 +18,7 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 
@@ -85,9 +85,10 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                     task.source(p.tasks.compileJava.source)
                                     task.destinationDirectory = project.file("${p.buildDir}/classes/$taskName")
                                     task.classpath = _compileConfig
+                                    def projectPath = p.path
                                     task.doFirst {
                                        // this is only for assertions in tests
-                                       println "Compile classpath for ${p.path}:$taskName : ${task.classpath.files*.name}"
+                                       println "Compile classpath for ${projectPath}:$taskName : ${classpath.files*.name}"
                                     }
                                 }
                                 def mergeResourcesTask = p.tasks.create("merge${f.capitalize()}${bt.capitalize()}Resources", Zip) { task ->
@@ -118,32 +119,29 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         '''
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses the Configuration API")
     def "configurations are wired properly"() {
         withVariants(buildFile)
 
         given:
         file("build.gradle") << '''
-            task checkConfigurations {
-                doLast {
-                    ['compileFreeDebug', 'compileFreeRelease', 'compilePaidDebug', 'compilePaidRelease'].each {
-                        assert !configurations.getByName(it).canBeResolved
-                        assert configurations.getByName(it).canBeConsumed
-                        assert configurations.getByName("_$it").canBeResolved
-                        assert !configurations.getByName("_$it").canBeConsumed
-                    }
-                }
+            // This doesn't need to run in a task, but does need to be the last bit of configuration-time logic present in the build script,
+            // and not have anything try to run after it to change the value of any of these flags.
+            // Fortunately, this is the case.
+            ['compileFreeDebug', 'compileFreeRelease', 'compilePaidDebug', 'compilePaidRelease'].each {
+                assert !configurations.getByName(it).canBeResolved
+                assert configurations.getByName(it).canBeConsumed
+                assert configurations.getByName("_$it").canBeResolved
+                assert !configurations.getByName("_$it").canBeConsumed
             }
         '''
 
         when:
-        run 'checkConfigurations'
+        run 'help'
 
         then:
         noExceptionThrown()
     }
 
-    @ToBeFixedForConfigurationCache
     def "compiling project variant doesn't imply execution of other variants build tasks"() {
         testDirectory.mkdirs()
         def projectDir = new FileTreeBuilder(testDirectory)
@@ -179,7 +177,6 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         notExecuted ':compileJavaPaidRelease'
     }
 
-    @ToBeFixedForConfigurationCache
     def "consuming subproject variant builds the project with the appropriate tasks"() {
         given:
         subproject('core') {

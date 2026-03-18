@@ -42,7 +42,7 @@ import java.util.List;
 /**
  * Responsible for executing TestNG tests.
  * <p>
- * This is separate from {@link TestNGTestClassProcessor}, as this class relies
+ * This is separate from {@link TestNGTestDefinitionProcessor}, as this class relies
  * on TestNG classes, and the processor needs to first verify that those classes
  * are present on the test runtime classpath.
  */

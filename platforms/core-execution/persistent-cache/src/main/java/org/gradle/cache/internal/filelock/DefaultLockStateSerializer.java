@@ -20,7 +20,7 @@ import org.gradle.cache.FileLock;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.Random;
+import java.util.SplittableRandom;
 
 public class DefaultLockStateSerializer implements LockStateSerializer {
 
@@ -36,7 +36,7 @@ public class DefaultLockStateSerializer implements LockStateSerializer {
 
     @Override
     public LockState createInitialState() {
-        long creationNumber = new Random().nextLong();
+        long creationNumber = new SplittableRandom().nextLong();
         return new SequenceNumberLockState(creationNumber, -1, 0);
     }
 

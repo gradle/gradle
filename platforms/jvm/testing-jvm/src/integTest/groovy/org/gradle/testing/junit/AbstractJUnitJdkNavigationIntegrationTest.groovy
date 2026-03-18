@@ -15,7 +15,7 @@
  */
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
@@ -65,8 +65,7 @@ abstract class AbstractJUnitJdkNavigationIntegrationTest extends AbstractTesting
         succeeds('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('org.gradle.Test1').assertTestPassed('shouldPass')
+        resultsFor(testDirectory).testPath('org.gradle.Test1', 'shouldPass').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
 }

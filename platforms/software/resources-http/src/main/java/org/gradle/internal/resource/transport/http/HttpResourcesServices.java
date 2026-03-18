@@ -48,12 +48,12 @@ public class HttpResourcesServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        HttpClientHelper.Factory createHttpClientHelperFactory(DocumentationRegistry documentationRegistry) {
-            return HttpClientHelper.Factory.createFactory(documentationRegistry);
+        HttpClientFactory createHttpClientHelperFactory(DocumentationRegistry documentationRegistry) {
+            return new ApacheCommonsHttpClientFactory(documentationRegistry);
         }
 
         @Provides
-        ResourceConnectorFactory createHttpConnectorFactory(SslContextFactory sslContextFactory, HttpClientHelper.Factory httpClientHelperFactory) {
+        ResourceConnectorFactory createHttpConnectorFactory(SslContextFactory sslContextFactory, HttpClientFactory httpClientHelperFactory) {
             return new HttpConnectorFactory(sslContextFactory, httpClientHelperFactory);
         }
     }
@@ -67,4 +67,5 @@ public class HttpResourcesServices extends AbstractGradleModuleServices {
             authenticationSchemeRegistry.registerScheme(HttpHeaderAuthentication.class, DefaultHttpHeaderAuthentication.class);
         }
     }
+
 }

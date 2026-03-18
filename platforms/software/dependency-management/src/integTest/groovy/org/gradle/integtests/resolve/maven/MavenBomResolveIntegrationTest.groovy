@@ -22,17 +22,32 @@ import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Issue
 
 class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile, "compile").expectDefaultConfiguration('runtime')
+
+    def resolve = new ResolveTestFixture(testDirectory)
+
     MavenModule bom
     MavenModule moduleA
 
     def setup() {
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
-        settingsFile << "rootProject.name = 'testproject'"
+        settingsFile << """
+            rootProject.name = 'testproject'
+        """
         buildFile << """
-            repositories { maven { url = "${mavenHttpRepo.uri}" } }
-            configurations { compile }
+            plugins {
+                id("jvm-ecosystem")
+            }
+
+            repositories {
+                maven {
+                    url = "${mavenHttpRepo.uri}"
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
         """
         moduleA = mavenHttpRepo.module('group', 'moduleA', '2.0').allowAll().publish()
         bom = mavenHttpRepo.module('group', 'bom', '1.0')
@@ -55,7 +70,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         """
 
         when:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {
@@ -85,7 +100,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         """
 
         when:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {
@@ -123,7 +138,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         """
 
         when:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {
@@ -169,7 +184,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         """
 
         when:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {
@@ -205,7 +220,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         """
 
         when:
-        fails 'checkDep'
+        fails 'checkDeps'
 
         then:
         failure.assertHasCause "Could not find group:moduleA:."
@@ -227,7 +242,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         """
 
         when:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {
@@ -251,7 +266,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         """
 
         when:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {
@@ -275,7 +290,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         """
 
         when:
-        fails 'checkDep'
+        fails 'checkDeps'
 
         then:
         failure.assertHasCause "Could not find group:moduleA:."
@@ -297,7 +312,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         """
 
         when:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {
@@ -328,7 +343,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         """
 
         when:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
 
         then:
         resolve.expectGraph {

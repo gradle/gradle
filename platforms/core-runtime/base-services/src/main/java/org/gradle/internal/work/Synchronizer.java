@@ -17,6 +17,7 @@
 package org.gradle.internal.work;
 
 import org.gradle.internal.Factory;
+import org.jspecify.annotations.Nullable;
 
 public interface Synchronizer {
     /**
@@ -31,5 +32,5 @@ public interface Synchronizer {
      *
      * Fails if the current thread is already holding the resource lock. May release project locks prior to blocking, as per {@link WorkerLeaseService#blocking(Runnable)}.
      */
-    <T> T withLock(Factory<T> action);
+    <T extends @Nullable Object> T withLock(Factory<T> action);
 }

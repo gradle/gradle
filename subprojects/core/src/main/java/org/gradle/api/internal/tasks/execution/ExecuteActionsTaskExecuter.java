@@ -27,8 +27,8 @@ import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.Execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionEngine.Result;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkValidationException;
@@ -43,7 +43,7 @@ import org.gradle.internal.work.AsyncWorkTracker;
 import java.util.List;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_INCREMENTALLY;
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_INCREMENTALLY;
 
 /**
  * A {@link TaskExecuter} which executes the actions of a task.

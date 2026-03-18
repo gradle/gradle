@@ -15,11 +15,15 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
+
+@ServiceScope(Scope.Settings.class)
 public interface ProjectDescriptorRegistry {
 
     void addProject(ProjectDescriptorInternal project);

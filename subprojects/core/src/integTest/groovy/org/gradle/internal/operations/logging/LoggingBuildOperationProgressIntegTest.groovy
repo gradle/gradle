@@ -79,7 +79,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                 runtimeOnly 'org:foo:1.0'
             }
 
-            jar.doLast {
+            tasks.jar.doLast {
                 println 'from jar task'
             }
 
@@ -90,7 +90,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                 }
             }
 
-            build.dependsOn resolve
+            tasks.build.dependsOn tasks.resolve
 
             logger.lifecycle('from build.gradle')
 
@@ -233,7 +233,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
     def "captures output from buildSrc"() {
         given:
         configureNestedBuild('buildSrc')
-        file('buildSrc/build.gradle') << "jar.dependsOn 'foo'"
+        file('buildSrc/build.gradle') << "tasks.jar.dependsOn 'foo'"
         file("build.gradle") << ""
 
         when:

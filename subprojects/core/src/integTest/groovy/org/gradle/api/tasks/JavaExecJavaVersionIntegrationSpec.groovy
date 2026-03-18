@@ -55,7 +55,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
         jdk << AvailableJavaHomes.allJdkVersions
     }
 
-    @Requires(IntegTestPreconditions.DifferentJdkAvailable)
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     @Issue("https://github.com/gradle/gradle/issues/6694")
     def "not up-to-date when executing JavaExec task twice in a row with a different java versions"() {
         given:
@@ -70,14 +70,14 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
         assertExecutedWith(Jvm.current())
 
         when:
-        def otherJdk = AvailableJavaHomes.differentVersion
-        runWith(otherJdk)
+        def differentVersionJdk = AvailableJavaHomes.differentVersion
+        runWith(differentVersionJdk)
         succeeds "runHelloWorld", "--info"
 
         then:
         executedAndNotSkipped ":runHelloWorld"
-        assertExecutedWith(otherJdk)
-        output.contains "Value of input property 'javaVersion' has changed for task ':runHelloWorld'"
+        assertExecutedWith(differentVersionJdk)
+        output.contains "Value of input property 'javaLauncher.metadata.languageVersion' has changed for task ':runHelloWorld'"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")

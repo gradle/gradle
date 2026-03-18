@@ -17,16 +17,11 @@
 package org.gradle.internal.configuration.inputs
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class InputTrackingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/32564")
-    @ToBeFixedForConfigurationCache(
-        because = "values() are not tracked",
-        iterationMatchers = ".*\\.values\\(\\).*"
-    )
     def "can use instrumented #value as task input"() {
         given:
         buildFile """

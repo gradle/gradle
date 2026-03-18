@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.query;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -45,7 +46,6 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
@@ -215,7 +215,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(component, artifactMetaData, resolveResult);
             try {
-                artifacts.addArtifact(externalResolverFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, Describables.of(component.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
+                artifacts.addArtifact(externalResolverFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, ImmutableList.of(), Describables.of(component.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
             } catch (Exception e) {
                 artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, e));
             }

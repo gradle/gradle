@@ -17,7 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.artifacts.VersionConstraint
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -793,6 +796,92 @@ class GradleModuleMetadataParserTest extends Specification {
 
         'artifact name'                | '/variants[0]/dependencies[0]/thirdPartyCompatibility/artifactSelector' | 'name'    | '"name": "v", "dependencies": [{ "group": "g", "module": "c", "thirdPartyCompatibility": { "artifactSelector": { "type": "bar" } }}]'
         'artifact type'                | '/variants[0]/dependencies[0]/thirdPartyCompatibility/artifactSelector' | 'type'    | '"name": "v", "dependencies": [{ "group": "g", "module": "c", "thirdPartyCompatibility": { "artifactSelector": { "name": "foo" } }}]'
+    }
+
+    def "translates legacy usage values to replacement usage and library elements"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
+        def expectedAttrs = attributes(
+            foo: 1,
+            (Usage.USAGE_ATTRIBUTE.name): replacedUsage,
+            (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): replacedLibraryElements,
+            bar: 'two'
+        )
+
+        when:
+        parser.parse(resource("""
+        {
+            "formatVersion": "1.1",
+            "variants": [
+                {
+                    "name": "api",
+                    "attributes": {
+                        "foo": 1,
+                        "${Usage.USAGE_ATTRIBUTE.name}": "$legacyUsage",
+                        "bar": "two"
+                    }
+                }
+            ]
+        }"""), metadata)
+
+        then:
+        1 * metadata.addVariant("api", expectedAttrs) >> Stub(MutableComponentVariant)
+
+        where:
+        legacyUsage                                            | replacedUsage      | replacedLibraryElements
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS          | Usage.JAVA_API     | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES       | Usage.JAVA_API     | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME | LibraryElements.RESOURCES
+    }
+
+    def "does not overwrite existing library elements with translated legacy library elements"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
+        def expectedAttrs = attributes(
+            foo: 1,
+            (Usage.USAGE_ATTRIBUTE.name): replacedUsage,
+            (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): "existing",
+            bar: 'two'
+        )
+
+        when:
+        // Test with library elements occurring before and after legacy usage value.
+        parser.parse(resource("""
+        {
+            "formatVersion": "1.1",
+            "variants": [
+                {
+                    "name": "api",
+                    "attributes": {
+                        "foo": 1,
+                        "${Usage.USAGE_ATTRIBUTE.name}": "$legacyUsage",
+                        "${LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name}": "existing",
+                        "bar": "two"
+                    }
+                },
+                {
+                    "name": "runtime",
+                    "attributes": {
+                        "foo": 1,
+                        "${LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name}": "existing",
+                        "${Usage.USAGE_ATTRIBUTE.name}": "$legacyUsage",
+                        "bar": "two"
+                    }
+                }
+            ]
+        }"""), metadata)
+
+        then:
+        1 * metadata.addVariant("api", expectedAttrs) >> Stub(MutableComponentVariant)
+        1 * metadata.addVariant("runtime", expectedAttrs) >> Stub(MutableComponentVariant)
+
+        where:
+        legacyUsage                                            | replacedUsage
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS          | Usage.JAVA_API
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES       | Usage.JAVA_API
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME
     }
 
     def "fails when content does not contain a json object"() {

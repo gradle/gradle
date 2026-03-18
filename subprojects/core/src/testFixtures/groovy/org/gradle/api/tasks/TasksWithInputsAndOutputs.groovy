@@ -28,12 +28,15 @@ trait TasksWithInputsAndOutputs {
 
     def taskTypeWithOutputFileProperty(TestFile buildFile = getBuildFile()) {
         buildFile << """
-            class FileProducer extends DefaultTask {
+            abstract class FileProducer extends DefaultTask {
                 @OutputFile
-                final RegularFileProperty output = project.objects.fileProperty()
+                abstract RegularFileProperty getOutput()
                 @Input
-                final Property<String> content = project.objects.property(String).convention("content") // set to empty string to delete file
+                abstract Property<String> getContent()
 
+                FileProducer() {
+                    content.convention("content") // set to empty string to delete file
+                }
                 @TaskAction
                 def go() {
                     def file = output.get().asFile

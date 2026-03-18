@@ -41,6 +41,7 @@ import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSeq
 import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugin.management.internal.DefaultPluginRequest
+import org.gradle.plugin.management.internal.PluginHandler
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.DefaultPluginId
@@ -93,13 +94,25 @@ class PluginsInterpretationSequenceStep(
     override fun whenEvaluated(target: Any, resultReceiver: PluginsTopLevelReceiver) {
         with(produceHost(target)) {
             val pluginRequests = resultReceiver.plugins.specs.map {
-                DefaultPluginRequest(DefaultPluginId.unvalidated(it.id), it.apply, PluginRequestInternal.Origin.OTHER, scriptSource.displayName, null, it.version, null, null, null)
+                DefaultPluginRequest(
+                    DefaultPluginId.unvalidated(it.id),
+                    it.apply,
+                    PluginRequestInternal.Origin.OTHER,
+                    scriptSource.displayName,
+                    null,
+                    if (it.versionIsSet) it.version else null,
+                    null,
+                    null,
+                    null
+                )
             }
             with(targetServices) {
                 val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope, StandaloneDomainObjectContext.forScript(scriptSource))
                 val pluginManager = get(PluginManagerInternal::class.java)
                 val pluginApplicator = get(PluginRequestApplicator::class.java)
-                pluginApplicator.applyPlugins(PluginRequests.of(pluginRequests), scriptHandler, pluginManager, targetScope)
+                val pluginHandler = get(PluginHandler::class.java)
+                val allPluginRequests = pluginHandler.getAllPluginRequests(PluginRequests.of(pluginRequests), target)
+                pluginApplicator.applyPlugins(allPluginRequests, scriptHandler, pluginManager, targetScope)
             }
             targetScope.lock()
         }

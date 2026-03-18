@@ -88,8 +88,8 @@ class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunction
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar1
-                    compile jar2
+                    compile tasks.jar1
+                    compile tasks.jar2
                 }
             }
 

@@ -98,6 +98,16 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         return delegate.getComponentMetadataSupplier();
     }
 
+    @Override
+    public boolean isContinueOnConnectionFailure() {
+        return delegate.isContinueOnConnectionFailure();
+    }
+
+    @Override
+    public boolean isRepositoryDisabled() {
+        return delegate.isRepositoryDisabled();
+    }
+
     private class VerifyingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
         private final boolean verifySignatures;
@@ -135,8 +145,8 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                                 boolean changingModule = requestMetaData.isChanging() || hashSource.get().isChangingModule();
                                 if (!changingModule) {
                                     File artifactFile = metadataFileSource.getArtifactFile();
-                                    if (artifactFile != null && artifactFile.exists()) {
-                                        // it's possible that the file is null if it has been removed from the cache for example
+                                    if (artifactFile != null) {
+                                        // it's possible that the file is null if it has been removed from the cache
                                         Factory<File> signatureFileFactory = () -> maybeFetchComponentMetadataSignatureFile(sources, artifact);
                                         operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, signatureFileFactory, getName(), getId());
                                     } else {

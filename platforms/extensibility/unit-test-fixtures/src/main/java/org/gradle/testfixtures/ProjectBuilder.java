@@ -45,16 +45,16 @@ import java.io.File;
  */
 public class ProjectBuilder {
 
-    private File projectDir;
-    private File gradleUserHomeDir;
     private String name = "test";
-    private Project parent;
+    private @Nullable File projectDir;
+    private @Nullable File gradleUserHomeDir;
+    private @Nullable Project parent;
     private final ProjectBuilderImpl impl = new ProjectBuilderImpl();
 
     /**
      * An instance should only be created via the {@link #builder()}.
      */
-    private ProjectBuilder() { }
+    private ProjectBuilder() {}
 
     /**
      * Creates a project builder.

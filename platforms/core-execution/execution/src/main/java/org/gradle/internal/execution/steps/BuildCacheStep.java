@@ -24,9 +24,9 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine.Execution;
-import org.gradle.internal.execution.MutableUnitOfWork;
+import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
@@ -41,9 +41,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE;
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.FROM_CACHE;
 
 public class BuildCacheStep<C extends WorkspaceContext & CachingContext> implements Step<C, AfterExecutionResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);
@@ -78,6 +79,8 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
 
     private AfterExecutionResult executeWithCache(UnitOfWork work, C context, BuildCacheKey cacheKey) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
+        // TODO Remove once IntelliJ stops complaining about possible NPE
+        //noinspection DataFlowIssue
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? tryLoadingFromCache(cacheKey, cacheableWork)
                 : Optional.<BuildCacheLoadResult>empty()
@@ -115,16 +118,13 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
     }
 
     private Optional<BuildCacheLoadResult> tryLoadingFromCache(BuildCacheKey cacheKey, CacheableWork cacheableWork) {
-        if (cacheableWork.shouldInvalidateOutputsBeforeLoad()) {
-            ImmutableList.Builder<String> roots = ImmutableList.builder();
-            cacheableWork.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
-            fileSystemAccess.invalidate(roots.build());
-        }
+        Collection<String> cacheableLocations = cacheableWork.work.getCachedOutputLocationsForInvalidation(cacheableWork.workspace);
+        fileSystemAccess.invalidate(cacheableLocations);
         return buildCache.load(cacheKey, cacheableWork);
     }
 
     private void cleanLocalState(File workspace, UnitOfWork work) {
-        work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
+        work.visitOutputs(workspace, new OutputVisitor() {
             @Override
             public void visitLocalState(File localStateRoot) {
                 try {
@@ -217,18 +217,12 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
 
         @Override
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
+            work.visitOutputs(workspace, new OutputVisitor() {
                 @Override
-                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
                     visitor.visitOutputTree(propertyName, type, value.getValue());
                 }
             });
-        }
-
-        // TODO Make this much more explicit
-        public boolean shouldInvalidateOutputsBeforeLoad() {
-            // We don't need to invalidate outputs for immutable work as it's executed in a unique temporary workspace
-            return work instanceof MutableUnitOfWork;
         }
     }
 }

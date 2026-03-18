@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildoption.StringInternalOption;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -45,8 +46,8 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
      * </ul>
      * Default is {@code jit}.
      */
-    private static final StringInternalOption PARALLEL_CONFIGURATION_SCHEDULER =
-        new StringInternalOption("org.gradle.internal.isolated-projects.scheduler", "jit");
+    private static final InternalOption<String> PARALLEL_CONFIGURATION_SCHEDULER =
+        StringInternalOption.of("org.gradle.internal.isolated-projects.scheduler", "jit");
 
     private final BuildCancellationToken cancellationToken;
     private final BuildOperationExecutor buildOperationExecutor;

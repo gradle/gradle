@@ -113,6 +113,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
             }
 
             @Override
+            @SuppressWarnings("FutureReturnValueIgnored") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
             public Void run(final ConsumerConnection c) {
                 ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
                 ExecutorService executorService = MoreExecutors.getExitingExecutorService(executor, 3, TimeUnit.SECONDS);

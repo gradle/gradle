@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import com.google.common.primitives.Bytes
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import org.gradle.api.JavaVersion
 import org.gradle.internal.encryption.impl.EncryptionKind
 import org.gradle.internal.encryption.impl.KeyStoreKeySource
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -56,7 +57,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
     def "configuration cache can be loaded without errors from #source using #encryptionTransformation"() {
         given:
         def additionalOpts = [
-            "-Dorg.gradle.configuration-cache.internal.encryption-alg=${encryptionTransformation}"
+            "-Dorg.gradle.internal.configuration-cache.encryption-alg=${encryptionTransformation}"
         ]
         def configurationCache = newConfigurationCacheFixture()
         runWithEncryption(source, ["help"], additionalOpts)
@@ -126,7 +127,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
             kind,
             ["useSensitive"],
             ["-Psensitive_property_name=sensitive_property_value",
-             "-Dorg.gradle.configuration-cache.internal.deduplicate-strings=false"],
+             "-Dorg.gradle.internal.configuration-cache.deduplicate-strings=false"],
             [(ENV_PROJECT_PROPERTIES_PREFIX + 'sensitive_property_name2'): 'sensitive_property_value2',
              "SENSITIVE_ENV_VAR_NAME": 'sensitive_env_var_value']
         )
@@ -217,7 +218,11 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         then:
         // since the key is not fully validated until needed, we only get an error when encrypting
-        failure.assertHasDescription("Invalid AES key length: 35 bytes")
+        failure.assertHasDescription(
+            JavaVersion.current() >= JavaVersion.VERSION_26
+                ? "Invalid key length (35)."
+                : "Invalid AES key length: 35 bytes"
+        )
         // exception error message varies across JCE implementations, but the exception class is predictable
         containsLine(result.error, matchesRegexp(".*java.security.InvalidKeyException.*"))
     }
@@ -337,7 +342,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         switch (kind) {
             case EncryptionKind.KEYSTORE:
                 return [
-                    "-Dorg.gradle.configuration-cache.internal.key-store-dir=${keyStoreDir}",
+                    "-Dorg.gradle.internal.configuration-cache.key-store-dir=${keyStoreDir}",
                 ]
             case EncryptionKind.ENV_VAR:
                 // the env var is all that is required
@@ -345,7 +350,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
             default:
                 // NONE
                 return [
-                    "-Dorg.gradle.configuration-cache.internal.encryption=false"
+                    "-Dorg.gradle.internal.configuration-cache.encryption=false"
                 ]
         }
     }

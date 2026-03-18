@@ -42,7 +42,6 @@ public interface GroovyCallInterceptorsProvider {
         return new CompositeGroovyCallInterceptorsProvider(this, other);
     }
 
-    @NullMarked
     class ClassLoaderSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
 
         private final Lazy<List<FilterableCallInterceptor>> interceptors;
@@ -76,7 +75,6 @@ public interface GroovyCallInterceptorsProvider {
      * Use {@link ClassLoaderSourceGroovyCallInterceptorsProvider} instead that loads classes via SPI.
      * Kept to support old case where we loaded a class directly.
      */
-    @NullMarked
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
     class ClassSourceGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
@@ -123,7 +121,6 @@ public interface GroovyCallInterceptorsProvider {
         }
     }
 
-    @NullMarked
     class CompositeGroovyCallInterceptorsProvider implements GroovyCallInterceptorsProvider {
 
         private final GroovyCallInterceptorsProvider first;

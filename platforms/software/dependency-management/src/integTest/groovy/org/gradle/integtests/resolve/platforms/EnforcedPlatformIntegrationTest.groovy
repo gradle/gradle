@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
+    def resolve = new ResolveTestFixture(testDirectory)
+
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
@@ -38,7 +40,11 @@ class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         buildFile << """
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+            }
+
+            ${resolve.configureProject("runtimeClasspath")}
 
             ${mavenCentralRepository()}
 
@@ -47,10 +53,6 @@ class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTe
                 api 'com.fasterxml.jackson.core:jackson-core'
             }
         """
-
-        def resolve = new ResolveTestFixture(buildFile, 'runtimeClasspath')
-        resolve.expectDefaultConfiguration('runtimeElements')
-        resolve.prepare()
 
         when:
         succeeds ':checkDeps'
@@ -85,6 +87,8 @@ class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTe
                 id("java-library")
             }
 
+            ${resolve.configureProject("compileClasspath")}
+
             dependencies {
                 implementation enforcedPlatform(project(":platform"))
                 implementation project(':lib')
@@ -112,9 +116,6 @@ class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTe
                 }
             }
         """
-        def resolve = new ResolveTestFixture(buildFile, 'compileClasspath')
-        resolve.expectDefaultConfiguration("compile")
-        resolve.prepare()
 
         when:
         fails ':checkDeps'

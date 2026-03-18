@@ -20,17 +20,16 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
-import org.gradle.composite.ResilientIssuesRecorder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.composite.BuildIncludeListener;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
@@ -59,7 +58,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
             BuildModelParameters buildModelParameters,
             IntermediateToolingModelProvider intermediateToolingModelProvider,
             BuildIncludeListener failedIncludedBuildsRegistry,
-            ResilientIssuesRecorder resilientIssuesRecorder
+            FailureFactory failureFactory
         ) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
@@ -73,21 +72,16 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateRegistry));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
-                    registry.register(createGradleBuildBuilder());
+                    registry.register(new GradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, failureFactory));
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
                     registry.register(new BuildEnvironmentBuilder(fileCollectionFactory));
+                    registry.register(new HelpBuilder());
                     registry.register(new IsolatedGradleProjectInternalBuilder());
                     registry.register(new IsolatedIdeaModuleInternalBuilder());
                     registry.register(new PluginApplyingBuilder());
                     registry.register(new GradleDslBaseScriptModelBuilder());
-                }
-
-                private ToolingModelBuilder createGradleBuildBuilder() {
-                    return buildModelParameters.isResilientModelBuilding()
-                        ? new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, resilientIssuesRecorder)
-                        : new GradleBuildBuilder(buildStateRegistry);
                 }
 
                 private IdeaModelBuilderInternal createIdeaModelBuilder(boolean isolatedProjects, GradleProjectBuilderInternal gradleProjectBuilder) {

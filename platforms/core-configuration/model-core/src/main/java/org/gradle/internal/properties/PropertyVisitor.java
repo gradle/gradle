@@ -16,7 +16,6 @@
 
 package org.gradle.internal.properties;
 
-import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.services.BuildService;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
@@ -41,6 +40,4 @@ public interface PropertyVisitor {
      * Visits a service reference. Service references may or may not be declared with a name.
      */
     default void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName, Class<? extends BuildService<?>> buildServiceType) {}
-
-    default void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {}
 }

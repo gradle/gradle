@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
-    private ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
 
     void "can force the version of a particular module"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
@@ -141,6 +140,8 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void "can force arbitrary version of a module and avoid conflict"() {
+        ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
+
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foobar", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
@@ -186,6 +187,8 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
                 id("java-library")
             }
 
+            ${resolve.configureProject('runtimeClasspath')}
+
             group = 'org.foo.unittests'
             version = '1.0'
 
@@ -202,12 +205,9 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        resolve.expectDefaultConfiguration("runtimeElements")
-        resolve.prepare("runtimeClasspath")
-
         expect:
         succeeds(":tool:checkDeps")
-        resolve.expectGraph {
+        resolve.expectGraph(":tool") {
             root(":tool", "org.foo.unittests:tool:1.0") {
                 project(":api", "org.foo.unittests:api:1.0") {
                     edge("org:foo:1.4.4", "org:foo:1.5.5") {

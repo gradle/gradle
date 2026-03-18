@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.implementation-kotlin")
+    id("gradlebuild.internal.kotlin")
 }
 
 description = "Demos of Project Features and Types"
@@ -28,7 +28,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.declarativeDslApi)
     api(projects.reporting)
-    api(projects.projectFeatures)
+    api(projects.projectFeaturesApi)
 
     api(libs.kotlinStdlib)
     api(libs.inject)

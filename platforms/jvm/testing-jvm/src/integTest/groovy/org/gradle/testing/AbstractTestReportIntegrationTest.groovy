@@ -16,12 +16,12 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.hamcrest.CoreMatchers.equalTo
 
-abstract class AbstractTestReportIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
+abstract class AbstractTestReportIntegrationTest extends AbstractTestingMultiVersionIntegrationTest implements VerifiesGenericTestReportResults {
 
     def "report includes results of most recent invocation"() {
         given:
@@ -54,17 +54,17 @@ abstract class AbstractTestReportIntegrationTest extends AbstractTestingMultiVer
         run "test"
 
         then:
-        def result = new HtmlTestExecutionResult(testDirectory)
-        result.testClass("LoggingTest").assertStdout(equalTo("This is stdout.\n"))
-        result.testClass("LoggingTest").assertStderr(equalTo("This is stderr.\n"))
+        def result = resultsFor(testDirectory)
+        result.testPath("LoggingTest", "test").onlyRoot().assertStdout(equalTo("This is stdout.\n"))
+        result.testPath("LoggingTest", "test").onlyRoot().assertStderr(equalTo("This is stderr.\n"))
 
         when:
         executer.withArguments("-DLogLessStuff=true")
         run "test"
 
         then:
-        result.testClass("LoggingTest").assertStdout(equalTo("stdout.\n"))
-        result.testClass("LoggingTest").assertStderr(equalTo("stderr.\n"))
+        result.testPath("LoggingTest", "test").onlyRoot().assertStdout(equalTo("stdout.\n"))
+        result.testPath("LoggingTest", "test").onlyRoot().assertStderr(equalTo("stderr.\n"))
     }
 
     def "test report task can handle test tasks that did not run tests"() {
@@ -82,7 +82,7 @@ abstract class AbstractTestReportIntegrationTest extends AbstractTestingMultiVer
             }
 
             tasks.register('testReport', TestReport) {
-                testResults.from(test, otherTests)
+                testResults.from(test.map { it.binaryResultsDirectory }, otherTests.map { it.binaryResultsDirectory })
                 destinationDirectory = reporting.baseDirectory.dir('tr')
             }
         """
@@ -95,8 +95,9 @@ abstract class AbstractTestReportIntegrationTest extends AbstractTestingMultiVer
 
         then:
         skipped(":otherTests")
+
         executedAndNotSkipped(":test")
-        new HtmlTestExecutionResult(testDirectory, "build/reports/tr").assertTestClassesExecuted("Thing")
+        resultsFor(testDirectory, "tr").testPath("Thing").onlyRoot().assertChildCount(1, 0)
     }
 
     def "results or reports are linked to in error output"() {

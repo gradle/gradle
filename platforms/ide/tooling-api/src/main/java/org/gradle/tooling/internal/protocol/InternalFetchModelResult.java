@@ -29,9 +29,6 @@ import java.util.Collection;
 @NullMarked
 public interface InternalFetchModelResult<M> extends InternalProtocolInterface {
     @Nullable
-    Object getTarget();
-
-    @Nullable
     M getModel();
 
     Collection<InternalFailure> getFailures();

@@ -17,6 +17,7 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_SUPPORTS_JUNIT3_SUITES
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT3_VERSION
@@ -25,7 +26,8 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT3_VERSION
 class JUnit4SuitesIntegrationTest extends AbstractJUnit4SuitesIntegrationTest implements JUnit4MultiVersionTest {
     @Override
     boolean supportsSuiteOutput() {
-        return true
+        // Class end events are not reported until version 4.13, so our output is wrong. See https://github.com/junit-team/junit4/pull/1118.
+        return VersionNumber.parse(version) >= VersionNumber.parse("4.13")
     }
 
     @Override

@@ -271,13 +271,9 @@ import java.util.stream.Collectors;
         String str = toName(usage);
         switch (str) {
             case Usage.JAVA_API:
-            case JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS:
-            case JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES:
                 sb.append("compile-time");
                 break;
             case Usage.JAVA_RUNTIME:
-            case JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS:
-            case JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES:
                 sb.append("runtime");
                 break;
             default:

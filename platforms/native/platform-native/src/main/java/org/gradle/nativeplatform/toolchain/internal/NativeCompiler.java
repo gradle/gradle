@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
-import org.gradle.internal.FileUtils;
+import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
@@ -93,7 +93,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
         if (!outputDirectory.exists()) {
             outputDirectory.mkdirs();
         }
-        return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
+        return windowsPathLimitation ? SafeFileLocationUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 
     protected List<String> maybeGetPCHArgs(final T spec, File sourceFile) {

@@ -45,7 +45,6 @@ import java.util.TreeMap;
 public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
 
     private PropertyReportRenderer renderer = new PropertyReportRenderer();
-    private final Property<String> property = getProject().getObjects().property(String.class);
 
     /**
      * Defines a specific property to report. If not set then all properties will appear in the report.
@@ -56,9 +55,7 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
     @Input
     @Optional
     @Option(option = "property", description = "A specific property to output")
-    public Property<String> getProperty() {
-        return property;
-    }
+    public abstract Property<String> getProperty();
 
     @Internal
     @Override
@@ -79,8 +76,8 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
     private PropertyReportTask.PropertyReportModel computePropertyReportModel(Project project) {
         PropertyReportModel model = new PropertyReportModel();
         Map<String, ?> projectProperties = project.getProperties();
-        if (property.isPresent()) {
-            String propertyName = property.get();
+        if (getProperty().isPresent()) {
+            String propertyName = getProperty().get();
             if ("properties".equals(propertyName)) {
                 model.putProperty(propertyName, "{...}");
             } else {

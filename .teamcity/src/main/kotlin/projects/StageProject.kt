@@ -55,6 +55,8 @@ class StageProject(
 
     val docsTestTriggers: List<OsAwareBaseGradleBuildType>
 
+    val flakyTestQuarantineTriggers: List<OsAwareBaseGradleBuildType>
+
     init {
         features {
             buildReportTab("Problems Report", "problems-report.html")
@@ -178,10 +180,12 @@ class StageProject(
         docsTestTriggers = docsTestProjects.map { DocsTestTrigger(model, it) }
         docsTestTriggers.forEach(this::buildType)
 
+        flakyTestQuarantineTriggers = mutableListOf()
         if (stage.stageName == StageName.READY_FOR_RELEASE) {
             listOf(Os.LINUX, Os.WINDOWS, Os.MACOS).forEach {
                 val flakyTestQuarantineProject = FlakyTestQuarantineProject(model, stage, it)
                 val flakyTestQuarantineProjectTrigger = FlakyTestQuarantineTrigger(model, flakyTestQuarantineProject)
+                flakyTestQuarantineTriggers.add(flakyTestQuarantineProjectTrigger)
                 subProject(flakyTestQuarantineProject)
                 buildType(flakyTestQuarantineProjectTrigger)
             }

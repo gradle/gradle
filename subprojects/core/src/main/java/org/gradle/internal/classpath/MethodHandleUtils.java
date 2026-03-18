@@ -35,6 +35,7 @@ public class MethodHandleUtils {
         }
     }
 
+    @SuppressWarnings("TypeParameterUnusedInFormals") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public static <T> T invokeKotlinStaticDefault(Lazy<MethodHandle> handle, int mask, Object... args) throws Throwable {
         Object[] argsWithDefaultMaskAndFlag = Arrays.copyOf(args, args.length + 2);
         argsWithDefaultMaskAndFlag[args.length] = mask;

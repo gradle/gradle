@@ -22,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 
 public class PreviousExecutionContext extends WorkspaceContext {
+    @Nullable
     private final PreviousExecutionState previousExecutionState;
 
     public PreviousExecutionContext(WorkspaceContext parent, @Nullable PreviousExecutionState previousExecutionState) {

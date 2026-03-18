@@ -37,6 +37,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
@@ -150,7 +151,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     public ProjectDescriptorInternal createProjectDescriptor(@Nullable ProjectDescriptorInternal parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver());
+        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver(), getProblems().getReporter());
     }
 
     @Override
@@ -281,6 +282,9 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Inject
     public abstract ScriptFileResolver getScriptFileResolver();
+
+    @Inject
+    public abstract Problems getProblems();
 
     @Override
     public ProjectDescriptorRegistry getProjectRegistry() {

@@ -19,9 +19,10 @@ package org.gradle.configuration;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
@@ -71,27 +72,27 @@ public abstract class ConfigurationTargetIdentifier {
         }
     }
 
-    public static ConfigurationTargetIdentifier of(final ProjectInternal project) {
+    public static ConfigurationTargetIdentifier of(ProjectIdentity projectIdentity) {
         return new ConfigurationTargetIdentifier() {
             @Override
             public Type getTargetType() {
                 return Type.PROJECT;
             }
 
-            @Nullable
             @Override
             public String getTargetPath() {
-                return project.getProjectPath().asString();
+                return projectIdentity.getProjectPath().asString();
             }
 
             @Override
             public String getBuildPath() {
-                return project.getGradle().getIdentityPath().asString();
+                return projectIdentity.getBuildPath().asString();
             }
         };
     }
 
     public static ConfigurationTargetIdentifier of(final SettingsInternal settings) {
+        Path buildPath = settings.getGradle().getOwner().getIdentityPath();
         return new ConfigurationTargetIdentifier() {
             @Override
             public Type getTargetType() {
@@ -106,12 +107,13 @@ public abstract class ConfigurationTargetIdentifier {
 
             @Override
             public String getBuildPath() {
-                return settings.getGradle().getIdentityPath().asString();
+                return buildPath.asString();
             }
         };
     }
 
     public static ConfigurationTargetIdentifier of(final GradleInternal gradle) {
+        Path buildPath = gradle.getOwner().getIdentityPath();
         return new ConfigurationTargetIdentifier() {
             @Override
             public Type getTargetType() {
@@ -126,7 +128,7 @@ public abstract class ConfigurationTargetIdentifier {
 
             @Override
             public String getBuildPath() {
-                return gradle.getIdentityPath().asString();
+                return buildPath.asString();
             }
         };
     }

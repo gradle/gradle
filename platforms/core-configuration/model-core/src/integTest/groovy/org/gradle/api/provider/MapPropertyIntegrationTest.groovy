@@ -17,8 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -235,7 +234,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         outputContains("value: [key1:value1, key2:value2, key3:value3]")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36664")
     def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
         given:
         buildFile << '''
@@ -555,10 +554,7 @@ task thing {
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.String and value type java.lang.Integer.')
     }
 
-    @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
-        reason = "Test relies on modifying properties at execution time, but CC finalizes them before execution"
-    )
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36664")
     def "later entries replace earlier entries"() {
         given:
         buildFile << '''

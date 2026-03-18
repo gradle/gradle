@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl.resolver
 
 
@@ -77,6 +79,7 @@ fun EditorPosition.toIdePosition(): Position =
     Position(if (line == 0) 0 else line - 1, column)
 
 
+@Deprecated("Will be removed in Gradle 10")
 class KotlinBuildScriptDependenciesResolver internal constructor(
 
     private
@@ -229,11 +232,7 @@ class KotlinBuildScriptDependenciesResolver internal constructor(
         environment.gradleHome?.let(GradleInstallation::Local)
             ?: environment.gradleUri?.let(GradleInstallation::Remote)
             ?: environment.gradleVersion?.let(GradleInstallation::Version)
-            ?: if ("embedded" == System.getProperty("org.gradle.integtest.executer")) {
-                GradleInstallation.Embedded
-            } else {
-                GradleInstallation.Wrapper
-            }
+            ?: GradleInstallation.Wrapper
 
     private
     fun dependenciesFrom(
@@ -255,6 +254,7 @@ class KotlinBuildScriptDependenciesResolver internal constructor(
  * The resolver can either return the previous result
  * or request new dependency information from Gradle.
  */
+@Deprecated("Will be removed in Gradle 10")
 internal
 sealed class ResolverAction {
     object ReturnPrevious : ResolverAction()
@@ -262,6 +262,7 @@ sealed class ResolverAction {
 }
 
 
+@Deprecated("Will be removed in Gradle 10")
 internal
 object ResolverCoordinator {
 
@@ -323,10 +324,12 @@ object ResolverCoordinator {
 }
 
 
+@Deprecated("Will be removed in Gradle 10")
 internal
 typealias ScriptSectionTokensProvider = (CharSequence, String) -> Sequence<CharSequence>
 
 
+@Deprecated("Will be removed in Gradle 10")
 internal
 class KotlinBuildScriptDependencies(
     override val classpath: Iterable<File>,

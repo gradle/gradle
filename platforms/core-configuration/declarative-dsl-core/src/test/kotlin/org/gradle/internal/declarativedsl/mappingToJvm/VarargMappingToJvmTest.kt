@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -60,42 +59,31 @@ class VarargMappingToJvmTest {
 
     class MyTypeWithVarargs {
         @Suppress("unused")
-        @Restricted
         fun <T> myListOf(vararg items: T): List<T> = items.toList()
 
         @Suppress("unused")
-        @Restricted
         fun myStrings(vararg strings: String): List<String> = strings.toList()
 
         @Suppress("unused")
-        @Restricted
         fun myInts(vararg ints: Int): List<Int> = ints.toList()
 
         @Suppress("unused")
-        @Restricted
         fun myLongs(vararg longs: Long): List<Long> = longs.toList()
 
         @Suppress("unused")
-        @Restricted
         fun myBooleans(vararg booleans: Boolean): List<Boolean> = booleans.toList()
 
         @Suppress("unused")
-        @Restricted
         fun <T> myGenericValues(vararg values: T): List<T> = values.toList()
 
-        @get:Restricted
         var strings: List<String> = emptyList()
 
-        @get:Restricted
         var ints: List<Int> = emptyList()
 
-        @get:Restricted
         var moreInts: List<Int> = emptyList()
 
-        @get:Restricted
         var longs: List<Long> = emptyList()
 
-        @get:Restricted
         var booleans: List<Boolean> = emptyList()
     }
 }

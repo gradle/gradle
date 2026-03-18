@@ -21,7 +21,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public interface HasGroovySources extends HasSources<GroovyClasses> {
+public interface HasGroovySources extends HasSources<GroovyClasses, HasGroovySources.GroovySources> {
     @Override
     NamedDomainObjectContainer<GroovySources> getSources();
 

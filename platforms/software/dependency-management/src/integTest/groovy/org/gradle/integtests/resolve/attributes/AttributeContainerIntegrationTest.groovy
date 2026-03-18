@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.resolve.attributes
 
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 
@@ -129,5 +132,32 @@ class AttributeContainerIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("help")
+    }
+
+    // In Gradle 10, we can simply let these usages "pass through" without error/special handling.
+    // The constants have since been removed from the Usage class.
+    // This deprecation acts as our final warning to stop using these in build logic.
+    def "declaring legacy usage attribute is deprecated"() {
+        buildFile << """
+            configurations {
+                create("custom")  {
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "${legacyUsage}"))
+                    }
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Declaring a Usage attribute with a legacy value has been deprecated. This will fail with an error in Gradle 10. A Usage attribute was declared with value '${legacyUsage}'. Declare a Usage attribute with value '${replacedUsage}' and a LibraryElements attribute with value '${replacedLibraryElements}' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_legacy_usage_values")
+        succeeds("help")
+
+        where:
+        legacyUsage                                            | replacedUsage      | replacedLibraryElements
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS          | Usage.JAVA_API     | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES       | Usage.JAVA_API     | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME | LibraryElements.RESOURCES
     }
 }

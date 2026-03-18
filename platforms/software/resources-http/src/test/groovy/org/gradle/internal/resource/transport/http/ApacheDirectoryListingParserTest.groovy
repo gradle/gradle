@@ -25,7 +25,7 @@ import static org.junit.Assert.assertNotNull
 
 class ApacheDirectoryListingParserTest extends Specification {
     @Rule
-    public final Resources resources = new Resources();
+    public final Resources resources = new Resources(null)
 
     private static final CONTENT_TYPE = "text/html;charset=utf-8";
     private URI baseUrl = URI.create("http://testrepo/")

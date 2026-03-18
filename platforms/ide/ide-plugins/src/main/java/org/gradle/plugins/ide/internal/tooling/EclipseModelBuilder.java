@@ -17,9 +17,10 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -66,11 +67,15 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProjectNatu
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirectory;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
+import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.EclipseRuntime;
 import org.gradle.tooling.model.eclipse.EclipseWorkspace;
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
@@ -88,6 +93,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
+
+    private static final String ECLIPSE_PROJECT_MODEL_NAME = EclipseProject.class.getName();
+    private static final String ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME = HierarchicalEclipseProject.class.getName();
+
     private final GradleProjectBuilderInternal gradleProjectBuilder;
     private final EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider;
 
@@ -112,7 +121,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject") || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
+        return modelName.equals(ECLIPSE_PROJECT_MODEL_NAME) || modelName.equals(ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME);
     }
 
     @Override
@@ -143,9 +152,9 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     @Override
     public DefaultEclipseProject buildAll(String modelName, Project project) {
-        boolean includeTasks = modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject");
+        boolean includeTasks = modelName.equals(ECLIPSE_PROJECT_MODEL_NAME);
         tasksFactory = new TasksFactory(includeTasks);
-        projectDependenciesOnly = modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
+        projectDependenciesOnly = modelName.equals(ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME);
         currentProjectId = ((ProjectInternal) project).getProjectIdentity();
         eclipseProjects = new ArrayList<>();
         ProjectInternal root = (ProjectInternal) project.getRootProject();
@@ -265,7 +274,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             classpathEntries = classpath.getEntries();
         }
 
-        final Map<String, DefaultEclipseProjectDependency> projectDependencyMap = new HashMap<>();
+        final Map<String, DefaultEclipseProjectDependency> projectDependencyMap = new LinkedHashMap<>();
 
         for (ClasspathEntry entry : classpathEntries) {
             //we don't handle Variables at the moment because users didn't request it yet
@@ -276,17 +285,22 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
                 final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
                 final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
                 DefaultEclipseExternalDependency dependency;
+                ModuleVersionIdentifier moduleVersionId = library.getModuleVersion();
+                GradleModuleVersion moduleVersion = null;
+                if (moduleVersionId != null) {
+                    moduleVersion = new DefaultGradleModuleVersion(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion());
+                }
                 if (entry instanceof UnresolvedLibrary) {
                     UnresolvedLibrary unresolvedLibrary = (UnresolvedLibrary) entry;
-                    dependency = DefaultEclipseExternalDependency.createUnresolved(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library), createAccessRules(library), unresolvedLibrary.getAttemptedSelector().getDisplayName());
+                    dependency = DefaultEclipseExternalDependency.createUnresolved(file, javadoc, source, moduleVersion, library.isExported(), createAttributes(library), createAccessRules(library), unresolvedLibrary.getAttemptedSelector().getDisplayName());
                 } else {
-                    dependency = DefaultEclipseExternalDependency.createResolved(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library), createAccessRules(library));
+                    dependency = DefaultEclipseExternalDependency.createResolved(file, javadoc, source, moduleVersion, library.isExported(), createAttributes(library), createAccessRules(library));
                 }
                 classpathElements.getExternalDependencies().add(dependency);
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
                 // By removing the leading "/", this is no longer a "path" as defined by Eclipse
-                final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
+                final String path = Strings.CS.removeStart(projectDependency.getPath(), "/");
                 boolean isProjectOpen = projectOpenStatus.getOrDefault(path, true);
                 if (!isProjectOpen) {
                     final File source = projectDependency.getPublicationSourcePath() == null ? null : projectDependency.getPublicationSourcePath().getFile();

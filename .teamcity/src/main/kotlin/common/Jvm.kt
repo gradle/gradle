@@ -53,3 +53,17 @@ object OpenJdk17 : Jvm {
     override val vendor: JvmVendor
         get() = JvmVendor.OPENJDK
 }
+
+object OpenJdk21 : Jvm {
+    override val version: JvmVersion
+        get() = JvmVersion.JAVA_21
+    override val vendor: JvmVendor
+        get() = JvmVendor.OPENJDK
+}
+
+object OpenJdk25 : Jvm {
+    override val version: JvmVersion
+        get() = JvmVersion.JAVA_25
+    override val vendor: JvmVendor
+        get() = JvmVendor.OPENJDK
+}

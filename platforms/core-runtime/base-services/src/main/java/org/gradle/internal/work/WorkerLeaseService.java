@@ -21,6 +21,7 @@ import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -35,7 +36,7 @@ public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseReg
      * Runs a given {@link Factory} while the specified locks are being held, releasing
      * the locks upon completion.  Blocks until the specified locks can be obtained.
      */
-    <T> T withLocks(Collection<? extends ResourceLock> locks, Factory<T> factory);
+    <T extends @Nullable Object> T withLocks(Collection<? extends ResourceLock> locks, Factory<T> factory);
 
     /**
      * Runs a given {@link Runnable} while the specified locks are being held, releasing
@@ -55,7 +56,7 @@ public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseReg
      * upon completion.  If the locks cannot be immediately reacquired, the current worker lease will be released
      * and the method will block until the locks are reacquired.
      */
-    <T> T withoutLocks(Collection<? extends ResourceLock> locks, Factory<T> factory);
+    <T extends @Nullable Object> T withoutLocks(Collection<? extends ResourceLock> locks, Factory<T> factory);
 
     /**
      * Runs a given {@link Runnable} while the specified locks are released and then reacquire the locks

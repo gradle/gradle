@@ -12,6 +12,7 @@ import common.gradleWrapper
 import common.killProcessStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
+import common.setArtifactRules
 import common.substDirOnWindows
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
@@ -26,7 +27,7 @@ abstract class AdHocPerformanceScenario(
         id(id)
 
         applyPerformanceTestSettings(os = os, arch = arch, timeout = 420)
-        artifactRules = INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES
+        setArtifactRules(INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES)
 
         params {
             text(
@@ -47,6 +48,13 @@ abstract class AdHocPerformanceScenario(
             param("checks", "all")
             text("runs", "40", display = ParameterDisplay.PROMPT, allowEmpty = false)
             text("warmups", "10", display = ParameterDisplay.PROMPT, allowEmpty = false)
+            text(
+                "generateDiffs",
+                "true",
+                display = ParameterDisplay.PROMPT,
+                allowEmpty = false,
+                description = "Whether to generate differential flame graphs after profiling",
+            )
             text(
                 "scenario",
                 "",
@@ -100,7 +108,7 @@ abstract class AdHocPerformanceScenario(
                         performanceTestCommandLine(
                             "clean performance:%testProject%PerformanceAdHocTest --tests \"%scenario%\"",
                             "%performance.baselines%",
-                            """--warmups %warmups% --runs %runs% --checks %checks% --profiler %profiler% %additional.gradle.parameters%""",
+                            """--warmups %warmups% --runs %runs% --checks %checks% --profiler %profiler% --generate-diffs %generateDiffs% %additional.gradle.parameters%""",
                             os,
                             arch,
                             "%testJavaVersion%",
@@ -121,7 +129,7 @@ private fun ParametrizedWithType.profilerParam(defaultProfiler: String) {
         allowEmpty = false,
         description =
             "Command line option for the performance test task to enable profiling. " +
-                "For example `async-profiler`, `async-profiler-heap`, `async-profiler-all` or `jfr`. Use `none` for benchmarking only.",
+                "For example `async-profiler`, `async-profiler-heap`, `async-profiler-wall`, `async-profiler-all` or `jfr`. Use `none` for benchmarking only.",
     )
 }
 

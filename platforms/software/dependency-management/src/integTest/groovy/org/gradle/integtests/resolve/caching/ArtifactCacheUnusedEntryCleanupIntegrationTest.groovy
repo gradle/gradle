@@ -237,7 +237,6 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         journal.assertExists()
 
         when:
-        executer.noDeprecationChecks()
         run '--stop' // ensure daemon does not cache file access times in memory
         forceCleanup(gcFile)
 

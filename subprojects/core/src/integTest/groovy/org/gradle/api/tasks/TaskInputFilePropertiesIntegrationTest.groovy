@@ -287,4 +287,29 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
             ]
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/35914")
+    def "build failure message does not contain duplicate information"() {
+        setup:
+        disableProblemsApiCheck()
+
+        buildFile << """
+            class FooTask extends DefaultTask {
+               @InputFiles
+               FileCollection bar
+
+               @TaskAction
+               def go() {
+               }
+            }
+
+            task foo(type: FooTask)
+        """
+
+        when:
+        fails "foo"
+
+        then:
+        errorOutput.count("Mark property 'bar' as optional") == 1
+    }
 }

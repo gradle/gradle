@@ -16,14 +16,9 @@
 
 package org.gradle.api.internal.catalog
 
-import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.DefaultClassPathProvider
-import org.gradle.api.internal.DefaultClassPathRegistry
-import org.gradle.api.internal.classpath.DefaultModuleRegistry
-import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.classpath.EffectiveClassPath
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -37,8 +32,6 @@ import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 class SimpleGeneratedJavaClassCompilerTest extends Specification {
     @Rule
     private final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
-    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
 
     private final TestFile srcDir = tmpDir.createDir("sources")
     private final TestFile dstDir = tmpDir.createDir("classes")
@@ -98,7 +91,7 @@ class SimpleGeneratedJavaClassCompilerTest extends Specification {
     }
 
     def "can compile a class with a dependency on the Gradle API"() {
-        classPath = classPathRegistry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER")
+        classPath = DefaultClassPath.of(new EffectiveClassPath(getClass().getClassLoader()).getAsFiles())
         when:
         compile(source("A", """
             import org.gradle.api.internal.catalog.DefaultVersionCatalog;

@@ -6,7 +6,9 @@ plugins {
 description = "Provides plugins that create update tasks for the Gradle build"
 
 dependencies {
+    implementation(projects.jvm)
     implementation("gradlebuild:basics")
-    implementation("com.google.code.gson:gson")
-    implementation("org.jsoup:jsoup")
+    implementation("gradlebuild:module-identity")
+    implementation(buildLibs.gson)
+    implementation(buildLibs.jsoup)
 }

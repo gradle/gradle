@@ -46,10 +46,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * This is used via reflection from {@code ProviderOperationParameters}.
  */
+@SuppressWarnings("UnnecessaryLambda")
 public class ConsumerOperationParameters implements BuildParameters {
 
     public static Builder builder() {
@@ -264,8 +267,16 @@ public class ConsumerOperationParameters implements BuildParameters {
             javaHome = operationParameters.javaHome;
             injectedPluginClasspath = operationParameters.injectedPluginClasspath;
             systemProperties = operationParameters.systemProperties;
+            entryPoint = operationParameters.entryPointName;
+            parameters = operationParameters.parameters;
+            arguments = operationParameters.arguments;
         }
     }
+
+    private static final Predicate<String> IS_HELP_ARG = s -> "--help".equals(s) || "-h".equals(s) || "-?".equals(s);
+    private static final Predicate<String> IS_VERSION_ARG = s -> "--version".equals(s) || "-v".equals(s);
+    private static final Predicate<String> IS_SHOW_VERSION_ARG = s -> "--show-version".equals(s) || "-V".equals(s);
+    private static final Predicate<String> IS_HELP_OR_VERSION = IS_HELP_ARG.or(IS_VERSION_ARG).or(IS_SHOW_VERSION_ARG);
 
     private final String entryPointName;
     private final ProgressListenerAdapter progressListener;
@@ -351,6 +362,47 @@ public class ConsumerOperationParameters implements BuildParameters {
         if (!javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome is not a valid folder. You supplied: " + javaHome);
         }
+    }
+
+    public boolean containsHelpArg() {
+        return containsArg(IS_HELP_ARG);
+    }
+
+    public boolean containsVersionArg() {
+        return containsArg(IS_VERSION_ARG);
+    }
+
+    public boolean containsShowVersionArg() {
+        return containsArg(IS_SHOW_VERSION_ARG);
+    }
+
+    public boolean containsHelpOrVersionArgs() {
+        return containsArg(IS_HELP_OR_VERSION);
+    }
+
+    private boolean containsArg(Predicate<String> predicate) {
+        return arguments == null ? false : arguments.stream().filter(predicate).findFirst().isPresent();
+    }
+
+    public ConsumerOperationParameters withoutHelpOrVersionArgs() {
+        ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
+        builder.copyFrom(this);
+        builder.setArguments(arguments.stream().filter(IS_HELP_OR_VERSION.negate()).collect(Collectors.toList()));
+        return builder.build();
+    }
+
+    public ConsumerOperationParameters withArgs(Function<List<String>, List<String>> updateArgs) {
+        ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
+        builder.copyFrom(this);
+        builder.setArguments(updateArgs.apply(getArguments()));
+        return builder.build();
+    }
+
+    public ConsumerOperationParameters withNoTasks() {
+        ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
+        builder.copyFrom(this);
+        builder.setTasks(null);
+        return builder.build();
     }
 
     public String getEntryPointName() {

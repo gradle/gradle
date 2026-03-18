@@ -49,7 +49,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -97,12 +96,12 @@ public class ExternalModuleComponentResolverFactory {
         ModuleRepositoryCacheProvider cacheProvider,
         StartParameterResolutionOverride startParameterResolutionOverride,
         DependencyVerificationOverride dependencyVerificationOverride,
+        ChangingValueDependencyResolutionListener listener,
         BuildCommencedTimeProvider timeProvider,
         VersionComparator versionComparator,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         RepositoryDisabler repositoryBlacklister,
         VersionParser versionParser,
-        ListenerManager listenerManager,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
         CalculatedValueFactory calculatedValueFactory,
         AttributesFactory attributesFactory,
@@ -117,7 +116,7 @@ public class ExternalModuleComponentResolverFactory {
         this.repositoryBlacklister = repositoryBlacklister;
         this.versionParser = versionParser;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
-        this.listener = listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class);
+        this.listener = listener;
         this.moduleResolveStateFactory = moduleResolveStateFactory;
         this.calculatedValueFactory = calculatedValueFactory;
         this.attributesFactory = attributesFactory;

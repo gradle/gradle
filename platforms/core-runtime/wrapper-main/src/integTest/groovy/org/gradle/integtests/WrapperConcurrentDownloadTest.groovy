@@ -35,7 +35,7 @@ class WrapperConcurrentDownloadTest extends AbstractWrapperIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-2699")
     def "concurrent downloads do not stomp over each other"() {
         given:
-        prepareWrapper(server.uri("gradle-bin.zip"))
+        prepareWrapper(server.uri("gradle-bin.zip")).run()
 
         when:
         def results = [1..4].collect { wrapperExecuter.start() }*.waitForFinish()

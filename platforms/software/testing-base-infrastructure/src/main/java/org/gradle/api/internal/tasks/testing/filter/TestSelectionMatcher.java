@@ -16,278 +16,78 @@
 package org.gradle.api.internal.tasks.testing.filter;
 
 
-import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static org.apache.commons.lang3.StringUtils.splitPreserveAllTokens;
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import java.util.Collections;
 
 /**
- * This class has two public APIs:
+ * This class has three public APIs:
  *
  * <ul>
- * <li>Judge whether a test class might be included. For example, class 'org.gradle.Test' can't
- * be included by pattern 'org.apache.Test'
- * <li>Judge whether a test method is matched exactly.
+ * <li>Judge whether a test class might be matched.
+ * <li>Judge whether a test class or class+method is definitely matched.
+ * <li>Judge whether a test file is definitely matched for resource-based tests.
  * </ul>
  *
- * In both cases, if the pattern starts with an upper-case letter, it will be used to match
- * simple class name;
- * otherwise, it will be used to match full qualified class name.
+ * For example, class 'org.gradle.Test' can't be matched by pattern 'org.apache.Test', so
+ * {@link #mayIncludeClass(String)} will return false when given 'org.gradle.Test'.
+ *
+ * In all cases, if the pattern starts with an uppercase letter, matching is performed on the
+ * simple name of the test. For classes, this is the class name. For resource files, this is
+ * the file name without an extension.
+ *
+ * Otherwise, the pattern will be used to match the fully qualified name of the test.
+ *
+ * @see ClassTestSelectionMatcher
+ * @see FileTestSelectionMatcher
  */
 public class TestSelectionMatcher {
-    private final List<TestPattern> buildScriptIncludePatterns;
-    private final List<TestPattern> buildScriptExcludePatterns;
-    private final List<TestPattern> commandLineIncludePatterns;
+
+    private final ClassTestSelectionMatcher classTestSelectionMatcher;
+    private final FileTestSelectionMatcher fileTestSelectionMatcher;
 
     public TestSelectionMatcher(TestFilterSpec filter) {
-        buildScriptIncludePatterns = preparePatternList(filter.getIncludedTests());
-        buildScriptExcludePatterns = preparePatternList(filter.getExcludedTests());
-        commandLineIncludePatterns = preparePatternList(filter.getIncludedTestsCommandLine());
+        this(filter, Collections.emptyList());
     }
 
-    private List<TestPattern> preparePatternList(Collection<String> includedTests) {
-        List<TestPattern> includePatterns = new ArrayList<TestPattern>(includedTests.size());
-        for (String includedTest : includedTests) {
-            includePatterns.add(new TestPattern(includedTest));
-        }
-        return includePatterns;
+    /**
+     * Create a test matcher.
+     * @param filter the include and exclude patterns to use as a filter
+     * @param roots the roots to search when matching on file paths
+     */
+    public TestSelectionMatcher(TestFilterSpec filter, Collection<Path> roots) {
+        classTestSelectionMatcher = new ClassTestSelectionMatcher(filter.getIncludedTests(), filter.getExcludedTests(), filter.getIncludedTestsCommandLine());
+        fileTestSelectionMatcher = new FileTestSelectionMatcher(classTestSelectionMatcher, roots);
     }
 
-    public boolean matchesTest(String className, String methodName) {
-        return matchesPattern(buildScriptIncludePatterns, className, methodName)
-            && matchesPattern(commandLineIncludePatterns, className, methodName)
-            && !matchesExcludePattern(className, methodName);
+    /**
+     * Returns true if the given file matches any given include patterns and is not discarded by any exclude patterns.
+     *
+     * @see FileTestSelectionMatcher
+     */
+    public boolean matchesFile(File file) {
+        return fileTestSelectionMatcher.matchesFile(file);
     }
 
+    /**
+     * Returns true if the given class and method matches any include pattern and is not discarded by any exclude pattern.
+     *
+     * @see ClassTestSelectionMatcher
+     */
+    public boolean matchesTest(String className, @Nullable String methodName) {
+        return classTestSelectionMatcher.matchesTest(className, methodName);
+    }
+
+    /**
+     * Returns true if the given fully qualified class name may be included in test execution. This is more optimistic than {@link #matchesTest(String, String)}
+     * because some classes may still be excluded later for other reasons.
+     *
+     * @see ClassTestSelectionMatcher
+     */
     public boolean mayIncludeClass(String fullQualifiedClassName) {
-        return mayIncludeClass(buildScriptIncludePatterns, fullQualifiedClassName)
-            && mayIncludeClass(commandLineIncludePatterns, fullQualifiedClassName)
-            && !mayExcludeClass(fullQualifiedClassName);
-    }
-
-    private boolean mayIncludeClass(List<TestPattern> includePatterns, String fullQualifiedName) {
-        if (includePatterns.isEmpty()) {
-            return true;
-        }
-        return mayMatchClass(includePatterns, fullQualifiedName);
-    }
-
-    private boolean mayExcludeClass(String fullQualifiedName) {
-        if (buildScriptExcludePatterns.isEmpty()) {
-            return false;
-        }
-        return matchesClass(buildScriptExcludePatterns, fullQualifiedName);
-    }
-
-    private boolean matchesClass(List<TestPattern> patterns, String fullQualifiedName) {
-        for (TestPattern pattern : patterns) {
-            if (pattern.matchesClass(fullQualifiedName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean mayMatchClass(List<TestPattern> patterns, String fullQualifiedName) {
-        for (TestPattern pattern : patterns) {
-            if (pattern.mayIncludeClass(fullQualifiedName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean matchesPattern(List<TestPattern> includePatterns, String className,
-        String methodName) {
-        if (includePatterns.isEmpty()) {
-            return true;
-        }
-        return matchesClassAndMethod(includePatterns, className, methodName);
-    }
-
-    private boolean matchesExcludePattern(String className, String methodName) {
-        if (buildScriptExcludePatterns.isEmpty()) {
-            return false;
-        }
-        if (mayMatchClass(buildScriptExcludePatterns, className) && methodName == null) {
-            // When there is a class name match, return true for excluding it so that we can keep
-            // searching in individual test methods for an exact match. If we return false here
-            // instead, then we'll give up searching individual test methods and just ignore the
-            // entire test class, which may not be what we want.
-            return true;
-        }
-        return matchesClassAndMethod(buildScriptExcludePatterns, className, methodName);
-    }
-
-    private boolean matchesClassAndMethod(List<TestPattern> patterns, String className,
-        String methodName) {
-        for (TestPattern pattern : patterns) {
-            if (pattern.matchesClassAndMethod(className, methodName)) {
-                return true;
-            }
-            if (pattern.matchesClass(className)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static class TestPattern {
-        private Pattern pattern;
-        private String[] segments;
-        private LastElementMatcher lastElementMatcher;
-        private ClassNameSelector classNameSelector;
-
-        private TestPattern(String pattern) {
-            this.pattern = preparePattern(pattern);
-            this.classNameSelector = patternStartsWithUpperCase(pattern) ?
-                new SimpleClassNameSelector() : new FullQualifiedClassNameSelector();
-            int firstWildcardIndex = pattern.indexOf('*');
-            //https://github.com/gradle/gradle/issues/27572
-            int firstParametrizeIndex = pattern.indexOf('[');
-            if (firstWildcardIndex == -1) {
-                segments = splitPreserveAllTokens(pattern, '.');
-                if(firstParametrizeIndex == -1){
-                    lastElementMatcher = new NoWildcardMatcher();
-                }else{
-                    segments = splitPreserveAllTokens(pattern.substring(0, firstParametrizeIndex), '.');
-                    segments[segments.length-1] += pattern.substring(firstParametrizeIndex);
-                }
-            } else {
-                segments = splitPreserveAllTokens(pattern.substring(0, firstWildcardIndex), '.');
-                lastElementMatcher = new WildcardMatcher();
-            }
-        }
-
-        private static Pattern preparePattern(String input) {
-            StringBuilder pattern = new StringBuilder();
-            String[] split = StringUtils.splitPreserveAllTokens(input, '*');
-            for (String s : split) {
-                if (s.equals("")) {
-                    pattern.append(".*"); //replace wildcard '*' with '.*'
-                } else {
-                    if (pattern.length() > 0) {
-                        pattern.append(".*"); //replace wildcard '*' with '.*'
-                    }
-                    pattern.append(Pattern.quote(s)); //quote everything else
-                }
-            }
-            return Pattern.compile(pattern.toString());
-        }
-
-        private boolean mayIncludeClass(String fullQualifiedName) {
-            if (patternStartsWithWildcard()) {
-                return true;
-            }
-            String[] classNameArray =
-                classNameSelector.determineTargetClassName(fullQualifiedName).split("\\.");
-            if (classNameIsShorterThanPattern(classNameArray)) {
-                return false;
-            }
-            for (int i = 0; i < segments.length; ++i) {
-                if (lastClassNameElementMatchesPenultimatePatternElement(classNameArray, i)) {
-                    return true;
-                } else if (lastClassNameElementMatchesLastPatternElement(classNameArray, i)) {
-                    return true;
-                } else if (!classNameArray[i].equals(segments[i])) {
-                    return false;
-                }
-            }
-            return false;
-        }
-
-        private boolean matchesClass(String fullQualifiedName) {
-            return pattern.matcher(classNameSelector.determineTargetClassName(fullQualifiedName)).matches();
-        }
-
-        private boolean matchesClassAndMethod(String fullQualifiedName, String methodName) {
-            if (methodName == null) {
-                return false;
-            }
-            return pattern.matcher(classNameSelector.determineTargetClassName(fullQualifiedName) + "." + methodName).matches();
-        }
-
-        private boolean lastClassNameElementMatchesPenultimatePatternElement(String[] className, int index) {
-            return index == segments.length - 2 && index == className.length - 1 && classNameMatch(className[index], segments[index]);
-        }
-
-        private boolean lastClassNameElementMatchesLastPatternElement(String[] className,
-            int index) {
-            return index == segments.length - 1 && lastElementMatcher.match(className[index],
-                segments[index]);
-        }
-
-        private boolean patternStartsWithWildcard() {
-            return segments.length == 0;
-        }
-
-        private boolean classNameIsShorterThanPattern(String[] classNameArray) {
-            return classNameArray.length < segments.length - 1;
-        }
-
-        private boolean patternStartsWithUpperCase(String pattern) {
-            return pattern.length() > 0 && Character.isUpperCase(pattern.charAt(0));
-        }
-    }
-
-    private static String getSimpleName(String fullQualifiedName) {
-        String simpleName = substringAfterLast(fullQualifiedName, ".");
-        if ("".equals(simpleName)) {
-            return fullQualifiedName;
-        }
-        return simpleName;
-    }
-
-    // Foo can match both Foo and Foo$NestedClass
-    // https://github.com/gradle/gradle/issues/5763
-    private static boolean classNameMatch(String simpleClassName, String patternSimpleClassName) {
-        if (simpleClassName.equals(patternSimpleClassName)) {
-            return true;
-        } else if (patternSimpleClassName.contains("$")) {
-            return simpleClassName.equals(patternSimpleClassName.substring(0, patternSimpleClassName.indexOf('$')));
-        } else {
-            return false;
-        }
-    }
-
-    private interface LastElementMatcher {
-        boolean match(String classElement, String patternElement);
-    }
-
-    private static class NoWildcardMatcher implements LastElementMatcher {
-        @Override
-        public boolean match(String classElement, String patternElement) {
-            return classNameMatch(classElement, patternElement);
-        }
-    }
-
-    private static class WildcardMatcher implements LastElementMatcher {
-        @Override
-        public boolean match(String classElement, String patternElement) {
-            return classElement.startsWith(patternElement) || classNameMatch(classElement, patternElement);
-        }
-    }
-
-    private interface ClassNameSelector {
-        String determineTargetClassName(String fullQualifiedName);
-    }
-
-    private static class FullQualifiedClassNameSelector implements ClassNameSelector {
-        @Override
-        public String determineTargetClassName(String fullQualifiedName) {
-            return fullQualifiedName;
-        }
-    }
-
-    private static class SimpleClassNameSelector implements ClassNameSelector {
-        @Override
-        public String determineTargetClassName(String fullQualifiedName) {
-            return getSimpleName(fullQualifiedName);
-        }
+        return classTestSelectionMatcher.mayIncludeClass(fullQualifiedClassName);
     }
 }

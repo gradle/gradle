@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
@@ -35,7 +36,7 @@ class JUnit4TestFilteringSamplesIntegrationTest extends AbstractIntegrationSpec 
         run("test")
 
         then:
-        def result = new DefaultTestExecutionResult(sample.dir)
+        def result = new DefaultTestExecutionResult(sample.dir, GenericTestExecutionResult.TestFramework.JUNIT4)
         result.assertTestClassesExecuted("SomeIntegTest", "SomeOtherTest")
         result.testClass("SomeIntegTest").assertTestsExecuted("test1", "test2")
         result.testClass("SomeOtherTest").assertTestsExecuted("quickUiCheck")

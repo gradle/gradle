@@ -47,7 +47,7 @@ class BeanConstructors(
             // Run the `GroovyObjectSupport` constructor, to initialize the metadata field
             return newConstructorForSerialization(beanType, GroovyObjectSupport::class.java.getConstructor())
         } else {
-            return newConstructorForSerialization(beanType, Object::class.java.getConstructor())
+            return newConstructorForSerialization(beanType, Any::class.java.getConstructor())
         }
     }
 

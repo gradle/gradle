@@ -21,6 +21,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
+import org.gradle.util.internal.VersionNumber
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -52,13 +53,13 @@ abstract class UpdateKotlinVersions : AbstractVersionsUpdateTask() {
 
     private
     fun fetchLatestKotlinVersions() =
-        fetchFirstAndLatestsOfEachMinor(
+        fetchAndSelectKotlinVersions(
             minimumSupported.get(),
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/maven-metadata.xml"
         )
 
     private
-    fun fetchFirstAndLatestsOfEachMinor(minimumSupported: String, mavenMetadataUrl: String): List<String> {
+    fun fetchAndSelectKotlinVersions(minimumSupported: String, mavenMetadataUrl: String): List<String> {
         return selectVersionsFrom(minimumSupported, fetchVersionsFromMavenMetadata(mavenMetadataUrl))
     }
 
@@ -66,14 +67,15 @@ abstract class UpdateKotlinVersions : AbstractVersionsUpdateTask() {
         @VisibleForTesting
         @JvmStatic
         fun selectVersionsFrom(minimumSupported: String, allVersions: List<String>): List<String> {
+            require(minimumSupported in allVersions) {
+                "Minimum supported '$minimumSupported' was not found in available versions: $allVersions"
+            }
             val versionsByMinor = allVersions
                 .groupBy { it.take(3) } // e.g. 1.9
                 .toSortedMap()
             val latests = buildList {
                 versionsByMinor.entries.forEachIndexed { idx, entry ->
-                    // Earliest stable of the minor
-                    val versionsOfMinor = entry.value
-                    add(versionsOfMinor.lastOrNull { !it.contains("-") })
+                    val versionsOfMinor = entry.value.sortedByDescending { VersionNumber.parse(it) }
                     if (idx < versionsByMinor.size - 1) {
                         // Latest of the previous minor
                         add(versionsOfMinor.first())

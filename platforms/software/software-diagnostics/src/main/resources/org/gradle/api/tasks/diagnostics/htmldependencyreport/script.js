@@ -110,7 +110,7 @@ function initializeProjectPage(report) {
                 var dependencyNode = createInsightNode(dependency);
                 nodes.push(dependencyNode);
             });
-            $tree.append($('<img>').attr('src', 'throbber.gif')).append('Loading...');
+            $tree.append($('<img>').attr('src', 'images/throbber.gif')).append('Loading...');
             $tree.jstree({
                 json_data : {
                     data : nodes
@@ -157,7 +157,7 @@ function initializeProjectPage(report) {
                     var dependencyNode = createDependencyNode(dependency);
                     nodes.push(dependencyNode);
                 });
-                $tree.append($('<img>').attr('src', 'throbber.gif')).append('Loading...');
+                $tree.append($('<img>').attr('src', 'images/throbber.gif')).append('Loading...');
                 $tree.jstree({
                     json_data : {
                         data : nodes

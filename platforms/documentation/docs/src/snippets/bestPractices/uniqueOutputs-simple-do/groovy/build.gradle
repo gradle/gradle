@@ -1,0 +1,42 @@
+abstract class GreetingTask extends DefaultTask {
+    @Input
+    abstract Property<String> getType()
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+
+    @TaskAction
+    void run() {
+        def outFileName = type.get() + ".txt"
+        def message = "Hello " + type.get()
+        outputDirectory.file(outFileName).get().asFile.text = message
+    }
+}
+
+abstract class ConsumerTask extends DefaultTask {
+    @InputDirectory
+    abstract DirectoryProperty getInputDirectory()
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    @TaskAction
+    void run() {
+        def message = inputDirectory.get().file("a.txt").asFile.text
+        outputFile.get().asFile.write(message)
+    }
+}
+
+// tag::simple-do-this[]
+def greeterA = tasks.register("greeterA", GreetingTask) {
+    type = "a"
+    outputDirectory = layout.buildDirectory.dir("greetings")
+}
+tasks.register("greeterB", GreetingTask) {
+    type = "b"
+    outputDirectory = layout.buildDirectory.dir("greetings-2") // <1>
+}
+// end::simple-do-this[]
+
+tasks.register("consumer", ConsumerTask) {
+    inputDirectory = greeterA.flatMap { it.outputDirectory }
+    outputFile = layout.buildDirectory.file("consumerOutput.txt")
+}

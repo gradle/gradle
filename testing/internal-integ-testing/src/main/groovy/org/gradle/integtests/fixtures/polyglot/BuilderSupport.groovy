@@ -32,22 +32,6 @@ abstract class BuilderSupport {
         target
     }
 
-    static String prettyPrint(String content) {
-        int indent = 0
-        content.split("[\r]?\n").collect { line ->
-            String trim = line.trim()
-            def out
-            if (trim.count("}") > trim.count("{")) {
-                indent--
-            }
-            out = ("    " * indent) + trim
-            if (trim.count("{") > trim.count("}")) {
-                indent++
-            }
-            out
-        }.join("\n")
-    }
-
     static Object unwrap(Object args) {
         if (args == null) {
             return null

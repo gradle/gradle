@@ -23,6 +23,7 @@ import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
@@ -47,6 +48,15 @@ public class DefaultBuildResult implements BuildResult {
     public String getOutput() {
         try {
             return outputSource.asCharSource(Charset.defaultCharset()).read();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public BufferedReader getOutputReader() {
+        try {
+            return outputSource.asCharSource(Charset.defaultCharset()).openBufferedStream();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

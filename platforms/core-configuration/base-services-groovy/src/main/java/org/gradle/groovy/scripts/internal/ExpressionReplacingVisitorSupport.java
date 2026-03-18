@@ -69,6 +69,7 @@ import org.codehaus.groovy.ast.stmt.ThrowStatement;
 import org.codehaus.groovy.ast.stmt.TryCatchStatement;
 import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.classgen.BytecodeExpression;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -77,7 +78,7 @@ import java.util.ListIterator;
  * Groovy AST visitor that allows to replace both statements and expressions.
  */
 public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitorSupport {
-    private Expression replacementExpr;
+    private @Nullable Expression replacementExpr;
 
     /**
      * Visits the given expression, potentially replacing it. If {@link #replaceVisitedExpressionWith(Expression)} is called while visiting the expression,
@@ -107,7 +108,6 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void visitBlockStatement(BlockStatement stat) {
         replaceAll(stat.getStatements());
     }
@@ -138,7 +138,6 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void visitTryCatchFinally(TryCatchStatement stat) {
         stat.setTryStatement(replace(stat.getTryStatement()));
         replaceAll(stat.getCatchStatements());
@@ -146,7 +145,6 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void visitSwitch(SwitchStatement stat) {
         stat.setExpression(replaceExpr(stat.getExpression()));
         replaceAll(stat.getCaseStatements());

@@ -44,7 +44,6 @@ import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
@@ -136,8 +135,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     @UsedByScanPlugin("scan, test-retry")
     ServiceRegistry getServices();
-
-    ServiceRegistryFactory getServiceRegistryFactory();
 
     StandardOutputCapture getStandardOutputCapture();
 
@@ -232,7 +229,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     /**
      * The state of the execution of {@link org.gradle.api.invocation.GradleLifecycle} actions of this project.
      * Its mutation NOT considered a mutable state access.
-     * */
+     */
     @Nullable
     Object getLifecycleActionsState();
 

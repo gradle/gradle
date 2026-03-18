@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.api.BuildCancelledException
-import org.gradle.composite.ResilientIssuesRecorder
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.buildtree.BuildTreeModelController
@@ -30,6 +29,7 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import org.gradle.tooling.provider.model.UnknownModelException
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.util.Path
 import spock.lang.Specification
 
@@ -45,7 +45,6 @@ class DefaultBuildControllerTest extends Specification {
     def buildEventConsumer = Mock(BuildEventConsumer)
     def sideEffectExecutor = Mock(BuildTreeModelSideEffectExecutor)
     def payloadSerializer = Mock(PayloadSerializer)
-    def resilientIssueRecorder = Mock(ResilientIssuesRecorder)
 
     def controller = new DefaultBuildController(
         modelController,
@@ -53,8 +52,7 @@ class DefaultBuildControllerTest extends Specification {
         cancellationToken,
         buildEventConsumer,
         sideEffectExecutor,
-        payloadSerializer,
-        resilientIssueRecorder
+        payloadSerializer
     )
 
     def "cannot get build model from unmanaged thread"() {
@@ -74,7 +72,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        1 * modelController.getModel(_, 'some.model', null) >> { throw failure }
+        1 * modelController.getModel(_, _) >> { throw failure }
 
         when:
         controller.getModel(null, modelId)
@@ -99,13 +97,13 @@ class DefaultBuildControllerTest extends Specification {
     def "uses builder for specified project"() {
         def rootDir = new File("dummy")
         def target = Stub(GradleProjectIdentity)
-        def model = new Object()
+        def model = ToolingModelBuilderResultInternal.of(new Object())
 
         given:
         _ * workerThreadRegistry.workerThread >> true
         _ * target.projectPath >> ":some:path"
         _ * target.rootDir >> rootDir
-        1 * modelController.getModel(_, "some.model", null) >> { BuildTreeModelTarget t, m, p ->
+        1 * modelController.getModel(_, _) >> { BuildTreeModelTarget t, context ->
             assert t.buildRootDir == rootDir && t.projectPath == Path.path(":some:path")
             model
         }
@@ -114,18 +112,18 @@ class DefaultBuildControllerTest extends Specification {
         def result = controller.getModel(target, modelId)
 
         then:
-        result.getModel() == model
+        result.getModel() == model.model
     }
 
     def "uses builder for specified build"() {
         def rootDir = new File("dummy")
         def target = Stub(GradleBuildIdentity)
-        def model = new Object()
+        def model = ToolingModelBuilderResultInternal.of(new Object())
 
         given:
         _ * workerThreadRegistry.workerThread >> true
         _ * target.rootDir >> rootDir
-        1 * modelController.getModel(_, "some.model", null) >> { BuildTreeModelTarget t, m, p ->
+        1 * modelController.getModel(_, _) >> { BuildTreeModelTarget t, context ->
             assert t instanceof BuildTreeModelTarget.Build && t.buildRootDir == rootDir
             model
         }
@@ -134,21 +132,21 @@ class DefaultBuildControllerTest extends Specification {
         def result = controller.getModel(target, modelId)
 
         then:
-        result.getModel() == model
+        result.model == model.model
     }
 
     def "uses builder for default project when none specified"() {
-        def model = new Object()
+        def model = ToolingModelBuilderResultInternal.of(new Object())
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        1 * modelController.getModel(_, "some.model", null) >> model
+        1 * modelController.getModel(_, _) >> model
 
         when:
         def result = controller.getModel(null, modelId)
 
         then:
-        result.getModel() == model
+        result.getModel() == model.model
     }
 
     def "throws an exception when cancel was requested"() {
@@ -165,7 +163,7 @@ class DefaultBuildControllerTest extends Specification {
     }
 
     def "uses parameterized builder when parameter is not null"() {
-        def model = new Object()
+        def model = ToolingModelBuilderResultInternal.of(new Object())
         def parameter = new CustomParameter() {
             @Override
             String getValue() {
@@ -178,13 +176,13 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        1 * modelController.getModel(_, 'some.model', parameter) >> model
+        1 * modelController.getModel(_, _) >> model
 
         when:
         def result = controller.getModel(null, modelId, parameter)
 
         then:
-        result.getModel() == model
+        result.getModel() == model.model
     }
 
     def "runs supplied actions"() {

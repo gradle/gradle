@@ -40,7 +40,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         run "test"
 
         then: "test build operations are emitted in expected hierarchy"
-        def rootTestOp = operations.first(ExecuteTestBuildOperationType)
+        def rootTestOp = operations.all(ExecuteTestBuildOperationType).first()
         rootTestOp.details.testDescriptor.name.startsWith("Gradle Test Run :test")
         rootTestOp.details.testDescriptor.className == null
         rootTestOp.details.testDescriptor.composite == true
@@ -56,7 +56,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         run "test"
 
         then: "test build operations are emitted in expected hierarchy"
-        def rootTestOp = operations.first(ExecuteTestBuildOperationType)
+        def rootTestOp = operations.all(ExecuteTestBuildOperationType).first()
         rootTestOp.details.testDescriptor.name.startsWith("Gradle Test Run :test")
         rootTestOp.details.testDescriptor.className == null
         rootTestOp.details.testDescriptor.composite == true
@@ -75,18 +75,18 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         then: "test build operations are emitted in expected hierarchy"
         def operations = operations.all(ExecuteTestBuildOperationType)
-        operations.size() == 10
-        def rootTestOp = this.operations.first(ExecuteTestBuildOperationType)
+        operations.size() == 12
+        def rootTestOp = operations.first()
         assertJunit(rootTestOp, this.operations)
 
         when:
         run "test", "--rerun-tasks"
 
-        rootTestOp = this.operations.first(ExecuteTestBuildOperationType)
         operations = this.operations.all(ExecuteTestBuildOperationType)
+        rootTestOp = operations.first()
 
         then:
-        operations.size() == 10
+        operations.size() == 12
         assertJunit(rootTestOp, this.operations)
     }
 

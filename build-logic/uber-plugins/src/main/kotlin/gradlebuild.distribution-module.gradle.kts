@@ -1,5 +1,4 @@
 import gradlebuild.configureAsRuntimeJarClasspath
-import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.packaging.tasks.ExtractJavaAbi
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.CompilerPluginConfig
@@ -24,11 +23,10 @@ import org.jetbrains.kotlin.gradle.tasks.BaseKotlinCompile
 
 // Common configuration for everything that belongs to the Gradle distribution
 plugins {
+    id("gradlebuild.minify")
     id("gradlebuild.task-properties-validation")
     id("gradlebuild.dependency-modules")
 }
-
-val libs = project.the<ExternalModulesExtension>()
 
 // Disallow Groovy production code in distribution modules
 pluginManager.withPlugin("groovy") {
@@ -76,8 +74,9 @@ pluginManager.withPlugin("gradlebuild.kotlin-library") {
         configureAsRuntimeJarClasspath(objects)
     }
 
+    val libs = project.versionCatalogs.named("libs")
     dependencies {
-        apiGenDependencies(libs.kotlinJvmAbiGenEmbeddable)
+        apiGenDependencies(libs.findLibrary("kotlinJvmAbiGenEmbeddable").get())
     }
 
     val abiClassesDirectory = layout.buildDirectory.dir("generated/kotlin-abi")

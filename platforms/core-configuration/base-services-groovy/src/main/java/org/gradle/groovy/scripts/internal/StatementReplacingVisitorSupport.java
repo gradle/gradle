@@ -22,6 +22,7 @@ import java.util.ListIterator;
 import org.codehaus.groovy.ast.ClassCodeVisitorSupport;
 import org.codehaus.groovy.ast.stmt.*;
 import org.codehaus.groovy.control.SourceUnit;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adds the ability to replace statements.
@@ -31,7 +32,7 @@ import org.codehaus.groovy.control.SourceUnit;
 // the assumption that it always references a BlockStatement and hence our
 // visitBlockStatement() method gets called.
 public abstract class StatementReplacingVisitorSupport extends ClassCodeVisitorSupport {
-  private Statement replacement;
+  private @Nullable Statement replacement;
 
   /**
    * Visits the specified statement. If the statement's visit method calls
@@ -65,7 +66,6 @@ public abstract class StatementReplacingVisitorSupport extends ClassCodeVisitorS
     replacement = other;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public void visitBlockStatement(BlockStatement stat) {
     replaceAll(stat.getStatements());
@@ -96,7 +96,6 @@ public abstract class StatementReplacingVisitorSupport extends ClassCodeVisitorS
     stat.setElseBlock(replace(stat.getElseBlock()));
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public void visitTryCatchFinally(TryCatchStatement stat) {
     stat.setTryStatement(replace(stat.getTryStatement()));
@@ -104,7 +103,6 @@ public abstract class StatementReplacingVisitorSupport extends ClassCodeVisitorS
     stat.setFinallyStatement(replace(stat.getFinallyStatement()));
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public void visitSwitch(SwitchStatement stat) {
     stat.getExpression().visit(this);

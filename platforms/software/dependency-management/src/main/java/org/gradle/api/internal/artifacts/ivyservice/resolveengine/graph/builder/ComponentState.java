@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -176,15 +176,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return componentIdentifier;
     }
 
-    /**
-     * Restarts all incoming edges for this component, queuing them up for processing.
-     */
-    public void restartIncomingEdges(ComponentState selected) {
-        for (NodeState node : nodes) {
-            node.restart(selected);
-        }
-    }
-
     public void setSelectors(ModuleSelectors<SelectorState> selectors) {
         this.selectors = selectors;
     }
@@ -227,6 +218,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         graphResolveState = result.getGraphState();
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private boolean tryResolveVirtualPlatform() {
         if (module.isVirtualPlatform()) {
             for (ComponentState version : module.getAllVersions()) {
@@ -254,27 +246,32 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         nodes.add(node);
     }
 
-    private ComponentSelectionReason cachedReason;
+    private @Nullable ComponentSelectionReasonInternal cachedReason;
 
     @Override
-    public ComponentSelectionReason getSelectionReason() {
+    public ComponentSelectionReasonInternal getSelectionReason() {
+        if (cachedReason == null) {
+            cachedReason = computeReason();
+        }
+        return cachedReason;
+    }
+
+    private ComponentSelectionReasonInternal computeReason() {
         if (root) {
             return ComponentSelectionReasons.root();
         }
-        if (cachedReason != null) {
-            return cachedReason;
-        }
-        ComponentSelectionReasonInternal reason = ComponentSelectionReasons.empty();
-        for (final SelectorState selectorState : module.getSelectors()) {
+
+        ImmutableSet.Builder<ComponentSelectionDescriptorInternal> builder = ImmutableSet.builder();
+        for (SelectorState selectorState : module.getSelectors()) {
             if (selectorState.getFailure() == null) {
-                selectorState.addReasonsForSelector(reason);
+                selectorState.visitSelectionReasons(builder::add);
             }
         }
-        for (ComponentSelectionDescriptorInternal selectionCause : VersionConflictResolutionDetails.mergeCauses(selectionCauses)) {
-            reason.addCause(selectionCause);
-        }
-        cachedReason = reason;
-        return reason;
+
+        module.visitAllIncomingEdges(incomingEdge -> incomingEdge.visitSelectionReasons(builder::add));
+
+        builder.addAll(VersionConflictResolutionDetails.mergeCauses(selectionCauses));
+        return ComponentSelectionReasons.of(builder.build());
     }
 
     boolean hasStrongOpinion() {
@@ -290,6 +287,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     public void setRoot() {
         this.root = true;
+    }
+
+    public boolean isRoot() {
+        return root;
     }
 
     @Override
@@ -392,12 +393,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public VirtualPlatformState getPlatformState() {
         return module.getPlatformState();
-    }
-
-    public void removeOutgoingEdges() {
-        for (NodeState node : getNodes()) {
-            node.deselect();
-        }
     }
 
     /**

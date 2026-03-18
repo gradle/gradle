@@ -16,22 +16,34 @@
 
 package org.gradle.internal.logging.sink;
 
+import org.fusesource.jansi.AnsiPrintStream;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
+import org.gradle.internal.logging.console.ProgressBar;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.nativeintegration.console.UnicodeProxyConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Supplier;
 
 public class ConsoleConfigureAction {
-    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
-        execute(renderer, consoleOutput, getConsoleMetaData(), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
+
+    private ConsoleConfigureAction() {
+    }
+
+    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleUnicodeSupport consoleUnicodeSupport) {
+        execute(renderer, consoleOutput, getConsoleMetaData(consoleUnicodeSupport), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
     }
 
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata, OutputStream stdout, OutputStream stderr) {
@@ -46,30 +58,62 @@ public class ConsoleConfigureAction {
         } else if (consoleOutput == ConsoleOutput.Colored) {
             configureColoredConsole(renderer, consoleMetadata, stdout, stderr);
         }
+
+        registerTaskbarReset(consoleMetadata, stdout);
     }
 
-    private static ConsoleMetaData getConsoleMetaData() {
+    private static void registerTaskbarReset(ConsoleMetaData consoleMetadata, OutputStream stdout) {
+        String reset = ProgressBar.buildTaskbarProgressResetSequence(consoleMetadata);
+        if (!reset.isEmpty()) {
+            try {
+                byte[] resetBytes = reset.getBytes(StandardCharsets.UTF_8);
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    try {
+                        stdout.write(resetBytes);
+                        stdout.flush();
+                    } catch (IOException ignored) {
+                        //ignore
+                    }
+                }, "taskbar-progress-reset"));
+            } catch (SecurityException | IllegalStateException ignored) {
+                // Unable to register shutdown hook; proceed without it
+            }
+        }
+    }
+
+    public static ConsoleMetaData createProxyingConsoleMetaData(ConsoleMetaData metaData, ConsoleUnicodeSupport consoleUnicodeSupport) {
+        switch (consoleUnicodeSupport) {
+            case Auto:
+                return metaData;
+            case Disable:
+                return new UnicodeProxyConsoleMetaData.FixedUnicodeSupport(metaData, false);
+            case Enable:
+            default:
+                return new UnicodeProxyConsoleMetaData.FixedUnicodeSupport(metaData, true);
+        }
+    }
+
+    private static ConsoleMetaData getConsoleMetaData(ConsoleUnicodeSupport consoleUnicodeSupport) {
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
         ConsoleMetaData metaData = consoleDetector.getConsole();
-        if (metaData != null) {
-            return metaData;
-        }
-        return FallbackConsoleMetaData.NOT_ATTACHED;
+        return createProxyingConsoleMetaData(
+            metaData != null ? metaData : FallbackConsoleMetaData.NOT_ATTACHED,
+            consoleUnicodeSupport);
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
-            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, false);
-        } else if (consoleMetaData.isStdOut()) {
+        } else if (consoleMetaData.isStdOutATerminal()) {
             // Write rich content to stdout and plain content to stderr
-            Console stdoutConsole = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdoutConsole, stderr, consoleMetaData, false);
-        } else if (consoleMetaData.isStdErr()) {
+        } else if (consoleMetaData.isStdErrATerminal()) {
             // Write plain content to stdout and rich content to stderr
-            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdout, stderrConsole, true);
         } else {
             renderer.addPlainConsole(stdout, stderr);
@@ -77,7 +121,7 @@ public class ConsoleConfigureAction {
     }
 
     private static void configurePlainConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
             renderer.addPlainConsoleWithErrorOutputOnStdout(stdout);
@@ -87,38 +131,67 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureColoredConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
-            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addColoredConsoleWithErrorOutputOnStdout(console);
         } else {
             // Write colored content to both stdout and stderr
-            Console stdoutConsole = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
-            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
+            Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
             renderer.addColoredConsole(stdoutConsole, stderrConsole);
         }
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
-            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, verbose);
         } else {
             // Write rich content to both stdout and stderr
-            Console stdoutConsole = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
-            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
+            Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdoutConsole, stderrConsole, consoleMetaData, verbose);
         }
     }
 
-    private static Console consoleFor(OutputStream stdout, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+    private static Console consoleFor(OutputStream stream, Supplier<OutputStream> jansiFallback, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
         boolean force = !consoleMetaData.isWrapStreams();
-        OutputStreamWriter outStr = new OutputStreamWriter(force ? stdout : AnsiConsoleUtil.wrapOutputStream(stdout), Charset.defaultCharset());
-        return new AnsiConsole(outStr, outStr, colourMap, consoleMetaData, force);
+
+        // Use UTF-8 when terminal supports Unicode, otherwise use default charset
+        Charset charset = consoleMetaData.supportsUnicode()
+            ? StandardCharsets.UTF_8
+            : Charset.defaultCharset();
+
+        OutputStreamWriter writer = new OutputStreamWriter(force ? stream : jansiFallback.get(), charset);
+        return new AnsiConsole(writer, writer, colourMap, consoleMetaData, force);
+    }
+
+    private static Console consoleForStdOut(OutputStream stdout, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+        return consoleFor(stdout, () -> installJansiStream(org.fusesource.jansi.AnsiConsole.out()), consoleMetaData, colourMap);
+    }
+
+    private static Console consoleForStdErr(OutputStream stderr, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+        return consoleFor(stderr, () -> installJansiStream(org.fusesource.jansi.AnsiConsole.err()), consoleMetaData, colourMap);
+    }
+
+    /**
+     * If any changes are made to the use of JANSI here, try out gradle on a windows CMD.EXE terminal.
+     *
+     * @return the installed ansiPrintStream
+     */
+    private static OutputStream installJansiStream(AnsiPrintStream ansiPrintStream) {
+        try {
+            ansiPrintStream.install();
+        } catch (IOException e) {
+            // compiler appeasement, no exception should be thrown according to the jansi code
+            throw new UncheckedIOException(e);
+        }
+        return ansiPrintStream;
     }
 }

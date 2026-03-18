@@ -83,9 +83,9 @@ public abstract class ProblemId {
     /**
      * Creates a new problem id.
      *
-     * @param name the name of the problem. The convention is to use kebab-case (ie lower case with hyphens).
-     * @param displayName the user-friendly display name of the problem
-     * @param group the group to which the problem belongs
+     * @param name the name of the problem. The convention is to use kebab-case (ie lower case with hyphens). Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
+     * @param displayName the user-friendly display name of the problem. Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
+     * @param group the group to which the problem belongs. Cannot be null.
      * @return the new problem id
      * @since 8.13
      */

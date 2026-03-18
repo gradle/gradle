@@ -33,10 +33,7 @@ class GitHubMergeQueueCheckPass(
         if (!VersionedSettingsBranch.fromDslContext().isExperimental) {
             triggers.vcs {
                 quietPeriodMode = VcsTrigger.QuietPeriodMode.DO_NOT_USE
-                branchFilter = """
-+:gh-readonly-queue/${model.branch.branchName}/*
-+:${model.branch.branchName}
-"""
+                branchFilter = determineBranchFilter(listOf("gh-readonly-queue/${model.branch.branchName}/*", model.branch.branchName))
             }
         }
 

@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.util.internal.ConfigureUtil
@@ -67,14 +67,6 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         }
     }
 
-    boolean isHasResults() {
-        !testClasses.isEmpty()
-    }
-
-    boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
-        testClasses[classId]?.outputEvents?.find { it.testOutputEvent.destination == destination }
-    }
-
     @Override
     boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
         testClasses[classId]?.outputEvents?.find { it.testId == testId && it.testOutputEvent.destination == destination }
@@ -98,7 +90,7 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         Map<String, Integer> methodCounter = [:]
 
         BuildableTestClassResult(long id, String className, long startTime) {
-            super(id, className, startTime)
+            super(id, className, className, startTime, [])
         }
 
         BuildableTestMethodResult testcase(String name, @DelegatesTo(value = BuildableTestMethodResult, strategy = Closure.DELEGATE_FIRST) Closure configClosure = {}) {
@@ -127,8 +119,6 @@ class BuildableTestResultsProvider implements TestResultsProvider {
     }
 
     static class BuildableTestMethodResult extends TestMethodResult {
-
-        long duration
         List<SerializableFailure> failures = []
 
         SerializableFailure assumptionFailure = null
@@ -138,10 +128,8 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         private final List<BuildableOutputEvent> outputEvents
 
         BuildableTestMethodResult(long id, String name, List<BuildableOutputEvent> outputEvents, TestResult result) {
-            super(id, name)
-            completed(result)
+            super(id, name, name, result.resultType, result.endTime-result.startTime, result.endTime, [])
             this.outputEvents = outputEvents
-            duration = result.endTime - result.startTime;
         }
 
         void failure(String message, String stackTrace) {

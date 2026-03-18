@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
-import java.util.Collection;
+import com.google.common.collect.Streams;
+
 import java.util.stream.Collectors;
 
 class ExcludeJsonHelper {
-    static String toJson(Collection<?> objects) {
-        return objects.stream()
+    static String toJson(Iterable<?> objects) {
+        return Streams.stream(objects)
             .map(o -> "\"" + o + "\"")
             .collect(Collectors.joining(", "));
     }

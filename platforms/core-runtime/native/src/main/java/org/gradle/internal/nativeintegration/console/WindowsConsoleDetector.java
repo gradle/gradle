@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.console;
 
-import org.fusesource.jansi.WindowsAnsiPrintStream;
+import org.fusesource.jansi.io.WindowsAnsiProcessor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,8 +27,17 @@ public class WindowsConsoleDetector implements ConsoleDetector {
     public ConsoleMetaData getConsole() {
         // Use Jansi's detection mechanism
         try {
-            new WindowsAnsiPrintStream(new PrintStream(new ByteArrayOutputStream()));
-            return FallbackConsoleMetaData.ATTACHED;
+            new WindowsAnsiProcessor(new PrintStream(new ByteArrayOutputStream()), true);
+            boolean disableUnicodeSupportDetection = NativePlatformConsoleDetector.isWindowsWithNonUnicodeCodePage();
+            return new UnicodeProxyConsoleMetaData(FallbackConsoleMetaData.ATTACHED) {
+                @Override
+                public boolean supportsUnicode() {
+                    if (disableUnicodeSupportDetection) {
+                        return false;
+                    }
+                    return metaData.supportsUnicode();
+                }
+            };
         } catch (IOException ignore) {
             // Not attached to a console
             return null;

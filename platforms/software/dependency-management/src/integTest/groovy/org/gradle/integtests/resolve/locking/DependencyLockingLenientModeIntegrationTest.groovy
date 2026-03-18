@@ -59,7 +59,6 @@ dependencies {
         succeeds 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.1") {
@@ -108,7 +107,6 @@ dependencies {
         succeeds 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.1") {
@@ -157,7 +155,6 @@ dependencies {
         succeeds 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.0")
@@ -204,7 +201,6 @@ dependencies {
         succeeds 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.0")
@@ -245,7 +241,6 @@ configurations {
         succeeds 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(":", ":depLock:") {
                 // Empty result

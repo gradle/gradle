@@ -157,9 +157,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             inputs.dir(extension.getUserManual().getSnippets())
                 .withPropertyName("snippets")
                 .withPathSensitivity(PathSensitivity.RELATIVE);
-            inputs.dir(extension.getUserManual().getSamples())
-                .withPropertyName("samples")
-                .withPathSensitivity(PathSensitivity.RELATIVE);
 
             // Styles are copied into the staged tree so Asciidoctor can use a simple relative path
             Provider<Directory> stylesDir = extension.getUserManual().getStagedDocumentation().dir("css");
@@ -193,21 +190,14 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("javadocReferenceUrl", "https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html");
             // TODO: This is coupled to extension.getJavadocs().getJavaApi()
             attributes.put("minJdkVersion", "17");
-
             attributes.put("antManual", "https://ant.apache.org/manual");
             attributes.put("docsUrl", "https://docs.gradle.org");
-
             // Versioned attributes (used by links and banners in the manual)
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());
             attributes.put("gradleVersion90", "9.0.0");
-            attributes.put("gradleVersion8", "8.14.3");
-
-            // Paths inside the staged tree for snippet/sample inclusion
+            attributes.put("gradleVersion8", "8.14.4");
             attributes.put("snippetsPath", "snippets");
-            // Make sure the 'raw' location of the samples is available in all AsciidoctorTasks to access files with expected outputs in the 'tests' folder for inclusion in READMEs
-            attributes.put("samplesPath", extension.getUserManual().getStagingRoot().dir("raw/samples").get().getAsFile());
-
             task.attributes(attributes);
         });
 
@@ -238,15 +228,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.exclude("**/build/**");
                 sub.setIncludeEmptyDirs(false);
             });
-            task.from(extension.getUserManual().getSamples(), sub -> {
-                sub.into("samples");
-                sub.exclude("**/*.adoc");
-                sub.exclude("**/.gradle/**");
-                sub.exclude("**/build/**");
-                sub.setIncludeEmptyDirs(false);
-            });
-
-            // Static assets: css + images
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
             task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
                 sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
@@ -283,6 +264,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             task.sources(patternSet -> {
                 patternSet.include("**/*.adoc");
+                patternSet.include("**/*.js");
                 patternSet.exclude("javaProject*Layout.adoc");
                 patternSet.exclude("userguide_single.adoc");
                 patternSet.exclude("snippets/**/*.adoc");
@@ -295,10 +277,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("icons", "font");
-            configureCodeHighlightingAttributes(attributes);
             attributes.put("toc", "auto");
-            attributes.put("toclevels", 1);
-            attributes.put("toc-title", "Contents");
+            attributes.put("toclevels", 2);
+            attributes.put("toc-title", "On this Page");
             attributes.put("groovyDslPath", "../dsl");
             attributes.put("javadocPath", "../javadoc");
             attributes.put("kotlinDslPath", "../kotlin-dsl");
@@ -324,6 +305,10 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
                 sub.into("img");
             });
+            task.from(extension.getUserManual().getRoot().dir("js"), sub -> {
+                sub.include("**/*.js");
+                sub.into("js");
+            });
         });
 
         // Wire conventions/defaults for the userManual section of the extension
@@ -332,9 +317,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             userManual.getStagingRoot().convention(extension.getStagingRoot().dir("usermanual"));
             // TODO: These should be generated too
             userManual.getSnippets().convention(layout.getProjectDirectory().dir("src/snippets"));
-            userManual.getSamples().convention(layout.getProjectDirectory().dir("src/samples"));
-
-            // Expose the flattened "raw" Asciidoc directory to downstream tasks
             userManual.getStagedDocumentation().convention(userguideFlattenSources.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
 
             // Final rendered documentation directory (multi/single page) that stageDocs uses later
@@ -342,14 +324,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
     }
 
-    /** Common Asciidoctor attributes for code highlighting across tasks. */
-    private static void configureCodeHighlightingAttributes(Map<String, Object> attributes) {
-        attributes.put("source-highlighter", "highlight.js");
-        //attributes.put("highlightjs-theme", "atom-one-dark");
-        attributes.put("highlightjs-languages", "java,groovy,kotlin,toml,gradle,properties,text");
-    }
-
-    /** Configures the single-page user guide renderer (userguide_single.adoc). */
     private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension, Project project) {
         task.setGroup("documentation");
         task.dependsOn(extension.getUserManual().getStagedDocumentation());
@@ -361,7 +335,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
 
         Map<String, Object> attributes = new HashMap<>();
-        configureCodeHighlightingAttributes(attributes);
         attributes.put("toc", "macro");
         attributes.put("toclevels", 2);
 
@@ -370,7 +343,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         String versionUrl = DOCS_GRADLE_ORG + project.getVersion();
         attributes.put("groovyDslPath", versionUrl + "/dsl");
         attributes.put("javadocPath", versionUrl + "/javadoc");
-        attributes.put("samplesPath", versionUrl + "/samples");
         attributes.put("kotlinDslPath", versionUrl + "/kotlin-dsl");
         // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
         // TODO: This breaks the provider
@@ -385,7 +357,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation()); // working/usermanual/raw/
             task.getJavadocRoot().convention(layout.getBuildDirectory().dir("javadoc"));
             task.getReleaseNotesFile().convention(layout.getProjectDirectory().file("src/docs/release/notes.md"));
-            task.getSamplesRoot().convention(layout.getBuildDirectory().dir("working/samples/docs"));
             task.dependsOn(tasks.named("javadocAll"));
             task.dependsOn(tasks.named("assembleSamples"));
         });

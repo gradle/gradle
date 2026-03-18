@@ -41,13 +41,18 @@ import java.util.Map;
 public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject {
 
     public enum Location {
-        BeforeConvention, AfterConvention
+        BeforeConventionNotInherited, BeforeConvention, AfterConvention
     }
 
     private final AbstractDynamicObject dynamicDelegate;
+    @Nullable
     private DynamicObject parent;
     private final DefaultExtensionContainer extensionContainer;
+    @Nullable
+    private DynamicObject beforeConventionNotInherited;
+    @Nullable
     private DynamicObject beforeConvention;
+    @Nullable
     private DynamicObject afterConvention;
     private final DynamicObject extraPropertiesDynamicObject;
 
@@ -72,16 +77,17 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     }
 
     private void updateDelegates() {
-        DynamicObject[] delegates = new DynamicObject[6];
+        DynamicObject[] delegates = new DynamicObject[7];
         delegates[0] = dynamicDelegate;
         delegates[1] = extraPropertiesDynamicObject;
         int idx = 2;
+        if (beforeConventionNotInherited != null) {
+            delegates[idx++] = beforeConventionNotInherited;
+        }
         if (beforeConvention != null) {
             delegates[idx++] = beforeConvention;
         }
-        if (extensionContainer != null) {
-            delegates[idx++] = extensionContainer.getExtensionsAsDynamicObject();
-        }
+        delegates[idx++] = extensionContainer.getExtensionsAsDynamicObject();
         if (afterConvention != null) {
             delegates[idx++] = afterConvention;
         }
@@ -122,11 +128,12 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         return extensionContainer.getExtraProperties();
     }
 
+    @Nullable
     public DynamicObject getParent() {
         return parent;
     }
 
-    public void setParent(DynamicObject parent) {
+    public void setParent(@Nullable DynamicObject parent) {
         this.parent = parent;
         updateDelegates();
     }
@@ -137,6 +144,9 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     public void addObject(DynamicObject object, Location location) {
         switch (location) {
+            case BeforeConventionNotInherited:
+                beforeConventionNotInherited = object;
+                break;
             case BeforeConvention:
                 beforeConvention = object;
                 break;
@@ -217,6 +227,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
+        @Nullable
         public Object getProperty(String name) {
             return snapshotInheritable().getProperty(name);
         }
@@ -242,6 +253,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
+        @Nullable
         public Object invokeMethod(String name, @Nullable Object... arguments) {
             return snapshotInheritable().invokeMethod(name, arguments);
         }

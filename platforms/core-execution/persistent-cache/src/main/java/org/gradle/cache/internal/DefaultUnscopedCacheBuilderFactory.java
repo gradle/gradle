@@ -16,6 +16,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.FineGrainedCacheBuilder;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 
 import java.io.File;
@@ -32,4 +33,8 @@ public class DefaultUnscopedCacheBuilderFactory implements UnscopedCacheBuilderF
         return new DefaultCacheBuilder(factory, baseDir);
     }
 
+    @Override
+    public FineGrainedCacheBuilder fineGrainedCache(File baseDir) {
+        return new DefaultFineGrainedCacheBuilder(factory, baseDir);
+    }
 }

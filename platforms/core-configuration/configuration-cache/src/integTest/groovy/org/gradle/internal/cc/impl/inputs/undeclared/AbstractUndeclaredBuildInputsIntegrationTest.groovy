@@ -24,7 +24,7 @@ import static org.gradle.internal.cc.impl.inputs.undeclared.FileUtils.testFileNa
 import static org.gradle.internal.cc.impl.inputs.undeclared.FileUtils.testFilePath
 
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    
+
     private static String sysProp = 'BUILD_MOJO' // using something unlikely to be used by libraries, to avoid conflicts
 
     abstract void buildLogicApplication(BuildInputRead read)
@@ -44,7 +44,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         then:
         configurationCache.assertStateStored()
-        // TODO - use problems configurationCache, need to be able to ignore problems from the Kotlin plugin
         problems.assertResultHasProblems(result) {
             withInput("$location: system property '$sysProp'")
             ignoringUnexpectedInputs()
@@ -57,7 +56,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         then:
         configurationCache.assertStateLoaded()
-        problems.assertResultHasProblems(result)
         outputDoesNotContain("apply =")
         outputContains("task = $value")
 
@@ -66,7 +64,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         then: 'undeclared properties are considered build inputs'
         configurationCache.assertStateStored()
-        problems.assertResultHasProblems(result)
         outputContains("apply = $newValue")
         outputContains("task = $newValue")
 
@@ -130,7 +127,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         then:
         configurationCache.assertStateLoaded()
-        problems.assertResultHasProblems(result)
         outputDoesNotContain("apply =")
         outputContains("task = $value")
 
@@ -140,7 +136,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         then: 'undeclared properties are considered build inputs'
         configurationCache.assertStateStored()
-        problems.assertResultHasProblems(result)
         outputContains("apply = $newValue")
         outputContains("task = $newValue")
 

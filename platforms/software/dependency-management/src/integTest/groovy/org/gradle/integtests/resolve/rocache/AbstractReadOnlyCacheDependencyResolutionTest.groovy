@@ -127,19 +127,18 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
 
     private void configureResolveTestFixture() {
         def config = 'compileClasspath'
-        resolve = new ResolveTestFixture(buildFile, config)
-        resolve.prepare()
-        resolve.expectDefaultConfiguration("api")
+        resolve = new ResolveTestFixture(testDirectory)
         buildFile << """
-            allprojects {
-                tasks.named("checkDeps") {
-                    def outputFile = rootProject.file("\${rootProject.buildDir}/${config}-files.txt")
-                    def files = configurations.${config}
-                    doLast {
-                        outputFile.withWriter { wrt ->
-                            files.each { f ->
-                                wrt.println("\${f.name}: \${f.toURI()}")
-                            }
+            ${resolve.configureProject(config)}
+            tasks.register("resolveArtifacts") {
+                def outputFile = file("\${buildDir}/${config}-files.txt")
+                outputs.file(outputFile)
+                def files = configurations.${config}
+                dependsOn(files)
+                doLast {
+                    outputFile.withWriter { wrt ->
+                        files.each { f ->
+                            wrt.println("\${f.name}: \${f.toURI()}")
                         }
                     }
                 }
@@ -149,7 +148,7 @@ abstract class AbstractReadOnlyCacheDependencyResolutionTest extends AbstractHtt
 
     Map<String, File> getResolvedArtifacts() {
         Map<String, File> result = [:]
-        file("build/${resolve.config}-files.txt").eachLine {
+        file("build/compileClasspath-files.txt").eachLine {
             String[] spl = it.split(': ')
             result[spl[0]] = new File(new URI(spl[1]))
         }

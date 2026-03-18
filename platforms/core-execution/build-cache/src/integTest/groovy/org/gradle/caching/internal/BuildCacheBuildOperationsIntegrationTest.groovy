@@ -188,7 +188,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         """
         def failureMessage = "${exceptionType.name}: !"
 
-        executer.withStackTraceChecksDisabled()
         succeeds("t")
 
         then:
@@ -232,7 +231,6 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
 
-        executer.withStackTraceChecksDisabled()
         succeeds("t")
 
         then:

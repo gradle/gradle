@@ -270,7 +270,8 @@ class UpgradedPropertiesChangesTest : AbstractBinaryCompatibilityTest() {
                 "Method com.example.TaskInterface.getFailOnError(): Is not annotated with @since 2.0. Reason for accepting this: Upgraded property" to listOf("Method added to interface"),
                 "Method com.example.TaskInterface.getIsFailOnError(): Is not annotated with @Incubating. Reason for accepting this: Upgraded property" to listOf("Method now provides default implementation"),
                 "Method com.example.TaskInterface.getIsFailOnError(): Is not annotated with @since 2.0. Reason for accepting this: Upgraded property" to listOf("Method now provides default implementation"),
-                "Method com.example.TaskInterface.getIsFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method now provides default implementation"),
+                // see https://github.com/siom79/japicmp/issues/289
+                // "Method com.example.TaskInterface.getIsFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method now provides default implementation"),
                 "Method com.example.TaskInterface.isFailOnError(): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed"),
                 "Method com.example.TaskInterface.setFailOnError(boolean): Is not binary compatible. Reason for accepting this: Upgraded property" to listOf("Method has been removed")
             )

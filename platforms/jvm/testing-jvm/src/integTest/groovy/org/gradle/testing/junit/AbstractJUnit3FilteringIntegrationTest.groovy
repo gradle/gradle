@@ -17,6 +17,7 @@
 
 package org.gradle.testing.junit
 
+
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
@@ -44,7 +45,7 @@ abstract class AbstractJUnit3FilteringIntegrationTest extends AbstractTestingMul
         succeeds("test", "--tests", "FooTest.testPass")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.assertTestClassesExecuted("FooTest")
         result.testClass("FooTest").assertTestsExecuted("testPass")
 

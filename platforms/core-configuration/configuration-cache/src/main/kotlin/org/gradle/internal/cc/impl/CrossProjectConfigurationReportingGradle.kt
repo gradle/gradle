@@ -39,6 +39,7 @@ import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
@@ -291,6 +292,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun getSharedServices(): BuildServiceRegistry =
         delegate.sharedServices
+
+    override fun getProviders(): ProviderFactory =
+        delegate.providers
 
     override fun getIncludedBuilds(): MutableCollection<IncludedBuild> =
         delegate.includedBuilds

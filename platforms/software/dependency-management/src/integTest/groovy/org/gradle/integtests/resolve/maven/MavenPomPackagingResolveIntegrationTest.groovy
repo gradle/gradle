@@ -46,7 +46,7 @@ dependencies {
 task deleteDir(type: Delete) {
     delete 'libs'
 }
-task retrieve(type: Copy, dependsOn: deleteDir) {
+task retrieve(type: Copy, dependsOn: tasks.deleteDir) {
     into 'libs'
     from configurations.compile
 }

@@ -100,7 +100,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
-                        .withDebug($debug)
+                        .withDebug($embedded)
                         .build()
 
                     then:
@@ -145,7 +145,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                         .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
                         .withPluginClasspath(pluginClasspath)
-                        .withDebug($debug)
+                        .withDebug($embedded)
                         .build()
 
                     then:

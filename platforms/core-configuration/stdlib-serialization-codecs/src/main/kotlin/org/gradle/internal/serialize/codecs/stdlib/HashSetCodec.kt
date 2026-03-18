@@ -98,4 +98,4 @@ object CircularReferenceMarker {
 
 private
 fun Class<*>.overridesHashCode(): Boolean =
-    getMethod("hashCode").declaringClass !== java.lang.Object::class.java
+    getMethod("hashCode").declaringClass !== Any::class.java

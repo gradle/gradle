@@ -55,7 +55,6 @@ import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
@@ -63,7 +62,6 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultGradleSpec extends Specification {
-    ServiceRegistryFactory serviceRegistryFactory = Stub(ServiceRegistryFactory)
     ListenerManager listenerManager = Spy(TestListenerManager)
 
     BuildState build = Mock(BuildState)
@@ -80,7 +78,6 @@ class DefaultGradleSpec extends Specification {
 
     def setup() {
         def serviceRegistry = Stub(ServiceRegistry)
-        _ * serviceRegistryFactory.createFor(_) >> serviceRegistry
         _ * serviceRegistry.get(ClassLoaderScopeRegistry) >> Mock(ClassLoaderScopeRegistry)
         _ * serviceRegistry.get(FileResolver) >> Mock(FileResolver)
         _ * serviceRegistry.get(ScriptHandler) >> Mock(ScriptHandler)
@@ -106,7 +103,7 @@ class DefaultGradleSpec extends Specification {
             }
         }
 
-        gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, build, parameter, serviceRegistryFactory)
+        gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, build, parameter, serviceRegistry)
     }
 
     def "uses gradle version"() {

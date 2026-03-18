@@ -22,7 +22,8 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.extensions.core.getInternalFlag
-import org.gradle.internal.extensions.core.getInternalString
+import org.gradle.internal.extensions.core.getString
+import org.gradle.internal.extensions.core.getStringOrNull
 import org.gradle.internal.file.FileSystem
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -43,13 +44,13 @@ class DefaultEncryptionService(
 ) : EncryptionService {
 
     private
-    val encryptionRequestedOption: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.encryption", true)
+    val encryptionRequestedOption: Boolean = options.getInternalFlag("org.gradle.internal.configuration-cache.encryption", true)
 
     private
-    val keystoreDirOption: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
+    val keystoreDirOption: String? = options.getStringOrNull("org.gradle.internal.configuration-cache.key-store-dir")
 
     private
-    val encryptionAlgorithmOption: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
+    val encryptionAlgorithmOption: String = options.getString("org.gradle.internal.configuration-cache.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
 
     private
     val secretKey: SecretKey? by lazy {

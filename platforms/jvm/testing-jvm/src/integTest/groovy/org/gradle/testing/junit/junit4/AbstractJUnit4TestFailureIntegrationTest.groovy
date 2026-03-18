@@ -70,5 +70,4 @@ abstract class AbstractJUnit4TestFailureIntegrationTest extends AbstractJUnitTes
         return "java.lang.AssertionError"
     }
 
-
 }

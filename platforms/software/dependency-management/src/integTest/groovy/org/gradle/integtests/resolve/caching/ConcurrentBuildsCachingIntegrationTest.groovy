@@ -61,15 +61,15 @@ task block1 {
         ${blockingServer.callFromBuild("block1")}
     }
 }
-block1.mustRunAfter a
-b.mustRunAfter block1
+tasks.block1.mustRunAfter tasks.a
+tasks.b.mustRunAfter tasks.block1
 
 task block2 {
     doLast {
         ${blockingServer.callFromBuild("block2")}
     }
 }
-block2.mustRunAfter b
+tasks.block2.mustRunAfter tasks.b
 """
         // Ensure scripts are compiled
         run("help")

@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import checkAllMetadataInClasspath
 import org.gradle.api.Project
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
@@ -92,6 +93,7 @@ class ResidualProgramCompiler(
     private val implicitImports: List<String> = emptyList(),
     private val logger: Logger = interpreterLogger,
     private val temporaryFileProvider: TemporaryFileProvider,
+    private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null,
@@ -708,25 +710,28 @@ class ResidualProgramCompiler(
         scriptDefinition: ScriptDefinition,
         stage: String,
         compileClassPath: ClassPath = classPath
-    ) = InternalName.from(
-        compileBuildOperationRunner(originalPath, stage) {
-            compileKotlinScriptToDirectory(
-                outputDir,
-                compilerOptions,
-                scriptFile,
-                scriptDefinition,
-                compileClassPath.asFiles,
-                logger
-            ) { path ->
-                if (path == scriptFile.path) originalPath
-                else path
+    ): InternalName {
+        return InternalName.from(
+            compileBuildOperationRunner(originalPath, stage) {
+                checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
+                compileKotlinScriptToDirectory(
+                    outputDir,
+                    compilerOptions,
+                    scriptFile,
+                    scriptDefinition,
+                    compileClassPath.asFiles,
+                    logger
+                ) { path ->
+                    if (path == scriptFile.path) originalPath
+                    else path
+                }
+            }.let { compiledScriptClassName ->
+                packageName
+                    ?.let { "$it.$compiledScriptClassName" }
+                    ?: compiledScriptClassName
             }
-        }.let { compiledScriptClassName ->
-            packageName
-                ?.let { "$it.$compiledScriptClassName" }
-                ?: compiledScriptClassName
-        }
-    )
+        )
+    }
 
     /**
      * Stage descriptions for build operations.

@@ -78,6 +78,9 @@
          <trusted-key id="073F7A9345756F3B40CDB99E6C70A3B7599C5736">
             <trusting group="org.apache.maven"/>
             <trusting group="org.apache.sshd"/>
+            <trusting group="org.codehaus.plexus" name="plexus-utils"/>
+            <trusting group="org.fusesource.jansi" name="jansi"/>
+            <trusting group="org.jline" name="jline"/>
          </trusted-key>
          <trusted-key id="077E8893A6DCC33DD4A4D5B256E73BA9A0B592D0" group="org.apache.logging.log4j"/>
          <trusted-key id="0785B3EFF60B1B1BEA94E0BB7C25280EAE63EBE5">
@@ -136,6 +139,7 @@
             <trusting group="^org[.]gradle($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="31FAE244A81D64507B47182E1B2718089CE964B8" group="com.thoughtworks.qdox"/>
+         <trusted-key id="331224E1D7BE883D16E8A685825C06C827AF6B66" group="me.champeau.gradle"/>
          <trusted-key id="33FD4BFD33554634053D73C0C2148900BCD3C2AF" group="org.jetbrains" name="annotations"/>
          <trusted-key id="34441E504A937F43EB0DAEF96A65176A0FB1CD0B">
             <trusting group="org.apache.groovy"/>
@@ -147,6 +151,7 @@
          <trusted-key id="36390DE6A0E61EE4C7B4BA02C1D3063467F1EBD1" group="org.asciidoctor"/>
          <trusted-key id="3872ED7D5904493D23D78FA2C4C8CB73B1435348" group="^com[.]android[.]tools($|([.].*))" regex="true"/>
          <trusted-key id="3CAC6E7DC43343FF75ECBAC27E6EB7BB6A7712DC" group="net.sourceforge.nekohtml" name="nekohtml"/>
+         <trusted-key id="3F05DDA9F317301E927136D417A27CE7A60FF5F0" group="io.opentelemetry"/>
          <trusted-key id="4008F9DFF7DBC968F35F9E712642156411CCE8B3" group="com.vladsch.flexmark"/>
          <trusted-key id="416952B945B78A34C6C7678562EBFC78FE4156D1" group="org.jruby"/>
          <trusted-key id="47063E8BA7A6450E4A52E7AE466CAED6E0747D50">
@@ -173,10 +178,13 @@
          <trusted-key id="51B52DC5DD452F92BE342CC2858FC4C4F43856A3" group="xerces" name="xercesImpl"/>
          <trusted-key id="522CA055B326A636D833EF6A0551FD3684FCBBB7" group="org.apache.maven.resolver"/>
          <trusted-key id="53C935821AA6A755BD337DB53595395EB3D8E1BA" group="org.apache.logging.log4j"/>
-         <trusted-key id="5989BAF76217B843D66BE55B2D0E1FB8FE4B68B4" group="org.eclipse.jetty"/>
+         <trusted-key id="55ABBEF06CF6277A23B1D3A21993B355097C8B5A" group="org.lz4" name="lz4-java"/>
          <trusted-key id="5B7F3605A8CE471A9CA8DB7EC84125C13BF6F2F2" group="^org[.]ajoberstar($|([.].*))" regex="true"/>
          <trusted-key id="5CE325996A35213326AE2C68912D2C0ECCDA55C0" group="com.google.errorprone" name="error_prone_annotations"/>
-         <trusted-key id="5DE533CB43DAF8BC3E372283E7AE839CD7C58886" group="org.eclipse.jetty"/>
+         <trusted-key id="5E7D42F58249A287BD7384DA25A73BFC746E1035">
+            <trusting group="net.sourceforge.cssparser"/>
+            <trusting group="net.sourceforge.htmlunit"/>
+         </trusted-key>
          <trusted-key id="5F55943E13D49059D3F342777186B06E1ED139E7" group="org.apache.lucene"/>
          <trusted-key id="5F6C2148AD4911FE308110E5F0D0AE433308B042" group="io.gitlab.arturbosch.detekt"/>
          <trusted-key id="600EA202B1EC682F4A788E5AAC7A514BC9F9BB70" group="io.opencensus"/>
@@ -186,6 +194,7 @@
          </trusted-key>
          <trusted-key id="60C6700E08F02B9EB6F4A46745145F826CF4BF98" group="com.googlecode.plist" name="dd-plist"/>
          <trusted-key id="635EE627345F3C1DD422B2E207D3516820BCF6B1" group="com.github.ben-manes.caffeine" name="caffeine"/>
+         <trusted-key id="64EE0DF33CBEB345471E1233824B40F0D3D8E241" group="io.airlift" name="aircompressor"/>
          <trusted-key id="66CA61EA0FC7E9EA1216F83396B88EACD463B90B" group="com.diffplug.spotless"/>
          <trusted-key id="694621A7227D8D5289699830ABE9F3126BB741C1">
             <trusting group="com.google.guava"/>
@@ -237,6 +246,7 @@
          <trusted-key id="8E3A02905A1AE67E7B0F9ACD3967D4EDA591B991" group="org.jetbrains.kotlinx" name="kotlinx-html-jvm"/>
          <trusted-key id="98465301A4939C0279F2E847D89D05374952262B" group="org.jetbrains.dokka"/>
          <trusted-key id="9857C388D7D1D9D031274CD0A5DEF5A76F94A471" group="com.github.spotbugs"/>
+         <trusted-key id="9B5D41D28D8231A341B6713BC8C127A0EC7665D6" group="org.jctools"/>
          <trusted-key id="9C60C6B3A5A9DF8FEDD299D65BE0BA8CB80602AE" group="org.apache.ivy"/>
          <trusted-key id="9E84765A7AA3E3D3D5598A408E3F0DE7AE354651" group="^com[.]squareup($|([.].*))" regex="true"/>
          <trusted-key id="A2570288E10932263E8326CBAA49C633B4734832">
@@ -304,12 +314,14 @@
          <trusted-key id="CF4B3A3F53BEF9A2CE2CBFB895962C5E716C39AA" group="com.autonomousapps"/>
          <trusted-key id="CFBE6E7934FB211224EE1C2B0C0A9468268C79AE" group="org.jetbrains"/>
          <trusted-key id="D40633BFD9FDB773C896E9025DFB46C505B694FE" group="com.github.bbottema"/>
+         <trusted-key id="D477D51812E692011DB11E66A6EA2E2BF22E0543" group="io.github.java-diff-utils"/>
          <trusted-key id="D54A395B5CF3F86EB45F6E426B1B008864323B92">
             <trusting group="org.antlr"/>
             <trusting group="org.antlr" name="antlr4-runtime"/>
          </trusted-key>
          <trusted-key id="D5FC4D8E6FF704C573819555BF7CC7DEFE9389D7" group="com.github.docker-java"/>
          <trusted-key id="D9AA7402BA75F78720D975211D185615D0A84648" group="net.sf.saxon" name="Saxon-HE"/>
+         <trusted-key id="DB0763A5293A6E0F8B150EE7F855AE84BE4DB43D" group="org.seleniumhq.selenium"/>
          <trusted-key id="DB467D22A2666D061FDD120DB5BD4591883D638C" group="com.tngtech.archunit"/>
          <trusted-key id="DBD744ACE7ADE6AA50DD591F66B50994442D2D40" group="^com[.]squareup($|([.].*))" regex="true"/>
          <trusted-key id="DC98224C6421A7A5BB87F346ED2378CD09A08CDE" group="org.jline"/>
@@ -318,6 +330,7 @@
             <trusting group="org.apache-extras.beanshell"/>
          </trusted-key>
          <trusted-key id="E3A9F95079E84CE201F7CF60BEDE11EAF1164480" group="org.hamcrest"/>
+         <trusted-key id="E5B8247AF8A619A28F90FDFC9FF25980F5BA7E4F" group="xalan"/>
          <trusted-key id="E5C3B1929191DF06136CCB2B164779204E106A76" group="org.javassist" name="javassist"/>
          <trusted-key id="E62231331BCA7E1F292C9B88C1B12A5D99C0729D" group="org.jetbrains"/>
          <trusted-key id="E77417AC194160A3FABD04969A259C7EE636C5ED">
@@ -333,7 +346,6 @@
          <trusted-key id="E85AED155021AF8A6C6B7A4A7C7D8456294423BA" group="org.objenesis" name="objenesis"/>
          <trusted-key id="E870FB6BE4BA46C81520FD6936B9CF3BEB52D771" group="com.openhtmltopdf"/>
          <trusted-key id="EA022560A81E5BD48DB3D18B54AC8E2D98CFEAC6" group="org.ysb33r.gradle"/>
-         <trusted-key id="EA23DB1360D9029481E7F2EFECDFEA3CB4493B94" group="org.apache.sshd"/>
          <trusted-key id="EA313384CA0EBA950EA017E937890E298D9A2BFA">
             <trusting group="com.eed3si9n"/>
             <trusting group="org.scala-sbt"/>
@@ -349,13 +361,17 @@
             <trusting group="com.headius"/>
             <trusting group="^org[.]jruby($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="F046369B06B761AC86D9849F71B329993BFFCFDD" group="org.openjdk.jmc"/>
          <trusted-key id="F254B35617DC255D9344BCFA873A8E86B4372146">
             <trusting group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
             <trusting group="^org[.]codehaus($|([.].*))" regex="true"/>
+            <trusting group="org.eclipse.jetty" />
+            <trusting group="org.eclipse.jetty.websocket" />
          </trusted-key>
          <trusted-key id="F3184BCD55F4D016E30D4C9BF42E87F9665015C9" group="org.jsoup" name="jsoup"/>
          <trusted-key id="F3A90E6B10E809F851AB4FC54CC08E7F47C3EC76" group="com.zaxxer" name="HikariCP"/>
          <trusted-key id="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3" group="net.bytebuddy"/>
+         <trusted-key id="F9514E84AE3708288374BBBE097586CFEA37F9A6" group="org.owasp.encoder" name="encoder"/>
          <trusted-key id="FA77DCFEF2EE6EB2DEBEDD2C012579464D01C06A">
             <trusting group="org.apache.maven.doxia"/>
             <trusting group="org.codehaus.plexus"/>
@@ -367,7 +383,6 @@
          </trusted-key>
          <trusted-key id="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE" group="com.github.javaparser" name="javaparser-core"/>
          <trusted-key id="FC411CD3CB7DCB0ABC9801058118B3BCDB1A5000" group="jakarta.xml.bind" name="jakarta.xml.bind-api"/>
-         <trusted-key id="FE72F1BFE9632B1FE049AC3E5BCD80B78ACD3A37" group="org.openjdk.jmc"/>
          <trusted-key id="FEB9209F2F2F3F4664841E55AC107B386692DADD" group="com.amazonaws"/>
          <trusted-key id="FF6E2C001948C5F2F38B0CC385911F425EC61B51">
             <trusting group="junit"/>
@@ -378,22 +393,22 @@
             <trusting group="org.opentest4j"/>
             <trusting group="^org[.]junit($|([.].*))" regex="true"/>
          </trusted-key>
-         <trusted-key id="FF986D345395D4AD1DC48137BB6FD5AD91D01857" group="org.seleniumhq.selenium"/>
+         <trusted-key id="FFFD810FFFDE203D5FA27263BEABCFBEE059E4E5" group="com.github.siom79.japicmp"/>
       </trusted-keys>
    </configuration>
    <components>
-      <component group="android-studio" name="android-studio" version="2025.1.3.7">
-         <artifact name="android-studio-2025.1.3.7.linux.tar.gz">
-            <sha256 value="a5eb77b9398be2943f171076a8abfe219371e78d20302ee199f39a43c88b4294" origin="Verified" reason="Artifact is not signed"/>
+      <component group="android-studio" name="android-studio" version="2025.2.3.8">
+         <artifact name="android-studio-2025.2.3.8.linux.tar.gz">
+            <sha256 value="287bd6548c4dcf076097d91da970f90a9bf3e7cafca56b36551c8f57756b247d" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2025.1.3.7.mac.dmg">
-            <sha256 value="faec20e813e2942870f0bcee58cd3fafd06f28dbc57938cf5671e1a3e07dc964" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2025.2.3.8.mac.dmg">
+            <sha256 value="586c2790a190ba8ad82222b5050e25a66e7ee5f7546d3cb8004db322f463783f" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2025.1.3.7.mac_arm.dmg">
-            <sha256 value="ea7b33f31ba73e31043cf0536634a960607ff5582df46436145ac3ebc4f3e6b7" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2025.2.3.8.mac_arm.dmg">
+            <sha256 value="b5a3897c72ccd1ded40fdb0b461104b34733dbcb5b893f0fbda012ab5dfaa128" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2025.1.3.7.windows.zip">
-            <sha256 value="824ddc4f926f13d0cbe65f741ba0c40fd6c8d4d471adbbd4a35b3db5ee7c0a39" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2025.2.3.8.windows.zip">
+            <sha256 value="cf56f6067bacf805bfa79f799439312c6c8f120b10ab7c1b524090c11bacb361" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="antlr" name="antlr" version="2.7.7">
@@ -556,11 +571,6 @@
             <pgp value="F60DB6893AB3825459528EADCC54B93C018511A4"/>
          </artifact>
       </component>
-      <component group="com.beust" name="jcommander" version="1.72">
-         <artifact name="jcommander-1.72.jar">
-            <pgp value="67497E9D680CE8E95BD6B8F85AD66315FC018797"/>
-         </artifact>
-      </component>
       <component group="com.beust" name="jcommander" version="1.78">
          <artifact name="jcommander-1.78.jar">
             <pgp value="C70B844F002F21F6D2B9C87522E44AC0622B91C3"/>
@@ -575,11 +585,6 @@
       <component group="com.github.bbottema" name="java-socks-proxy-server" version="2.0.0">
          <artifact name="java-socks-proxy-server-2.0.0.jar">
             <pgp value="D40633BFD9FDB773C896E9025DFB46C505B694FE"/>
-         </artifact>
-      </component>
-      <component group="com.github.ben-manes.caffeine" name="caffeine" version="2.8.5">
-         <artifact name="caffeine-2.8.5.jar">
-            <pgp value="635EE627345F3C1DD422B2E207D3516820BCF6B1"/>
          </artifact>
       </component>
       <component group="com.github.ben-manes.caffeine" name="caffeine" version="3.1.0">
@@ -607,19 +612,9 @@
             <pgp value="D4D4DEC73685B1A135E45E5C47933D17F199636B"/>
          </artifact>
       </component>
-      <component group="com.github.siom79.japicmp" name="japicmp" version="0.15.7">
-         <artifact name="japicmp-0.15.7.jar">
-            <pgp value="FFFD810FFFDE203D5FA27263BEABCFBEE059E4E5"/>
-         </artifact>
-      </component>
       <component group="com.google.apis" name="google-api-services-storage" version="v1-rev171-1.25.0">
          <artifact name="google-api-services-storage-v1-rev171-1.25.0.jar">
             <pgp value="47504B76CF89C15C0512D9AFE16AB52D79FD224F"/>
-         </artifact>
-      </component>
-      <component group="com.google.errorprone" name="error_prone_annotations" version="2.1.3">
-         <artifact name="error_prone_annotations-2.1.3.jar">
-            <pgp value="F05E5F90E43E837F9DD8C781BF935C771A8474F8"/>
          </artifact>
       </component>
       <component group="com.google.errorprone" name="error_prone_annotations" version="2.13.1">
@@ -643,11 +638,6 @@
             <pgp value="D5F46BC0B86AF5DC56DF58F05E975CB00C643DBF"/>
          </artifact>
       </component>
-      <component group="com.google.j2objc" name="j2objc-annotations" version="2.8">
-         <artifact name="j2objc-annotations-2.8.jar">
-            <pgp value="EB1B3DE71713C9EC2E87CC26EE92349AD86DE446"/>
-         </artifact>
-      </component>
       <component group="com.google.j2objc" name="j2objc-annotations" version="3.0.0">
          <artifact name="j2objc-annotations-3.0.0.jar">
             <pgp value="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE"/>
@@ -656,11 +646,6 @@
       <component group="com.google.protobuf" name="protobuf-java" version="3.19.6">
          <artifact name="protobuf-java-3.19.6.jar">
             <pgp value="187366A3FFE6BF8F94B9136A9987B20C8F6A3064"/>
-         </artifact>
-      </component>
-      <component group="com.google.protobuf" name="protobuf-java" version="3.6.1">
-         <artifact name="protobuf-java-3.6.1.jar">
-            <pgp value="22B79F456B06F4E75B8B579DB57BD58EF6D0A713"/>
          </artifact>
       </component>
       <component group="com.google.testing.compile" name="compile-testing" version="0.21.0">
@@ -799,11 +784,6 @@
             <sha256 value="7de9b7ade957c6a1996e9c3d0e1e4d1e1840c081ebf16bbd3c2a6a5b05b88891" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="io.airlift" name="aircompressor" version="0.27">
-         <artifact name="aircompressor-0.27.jar">
-            <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
-         </artifact>
-      </component>
       <component group="io.airlift" name="slice" version="0.29">
          <artifact name="slice-0.29.jar">
             <pgp value="C328250FE23A2420814521EC0EB69F76FD171538"/>
@@ -827,11 +807,6 @@
       <component group="io.github.gradle" name="develocity-conventions-plugin" version="0.12.1">
          <artifact name="develocity-conventions-plugin-0.12.1.jar">
             <sha256 value="f9c53f4dad78c9041b36324402260a8f13264140f96c02ffbb4bafc4157be95f" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">
-         <artifact name="java-diff-utils-4.12.jar">
-            <pgp value="D477D51812E692011DB11E66A6EA2E2BF22E0543"/>
          </artifact>
       </component>
       <component group="io.github.microutils" name="kotlin-logging-jvm" version="2.1.23">
@@ -864,11 +839,6 @@
             <pgp value="6DD3B8C64EF75253BEB2C53AD908A43FB7EC07AC"/>
          </artifact>
       </component>
-      <component group="jakarta.xml.bind" name="jakarta.xml.bind-api" version="2.3.2">
-         <artifact name="jakarta.xml.bind-api-2.3.2.jar">
-            <pgp value="FC411CD3CB7DCB0ABC9801058118B3BCDB1A5000"/>
-         </artifact>
-      </component>
       <component group="jakarta.xml.bind" name="jakarta.xml.bind-api" version="3.0.0">
          <artifact name="jakarta.xml.bind-api-3.0.0.jar">
             <pgp value="FC411CD3CB7DCB0ABC9801058118B3BCDB1A5000"/>
@@ -894,11 +864,6 @@
             <sha256 value="91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="javax.xml.bind" name="jaxb-api" version="2.3.0">
-         <artifact name="jaxb-api-2.3.0.jar">
-            <pgp value="B38E195D438D44A1A8D2D2203575E1C767076CA8"/>
-         </artifact>
-      </component>
       <component group="javax.xml.bind" name="jaxb-api" version="2.3.1">
          <artifact name="jaxb-api-2.3.1.jar">
             <pgp value="70CD19BFD9F6C330027D6F260315BFB7970A144F"/>
@@ -909,39 +874,19 @@
             <pgp value="C3EB67E869C31CC00755038F0A07E0E55E45F65B"/>
          </artifact>
       </component>
-      <component group="jline" name="jline" version="2.14.6">
-         <artifact name="jline-2.14.6.jar">
-            <pgp value="EA23DB1360D9029481E7F2EFECDFEA3CB4493B94"/>
-         </artifact>
-      </component>
-      <component group="joda-time" name="joda-time" version="1.6">
-         <artifact name="joda-time-1.6.jar">
-            <sha256 value="bc96dbe7c56f4fe367ea33e66dfcf18b589e3c8eddcff52a78323c5e6da2387e" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="joda-time" name="joda-time" version="2.10.4">
-         <artifact name="joda-time-2.10.4.jar">
-            <pgp value="B41089A2DA79B0FA5810252872385FF0AF338D52"/>
-         </artifact>
-      </component>
       <component group="joda-time" name="joda-time" version="2.10.5">
          <artifact name="joda-time-2.10.5.jar">
             <pgp value="B41089A2DA79B0FA5810252872385FF0AF338D52"/>
          </artifact>
       </component>
-      <component group="jquery" name="jquery.min" version="3.5.1">
-         <artifact name="jquery.min-3.5.1.js">
-            <sha256 value="f7f6a5894f1d19ddad6fa392b2ece2c5e578cbf7da4ea805b6885eb6985b6e3d" origin="Verified" reason="Artifact is not signed"/>
+      <component group="jquery" name="jquery.min" version="3.7.1">
+         <artifact name="jquery.min-3.7.1.js">
+            <sha256 value="fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="junit" name="junit" version="4.12">
          <artifact name="junit-4.12.jar">
             <pgp value="D4C89EA4AAF455FD88B22087EFE8086F9E93774E"/>
-         </artifact>
-      </component>
-      <component group="me.champeau.gradle" name="japicmp-gradle-plugin" version="0.4.1">
-         <artifact name="japicmp-gradle-plugin-0.4.1.jar">
-            <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff2b482ba" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="me.champeau.jmh" name="jmh-gradle-plugin" version="0.7.2">
@@ -959,11 +904,6 @@
             <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="4.0.1">
-         <artifact name="gradle-errorprone-plugin-4.0.1.jar">
-            <sha256 value="4caa671392fd3675171e93c663f2642452819c68d3ef90206d7949bd8fee7d9e" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="4.1.0">
          <artifact name="gradle-errorprone-plugin-4.1.0.jar">
             <sha256 value="f1eab035c996e20b081bf3c18bd0e328bb553d465e4be2354d0af4dde070465d" origin="Verified" reason="Artifact is not signed"/>
@@ -972,11 +912,6 @@
       <component group="net.ltgt.gradle" name="gradle-nullaway-plugin" version="2.2.0">
          <artifact name="gradle-nullaway-plugin-2.2.0.jar">
             <sha256 value="7caa4552e349f29dec42e219d136f7029d57e990460c209c9c6d307983556b4d" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">
-         <artifact name="zero-allocation-hashing-0.10.1.jar">
-            <pgp value="CB3808E03CD602A6DC5B882552931F4B72B4F54C"/>
          </artifact>
       </component>
       <component group="net.openhft" name="zero-allocation-hashing" version="0.16">
@@ -1024,21 +959,6 @@
             <sha256 value="28026d1b450cdc532c6a92264658d29b9b57a006cfbfb8c9cac2b098fd93e772" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="net.sourceforge.cssparser" name="cssparser" version="0.9.13">
-         <artifact name="cssparser-0.9.13.jar">
-            <pgp value="EEF3227F5F93C6C2A750730F0A4F46866E0A8DF9"/>
-         </artifact>
-      </component>
-      <component group="net.sourceforge.nekohtml" name="nekohtml" version="1.9.16">
-         <artifact name="nekohtml-1.9.16.jar">
-            <pgp value="A1885C07A3204611FB184EF7098A31F381819057"/>
-         </artifact>
-      </component>
-      <component group="net.sourceforge.nekohtml" name="nekohtml" version="1.9.21">
-         <artifact name="nekohtml-1.9.21.jar">
-            <pgp value="3CAC6E7DC43343FF75ECBAC27E6EB7BB6A7712DC"/>
-         </artifact>
-      </component>
       <component group="net.sourceforge.nekohtml" name="nekohtml" version="1.9.22">
          <artifact name="nekohtml-1.9.22.jar">
             <pgp value="3CAC6E7DC43343FF75ECBAC27E6EB7BB6A7712DC"/>
@@ -1049,11 +969,6 @@
             <sha256 value="757eeb1c6703b81fa3bb6bc2eae7a5fe6ddac5d833b977aa1ce08979d7c2de5a" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="nl.jqno.equalsverifier" name="equalsverifier" version="2.1.6">
-         <artifact name="equalsverifier-2.1.6.jar">
-            <pgp value="2C1708EA05ADF6966C32D6454A1BAC7F1E3B89B3"/>
-         </artifact>
-      </component>
       <component group="org.abego.treelayout" name="org.abego.treelayout.core" version="1.0.3">
          <artifact name="org.abego.treelayout.core-1.0.3.jar">
             <pgp value="D790F72EA8FD39551012B62DCF9F3090CE4CB752"/>
@@ -1062,16 +977,6 @@
       <component group="org.antlr" name="antlr4-runtime" version="4.13.2">
          <artifact name="antlr4-runtime-4.13.2.jar">
             <pgp value="5719E50EAC5A4B1DD390B72C2A742740E08E7F8D"/>
-         </artifact>
-      </component>
-      <component group="org.antlr" name="antlr4-runtime" version="4.5.2-1">
-         <artifact name="antlr4-runtime-4.5.2-1.jar">
-            <pgp value="D54A395B5CF3F86EB45F6E426B1B008864323B92"/>
-         </artifact>
-      </component>
-      <component group="org.antlr" name="antlr4-runtime" version="4.7.1">
-         <artifact name="antlr4-runtime-4.7.1.jar">
-            <pgp value="D54A395B5CF3F86EB45F6E426B1B008864323B92"/>
          </artifact>
       </component>
       <component group="org.apache.commons" name="commons-exec" version="1.1">
@@ -1097,11 +1002,6 @@
       <component group="org.apache.maven.shared" name="maven-shared-utils" version="3.3.4">
          <artifact name="maven-shared-utils-3.3.4.jar">
             <pgp value="82C9EC0E52C47A936A849E0113D979595E6D01E1"/>
-         </artifact>
-      </component>
-      <component group="org.apache.maven.wagon" name="wagon-provider-api" version="3.3.4">
-         <artifact name="wagon-provider-api-3.3.4.jar">
-            <pgp value="FA77DCFEF2EE6EB2DEBEDD2C012579464D01C06A"/>
          </artifact>
       </component>
       <component group="org.apache.maven.wagon" name="wagon-provider-api" version="3.5.3">
@@ -1134,29 +1034,14 @@
             <sha256 value="5076611c14107ec0aa057842567db1e1c0c4e54cdad229c6e189b6503bda8b2e" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctor-gradle-plugin" version="1.5.9.2">
-         <artifact name="asciidoctor-gradle-plugin-1.5.9.2.jar">
-            <sha256 value="bde0e0ec5cec01e594ce776cf2276f926cde52c0375a2c31803f398aa69fbf09" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.asciidoctor" name="asciidoctorj" version="1.5.8.1">
          <artifact name="asciidoctorj-1.5.8.1.jar">
             <pgp value="36390DE6A0E61EE4C7B4BA02C1D3063467F1EBD1"/>
          </artifact>
       </component>
-      <component group="org.asciidoctor" name="asciidoctorj-groovy-dsl" version="1.0.0.Alpha3">
-         <artifact name="asciidoctorj-groovy-dsl-1.0.0.Alpha3.jar">
-            <sha256 value="19a944d3b4548a8e43049706947ccc481b5d241af9b7e1b8bae89d30bad16016" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.asciidoctor" name="asciidoctorj-groovy-dsl" version="2.0.0">
          <artifact name="asciidoctorj-groovy-dsl-2.0.0.jar">
             <sha256 value="6dd87a91ddfe71b12b139efe9b82624af0eb47e525bd5f10259ad54341e347bf" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.assertj" name="assertj-core" version="3.16.1">
-         <artifact name="assertj-core-3.16.1.jar">
-            <pgp value="77993D3295698C46912E83984B2277C6358670EE"/>
          </artifact>
       </component>
       <component group="org.assertj" name="assertj-core" version="3.23.1">
@@ -1169,16 +1054,6 @@
             <pgp value="3A4D86C56CA99373B6D8953DBE84D764623A3644"/>
          </artifact>
       </component>
-      <component group="org.codehaus.gpars" name="gpars" version="1.2.1">
-         <artifact name="gpars-1.2.1.jar">
-            <sha256 value="f9e08bf964f34d129344404c01666276ec43c6704dd74e8d4ca32dcd1d2fb4a8" origin="Key couldn't be downloaded"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.groovy.modules.http-builder" name="http-builder" version="0.7">
-         <artifact name="http-builder-0.7.jar">
-            <sha256 value="c55981548c6e0110c539a147fde2261ff661740d4634b219b2bcd649761f2ba1" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.codehaus.groovy.modules.http-builder" name="http-builder" version="0.7.2">
          <artifact name="http-builder-0.7.2.jar">
             <sha256 value="cbd0fa43ebc62cb548e17f78b92b745220d9b1904f255c5916ef5a592b11e090" reason="Artifact is not signed"/>
@@ -1187,16 +1062,6 @@
       <component group="org.codehaus.jsr166-mirror" name="jsr166y" version="1.7.0">
          <artifact name="jsr166y-1.7.0.jar">
             <sha256 value="4d4e74532e81bc6a54e4cbda865999f4ab29885e850f0b835ea374800b84d0b2" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.mojo" name="animal-sniffer-annotations" version="1.14">
-         <artifact name="animal-sniffer-annotations-1.14.jar">
-            <pgp value="82F833963889D7ED06F1E4DC6525FD70CC303655"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.mojo" name="animal-sniffer-annotations" version="1.17">
-         <artifact name="animal-sniffer-annotations-1.17.jar">
-            <pgp value="F254B35617DC255D9344BCFA873A8E86B4372146"/>
          </artifact>
       </component>
       <component group="org.codehaus.mojo" name="animal-sniffer-annotations" version="1.18">
@@ -1224,14 +1089,9 @@
             <pgp value="F3D15B8FF9902805DE4BE6B18DC6F3D0ABDBD017"/>
          </artifact>
       </component>
-      <component group="org.codehaus.plexus" name="plexus-utils" version="4.0.2">
-         <artifact name="plexus-utils-4.0.2.jar">
-            <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
-         </artifact>
-      </component>
-      <component group="org.codehaus.plexus" name="plexus-xml" version="4.0.4">
-         <artifact name="plexus-xml-4.0.4.jar">
-            <pgp value="84789D24DF77A32433CE1F079EB80E92EB2135B1"/>
+      <component group="org.codehaus.plexus" name="plexus-xml" version="4.1.0">
+         <artifact name="plexus-xml-4.1.0.jar">
+            <pgp value="32118CF76C9EC5D918E54967CA80D1F0EB6CA4BA"/>
          </artifact>
       </component>
       <component group="org.codehaus.woodstox" name="stax2-api" version="4.2.1">
@@ -1239,15 +1099,9 @@
             <pgp value="6214760097DC5CFAD0175AC2C9FBAA83A8753994"/>
          </artifact>
       </component>
-      <component group="org.ec4j.core" name="ec4j-core" version="0.2.0">
-         <artifact name="ec4j-core-0.2.0.jar">
-            <pgp value="2E92113263FC31C74CCBAAB20E91C2DE43B72BB1"/>
-            <sha256 value="0688839a5cb636085674913e305bbc7217c8ed4e92434d279e0f881ce2ca5e6b"/>
-         </artifact>
-      </component>
-      <component group="org.ec4j.core" name="ec4j-core" version="0.2.2">
-         <artifact name="ec4j-core-0.2.2.jar">
-            <pgp value="2E92113263FC31C74CCBAAB20E91C2DE43B72BB1"/>
+      <component group="org.codehaus.woodstox" name="stax2-api" version="4.2.2">
+         <artifact name="stax2-api-4.2.2.jar">
+            <pgp value="28118C070CB22A0175A2E8D43D12CA2AC19F3181"/>
          </artifact>
       </component>
       <component group="org.ec4j.core" name="ec4j-core" version="0.3.0">
@@ -1260,24 +1114,9 @@
             <pgp value="45DAD8AED069092BC7BE9843ECA081A9790D4FC4"/>
          </artifact>
       </component>
-      <component group="org.eclipse.jetty" name="jetty-websocket" version="8.1.14.v20131031">
-         <artifact name="jetty-websocket-8.1.14.v20131031.jar">
-            <pgp value="5DE533CB43DAF8BC3E372283E7AE839CD7C58886"/>
-         </artifact>
-      </component>
       <component group="org.freemarker" name="freemarker" version="2.3.32">
          <artifact name="freemarker-2.3.32.jar">
             <pgp value="13AC2213964ABE1D1C147C0E1939A2520BAB1D90"/>
-         </artifact>
-      </component>
-      <component group="org.fusesource.jansi" name="jansi" version="1.18">
-         <artifact name="jansi-1.18.jar">
-            <pgp value="EA23DB1360D9029481E7F2EFECDFEA3CB4493B94"/>
-         </artifact>
-      </component>
-      <component group="org.gradle" name="gradle-tooling-api" version="5.2.1">
-         <artifact name="gradle-tooling-api-5.2.1.jar">
-            <sha256 value="479c6f0007c36e5e74371ff4b1dac7f73cd8f90a8b5ffe002a64a8a3c34ce7fe" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle" name="gradle-tooling-api" version="6.0.1">
@@ -1290,6 +1129,11 @@
             <sha256 value="9d83780b9df3d7d704c7f9c0feed2bfb5a295833392a666250db7f4cf91bda5a" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="org.gradle.buildtool.internal" name="gradle-ide-starter-scenarios" version="0.8.4">
+         <artifact name="gradle-ide-starter-scenarios-0.8.4.jar">
+            <sha256 value="1a7fe04ce279aaea28c6e123868c6c75f51e7309abeb0bf5de354f253b76c1be" origin="Generated by Gradle" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
       <component group="org.gradle.ci.health" name="common" version="0.63">
          <artifact name="common-0.63.jar">
             <sha256 value="1cbecb45b99d98523a62f9ead6a248b95e295d5db186d09222e6ae1ea6ce0292" reason="Artifact is not signed"/>
@@ -1298,11 +1142,6 @@
       <component group="org.gradle.ci.health" name="common" version="0.74">
          <artifact name="common-0.74.jar">
             <sha256 value="c9e7a770270510d50ad4c7b9df04fc4fa88a60011e610822d653a9b25791bef7" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="github-client" version="0.63">
-         <artifact name="github-client-0.63.jar">
-            <sha256 value="e9d6c49b772fb14c1575852bf8e44252f4f99761e6828e18182b33b4a98b3b73" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.ci.health" name="github-client" version="0.74">
@@ -1315,19 +1154,9 @@
             <sha256 value="4824afdf33200a96ad995ed9f4b6c9cbac98168cbda53642e7f8664cb7331556" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.ci.health" name="tagging" version="0.63">
-         <artifact name="tagging-0.63.jar">
-            <sha256 value="28575c1d4c1f3317b94b446150850a6172fc8be905df342f96f4ac35a8c7f0bf" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.gradle.ci.health" name="tagging" version="0.74">
          <artifact name="tagging-0.74.jar">
             <sha256 value="5c5db6b64345396574d4527f44623a449753aeb308ab8adf1ad717795ec708b7" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.ci.health" name="teamcity-client" version="0.63">
-         <artifact name="teamcity-client-0.63.jar">
-            <sha256 value="d4635a414f344ce567a156806abb9d42f4f0ef54055b2d53a7294be8bcb58ef5" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.ci.health" name="teamcity-client" version="0.74">
@@ -1348,11 +1177,6 @@
       <component group="org.iq80.snappy" name="snappy" version="0.5">
          <artifact name="snappy-0.5.jar">
             <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
-         </artifact>
-      </component>
-      <component group="org.javassist" name="javassist" version="3.30.2-GA">
-         <artifact name="javassist-3.30.2-GA.jar">
-            <sha256 value="eba37290994b5e4868f3af98ff113f6244a6b099385d9ad46881307d3cb01aaf" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.jcommander" name="jcommander" version="1.85">
@@ -1378,16 +1202,6 @@
       <component group="org.jetbrains.kotlin" name="kotlin-stdlib" version="2.0.0">
          <artifact name="kotlin-stdlib-2.0.0-all.jar">
             <sha256 value="30e05222bc067fffb896a3276b5f1e3f29450bf1d9461d27a19ce0efc793b5cd" origin="Verified" reason="No asc file on plugins.gradle.org"/>
-         </artifact>
-      </component>
-      <component group="org.jline" name="jline" version="3.22.0">
-         <artifact name="jline-3.22.0.jar">
-            <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
-         </artifact>
-      </component>
-      <component group="org.jline" name="jline" version="3.26.3">
-         <artifact name="jline-3.26.3.jar">
-            <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
          </artifact>
       </component>
       <component group="org.jlleitschuh.gradle" name="ktlint-gradle" version="12.1.0">
@@ -1425,11 +1239,6 @@
             <pgp value="150FDE3F7787E7D11EF4E12A9B7D32F2D50582E6"/>
          </artifact>
       </component>
-      <component group="org.lz4" name="lz4-java" version="1.7.1">
-         <artifact name="lz4-java-1.7.1.jar">
-            <pgp value="55EC199CAA5FFDB20C4D825E1F318213E56E467A"/>
-         </artifact>
-      </component>
       <component group="org.mozilla" name="rhino" version="1.7.10">
          <artifact name="rhino-1.7.10.jar">
             <pgp value="EA0B70B5050192C98CFA7E4F3F36885C24DF4B75"/>
@@ -1459,11 +1268,6 @@
             <sha256 value="107e3ece84b7fa1e80b3bdf03181d395246c7867e27b17b6d7e6fa9c7932b467" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.owasp.encoder" name="encoder" version="1.2.2">
-         <artifact name="encoder-1.2.2.jar">
-            <pgp value="F9514E84AE3708288374BBBE097586CFEA37F9A6"/>
-         </artifact>
-      </component>
       <component group="org.pcollections" name="pcollections" version="4.0.1">
          <artifact name="pcollections-4.0.1.jar">
             <pgp value="E0D98C5FD55A8AF232290E58DEE12B9896F97E34"/>
@@ -1487,11 +1291,6 @@
       <component group="org.scala-lang.modules" name="scala-parser-combinators_2.13" version="1.1.2">
          <artifact name="scala-parser-combinators_2.13-1.1.2.jar">
             <pgp value="DBE61B6BA51DFCAEDED256477090AF43A5E10D0B"/>
-         </artifact>
-      </component>
-      <component group="org.scala-lang.modules" name="scala-xml_2.13" version="2.2.0">
-         <artifact name="scala-xml_2.13-2.2.0.jar">
-            <pgp value="600D21219963F228200A72375365A8A69292AF1A"/>
          </artifact>
       </component>
       <component group="org.scala-lang.modules" name="scala-xml_2.13" version="2.3.0">
@@ -1539,10 +1338,9 @@
             <pgp value="3690C240CE51B4670D30AD1C38EE757D69184620"/>
          </artifact>
       </component>
-      <component group="org.vafer" name="jdependency" version="2.12">
-         <artifact name="jdependency-2.12.jar">
+      <component group="org.vafer" name="jdependency" version="2.13">
+         <artifact name="jdependency-2.13.jar">
             <pgp value="79156E0351AF8604DE9B186B09A79E1E15A04694"/>
-            <sha256 value="c6ec4d03f9f04fb6448d36af43a1cc069a21ecb5e870133dd18fed4f4db1de68" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.w3c.css" name="sac" version="1.3">

@@ -32,6 +32,10 @@ public class LeaseHolder {
         return true;
     }
 
+    public void forceGrantLease() {
+        leasesInUse++;
+    }
+
     public void releaseLease() {
         leasesInUse--;
     }

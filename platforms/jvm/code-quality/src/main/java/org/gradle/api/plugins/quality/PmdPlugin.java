@@ -165,10 +165,23 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         ProviderFactory providers = project.getProviders();
         Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
         task.getReports().all(action(report -> {
-            report.getRequired().convention(true);
+            String name = report.getName();
+            boolean shouldRequireByDefault = name.equals("html") || name.equals("xml");
+            report.getRequired().convention(shouldRequireByDefault);
             report.getOutputLocation().convention(
                 layout.getProjectDirectory().file(providers.provider(() -> {
-                    String reportFileName = baseName + "." + report.getName();
+                    String ext;
+                    switch (name) {
+                        case "codeClimate":
+                            ext = "codeclimate.json";
+                            break;
+                        case "sarif":
+                            ext = "sarif.json";
+                            break;
+                        default:
+                            ext = name;
+                    }
+                    String reportFileName = baseName + "." + ext;
                     return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
                 }))
             );

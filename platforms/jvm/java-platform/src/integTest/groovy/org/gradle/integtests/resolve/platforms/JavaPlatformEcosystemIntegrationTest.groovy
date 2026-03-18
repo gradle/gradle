@@ -30,6 +30,7 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
 
     @Issue("https://github.com/gradle/gradle/issues/12728")
     def "the Java Platform plugin should apply the Java derivation strategy"() {
+        def resolve = new ResolveTestFixture(testDirectory)
         def mod = mavenHttpRepo.module("org", "foo", "1.0").publish()
 
         buildFile << """
@@ -49,12 +50,12 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
                 }
             }
 
+            ${resolve.configureProject("runtimeClasspath")}
+
             dependencies {
                 runtimeClasspath platform("org:foo:1.0")
             }
         """
-        def resolve = new ResolveTestFixture(buildFile)
-        resolve.prepare()
 
         when:
         mod.pom.expectGet()

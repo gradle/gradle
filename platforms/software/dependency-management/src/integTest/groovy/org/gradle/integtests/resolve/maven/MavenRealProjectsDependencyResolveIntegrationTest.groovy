@@ -22,11 +22,9 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 class MavenRealProjectsDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile, "compile")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
         settingsFile << """
             rootProject.name = 'testproject'
         """
@@ -41,22 +39,27 @@ class MavenRealProjectsDependencyResolveIntegrationTest extends AbstractDependen
 
         given:
         buildFile << """
-${mavenCentralRepository()}
+            plugins {
+                id("jvm-ecosystem")
+            }
 
-configurations {
-    compile
-}
+            ${mavenCentralRepository()}
 
-dependencies {
-    compile "commons-collections:commons-collections:3.0"
-    compile "ch.qos.logback:logback-classic:0.9.30"
-    compile "org.hibernate:hibernate-core:3.6.7.Final"
-}
-"""
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile "commons-collections:commons-collections:3.0"
+                compile "ch.qos.logback:logback-classic:0.9.30"
+                compile "org.hibernate:hibernate-core:3.6.7.Final"
+            }
+        """
 
         expect:
-        succeeds "checkDep"
-        resolve.expectDefaultConfiguration('runtime')
+        succeeds "checkDeps"
         resolve.expectGraph {
             root(':', ':testproject:') {
                 module('ch.qos.logback:logback-classic:0.9.30') {

@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -25,17 +26,15 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-
 /**
  * A {@link ModuleDependencyMetadata} implementation that is backed by an {@link ExternalDependencyDescriptor}.
  */
 public abstract class ExternalModuleDependencyMetadata implements ModuleDependencyMetadata {
     private final String reason;
     private final boolean isEndorsing;
-    private final List<IvyArtifactName> artifacts;
+    private final ImmutableList<IvyArtifactName> artifacts;
 
-    public ExternalModuleDependencyMetadata(@Nullable String reason, boolean endorsing, List<IvyArtifactName> artifacts) {
+    public ExternalModuleDependencyMetadata(@Nullable String reason, boolean endorsing, ImmutableList<IvyArtifactName> artifacts) {
         this.reason = reason;
         this.isEndorsing = endorsing;
         this.artifacts = artifacts;
@@ -44,12 +43,12 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
     public abstract ExternalDependencyDescriptor getDependencyDescriptor();
 
     @Override
-    public List<IvyArtifactName> getArtifacts() {
+    public ImmutableList<IvyArtifactName> getArtifacts() {
         return artifacts;
     }
 
     @Override
-    public abstract List<ExcludeMetadata> getExcludes();
+    public abstract ImmutableList<ExcludeMetadata> getExcludes();
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
@@ -69,7 +68,7 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
     }
 
     @Override
-    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
             ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getModuleIdentifier(), moduleTarget.getVersionConstraint(), moduleTarget.getAttributes(), moduleTarget.getCapabilitySelectors());
@@ -97,9 +96,9 @@ public abstract class ExternalModuleDependencyMetadata implements ModuleDependen
 
     protected abstract ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector);
 
-    protected abstract ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> newArtifacts);
+    protected abstract ModuleDependencyMetadata withArtifacts(ImmutableList<IvyArtifactName> newArtifacts);
 
-    protected abstract ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts);
+    protected abstract ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, ImmutableList<IvyArtifactName> newArtifacts);
 
     @Override
     public ModuleComponentSelector getSelector() {

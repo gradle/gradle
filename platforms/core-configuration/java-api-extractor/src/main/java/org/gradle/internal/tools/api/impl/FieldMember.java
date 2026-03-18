@@ -17,15 +17,17 @@
 package org.gradle.internal.tools.api.impl;
 
 import com.google.common.collect.Ordering;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.Modifier;
 
 public class FieldMember extends TypedMember implements Comparable<FieldMember> {
 
+    @Nullable
     private final Object value;
 
-    public FieldMember(int access, String name, String signature, String typeDesc, Object value) {
+    public FieldMember(int access, String name, @Nullable String signature, String typeDesc, @Nullable Object value) {
         super(access, name, signature, typeDesc);
         this.value = value;
     }
@@ -41,6 +43,7 @@ public class FieldMember extends TypedMember implements Comparable<FieldMember> 
             "%s %s %s", Modifier.toString(getAccess()), Type.getType(getTypeDesc()).getClassName(), getName());
     }
 
+    @Nullable
     public Object getValue() {
         return value;
     }

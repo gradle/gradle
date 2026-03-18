@@ -20,14 +20,13 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.layout.BuildTreeLocations
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
 import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.extensions.core.getInternalFlag
-import org.gradle.internal.extensions.core.getInternalString
+import org.gradle.internal.extensions.core.getStringOrNull
 import org.gradle.internal.extensions.stdlib.unsafeLazy
+import org.gradle.internal.initialization.layout.BuildTreeLocations
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.IncubationLogger
@@ -40,7 +39,6 @@ class ConfigurationCacheStartParameter internal constructor(
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
     private val modelParameters: BuildModelParameters,
-    private val loggingParameters: ConfigurationCacheLoggingParameters,
 ) {
     /**
      * Internal Configuration Cache options.
@@ -49,16 +47,16 @@ class ConfigurationCacheStartParameter internal constructor(
         /**
          * See [org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter.customReportOutputDirectory].
          */
-        const val REPORT_OUTPUT_DIR = "org.gradle.configuration-cache.internal.report-output-directory"
+        const val REPORT_OUTPUT_DIR = "org.gradle.internal.configuration-cache.report-output-directory"
     }
 
-    val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")
+    val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.internal.configuration-cache.task-execution-access-pre-stable")
 
     /**
      * Should be provided if a link to the report is expected even if no errors were found.
      * Useful in testing.
      */
-    val alwaysLogReportLinkAsWarning: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.report-link-as-warning", false)
+    val alwaysLogReportLinkAsWarning: Boolean = options.getInternalFlag("org.gradle.internal.configuration-cache.report-link-as-warning", false)
 
     /**
      * Custom output directory for the Configuration Cache report relative to the build tree root directory.
@@ -67,7 +65,7 @@ class ConfigurationCacheStartParameter internal constructor(
      * The default (when null) is to write the report under `<root build buildDir>/reports/configuration-cache`.
      */
     val customReportOutputDirectory: File? by lazy {
-        options.getInternalString(Options.REPORT_OUTPUT_DIR, null)?.let {
+        options.getStringOrNull(Options.REPORT_OUTPUT_DIR)?.let {
             buildTreeLocations.buildTreeRootDirectory.resolve(it)
         }
     }
@@ -78,7 +76,7 @@ class ConfigurationCacheStartParameter internal constructor(
      *
      * The default is `true`.
      */
-    val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.deduplicate-strings", true)
+    val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.internal.configuration-cache.deduplicate-strings", true)
 
     /**
      * Whether shareable objects in the configuration cache should be shared
@@ -86,7 +84,7 @@ class ConfigurationCacheStartParameter internal constructor(
      *
      * The default is `true`.
      */
-    val isSharingObjects: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.share-objects", true)
+    val isSharingObjects: Boolean = options.getInternalFlag("org.gradle.internal.configuration-cache.share-objects", true)
 
     /**
      * See [org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheFineGrainedPropertyTracking].
@@ -98,8 +96,9 @@ class ConfigurationCacheStartParameter internal constructor(
         get() = startParameter.projectPropertiesUntracked
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
-    val configurationCacheLogLevel: LogLevel
-        get() = loggingParameters.logLevel
+    val configurationCacheLogLevel: LogLevel by lazy {
+        if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
+    }
 
     val isIgnoreInputsDuringStore: Boolean
         get() = startParameter.isConfigurationCacheIgnoreInputsDuringStore
@@ -179,6 +178,11 @@ class ConfigurationCacheStartParameter internal constructor(
     val isNoBuildScan: Boolean
         get() = startParameter.isNoBuildScan
 
+    val develocityUrl: String?
+        get() = startParameter.develocityUrl
+
+    val develocityPluginVersion: String?
+        get() = startParameter.develocityPluginVersion
     /**
      * Determines whether Isolated Projects option was enabled.
      *

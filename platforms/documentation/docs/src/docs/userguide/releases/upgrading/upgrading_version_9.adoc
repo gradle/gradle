@@ -36,19 +36,538 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
-[[changes_9.3]]
+[[changes_9.5.0]]
+== Upgrading from 9.4.0 and earlier
+
+=== Potential breaking changes
+
+==== Plugins requested by precompiled settings plugins are now validated at compile time
+
+Gradle now validates plugin requests in precompiled settings plugins (`*.settings.gradle.kts`) during compilation, failing the build if a requested plugin cannot be resolved.
+This matches the existing behavior for precompiled script plugins targeting `Project`.
+
+Previously, if a precompiled settings plugin was never applied, invalid plugin requests in its `plugins {}` block went undetected until the plugin was used by a consuming build, at which point the build would fail unexpectedly.
+
+[source,kotlin]
+.buildSrc/src/main/kotlin/my-precompiled-plugin.settings.gradle.kts
+----
+plugins {
+    id("com.example.invalid.plugin") // now fails at compile time if unresolvable
+}
+----
+
+If you have precompiled settings plugins that are declared but not currently applied, check their `plugins {}` blocks and remove or fix any plugin requests that cannot be resolved from the compiling build's dependencies.
+
+==== Calling `.values()` on environment variables or system properties now tracked by Configuration Cache
+
+Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` now records all environment variables or system properties as Configuration Cache inputs.
+This is consistent with how <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, `.forEach()` calls are already tracked>>.
+
+As a result, if your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, any change to any environment variable or system property will invalidate the Configuration Cache entry, not just the ones your build actually uses.
+If you experience unexpected cache invalidations after upgrading, check whether your build or any plugins call `.values()` on these maps, and consider switching to targeted property lookups instead.
+
+==== Dependency lockfiles are generated with a platform-independent line ending
+
+Dependency lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
+Existing lockfiles using Windows line endings (CRLF, `\r\n`) can still be read, but newly generated lockfiles will always use LF.
+
+When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed, this is expected and only happens once.
+
+==== The Windows start script has been reworked to improve usability
+
+The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
+
+If you use a custom start script template or invoke `gradlew.bat` from another batch file, review the changes below as some may affect your build.
+
+The new script includes the following changes:
+
+- The `OS` variable check has been removed, since Gradle no longer supports non-NT-based versions of Windows.
+- `endlocal` is now called before invoking the application, so environment variable changes made inside the script do not leak into the invoked process. Any environment variables needed by the application must be set before calling `gradlew.bat`.
+- `& CALL` is now used after invoking the application, which suppresses the "Terminate batch job (Y/N)?" prompt. If your scripts rely on this prompt for flow control, they will need to be updated.
+- `exit /b` has been replaced with `"%COMSPEC%" /c exit`, enabling the use of `&&` and `||` operators when calling the script from another batch file.
+
+==== Upgrade to Kotlin 2.3.10
+
+The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.10[Kotlin 2.3.10].
+
+=== Deprecations
+
+[[deprecate_exit_environment_var]]
+==== Deprecation of setting an exit environment variable
+
+link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#getExitEnvironmentVar()[`CreateStartScripts.getExitEnvironmentVar()`] and link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#setExitEnvironmentVar(java.lang.String)[`CreateStartScripts.setExitEnvironmentVar(String)`] have been deprecated and will be removed in Gradle 10.0.0.
+
+As of this release, these methods are no-ops and have no effect, even with custom start script templates.
+This is a result of the link:https://github.com/gradle/gradle/pull/36510[Windows start script template no longer using an exit environment variable].
+
+If you are using a custom start script template that references the exit environment variable, update your template to remove this dependency.
+There is no replacement API, the exit environment variable concept has been removed entirely.
+
+[[changes_9.4.0]]
+== Upgrading from 9.3.1 and earlier
+
+=== Potential breaking changes
+
+==== `ProjectBuilder` now enforces consistent build-scoped locations
+
+link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[`ProjectBuilder`] allows you to configure a specific project directory for tests.
+While `project.projectDir` and `project.rootDir` have always respected this setting, `project.layout.settingsDirectory` previously did not.
+This discrepancy could cause file resolution to inadvertently escape the project directory.
+
+Gradle now anchors the settings search directly to the configured project directory.
+This ensures that `layout.settingsDirectory`, `projectDir`, and `rootDir` all point to the same consistent location.
+Projects created via `ProjectBuilder` are now better isolated from the host build environment.
+
+If your tests specifically relied on `layout.settingsDirectory` pointing to an external location, they will need to be adjusted.
+Even if you do not use `settingsDirectory` directly, you may still observe changes in file resolution.
+Previously, dependency management files could be "leaked" into the test from the host build environment; this is no longer the case.
+
+For more details see link:https://github.com/gradle/gradle/issues/32928[the related issue].
+
+==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
+
+The `gradleApi()` dependency is now added to the `compileOnlyApi` scope instead of the `api` scope.
+This prevents the `gradleApi()` from leaking into the runtime classpath of other dependents of the plugin project.
+
+This might break projects that were implicitly relying on the `gradleApi()` being on the compilation or runtime classpath.
+If this is the case, add a `gradleApi()` dependency to the appropriate scope to restore the previous behavior.
+
+For most plugin projects, this change should be transparent as:
+
+- at compilation time, the plugin project will get the `gradleApi()`
+- the default test source set will also automatically get the `gradleApi()` dependency on the compilation and runtime classpaths
+
+If any additional test source set is used (e.g., integration tests), the `plugin` extension offers the `plugins.testSourceSet` method to register the source set for automatic management.
+If this cannot be done, a regular declaration of the `gradleApi()` dependency on the test source can be used as well.
+
+==== Stricter validation for published plugins
+
+For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.
+
+In order not to break your builds, this does not apply to local plugins (in `buildSrc` or included builds containing build logic).
+However, we encourage you to always enable stricter validation:
+
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+----
+
+==== CodeNarc compilation classpath is set by default
+
+The CodeNarc plugin now automatically populates the `compilationClasspath` of a `CodeNarc` task with the compile classpath of its associated source set.
+
+CodeNarc offers link:https://codenarc.org/codenarc-enhanced-classpath-rules.html[Enhanced Classpath Rules] (like `UnusedImport` or `DuplicateImport`) that require the project's compiled classes and dependencies to be analyzed for full accuracy.
+Previously, you had to wire this up manually.
+Now, it works out of the box.
+
+This change introduces a task dependency.
+The `CodeNarc` task must now wait for the `compile` task to finish so it can access the compiled classes.
+
+If you do not use enhanced rules and want to restore parallel execution, you can manually empty the `compilationClasspath`:
+
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("groovy")
+    id("codenarc")
+}
+
+tasks.withType<CodeNarc>().configureEach {
+    // Override the default compilation classpath
+    compilationClasspath = files()
+}
+----
+
+If your build relies on a custom configuration for the `compilationClasspath` of a `CodeNarc` task, you will need to continue explicitly setting it to override the new default behavior.
+
+==== System property priority for Wrapper execution has changed
+
+The priority of <<build_environment.adoc#sec:gradle_system_properties,system properties>> passed to the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> now correctly follows the documented order of precedence.
+In previous versions, properties defined in `gradle.properties` files could unexpectedly override those passed via the command line.
+
+If a property is defined in multiple locations, Gradle now strictly honors the following hierarchy (from highest to lowest):
+
+[cols="1,2,3", options="header"]
+|===
+| Priority | Source | Example
+| 1 (Highest) | <<command_line_interface.adoc#command_line_interface,Command Line Option>> | `./gradlew build -Dproperty.name=value`
+| 2 | <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>> | `~/.gradle/gradle.properties`
+| 3 (Lowest) | <<directory_layout.adoc#dir:project_root,Project Directory>> | `[project-root]/gradle.properties`
+|===
+
+For more details see the link:https://github.com/gradle/gradle/issues/36189[related issue].
+
+==== Upgrade to Kotlin 2.3.0
+
+The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
+
+==== Upgrade to Zinc 1.12.0
+
+Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.12.0[1.12.0].
+
+=== Deprecations
+
+[[findAll_removal]]
+==== Deprecation of `DomainObjectCollection.findAll(Closure)`
+
+The `findAll(Closure)` method on Gradle collections is now deprecated and scheduled for removal in Gradle 10.0.0.
+
+This method relies specifically on Groovy types and eagerly evaluates the contents of the container.
+
+To fix this, use the similar `DomainObjectCollection.matching(Spec)`.
+While not a direct replacement for `findAll`, `matching` is lazy, it returns a new collection that only filters elements as they are actually needed by the build:
+
+[source,groovy]
+----
+// Deprecated:
+def checkTasks = tasks.findAll { it.name.startsWith("check") }
+
+// Recommended:
+def checkTasks = tasks.matching { it.name.startsWith("check") }
+----
+
+[[deprecated_test_methods]]
+==== Deprecation of methods taking `Closure` on `Test` tasks
+
+The following APIs are deprecated and will be removed in Gradle 10.0.0:
+
+- `AbstractTestTask.onOutput(Closure)` can be replaced with `AbstractTestTask.addTestOutputListener(TestOutputListener)`
+- `AbstractTestTask.beforeTest(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.afterTest(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.beforeSuite(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.beforeSuite(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `Test.testFramework(Closure)` can be replaced with `Test.options(Action)`
+
+[[deprecate_apply_false_in_precompiled_script_plugins]]
+==== Deprecation of `apply false` in precompiled script plugins
+
+The use of `apply false` within <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> is now deprecated and will result in an error in Gradle 10.0.0.
+
+In a precompiled script, the `plugins {}` block behaves differently than in a standard build script.
+Currently, if you write `apply false`, Gradle applies the plugin anyway.
+This creates confusion because the syntax suggests you are merely adding a plugin to the classpath without activating it, which is not what actually happens.
+
+The fix depends on whether you actually want the plugin to be active in your precompiled script:
+
+- If you want to use the plugin: Remove the `apply false` statement.
+- If you do NOT want to use the plugin: Delete the line entirely.
+
+.my-plugin.gradle.kts
+[source,kotlin]
+----
+plugins {
+    // Deprecated (and misleading, as it is still applied)
+    id("org.gradle.test-retry") apply false
+    // The plugin will still be on the classpath,
+    // but it will not be applied as part of this precompiled script plugin.
+
+    // Recommended: Either remove 'apply false' to keep using it,
+    // or delete the line to stop using it.
+    id("org.gradle.test-retry")
+}
+----
+
+[[deprecate_version_in_precompiled_settings_script_plugins]]
+==== Deprecation of `version` in precompiled Settings script plugins
+
+The use of `version` within <<implementing_gradle_plugins_precompiled.adoc#settings_pre_compiled_plugins, precompiled Settings script plugins>> is now deprecated and will become an error in Gradle 10.0.0.
+
+In precompiled scripts, `version` has no effect.
+The plugin version is already fixed by the script's own build file; declaring it again inside the script is ignored and causes confusion about which version is actually in use.
+
+To fix this, remove the `.version()` or `version "..."` call from the `plugins {}` block:
+
+.my-plugin.settings.gradle.kts
+[source,kotlin]
+----
+plugins {
+    // Deprecated:
+    id("org.gradle.test-retry") version "x.y.z"
+    // Recommended:
+    id("org.gradle.test-retry")
+}
+----
+
+==== Deprecation of `Dependencies.getProject()` method
+
+The `getProject()` method on `Dependencies` has been deprecated and will be removed in Gradle 10.0.0.
+
+`Dependencies` is used to configure dependencies in test suites.
+Previously, `getProject()` was used by Gradle internally to reference the current project.
+While never intended for public use, it could be used unintentionally in build scripts.
+
+For example, the following configuration accidentally invokes the deprecated method because `project.path` resolves against the `Dependencies` object rather than the top-level `Project` object:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project(project.path)) // `project.path` accesses `Dependencies.getProject()`
+            }
+        }
+    }
+}
+----
+
+The configuration above may now fail to compile with an error in 9.5.0 if `-Werror` is set.
+
+To depend on the current project, use the `project()` method without arguments.
+This syntax is the idiomatic way to reference the project in both test suites and standard `dependencies {}` blocks:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project())
+            }
+        }
+    }
+}
+----
+
+[[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
+
+=== Potential breaking changes
+
+==== Referential equality is not guaranteed for `Project` instances
+
+Instances of `Project` type representing the same logical Gradle project do not provide any guarantee of being equal by reference (`==` in Java, `===` in Kotlin).
+However, historically it was possible to observe that such `Project` instances were exactly the same.
+
+In Gradle 9.3.0, `Project` instances (for the same logical project) **can be different** with respect to the referential equality,
+even if obtained within the same context, e.g., in the same build script.
+This change is necessary to facilitate future performance improvements of Gradle.
+The `Project.equals()` equality behavior remains unchanged.
+
+Avoid referential equality in Kotlin:
+
+.build.gradle.kts
+[source,kotlin]
+----
+// DON'T do this
+project.rootProject === project.parent
+----
+
+Avoid referential equality in Groovy:
+
+.build.gradle
+[source,groovy]
+----
+// DON'T do this
+project.rootProject.is(project.parent)
+----
+
+Avoid referential equality in Java:
+
+MyPlugin.java
+[source,java]
+----
+// DON'T do this
+project.getRootProject() == project.getParent();
+----
+
+In general, it is better to check project equality via `Project.getPath()` or `Project.getBuildTreePath()` for composite-build support.
+The paths are also better suited to be keys in data structures, like maps.
+
+==== TestNG output may change when using versions before 6.9.13.3
+
+As part of the `AbstractTestTask` refactoring, Gradle’s integration with TestNG has been updated.
+Gradle now relies on a correctly functioning `IClassListener` to report the hierarchy of test classes and methods.
+
+When using TestNG versions **earlier than 6.9.13.3**, this can lead to different or degraded output:
+
+- With older versions, class information may be lost. For example, output that previously looked like: `org.gradle > TestClass > ok` may now be reported simply as: `ok`.
+- For TestNG versions **from 6.9.10 up to (but not including) 6.9.13.3**, the `IClassListener` API exists but is broken. This can result in even worse output, such as empty or missing names.
+
+To get correct and stable output, we recommend upgrading to **TestNG 6.9.13.3 or newer**.
+
+==== Upgrade to Kotlin 2.2.21
+
+The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[2.2.21].
+
+==== Upgrade to Jansi 2.4.2
+
+Jansi was upgraded from https://github.com/fusesource/jansi/blob/jansi-2.4.2/changelog.md#jansi-118-released-2019-04-02[1.18] to https://github.com/fusesource/jansi/releases/tag/jansi-2.4.2[2.4.2] to pick up support for Windows ARM64.
+
+==== Upgrade to ASM 9.9
+
+ASM was upgraded from 9.8 to https://asm.ow2.io/versions.html[9.9] to ensure earlier compatibility for Java 26.
+
+==== Upgrade to Groovy 4.0.29
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.29.html[4.0.29].
+
+==== Upgrade to JaCoCo 0.8.14
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.14].
 
 === Deprecations
 
 [[deprecated_wrapper_get_available_distribution_types]]
-==== Deprecated `Wrapper.getAvailableDistributionTypes()` method
+==== Deprecation of the `Wrapper.getAvailableDistributionTypes()` method
 
 The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[Wrapper] task has been deprecated and will be removed in Gradle 10.
 
 Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
 
-[[changes_9.2]]
+[[publishing_dependency_on_unpublished_project]]
+==== Deprecation of publishing dependencies on unpublished projects
+
+When publishing a project, Gradle resolves project dependencies to the coordinates of the target project's publication.
+If the target project has no publication, Gradle currently resolves the dependency silently using that project's `group`, `name`, and `version`.
+
+Starting with Gradle 10, this behavior is deprecated.
+Gradle will no longer silently ignore the absence of a publication.
+Publishing a project that depends on another project without a publication will be forbidden and will cause the build to fail.
+This change prevents publishing broken metadata with dependency coordinates that cannot be resolved.
+
+The example below demonstrates a build that triggers the deprecated behavior:
+
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+group = "com.example"
+version = "1.0.0"
+
+dependencies {
+    api(project(":other"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+----
+
+.other/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+group = "com.example"
+version = "1.0.0"
+----
+
+To avoid this deprecation, ensure that all project dependencies of published projects are also published.
+In the example above, applying the `maven-publish` plugin and configuring a publication in the `:other` project resolves the issue:
+
+.other/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+group = "com.example"
+version = "1.0.0"
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+----
+
+[[deprecate_legacy_usage_values]]
+==== Deprecation of legacy `Usage` attribute values
+
+Since Gradle 5.6, the link:{javadocPath}/org/gradle/api/attributes/Usage.html[`Usage`] attribute has been split into an additional link:{javadocPath}/org/gradle/api/attributes/LibraryElements.html[`LibraryElements`] attribute.
+In the JVM ecosystem, `Usage` indicates whether a variant is intended for compilation or runtime, while `LibraryElements` specifies the format of the artifact (for example, a JAR file or a classes directory).
+
+To ease migration, Gradle has automatically mapped legacy `Usage` values to their corresponding `Usage` and `LibraryElements` pairs:
+
+|===
+| Legacy `Usage`           | Replaced `Usage` | Replaced `LibraryElements`
+| `java-api-jars`          | `java-api`       | `jar`
+| `java-api-classes`       | `java-api`       | `classes`
+| `java-runtime-jars`      | `java-runtime`   | `jar`
+| `java-runtime-classes`   | `java-runtime`   | `classes`
+| `java-runtime-resources` | `java-runtime`   | `resources`
+|===
+
+Starting with Gradle 10, this automatic mapping will no longer occur when legacy `Usage` values are added directly to an `AttributeContainer` in build logic.
+To maintain backward compatibility for already published modules, Gradle will continue translating legacy `Usage` values found in published Gradle Module Metadata.
+
+[[module_identity_for_root_component]]
+==== Deprecation of using module coordinates to depend on the current project
+
+Starting with Gradle 10, declaring a dependency on the current project using module coordinates (`group`, `name`, `version`) will no longer resolve to that project.
+Instead, Gradle will attempt to resolve that dependency from a repository.
+
+The example below demonstrates the change in behavior:
+
+.my-project/build.gradle.kts
+[source,kotlin]
+----
+group = "com.example"
+version = "1.0.0"
+
+val deps = configurations.dependencyScope("deps")
+val classpath = configurations.resolvable("classpath") {
+    extendsFrom(deps.get())
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+}
+
+val elements = configurations.consumable("elements") {
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+}
+
+dependencies {
+    // In Gradle 9.x, this dependency resolves to the `elements` configuration.
+    // In Gradle 10, this dependency will attempt to resolve from a repository.
+    deps("com.example:my-project:1.0.0")
+}
+----
+
+To continue depending on the current project, use a `project` dependency:
+
+.my-project/build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    // Declare a dependency on the current project to continue resolving
+    // to the current project.
+    deps(project)
+}
+----
+
+[[deprecate_moduleversionselector_to_modulecomponentselector]]
+==== Deprecation of `ModuleVersionSelector` to `ModuleComponentSelector` conversion
+The conversion of `ModuleVersionSelector` to `ModuleComponentSelector` (used in
+link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object...)[`ResolutionStrategy.force(...)`],
+link:{javadocPath}/org/gradle/api/artifacts/DependencyResolveDetails.html#useTarget(java.lang.Object)[`DependencyResolveDetails.useTarget(Object)`], and
+link:{javadocPath}/org/gradle/plugin/management/PluginResolveDetails.html#useModule(java.lang.Object)[`PluginResolveDetails.useModule(Object)`]
+) has been deprecated and will be removed in Gradle 10.0.0.
+
+Typically, `ModuleVersionSelector` instances are `DependencyContstraint` objects.
+
+Note that this deprecation does not apply to `ExternalDependency` objects, despite them implementing `ModuleVersionSelector`.
+
+To fix this deprecation, pass one of the supported notations (for example, a String in the `group:name:version` format).
+
+[[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier
 
 === Potential breaking changes
@@ -87,20 +606,18 @@ With this change, the `Configuring apiElements` line is no longer printed during
 See <<declaring_configurations.adoc#declaring-dependency-configurations,Declaring Configurations>> for more guidance.
 
 [[validate_plugins_java_version]]
-==== The `ValidatePlugins` task now has stricter Java version requirements
+==== `ValidatePlugins` now has stricter Java version requirements
 
-The `ValidatePlugins` task now requires running with a Java version that is supported by the Gradle daemon.
+The `ValidatePlugins` task must now run on a Java version that is supported by the Gradle daemon.
+This change was made because the task depends on several core Gradle services, which may now be compiled to the same bytecode version supported by the daemon.
 
-This change was made because the task depends on several core Gradle services,
-which may now be compiled to the same bytecode version supported by the daemon.
+By default, the task’s convention has been updated:
 
-The convention on the `ValidatePlugins` task has been updated to account for this change.
-If the project toolchain is compatible, it will use it.
-Otherwise, it will use the Java version used to run Gradle.
+* If your project’s toolchain is compatible, `ValidatePlugins` will use it.
+* Otherwise, it will fall back to the Java version used to run Gradle.
 
-If you were configuring the `ValidatePlugins` task to run with a specific toolchain as follows:
+If you explicitly set a toolchain like this:
 
-====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -129,15 +646,13 @@ tasks.withType(ValidatePlugins).configureEach {
 }
 ----
 =====
-====
 
-
-If the Java version defined in this configuration is not compatible with the Gradle daemon, you will have to update the launcher configuration to a <<compatibility.adoc#java_runtime,compatible version>>.
+If the specified Java version is **not** compatible with the Gradle daemon, you must update it to a <<compatibility.adoc#java_runtime,compatible version>>.
 
 === Deprecations
 
 [[project_container_methods]]
-==== Deprecated `Project.container(...)` methods
+==== Deprecation of `Project.container(...)` methods
 
 The link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[`Project.container(...)`] methods are deprecated and will be removed in Gradle 10.
 These methods manually create named domain object containers.
@@ -147,7 +662,7 @@ If a managed property isn’t possible, use `ObjectFactory.domainObjectContainer
 Unlike `Project.container(Class)`, the `ObjectFactory` version decorates container elements and makes them extension aware.
 
 [[dependency_management_rules]]
-==== Deprecated ruleSource-based dependency management APIs
+==== Deprecation of ruleSource-based dependency management APIs
 
 The link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`]-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
 
@@ -161,7 +676,7 @@ Deprecated APIs include:
 Use the alternative methods that accept a `ComponentMetadataRule` class or an `Action`.
 
 [[deprecate_register_feature_no_java_plugin]]
-==== Deprecated calling `registerFeature` without applying the Java plugin
+==== Deprecation of calling `registerFeature` without applying the Java plugin
 
 Creating a JVM feature with link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature(java.lang.String,org.gradle.api.Action)[`JavaPluginExtension#registerFeature`] before applying the Java plugin has been deprecated and will become an error in Gradle 10.0.0.
 
@@ -491,4 +1006,3 @@ Instead, you should specify these settings as <<build_environment.adoc#sec:gradl
 ----
 -Dorg.gradle.java.installations.auto-detect=false
 ----
-

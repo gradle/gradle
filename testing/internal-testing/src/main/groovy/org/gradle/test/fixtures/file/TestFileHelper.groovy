@@ -161,13 +161,7 @@ class TestFileHelper {
     }
 
     String readLink() {
-        def process = ["readlink", file.absolutePath].execute()
-        def error = process.errorStream.text
-        def retval = process.waitFor()
-        if (retval != 0) {
-            throw new RuntimeException("Could not read link '$file': $error")
-        }
-        return process.inputStream.text.trim()
+        Files.readSymbolicLink(file.toPath()).toFile().absolutePath
     }
 
     ExecOutput exec(List args) {

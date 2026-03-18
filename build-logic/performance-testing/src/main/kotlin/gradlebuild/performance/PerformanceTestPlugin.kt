@@ -21,7 +21,8 @@ import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
-import gradlebuild.basics.defaultPerformanceBaselines
+import gradlebuild.basics.defaultRfnPerformanceBaselines
+import gradlebuild.basics.defaultRfrPerformanceBaselines
 import gradlebuild.basics.getBuildEnvironmentExtension
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.logicalBranch
@@ -29,6 +30,7 @@ import gradlebuild.basics.performanceBaselines
 import gradlebuild.basics.performanceChannel
 import gradlebuild.basics.performanceDependencyBuildIds
 import gradlebuild.basics.performanceGeneratorMaxProjects
+import gradlebuild.basics.performanceStage
 import gradlebuild.basics.performanceTestVerbose
 import gradlebuild.basics.propertiesForPerformanceDb
 import gradlebuild.basics.releasedVersionsFile
@@ -37,6 +39,8 @@ import gradlebuild.basics.toolchainInstallationPaths
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.ide.AndroidStudioProvisioningExtension
 import gradlebuild.integrationtests.ide.AndroidStudioProvisioningPlugin
+import gradlebuild.integrationtests.ide.DEFAULT_ANDROID_STUDIO_VERSION
+import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.performance.Config.performanceTestAndroidStudioJvmArgs
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
@@ -47,8 +51,6 @@ import gradlebuild.performance.tasks.DefaultCommandExecutor
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
-import gradlebuild.integrationtests.ide.DEFAULT_ANDROID_STUDIO_VERSION
-import gradlebuild.jvm.JvmCompileExtension
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -326,7 +328,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         determineBaselines.configure {
             configuredBaselines = extension.baselines
-            defaultBaselines = project.defaultPerformanceBaselines
+            defaultBaselines = if (project.performanceStage.orNull == "READY_FOR_RELEASE") project.defaultRfrPerformanceBaselines else project.defaultRfnPerformanceBaselines
             logicalBranch = project.logicalBranch
         }
 
@@ -467,7 +469,7 @@ class PerformanceTestExtension(
             useJUnitPlatform()
             // We need 5G of heap to parse large JFR recordings when generating flamegraphs.
             // If we drop JFR as profiler and switch to something else, we can reduce the memory.
-            jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
+            jvmArgs("-Xmx8g", "-XX:+HeapDumpOnOutOfMemoryError")
             if (project.performanceTestVerbose.isPresent) {
                 testLogging.showStandardStreams = true
             }
@@ -512,6 +514,7 @@ class PerformanceTestExtension(
             }
             destinationDirectory = project.layout.buildDirectory
             archiveFileName = "test-results-${junitXmlDir.name}.zip"
+            isZip64 = true
         }
 }
 

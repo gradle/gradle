@@ -20,4 +20,10 @@ import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public interface NullMarkedApiType {
+    interface NestedApiType {
+    }
+
+    @NullMarked
+    interface UnnecessarilyNullMarkedNestedApiType {
+    }
 }

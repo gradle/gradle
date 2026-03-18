@@ -25,8 +25,10 @@ import org.junit.Rule
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
 class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
     ResolveFailureTestFixture failedResolve = new ResolveFailureTestFixture(buildFile, "compile")
+
     @Rule
     RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
 
@@ -92,10 +94,17 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
                     $server.validCredentials
                 }
             }
-            configurations { compile }
-            dependencies { compile 'group:projectA:1.2' }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'group:projectA:1.2'
+            }
         """
-        resolve.prepare()
 
         and:
         dep.ivy.expectDownload()
@@ -148,11 +157,13 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile 'group:projectA:1.0'
             }
         """
-        resolve.prepare()
 
         when:
         // Timeout connecting to repo1: do not continue search to repo2

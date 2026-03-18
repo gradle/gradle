@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 
@@ -51,6 +52,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     private final InternalProblems problems;
     private final AttributeDesugaring attributeDesugaring;
     private final ResolveExceptionMapper exceptionMapper;
+    private final ProviderFactory providerFactory;
 
     public DefaultConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
                                               ProjectStateRegistry projectStateRegistry,
@@ -63,7 +65,8 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
                                               CollectionCallbackActionDecorator collectionCallbackActionDecorator,
                                               InternalProblems problems,
                                               AttributeDesugaring attributeDesugaring,
-                                              ResolveExceptionMapper exceptionMapper) {
+                                              ResolveExceptionMapper exceptionMapper,
+                                              ProviderFactory providerFactory) {
         this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -76,6 +79,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.problems = problems;
         this.attributeDesugaring = attributeDesugaring;
         this.exceptionMapper = exceptionMapper;
+        this.providerFactory = providerFactory;
     }
 
     @Override
@@ -136,5 +140,10 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     @Override
     public ResolveExceptionMapper getExceptionMapper() {
         return exceptionMapper;
+    }
+
+    @Override
+    public ProviderFactory getProviderFactory() {
+        return providerFactory;
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableMap
 import org.codehaus.groovy.runtime.InvokerHelper
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.Identity
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,7 +38,7 @@ class StepSpecBase<C extends Context> extends Specification {
 
     final workId = ":test"
     final displayName = "job '$workId'"
-    final identity = Stub(UnitOfWork.Identity) {
+    final identity = Stub(Identity) {
         uniqueId >> workId
     }
 

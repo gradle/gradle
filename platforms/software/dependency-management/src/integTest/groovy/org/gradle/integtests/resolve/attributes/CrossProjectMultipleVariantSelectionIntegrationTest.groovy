@@ -22,13 +22,12 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDependencyResolutionTest {
 
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
         """
-        resolve
     }
 
     def "can select both main variant and test fixtures with project dependencies"() {
@@ -73,9 +72,8 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     }
                 }
             }
+            ${resolve.configureProject("compileClasspath")}
         """
-
-        resolve.prepare()
 
         when:
         succeeds ':checkDeps'
@@ -131,9 +129,8 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
             dependencies {
                 implementation project(':lib')
             }
+            ${resolve.configureProject("compileClasspath")}
         """
-
-        resolve.prepare()
 
         when:
         succeeds ':checkDeps'

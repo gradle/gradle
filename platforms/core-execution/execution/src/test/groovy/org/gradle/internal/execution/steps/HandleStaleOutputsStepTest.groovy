@@ -18,8 +18,9 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.file.Deleter
@@ -30,6 +31,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
     def outputFilesRepository = Mock(OutputFilesRepository)
+    def work = Stub(MutableUnitOfWork)
 
     def step = new HandleStaleOutputsStep<>(
         buildOperationRunner,
@@ -58,8 +60,8 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
         result == delegateResult
 
         _ * work.shouldCleanupStaleOutputs() >> true
-        _ * work.visitOutputs(_) { UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("output", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(target, TestFiles.fixed(target)))
+        _ * work.visitOutputs(_) { OutputVisitor visitor ->
+            visitor.visitOutputProperty("output", TreeType.FILE, OutputVisitor.OutputFileValueSupplier.fromStatic(target, TestFiles.fixed(target)))
         }
 
         _ * cleanupRegistry.isOutputOwnedByBuild(target) >> ownedByBuild

@@ -9,6 +9,7 @@ import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.SnapshotDependency
+import jetbrains.buildServer.configs.kotlin.Triggers
 import jetbrains.buildServer.configs.kotlin.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.VcsTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
@@ -37,7 +38,8 @@ class StageTriggers(
     init {
         triggers = mutableListOf()
         val allDependencies =
-            stageProject.specificBuildTypes + stageProject.performanceTests + stageProject.functionalTests + stageProject.docsTestTriggers
+            stageProject.specificBuildTypes + stageProject.performanceTests + stageProject.functionalTests + stageProject.docsTestTriggers +
+                stageProject.flakyTestQuarantineTriggers
         triggers.add(StageTrigger(model, stage, prevStage, null, allDependencies))
 
         stageWithOsTriggers.getOrDefault(stage.stageName, emptyList()).forEach { targetOs ->
@@ -51,10 +53,26 @@ class StageTriggers(
 // https://github.com/gradle/gradle-private/issues/4528
 // Trigger ReadyForNightly and ReadyForRelease for provider-api-migration/public-api-changes branch
 // TODO: remove this after the branch is merged
-const val PROVIDER_API_MIGRATION_BRANCH = "provider-api-migration/public-api-changes"
+const val PROVIDER_API_MIGRATION_BRANCH = "gradle10/provider-api-migration"
 const val BOT_DAILY_UPGRADLE_WRAPPER_BRANCH = "devprod/upgrade-to-latest-wrapper"
 
-fun determineBranchFilter(branches: List<String>): String = branches.map { "+:$it" }.joinToString("\n")
+const val DEPENDABOT_BRANCH_PATTERN = "dependabot/*"
+
+fun determineBranchFilter(branches: List<String>): String =
+    listOf(DEPENDABOT_BRANCH_PATTERN).joinToString("\n") { "-:$it" } + "\n" + branches.joinToString("\n") { "+:$it" }
+
+fun Triggers.vcsTrigger(
+    branchPatterns: List<String>,
+    enable: Boolean = true,
+) {
+    vcs {
+        quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
+        quietPeriod = 90
+        triggerRules = triggerExcludes
+        branchFilter = determineBranchFilter(branchPatterns)
+        enabled = enable
+    }
+}
 
 class StageTrigger(
     model: CIBuildModel,
@@ -76,7 +94,7 @@ class StageTrigger(
         }
 
         if (generateTriggers) {
-            val enableTriggers = model.branch.enableVcsTriggers
+            val enableTriggers = model.branch.isMainBranch || model.branch.isLegacyRelease
             if (stage.trigger == Trigger.EACH_COMMIT) {
                 val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
 
@@ -85,13 +103,7 @@ class StageTrigger(
                     effectiveTriggerBranches.add(BOT_DAILY_UPGRADLE_WRAPPER_BRANCH)
                 }
 
-                triggers.vcs {
-                    quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
-                    quietPeriod = 90
-                    triggerRules = triggerExcludes
-                    branchFilter = determineBranchFilter(effectiveTriggerBranches)
-                    enabled = enableTriggers
-                }
+                triggers.vcsTrigger(effectiveTriggerBranches, enableTriggers)
             } else if (stage.trigger != Trigger.NEVER) {
                 val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
 

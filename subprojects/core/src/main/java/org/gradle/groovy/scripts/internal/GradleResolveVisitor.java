@@ -80,6 +80,7 @@ import java.util.Set;
  *
  * @since 2.12
  */
+@SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
 public class GradleResolveVisitor extends ResolveVisitor {
     // note: BigInteger and BigDecimal are also imported by default
     // TODO: sync with the documentation in writing_build_scripts_intermediate.adoc

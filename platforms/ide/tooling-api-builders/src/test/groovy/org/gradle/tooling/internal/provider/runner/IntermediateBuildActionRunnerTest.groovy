@@ -36,7 +36,7 @@ class IntermediateBuildActionRunnerTest extends Specification {
         runner.isParallel()
 
         then:
-        1 * buildModelParameters.isParallelToolingApiActions() >> true
+        1 * buildModelParameters.isParallelModelBuilding() >> true
         0 * _
     }
 
@@ -52,7 +52,7 @@ class IntermediateBuildActionRunnerTest extends Specification {
         then:
         result == ["one", "two", "three"]
 
-        1 * buildModelParameters.isParallelToolingApiActions() >> false
+        1 * buildModelParameters.isParallelModelBuilding() >> false
         1 * action1.get() >> "one"
         1 * action2.get() >> "two"
         1 * action3.get() >> "three"
@@ -72,7 +72,7 @@ class IntermediateBuildActionRunnerTest extends Specification {
         then:
         result == ["one", "two", "three"]
 
-        1 * buildModelParameters.isParallelToolingApiActions() >> true
+        1 * buildModelParameters.isParallelModelBuilding() >> true
         1 * buildOperationExecutor.runAllWithAccessToProjectState(_) >> { def params ->
             def queueingAction = params[0]
             queueingAction.execute(queue)
@@ -102,7 +102,7 @@ class IntermediateBuildActionRunnerTest extends Specification {
         def e = thrown(MultipleBuildOperationFailures)
         e.causes == [failure1, failure2]
 
-        1 * buildModelParameters.isParallelToolingApiActions() >> false
+        1 * buildModelParameters.isParallelModelBuilding() >> false
         1 * action1.get() >> { throw failure1 }
         1 * action2.get() >> { throw failure2 }
         1 * action3.get() >> "three"
@@ -125,7 +125,7 @@ class IntermediateBuildActionRunnerTest extends Specification {
         def e = thrown(MultipleBuildOperationFailures)
         e.causes == [failure1, failure2]
 
-        1 * buildModelParameters.isParallelToolingApiActions() >> true
+        1 * buildModelParameters.isParallelModelBuilding() >> true
         1 * buildOperationExecutor.runAllWithAccessToProjectState(_) >> { def params ->
             def queueingAction = params[0]
             queueingAction.execute(queue)

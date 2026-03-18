@@ -16,9 +16,11 @@
 
 package org.gradle.internal.resources;
 
+import org.jspecify.annotations.Nullable;
+
 public class DefaultLease extends AbstractTrackedResourceLock {
     private final LeaseHolder parent;
-    private Thread ownerThread;
+    private @Nullable Thread ownerThread;
 
     public DefaultLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, LeaseHolder parent) {
         super(displayName, coordinationService, owner);
@@ -38,9 +40,18 @@ public class DefaultLease extends AbstractTrackedResourceLock {
     @Override
     protected boolean acquireLock() {
         if (parent.grantLease()) {
-            ownerThread = Thread.currentThread();
+            doAcquireLock();
         }
         return ownerThread != null;
+    }
+
+    protected void doForceAcquireLock() {
+        parent.forceGrantLease();
+        doAcquireLock();
+    }
+
+    private void doAcquireLock() {
+        ownerThread = Thread.currentThread();
     }
 
     @Override

@@ -51,7 +51,6 @@ import org.gradle.process.internal.worker.child.DefaultWorkerDirectoryProvider;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.WorkerExecutor;
 
-@SuppressWarnings("UnusedMethod")
 public class WorkersServices extends AbstractGradleModuleServices {
     @Override
     public void registerGradleUserHomeServices(ServiceRegistration registration) {

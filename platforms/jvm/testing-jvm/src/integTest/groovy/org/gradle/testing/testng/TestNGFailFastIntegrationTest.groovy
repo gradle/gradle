@@ -16,14 +16,18 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.TestPathExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
 import org.gradle.testing.fixture.TestNGCoverage
-import org.hamcrest.CoreMatchers
 
 @TargetCoverage({ [TestNGCoverage.NEWEST] })
 class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements TestNGMultiVersionTest {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
 
     def "parallel #parallel execution with #threadCount threads, #maxWorkers workers fails fast"() {
         given:
@@ -46,12 +50,28 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec i
         then:
         testExecution.release(1)
         gradleHandle.waitForFailure()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testFailed('failedTest', CoreMatchers.anything()) }
-        assert 5 == resourceForTest.keySet().with {
-            count { !result.testClassExists(it) } +
-                count { result.testClassExists(it) && result.testClass(it).testCount == 0 } +
-                count { result.testClassExists(it) && result.testClass(it).testSkippedCount == 1 }
+
+        and:
+        GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
+        assert 1 == resourceForTest.keySet().sum {path ->
+            if (testResults.testPathExists(path)) {
+                TestPathExecutionResult test = testResults.testPath(path)
+                test.onlyRoot().getFailedChildCount()
+            } else {
+                0
+            }
+        }
+        resourceForTest.keySet().with {
+            def doesntExist = count {path ->
+                !testResults.testPathExists(path)
+            }
+            def zeroChildren = count {path ->
+                testResults.testPathExists(path) && testResults.testPath(path).rootNames.size() == 0
+            }
+            def skipped = count {path ->
+                testResults.testPathExists(path) && testResults.testPath(path).onlyRoot().getSkippedChildCount()
+            }
+            assert 5 == (doesntExist + zeroChildren + skipped)
         }
 
         where:

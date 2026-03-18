@@ -26,6 +26,7 @@ import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.DefaultGradleVersion
 
 class ApplicationPluginTest extends AbstractProjectBuilderSpec {
     private final ApplicationPlugin plugin = TestUtil.newInstance(ApplicationPlugin)
@@ -65,6 +66,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         task.applicationName == project.application.applicationName
         task.outputDir == project.file('build/scripts')
         task.defaultJvmOpts == []
+        task.gitRef.get() == DefaultGradleVersion.current().getGitRevision()
     }
 
     def "adds distZip task to project"() {

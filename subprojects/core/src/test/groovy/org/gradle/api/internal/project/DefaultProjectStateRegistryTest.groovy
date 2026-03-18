@@ -22,9 +22,11 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.problems.ProblemReporter
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.operations.BuildOperationsParameters
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.work.DefaultWorkerLeaseService
@@ -727,10 +729,11 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     }
 
     BuildState build(String... projects) {
+        def problemsReporter = Stub(ProblemReporter)
         def descriptors = new DefaultProjectDescriptorRegistry()
-        def root = new DefaultProjectDescriptor(null, "root", null, descriptors, null)
+        def root = new DefaultProjectDescriptor(null, "root", null, descriptors, null, problemsReporter)
         projects.each {
-            new DefaultProjectDescriptor(root, it, null, descriptors, null)
+            new DefaultProjectDescriptor(root, it, null, descriptors, null, problemsReporter)
         }
 
         def settings = Stub(SettingsInternal)
@@ -742,7 +745,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         build.identityPath >> Path.ROOT
         def services = new DefaultServiceRegistry()
         services.add(projectFactory)
-        services.add(TestUtil.stateTransitionControllerFactory())
+        services.add(TestUtil.stateTransitionControllerFactory(Mock(BuildOperationsParameters)))
         build.mutableModel >> Stub(GradleInternal) {
             getServices() >> services
         }

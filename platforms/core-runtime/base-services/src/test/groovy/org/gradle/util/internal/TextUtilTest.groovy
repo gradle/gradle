@@ -18,6 +18,9 @@ package org.gradle.util.internal
 
 import spock.lang.Specification
 
+import static org.gradle.util.internal.TextUtil.toCamelCase
+import static org.gradle.util.internal.TextUtil.toLowerCamelCase
+
 class TextUtilTest extends Specification {
     private static String sep = "separator"
     private static String platformSep = TextUtil.platformLineSeparator
@@ -103,6 +106,22 @@ class TextUtilTest extends Specification {
         TextUtil.shorterOf("", "") == ""
     }
 
+    def "removeTrailing should remove the last occurrence of the given suffix only if it is at the end"() {
+        expect:
+        TextUtil.removeTrailing(input, suffix) == expectedOutput
+
+        where:
+        input              | suffix     || expectedOutput
+        "helloworld"       | "world"    || "hello"
+        "foobarfoo"        | "foo"      || "foobar"
+        "textsuffixsuffix" | "suffix"   || "textsuffix"
+        "randomtext"       | "text"     || "random"
+        "nosuffixhere"     | "suffix"   || "nosuffixhere"
+        "somethinglong"    | "long"     || "something"
+        "removeme"         | "removeme" || ""
+        "unchanged"        | "nothing"  || "unchanged"
+    }
+
     def "#camelCase to kebab = #kebabCase"() {
         expect:
         TextUtil.camelToKebabCase(camelCase) == kebabCase
@@ -121,19 +140,47 @@ class TextUtilTest extends Specification {
         "aBec"      | "a-bec"
     }
 
-    def "removeTrailing should remove the last occurrence of the given suffix only if it is at the end"() {
+    def convertStringToCamelCase() {
         expect:
-        TextUtil.removeTrailing(input, suffix) == expectedOutput
+        toCamelCase(null) == null
+        toCamelCase("") == ""
+        toCamelCase("word") == "Word"
+        toCamelCase("twoWords") == "TwoWords"
+        toCamelCase("TwoWords") == "TwoWords"
+        toCamelCase("two-words") == "TwoWords"
+        toCamelCase("two.words") == "TwoWords"
+        toCamelCase("two words") == "TwoWords"
+        toCamelCase("two Words") == "TwoWords"
+        toCamelCase("Two Words") == "TwoWords"
+        toCamelCase(" Two  \t words\n") == "TwoWords"
+        toCamelCase("four or so Words") == "FourOrSoWords"
+        toCamelCase("123-project") == "123Project"
+        toCamelCase("i18n-admin") == "I18nAdmin"
+        toCamelCase("trailing-") == "Trailing"
+        toCamelCase("ABC") == "ABC"
+        toCamelCase(".") == ""
+        toCamelCase("-") == ""
+    }
 
-        where:
-        input              | suffix     || expectedOutput
-        "helloworld"       | "world"    || "hello"
-        "foobarfoo"        | "foo"      || "foobar"
-        "textsuffixsuffix" | "suffix"   || "textsuffix"
-        "randomtext"       | "text"     || "random"
-        "nosuffixhere"     | "suffix"   || "nosuffixhere"
-        "somethinglong"    | "long"     || "something"
-        "removeme"         | "removeme" || ""
-        "unchanged"        | "nothing"  || "unchanged"
+    def convertStringToLowerCamelCase() {
+        expect:
+        toLowerCamelCase(null) == null
+        toLowerCamelCase("") == ""
+        toLowerCamelCase("word") == "word"
+        toLowerCamelCase("twoWords") == "twoWords"
+        toLowerCamelCase("TwoWords") == "twoWords"
+        toLowerCamelCase("two-words") == "twoWords"
+        toLowerCamelCase("two.words") == "twoWords"
+        toLowerCamelCase("two words") == "twoWords"
+        toLowerCamelCase("two Words") == "twoWords"
+        toLowerCamelCase("Two Words") == "twoWords"
+        toLowerCamelCase(" Two  \t words\n") == "twoWords"
+        toLowerCamelCase("four or so Words") == "fourOrSoWords"
+        toLowerCamelCase("123-project") == "123Project"
+        toLowerCamelCase("i18n-admin") == "i18nAdmin"
+        toLowerCamelCase("trailing-") == "trailing"
+        toLowerCamelCase("ABC") == "aBC"
+        toLowerCamelCase(".") == ""
+        toLowerCamelCase("-") == ""
     }
 }

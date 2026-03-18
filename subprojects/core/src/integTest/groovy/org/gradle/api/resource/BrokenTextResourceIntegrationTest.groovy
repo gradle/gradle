@@ -67,7 +67,7 @@ task text(type: TextTask)
         failure.assertHasCause("Cannot expand TAR '${file}' as it does not exist.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "the underlying file collection looses its display name")
+    @ToBeFixedForConfigurationCache(because = "the underlying file collection looses its display name, https://github.com/gradle/gradle/issues/36695")
     def "reports read of missing archive entry"() {
         given:
         buildFile << """

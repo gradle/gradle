@@ -114,18 +114,22 @@ if (project.hasProperty('nocache')) {
 
     void createVerifyTaskModuleComponentIdentifier() {
         buildFile << """
+def runARQ(id) {
+    return dependencies.createArtifactResolutionQuery()
+        .forComponents(id)
+        .withArtifacts($requestedComponent, $requestedArtifact)
+        .execute()
+}
+
 task verify {
+    // Note: User-initiated resolution during configuration time is necessary to use ARQ, and should NOT be copied
+    def deps = configurations.${config}.incoming.resolutionResult.allDependencies as List
+    def componentResults = runARQ(deps[0].selected.id).components
+    def componentArtifactsResults = runARQ(deps[0].selected.id).resolvedComponents
     doLast {
-        def deps = configurations.${config}.incoming.resolutionResult.allDependencies as List
         assert deps.size() == 1
         def componentId = deps[0].selected.id
-
-        def result = dependencies.createArtifactResolutionQuery()
-            .forComponents(deps[0].selected.id)
-            .withArtifacts($requestedComponent, $requestedArtifact)
-            .execute()
-
-        assert result.components.size() == 1
+        assert componentResults.size() == 1
 
         ${createComponentResultVerificationCode()}
 """
@@ -137,7 +141,7 @@ task verify {
         buildFile << """
         def expectedMetadataFileNames = ${expectedMetadataFiles.collect { "'" + it.name + "'" }} as Set
 
-        for(component in result.resolvedComponents) {
+        for(component in componentArtifactsResults) {
             def artifacts = component.getArtifacts($requestedArtifact)
             artifacts.each { a ->
                 assert a.id.componentIdentifier.displayName == "${id.displayName}"
@@ -174,7 +178,7 @@ task verify {
     private String createComponentResultVerificationCode() {
         """
         // Check generic component result
-        def componentResult = result.components.iterator().next()
+        def componentResult = componentResults.iterator().next()
         assert componentResult.id.displayName == '$id.displayName'
         assert componentResult instanceof $expectedComponentResult.name
 """
@@ -191,20 +195,25 @@ task verify {
 
     void createVerifyTaskForProjectComponentIdentifier() {
         buildFile << """
+def runARQ(rootId) {
+    dependencies.createArtifactResolutionQuery()
+        .forComponents(rootId)
+        .withArtifacts($requestedComponent, $requestedArtifact)
+        .execute()
+}
+
 task verify {
+    // Note: User-initiated resolution during configuration time is necessary to use ARQ, and should NOT be copied
+    def rootId = configurations.${config}.incoming.resolutionResult.root.id
+    def componentResults = runARQ(rootId).components
+    def componentArtifactsResults = runARQ(rootId).resolvedComponents
+
     doLast {
-        def rootId = configurations.${config}.incoming.resolutionResult.root.id
         assert rootId instanceof ProjectComponentIdentifier
-
-        def result = dependencies.createArtifactResolutionQuery()
-            .forComponents(rootId)
-            .withArtifacts($requestedComponent, $requestedArtifact)
-            .execute()
-
-        assert result.components.size() == 1
+        assert componentResults.size() == 1
 
         // Check generic component result
-        def componentResult = result.components.iterator().next()
+        def componentResult = componentResults.iterator().next()
         assert componentResult.id.displayName == "root project :"
         assert componentResult instanceof $expectedComponentResult.name
 """
@@ -216,7 +225,7 @@ task verify {
         buildFile << """
         def expectedMetadataFileNames = ${expectedMetadataFiles.collect { "'" + it.name + "'" }} as Set
 
-        for(component in result.resolvedComponents) {
+        for(component in componentArtifactsResults) {
             def resolvedArtifacts = component.getArtifacts($requestedArtifact).findAll { it instanceof ResolvedArtifactResult }
             assert expectedMetadataFileNames.size() == resolvedArtifacts.size()
 

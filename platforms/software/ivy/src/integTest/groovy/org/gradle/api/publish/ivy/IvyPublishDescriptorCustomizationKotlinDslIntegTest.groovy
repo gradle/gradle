@@ -28,12 +28,12 @@ class IvyPublishDescriptorCustomizationKotlinDslIntegTest extends AbstractIvyPub
     }
 
     @Override
-    protected TestFile getSettingsFile() {
+    TestFile getSettingsFile() {
         return super.getSettingsKotlinFile()
     }
 
     def setup() {
-        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
+        requireOwnGradleUserHomeDir("need to isolate Kotlin DSL extensions API jar")
     }
 
     def "can customize Ivy descriptor using Kotlin DSL"() {
@@ -81,7 +81,7 @@ class IvyPublishDescriptorCustomizationKotlinDslIntegTest extends AbstractIvyPub
 
         then:
         def module = ivyRepo.module("org.gradle.test", "customizeIvy", "1.0")
-        with (module.parsedIvy) {
+        with(module.parsedIvy) {
             status == "custom-status"
             branch == "custom-branch"
             licenses.size() == 1

@@ -88,6 +88,7 @@ assert providers.systemProperty('some-prop').get() == 'i have space'
         """
     }
 
+    @Requires(IntegTestPreconditions.DifferentJdkAvailable)
     def "honours jvm option that contain a space in gradle.properties"() {
         given:
         file("gradle.properties") << 'org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space" -Dsome-prop="and some more stress..."'

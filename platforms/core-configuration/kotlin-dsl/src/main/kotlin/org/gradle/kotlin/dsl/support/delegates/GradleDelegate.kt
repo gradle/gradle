@@ -32,6 +32,7 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.deprecation.DeprecationLogger
 import java.io.File
 
@@ -182,4 +183,7 @@ abstract class GradleDelegate : Gradle {
 
     override fun getExtensions(): ExtensionContainer =
         delegate.extensions
+
+    override fun getProviders(): ProviderFactory =
+        delegate.providers
 }

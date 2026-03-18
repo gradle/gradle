@@ -62,6 +62,14 @@ class ConfigurationCacheBuildOperationsFixture {
     }
 
     /**
+     * A "CC miss" where the state was discarded after encountering errors before or during store phase while when CC problems are warnings.
+     */
+    void assertStateStoreDiscarded() {
+        assertStorePhaseSuccessful()
+        assertLoadPhaseSkipped()
+    }
+
+    /**
      * A "CC miss" that stores successfully, but fails during load with an error
      */
     void assertStateStoredAndFailedOnLoad() {

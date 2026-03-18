@@ -90,7 +90,6 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can define a platform with local projects"() {
         given:
-        createDirs("core", "utils")
         settingsFile << """
             include "core"
             include "utils"
@@ -110,7 +109,24 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
                     }
                 }
             }
-""")
+        """)
+
+        ["core", "utils"].each {
+            file("$it/build.gradle") << """
+                plugins {
+                    id("java-library")
+                    id("maven-publish")
+                }
+
+                publishing {
+                    publications {
+                        maven(MavenPublication) {
+                            from(components.java)
+                        }
+                    }
+                }
+            """
+        }
 
         when:
         run "publish"

@@ -60,8 +60,8 @@ class NativePlatformConsoleDetectorTest extends Specification {
 
         expect:
         detector.console != null
-        detector.console.stdOut
-        detector.console.stdErr
+        detector.console.stdOutATerminal
+        detector.console.stdErrATerminal
     }
 
     @Requires(UnitTestPreconditions.SmartTerminalAvailable)
@@ -72,8 +72,8 @@ class NativePlatformConsoleDetectorTest extends Specification {
 
         expect:
         detector.console != null
-        detector.console.stdOut
-        !detector.console.stdErr
+        detector.console.stdOutATerminal
+        !detector.console.stdErrATerminal
     }
 
     @Requires(UnitTestPreconditions.SmartTerminalAvailable)
@@ -84,8 +84,8 @@ class NativePlatformConsoleDetectorTest extends Specification {
 
         expect:
         detector.console != null
-        !detector.console.stdOut
-        detector.console.stdErr
+        !detector.console.stdOutATerminal
+        detector.console.stdErrATerminal
     }
 
     @Requires(UnitTestPreconditions.Unix)

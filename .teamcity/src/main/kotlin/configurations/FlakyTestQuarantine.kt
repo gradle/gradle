@@ -53,7 +53,7 @@ class FlakyTestQuarantineProject(
         model.stages
             .filter { it.stageName <= StageName.READY_FOR_RELEASE }
             .flatMap { it.functionalTests }
-            .filter { it.os == os }
+            .filter { it.os == os && !it.testType.crossVersionTests }
             .forEach {
                 buildType(FlakyTestQuarantine(model, stage, it))
             }
@@ -71,13 +71,13 @@ class FlakyTestQuarantine(
     stage: Stage,
     testCoverage: TestCoverage,
 ) : OsAwareBaseGradleBuildType(os = testCoverage.os, stage = stage, init = {
-        val os = testCoverage.os
+        val os = os
         val arch = testCoverage.arch
         id("${model.projectId}_FlakyQuarantine_${testCoverage.asId(model)}")
         name = "Flaky Test Quarantine - ${testCoverage.asName()}"
         description = "Run all flaky tests skipped multiple times"
 
-        applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = 180)
+        applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = 60)
 
         if (os == Os.LINUX) {
             steps {

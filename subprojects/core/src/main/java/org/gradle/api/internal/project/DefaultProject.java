@@ -122,9 +122,9 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.plugin.software.internal.ProjectFeatureApplicator;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
-import org.gradle.plugin.software.internal.ProjectFeatureSupportInternal;
+import org.gradle.features.internal.binding.ProjectFeatureApplicator;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -875,6 +875,15 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return projectToEvaluate;
     }
 
+    /**
+     * Returns the display name of this project in a human-readable format.
+     * <p>
+     * Currently:
+     * <ul>
+     *     <li>For the root project: {@code root project 'projectName'}</li>
+     *     <li>For subprojects: {@code project ':identity:path:of:project'}</li>
+     * </ul>
+     */
     @Override
     public String getDisplayName() {
         return owner.getDisplayName().getDisplayName();
@@ -1209,11 +1218,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ServiceRegistry getServices() {
         return services;
-    }
-
-    @Override
-    public ServiceRegistryFactory getServiceRegistryFactory() {
-        return services.get(ServiceRegistryFactory.class);
     }
 
     @Override

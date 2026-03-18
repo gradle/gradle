@@ -18,60 +18,19 @@ package org.gradle.internal.declarativedsl.common
 
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.gradleConfigureLambdas
-import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
-import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionLambdaTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionReturnTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
-import kotlin.reflect.KClass
-import kotlin.reflect.full.memberFunctions
 
 
 /**
  * Provides type discovery via functions that return an object or configure an object accepting a lambda as the last parameter
  * (via [org.gradle.api.Action] or a Kotlin function type, see [gradleConfigureLambdas]).
- *
- * All configured or returned types that appear in [isPublicAndRestricted]-matching will be discovered (for now, regardless of actual function semantics).
  */
 internal
 class TypeDiscoveryFromRestrictedFunctions : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FunctionLambdaTypeDiscovery(isPublicAndRestricted, gradleConfigureLambdas),
-        FunctionReturnTypeDiscovery(isPublicAndRestricted)
+        FunctionLambdaTypeDiscovery(gradleConfigureLambdas),
+        FunctionReturnTypeDiscovery()
     )
-}
-
-
-private
-class FunctionLambdaTypeDiscovery(
-    private val memberFilter: MemberFilter,
-    private val configureLambdas: ConfigureLambdaHandler,
-) : TypeDiscovery {
-    /**
-     * Collect everything that potentially looks like types configured by the lambdas.
-     * TODO: this may be excessive
-     */
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
-        kClass.memberFunctions
-            .filter { memberFilter.shouldIncludeMember(it) }
-            .mapNotNullTo(mutableSetOf()) { fn ->
-                fn.parameters.lastOrNull()?.let {
-                    configureLambdas.getTypeConfiguredByLambda(it.type)?.classifier as? KClass<*>
-                }
-            }
-}
-
-
-private
-class FunctionReturnTypeDiscovery(
-    private val memberFilter: MemberFilter
-) : TypeDiscovery {
-    /**
-     * Collects everything that restricted functions mention as return values.
-     */
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
-        kClass.memberFunctions
-            .filter { memberFilter.shouldIncludeMember(it) }
-            .mapNotNullTo(mutableSetOf()) { fn ->
-                fn.returnType.classifier as? KClass<*>
-            }
 }

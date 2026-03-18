@@ -19,13 +19,14 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.problems.Problem
+import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
-class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
+class ResolveChangesStepTest extends StepSpec<MutableValidationFinishedContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
     def step = new ResolveChangesStep<>(changeDetector, delegate)
     def beforeExecutionState = Stub(BeforeExecutionState) {
@@ -34,6 +35,7 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
         outputFileLocationSnapshots >> ImmutableSortedMap.of()
     }
     def delegateResult = Mock(Result)
+    def work = Stub(MutableUnitOfWork)
 
     def "doesn't provide input file changes when rebuild is forced"() {
         when:
@@ -42,8 +44,8 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
         then:
         result == delegateResult
 
-        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
-        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+        _ * work.executionBehavior >> MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL
+        1 * delegate.execute(work, _ as MutableChangesContext) >> { UnitOfWork work, MutableChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert delegateContext.rebuildReasons == ImmutableList.of("Forced rebuild.")
             assert !changes.createInputChanges().incremental
@@ -61,7 +63,7 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
         then:
         result == delegateResult
 
-        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as MutableChangesContext) >> { UnitOfWork work, MutableChangesContext delegateContext ->
             return delegateResult
         }
         _ * context.nonIncrementalReason >> Optional.empty()
@@ -76,8 +78,8 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
         then:
         result == delegateResult
 
-        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
-        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+        _ * work.executionBehavior >> MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL
+        1 * delegate.execute(work, _ as MutableChangesContext) >> { UnitOfWork work, MutableChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
             assert delegateContext.rebuildReasons == ImmutableList.of("No history is available.")
@@ -97,8 +99,8 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
         then:
         result == delegateResult
 
-        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
-        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+        _ * work.executionBehavior >> MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL
+        1 * delegate.execute(work, _ as MutableChangesContext) >> { UnitOfWork work, MutableChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
             assert delegateContext.rebuildReasons == ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
@@ -122,7 +124,7 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
         then:
         result == delegateResult
 
-        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as MutableChangesContext) >> { UnitOfWork work, MutableChangesContext delegateContext ->
             assert delegateContext.changes.get() == changes
             return delegateResult
         }
@@ -131,8 +133,8 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         _ * context.validationProblems >> ImmutableList.of()
-        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
-        1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _) >> changes
+        _ * work.executionBehavior >> MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL
+        1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _, false) >> changes
         0 * _
     }
 

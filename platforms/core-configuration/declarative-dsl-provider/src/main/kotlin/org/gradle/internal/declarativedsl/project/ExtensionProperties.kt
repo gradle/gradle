@@ -16,14 +16,21 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
+import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.internal.declarativedsl.schemaBuilder.ExtractionResult
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractionMetadata
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractionResult
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import kotlin.reflect.KClass
 
 
 internal
-class ExtensionProperties(private val extensionPropertiesByClass: Map<KClass<*>, Iterable<CollectedPropertyInformation>>) : PropertyExtractor {
-    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
-        extensionPropertiesByClass[kClass]?.filter { propertyNamePredicate(it.name) } ?: emptyList()
+class ExtensionProperties(private val extensionPropertiesByClass: Map<KClass<*>, Iterable<DataProperty>>) : PropertyExtractor {
+    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<PropertyExtractionResult> =
+        extensionPropertiesByClass[kClass]?.mapNotNull {
+            if (propertyNamePredicate(it.name)) {
+                ExtractionResult.Extracted(it, PropertyExtractionMetadata(emptyList(), null))
+            } else null
+        } ?: emptyList()
 }

@@ -16,21 +16,27 @@
 
 package org.gradle.api.internal.tasks.testing.results.serializable;
 
-import org.jspecify.annotations.NullMarked;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents a {@link Throwable} that can be safely serialized to disk, since it does not contain any references to exception objects.
  */
-@NullMarked
 public class SerializableFailure {
     private final String message;
     private final String stackTrace;
     private final String exceptionType;
+    private final List<String> causes;
 
     public SerializableFailure(String message, String stackTrace, String exceptionType) {
+        this(message, stackTrace, exceptionType, Collections.emptyList());
+    }
+
+    public SerializableFailure(String message, String stackTrace, String exceptionType, List<String> causes) {
         this.message = message;
         this.stackTrace = stackTrace;
         this.exceptionType = exceptionType;
+        this.causes = Collections.unmodifiableList(causes);
     }
 
     public String getMessage() {
@@ -43,5 +49,9 @@ public class SerializableFailure {
 
     public String getExceptionType() {
         return exceptionType;
+    }
+
+    public List<String> getCauses() {
+        return causes;
     }
 }

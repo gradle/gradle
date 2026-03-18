@@ -133,6 +133,10 @@ class ConflictContainer<K, T> {
         return conflicts.isEmpty();
     }
 
+    public boolean hasConflictFor(K participant) {
+        return conflictsByParticipant.containsKey(participant);
+    }
+
     boolean hasMatchingConflict(Predicate<T> predicate) {
         if (isEmpty()) {
             return false;

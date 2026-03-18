@@ -43,6 +43,7 @@ import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.util.internal.DefaultGradleVersion;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -189,6 +190,8 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             startScripts.getMainClass().set(pluginExtension.getMainClass());
 
             startScripts.getConventionMapping().map("applicationName", pluginExtension::getApplicationName);
+
+            startScripts.getGitRef().set(DefaultGradleVersion.current().getGitRevision());
 
             startScripts.getConventionMapping().map("outputDir", () -> new File(project.getBuildDir(), "scripts"));
 

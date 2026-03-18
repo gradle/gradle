@@ -17,12 +17,13 @@
 package org.gradle.internal.tools.api.impl;
 
 import com.google.common.collect.ComparisonChain;
+import org.jspecify.annotations.Nullable;
 
 public abstract class TypedMember extends AnnotatableMember {
 
     private final String typeDesc;
 
-    public TypedMember(int access, String name, String signature, String typeDesc) {
+    public TypedMember(int access, String name, @Nullable String signature, String typeDesc) {
         super(access, name, signature);
         this.typeDesc = typeDesc;
     }
@@ -33,6 +34,6 @@ public abstract class TypedMember extends AnnotatableMember {
 
     protected ComparisonChain compare(TypedMember o) {
         return super.compare(o)
-            .compare(typeDesc == null ? "" : typeDesc, o.typeDesc == null ? "" : o.typeDesc);
+            .compare(typeDesc, o.typeDesc);
     }
 }

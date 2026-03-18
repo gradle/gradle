@@ -39,7 +39,7 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.InputVisitor
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
@@ -74,6 +74,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import java.io.File
+import java.nio.file.Path
 import java.util.Optional
 
 
@@ -115,6 +116,7 @@ class StandardKotlinScriptEvaluator(
     private val inputFingerprinter: InputFingerprinter,
     private val internalOptions: InternalOptions,
     private val gradleProperties: GradleProperties,
+    private val buildTreeRootDir: Path,
     private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
     private val gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
     private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig
@@ -162,8 +164,8 @@ class StandardKotlinScriptEvaluator(
     private
     val interpreter by lazy {
         when (propertyUpgradeReportConfig.isEnabled) {
-            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties))
-            false -> Interpreter(InterpreterHost(gradleProperties))
+            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties, buildTreeRootDir), buildOperationRunner)
+            false -> Interpreter(InterpreterHost(gradleProperties, buildTreeRootDir), buildOperationRunner)
         }
     }
 
@@ -172,14 +174,16 @@ class StandardKotlinScriptEvaluator(
      * Used for property upgrade report since we don't cache a report in-memory.
      */
     inner class InterpreterHostWithoutInMemoryCache(
-        gradleProperties: GradleProperties
-    ) : Interpreter.Host by InterpreterHost(gradleProperties) {
+        gradleProperties: GradleProperties,
+        override val buildTreeRootDir: Path,
+    ) : Interpreter.Host by InterpreterHost(gradleProperties, buildTreeRootDir) {
         override fun cachedClassFor(programId: ProgramId): CompiledScript? = null
         override fun cache(specializedProgram: CompiledScript, programId: ProgramId) = Unit
     }
 
     inner class InterpreterHost(
         gradleProperties: GradleProperties,
+        override val buildTreeRootDir: Path,
     ) : Interpreter.Host {
 
         override val compilerOptions: KotlinCompilerOptions =
@@ -404,6 +408,8 @@ class StandardKotlinScriptEvaluator(
             const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
             const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
             const val TEMPLATE_ID = "templateId"
+            const val BUILD_TREE_SCRIPT_PATH = "buildTreeScriptPath"
+            const val CLASS_NAME = "className"
             const val SOURCE_HASH = "sourceHash"
             const val COMPILATION_CLASS_PATH = "compilationClassPath"
             const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
@@ -414,6 +420,9 @@ class StandardKotlinScriptEvaluator(
         override fun getDisplayName(): String =
             "Kotlin DSL script compilation (${programId.templateId})"
 
+        override fun getBuildOperationWorkType(): Optional<String> {
+            return Optional.of("COMPILE_KOTLIN_SCRIPT")
+        }
 
         override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
             if (cachingDisabledByProperty) {
@@ -423,12 +432,13 @@ class StandardKotlinScriptEvaluator(
             return super.shouldDisableCaching(detectedOverlappingOutputs)
         }
 
-        override fun visitIdentityInputs(visitor: UnitOfWork.InputVisitor) {
-            super.visitIdentityInputs(visitor)
+        override fun visitImmutableInputs(visitor: InputVisitor) {
+            super.visitImmutableInputs(visitor)
             visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
             visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
             visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
             visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
+            visitor.visitInputProperty(BUILD_TREE_SCRIPT_PATH) { programId.buildTreeScriptPath }
             visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
             visitor.visitInputProperty(COMPILATION_CLASS_PATH) { classpathHasher.hash(compilationClassPath) }
             visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }

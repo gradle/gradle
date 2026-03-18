@@ -22,11 +22,7 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.performance.regression.corefeature.AbstractIncrementalExecutionPerformanceTest
-import org.gradle.profiler.BuildContext
-import org.gradle.profiler.BuildMutator
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
-import java.util.jar.JarOutputStream
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -34,7 +30,7 @@ import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
 @RunFor(
-    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["santaTrackerAndroidBuild", "nowInAndroidBuild"])
+    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = ["nowInAndroidBuild"])
 )
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExecutionPerformanceTest implements AndroidPerformanceTestFixture {
@@ -54,16 +50,6 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
 
     def "abi change#configurationCaching"() {
         given:
-        if (configurationCachingEnabled && IncrementalAndroidTestProject.SANTA_TRACKER == testProject) {
-            runner.addBuildMutator { settings ->
-                new BuildMutator() {
-                    @Override
-                    void beforeBuild(BuildContext context) {
-                        SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.workingDir)
-                    }
-                }
-            }
-        }
         testProject.configureForAbiChange(runner)
         enableConfigurationCaching(configurationCachingEnabled)
 
@@ -80,16 +66,6 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
 
     def "non-abi change#configurationCaching"() {
         given:
-        if (configurationCachingEnabled && IncrementalAndroidTestProject.SANTA_TRACKER == testProject) {
-            runner.addBuildMutator { settings ->
-                new BuildMutator() {
-                    @Override
-                    void beforeBuild(BuildContext context) {
-                        SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.workingDir)
-                    }
-                }
-            }
-        }
         testProject.configureForNonAbiChange(runner)
         enableConfigurationCaching(configurationCachingEnabled)
 
@@ -119,35 +95,5 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         where:
         configurationCachingEnabled << [true, false]
         configurationCaching = configurationCachingMessage(configurationCachingEnabled)
-    }
-}
-
-class SantaTrackerConfigurationCacheWorkaround {
-    static void beforeBuild(File workingDir) {
-        workingDir.listFiles().findAll { new File(it, "settings.gradle").exists() }.forEach { projectDir ->
-            // Workaround for Android Gradle plugin checking for the presence of these directories at configuration time,
-            // which invalidates configuration cache if their presence changes. Create these directories before the first build.
-            // See: https://android.googlesource.com/platform/tools/base/+/studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/tasks/ShaderCompile.java#120
-            // TODO: remove this once AGP stops checking for the existence of these directories at configuration time
-            workingDir.listFiles().findAll { it.isDirectory() && new File(it, "build.gradle").exists() }.each {
-                new File(it, "build/intermediates/merged_shaders/debug/out").mkdirs()
-                new File(it, "build/intermediates/merged_shaders/debugUnitTest/out").mkdirs()
-                new File(it, "build/intermediates/merged_shaders/debugAndroidTest/out").mkdirs()
-                new File(it, "build/intermediates/merged_shaders/release/out").mkdirs()
-                new File(it, "build/intermediates/merged_shaders/releaseAndroidTest/out").mkdirs()
-            }
-        }
-        File androidAnalyticsSetting = new File(System.getProperty("user.home"), ".android/analytics.settings")
-        if (!androidAnalyticsSetting.exists()) {
-            androidAnalyticsSetting.parentFile.mkdirs()
-            androidAnalyticsSetting.createNewFile()
-        }
-        workingDir.listFiles().findAll { it.name.contains("gradleUserHome") }.forEach { gradleUserHome ->
-            def androidFakeDependency = new File(gradleUserHome, "android/FakeDependency.jar")
-            if (!androidFakeDependency.exists()) {
-                androidFakeDependency.parentFile.mkdirs()
-                new JarOutputStream(new FileOutputStream(androidFakeDependency)).close()
-            }
-        }
     }
 }

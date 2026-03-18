@@ -59,7 +59,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -95,25 +94,11 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
     private ModuleComponentResolveMetadata forceSerialization(ModuleComponentResolveMetadata metadata) {
         Serializer<ModuleComponentResolveMetadata> serializer = ruleExecutor.getComponentMetadataContextSerializer();
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        byte[] bytes;
-        try {
-            serializer.write(new OutputStreamBackedEncoder(byteArrayOutputStream), metadata);
-            bytes = byteArrayOutputStream.toByteArray();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                byteArrayOutputStream.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        try {
-            ModuleComponentResolveMetadata forceRead = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes)));
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            serializer.write(new OutputStreamBackedEncoder(baos), metadata);
             // TODO: CC cannot enable this assertion because moduleSource is not serialized, so doesn't appear in the deserialized form
-            //assert metadata.equals(forceRead);
-            metadata = forceRead;
+            //assert metadata.equals(rereadMetadata);
+            metadata = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(baos.toByteArray())));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

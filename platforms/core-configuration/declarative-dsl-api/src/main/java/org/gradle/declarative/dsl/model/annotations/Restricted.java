@@ -21,6 +21,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * This annotation should not be used for Declarative definitions anymore. To be removed.
+ */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Restricted {} // TODO: should eventually be renamed to "Declarative"
+@Deprecated
+public @interface Restricted {}

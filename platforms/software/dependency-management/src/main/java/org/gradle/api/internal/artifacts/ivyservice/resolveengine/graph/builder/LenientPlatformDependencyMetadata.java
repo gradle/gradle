@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -43,8 +44,18 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     private final ComponentIdentifier platformId; // just for reporting
     private final boolean force;
     private final boolean transitive;
+    private final boolean constraint;
 
-    LenientPlatformDependencyMetadata(ResolveState resolveState, NodeState from, ModuleComponentSelector cs, ModuleComponentIdentifier componentId, @Nullable ComponentIdentifier platformId, boolean force, boolean transitive) {
+    LenientPlatformDependencyMetadata(
+        ResolveState resolveState,
+        NodeState from,
+        ModuleComponentSelector cs,
+        ModuleComponentIdentifier componentId,
+        @Nullable ComponentIdentifier platformId,
+        boolean force,
+        boolean transitive,
+        boolean constraint
+    ) {
         this.resolveState = resolveState;
         this.from = from;
         this.cs = cs;
@@ -52,6 +63,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
         this.platformId = platformId;
         this.force = force;
         this.transitive = transitive;
+        this.constraint = constraint;
     }
 
     @Override
@@ -91,13 +103,13 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public List<ExcludeMetadata> getExcludes() {
-        return Collections.emptyList();
+    public ImmutableList<ExcludeMetadata> getExcludes() {
+        return ImmutableList.of();
     }
 
     @Override
-    public List<IvyArtifactName> getArtifacts() {
-        return Collections.emptyList();
+    public ImmutableList<IvyArtifactName> getArtifacts() {
+        return ImmutableList.of();
     }
 
     @Override
@@ -108,7 +120,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts) {
         // TODO: This gets called when performing substitutions.
         //       We probably shouldn't ignore this.
         return this;
@@ -126,7 +138,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public boolean isConstraint() {
-        return true;
+        return constraint;
     }
 
     @Override
@@ -151,6 +163,6 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public ForcingDependencyMetadata forced() {
-        return new LenientPlatformDependencyMetadata(resolveState, from, cs, componentId, platformId, true, transitive);
+        return new LenientPlatformDependencyMetadata(resolveState, from, cs, componentId, platformId, true, transitive, constraint);
     }
 }

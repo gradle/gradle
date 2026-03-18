@@ -16,21 +16,13 @@
 package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 
 class AdditionalVariantsMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    ResolveTestFixture resolve
-
-    def setup() {
-        resolve = new ResolveTestFixture(buildFile, "samples")
-        resolve.prepare()
-    }
-
     @Override
-    boolean isJavaEcosystem() {
+    boolean isJvmEcosystem() {
         false
     }
 
@@ -98,7 +90,7 @@ class AdditionalVariantsMetadataRulesIntegrationTest extends AbstractModuleDepen
         when: "a project does not apply the ecosystem plugins and therefore doesn't have derivation rules"
         buildFile << """
             configurations {
-                create("samples") {
+                named("conf") {
                     canBeResolved = true
                     canBeConsumed = false
                     attributes {
@@ -109,7 +101,7 @@ class AdditionalVariantsMetadataRulesIntegrationTest extends AbstractModuleDepen
             }
 
             dependencies {
-                samples("org:a:1")
+                conf("org:a:1")
             }
 
             dependencies.components.all(com.example.AddVariantRule)

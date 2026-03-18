@@ -122,10 +122,10 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.NonLockingMutableWorkspaceProvider;
@@ -151,7 +151,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.internal.SimpleMapInterner;
 
 import java.io.File;
@@ -236,6 +235,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             this.domainObjectContext = domainObjectContext;
         }
 
+        @SuppressWarnings("unused") // DI configuration
         void configure(ServiceRegistration registration) {
             registration.add(TransformedVariantFactory.class, DefaultTransformedVariantFactory.class);
             registration.add(ResolveExceptionMapper.class);
@@ -270,15 +270,20 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Provides
         MutableTransformWorkspaceServices createTransformWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
             Supplier<File> baseDirectory = projectLayout.getBuildDirectory().dir(".transforms").map(Directory::getAsFile)::get;
-            Cache<UnitOfWork.Identity, IdentityCacheResult<TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
+            Cache<Identity, DeferredResult<TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
             return new MutableTransformWorkspaceServices() {
                 @Override
                 public MutableWorkspaceProvider getWorkspaceProvider() {
-                    return new NonLockingMutableWorkspaceProvider(executionHistoryStore, baseDirectory.get());
+                    return new NonLockingMutableWorkspaceProvider(baseDirectory.get());
                 }
 
                 @Override
-                public Cache<UnitOfWork.Identity, IdentityCacheResult<TransformWorkspaceResult>> getIdentityCache() {
+                public ExecutionHistoryStore getExecutionHistoryStore() {
+                    return executionHistoryStore;
+                }
+
+                @Override
+                public Cache<Identity, DeferredResult<TransformWorkspaceResult>> getIdentityCache() {
                     return identityCache;
                 }
 
@@ -292,7 +297,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Provides
         TransformInvocationFactory createTransformInvocationFactory(
             ExecutionEngine executionEngine,
-            FileSystemAccess fileSystemAccess,
             InternalOptions internalOptions,
             ImmutableTransformWorkspaceServices transformWorkspaceServices,
             TransformExecutionListener transformExecutionListener,
@@ -303,7 +307,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ) {
             return new DefaultTransformInvocationFactory(
                 executionEngine,
-                fileSystemAccess,
                 internalOptions,
                 transformExecutionListener,
                 transformWorkspaceServices,
@@ -448,7 +451,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             Instantiator instantiator,
             ConfigurationContainerInternal configurationContainer,
             DependencyFactoryInternal dependencyFactory,
-            ProjectFinder projectFinder,
             DependencyConstraintHandler dependencyConstraintHandler,
             ComponentMetadataHandler componentMetadataHandler,
             ComponentModuleMetadataHandler componentModuleMetadataHandler,
@@ -462,7 +464,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyHandler.class,
                 configurationContainer,
                 dependencyFactory,
-                projectFinder,
                 dependencyConstraintHandler,
                 componentMetadataHandler,
                 componentModuleMetadataHandler,
@@ -484,12 +485,29 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        DependencyLockingProvider createDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, GlobalDependencyResolutionRules globalDependencyResolutionRules, ListenerManager listenerManager, PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory) {
+        DependencyLockingProvider createDependencyLockingProvider(
+            FileResolver fileResolver,
+            StartParameter startParameter,
+            DomainObjectContext context,
+            GlobalDependencyResolutionRules globalDependencyResolutionRules,
+            ListenerManager listenerManager,
+            PropertyFactory propertyFactory,
+            FilePropertyFactory filePropertyFactory,
+            FileResourceListener fileResourceListener
+        ) {
             if (domainObjectContext.isPluginContext()) {
                 return NoOpDependencyLockingProvider.getInstance();
             }
 
-            DefaultDependencyLockingProvider dependencyLockingProvider = new DefaultDependencyLockingProvider(fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules(), propertyFactory, filePropertyFactory, listenerManager.getBroadcaster(FileResourceListener.class));
+            DefaultDependencyLockingProvider dependencyLockingProvider = new DefaultDependencyLockingProvider(
+                fileResolver,
+                startParameter,
+                context,
+                globalDependencyResolutionRules.getDependencySubstitutionRules(),
+                propertyFactory,
+                filePropertyFactory,
+                fileResourceListener
+            );
             if (startParameter.isWriteDependencyLocks()) {
                 listenerManager.addListener(new BuildModelLifecycleListener() {
                     @Override
@@ -504,8 +522,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyConstraintFactoryInternal dependencyConstraintFactory, ObjectFactory objects, PlatformSupport platformSupport) {
-            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyConstraintFactory, objects, platformSupport);
+        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyConstraintFactoryInternal dependencyConstraintFactory, PlatformSupport platformSupport) {
+            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyConstraintFactory, platformSupport);
         }
 
         @Provides({ComponentMetadataHandler.class, ComponentMetadataHandlerInternal.class})
@@ -595,7 +613,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                       TaskDependencyFactory taskDependencyFactory,
                                                                       InternalProblems problems,
                                                                       AttributeDesugaring attributeDesugaring,
-                                                                      ResolveExceptionMapper exceptionMapper) {
+                                                                      ResolveExceptionMapper exceptionMapper,
+                                                                      ProviderFactory providerFactory) {
             return new DefaultConfigurationServicesBundle(
                 buildOperationRunner,
                 projectStateRegistry,
@@ -608,7 +627,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 collectionCallbackActionDecorator,
                 problems,
                 attributeDesugaring,
-                exceptionMapper
+                exceptionMapper,
+                providerFactory
             );
         }
 

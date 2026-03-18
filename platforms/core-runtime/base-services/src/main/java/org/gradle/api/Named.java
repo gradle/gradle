@@ -15,9 +15,12 @@
  */
 package org.gradle.api;
 
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+
 /**
  * Types can implement this interface and use the embedded {@link Namer} implementation, to satisfy API that calls for a namer.
  */
+@HiddenInDefinition
 public interface Named {
 
     /**

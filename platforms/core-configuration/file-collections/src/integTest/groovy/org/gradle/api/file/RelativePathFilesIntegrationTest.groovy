@@ -96,8 +96,7 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // TODO: write a similar test for the RegularFileProperty
-    @ToBeFixedForConfigurationCache
-    @Issue("https://github.com/gradle/gradle/issues/32591")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/32591")
     def "ConfigurableFileCollection files derived from directory property via #method respect execution time directory change"() {
         settingsFile """
             include("sub")

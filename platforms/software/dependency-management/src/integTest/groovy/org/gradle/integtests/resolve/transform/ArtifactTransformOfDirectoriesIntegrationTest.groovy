@@ -49,7 +49,7 @@ class ArtifactTransformOfDirectoriesIntegrationTest extends AbstractDependencyRe
         taskTypeLogsInputFileCollectionContent()
         transformDirectoryDependency()
         buildFile << """
-            producer.content = "" // generate missing directory
+            tasks.producer.content = "" // generate missing directory
         """
 
         when:
@@ -82,7 +82,7 @@ class ArtifactTransformOfDirectoriesIntegrationTest extends AbstractDependencyRe
                 compile
             }
             dependencies {
-                compile files(producer.output)
+                compile files(tasks.producer.output)
 
                 registerTransform(MakeSize) {
                     from.attribute(artifactType, 'directory')

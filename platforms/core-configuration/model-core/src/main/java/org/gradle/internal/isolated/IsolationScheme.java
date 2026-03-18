@@ -55,8 +55,8 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
      */
     @Override
     @Nullable
-    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
-        return typeParameterInspection.parameterTypeFor(implementationType);
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeForOrNull(Class<T> implementationType) {
+        return typeParameterInspection.parameterTypeForOrNull(implementationType);
     }
 
     /**
@@ -66,6 +66,16 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
      */
     @Override
     @Nullable
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeForOrNull(Class<T> implementationType, int typeArgumentIndex) {
+        return typeParameterInspection.parameterTypeForOrNull(implementationType, typeArgumentIndex);
+    }
+
+    @Override
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
+        return typeParameterInspection.parameterTypeFor(implementationType);
+    }
+
+    @Override
     public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex) {
         return typeParameterInspection.parameterTypeFor(implementationType, typeArgumentIndex);
     }

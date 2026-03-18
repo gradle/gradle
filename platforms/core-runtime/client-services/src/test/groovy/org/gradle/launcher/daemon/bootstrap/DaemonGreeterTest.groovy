@@ -70,7 +70,7 @@ another line of output..."""
         ex.message.contains("hey joe!")
     }
 
-    def "shouts if daemon broke completely..."() {
+    def "shouts if daemon broke completely"() {
         when:
         new DaemonGreeter(registry).parseDaemonOutput("", args)
 

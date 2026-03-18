@@ -22,7 +22,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTableUtil
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.logging.text.StyledTextOutput
 
 import static org.gradle.api.tasks.diagnostics.DependencyInsightReportVariantDetailsIntegrationTest.AttributeValueTuple.of
@@ -33,7 +32,11 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
 
         // detector confuses attributes with stack traces
         executer.withStackTraceChecksDisabled()
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+        settingsFile << """
+            gradle.lifecycle.beforeProject { project ->
+                project.pluginManager.apply('org.gradle.jvm-ecosystem')
+            }
+        """
     }
 
     def "shows compileClasspath details"() {

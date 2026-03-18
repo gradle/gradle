@@ -42,8 +42,6 @@ sealed class GradleInstallation {
     data class Version(val number: String) : GradleInstallation()
 
     object Wrapper : GradleInstallation()
-
-    object Embedded : GradleInstallation()
 }
 
 
@@ -116,10 +114,13 @@ fun KotlinBuildScriptModelRequest.toFetchParametersWith(modelBuilderCustomizatio
 
 
 private
-fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector =
-    GradleConnector.newConnector()
+fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector {
+    val connector = GradleConnector.newConnector()
         .useGradleFrom(request.gradleInstallation)
         .useGradleUserHomeDir(request.gradleUserHome)
+    (connector as DefaultGradleConnector).embedded("embedded" == System.getProperty("org.gradle.integtest.executer"))
+    return connector
+}
 
 
 private
@@ -129,11 +130,7 @@ fun GradleConnector.useGradleFrom(gradleInstallation: GradleInstallation): Gradl
             is GradleInstallation.Local -> useInstallation(dir)
             is GradleInstallation.Remote -> useDistribution(uri)
             is GradleInstallation.Version -> useGradleVersion(number)
-            is GradleInstallation.Embedded -> (this@useGradleFrom as DefaultGradleConnector).apply {
-                embedded(true)
-                useClasspathDistribution()
-            }
-            GradleInstallation.Wrapper -> useBuildDistribution()
+            is GradleInstallation.Wrapper -> useBuildDistribution()
         }
     }
 

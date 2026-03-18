@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -24,6 +25,7 @@ import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -47,6 +49,7 @@ import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.plugin.management.internal.PluginHandler
 import org.gradle.plugin.use.internal.PluginRequestApplicator
+import java.nio.file.Path
 
 
 internal
@@ -87,6 +90,7 @@ object BuildServices : ServiceRegistrationProvider {
     @Provides
     @Suppress("LongParameterList")
     fun createKotlinScriptEvaluator(
+        buildLayoutFactory: BuildLayoutFactory,
         classPathProvider: KotlinScriptClassPathProvider,
         classloadingCache: KotlinScriptClassloadingCache,
         pluginRequestsHandler: PluginRequestsHandler,
@@ -100,7 +104,7 @@ object BuildServices : ServiceRegistrationProvider {
         progressLoggerFactory: ProgressLoggerFactory,
         buildOperationRunner: BuildOperationRunner,
         cachedClasspathTransformer: CachedClasspathTransformer,
-        listenerManager: ListenerManager,
+        scriptExecutionListener: ScriptExecutionListener,
         executionEngine: ExecutionEngine,
         workspaceProvider: KotlinDslWorkspaceProvider,
         @Suppress("UNUSED_PARAMETER") kotlinCompilerContextDisposer: KotlinCompilerContextDisposer,
@@ -108,6 +112,7 @@ object BuildServices : ServiceRegistrationProvider {
         inputFingerprinter: InputFingerprinter,
         internalOptions: InternalOptions,
         gradleProperties: GradleProperties,
+        startParameterInternal: StartParameterInternal,
         transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
         propertyUpgradeReportConfig: PropertyUpgradeReportConfig
@@ -127,17 +132,25 @@ object BuildServices : ServiceRegistrationProvider {
             progressLoggerFactory,
             buildOperationRunner,
             cachedClasspathTransformer,
-            listenerManager.getBroadcaster(ScriptExecutionListener::class.java),
+            scriptExecutionListener,
             executionEngine,
             workspaceProvider,
             fileCollectionFactory,
             inputFingerprinter,
             internalOptions,
             gradleProperties,
+            buildLayoutFactory.getBuildTreeRootDir(startParameterInternal),
             transformFactoryForLegacy,
             gradleCoreTypeRegistry,
             propertyUpgradeReportConfig
         )
+
+    // project.gradle.root.settings may not be available when we compile scripts,
+    // e.g. init scripts or scripts for included builds
+    // we need to compute the root directory from the start parameters
+    private fun BuildLayoutFactory.getBuildTreeRootDir(startParameter: StartParameterInternal): Path =
+        getLayoutFor(startParameter.toBuildLayoutConfiguration()).rootDirectory
+            .toPath().toAbsolutePath().normalize()
 
     @Provides
     fun createCompileClasspathHasher(

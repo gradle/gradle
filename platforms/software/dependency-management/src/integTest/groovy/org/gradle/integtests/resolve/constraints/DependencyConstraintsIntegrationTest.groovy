@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve.constraints
 
 import org.gradle.integtests.fixtures.AbstractPolyglotIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 /**
@@ -24,26 +25,27 @@ import spock.lang.Issue
  * declared in the build script (instead of published)
  */
 class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSpec {
-    private final String resolveName = 'resolve-fixture'
-    private final ResolveTestFixture resolve = new ResolveTestFixture(testDirectory.file("${resolveName}.gradle"), "conf").expectDefaultConfiguration("runtime")
+    private final ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
+        TestFile resolveScript = testDirectory.file("resolve-fixture.gradle")
+        resolveScript << resolve.configureProject("conf")
+
         buildSpec {
             settings {
                 rootProjectName = 'test'
             }
             rootProject {
+                plugin("jvm-ecosystem")
                 repositories {
                     maven(mavenRepo.uri)
                 }
                 configurations {
                     conf
                 }
-                applyFrom(resolveName)
+                applyFrom(resolveScript)
             }
         }
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void "dependency constraint is not included in resolution without a hard dependency"() {
@@ -431,7 +433,6 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
 
     void "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
         given:
-        resolve.expectDefaultConfiguration('default')
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
 

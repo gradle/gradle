@@ -16,11 +16,9 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.JavaVersion
-import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.test.GradleBuildJvmSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -37,7 +35,8 @@ import java.text.SimpleDateFormat
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()
-    private static final List<String> GRADLE_BUILD_TEST_ARGS = [TEST_BUILD_TIMESTAMP]
+    private static final String DISABLE_IP = "-Dorg.gradle.unsafe.isolated-projects=false"
+    private static final List<String> GRADLE_BUILD_TEST_ARGS = [DISABLE_IP, TEST_BUILD_TIMESTAMP]
 
     private SmokeTestGradleRunner.SmokeTestBuildResult result
 
@@ -57,20 +56,32 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
     }
 
     protected void run(List<String> tasks, File testKitDir = null) {
+        run(runnerFor(tasks, testKitDir))
+    }
+
+    protected void run(SmokeTestGradleRunner runner) {
         result = null
-        result = runnerFor(tasks, testKitDir).build()
+        result = runner.build()
     }
 
     protected void fails(List<String> tasks, File testKitDir = null) {
-        result = null
-        result = runnerFor(tasks, testKitDir).buildAndFail()
+        fails(runnerFor(tasks, testKitDir))
     }
 
-    private SmokeTestGradleRunner runnerFor(List<String> tasks, File testKitDir) {
-        List<String> gradleArgs = tasks + GRADLE_BUILD_TEST_ARGS
+    protected void fails(SmokeTestGradleRunner runner) {
+        result = null
+        result = runner.buildAndFail()
+    }
+
+    SmokeTestGradleRunner runner(String... tasks) {
+        List<String> args = GRADLE_BUILD_TEST_ARGS + (tasks as List<String>);
+        return super.runner(*args)
+    }
+
+    protected SmokeTestGradleRunner runnerFor(List<String> tasks, File testKitDir) {
         def runner = testKitDir != null
-            ? runnerWithTestKitDir(testKitDir, gradleArgs)
-            : runner(*gradleArgs)
+            ? runnerWithTestKitDir(testKitDir, tasks)
+            : runner(*tasks)
 
         runner.ignoreDeprecationWarnings("Gradleception smoke tests don't check for deprecation warnings; TODO: we should add expected deprecations for each task being called")
         runner.withJdkWarningChecksDisabled() // The Gradle build somehow still emits these warnings
@@ -79,7 +90,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
     }
 
     private SmokeTestGradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
-        runner(*(gradleArgs + ["-g", IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.absolutePath]))
+        runnerWithGradleUserHome(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir, *(gradleArgs as String[]))
             .withTestKitDir(testKitDir)
     }
 
@@ -92,14 +103,4 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
             setTimeZone(TimeZone.getTimeZone("UTC"))
         }
     }
-
-    static class GradleBuildJvmSpec implements Spec<JvmInstallationMetadata> {
-
-        @Override
-        boolean isSatisfiedBy(JvmInstallationMetadata jvm) {
-            return jvm.languageVersion == JavaVersion.VERSION_17
-        }
-
-    }
 }
-

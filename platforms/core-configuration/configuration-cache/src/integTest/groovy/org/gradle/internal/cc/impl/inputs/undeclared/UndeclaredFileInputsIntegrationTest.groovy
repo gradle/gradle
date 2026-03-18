@@ -24,9 +24,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.internal.cc.impl.inputs.undeclared.FileUtils.testFilePath
-import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.startsWith
-import static org.hamcrest.Matchers.allOf
 
 class UndeclaredFileInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements GroovyPluginImplementation {
     @ToBeImplemented("reporting multiple consumers per input is not implemented yet")
@@ -45,10 +42,10 @@ class UndeclaredFileInputsIntegrationTest extends AbstractConfigurationCacheInte
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
             // TODO when implemented, this assertion should be replaced with the commented one:
-            inputs.expect(allOf(startsWith("Plugin class 'SneakyPluginA': file '${FileUtils.testFileName}'"), containsString(FileUtils.testFileName)))
+            withInput("Plugin class 'SneakyPluginA': $accessKind '${FileUtils.testFileName}'")
             /*
             pluginClasses.forEach {
-                inputs = inputs.expect(allOf(startsWith("Plugin class '$it':"), containsString(FileUtils.testFileName))))
+                withInput("Plugin class '$it': $accessKind '${FileUtils.testFileName}'")
             }*/
         }
 

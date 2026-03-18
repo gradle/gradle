@@ -69,7 +69,6 @@ import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
 import java.io.File
@@ -431,10 +430,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getServices(): ServiceRegistry {
-            shouldNotBeUsed()
-        }
-
-        override fun getServiceRegistryFactory(): ServiceRegistryFactory {
             shouldNotBeUsed()
         }
 

@@ -67,8 +67,10 @@ public class DefaultFailure implements Failure {
         PrintWriter wrt = new PrintWriter(out);
         t.printStackTrace(wrt);
         Throwable cause = t.getCause();
-        DefaultFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
-        return new DefaultFailure(t.getMessage(), out.toString(), Collections.singletonList(causeFailure));
+        List<DefaultFailure> causes = cause != null && cause != t
+            ? Collections.singletonList(fromThrowable(cause))
+            : Collections.emptyList();
+        return new DefaultFailure(t.getMessage(), out.toString(), causes);
     }
 
     @Override
