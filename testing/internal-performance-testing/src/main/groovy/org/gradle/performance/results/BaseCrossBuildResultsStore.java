@@ -187,6 +187,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                     executionsForName.setString(++idx, teamcityBuildId);
                 }
                 executionsForName.setInt(++idx, mostRecentN);
+                List<Object> executionsForNameParams = createHistoryQueryParams(experiment, minDate, channelPatterns, teamcityBuildIds, mostRecentN);
                 long executionsForNameStartTime = System.currentTimeMillis();
                 ResultSet executionsForNameRs = null;
                 try (ResultSet testExecutions = executionsForName.executeQuery()) {
@@ -242,7 +243,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                     }
                     return new CrossBuildPerformanceTestHistory(experiment, ImmutableList.copyOf(builds), results);
                 } finally {
-                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("executionsForName", executionsForNameSql, List.of(experiment.getScenario().getClassName(),  experiment.getScenario().getTestName(), experiment.getTestProject(), minDate), executionsForNameRs, executionsForNameStartTime).toJson());
+                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("executionsForName", executionsForNameSql, executionsForNameParams, executionsForNameRs, executionsForNameStartTime).toJson());
                 }
             }
         });
