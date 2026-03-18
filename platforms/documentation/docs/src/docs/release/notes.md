@@ -84,8 +84,8 @@ By default, no retries are attempted.
 To enable retries, add the following properties to `gradle-wrapper.properties`:
 
 ```properties
-retries=3 // Sets the maximum number of retry attempts
-retryTimeoutMs=5000 // Sets the delay between retries
+retries=3 # Sets the maximum number of retry attempts
+retryTimeoutMs=5000 # Sets the delay between retries
 ```
 
 ### Type-safe Accessors for Precompiled Kotlin Settings Plugins

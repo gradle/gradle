@@ -192,7 +192,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.withBearerAuthentication(DEFAULT_TOKEN)
         file("gradle.properties") << """
             systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
-        """
+        """.stripIndent()
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         prepareWrapper(getDefaultBaseUrl()).run()
         server.expectAndBlock(server.get("/$TEST_DISTRIBUTION_URL"))
@@ -259,7 +259,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         file('gradle/wrapper/gradle-wrapper.properties') << """
             retries=$retries
             retryTimeoutMs=$retryTimeoutMs
-        """
+        """.stripIndent()
 
         when:
         wrapperExecuter.withStackTraceChecksDisabled()
@@ -269,11 +269,11 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
 
         then:
-        def attemps = retries + 1
+        def attempts = retries + 1
 
         assertThat(result.output, containsString("Fetching distribution (retrying $retries times, with a timeout of $retryTimeoutMs ms)."))
-        assertThat(result.output, containsString("Attempt 1/$attemps failed. Reason: Server returned HTTP response code: 500"))
-        assertThat(result.output, containsString("Attempt 2/$attemps failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(result.output, containsString("Attempt 1/$attempts failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(result.output, containsString("Attempt 2/$attempts failed. Reason: Server returned HTTP response code: 500"))
         assert result.output.readLines().findAll{ it.contains(
             "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 3
 
@@ -297,7 +297,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         file('gradle/wrapper/gradle-wrapper.properties') << """
             retries=$retries
             retryTimeoutMs=$retryTimeoutMs
-        """
+        """.stripIndent()
 
         when:
         wrapperExecuter.withStackTraceChecksDisabled()
@@ -306,13 +306,13 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def elapsedTime = System.currentTimeMillis() - startTime
 
         then:
-        def attemps = retries + 1
+        def attempts = retries + 1
 
         assertThat(failure.output, containsString("Fetching distribution (retrying $retries times, with a timeout of $retryTimeoutMs ms)."))
         failure.assertHasErrorOutput("Server returned HTTP response code: 500 for URL")
-        assertThat(failure.output, containsString("Attempt 1/$attemps failed. Reason: Server returned HTTP response code: 500"))
-        assertThat(failure.output, containsString("Attempt 2/$attemps failed. Reason: Server returned HTTP response code: 500"))
-        assertThat(failure.output, containsString("Attempt 3/$attemps failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(failure.output, containsString("Attempt 1/$attempts failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(failure.output, containsString("Attempt 2/$attempts failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(failure.output, containsString("Attempt 3/$attempts failed. Reason: Server returned HTTP response code: 500"))
 
         assert elapsedTime >= retries * retryTimeoutMs
 
@@ -383,8 +383,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         and:
         server.withBearerAuthentication(DEFAULT_TOKEN)
         file("gradle.properties") << """
-    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
-"""
+            systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+        """.stripIndent()
         and:
         prepareWrapper(getDefaultBaseUrl()).run()
 
