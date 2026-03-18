@@ -173,6 +173,12 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     @Override
+    public GradleHandle sendSignal(int signal) {
+        getExecHandle().sendSignal(signal);
+        return this;
+    }
+
+    @Override
     public boolean isRunning() {
         ExecHandle execHandle = this.execHandleRef.get();
         return execHandle != null && execHandle.getState() == ExecHandleState.STARTED;

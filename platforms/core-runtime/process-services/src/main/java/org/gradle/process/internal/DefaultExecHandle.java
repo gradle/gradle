@@ -302,6 +302,11 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     @Override
+    public void sendSignal(int signal) {
+        execHandleRunner.sendSignal(signal);
+    }
+
+    @Override
     public void removeStartupContext() {
         lock.lock();
         try {

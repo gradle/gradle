@@ -278,10 +278,26 @@ public class ProgressBar {
         if (!consoleMetaData.supportsTaskbarProgress()) {
             return "";
         }
-
-        // ESC ] 9 ; 4 ; state ; progress BEL
-        // Using BEL (0x07) instead of ST (ESC \) for broader compatibility
         int state = isError ? 2 : 1; // 1=normal, 2=error
-        return "\u001B]9;4;" + state + ";" + progressPercent + "\u0007";
+        return buildOsc94Sequence(state + ";" + progressPercent);
+    }
+
+    /**
+     * Returns the OSC 9;4;0 sequence to remove taskbar progress (ConEmu, Ghostty),
+     * or an empty string if the terminal does not support taskbar progress.
+     * Should be sent when the build ends or is interrupted (e.g. SIGINT).
+     */
+    public static String buildTaskbarProgressResetSequence(ConsoleMetaData consoleMetaData) {
+        if (!consoleMetaData.supportsTaskbarProgress()) {
+            return "";
+        }
+        // State 0 = remove; progress field is omitted as it is not applicable
+        return buildOsc94Sequence("0");
+    }
+
+    // ESC ] 9 ; 4 ; state [; progress] BEL
+    // Using BEL (0x07) instead of ST (ESC \) for broader compatibility
+    private static String buildOsc94Sequence(String command) {
+        return "\u001B]9;4;" + command + "\u0007";
     }
 }
