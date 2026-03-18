@@ -28,6 +28,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.process.ArgWriter;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -427,19 +428,33 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
         // Try to shorten command-line if necessary
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
-            try {
-                File pathingJarFile = writePathingJarFile(classpath);
-                ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();
-                shortenedClasspath.from(pathingJarFile);
-                List<String> shortenedArguments = getAllArguments(shortenedClasspath);
-                LOGGER.info("Shortening Java classpath {} with {}", this.classpath.getFiles(), pathingJarFile);
-                return shortenedArguments;
-            } catch (IOException e) {
-                LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.", e);
+            // TODO: This is an ugly check that relies on Java 9 command-line
+            // arguments to detect that we're about to run on Java 9+
+            // This should actually base this decision (and support for modules)
+            // off of the detected version of Java we're about to use.
+            if (arguments.contains("--module") || arguments.contains("--module--path")) {
+                return shortenJava9Arguments(arguments);
+            } else {
+                return shortenJava8Arguments(arguments);
             }
         }
 
         return arguments;
+    }
+
+    private List<String> shortenJava8Arguments(List<String> arguments) {
+        File pathingJarFile;
+        try {
+            pathingJarFile = writePathingJarFile(classpath);
+        } catch (IOException e) {
+            LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.", e);
+            return arguments;
+        }
+        ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();
+        shortenedClasspath.from(pathingJarFile);
+        List<String> shortenedArguments = getAllArguments(shortenedClasspath);
+        LOGGER.info("Shortening Java classpath {} with {}", this.classpath.getFiles(), pathingJarFile);
+        return shortenedArguments;
     }
 
     private File writePathingJarFile(FileCollection classpath) throws IOException {
@@ -449,6 +464,39 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
             jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
         }
         return pathingJarFile;
+    }
+
+    private List<String> shortenJava9Arguments(List<String> arguments) {
+        LOGGER.info("Command line too long - creating argsfile(s)");
+        List<String> effectiveArguments = new ArrayList<>();
+        List<String> argsFileContents = new ArrayList<>(arguments.size());
+        try {
+            for (String arg : arguments) {
+                if (arg.startsWith("@")) {
+                    if (!argsFileContents.isEmpty()) {
+                        createArgsFile(argsFileContents, effectiveArguments);
+                        argsFileContents.clear();
+                        continue;
+                    }
+                    effectiveArguments.add(arg);
+                    continue;
+                }
+                argsFileContents.add(arg);
+            }
+            if (!argsFileContents.isEmpty()) {
+                createArgsFile(argsFileContents, effectiveArguments);
+            }
+        } catch (IOException e) {
+            LOGGER.info("args file could not be created, Gradle cannot shorten the command line.", e);
+            return arguments;
+        }
+        LOGGER.info("effective arguments {}", effectiveArguments);
+        return effectiveArguments;
+    }
+
+    private void createArgsFile(List<String> argsFileContents, List<String> effectiveArguments) throws IOException {
+        File argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt");
+        effectiveArguments.addAll(ArgWriter.argsFileGenerator(argsFile, ArgWriter.javaStyleFactory()).apply(argsFileContents));
     }
 
     private static Manifest toManifest(FileCollection classpath) {
