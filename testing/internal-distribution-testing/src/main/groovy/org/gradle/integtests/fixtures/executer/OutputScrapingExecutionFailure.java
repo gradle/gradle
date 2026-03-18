@@ -17,7 +17,6 @@ package org.gradle.integtests.fixtures.executer;
 
 import junit.framework.AssertionFailedError;
 import org.gradle.internal.Pair;
-import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.TextUtil;
 import org.hamcrest.Matcher;
 
@@ -118,7 +117,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         if (!matcher.find()) {
             resolution = "";
         } else {
-            resolution = matcher.group(1).trim().replaceAll(Pattern.quote(GradleVersion.current().getVersion()), "current");
+            resolution = matcher.group(1).trim();
         }
     }
 
@@ -203,14 +202,14 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
     @Override
     public ExecutionFailure assertHasResolution(String resolution) {
-        assertThat(this.resolution, containsString("> " + resolution));
+        assertThat(this.resolution, containsString("> " + DocumentationUtils.normalizeDocumentationLink(resolution)));
         return this;
     }
 
     @Override
     public ExecutionFailure assertHasResolutions(String... resolutions) {
         String expected = Arrays.stream(resolutions)
-            .map(resolution -> "> " + resolution)
+            .map(resolution -> "> " + DocumentationUtils.normalizeDocumentationLink(resolution))
             .collect(joining("\n"));
         assertThat(this.resolution, equalTo(expected));
         return this;

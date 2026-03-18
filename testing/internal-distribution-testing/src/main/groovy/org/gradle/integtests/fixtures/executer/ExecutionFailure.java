@@ -99,11 +99,15 @@ public interface ExecutionFailure extends ExecutionResult {
 
     /**
      * Asserts that the reported failure has exactly the given resolutions (ie the bit after '* Try').
+     *
+     * For links to the Gradle documentation, use /current/ instead of the Gradle version.
      */
     ExecutionFailure assertHasResolutions(String... resolutions);
 
     /**
      * Asserts that the reported failure has the given resolution, and maybe more resolutions.
+     *
+     * For links to the Gradle documentation, use /current/ instead of the Gradle version.
      */
     ExecutionFailure assertHasResolution(String resolution);
 

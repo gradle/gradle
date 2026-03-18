@@ -16,10 +16,8 @@
 
 package org.gradle.launcher.daemon
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.os.OperatingSystem
@@ -50,7 +48,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
-                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                "Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection.",
                 STACKTRACE_MESSAGE, INFO_DEBUG, SCAN, GET_HELP
             )
     }
@@ -85,8 +83,8 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         then:
         failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'https://example.com/v=^10'")
             .assertHasResolutions(
-                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
-                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
+                "Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection.",
+                "Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories.",
                 STACKTRACE_MESSAGE, INFO_DEBUG, SCAN, GET_HELP
             )
     }
