@@ -9,13 +9,13 @@ dependencies {
     api(projects.antWorker)
     api(projects.baseServices)
     api(projects.coreApi)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
 
     implementation(projects.core)
     implementation(projects.daemonServerWorker)
     implementation(projects.logging)
-    implementation(projects.stdlibJavaExtensions)
     implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.groovy)
