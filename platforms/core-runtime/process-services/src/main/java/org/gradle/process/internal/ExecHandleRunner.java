@@ -17,12 +17,16 @@
 package org.gradle.process.internal;
 
 import net.rubygrapefruit.platform.ProcessLauncher;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 
+import com.google.common.io.CharStreams;
+import org.gradle.internal.os.OperatingSystem;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
@@ -30,6 +34,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ExecHandleRunner implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
@@ -58,6 +64,49 @@ public class ExecHandleRunner implements Runnable {
         this.executor = executor;
         this.associatedBuildOperation = associatedBuildOperation;
         this.processBuilderFactory = new ProcessBuilderFactory();
+    }
+
+    public void sendSignal(int signal) {
+        if (OperatingSystem.current().isWindows()) {
+            throw new UnsupportedOperationException("Sending signals is not supported on Windows");
+        }
+        lock.lock();
+        try {
+            if (process == null) {
+                throw new IllegalStateException("Cannot send signal " + signal + ": the process has not started yet");
+            }
+            try {
+                long pid = getProcessId(process);
+                String[] command = {"kill", "-" + signal, String.valueOf(pid)};
+                Process kill = new ProcessBuilder(command)
+                    .redirectErrorStream(true)
+                    .start();
+                int exitCode = kill.waitFor();
+                if (exitCode != 0) {
+                    String output = CharStreams.toString(new InputStreamReader(kill.getInputStream(), UTF_8)).trim();
+                    String message = StringUtils.join(command, " ") + " failed with exit code " + exitCode;
+                    throw new RuntimeException(message + (output.isEmpty() ? "" : output));
+                }
+            } catch (RuntimeException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to send signal " + signal + " to process", e);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private static long getProcessId(Process process) throws Exception {
+        try {
+            // Java 9+: Process.pid()
+            return (Long) Process.class.getMethod("pid").invoke(process);
+        } catch (NoSuchMethodException e) {
+            // Java 8 fallback: UNIXProcess exposes a private 'pid' int field
+            java.lang.reflect.Field pidField = process.getClass().getDeclaredField("pid");
+            pidField.setAccessible(true);
+            return ((Number) pidField.get(process)).longValue();
+        }
     }
 
     public void abortProcess() {
