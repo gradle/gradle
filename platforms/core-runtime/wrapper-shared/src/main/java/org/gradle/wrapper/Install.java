@@ -215,7 +215,7 @@ public class Install {
         try {
             Thread.sleep(timeoutMs);
         } catch (InterruptedException ex) {
-            // empty
+            Thread.currentThread().interrupt();
         }
     }
 
