@@ -114,6 +114,12 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     public void set(Provider<? extends T> provider) {
         Preconditions.checkArgument(provider != null, "Cannot set the value of a property using a null provider.");
         ProviderInternal<? extends T> p = Providers.internal(provider);
+        // Handle the 'property = property.map { ... }' (and similar) pattern: if the provider
+        // chain references this property, break the self-reference by substituting this property
+        // with a shallow copy of its current value chain.
+        if (p.containsProviderInChain(this)) {
+            p = p.substituteProvider(this, shallowCopy());
+        }
         setSupplier(p.asSupplier(getValidationDisplayName(), type, sanitizer));
     }
 

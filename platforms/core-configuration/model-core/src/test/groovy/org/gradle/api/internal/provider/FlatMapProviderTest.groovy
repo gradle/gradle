@@ -17,9 +17,9 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
+import spock.lang.Specification
 import org.gradle.api.provider.Provider
 
 class FlatMapProviderTest {
@@ -44,10 +44,16 @@ class FlatMapProviderTest {
         }
     }
 
-    static class FlatMapProviderCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
-        @Override
-        ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
-            return new FlatMapProvider(baseProvider, { baseProvider })
+    static class FlatMapProviderCircularChainEvaluationTest extends Specification implements UsesStringProperty {
+        def "setting property to a flatMapped version of itself breaks the cycle"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(property.flatMap { Providers.of(it.reverse()) })
+
+            then:
+            property.get() == "olleh"
         }
     }
 }

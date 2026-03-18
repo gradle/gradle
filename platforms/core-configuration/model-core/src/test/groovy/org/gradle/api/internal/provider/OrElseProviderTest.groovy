@@ -16,21 +16,44 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
+import spock.lang.Specification
 
 class OrElseProviderTest {
-    static class OrElseProviderLeftCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
-        @Override
-        ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
-            return new OrElseProvider<String>(baseProvider, Providers.of("B"))
+    static class OrElseProviderLeftCircularChainEvaluationTest extends Specification implements UsesStringProperty {
+        def "setting property to an orElse version of itself (left) uses original value"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(property.orElse(Providers.of("fallback")))
+
+            then:
+            property.get() == "hello"
+        }
+
+        def "setting property to an orElse version of itself (left) falls back when absent"() {
+            given:
+            def property = property()
+
+            when:
+            property.set(property.orElse(Providers.of("fallback")))
+
+            then:
+            property.get() == "fallback"
         }
     }
 
-    static class OrElseProviderRightCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
-        @Override
-        ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
-            return new OrElseProvider<String>(Providers.notDefined(), baseProvider)
+    static class OrElseProviderRightCircularChainEvaluationTest extends Specification implements UsesStringProperty {
+        def "setting property to an orElse where self is the fallback uses original value when present"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(new OrElseProvider<String>(Providers.notDefined(), property))
+
+            then:
+            property.get() == "hello"
         }
     }
 }

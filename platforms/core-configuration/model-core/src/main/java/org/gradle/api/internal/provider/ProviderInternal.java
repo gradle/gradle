@@ -173,4 +173,27 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
     default ProviderInternal<T> withSideEffect(@Nullable SideEffect<? super T> sideEffect) {
         return WithSideEffectProvider.of(this, sideEffect);
     }
+
+    /**
+     * Returns true if this provider, or any provider in its upstream chain, is the given target.
+     * Used to detect self-references before they form circular evaluation chains.
+     * Providers that compose over other providers should override this.
+     */
+    default boolean containsProviderInChain(ProviderInternal<?> target) {
+        return this == target;
+    }
+
+    /**
+     * Returns a provider equivalent to this one, but with all occurrences of {@code target}
+     * in the upstream chain replaced by {@code replacement}. Returns {@code this} unchanged
+     * if {@code target} does not appear in the chain.
+     * Providers that compose over other providers should override this.
+     */
+    @SuppressWarnings("unchecked")
+    default <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+        if (this == target) {
+            return (ProviderInternal<S>) replacement;
+        }
+        return (ProviderInternal<S>) this;
+    }
 }

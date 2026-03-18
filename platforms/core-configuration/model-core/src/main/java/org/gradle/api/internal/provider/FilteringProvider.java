@@ -45,6 +45,24 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
+    public boolean containsProviderInChain(ProviderInternal<?> target) {
+        return this == target || provider.containsProviderInChain(target);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+        if (this == target) {
+            return (ProviderInternal<S>) replacement;
+        }
+        ProviderInternal<T> newProvider = provider.substituteProvider(target, replacement);
+        if (newProvider == provider) {
+            return (ProviderInternal<S>) this;
+        }
+        return (ProviderInternal<S>) new FilteringProvider<>(newProvider, spec);
+    }
+
+    @Override
     public ValueProducer getProducer() {
         try (EvaluationScopeContext ignored = openScope()) {
             return provider.getProducer();

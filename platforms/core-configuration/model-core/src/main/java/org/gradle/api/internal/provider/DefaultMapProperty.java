@@ -166,7 +166,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        setSupplier(newCollectingSupplierOf(new MapCollectors.EntriesFromMapProvider<>(checkMapProvider(provider))));
+        ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
+        if (p.containsProviderInChain(this)) {
+            p = Cast.uncheckedCast(p.substituteProvider(this, shallowCopy()));
+        }
+        setSupplier(newCollectingSupplierOf(new MapCollectors.EntriesFromMapProvider<>(p)));
     }
 
     @Override

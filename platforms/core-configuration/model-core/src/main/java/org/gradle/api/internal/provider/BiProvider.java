@@ -98,4 +98,23 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
             return new PlusProducer(left.getProducer(), right.getProducer());
         }
     }
+
+    @Override
+    public boolean containsProviderInChain(ProviderInternal<?> target) {
+        return this == target || left.containsProviderInChain(target) || right.containsProviderInChain(target);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+        if (this == target) {
+            return (ProviderInternal<S>) replacement;
+        }
+        ProviderInternal<A> newLeft = left.substituteProvider(target, replacement);
+        ProviderInternal<B> newRight = right.substituteProvider(target, replacement);
+        if (newLeft == left && newRight == right) {
+            return (ProviderInternal<S>) this;
+        }
+        return (ProviderInternal<S>) new BiProvider<>(type, newLeft, newRight, combiner);
+    }
 }

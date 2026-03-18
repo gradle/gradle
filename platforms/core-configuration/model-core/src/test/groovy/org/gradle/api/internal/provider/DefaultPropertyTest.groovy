@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
+import org.gradle.internal.evaluation.CircularEvaluationException
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
 
@@ -442,6 +443,78 @@ class DefaultPropertyTest extends AbstractPropertySpec<String> {
 
         then:
         1 * transform.transform(_)
+    }
+
+    def "property can be set to a mapped version of itself"() {
+        given:
+        def property = property().value(someValue())
+
+        when:
+        property.set(property.map { it.reverse() })
+
+        then:
+        property.get() == someValue().reverse()
+    }
+
+    def "property with convention can be set to a mapped version of itself"() {
+        given:
+        def property = property().convention(someValue())
+
+        when:
+        property.set(property.map { it.reverse() })
+
+        then:
+        property.get() == someValue().reverse()
+    }
+
+    def "property can be set to a double-mapped version of itself"() {
+        given:
+        def property = property().value(someValue())
+
+        when:
+        property.set(property.map { it.reverse() }.map { it + "!" })
+
+        then:
+        property.get() == someValue().reverse() + "!"
+    }
+
+    def "set to mapped self is not applied to later property modifications"() {
+        given:
+        def property = property().value(someValue())
+
+        when:
+        property.set(property.map { it.reverse() })
+        property.set(someOtherValue())
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "cross-property cycle is detected at get() time"() {
+        given:
+        def propertyA = property().value(someValue())
+        def propertyB = property().value(someOtherValue())
+
+        when:
+        propertyA.set(propertyB.map { it })
+        propertyB.set(propertyA.map { it })
+        propertyA.get()
+
+        then:
+        thrown(CircularEvaluationException)
+    }
+
+    def "set to mapped self is live with respect to upstream providers"() {
+        given:
+        def upstream = property().value(someValue())
+        def property = property().value(upstream)
+
+        when:
+        property.set(property.map { it.reverse() })
+        upstream.set(someOtherValue())
+
+        then:
+        property.get() == someOtherValue().reverse()
     }
 
     def "value coercion is applied to #description after configuration cache round-trip"() {

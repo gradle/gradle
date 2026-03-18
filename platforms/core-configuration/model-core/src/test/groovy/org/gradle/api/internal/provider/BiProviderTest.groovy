@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
+import spock.lang.Specification
 
 import java.util.function.BiFunction
 import java.util.function.Consumer
@@ -53,16 +53,29 @@ class BiProviderTest {
         }
     }
 
-    static class BiProviderLeftCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
-        @Override
-        ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
-            return new BiProvider(String, baseProvider, Providers.of("B"), { a, b -> a + b })
+    static class BiProviderLeftCircularChainEvaluationTest extends Specification implements UsesStringProperty {
+        def "setting property to a zipped version of itself (left) uses original value"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(property.zip(Providers.of("B")) { a, b -> a + b })
+
+            then:
+            property.get() == "helloB"
         }
     }
 
-    static class BiProviderRightCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
-        ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
-            return new BiProvider(String, Providers.of("A"), baseProvider, { a, b -> a + b })
+    static class BiProviderRightCircularChainEvaluationTest extends Specification implements UsesStringProperty {
+        def "setting property to a zipped version of itself (right) uses original value"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(Providers.of("A").zip(property, { a, b -> a + b }))
+
+            then:
+            property.get() == "Ahello"
         }
     }
 }

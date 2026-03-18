@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
-import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
 import org.gradle.api.provider.Property
@@ -178,10 +177,38 @@ class FilteringProviderTest extends Specification {
         }
     }
 
-    static class FilteringProviderCircularChainEvaluationTest extends CircularChainEvaluationSpec<String> implements UsesStringProperty {
-        @Override
-        ProviderInternal<String> wrapProviderWithProviderUnderTest(ProviderInternal<String> baseProvider) {
-            return new FilteringProvider<String>(baseProvider, { it == ""})
+    static class FilteringProviderCircularChainEvaluationTest extends Specification implements UsesStringProperty {
+        def "setting property to a filtered version of itself breaks the cycle"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(property.filter { it.startsWith("h") })
+
+            then:
+            property.get() == "hello"
+        }
+
+        def "setting property to a filtered version of itself is absent when filter does not match"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(property.filter { it.startsWith("x") })
+
+            then:
+            !property.isPresent()
+        }
+
+        def "setting property to a mapped-then-filtered chain of itself uses the snapshot value"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(property.map { it.toUpperCase() }.map { it + "!" }.filter { it.startsWith("H") })
+
+            then:
+            property.get() == "HELLO!"
         }
     }
 }
