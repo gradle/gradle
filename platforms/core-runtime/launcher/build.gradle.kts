@@ -24,6 +24,7 @@ dependencies {
     api(projects.fileWatching)
     api(projects.files)
     api(projects.hashing)
+    api(projects.hashingServices)
     api(projects.instrumentationAgentServices)
     api(projects.stdlibJavaExtensions)
     api(projects.jvmServices)
