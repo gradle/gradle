@@ -78,6 +78,7 @@ dependencies {
     implementation(projects.clientServices)
     implementation(projects.core)
     implementation(projects.coreFlowServicesApi)
+    implementation(projects.daemonMessaging)
     implementation(projects.daemonProtocol)
     implementation(projects.daemonServices)
     implementation(projects.dependencyManagement)

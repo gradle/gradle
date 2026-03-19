@@ -28,6 +28,7 @@ dependencies {
     api(projects.classloaders)
     api(projects.concurrent)
     api(projects.credentialsApi)
+    api(projects.daemonMessaging)
     api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
     api(projects.functional)

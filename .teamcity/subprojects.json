@@ -399,6 +399,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-messaging",
+    "path": "platforms/core-runtime/daemon-messaging",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-protocol",
     "path": "platforms/core-runtime/daemon-protocol",
     "unitTests": true,

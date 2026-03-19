@@ -46,6 +46,7 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(projects.classloaders)
+    implementation(projects.daemonMessaging)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.jvmServices)

@@ -58,6 +58,7 @@ val core = platform("core") {
         subproject("collections")
         subproject("concurrent")
         subproject("daemon-main")
+        subproject("daemon-messaging")
         subproject("daemon-protocol")
         subproject("daemon-services")
         subproject("daemon-server")
