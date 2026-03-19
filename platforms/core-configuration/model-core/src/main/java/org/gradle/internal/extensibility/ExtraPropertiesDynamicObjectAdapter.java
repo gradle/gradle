@@ -44,6 +44,7 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
 
     @Deprecated
     @Override
+    @Deprecated
     public Map<String, ? extends @Nullable Object> getProperties() {
         return extension.getProperties();
     }
