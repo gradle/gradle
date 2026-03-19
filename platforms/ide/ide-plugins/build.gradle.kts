@@ -52,6 +52,7 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.scala)
     implementation(projects.serviceLookup)
+    implementation(projects.startParameter)
     implementation(projects.testSuitesBase)
     implementation(projects.war)
 

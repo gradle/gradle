@@ -178,7 +178,7 @@
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -1481,6 +1481,13 @@
     "path": "platforms/software/software-diagnostics",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "start-parameter",
+    "path": "platforms/core-runtime/start-parameter",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

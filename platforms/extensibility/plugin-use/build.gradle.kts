@@ -26,6 +26,7 @@ dependencies {
 
     implementation(projects.functional)
     implementation(projects.jvmServices)
+    implementation(projects.startParameter)
 
     implementation(libs.slf4jApi)
 

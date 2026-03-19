@@ -138,6 +138,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "service-registry-builder",
         "service-registry-impl",
         "snapshots",
+        "start-parameter",
         "stdlib-java-extensions",
         "stdlib-kotlin-extensions",
         "time",

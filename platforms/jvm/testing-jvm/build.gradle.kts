@@ -45,6 +45,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
     implementation(projects.serviceLookup)
+    implementation(projects.startParameter)
     implementation(projects.testingJvmInfrastructure)
 
     implementation(libs.commonsIo)

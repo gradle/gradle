@@ -41,6 +41,7 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
+    implementation(projects.startParameter)
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
     implementation(libs.jspecify)

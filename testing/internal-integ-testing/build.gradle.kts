@@ -70,7 +70,6 @@ dependencies {
     implementation(projects.buildCache)
     implementation(projects.buildDiscovery)
     implementation(projects.buildDiscoveryImpl)
-    implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
@@ -97,6 +96,7 @@ dependencies {
     implementation(projects.serialization)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.startParameter)
     implementation(projects.time)
 
     implementation(testFixtures(projects.buildProcessServices))

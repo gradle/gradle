@@ -45,6 +45,7 @@ dependencies {
     api(projects.buildCacheSpi)
     api(projects.buildDiscovery)
     api(projects.buildDiscoveryImpl)
+    api(projects.buildEvents)
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)
@@ -88,8 +89,10 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.snapshots)
     api(projects.projectFeatures)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
+    api(projects.toolingApi)
     api(projects.versionedCache)
 
     api(libs.asm)
@@ -266,6 +269,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.native))
     integTestImplementation(testFixtures(projects.fileTemp))
     integTestImplementation(testFixtures(projects.launcher))
+    integTestImplementation(testFixtures(projects.testingBase))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")

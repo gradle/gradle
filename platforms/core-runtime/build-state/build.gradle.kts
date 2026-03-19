@@ -30,6 +30,7 @@ dependencies {
     api(projects.logging)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
 
     implementation(projects.buildDiscoveryImpl)

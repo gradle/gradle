@@ -91,6 +91,7 @@ val core = platform("core") {
         subproject("service-provider")
         subproject("service-registry-builder")
         subproject("service-registry-impl")
+        subproject("start-parameter")
         subproject("time")
         subproject("tooling-api-provider")
         subproject("versioned-cache")

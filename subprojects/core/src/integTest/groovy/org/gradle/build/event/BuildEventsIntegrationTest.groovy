@@ -43,7 +43,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
 
     def "listener can subscribe to task completion events"() {
         loggingListener()
-        registeringPlugin()
+        buildFile << registeringPlugin()
         buildFile << """
             apply plugin: LoggingPlugin
 
@@ -101,10 +101,10 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
         settingsFile << """
             include 'a', 'b'
         """
-        loggingListener()
-        registeringPlugin()
-        buildFile << """
-            subprojects {
+        loggingListener(settingsFile)
+        settingsFile << registeringPlugin()
+        settingsFile << """
+            gradle.lifecycle.beforeProject {
                 apply plugin: LoggingPlugin
                 task thing { }
             }
@@ -128,7 +128,8 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
         run("thing")
 
         then:
-        output.count("EVENT:") == 2
+        output.count("EVENT:") == 3
+        outputContains("EVENT: finish :thing")
         outputContains("EVENT: finish :a:thing")
         outputContains("EVENT: finish :b:thing")
 
@@ -136,7 +137,8 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
         run("thing")
 
         then:
-        output.count("EVENT:") == 2
+        output.count("EVENT:") == 3
+        outputContains("EVENT: finish :thing")
         outputContains("EVENT: finish :a:thing")
         outputContains("EVENT: finish :b:thing")
     }
@@ -147,7 +149,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
             includeBuild 'b'
         """
         loggingListener()
-        registeringPlugin()
+        buildFile << registeringPlugin()
         buildFile << """
             apply plugin: LoggingPlugin
             task thing {
@@ -183,7 +185,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "already covers CC")
     def "listener is not discarded after configuration phase when used with configuration cache"() {
         listenerReceivedConfigurationTimeData()
-        registeringPlugin()
+        buildFile << registeringPlugin()
         buildFile << """
             apply plugin: LoggingPlugin
 
@@ -545,8 +547,8 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
         """
     }
 
-    def registeringPlugin() {
-        buildFile << """
+    String registeringPlugin() {
+        """
             import ${BuildEventsListenerRegistry.name}
 
             abstract class LoggingPlugin implements Plugin<Project> {

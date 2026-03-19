@@ -39,6 +39,7 @@ dependencies {
 
     implementation(projects.functional)
     implementation(projects.loggingApi)
+    implementation(projects.startParameter)
 
     implementation(libs.commonsLang)
     implementation(libs.guava)

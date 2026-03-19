@@ -30,9 +30,10 @@ dependencies {
     api(projects.logging)
     api(projects.loggingApi)
     api(projects.serviceLookup)
+    api(projects.startParameter)
 
     // The client is able to run builds, so uses core and other projects
-    api(projects.core)
+    implementation(projects.core)
     api(projects.launcher)
 
     implementation(libs.commonsLang)
@@ -44,7 +45,6 @@ dependencies {
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
-    implementation(projects.coreApi)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)

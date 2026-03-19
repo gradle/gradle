@@ -9,7 +9,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildDiscovery)
     api(projects.buildDiscoveryImpl)
-    api(projects.buildEvents)
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildState)
@@ -40,6 +39,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.startParameter)
     api(projects.time)
     api(projects.toolingApi)
 
@@ -51,6 +51,7 @@ dependencies {
     api(libs.guava)
     api(libs.jspecify)
 
+    implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
     implementation(projects.processServices)
     implementation(projects.classloaders)
