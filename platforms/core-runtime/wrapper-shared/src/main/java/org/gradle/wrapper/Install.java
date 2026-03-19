@@ -21,20 +21,19 @@ import org.gradle.internal.file.locking.ExclusiveFileAccessManager;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -71,32 +70,29 @@ public class Install {
         final File distDir = localDistribution.getDistributionDir();
         final File localZipFile = localDistribution.getZipFile();
 
-        return exclusiveFileAccessManager.access(localZipFile, new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
-                if (distDir.isDirectory() && markerFile.isFile()) {
-                    InstallCheck installCheck = verifyDistributionRoot(distDir, distDir.getAbsolutePath());
-                    if (installCheck.isVerified()) {
-                        return installCheck.gradleHome;
-                    }
-                    // Distribution is invalid. Try to reinstall.
-                    System.err.println(installCheck.failureMessage);
-                    markerFile.delete();
-                }
-
-                fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
-
-                InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
+        return exclusiveFileAccessManager.access(localZipFile, () -> {
+            final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
+            if (distDir.isDirectory() && markerFile.isFile()) {
+                InstallCheck installCheck = verifyDistributionRoot(distDir, distDir.getAbsolutePath());
                 if (installCheck.isVerified()) {
-                    setExecutablePermissions(installCheck.gradleHome);
-                    markerFile.createNewFile();
-                    localZipFile.delete();
                     return installCheck.gradleHome;
                 }
-                // Distribution couldn't be installed.
-                throw new RuntimeException(installCheck.failureMessage);
+                // Distribution is invalid. Try to reinstall.
+                System.err.println(installCheck.failureMessage);
+                markerFile.delete();
             }
+
+            fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
+
+            InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
+            if (installCheck.isVerified()) {
+                setExecutablePermissions(installCheck.gradleHome);
+                markerFile.createNewFile();
+                localZipFile.delete();
+                return installCheck.gradleHome;
+            }
+            // Distribution couldn't be installed.
+            throw new RuntimeException(installCheck.failureMessage);
         });
     }
 
@@ -138,11 +134,8 @@ public class Install {
 
             forceFetch(tmpZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeoutMs());
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(tmpZipFile), "UTF-8"));
-            try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(tmpZipFile.toPath()), StandardCharsets.UTF_8))) {
                 return reader.readLine();
-            } finally {
-                reader.close();
             }
         } catch (Exception e) {
             logger.log("Could not fetch hash for " + safeUri(distribution) + ".");
@@ -203,7 +196,7 @@ public class Install {
                     ioException.getMessage()));
 
                 if (attempt < attempts) {
-                    waitFor(networkRetryTimeoutMs);
+                    Thread.sleep(networkRetryTimeoutMs);
                 }
             }
         }
@@ -211,18 +204,9 @@ public class Install {
         throw lastException;
     }
 
-    private static void waitFor(int timeoutMs) {
-        try {
-            Thread.sleep(timeoutMs);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
     static String calculateSha256Sum(File file) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
-        InputStream fis = new FileInputStream(file);
-        try {
+        try (InputStream fis = Files.newInputStream(file.toPath())) {
             int n = 0;
             byte[] buffer = new byte[4096];
             while (n != -1) {
@@ -231,14 +215,12 @@ public class Install {
                     md.update(buffer, 0, n);
                 }
             }
-        } finally {
-            fis.close();
         }
 
         byte[] byteData = md.digest();
         StringBuilder hexString = new StringBuilder();
-        for (int i = 0; i < byteData.length; i++) {
-            String hex = Integer.toHexString(0xff & byteData[i]);
+        for (byte byteDatum : byteData) {
+            String hex = Integer.toHexString(0xff & byteDatum);
             if (hex.length() == 1) {
                 hexString.append('0');
             }
@@ -299,7 +281,7 @@ public class Install {
             return emptyList();
         }
 
-        List<File> dirs = new ArrayList<File>();
+        List<File> dirs = new ArrayList<>();
         for (File file : files) {
             if (file.isDirectory()) {
                 dirs.add(file);
@@ -318,7 +300,7 @@ public class Install {
             ProcessBuilder pb = new ProcessBuilder("chmod", "755", gradleCommand.getCanonicalPath());
             Process p = pb.start();
             if (p.waitFor() != 0) {
-                BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
+                BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8));
                 Formatter stdout = new Formatter();
                 String line;
                 while ((line = is.readLine()) != null) {
@@ -346,8 +328,8 @@ public class Install {
         if (dir.isDirectory()) {
             String[] children = dir.list();
             if (children != null) {
-                for (int i = 0; i < children.length; i++) {
-                    boolean success = deleteDir(new File(dir, children[i]));
+                for (String child : children) {
+                    boolean success = deleteDir(new File(dir, child));
                     if (!success) {
                         return false;
                     }
@@ -360,8 +342,7 @@ public class Install {
     }
 
     private void unzip(File zip, File dest) throws IOException {
-        ZipFile zipFile = new ZipFile(zip);
-        try {
+        try (ZipFile zipFile = new ZipFile(zip)) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
             while (entries.hasMoreElements()) {
@@ -373,15 +354,10 @@ public class Install {
                     continue;
                 }
 
-                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(destFile));
-                try {
+                try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(destFile.toPath()))) {
                     copyInputStream(zipFile.getInputStream(entry), outputStream);
-                } finally {
-                    outputStream.close();
                 }
             }
-        } finally {
-            zipFile.close();
         }
     }
 
