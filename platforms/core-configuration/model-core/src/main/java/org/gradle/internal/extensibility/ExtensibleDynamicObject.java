@@ -166,6 +166,152 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject {
         return new CompositeDynamicObject(delegates.toArray(new DynamicObject[0]), dynamicDelegate::getDisplayName);
     }
 
+    @Override
+    public boolean hasProperty(String name) {
+        if (delegateObjects.hasProperty(name)) {
+            return true;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            if (parent.hasProperty(name)) {
+                DeprecationLogger.deprecateAction("Calling 'hasProperty' to query presence of property from parent project")
+                    .withContext("Tried to query parent project " + parent.getDisplayName() + " for presence property '" + name + "' from " + getDisplayName() + ".")
+                    .willBecomeAnErrorInGradle10()
+                    .undocumented()
+                    .nagUser();
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
+    }
+
+    @Override
+    public DynamicInvokeResult tryGetProperty(String name) {
+        DynamicInvokeResult result = delegateObjects.tryGetProperty(name);
+        if (result.isFound()) {
+            return result;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            result = parent.tryGetProperty(name);
+            if (result.isFound()) {
+                DeprecationLogger.deprecateAction("Calling 'getProperty' to retrieve property from parent project")
+                    .withContext("Tried to query parent project " + parent.getDisplayName() + " for property '" + name + "' from " + getDisplayName() + ".")
+                    .willBecomeAnErrorInGradle10()
+                    .undocumented()
+                    .nagUser();
+                return result;
+            }
+            parent = parent.getParent();
+        }
+        return DynamicInvokeResult.notFound();
+    }
+
+    @Override
+    public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
+        return delegateObjects.trySetProperty(name, value);
+    }
+
+    @Override
+    public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+        return delegateObjects.trySetPropertyWithoutInstrumentation(name, value);
+    }
+
+    @Override
+    @Deprecated
+    public Map<String, @Nullable Object> getProperties() {
+        Map<String, Object> properties = new HashMap<String, Object>();
+
+        // Push parent properties in reverse order, giving priority
+        // to child properties.
+        Deque<HierarchicalDynamicObject> parents = new ArrayDeque<>();
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            parents.push(parent);
+            parent = parent.getParent();
+        }
+        while ((parent = parents.poll()) != null) {
+            properties.putAll(parent.getProperties());
+        }
+
+        properties.putAll(delegateObjects.getProperties());
+        properties.put("properties", properties);
+        return properties;
+    }
+
+    @Override
+    public boolean hasMethod(String name, @Nullable Object... arguments) {
+        if (delegateObjects.hasMethod(name, arguments)) {
+            return true;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            if (parent.hasMethod(name, arguments)) {
+                emitMethodDeprecation(name, parent);
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
+    }
+
+    private DynamicInvokeResult doTryInvokeMethod(String name, @Nullable Object... arguments) {
+        DynamicInvokeResult result = delegateObjects.tryInvokeMethod(name, arguments);
+        if (result.isFound()) {
+            return result;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            if (parent.hasMethod(name, arguments)) {
+                emitMethodDeprecation(name, parent);
+                return result;
+            }
+            parent = parent.getParent();
+        }
+        return DynamicInvokeResult.notFound();
+    }
+
+    @Override
+    public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
+        DynamicInvokeResult result = doTryInvokeMethod(name, arguments);
+        if (result.isFound()) {
+            return result;
+        }
+
+        DynamicInvokeResult propertyResult = tryGetProperty(name);
+        if (propertyResult.isFound()) {
+            Object property = propertyResult.getValue();
+            if (property instanceof Closure) {
+                Closure<?> closure = (Closure<?>) property;
+                closure.setResolveStrategy(Closure.DELEGATE_FIRST);
+                BeanDynamicObject dynamicObject = new BeanDynamicObject(closure);
+                result = dynamicObject.tryInvokeMethod("doCall", arguments);
+                if (!result.isFound() && !(closure instanceof GeneratedClosure)) {
+                    return DynamicInvokeResult.found(closure.call(arguments));
+                }
+                return result;
+            }
+            if (property instanceof NamedDomainObjectContainer && arguments.length == 1 && arguments[0] instanceof Closure) {
+                ((NamedDomainObjectContainer<?>) property).configure((Closure<?>) arguments[0]);
+                return DynamicInvokeResult.found();
+            }
+            DynamicObject dynamicObject = DynamicObjectUtil.asDynamicObject(property);
+            if (dynamicObject.hasMethod("call", arguments)) {
+                return dynamicObject.tryInvokeMethod("call", arguments);
+            }
+        }
+        return DynamicInvokeResult.notFound();
+    }
+
+    private void emitMethodDeprecation(String name, DynamicObject parent) {
+        DeprecationLogger.deprecateAction("Dynamically invoking parent method from a child project")
+            .withContext("Cannot dynamically invoke method '" + name + "' on " + parent.getDisplayName() + " from " + getDisplayName() + ".")
+            .willBecomeAnErrorInGradle10()
+            .undocumented()
+            .nagUser();
+    }
+
     private class InheritedDynamicObject implements HierarchicalDynamicObject {
 
         @Override
