@@ -6,43 +6,45 @@ After `CONFIGURING` reaches 100%, the build appears stuck while task graph calcu
 
 ### Target Display
 
+The spinner occupies the first cell of the progress bar area, keeping the bar prefix/suffix (`│` or `[]`) consistent with other phases. The discovered item count replaces the percentage.
+
 **Unicode terminal (Linux/macOS):**
 ```
 │██████████·····│ 100% CONFIGURING [1s]     ← configuring complete
-⠋ DISCOVERING [2s]                          ← phase starts, no items yet
-⠹ DISCOVERING [42] [3s]                     ← 42 work items discovered so far
-⠴ DISCOVERING [127] [5s]                    ← counter keeps increasing (composite build)
+│⠋··············│ DISCOVERING [2s]           ← phase starts, no items yet
+│⠹··············│ 42 DISCOVERING [3s]        ← 42 work items discovered so far
+│⠴··············│ 127 DISCOVERING [5s]       ← counter keeps increasing (composite build)
 │···············│ 0% EXECUTING [5s]          ← execution begins
 ```
 
 **ASCII terminal (fallback):**
 ```
 [###############] 100% CONFIGURING [1s]
-| DISCOVERING [2s]
-/ DISCOVERING [42] [3s]
-- DISCOVERING [127] [5s]
+[|..............] DISCOVERING [2s]
+[/..............] 42 DISCOVERING [3s]
+[-..............] 127 DISCOVERING [5s]
 [...............] 0% EXECUTING [5s]
 ```
 
 **Configure-on-Demand:**
 ```
 │···············│ 0% CONFIGURING [0s]        ← instant, likely never renders
-⠋ DISCOVERING [2s]                          ← immediately visible
-⠸ DISCOVERING [42] [4s]                     ← projects configured on-demand inside
+│⠋··············│ DISCOVERING [2s]           ← immediately visible
+│⠸··············│ 42 DISCOVERING [4s]        ← projects configured on-demand inside
 │···············│ 0% EXECUTING [4s]
 ```
 
 **Configuration Cache hit:**
 ```
-│███████████████│ 100% CONFIGURING [0s]      ← instant (from cache)
-⠋ DISCOVERING [1s]                          ← CC load in progress
-⠼ DISCOVERING [127] [2s]                    ← all items loaded from cache at once
+│██████████·····│ 100% CONFIGURING [0s]      ← instant (from cache)
+│⠋··············│ DISCOVERING [1s]           ← CC load in progress
+│⠼··············│ 127 DISCOVERING [2s]       ← all items loaded from cache at once
 │···············│ 0% EXECUTING [2s]
 ```
 
 ### Spinner Animation
 
-The spinner cycles through frames every ~100ms (driven by `UpdateNowEvent` refresh):
+The spinner character occupies the first cell of the progress bar, with the remaining cells showing the incomplete/empty character. It cycles every ~100ms (driven by `UpdateNowEvent` refresh):
 - **Unicode (Braille dots):** `⠋ → ⠙ → ⠹ → ⠸ → ⠼ → ⠴ → ⠦ → ⠧ → ⠇ → ⠏` (10 frames, 1s full cycle)
 - **ASCII fallback:** `| → / → - → \` (4 frames, 400ms full cycle)
 
@@ -84,7 +86,8 @@ Changes:
 - In `formatProgress()`, short-circuit to `formatIndeterminate(...)` when `indeterminate == true` (MUST happen before any `current/total` division)
 - `formatIndeterminate(timerEnabled, elapsedTime, elapsedTimeStr)`:
   - Spinner frame: `frames[(int)(elapsedTime / 100) % frames.length]`
-  - Format: `<spinner> DISCOVERING [<count>] [<time>]` (omit `[0]` when count is 0)
+  - Renders bar area: spinner char in first cell, incomplete/empty char for remaining cells (reuses existing `progressBarPrefix`, `progressBarWidth`, `progressBarSuffix`)
+  - Status after bar: `<count> DISCOVERING [<time>]` (omit count when 0)
   - Always recompute (no caching — spinner changes every 100ms)
   - Taskbar: use state 3 (indeterminate) via `buildOsc94Sequence("3")`
 
