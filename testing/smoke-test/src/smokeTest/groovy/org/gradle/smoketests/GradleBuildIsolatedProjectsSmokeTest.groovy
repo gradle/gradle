@@ -36,7 +36,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         ]
 
         when:
-        maxIsolatedProjectProblems = 1
+        maxIsolatedProjectProblems = 0
         isolatedProjectsRun(tasks)
 
         then:
