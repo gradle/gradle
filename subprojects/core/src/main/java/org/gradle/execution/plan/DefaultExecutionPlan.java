@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -84,6 +85,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         ResourceLockCoordinationService lockCoordinator,
         WorkerLeaseService workerLeaseService,
         BuildOperationExecutor buildOperationExecutor,
+        ProjectStateRegistry projectStateRegistry,
         boolean parallelTaskDependencyResolution
     ) {
         this.displayName = displayName;
@@ -94,7 +96,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         this.lockCoordinator = lockCoordinator;
         this.ordinalNodeAccess = new OrdinalNodeAccess(ordinalGroupFactory);
         this.parallelNodeRelationshipsResolver = parallelTaskDependencyResolution
-            ? new ParallelNodeRelationshipsResolver(dependencyResolver, workerLeaseService, buildOperationExecutor)
+            ? new ParallelNodeRelationshipsResolver(dependencyResolver, workerLeaseService, buildOperationExecutor, projectStateRegistry, taskNodeFactory)
             : null;
     }
 

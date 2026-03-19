@@ -339,6 +339,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ResourceLockCoordinationService lockCoordinationService,
         WorkerLeaseService workerLeaseService,
         BuildOperationExecutor buildOperationExecutor,
+        ProjectStateRegistry projectStateRegistry,
         BuildModelParameters buildModelParameters
     ) {
         return new ExecutionPlanFactory(
@@ -351,6 +352,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             lockCoordinationService,
             workerLeaseService,
             buildOperationExecutor,
+            projectStateRegistry,
             buildModelParameters
         );
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan
 
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
@@ -63,7 +64,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def workerLeaseService = Stub(WorkerLeaseService) {
             runAsIsolatedTask(_ as Factory) >> { Factory factory -> factory.create() }
         }
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator, workerLeaseService, new TestBuildOperationExecutor(), false)
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator, workerLeaseService, new TestBuildOperationExecutor(), Stub(ProjectStateRegistry), false)
     }
 
     Node priorityNode(Map<String, ?> options = [:]) {

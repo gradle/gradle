@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan
 
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
@@ -57,7 +58,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         def workerLeaseService = Stub(WorkerLeaseService) {
             runAsIsolatedTask(_ as Factory) >> { Factory factory -> factory.create() }
         }
-        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator, workerLeaseService, new TestBuildOperationExecutor(), false)
+        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator, workerLeaseService, new TestBuildOperationExecutor(), Stub(ProjectStateRegistry), false)
     }
 
     def "schedules tasks in dependency order"() {

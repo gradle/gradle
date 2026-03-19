@@ -18,6 +18,7 @@ package org.gradle.execution.plan;
 
 import org.jspecify.annotations.NullMarked;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -73,5 +74,35 @@ public class ResolvedNodeRelationships {
 
     public Set<Node> getShouldRunAfter() {
         return shouldRunAfter;
+    }
+
+    /**
+     * Returns a new instance with additional nodes merged into each relationship set.
+     * Used to incorporate deferred cross-project dependencies resolved in later waves.
+     */
+    ResolvedNodeRelationships withAdditionalRelationships(
+        Set<Node> additionalDeps,
+        Set<Node> additionalLifecycle,
+        Set<Node> additionalFinalizedBy,
+        Set<Node> additionalMustRunAfter,
+        Set<Node> additionalShouldRunAfter
+    ) {
+        return new ResolvedNodeRelationships(
+            node,
+            merge(dependencies, additionalDeps),
+            merge(lifecycleDependencies, additionalLifecycle),
+            merge(finalizedBy, additionalFinalizedBy),
+            merge(mustRunAfter, additionalMustRunAfter),
+            merge(shouldRunAfter, additionalShouldRunAfter)
+        );
+    }
+
+    private static Set<Node> merge(Set<Node> original, Set<Node> additional) {
+        if (additional.isEmpty()) {
+            return original;
+        }
+        Set<Node> merged = new HashSet<>(original);
+        merged.addAll(additional);
+        return merged;
     }
 }
