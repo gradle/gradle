@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal
 
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.tasks.VerificationException
 import org.gradle.internal.Describables
 import org.gradle.internal.code.DefaultUserCodeSource
@@ -28,13 +28,19 @@ class TaskProvenanceUtilTest extends Specification {
     // region getProvenance
 
     def "unknown source returns empty provenance"() {
+        given:
+        def task = stubTask(UserCodeSource.UNKNOWN)
+
         expect:
-        !TaskProvenanceUtil.getProvenance(UserCodeSource.UNKNOWN).isPresent()
+        !TaskProvenanceUtil.getProvenance(task).isPresent()
     }
 
     def "known source returns '#expected'"() {
+        given:
+        def task = stubTask(source)
+
         expect:
-        TaskProvenanceUtil.getProvenance(source).get() == expected
+        TaskProvenanceUtil.getProvenance(task).get() == expected
 
         where:
         source                                                                         | expected
@@ -49,8 +55,7 @@ class TaskProvenanceUtilTest extends Specification {
 
     def "failure message includes provenance for non-verification failures"() {
         given:
-        def source = new DefaultUserCodeSource(Describables.of("build file 'build.gradle'"), null)
-        def task = mockTask(source, "task ':myTask'")
+        def task = stubTask(new DefaultUserCodeSource(Describables.of("build file 'build.gradle'"), null), "task ':myTask'")
         def cause = new RuntimeException("boom")
 
         expect:
@@ -59,8 +64,7 @@ class TaskProvenanceUtilTest extends Specification {
 
     def "failure message omits provenance for verification failures"() {
         given:
-        def source = new DefaultUserCodeSource(Describables.of("build file 'build.gradle'"), null)
-        def task = mockTask(source, "task ':myTask'")
+        def task = stubTask(new DefaultUserCodeSource(Describables.of("build file 'build.gradle'"), null), "task ':myTask'")
         def cause = new VerificationException("test failed")
 
         expect:
@@ -69,7 +73,7 @@ class TaskProvenanceUtilTest extends Specification {
 
     def "failure message omits provenance when source is unknown"() {
         given:
-        def task = mockTask(UserCodeSource.UNKNOWN, "task ':myTask'")
+        def task = stubTask(UserCodeSource.UNKNOWN, "task ':myTask'")
         def cause = new RuntimeException("boom")
 
         expect:
@@ -78,11 +82,9 @@ class TaskProvenanceUtilTest extends Specification {
 
     // endregion buildFailureMessage
 
-    private TaskInternal mockTask(UserCodeSource source, String taskToString) {
-        def identity = Mock(TaskIdentity) {
-            getUserCodeSource() >> source
-        }
-        return Mock(TaskInternal) {
+    private TaskInternal stubTask(UserCodeSource source, String taskToString = "task ':test'") {
+        def identity = TestTaskIdentities.createWithSource(source)
+        return Stub(TaskInternal) {
             getTaskIdentity() >> identity
             toString() >> taskToString
         }
