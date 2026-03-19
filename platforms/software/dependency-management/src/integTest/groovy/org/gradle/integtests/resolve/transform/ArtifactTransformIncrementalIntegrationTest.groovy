@@ -199,7 +199,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
     }
 
     private void setupBuildFile() {
-        buildFile .text = """
+        buildFile.text = """
             ext {
                 added = []
                 modified = []
@@ -211,12 +211,12 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
         setupBuildWithColorTransform {
             produceDirs()
             params("""
-                addedFiles.set(provider { added })
-                modifiedFiles.set(provider { modified })
-                removedFiles.set(provider { removed })
-                incrementalExecution.set(provider { incremental })
-                incrementalExecution.set(provider { incremental })
-                registerNewOutput.set(provider { project.registerNewOutput })
+                addedFiles.set(provider { rootProject.ext.added })
+                modifiedFiles.set(provider { rootProject.ext.modified })
+                removedFiles.set(provider { rootProject.ext.removed })
+                incrementalExecution.set(provider { rootProject.ext.incremental })
+                incrementalExecution.set(provider { rootProject.ext.incremental })
+                registerNewOutput.set(provider { rootProject.ext.registerNewOutput })
             """)
         }
         buildFile << """

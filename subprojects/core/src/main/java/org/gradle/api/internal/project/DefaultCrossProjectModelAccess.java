@@ -20,11 +20,11 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.invocation.GradleLifecycleActionExecutor;
-import org.jspecify.annotations.Nullable;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -105,7 +105,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     @Nullable
-    public DynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject) {
+    public HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject) {
         ProjectInternal parent = referrerProject.getParent();
         return parent != null ? parent.getInheritedScope() : null;
     }

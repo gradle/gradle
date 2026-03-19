@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
@@ -105,5 +105,5 @@ public interface CrossProjectModelAccess {
      * The returned object handles cross-project model access according to the current policy.
      */
     @Nullable
-    DynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject);
+    HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject);
 }
