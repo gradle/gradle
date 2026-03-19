@@ -42,7 +42,7 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
         ),
         // https://github.com/gradle/develocity-bamboo-plugin/releases
         BAMBOO(
-            "develocity-bamboo-plugin-3.0.3",
+            "develocity-bamboo-plugin-3.0.4",
             "https://raw.githubusercontent.com/gradle/develocity-bamboo-plugin/refs/tags/%s/src/main/resources/develocity/gradle/develocity-init-script.gradle"
         );
 

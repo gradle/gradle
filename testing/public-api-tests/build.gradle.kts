@@ -53,7 +53,7 @@ abstract class IntegTestCommandLineArgumentProvider(
 tasks.withType<IntegrationTest>() {
     val argument = objects.newInstance(IntegTestCommandLineArgumentProvider::class.java).apply {
         repoLocation.fileProvider(resolveTestRepo.flatMap { it.elements }.map { it.first().asFile })
-        kotlinVersion = libs.kotlinVersion
+        kotlinVersion = libs.versions.kotlin
     }
     jvmArgumentProviders.add(argument)
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.schemaBuidler
 
+import org.gradle.declarative.dsl.model.annotations.ValueFactories
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
@@ -46,9 +47,19 @@ class ConfiguringFunctionsFromPropertiesTest {
         assertTrue(topLevelClass.memberFunctions.none { it.simpleName == "mutableNested" })
     }
 
+    @Test
+    fun `does not extract functions from value factories getters`() {
+        val schema = schemaFromTypes(TopLevel::class, listOf(TopLevel::class, Nested::class))
+        val topLevelClass = schema.dataClassTypesByFqName[DefaultFqName.parse(TopLevel::class.qualifiedName!!)] as DataClass
+        assertTrue(topLevelClass.memberFunctions.none { it.simpleName == "valueFactories" })
+    }
+
     interface TopLevel {
         val nested: Nested
         var mutableNested: Nested
+
+        @get:ValueFactories
+        val valueFactories: Nested
     }
 
     interface Nested {

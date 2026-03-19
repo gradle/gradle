@@ -57,7 +57,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
     def "configuration cache can be loaded without errors from #source using #encryptionTransformation"() {
         given:
         def additionalOpts = [
-            "-Dorg.gradle.configuration-cache.internal.encryption-alg=${encryptionTransformation}"
+            "-Dorg.gradle.internal.configuration-cache.encryption-alg=${encryptionTransformation}"
         ]
         def configurationCache = newConfigurationCacheFixture()
         runWithEncryption(source, ["help"], additionalOpts)
@@ -127,7 +127,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
             kind,
             ["useSensitive"],
             ["-Psensitive_property_name=sensitive_property_value",
-             "-Dorg.gradle.configuration-cache.internal.deduplicate-strings=false"],
+             "-Dorg.gradle.internal.configuration-cache.deduplicate-strings=false"],
             [(ENV_PROJECT_PROPERTIES_PREFIX + 'sensitive_property_name2'): 'sensitive_property_value2',
              "SENSITIVE_ENV_VAR_NAME": 'sensitive_env_var_value']
         )
@@ -342,7 +342,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         switch (kind) {
             case EncryptionKind.KEYSTORE:
                 return [
-                    "-Dorg.gradle.configuration-cache.internal.key-store-dir=${keyStoreDir}",
+                    "-Dorg.gradle.internal.configuration-cache.key-store-dir=${keyStoreDir}",
                 ]
             case EncryptionKind.ENV_VAR:
                 // the env var is all that is required
@@ -350,7 +350,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
             default:
                 // NONE
                 return [
-                    "-Dorg.gradle.configuration-cache.internal.encryption=false"
+                    "-Dorg.gradle.internal.configuration-cache.encryption=false"
                 ]
         }
     }

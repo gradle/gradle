@@ -927,7 +927,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
     }
 
     List<BuildOperationRecord> getTransformExecutions() {
-        buildOperations.all(ExecuteWorkBuildOperationType)
+        buildOperations.typed(ExecuteWorkBuildOperationType)
     }
 
     @NamedVariant

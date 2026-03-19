@@ -32,10 +32,11 @@ fun schemaFromTypes(
     propertyExtractor: PropertyExtractor = DefaultPropertyExtractor(),
     functionExtractor: FunctionExtractor = basicFunctionExtractor(configureLambdas),
     augmentationsProvider: AugmentationsProvider = CompositeAugmentationsProvider(emptyList()),
-    typeDiscovery: TypeDiscovery = basicTypeDiscovery(configureLambdas)
+    typeDiscovery: TypeDiscovery = basicTypeDiscovery(configureLambdas),
+    failureReporter: SchemaFailureReporter = ThrowingSchemaFailureReporter
 ): AnalysisSchema =
     DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor, augmentationsProvider).schemaFromTypes(
-        topLevelReceiver, types, externalFunctionDiscovery.discoverTopLevelFunctions(), externalObjects, defaultImports,
+        topLevelReceiver, types, externalFunctionDiscovery.discoverTopLevelFunctions(), externalObjects, defaultImports, failureReporter
     )
 
 fun basicFunctionExtractor(configureLambdas: ConfigureLambdaHandler): CompositeFunctionExtractor = CompositeFunctionExtractor(

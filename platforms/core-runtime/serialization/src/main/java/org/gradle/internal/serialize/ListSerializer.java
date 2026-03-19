@@ -15,23 +15,34 @@
  */
 package org.gradle.internal.serialize;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import com.google.common.collect.ImmutableList;
+
 import java.util.List;
 
-public class ListSerializer<T> extends AbstractCollectionSerializer<T, List<T>> implements Serializer<List<T>> {
+public class ListSerializer<T> extends AbstractSerializer<List<T>> {
+
+    private final Serializer<T> entrySerializer;
 
     public ListSerializer(Serializer<T> entrySerializer) {
-        super(entrySerializer);
+        this.entrySerializer = entrySerializer;
     }
 
-    @SuppressWarnings("MixedMutabilityReturnType")
-    // TODO Deserialize using immutable collections
     @Override
-    protected List<T> createCollection(int size) {
-        if (size == 0) {
-            return Collections.emptyList();
+    public ImmutableList<T> read(Decoder decoder) throws Exception {
+        int size = decoder.readInt();
+        ImmutableList.Builder<T> values = ImmutableList.builderWithExpectedSize(size);
+        for (int i = 0; i < size; i++) {
+            values.add(entrySerializer.read(decoder));
         }
-        return new ArrayList<T>(size);
+        return values.build();
     }
+
+    @Override
+    public void write(Encoder encoder, List<T> value) throws Exception {
+        encoder.writeInt(value.size());
+        for (T t : value) {
+            entrySerializer.write(encoder, t);
+        }
+    }
+
 }

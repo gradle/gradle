@@ -20,7 +20,6 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -31,12 +30,9 @@ import static org.hamcrest.CoreMatchers.startsWith
 
 class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, StableConfigurationCacheDeprecations {
 
-    int expectedTaskGetProjectDeprecationCount = 0
-
     @Override
     protected void setupExecuter() {
         super.setupExecuter()
-        expectTaskGetProjectDeprecations(expectedTaskGetProjectDeprecationCount)
     }
 
     @UnsupportedWithConfigurationCache
@@ -93,30 +89,27 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {
-        buildFile << """
+        buildFile """
             gradle.taskGraph.whenReady { assert !project.hasProperty('graphReady'); ext.graphReady = true }
             task a {
                 doLast { task ->
-                    project.ext.executedA = task
+                    println("executed task 'a'")
                 }
             }
             task b {
                 doLast {
-                    assert a == project.executedA
-                    assert gradle.taskGraph.hasTask(':a')
+                    println("executing task 'b', should be after 'a'")
                 }
             }
             task c(dependsOn: a)
             task d(dependsOn: a)
-            task e(dependsOn: [a, d]);
+            task e(dependsOn: [a, d])
         """
         expect:
         2.times {
-            expectedTaskGetProjectDeprecationCount = 2
             run("a", "b").assertTasksScheduled(":a", ":b")
-            expectedTaskGetProjectDeprecationCount = 1
+            result.normalizedOutput.matches("(?s).*executed task 'a'.*executing task 'b', should be after 'a'.*")
             run("a", "a").assertTasksScheduled(":a")
             run("c", "a").assertTasksScheduled(":a", ":c")
             run("c", "e").assertTasksScheduled(":a", ":c", ":d", ":e")

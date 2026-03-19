@@ -202,6 +202,8 @@ sealed class Accessor {
     data class ForProjectType(val spec: TypedProjectFeatureEntry) : Accessor()
 
     data class ForContainerElementFactory(val spec: TypedContainerElementFactoryEntry) : Accessor()
+
+    data class ForDeclarativeNestedModel(val spec: TypedAccessorSpec) : Accessor()
 }
 
 
@@ -226,6 +228,7 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(uniqueAccessorsFor(modelDefaults).map(Accessor::ForModelDefault))
             yieldAll(uniqueProjectFeatureEntries(projectFeatureEntries.mapNotNull(::typedProjectType)).map(Accessor::ForProjectType))
             yieldAll(uniqueContainerElementFactories(containerElementFactories.mapNotNull(::typedContainerElementFactory)).map(Accessor::ForContainerElementFactory))
+            yieldAll(nestedModelEntries.mapNotNull(::typedNestedModel).map(Accessor::ForDeclarativeNestedModel))
         }
     }
 }
@@ -250,6 +253,17 @@ private fun typedContainerElementFactory(containerElementFactoryEntry: Container
     val name = AccessorNameSpec.createOrNull(containerElementFactoryEntry.factoryName)
     return name?.let {
         TypedContainerElementFactoryEntry(name, containerElementFactoryEntry.containerReceiverType, containerElementFactoryEntry.publicType)
+    }
+}
+
+private fun typedNestedModel(nestedModelEntry: NestedModelEntry<TypeAccessibility>) : TypedAccessorSpec? {
+    val name = AccessorNameSpec.createOrNull(nestedModelEntry.nestedModelPropertyName)
+    return name?.let {
+        TypedAccessorSpec(
+            nestedModelEntry.ownerType as? TypeAccessibility.Accessible ?: return null,
+            name,
+            nestedModelEntry.nestedModelType
+        )
     }
 }
 

@@ -9,20 +9,17 @@ group = "gradlebuild"
 description = "Provides plugins used to create a Gradle plugin with Groovy or Kotlin DSL within build-logic builds"
 
 dependencies {
-    compileOnly("com.gradle:develocity-gradle-plugin")
+    compileOnly(buildLibs.develocityPlugin)
 
     api(platform(projects.buildPlatform))
 
     implementation(projects.basics)
     implementation(projects.moduleIdentity)
 
-    implementation("net.ltgt.gradle:gradle-errorprone-plugin:4.1.0")
-    implementation("net.ltgt.gradle:gradle-nullaway-plugin:2.2.0")
-
-
+    implementation(buildLibs.errorPronePlugin)
+    implementation(buildLibs.nullawayPlugin)
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersion")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$embeddedKotlinVersion")
-    implementation("org.gradle:test-retry-gradle-plugin:1.6.2")
-
-    implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.7")
+    implementation(buildLibs.kgp)
+    implementation(buildLibs.testRetryPlugin)
+    implementation(buildLibs.detektPlugin)
 }

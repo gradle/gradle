@@ -17,6 +17,7 @@
 package org.gradle.integtests.wrapper
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.precondition.Requires
@@ -48,15 +49,29 @@ task hello {
         settingsFile << "rootProject.name = 'wrapper'"
         version(wrapperVersion).withTasks('wrapper').run()
 
-        wrapperExecuter(executionVersion)
+        return wrapperExecuter(executionVersion)
     }
 
     private GradleExecuter wrapperExecuter(GradleDistribution wrapper) {
         def executer = super.version(wrapper)
-        // Use isolated daemons in order to verify that using the installed distro works, and so that the daemons aren't visible to other tests, because
-        // the installed distro is deleted at the end of this test
-        executer.requireIsolatedDaemons()
-        executer.usingExecutable('gradlew')
+        executer.beforeExecute {
+            // Use isolated daemons in order to verify that using the installed distro works, and so that the daemons aren't visible to other tests, because
+            // the installed distro is deleted at the end of this test
+            requireIsolatedDaemons()
+            usingExecutable('gradlew')
+        }
         return executer
+    }
+
+    void checkWrapperWorksWith(GradleExecuter executer, GradleDistribution executionVersion) {
+        def result = executer.withTasks('hello').run()
+
+        assert result.output.contains("hello from $executionVersion.version.version")
+        assert result.output.contains("using distribution at ${executer.gradleUserHomeDir.file("wrapper/dists")}")
+        assert result.output.contains("using Gradle user home at $executer.gradleUserHomeDir")
+    }
+
+    void cleanupDaemons(GradleExecuter executer, GradleDistribution executionVersion) {
+        new DaemonLogsAnalyzer(executer.daemonBaseDir, executionVersion.version.version).killAll()
     }
 }

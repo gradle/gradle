@@ -42,7 +42,7 @@ Here, `platform` defines versions for `commons-lang3`, `guava`, and `slf4j-api`,
 Maven's BOM (Bill of Materials) is a popular type of platform that Gradle supports.
 A BOM file lists dependencies with specific versions, allowing you to manage these versions in a centralized way.
 
-A popular platform is the link:https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies[Spring Boot Bill of Materials].
+For example, a popular platform is the link:https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies[Spring Boot Bill of Materials].
 To use the BOM, you add it to the dependencies of your project:
 
 ====

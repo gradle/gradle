@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.internal.ToBeImplemented
 
 @TargetGradleVersion(">=9.3.0")
 @ToolingApiVersion(">=9.3.0")
@@ -148,6 +149,44 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         buildC.buildIdentifier.rootDir == buildCDir
         buildC.rootProject.name == "buildC"
         buildC.editableBuilds.empty
+
+        where:
+        resilient << [true, false]
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/24672")
+    def "builds included from buildSrc are returned in buildSrc model"() {
+        given:
+        singleProjectBuildInRootFolder("root") {
+            settingsFile << """
+                rootProject.name = 'root'
+            """
+        }
+        singleProjectBuildInSubfolder("buildSrc") {
+            settingsFile << """
+                includeBuild('../buildSrc-included')
+            """
+        }
+        singleProjectBuildInSubfolder("buildSrc-included") {
+            settingsFile << """
+                rootProject.name=('buildSrc-included')
+            """
+        }
+
+        when:
+        def rootBuild = loadGradleBuildModel(resilient)
+
+        then:
+        rootBuild.includedBuilds.size() == 0
+        rootBuild.editableBuilds.size() == 1
+
+        and:
+        def buildSrcBuild = rootBuild.editableBuilds[0]
+        buildSrcBuild.rootProject.name == "buildSrc"
+
+        and:
+        buildSrcBuild.includedBuilds.size() == 1
+        buildSrcBuild.editableBuilds.size() == 0 // the above linked issue states that this collection should not be empty, as it is now
 
         where:
         resilient << [true, false]

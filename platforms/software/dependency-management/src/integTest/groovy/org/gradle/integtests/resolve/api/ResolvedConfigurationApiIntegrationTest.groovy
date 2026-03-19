@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
 @FluidDependenciesResolveTest
@@ -28,7 +28,7 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the ResolvedConfiguration API")
+    @UnsupportedWithConfigurationCache(because = "task exercises the ResolvedConfiguration API, which is a deprecated API that we don't want to invest in making compatible with configuration cache")
     def "artifacts may have no extension"() {
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
         m1.artifact(type: 'jar', ext: '')
@@ -78,7 +78,7 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
         outputContains("classifiers: [null, null, classy]")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the ResolvedConfiguration API")
+    @UnsupportedWithConfigurationCache(because = "task exercises the ResolvedConfiguration API, which is a deprecated API that we don't want to invest in making compatible with configuration cache")
     def "reports multiple failures to resolve components"() {
         buildFile << """
             repositories { maven { url = '${mavenHttpRepo.uri}' } }
@@ -114,13 +114,13 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescription("Execution failed for task ':show' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
         failure.assertHasCause("Could not find test:test1:1.2.")
         failure.assertHasCause("Could not resolve test:test2:1.2.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the ResolvedConfiguration API")
+    @UnsupportedWithConfigurationCache(because = "task exercises the ResolvedConfiguration API, which is a deprecated API that we don't want to invest in making compatible with configuration cache")
     def "reports failure to resolve artifact"() {
         buildFile << """
             repositories { maven { url = '${mavenHttpRepo.uri}' } }
@@ -157,7 +157,7 @@ class ResolvedConfigurationApiIntegrationTest extends AbstractHttpDependencyReso
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescription("Execution failed for task ':show' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not find test1-1.2.jar (test:test1:1.2).")
     }
 }

@@ -24,6 +24,7 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.ResourceLocation
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
@@ -122,6 +123,7 @@ class InterpreterTest : TestWithTempFiles() {
             }
         }
 
+        val buildOperationRunner = TestBuildOperationRunner()
         val host = mock<Interpreter.Host> {
 
             on { serviceRegistryFor(any(), any()) } doReturn mockServiceRegistry
@@ -185,7 +187,7 @@ class InterpreterTest : TestWithTempFiles() {
         try {
 
             val target = mock<Settings>()
-            val subject = Interpreter(host)
+            val subject = Interpreter(host, buildOperationRunner)
             assertStandardOutputOf("stage 1\nstage 2\n") {
                 subject.eval(
                     target,
@@ -282,9 +284,10 @@ class InterpreterTest : TestWithTempFiles() {
         val baseScope = createMockScope(parentClassLoader)
         val targetScope = createMockScope(mock(), baseScope)
 
+        val buildOperationRunner = TestBuildOperationRunner()
         val cachingHost = createCachingHostMock(DummyCompiledScript(TestProgram1::class.java))
 
-        val interpreter = Interpreter(cachingHost.host)
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner)
         val target = mock<Settings>()
 
         // When we eval the same script twice
@@ -316,9 +319,10 @@ class InterpreterTest : TestWithTempFiles() {
 
         val compiledProgram1 = DummyCompiledScript(TestProgram1::class.java)
         val compiledProgram2 = DummyCompiledScript(TestProgram2::class.java)
+        val buildOperationRunner = TestBuildOperationRunner()
         val cachingHost = createCachingHostMock(compiledProgram1, compiledProgram2)
 
-        val interpreter = Interpreter(cachingHost.host)
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner)
         val target = mock<Settings>()
 
         // When we eval the first script with the first filename
@@ -362,9 +366,10 @@ class InterpreterTest : TestWithTempFiles() {
 
         val compiledProgram1 = DummyCompiledScript(TestProgram1::class.java)
         val compiledProgram2 = DummyCompiledScript(TestProgram2::class.java)
+        val buildOperationRunner = TestBuildOperationRunner()
         val cachingHost = createCachingHostMock(compiledProgram1, compiledProgram2)
 
-        val interpreter = Interpreter(cachingHost.host)
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner)
         val target = mock<Settings>()
 
         // When we eval the first script with the first content

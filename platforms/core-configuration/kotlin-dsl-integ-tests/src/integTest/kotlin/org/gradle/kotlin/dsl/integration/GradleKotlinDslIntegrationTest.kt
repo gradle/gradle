@@ -20,7 +20,6 @@ import okhttp3.HttpUrl
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
@@ -30,14 +29,12 @@ import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
-import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -310,19 +307,18 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "buildFinished")
-    fun `can use Closure only APIs`() {
+    fun `can use Closure APIs`() {
 
         withBuildScript(
             """
-            gradle.buildFinished(closureOf<org.gradle.BuildResult> {
-                println("*" + action + "*") // <- BuildResult.getAction()
+            gradle.taskGraph.whenReady(closureOf<org.gradle.api.execution.TaskExecutionGraph> {
+                println("*" + tasks.isEmpty() + "*") // <- TaskExecutionGraph.getTasks()
             })
             """
         )
 
         assert(
-            build("build").output.contains("*Build*")
+            build("build").output.contains("*false*")
         )
     }
 
@@ -1140,42 +1136,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 containsString("Hello!")
             )
         }
-    }
-
-    @Test
-    @ToBeFixedForConfigurationCache(because = "No builders are available to build a model of type 'org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel'")
-    fun `can query KotlinBuildScriptModel`() {
-
-        // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use
-        // of internal APIs is not broken by refactorings on the Gradle side
-        withBuildScript(
-            """
-            import ${KotlinBuildScriptModel::class.qualifiedName}
-            import ${ToolingModelBuilderRegistry::class.qualifiedName}
-
-            abstract class DumpModelTask : DefaultTask() {
-                @get:Inject
-                abstract val builderRegistry: ToolingModelBuilderRegistry
-
-                @TaskAction
-                fun action() {
-                    val modelName = KotlinBuildScriptModel::class.qualifiedName!!
-                    val builder = builderRegistry.getBuilder(modelName)
-                    val model = builder.buildAll(modelName, project) as KotlinBuildScriptModel
-                    if (model.classPath.any { it.name.startsWith("gradle-kotlin-dsl") }) {
-                        println("gradle-kotlin-dsl!")
-                    }
-                }
-            }
-
-            tasks.register<DumpModelTask>("dumpKotlinBuildScriptModelClassPath")
-            """
-        )
-
-        assertThat(
-            build("-q", "dumpKotlinBuildScriptModelClassPath").output,
-            containsString("gradle-kotlin-dsl!")
-        )
     }
 
     @Test

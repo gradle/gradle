@@ -18,7 +18,7 @@ package org.gradle.plugin.devel
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.GradleVersion
-import org.junit.Assume
+import org.junit.jupiter.api.Assumptions
 
 class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpec {
 
@@ -44,7 +44,7 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
     }
 
     def "precompiled Groovy plugin built with current version can be used with Gradle 7.0+"() {
-        Assume.assumeTrue(previous.version >= GradleVersion.version('7.0'))
+        Assumptions.assumeTrue(previous.version >= GradleVersion.version('7.0'))
 
         given:
         precompiledGroovyPluginBuiltWith(version(getCurrent()))
@@ -58,7 +58,7 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
     }
 
     def "precompiled Groovy plugin built with Gradle 6.4+ can be used with current Gradle version"() {
-        Assume.assumeTrue(previous.version >= GradleVersion.version('6.4'))
+        Assumptions.assumeTrue(previous.version >= GradleVersion.version('6.4'))
 
         given:
         precompiledGroovyPluginBuiltWith(version(getPrevious()))
@@ -72,8 +72,8 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
     }
 
     def "can not use a precompiled script plugin with Gradle earlier than 7.0"() {
-        Assume.assumeTrue(previous.version >= GradleVersion.version('3.5')) // because 3.4 does not yet support pluginManagement {} block
-        Assume.assumeTrue(previous.version < GradleVersion.version('7.0'))
+        Assumptions.assumeTrue(previous.version >= GradleVersion.version('3.5')) // because 3.4 does not yet support pluginManagement {} block
+        Assumptions.assumeTrue(previous.version < GradleVersion.version('7.0'))
 
         given:
         precompiledGroovyPluginBuiltWith(version(getCurrent()))

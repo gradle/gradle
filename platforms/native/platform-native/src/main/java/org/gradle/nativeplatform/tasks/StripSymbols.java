@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -49,37 +48,19 @@ import org.gradle.work.DisableCachingByDefault;
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class StripSymbols extends DefaultTask {
-    private final RegularFileProperty binaryFile;
-    private final RegularFileProperty outputFile;
-    private final Property<NativePlatform> targetPlatform;
-    private final Property<NativeToolChain> toolChain;
-
-    public StripSymbols() {
-        ObjectFactory objectFactory = getProject().getObjects();
-
-        this.binaryFile = objectFactory.fileProperty();
-        this.outputFile = objectFactory.fileProperty();
-        this.targetPlatform = objectFactory.property(NativePlatform.class);
-        this.toolChain = objectFactory.property(NativeToolChain.class);
-    }
-
     /**
      * The file that debug symbols should be stripped from.  Note that this file remains unchanged
      * and a new stripped binary will be written to the file specified by {{@link #getOutputFile()}}.
      */
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
-    public RegularFileProperty getBinaryFile() {
-        return binaryFile;
-    }
+    public abstract RegularFileProperty getBinaryFile();
 
     /**
      * The destination to write the stripped binary to.
      */
     @OutputFile
-    public RegularFileProperty getOutputFile() {
-        return outputFile;
-    }
+    public abstract RegularFileProperty getOutputFile();
 
     /**
      * The tool chain used for striping symbols.
@@ -87,9 +68,7 @@ public abstract class StripSymbols extends DefaultTask {
      * @since 4.7
      */
     @Internal
-    public Property<NativeToolChain> getToolChain() {
-        return toolChain;
-    }
+    public abstract Property<NativeToolChain> getToolChain();
 
     /**
      * The platform for the binary.
@@ -97,9 +76,7 @@ public abstract class StripSymbols extends DefaultTask {
      * @since 4.7
      */
     @Nested
-    public Property<NativePlatform> getTargetPlatform() {
-        return targetPlatform;
-    }
+    public abstract Property<NativePlatform> getTargetPlatform();
 
     // TODO: Need to track version/implementation of symbol strip tool.
 
@@ -108,8 +85,8 @@ public abstract class StripSymbols extends DefaultTask {
         BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
 
         StripperSpec spec = new DefaultStripperSpec();
-        spec.setBinaryFile(binaryFile.get().getAsFile());
-        spec.setOutputFile(outputFile.get().getAsFile());
+        spec.setBinaryFile(getBinaryFile().get().getAsFile());
+        spec.setOutputFile(getOutputFile().get().getAsFile());
         spec.setOperationLogger(operationLogger);
 
         Compiler<StripperSpec> symbolStripper = createCompiler();
@@ -119,7 +96,7 @@ public abstract class StripSymbols extends DefaultTask {
     }
 
     private Compiler<StripperSpec> createCompiler() {
-        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.targetPlatform.get());
+        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
         NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
         return toolProvider.newCompiler(StripperSpec.class);

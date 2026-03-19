@@ -801,7 +801,7 @@ select { width: 100%; }
     display: none;
     width: 170px;
     background-color: var(--menu-burger-color);
-    top: 40px;
+    top: 100%;
     left: 7px;
     padding: 3px 10px 6px 10px;
     z-index: 100;

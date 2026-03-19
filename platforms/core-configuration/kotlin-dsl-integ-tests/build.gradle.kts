@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.internal.kotlin")
     id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Kotlin DSL Integration Tests"
@@ -19,11 +20,11 @@ dependencies {
     integTestImplementation(projects.platformJvm)
     integTestImplementation(testFixtures(projects.jacoco))
     integTestImplementation(testFixtures(projects.testingBase))
-    integTestImplementation(libs.mockwebserver) {
+    integTestImplementation(testLibs.mockwebserver) {
         exclude(group = "org.bouncycastle").because("MockWebServer uses a different version of BouncyCastle")
     }
     integTestImplementation(libs.kotlinCompilerEmbeddable)
-    integTestImplementation(libs.mockitoKotlin)
+    integTestImplementation(testLibs.mockitoKotlin)
     integTestImplementation(libs.kotlinStdlib)
     integTestImplementation(libs.kotlinReflect) {
         because("mockito-kotlin 1.6 requires kotlin-reflect in 1.0.7, we want to overrule that")
@@ -33,8 +34,10 @@ dependencies {
 
     crossVersionTestImplementation(projects.coreApi)
     crossVersionTestImplementation(projects.logging)
+    crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
+
     crossVersionTestLocalRepository(projects.kotlinDslPlugins)
 }
 

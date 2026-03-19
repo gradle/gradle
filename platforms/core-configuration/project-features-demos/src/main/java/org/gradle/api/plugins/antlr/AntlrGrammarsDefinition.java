@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.internal.plugins.Definition;
+import org.gradle.features.binding.Definition;
 import org.jspecify.annotations.NonNull;
 
 public interface AntlrGrammarsDefinition extends AntlrConfiguration, Definition<@NonNull AntlrGeneratedSources> {

@@ -535,6 +535,19 @@ Specifies the `GRADLE_USER_HOME` directory for Gradle to store its global config
 +
 Defaults to `USER_HOME/.gradle` if not set.
 
+`GRADLE_DAEMON_BIND_ADDRESS`::
+Specifies the IP address or hostname that Gradle uses to bind the local socket for client-daemon and cross-daemon communication.
++
+By default, Gradle automatically selects the loopback address (or wildcard address as a fallback) for this socket.
+This may not work correctly in environments with specific network configurations, such as multiple network interfaces, multiple TCP/IP stacks etc.
++
+Setting this variable skips auto-detection and uses the provided address directly:
++
+[source,text]
+----
+GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
+----
+
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM.
 +
@@ -546,3 +559,4 @@ Overrides for the default Gradle library repository.
 Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
 +
 Useful override to specify an internally hosted repository if your company uses a firewall/proxy.
+

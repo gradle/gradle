@@ -1616,7 +1616,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def getExecutePlannedStepOperations(int expectOperationsCount, boolean expectFailure = false) {
-        def operations = buildOperations.all(ExecutePlannedTransformStepBuildOperationType)
+        def operations = buildOperations.typed(ExecutePlannedTransformStepBuildOperationType)
         assert operations.every { (it.failure != null) == expectFailure }
         assert operations.size() == expectOperationsCount
         return operations

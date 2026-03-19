@@ -61,7 +61,7 @@ Note:
 [[sub:dependency-types]]
 == Understanding types of dependencies
 
-There are three kinds of dependencies, module dependencies, project dependencies, and file dependencies.
+There are three kinds of dependencies: module dependencies, project dependencies, and file dependencies.
 
 === 1. Module dependencies
 

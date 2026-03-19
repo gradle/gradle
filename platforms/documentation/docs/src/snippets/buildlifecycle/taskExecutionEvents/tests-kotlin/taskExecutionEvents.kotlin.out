@@ -6,7 +6,7 @@ FAILED
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':broken'.
+Execution failed for task ':broken' (registered in build file 'build.gradle.kts').
 > broken
 
 * Try:

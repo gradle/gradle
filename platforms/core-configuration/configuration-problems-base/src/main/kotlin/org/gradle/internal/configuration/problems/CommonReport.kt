@@ -64,7 +64,7 @@ class CommonReport(
 
     companion object {
         private
-        val stacktraceHashes = InternalFlag("org.gradle.configuration-cache.internal.report.stacktrace-hashes", false)
+        val stacktraceHashes = InternalFlag("org.gradle.internal.configuration-cache.report.stacktrace-hashes", false)
     }
 
     private

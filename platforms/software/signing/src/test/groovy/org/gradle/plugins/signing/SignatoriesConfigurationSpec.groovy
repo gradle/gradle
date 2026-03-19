@@ -69,13 +69,14 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
     }
 
     def "trying to read non existent file produces reasonable error message"() {
-        when:
+        given:
         project.ext["signing.keyId"] = "aaaaaaaa"
         project.ext["signing.secretKeyRingFile"] = "i/dont/exist"
         project.ext["signing.password"] = "anything"
 
-        and:
-        signing.signatory
+        when:
+        // Just getting the signatory doesn't always load the keys
+        signing.signatory.keyId
 
         then:
         def e = thrown(InvalidUserDataException)
@@ -87,7 +88,8 @@ class SignatoriesConfigurationSpec extends SigningProjectSpec {
         addSigningProperties(set: "invalid-key-ring")
 
         when:
-        signing.signatory
+        // Just getting the signatory doesn't always load the keys
+        signing.signatory.keyId
 
         then:
         def e = thrown(InvalidUserDataException)

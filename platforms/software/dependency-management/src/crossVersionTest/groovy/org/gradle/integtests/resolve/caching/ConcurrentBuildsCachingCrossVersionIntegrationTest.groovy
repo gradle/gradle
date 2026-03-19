@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.caching
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.resolve.artifactreuse.AbstractCacheReuseCrossVersionIntegrationTest
@@ -23,7 +24,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
-@IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION })
+@IgnoreVersions({ CacheLayout.META_DATA.getVersionMapping().getVersionUsedBy(it.version).get()  == DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION })
 class ConcurrentBuildsCachingCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
     @Rule BlockingHttpServer blockingServer = new BlockingHttpServer()
 

@@ -32,6 +32,7 @@ import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_PATH
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntryCache
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeader
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.pluginEntriesFrom
@@ -60,6 +61,7 @@ import org.gradle.kotlin.dsl.support.bytecode.publicKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -68,6 +70,7 @@ import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import java.io.BufferedWriter
 import java.io.File
+import java.util.Optional
 import kotlin.metadata.jvm.JvmMethodSignature
 
 
@@ -106,6 +109,10 @@ class GeneratePluginSpecBuilderAccessors(
 
     override fun getDisplayName(): String = "Kotlin DSL plugin specs accessors for classpath '$classLoaderHash'"
 
+    override fun getBuildOperationWorkType(): Optional<String> {
+        return Optional.of("GENERATE_PLUGIN_SPEC_BUILDER_ACCESSORS")
+    }
+
     override val identitySuffix: String = "PS"
 
     override fun execute(executionContext: ExecutionContext): WorkOutput {
@@ -113,6 +120,7 @@ class GeneratePluginSpecBuilderAccessors(
         kotlinScriptClassPathProviderOf(rootProject).run {
             withAsynchronousIO(rootProject) {
                 buildPluginDependencySpecAccessorsFor(
+                    pluginEntryCache = rootProject.serviceOf(),
                     pluginDescriptorsClassPath = exportClassPathFromHierarchyOf(buildSrcClassLoaderScope),
                     srcDir = getSourcesOutputDir(workspace),
                     binDir = getClassesOutputDir(workspace),
@@ -148,13 +156,14 @@ sealed class PluginDependencySpecAccessor {
 
 internal
 fun IO.buildPluginDependencySpecAccessorsFor(
+    pluginEntryCache: PluginEntryCache,
     pluginDescriptorsClassPath: ClassPath,
     srcDir: File,
     binDir: File
 ) {
     makeAccessorOutputDirs(srcDir, binDir, KOTLIN_DSL_PACKAGE_PATH)
 
-    val pluginTrees = pluginTreesFrom(pluginDescriptorsClassPath.asFiles)
+    val pluginTrees = pluginTreesFrom(pluginDescriptorsClassPath.asFiles, pluginEntryCache)
 
     val baseFileName = "$KOTLIN_DSL_PACKAGE_PATH/PluginDependencySpecAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
@@ -359,19 +368,19 @@ fun typeSpecForPluginGroupType(groupType: String) =
     TypeSpec(groupType, InternalName("$KOTLIN_DSL_PACKAGE_PATH/$groupType"))
 
 
-fun pluginTreesFrom(classPathFiles: Iterable<File>): Map<String, PluginTree> =
-    pluginTreesFrom(pluginEntriesFrom(classPathFiles))
+fun pluginTreesFrom(classPathFiles: Iterable<File>, pluginEntryCache: PluginEntryCache): Map<String, PluginTree> =
+    pluginTreesFrom(pluginEntriesFrom(classPathFiles, pluginEntryCache))
 
 
 fun pluginTreesFrom(pluginEntries: List<Pair<String, String>>): Map<String, PluginTree> =
     PluginTree.of(pluginEntries.map { PluginTree.PluginSpec(it.first, it.second) }.asSequence())
 
 
-fun pluginEntriesFrom(classPathFiles: Iterable<File>): List<Pair<String, String>> =
+fun pluginEntriesFrom(classPathFiles: Iterable<File>, pluginEntryCache: PluginEntryCache): List<Pair<String, String>> =
     classPathFiles
         .asSequence()
         .filter { it.isFile && it.extension.equals("jar", true) }
-        .flatMap { pluginEntriesFrom(it).asSequence() }
+        .flatMap { pluginEntriesFrom(it, pluginEntryCache).asSequence() }
         .map { Pair(it.pluginId, it.implementationClass)}
         .toCollection(mutableListOf())
 

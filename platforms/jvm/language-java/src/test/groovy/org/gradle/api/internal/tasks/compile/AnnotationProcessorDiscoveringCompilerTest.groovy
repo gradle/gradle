@@ -28,7 +28,7 @@ import spock.lang.Specification
 
 class AnnotationProcessorDiscoveringCompilerTest extends Specification {
     JavaCompileSpec spec = new DefaultJavaCompileSpec().with {
-        compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        compileOptions = TestUtil.newInstance(CompileOptions)
         it
     }
     AnnotationProcessorDetector detector = Stub(AnnotationProcessorDetector)

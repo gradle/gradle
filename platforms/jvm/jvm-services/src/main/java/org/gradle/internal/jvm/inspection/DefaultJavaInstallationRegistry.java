@@ -38,6 +38,7 @@ import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -54,12 +55,12 @@ import java.util.stream.Collectors;
 
 @NullMarked
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
-    private final BuildOperationRunner buildOperationRunner;
+    private final @Nullable BuildOperationRunner buildOperationRunner;
     private final Installations installations;
     private final JvmMetadataDetector metadataDetector;
     private final Logger logger;
     private final OperatingSystem os;
-    private final ProgressLoggerFactory progressLoggerFactory;
+    private final @Nullable ProgressLoggerFactory progressLoggerFactory;
     private final JvmInstallationProblemReporter problemReporter;
 
     @Inject
@@ -67,29 +68,14 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         ToolchainConfiguration toolchainConfiguration,
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
-        BuildOperationRunner buildOperationRunner,
+        @Nullable BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
-        ProgressLoggerFactory progressLoggerFactory,
+        @Nullable ProgressLoggerFactory progressLoggerFactory,
         FileResolver fileResolver,
         JdkCacheDirectory jdkCacheDirectory,
         JvmInstallationProblemReporter problemReporter
     ) {
-        this(toolchainConfiguration, suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, fileResolver, jdkCacheDirectory, problemReporter);
-    }
-
-    private DefaultJavaInstallationRegistry(
-        ToolchainConfiguration toolchainConfiguration,
-        List<InstallationSupplier> suppliers,
-        JvmMetadataDetector metadataDetector,
-        Logger logger,
-        BuildOperationRunner buildOperationRunner,
-        OperatingSystem os,
-        ProgressLoggerFactory progressLoggerFactory,
-        FileResolver fileResolver,
-        JdkCacheDirectory jdkCacheDirectory,
-        JvmInstallationProblemReporter problemReporter
-    ) {
-        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, logger, buildOperationRunner, os, progressLoggerFactory, problemReporter);
+        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, problemReporter);
     }
 
     @VisibleForTesting
@@ -99,9 +85,9 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         List<InstallationSupplier> optionalSuppliers,
         JvmMetadataDetector metadataDetector,
         Logger logger,
-        BuildOperationRunner buildOperationRunner,
+        @Nullable BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
-        ProgressLoggerFactory progressLoggerFactory,
+        @Nullable ProgressLoggerFactory progressLoggerFactory,
         JvmInstallationProblemReporter problemReporter
     ) {
         this.logger = logger;
@@ -141,14 +127,21 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     @Override
     public List<JvmToolchainMetadata> toolchains() {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(JavaInstallationRegistry.class).start("Discovering toolchains", "Discovering toolchains");
-        List<JvmToolchainMetadata> result = listInstallations()
-            .parallelStream()
-            .peek(location -> progressLogger.progress("Extracting toolchain metadata from " + location.getDisplayName()))
-            .map(this::resolveMetadata)
-            .collect(Collectors.toList());
-        progressLogger.completed();
-        return result;
+        if (progressLoggerFactory != null) {
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(JavaInstallationRegistry.class).start("Discovering toolchains", "Discovering toolchains");
+            List<JvmToolchainMetadata> result = listInstallations()
+                .parallelStream()
+                .peek(location -> progressLogger.progress("Extracting toolchain metadata from " + location.getDisplayName()))
+                .map(this::resolveMetadata)
+                .collect(Collectors.toList());
+            progressLogger.completed();
+            return result;
+        } else {
+            return listInstallations()
+                .parallelStream()
+                .map(this::resolveMetadata)
+                .collect(Collectors.toList());
+        }
     }
 
     private JvmToolchainMetadata resolveMetadata(InstallationLocation location) {

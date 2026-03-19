@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.demo.quality;
 
-import org.gradle.api.internal.plugins.Definition;
+import org.gradle.features.binding.Definition;
 import org.gradle.api.provider.Property;
 import org.jspecify.annotations.NullMarked;
 

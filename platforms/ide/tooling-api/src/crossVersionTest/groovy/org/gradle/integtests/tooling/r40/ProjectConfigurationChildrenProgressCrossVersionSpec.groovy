@@ -377,7 +377,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         events.operation(applyBuildScriptRootProject('root')).with { applyRoot ->
             applyRoot.child(applyBuildScriptPluginRootProject(scriptPluginGroovy1, 'root')).with { applyGroovy1 ->
                 applyGroovy1.child(applyBuildScriptPluginRootProject(scriptPluginKotlin, 'root')).with { applyKotlin ->
-                    applyKotlin.child(applyBuildScriptPluginRootProject(scriptPluginGroovy2, 'root'))
+                    applyKotlin.descendant(applyBuildScriptPluginRootProject(scriptPluginGroovy2, 'root'))
                 }
             }
         }

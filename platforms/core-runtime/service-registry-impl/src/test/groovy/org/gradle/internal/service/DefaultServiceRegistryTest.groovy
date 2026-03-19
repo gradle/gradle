@@ -23,8 +23,6 @@ import org.gradle.util.GroovyNullMarked
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
-import javax.annotation.Nullable
-import java.lang.annotation.Annotation
 import java.lang.reflect.Type
 import java.util.concurrent.Callable
 
@@ -52,8 +50,8 @@ class DefaultServiceRegistryTest extends Specification {
 
     def delegatesToParentForUnknownService() {
         def value = BigDecimal.TEN
-        def parent = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def parentProvider = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
         registry.addProvider(new TestProvider())
 
         when:
@@ -63,14 +61,14 @@ class DefaultServiceRegistryTest extends Specification {
         result == value
 
         and:
-        1 * parent.get(BigDecimal) >> value
+        1 * parentProvider.getService(BigDecimal, _) >> new ServiceWrapper(value)
     }
 
     def delegatesToParentsForUnknownService() {
         def value = BigDecimal.TEN
-        def parent1 = Mock(ParentServices)
-        def parent2 = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent1), registry(parent2))
+        def parentProvider1 = Mock(ServiceProvider)
+        def parentProvider2 = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider1), parentRegistry(parentProvider2))
 
         when:
         def result = registry.get(BigDecimal)
@@ -79,16 +77,16 @@ class DefaultServiceRegistryTest extends Specification {
         result == value
 
         and:
-        1 * parent1.get(BigDecimal) >> null
-        1 * parent2.get(BigDecimal) >> value
+        1 * parentProvider1.getService(BigDecimal, _) >> null
+        1 * parentProvider2.getService(BigDecimal, _) >> new ServiceWrapper(value)
     }
 
     def throwsExceptionForUnknownParentService() {
-        def parent = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry("test registry", registry(parent))
+        def parentProvider = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry("test registry", parentRegistry(parentProvider))
 
         given:
-        _ * parent.get(StringBuilder) >> null
+        _ * parentProvider.getService(StringBuilder, _) >> null
 
         when:
         registry.get(StringBuilder)
@@ -230,8 +228,8 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def injectsParentServicesIntoProviderFactoryMethod() {
-        def parent = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def parentProvider = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createString(Number n) {
@@ -246,7 +244,7 @@ class DefaultServiceRegistryTest extends Specification {
         result == '123'
 
         and:
-        1 * parent.get(Number) >> 123
+        1 * parentProvider.getService(Number, _) >> new ServiceWrapper(123)
     }
 
     def injectsGenericTypesFromParentIntoProviderFactoryMethod() {
@@ -275,8 +273,8 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def injectsServiceRegistryIntoProviderFactoryMethod() {
-        def parent = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def parentProvider = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             String createString(ServiceRegistry services) {
@@ -464,12 +462,12 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def usesProviderDecoratorMethodToDecorateParentServiceInstance() {
-        def parent = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def parentProvider = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
         registry.addProvider(decoratorProvider)
 
         given:
-        _ * parent.get(Long) >> 110L
+        _ * parentProvider.getService(Long, _) >> new ServiceWrapper(110L)
 
         expect:
         registry.get(Long) == 112L
@@ -480,12 +478,12 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def cachesServiceCreatedUsingProviderDecoratorMethod() {
-        def parent = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def parentProvider = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
         registry.addProvider(decoratorProvider)
 
         given:
-        _ * parent.get(Long) >> 11L
+        _ * parentProvider.getService(Long, _) >> new ServiceWrapper(11L)
 
         expect:
         registry.get(Long).is(registry.get(Long))
@@ -495,12 +493,12 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def conflictWhenCreateAndDecorateMethodDecorateTheSameType() {
-        def parent = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def parentProvider = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
         registry.addProvider(new ConflictingDecoratorMethods())
 
         given:
-        _ * parent.get(Long) >> 11L
+        _ * parentProvider.getService(Long, _) >> new ServiceWrapper(11L)
 
         when:
         registry.get(Long).is(registry.get(Long))
@@ -529,8 +527,8 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def failsWhenProviderDecoratorMethodRequiresUnknownService() {
-        def parent = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def parentProvider = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
 
         given:
         registry.addProvider(decoratorProvider)
@@ -549,10 +547,10 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def failsWhenProviderDecoratorMethodThrowsException() {
-        def parent = Stub(ParentServices) {
-            get(Long) >> 12L
+        def parentProvider = Stub(ServiceProvider) {
+            getService(Long, _) >> new ServiceWrapper(12L)
         }
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
 
         given:
         registry.addProvider(decoratorProvider)
@@ -612,10 +610,10 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def failsWhenAProviderDecoratorCreateMethodReturnsNull() {
-        def parent = Stub(ParentServices) {
-            get(String) >> "parent"
+        def parentProvider = Stub(ServiceProvider) {
+            getService(String, _) >> new ServiceWrapper("parent")
         }
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
 
         given:
         registry.addProvider(decoratorProvider)
@@ -710,8 +708,8 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def usesDecoratorMethodToDecorateParentServiceInstance() {
-        def parent = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def parentProvider = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
         registry.addProvider(provider)
 
         when:
@@ -721,7 +719,7 @@ class DefaultServiceRegistryTest extends Specification {
         result == 120L
 
         and:
-        1 * parent.get(Long) >> 110L
+        1 * parentProvider.getService(Long, _) >> new ServiceWrapper(110L)
 
         where:
         provider << [
@@ -731,8 +729,8 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def "decorator methods can take additional parameters"() {
-        def parent = Mock(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent))
+        def parentProvider = Mock(ServiceProvider)
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider))
         registry.addProvider(provider)
 
         when:
@@ -742,8 +740,8 @@ class DefaultServiceRegistryTest extends Specification {
         result == "Foo120"
 
         and:
-        1 * parent.get(Long) >> 110L
-        1 * parent.get(String) >> "Foo"
+        1 * parentProvider.getService(Long, _) >> new ServiceWrapper(110L)
+        1 * parentProvider.getService(String, _) >> new ServiceWrapper("Foo")
 
         where:
         provider << [
@@ -922,9 +920,19 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def allServicesIncludesServicesFromParents() {
-        def parent1 = Stub(ParentServices)
-        def parent2 = Stub(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent1), registry(parent2))
+        def parentProvider1 = Stub(ServiceProvider) {
+            getAll(Number, _, _) >> { Class type, token, ServiceProvider.Visitor visitor ->
+                visitor.visit(new ServiceWrapper(123L))
+                return visitor
+            }
+        }
+        def parentProvider2 = Stub(ServiceProvider) {
+            getAll(Number, _, _) >> { Class type, token, ServiceProvider.Visitor visitor ->
+                visitor.visit(new ServiceWrapper(456))
+                return visitor
+            }
+        }
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider1), parentRegistry(parentProvider2))
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Long createLong() {
@@ -932,29 +940,32 @@ class DefaultServiceRegistryTest extends Specification {
             }
         })
 
-        given:
-        _ * parent1.getAll(Number) >> [123L]
-        _ * parent2.getAll(Number) >> [456]
-
         expect:
         registry.getAll(Number) == [12, 123L, 456]
     }
 
     def allServicesDoesNotIncludeDecoratedServicesFromParents() {
-        def parent1 = Stub(ParentServices)
-        def parent2 = Stub(ParentServices)
-        def registry = new DefaultServiceRegistry(registry(parent1), registry(parent2))
+        def longService = new ServiceWrapper(123L)
+        def parentProvider1 = Stub(ServiceProvider) {
+            getService(Long, _) >> longService
+            getAll(Number, _, _) >> { Class type, token, ServiceProvider.Visitor visitor ->
+                visitor.visit(longService)
+                return visitor
+            }
+        }
+        def parentProvider2 = Stub(ServiceProvider) {
+            getAll(Number, _, _) >> { Class type, token, ServiceProvider.Visitor visitor ->
+                visitor.visit(new ServiceWrapper(456))
+                return visitor
+            }
+        }
+        def registry = new DefaultServiceRegistry(parentRegistry(parentProvider1), parentRegistry(parentProvider2))
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Long createLong(Long parent) {
                 return parent + 1
             }
         })
-
-        given:
-        _ * parent1.get((Type) Long) >> 123L
-        _ * parent1.getAll(Number) >> [123L]
-        _ * parent2.getAll(Number) >> [456]
 
         expect:
         registry.getAll(Number) == [124L, 456]
@@ -1531,52 +1542,17 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in test registry."
     }
 
-    def MockServiceRegistry registry(ParentServices parentServices) {
-        return new MockServiceRegistry(parentServices)
-    }
-
-    private Factory<Number> numberFactory
-    private Factory<String> stringFactory
-    private Factory<? super BigDecimal> superBigDecimalFactory
-    private Factory<? extends BigDecimal> extendsBigDecimalFactory
-    private Factory<? extends Number> extendsNumberFactory
-
-    private Type getNumberFactoryType() {
-        return getClass().getDeclaredField("numberFactory").getGenericType()
-    }
-
-    private Type getStringFactoryType() {
-        return getClass().getDeclaredField("stringFactory").getGenericType()
-    }
-
-    private Type getSuperBigDecimalFactoryType() {
-        return getClass().getDeclaredField("superBigDecimalFactory").getGenericType()
-    }
-
-    private Type getExtendsBigDecimalFactoryType() {
-        return getClass().getDeclaredField("extendsBigDecimalFactory").getGenericType()
-    }
-
-    private Type getExtendsNumberFactoryType() {
-        return getClass().getDeclaredField("extendsNumberFactory").getGenericType()
-    }
-
-    /**
-     * A simplified view of {@link ServiceRegistry}
-     */
-    interface ParentServices {
-        Object get(Class<?> type)
-
-        List<Object> getAll(Class<?> type)
-
-        Factory<?> getFactory(Class<?> type)
+    private AbstractServiceRegistry parentRegistry(ServiceProvider provider) {
+        def parent = Mock(AbstractServiceRegistry)
+        parent.asServiceProvider() >> provider
+        return parent
     }
 
     @GroovyNullMarked
-    private static class MockServiceWrapper implements Service {
+    private static class ServiceWrapper implements Service {
         private final Object instance
 
-        MockServiceWrapper(Object instance) {
+        ServiceWrapper(Object instance) {
             this.instance = instance
         }
 
@@ -1592,85 +1568,6 @@ class DefaultServiceRegistryTest extends Specification {
 
         @Override
         void requiredBy(ServiceProvider serviceProvider) {
-        }
-    }
-
-    private static class MockServiceProvider implements ServiceProvider {
-        private final ParentServices parentServices
-        private final Map<Object, Service> services = [:]
-
-        MockServiceProvider(ParentServices parentServices) {
-            this.parentServices = parentServices
-        }
-
-        @Override
-        Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
-            def object = parentServices.get((Class) serviceType)
-            if (object == null) {
-                return null
-            }
-            return serviceFor(object)
-        }
-
-        @Override
-        Visitor getAll(Class<?> serviceType, ServiceAccessToken token, Visitor visitor) {
-            parentServices.getAll(serviceType).forEach {
-                visitor.visit(serviceFor(it))
-            }
-            return visitor
-        }
-
-        @Override
-        void stop() {
-            throw new UnsupportedOperationException()
-        }
-
-        Service serviceFor(Object object) {
-            def service = services.get(object)
-            if (service == null) {
-                service = new MockServiceWrapper(object)
-                services.put(object, service)
-            }
-            return service
-        }
-    }
-
-    @GroovyNullMarked
-    private static class MockServiceRegistry implements ContainsServices, ServiceRegistry {
-        private final ParentServices parentServices
-
-        MockServiceRegistry(ParentServices parentServices) {
-            this.parentServices = parentServices
-        }
-
-        @Override
-        ServiceProvider asProvider() {
-            return new MockServiceProvider(parentServices)
-        }
-
-        @Override
-        def <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        def <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        Object find(Type serviceType) throws ServiceLookupException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            throw new UnsupportedOperationException()
         }
     }
 

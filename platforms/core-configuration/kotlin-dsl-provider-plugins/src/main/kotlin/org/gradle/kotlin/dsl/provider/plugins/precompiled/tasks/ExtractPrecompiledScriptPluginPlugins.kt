@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
@@ -36,11 +37,12 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
+import org.gradle.kotlin.dsl.support.KotlinScriptType
 import java.io.File
 
 
 /**
- * Extracts the `plugins` block of each precompiled [Project] script plugin
+ * Extracts the `plugins` block of each precompiled [Project] or [Settings] script plugin
  * and writes it to a file with the same name under [outputDir].
  */
 @CacheableTask
@@ -82,7 +84,11 @@ fun extractPrecompiledScriptPluginPluginsTo(outputDir: File, scriptPlugins: List
 
 private
 fun pluginsBlockOf(scriptPlugin: PrecompiledScriptPlugin): Program.Plugins? =
-    pluginsBlockOf(parse(scriptPlugin))
+    when (scriptPlugin.scriptType) {
+        KotlinScriptType.PROJECT -> pluginsBlockOf(parse(scriptPlugin, target = ProgramTarget.Project))
+        KotlinScriptType.SETTINGS -> pluginsBlockOf(parse(scriptPlugin, target = ProgramTarget.Settings))
+        KotlinScriptType.INIT -> null
+    }
 
 
 private
@@ -96,10 +102,10 @@ fun pluginsBlockOf(program: Program): Program.Plugins? =
 
 
 private
-fun parse(scriptPlugin: PrecompiledScriptPlugin): Program = ProgramParser.parse(
+fun parse(scriptPlugin: PrecompiledScriptPlugin, target: ProgramTarget): Program = ProgramParser.parse(
     ProgramSource(scriptPlugin.scriptFileName, scriptPlugin.scriptText),
     ProgramKind.TopLevel,
-    ProgramTarget.Project
+    target,
 ).document
 
 

@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.BasicFileResolver;
+import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
@@ -47,7 +48,7 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
 
     public static class GradleUserHomeOption extends StringBuildOption<BuildLayoutParameters> {
         public GradleUserHomeOption() {
-            super(BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY, CommandLineOptionConfiguration.create("gradle-user-home", "g", "Specifies the Gradle user home directory. Defaults to ~/.gradle"));
+            super(BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY, CommandLineOptionConfiguration.create("gradle-user-home", "g", "Specifies the Gradle user home directory. Default is ~/.gradle."));
         }
 
         @Override
@@ -55,11 +56,16 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setGradleUserHomeDir(resolver.transform(value));
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     public static class ProjectDirOption extends StringBuildOption<BuildLayoutParameters> {
         public ProjectDirOption() {
-            super(null, CommandLineOptionConfiguration.create("project-dir", "p", "Specifies the start directory for Gradle. Defaults to current directory."));
+            super(null, CommandLineOptionConfiguration.create("project-dir", "p", "Specifies the start directory for Gradle. Default is the current directory."));
         }
 
         @Override
@@ -68,6 +74,11 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
             File projectDir = resolver.transform(value);
             settings.setCurrentDir(projectDir);
             settings.setProjectDir(projectDir);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 }

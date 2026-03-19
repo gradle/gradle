@@ -100,11 +100,11 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         withDefaultSettings()
     }
 
-    private
+    protected
     val testRepositories: String
         get() = testRepositoryPaths.joinLines {
             """
-                maven { url = file("$it") }
+                maven { url = uri(file("$it")) }
             """
         }
 

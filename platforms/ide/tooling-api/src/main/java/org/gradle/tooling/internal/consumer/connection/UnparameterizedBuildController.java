@@ -55,6 +55,7 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     private final File rootDir;
 
     public UnparameterizedBuildController(ProtocolToModelAdapter adapter, ModelMapping modelMapping, VersionDetails gradleVersion, File rootDir) {
+        super(gradleVersion);
         this.adapter = adapter;
         // Treat all models returned to the action as part of the same object graph
         this.resultAdapter = adapter.newGraph();

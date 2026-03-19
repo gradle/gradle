@@ -98,19 +98,19 @@ As we can see there are a number of *artifacts* available in the *metadata*:
 
 | `apiElements`
 | `kotlin-stdlib-1.8.10-public.jar`, `kotlin-stdlib-1.8.10-private.jar`
-| Standard Kotlin runtime (default).
+| Standard Kotlin library APIs (public and private).
 
 | `runtimeElements`
-| `kotlin-stdlib-jdk7-1.8.10.jar`
-| Provides additional APIs for Java 7 compatibility.
+| `kotlin-stdlib-1.8.10.jar`
+| Standard Kotlin runtime (default).
 
 | `jdk7ApiElements`
 | `kotlin-stdlib-jdk8-1.8.10.jar`
-| Provides additional APIs for Java 8 compatibility.
+| Provides additional APIs for Java 7 compatibility.
 
 | `jdk8ApiElements`
-| `kotlin-stdlib-common-1.8.10.jar`
-| Shared standard library for Kotlin Multiplatform.
+| `kotlin-stdlib-jdk8-1.8.10.jar`
+| Provides additional APIs for Java 8 compatibility.
 |===
 
 Typically, once a *variant* is selected, its associated *artifacts* can be automatically resolved.

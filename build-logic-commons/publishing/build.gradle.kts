@@ -10,5 +10,5 @@ dependencies {
     implementation(projects.basics)
     implementation(projects.moduleIdentity)
 
-    implementation("com.gradle.publish:plugin-publish-plugin")
+    implementation(buildLibs.publishPlugin)
 }

@@ -17,10 +17,11 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
@@ -84,12 +85,16 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     }
 
     /**
-     * Prevents sending progress notifications to a given listener outside of start/finished for that operation.
+     * Prevents sending progress and finished notifications to a given listener
+     * for operations whose started notification was not delivered to this listener.
+     *
+     * Tracks active operations in a primitive long hash set to avoid per-operation
+     * object allocation. Only delivers progress/finished if started was seen.
      */
     private static class ProgressShieldingBuildOperationListener implements BuildOperationListener {
 
-        private final Map<OperationIdentifier, Boolean> active = new ConcurrentHashMap<OperationIdentifier, Boolean>();
         private final BuildOperationListener delegate;
+        private final LongSet activeOps = LongSets.synchronize(new LongOpenHashSet());
 
         private ProgressShieldingBuildOperationListener(BuildOperationListener delegate) {
             this.delegate = delegate;
@@ -97,21 +102,26 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            active.put(buildOperation.getId(), Boolean.TRUE);
+            OperationIdentifier id = buildOperation.getId();
+            if (id != null) {
+                activeOps.add(id.getId());
+            }
             delegate.started(buildOperation, startEvent);
         }
 
         @Override
         public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-            if (active.containsKey(operationIdentifier)) {
+            if (activeOps.contains(operationIdentifier.getId())) {
                 delegate.progress(operationIdentifier, progressEvent);
             }
         }
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            active.remove(buildOperation.getId());
-            delegate.finished(buildOperation, finishEvent);
+            OperationIdentifier id = buildOperation.getId();
+            if (id != null && activeOps.remove(id.getId())) {
+                delegate.finished(buildOperation, finishEvent);
+            }
         }
     }
 }

@@ -1,7 +1,35 @@
 [
   {
+    "name": "ant",
+    "path": "platforms/software/ant",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ant-api",
+    "path": "platforms/software/ant-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ant-impl",
+    "path": "platforms/software/ant-impl",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ant-worker",
+    "path": "platforms/software/ant-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "antlr",
-    "path": "platforms/software/antlr",
+    "path": "platforms/jvm/antlr",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -23,6 +51,13 @@
   {
     "name": "base-asm",
     "path": "platforms/core-runtime/base-asm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "base-compiler-worker",
+    "path": "platforms/software/base-compiler-worker",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -212,7 +247,7 @@
   {
     "name": "classloaders",
     "path": "platforms/core-runtime/classloaders",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -235,6 +270,13 @@
     "path": "platforms/jvm/code-quality",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "code-quality-workers",
+    "path": "platforms/jvm/code-quality-workers",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -318,6 +360,27 @@
     "name": "core-serialization-codecs",
     "path": "platforms/core-configuration/core-serialization-codecs",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "credentials",
+    "path": "platforms/software/credentials",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "credentials-api",
+    "path": "platforms/software/credentials-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "credentials-impl",
+    "path": "platforms/software/credentials-impl",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -637,8 +700,22 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-compiler-worker",
+    "path": "platforms/jvm/groovy-compiler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "groovy-loader",
     "path": "platforms/core-runtime/groovy-loader",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "groovydoc-worker",
+    "path": "platforms/jvm/groovydoc-worker",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -662,6 +739,13 @@
     "path": "platforms/ide/ide",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ide-model-impls",
+    "path": "platforms/ide/ide-model-impls",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -742,6 +826,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "internal-distribution-testing",
+    "path": "testing/internal-distribution-testing",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "internal-instrumentation-api",
     "path": "platforms/core-runtime/internal-instrumentation-api",
     "unitTests": true,
@@ -805,6 +896,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "jacoco-workers",
+    "path": "platforms/jvm/jacoco-workers",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-api-extractor",
     "path": "platforms/core-configuration/java-api-extractor",
     "unitTests": true,
@@ -819,6 +917,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-compiler-worker",
+    "path": "platforms/jvm/java-compiler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": false,
@@ -828,6 +933,13 @@
   {
     "name": "javadoc",
     "path": "platforms/jvm/javadoc",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "jvm-compiler-worker",
+    "path": "platforms/jvm/jvm-compiler-worker",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -873,6 +985,13 @@
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": true
+  },
+  {
+    "name": "kotlin-dsl-tooling-model-impls",
+    "path": "platforms/core-configuration/kotlin-dsl-tooling-model-impls",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-tooling-models",
@@ -1136,6 +1255,13 @@
   {
     "name": "process-services",
     "path": "platforms/core-runtime/process-services",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "process-services-api",
+    "path": "platforms/core-runtime/process-services-api",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1250,6 +1376,20 @@
     "path": "platforms/jvm/scala",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "scala-compiler-worker",
+    "path": "platforms/jvm/scala-compiler-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "scaladoc-worker",
+    "path": "platforms/jvm/scaladoc-worker",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -1463,6 +1603,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "tooling-native-model-impls",
+    "path": "platforms/native/tooling-native-model-impls",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "unit-test-fixtures",
     "path": "platforms/extensibility/unit-test-fixtures",
     "unitTests": true,
@@ -1495,6 +1642,13 @@
     "path": "platforms/core-execution/worker-main",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "worker-process-services",
+    "path": "platforms/core-execution/worker-process-services",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

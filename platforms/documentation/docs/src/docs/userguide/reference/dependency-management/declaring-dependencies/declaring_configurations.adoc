@@ -106,7 +106,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 A library typically provides consumable configurations like `apiElements` (for compilation) and `runtimeElements` (for runtime dependencies).
 These configurations expose the necessary artifacts for other projects to consume, without being resolvable within the current project.
 
-The `canBeDeclared`, `isCanBeConsumed` and `isCanBeResolved` <<sec:configuration-flags-roles,flags>> help distinguish the roles of these configurations and are required when using older APIs.
+The `canBeDeclared`, `canBeConsumed` and `canBeResolved` <<sec:configuration-flags-roles,flags>> help distinguish the roles of these configurations and are required when using older APIs.
 
 == Configurations added by Plugins
 
@@ -309,8 +309,7 @@ configurations.named("name").configure {
 }
 ----
 
-`all {}` iterates every configuration eagerly at configuration time.
-While `configureEach {}` registers the action but delays running it until the configuration is actually realized.
+`all {}` iterates every configuration eagerly at configuration time, while `configureEach {}` registers the action but delays running it until the configuration is actually realized.
 
 `getByName()` returns and realizes the configuration immediately.
 While `named()` returns a lazy handle so you can configure it without triggering realization.

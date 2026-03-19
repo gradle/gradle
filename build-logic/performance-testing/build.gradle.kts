@@ -14,19 +14,19 @@ dependencies {
     implementation(projects.integrationTesting)
     implementation(projects.jvm)
 
-    implementation("com.google.guava:guava")
-    implementation("com.google.code.gson:gson")
-    implementation("commons-io:commons-io")
-    implementation("jakarta.xml.bind:jakarta.xml.bind-api")
-    implementation("com.gradle:develocity-gradle-plugin")
+    implementation(buildLibs.guava)
+    implementation(buildLibs.gson)
+    implementation(buildLibs.commonsIo)
+    implementation(buildLibs.jakartaXml)
+    implementation(buildLibs.develocityPlugin)
 
     // https://eclipse-ee4j.github.io/jaxb-ri/
-    runtimeOnly("com.sun.xml.bind:jaxb-impl")
+    runtimeOnly(buildLibs.jaxb)
 
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("junit:junit")
+    testImplementation(testLibs.junitJupiter)
+    testImplementation(testLibs.junit)
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(testLibs.junitPlatform)
 }
 
 gradlePlugin {

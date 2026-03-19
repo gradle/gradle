@@ -21,6 +21,7 @@ import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.AssignmentAugmentation
 import org.gradle.declarative.dsl.schema.AssignmentAugmentationKind
@@ -41,10 +42,12 @@ import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberOrigin
 import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.analysis.AssignmentAugmentationKindInternal
+import org.gradle.internal.declarativedsl.analysis.BindingTargetStrategyInternal
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultAssignmentAugmentation
+import org.gradle.internal.declarativedsl.analysis.DefaultContainerAccessorIdentifier
 import org.gradle.internal.declarativedsl.analysis.DefaultDataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
 import org.gradle.internal.declarativedsl.analysis.DefaultDataConstructor
@@ -54,6 +57,8 @@ import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultEnumClass
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
+import org.gradle.internal.declarativedsl.analysis.DefaultProjectFeatureAccessorIdentifier
+import org.gradle.internal.declarativedsl.analysis.DefaultSettingsExtensionAccessorIdentifier
 import org.gradle.internal.declarativedsl.analysis.DefaultVarargParameter
 import org.gradle.internal.declarativedsl.analysis.DefaultVarargSignature
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
@@ -70,8 +75,33 @@ object SchemaSerialization {
         serializersModule = SerializersModule {
             polymorphic(ConfigureAccessor::class) {
                 subclass(ConfigureAccessorInternal.DefaultConfiguringLambdaArgument::class)
-                subclass(ConfigureAccessorInternal.DefaultCustom::class)
+                subclass(ConfigureAccessorInternal.DefaultExtension::class)
+                subclass(ConfigureAccessorInternal.DefaultContainer::class)
+                subclass(ConfigureAccessorInternal.DefaultProjectFeature::class)
                 subclass(ConfigureAccessorInternal.DefaultProperty::class)
+            }
+
+            polymorphic(CustomAccessorIdentifier.ExtensionAccessorIdentifier::class) {
+                subclass(DefaultSettingsExtensionAccessorIdentifier::class)
+            }
+
+            polymorphic(CustomAccessorIdentifier.ContainerAccessorIdentifier::class) {
+                subclass(DefaultContainerAccessorIdentifier::class)
+            }
+
+            polymorphic(CustomAccessorIdentifier.ProjectFeatureIdentifier::class) {
+                subclass(DefaultProjectFeatureAccessorIdentifier::class)
+            }
+
+            polymorphic(CustomAccessorIdentifier.CustomAccessorType::class) {
+                subclass(DefaultSettingsExtensionAccessorIdentifier.SettingsAccessorType::class)
+                subclass(DefaultContainerAccessorIdentifier.ContainerAccessorType::class)
+                subclass(DefaultProjectFeatureAccessorIdentifier.ProjectFeatureAccessorType::class)
+            }
+
+            polymorphic(ConfigureAccessor.ProjectFeature.BindingTargetStrategy::class) {
+                subclass(BindingTargetStrategyInternal.ToDefinition::class)
+                subclass(BindingTargetStrategyInternal.ToBuildModel::class)
             }
 
             fun PolymorphicModuleBuilder<DataType.PrimitiveType>.allPrimitiveTypes() {

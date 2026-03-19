@@ -92,7 +92,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
     }
 
     String providerOf(String expression) {
-        return "project.provider { $expression }"
+        return "provider { $expression }"
     }
 
     def setup() {

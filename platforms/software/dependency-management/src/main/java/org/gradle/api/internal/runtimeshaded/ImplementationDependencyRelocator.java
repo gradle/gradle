@@ -18,6 +18,7 @@ package org.gradle.api.internal.runtimeshaded;
 
 import org.gradle.internal.util.Trie;
 import org.gradle.model.internal.asm.AsmConstants;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.commons.Remapper;
 
 import java.io.BufferedReader;
@@ -29,12 +30,9 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 class ImplementationDependencyRelocator extends Remapper {
 
-    private final Pattern classPattern = Pattern.compile("(\\[*)?L(.+)");
     private final Trie prefixes;
 
     private static Trie readPrefixes(URL resource) {
@@ -61,25 +59,36 @@ class ImplementationDependencyRelocator extends Remapper {
 
     @Override
     public String map(String name) {
-        String value = name;
-
-        String prefix = "";
-
-        Matcher m = classPattern.matcher(name);
-        if (m.matches()) {
-            prefix = m.group(1) + "L";
-            name = m.group(2);
-        }
-
-        String relocated = maybeRelocateResource(name);
+        int classNameStart = classNameStart(name);
+        String actualName = classNameStart < 0 ? name : name.substring(classNameStart);
+        String relocated = maybeRelocateResource(actualName);
         if (relocated == null) {
-            return value;
-        } else {
-            return prefix.concat(relocated);
+            return name;
         }
+        if (classNameStart < 0) {
+            return relocated;
+        }
+        return name.substring(0, classNameStart).concat(relocated);
     }
 
-    public String maybeRelocateResource(String resource) {
+    /**
+     * Returns the index of the class name within a JVM type descriptor of the form {@code [*Lsome/class},
+     * or {@code -1} if {@code name} is already a plain class name with no descriptor prefix.
+     */
+    private static int classNameStart(String name) {
+        int len = name.length();
+        int i = 0;
+        while (i < len && name.charAt(i) == '[') {
+            i++;
+        }
+        // Must be followed by 'L' and at least one more character to be a descriptor.
+        if (i < len && name.charAt(i) == 'L' && i + 1 < len) {
+            return i + 1;
+        }
+        return -1;
+    }
+
+    public @Nullable String maybeRelocateResource(String resource) {
         if (prefixes.find(resource)) {
             return "org/gradle/internal/impldep/" + resource;
         }

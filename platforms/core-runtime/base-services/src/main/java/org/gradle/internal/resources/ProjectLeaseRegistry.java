@@ -88,13 +88,18 @@ public interface ProjectLeaseRegistry {
     boolean isAllowedUncontrolledAccessToAnyProject();
 
     /**
-     * Performs some blocking action. If the current thread is allowed to make changes to project locks, then release all locks
+     * {@link #blocking(Factory)}, but returns no result.
+     */
+    void blocking(Runnable action);
+
+    /**
+     * Performs some blocking action, returning the result. If the current thread is allowed to make changes to project locks, then release all locks
      * then run the action and reacquire any locks.
      * If the current thread is not allowed to make changes to the project locks (via {@link #whileDisallowingProjectLockChanges(Factory)},
      * then it is safe to run the action without releasing the project locks. The worker lease is, however, released prior to running the
      * action and reacquired at the end.
      */
-    void blocking(Runnable action);
+    <T extends @Nullable Object> T blocking(Factory<T> action);
 
     /**
      * Runs the given action and disallows the current thread from attempting to acquire or release any project locks.

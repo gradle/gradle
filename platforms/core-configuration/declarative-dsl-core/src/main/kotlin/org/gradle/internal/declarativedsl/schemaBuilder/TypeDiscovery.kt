@@ -22,6 +22,12 @@ import kotlin.reflect.KClass
 
 
 interface TypeDiscovery {
+    /**
+     * Given a [kClass] that is included in the schema, produces [DiscoveredClass] entries for other classes reachable from the [kClass] that should be
+     * considered for inclusionn into the schema. The returned [DiscoveredClass] entries might have non-unique [DiscoveredClass.kClass] values.
+     */
+    fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>>
+
     interface TypeDiscoveryServices {
         val host: SchemaBuildingHost
         val propertyExtractor: PropertyExtractor
@@ -29,10 +35,10 @@ interface TypeDiscovery {
 
     data class DiscoveredClass(
         val kClass: KClass<*>,
-        val discoveryTags: Iterable<DiscoveryTag>
+        val discoveryTag: DiscoveryTag
     ) {
         val isHidden: Boolean
-            get() = discoveryTags.all { it.isHidden }
+            get() = discoveryTag.isHidden
 
         sealed interface DiscoveryTag {
             val isHidden: Boolean
@@ -56,7 +62,7 @@ interface TypeDiscovery {
         }
 
         companion object {
-            fun classesOf(kType: SupportedTypeProjection.SupportedType, vararg discoveryTags: DiscoveryTag): Iterable<DiscoveredClass> =
+            fun classesOf(kType: SupportedTypeProjection.SupportedType, discoveryTag: DiscoveryTag): Iterable<DiscoveredClass> =
                 buildSet {
                     fun visitType(type: SupportedTypeProjection.SupportedType) { // safe to recurse without the visited set: the types are deconstructed to smaller types
                         (type.classifier as? KClass<*>)?.let(::add)
@@ -69,30 +75,26 @@ interface TypeDiscovery {
                         }
                     }
                     visitType(kType)
-                }.map { DiscoveredClass(it, discoveryTags.toList()) }
+                }.map { DiscoveredClass(it, discoveryTag) }
         }
     }
 
-    fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass>
-
     companion object {
         val none = object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass> = emptyList()
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> = emptyList()
         }
     }
 }
 
 
 class CompositeTypeDiscovery(internal val implementations: Iterable<TypeDiscovery>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> =
         implementations.flatMap { it.getClassesToVisitFrom(typeDiscoveryServices, kClass) }
-            .groupBy({ it.kClass })
-            .entries.map { (kClass, discovered) -> DiscoveredClass(kClass, discovered.flatMap(DiscoveredClass::discoveryTags)) }
 }
 
 class FilteringTypeDiscovery(private val delegate: TypeDiscovery, val typeFilter: (KClass<*>) -> Boolean) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass> =
-        if (typeFilter(kClass)) delegate.getClassesToVisitFrom(typeDiscoveryServices, kClass).filter { typeFilter(it.kClass) } else emptyList()
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> =
+        if (typeFilter(kClass)) delegate.getClassesToVisitFrom(typeDiscoveryServices, kClass).filter { it !is SchemaResult.Result || typeFilter(it.result.kClass) } else emptyList()
 }
 
 

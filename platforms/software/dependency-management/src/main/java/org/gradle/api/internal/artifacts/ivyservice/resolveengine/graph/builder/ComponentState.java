@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
@@ -269,9 +268,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             }
         }
 
-        for (DependencyGraphEdge incomingEdge : module.getAllIncomingEdges()) {
-            incomingEdge.visitSelectionReasons(builder::add);
-        }
+        module.visitAllIncomingEdges(incomingEdge -> incomingEdge.visitSelectionReasons(builder::add));
 
         builder.addAll(VersionConflictResolutionDetails.mergeCauses(selectionCauses));
         return ComponentSelectionReasons.of(builder.build());

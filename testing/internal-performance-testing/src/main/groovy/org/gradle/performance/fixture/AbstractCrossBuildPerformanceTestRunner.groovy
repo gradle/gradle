@@ -27,6 +27,8 @@ import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.buildops.BuildOperationMeasurement
+import org.gradle.profiler.buildops.BuildOperationMeasurementKind
 import org.junit.Assume
 
 import java.util.function.Function
@@ -34,7 +36,7 @@ import java.util.function.Function
 @CompileStatic
 abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> {
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
-    private final List<String> measuredBuildOperations = []
+    private final List<BuildOperationMeasurement> measuredBuildOperations = []
 
     final IntegrationTestBuildContext buildContext
     final GradleDistribution gradleDistribution
@@ -73,12 +75,33 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         buildMutators.add(buildMutator)
     }
 
-    void measureBuildOperation(String operation) {
-        measuredBuildOperations << operation
+    /**
+     * Requests a build operation to be measured by a given metric.
+     * <p>
+     * The {@code buildOperationType} is a FQCN of a class that has a direct nested {@code .Details} class,
+     * instance of which is attached to the operation descriptor ({@link org.gradle.internal.operations.BuildOperationDescriptor.Builder#details}).
+     * <p>
+     * Examples: {@code ConfigureBuildBuildOperationType}, {@code RunRootBuildWorkBuildOperationType}
+     * <p>
+     * Gradle Profiler will use an init script to wire the measurements.
+     * For instance, for {@code SomeOperation}, the build operations considered for this measurement
+     * will be filtered by an equivalent of the following:
+     * <pre>
+     * Class.forName("SomeOperation$Details")
+     *     .isAssignableFrom(buildOperationDescriptor.getDetails())
+     * </pre>
+     *
+     * @param buildOperationType FQCN of the type, whose {@code .Details} instances will be attached to the operation
+     * @param kind
+     *
+     * @see org.gradle.internal.operations.BuildOperationType
+     */
+    void measureBuildOperation(String buildOperationType, BuildOperationMeasurementKind kind) {
+        measuredBuildOperations << new BuildOperationMeasurement(buildOperationType, kind)
     }
 
     protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
-        builder.measuredBuildOperations.addAll(measuredBuildOperations)
+        builder.buildOperationMeasurements.addAll(measuredBuildOperations)
         builder.measureGarbageCollection(measureGarbageCollection)
         builder.invocation.distribution(gradleDistribution)
     }

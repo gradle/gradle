@@ -15,10 +15,10 @@ dependencies {
     implementation(projects.jvm)
     implementation(projects.kotlinDsl)
 
-    implementation(kotlin("gradle-plugin"))
+    implementation(buildLibs.kgp)
 
-    implementation("com.google.code.gson:gson")
-    implementation("org.ow2.asm:asm")
+    implementation(buildLibs.gson)
+    implementation(libs.asm)
 
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation(testLibs.junitJupiter)
 }

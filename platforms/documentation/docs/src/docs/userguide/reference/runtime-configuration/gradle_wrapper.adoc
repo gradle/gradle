@@ -14,7 +14,7 @@
 
 [[gradle_wrapper]]
 = Gradle Wrapper
-:keywords: wrapper, distributionUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url,
+:keywords: wrapper, distributionUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url, retries, retry-timeout-ms
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
 
@@ -133,6 +133,12 @@ Disables the validation of the configured distribution URL.
 
 `--validate-url`::
 Enables the validation of the configured distribution URL. Enabled by default.
+
+`--retries`::
+The number of retries to attempt when downloading the Gradle distribution. The default value is `0`, meaning retrying is disabled, downloading will be attempted a single time. Negative values will be ignored and the default will be used.
+
+`--retry-timeout-ms`::
+The timeout in milliseconds to wait between download retries (if enabled, see `--retries`). The default value is `0`, meaning that there won't be any delay between two successive download attempts. Negative values will be ignored and the default will be used.
 
 If the distribution URL is configured with `--gradle-version` or `--gradle-distribution-url`, the URL is validated by sending a HEAD request in the case of the `https` scheme or by checking the existence of the file in the case of the `file` scheme.
 
@@ -364,26 +370,40 @@ WARNING: Using `systemProp.gradle.wrapperUser` and `systemProp.gradle.wrapperPas
 To safeguard your credentials, prefix these system properties with your private server's hostname, replacing all dots (`.`) with underscores (`_`).
 
 NOTE: Hostnames are not case-sensitive thus Gradle converts the hostname in the property name into lowercase.
- That is, if you wrote `MYCOMPANY.COM` in your wrapper configuration, then you have to use the string
- `mycompany_com` in the system property key.
+ That is, if you wrote `EXAMPLE.COM` in your wrapper configuration, then you have to use the string
+ `example_com` in the system property key.
 
-For example, if your private server hostname is `your.private-server.com`, use the following system properties:
+For example, if your private server hostname is `your.example.com`, use the following system properties:
 
 [source,properties]
 ----
-systemProp.gradle.your_private-server_com.wrapperUser=username
-systemProp.gradle.your_private-server_com.wrapperPassword=password
+systemProp.gradle.your_example_com.wrapperUser=username
+systemProp.gradle.your_example_com.wrapperPassword=password
 ----
 
 To authenticate with a static HTTP Bearer Token, add the following line to your Gradle properties file:
 
 [source,properties]
 ----
-systemProp.gradle.your_private-server_com.wrapperToken=some-api-token
+systemProp.gradle.your_example_com.wrapperToken=some-api-token
 ----
 
 NOTE: If a `wrapperToken` is specified, it will take precedence over `wrapperUser` and `wrapperPassword` system properties (and also over user & password values embedded in the URL).
 It is strongly recommended to include the hostname in the property to prevent the token from being sent to an unintended server by accident.
+
+[[sec:configuring_wrapper_retries]]
+=== Configuring Wrapper Retries
+
+The Gradle Wrapper can be configured to automatically retry downloading the Gradle distribution.
+This is useful in environments with unstable network connections.
+
+You can configure the number of retries and the timeout between attempts in the `gradle-wrapper.properties` file:
+
+[source,properties]
+----
+retries=3
+retryTimeoutMs=5000
+----
 
 [[sec:verification]]
 === Verification of downloaded Gradle distributions

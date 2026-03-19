@@ -3,9 +3,9 @@ import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
+import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
-import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 
 plugins {
     id("gradlebuild.internal.java")
@@ -31,6 +31,8 @@ addDependenciesAndConfigurations("smoke")
 
 val smokeTestImplementation: Configuration by configurations
 val smokeTestDistributionRuntimeOnly: Configuration by configurations
+val smokeTestBinDistribution: Configuration by configurations
+val smokeTestSrcDistribution: Configuration by configurations
 
 dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
@@ -40,6 +42,7 @@ dependencies {
     smokeTestImplementation(projects.testKit)
     smokeTestImplementation(projects.launcher)
     smokeTestImplementation(projects.persistentCache)
+    smokeTestImplementation(projects.internalIntegTesting)
     smokeTestImplementation(projects.internalTesting)
     smokeTestImplementation(projects.jvmServices)
     smokeTestImplementation(projects.buildOption)
@@ -48,17 +51,21 @@ dependencies {
     smokeTestImplementation(libs.groovyJson)
     smokeTestImplementation(libs.commonsHttpclient)
     smokeTestImplementation(libs.jgit)
-    smokeTestImplementation(libs.spock)
-    smokeTestImplementation(libs.junitPlatform)
+    smokeTestImplementation(testLibs.spock)
+    smokeTestImplementation(testLibs.junitPlatform)
     smokeTestImplementation(libs.jacksonDatabind)
 
     smokeTestImplementation(testFixtures(projects.buildProcessServices))
     smokeTestImplementation(testFixtures(projects.core))
     smokeTestImplementation(testFixtures(projects.modelReflect))
     smokeTestImplementation(testFixtures(projects.pluginDevelopment))
+    smokeTestImplementation(testFixtures(projects.testingBase))
     smokeTestImplementation(testFixtures(projects.versionControl))
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
+    // These will make the bin and src distribution available through `IntegrationTestBuildContext`
+    smokeTestBinDistribution(projects.distributionsFull)
+    smokeTestSrcDistribution(projects.distributionsFull)
 }
 
 androidHomeWarmup {

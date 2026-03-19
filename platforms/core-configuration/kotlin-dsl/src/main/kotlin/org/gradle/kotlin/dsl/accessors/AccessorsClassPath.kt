@@ -77,7 +77,7 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
+import java.util.Optional
 import javax.inject.Inject
 
 
@@ -91,43 +91,27 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val asyncIO: AsyncIOScopeFactory,
 ) {
 
-    private
-    val classPathCache = ConcurrentHashMap<ClassLoaderScope, AccessorsClassPath>()
-
     fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
         val classLoaderScope = classLoaderScopeOf(scriptTarget)
-        if (classLoaderScope == null) {
-            return AccessorsClassPath.empty
-        }
-        return classPathCache.computeIfAbsent(classLoaderScope) {
-            buildAccessorsClassPathFor(classLoaderScope, scriptTarget, classPath)
-                ?: AccessorsClassPath.empty
-        }
-    }
+            ?: return AccessorsClassPath.empty
+        val configuredProjectSchemaOf = configuredProjectSchemaOf(scriptTarget, classLoaderScope)
+            ?: return AccessorsClassPath.empty
 
-    private
-    fun buildAccessorsClassPathFor(
-        classLoaderScope: ClassLoaderScope,
-        scriptTarget: Any,
-        classPath: ClassPath
-    ): AccessorsClassPath? =
-        configuredProjectSchemaOf(scriptTarget, classLoaderScope)
-            ?.let { scriptTargetSchema ->
-                val work = GenerateProjectAccessors(
-                    scriptTarget,
-                    scriptTargetSchema,
-                    classPath,
-                    fileCollectionFactory,
-                    inputFingerprinter,
-                    workspaceProvider,
-                    asyncIO,
-                    isDclEnabledForScriptTarget(scriptTarget),
-                )
-                executionEngine.createRequest(work)
-                    .execute()
-                    .getOutputAs(AccessorsClassPath::class.java)
-                    .get()
-            }
+        val work = GenerateProjectAccessors(
+            scriptTarget,
+            configuredProjectSchemaOf,
+            classPath,
+            fileCollectionFactory,
+            inputFingerprinter,
+            workspaceProvider,
+            asyncIO,
+            isDclEnabledForScriptTarget(scriptTarget),
+        )
+        return executionEngine.createRequest(work)
+            .execute()
+            .getOutputAs(AccessorsClassPath::class.java)
+            .get()
+    }
 
 
     private
@@ -168,6 +152,10 @@ class GenerateProjectAccessors(
         const val CLASSPATH_INPUT_PROPERTY = "classpath"
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
+    }
+
+    override fun getBuildOperationWorkType(): Optional<String> {
+        return Optional.of("GENERATE_PROJECT_ACCESSORS")
     }
 
     override fun execute(executionContext: ExecutionContext): WorkOutput {

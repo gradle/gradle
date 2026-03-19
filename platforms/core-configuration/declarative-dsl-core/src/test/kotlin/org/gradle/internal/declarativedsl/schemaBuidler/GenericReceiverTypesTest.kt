@@ -83,7 +83,7 @@ class GenericReceiverTypesTest {
             )
         }.apply {
             assertEquals("""
-                Cannot use the parameterized class 'class org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest${'$'}GenericSuperType' as a configurable type
+                Using a parameterized type as a configured type is not supported
                   in configured type 'org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.GenericSuperType<kotlin.Int, kotlin.String>'
                   in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringGenericType.sup((org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.GenericSuperType<kotlin.Int, kotlin.String>) -> kotlin.Unit): kotlin.Unit'
                   in class 'org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringGenericType'

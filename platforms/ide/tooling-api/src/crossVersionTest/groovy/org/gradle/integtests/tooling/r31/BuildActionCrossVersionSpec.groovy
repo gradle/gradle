@@ -18,9 +18,16 @@ package org.gradle.integtests.tooling.r31
 
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.model.GradleTask
 
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
+
+    @Requires(
+        value = IntegTestPreconditions.NotEmbeddedExecutor,
+        reason = "FilteringClassLoader from TAPI process is improperly deserialized in daemon. To resolve this we must execute in-process daemons on-top of the proper daemon classloader instead of on-top of the TAPI classloader"
+    )
     def "can round trip a model queried by a build action"() {
         when:
         GradleTask task = withConnection { c -> c.action(new FetchTaskAction()).run() }

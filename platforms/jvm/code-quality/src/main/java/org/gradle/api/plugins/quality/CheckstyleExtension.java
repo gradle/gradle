@@ -42,13 +42,10 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
-    private final DirectoryProperty configDirectory;
-    private final Property<Boolean> enableExternalDtdLoad;
 
     public CheckstyleExtension(Project project) {
         this.project = project;
-        this.configDirectory = project.getObjects().directoryProperty();
-        this.enableExternalDtdLoad = project.getObjects().property(Boolean.class).convention(false);
+        getEnableExternalDtdLoad().convention(false);
     }
 
     /**
@@ -109,9 +106,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @return path to other Checkstyle configuration files
      * @since 4.7
      */
-    public DirectoryProperty getConfigDirectory() {
-        return configDirectory;
-    }
+    public abstract DirectoryProperty getConfigDirectory();
 
     /**
      * The maximum number of errors that are tolerated before breaking the build
@@ -192,7 +187,5 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     @Incubating
     @Optional
     @Input
-    public Property<Boolean> getEnableExternalDtdLoad() {
-        return enableExternalDtdLoad;
-    }
+    public abstract Property<Boolean> getEnableExternalDtdLoad();
 }

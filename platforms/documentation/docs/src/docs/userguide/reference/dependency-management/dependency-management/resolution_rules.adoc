@@ -188,19 +188,6 @@ You can substitute a dependency with another <<variant_aware_resolution.adoc#sec
 
 This is useful when your build process needs to change the type of dependency based on specific conditions:
 
-[source,kotlin]
-----
-configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        all {
-            if (requested is ModuleComponentSelector && requested.group == "org.example" && requested.version == "1.0") {
-                useTarget(module("org.example:library:1.0")).because("Switching from platform to library variant")
-            }
-        }
-    }
-}
-----
-
 - The substitution is based on the requested dependency's attributes (like group and version).
 - This approach allows you to switch from a platform component to a library or vice versa.
 - It uses Gradle's variant-aware engine to ensure the correct variant is selected based on the configuration and consumer attributes.

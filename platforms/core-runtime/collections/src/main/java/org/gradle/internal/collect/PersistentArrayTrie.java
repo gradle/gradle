@@ -106,7 +106,7 @@ final class PersistentArrayTrie<T> implements PersistentArray<T> {
                 throw indexOutOfBounds(index);
             }
             Object[] array = root;
-            for (int i = shift; i > 0; i -= BITS) {
+            for (int i = shift; i != 0; i -= BITS) {
                 int nodeIndex = (index >>> i) & BITMASK;
                 array = (Object[]) array[nodeIndex];
             }
@@ -116,6 +116,33 @@ final class PersistentArrayTrie<T> implements PersistentArray<T> {
                 throw indexOutOfBounds(index);
             }
             return (T) tail[index - tailOffset];
+        }
+    }
+
+    @Override
+    public PersistentArray<T> set(int index, T value) {
+        int tailOffset = size - tail.length;
+        if (index < tailOffset) {
+            if (index < 0) {
+                throw indexOutOfBounds(index);
+            }
+            Object[] newRoot = root.clone();
+            Object[] array = newRoot;
+            for (int i = shift; i != 0; i -= BITS) {
+                int nodeIndex = (index >>> i) & BITMASK;
+                Object[] node = ((Object[]) array[nodeIndex]).clone();
+                array[nodeIndex] = node;
+                array = node;
+            }
+            array[index & BITMASK] = value;
+            return new PersistentArrayTrie<>(size, shift, newRoot, tail);
+        } else {
+            if (index >= size) {
+                throw indexOutOfBounds(index);
+            }
+            Object[] newTail = tail.clone();
+            newTail[index - tailOffset] = value;
+            return new PersistentArrayTrie<>(size, shift, root, newTail);
         }
     }
 

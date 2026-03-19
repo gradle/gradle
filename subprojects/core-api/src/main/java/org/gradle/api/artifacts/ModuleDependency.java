@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.Nullable;
 
@@ -78,7 +79,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @param excludeProperties the properties to define the exclude rule.
      * @return this
      */
-    @HiddenInDefinition
+    @Adding // Workaround for configuring excludes in DCL. Should be removed once we have a better model.
     ModuleDependency exclude(Map<String, String> excludeProperties);
 
     /**
@@ -104,7 +105,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @see #addArtifact(DependencyArtifact)
      */
-    @HiddenInDefinition
     Set<DependencyArtifact> getArtifacts();
 
     /**
@@ -156,7 +156,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @see #setTransitive(boolean)
      */
-    @HiddenInDefinition
     boolean isTransitive();
 
     /**
@@ -167,7 +166,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @param transitive Whether transitive dependencies should be resolved.
      * @return this
      */
-    @HiddenInDefinition
     ModuleDependency setTransitive(boolean transitive);
 
     /**
@@ -191,7 +189,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 4.0
      */
-    @HiddenInDefinition
     void setTargetConfiguration(@Nullable String name);
 
     /**
@@ -209,8 +206,8 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 4.8
      */
-    @Override
     @HiddenInDefinition
+    @Override
     AttributeContainer getAttributes();
 
     /**

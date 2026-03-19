@@ -48,10 +48,8 @@ public final class SelectionReasonAssessor {
      * @return an {@link AssessedSelection} instance that summarizes the reasons for selecting (or failing to select) the module
      */
     public static AssessedSelection assessSelection(ModuleResolveState moduleResolveState) {
-        Set<? extends DependencyGraphEdge> allIncomingEdges = moduleResolveState.getAllIncomingEdges();
-        ImmutableList.Builder<AssessedSelection.AssessedSelectionReason> assessedReasons = ImmutableList.builderWithExpectedSize(allIncomingEdges.size());
-
-        for (DependencyGraphEdge incomingEdge : allIncomingEdges) {
+        ImmutableList.Builder<AssessedSelection.AssessedSelectionReason> assessedReasons = ImmutableList.builder();
+        moduleResolveState.visitAllIncomingEdges((DependencyGraphEdge incomingEdge) -> {
             String requestedVersion = getRequestedVersion(incomingEdge.getDependencyMetadata().getSelector());
             ImmutableList<ImmutableList<String>> pathNames = MessageBuilderHelper.findPathNamesTo(incomingEdge);
             ImmutableSet<ComponentSelectionCause> causes = getCauses(incomingEdge);
@@ -62,7 +60,7 @@ public final class SelectionReasonAssessor {
                 causes,
                 incomingEdge.isFromLock()
             ));
-        }
+        });
 
         return new AssessedSelection(moduleResolveState.getId(), assessedReasons.build());
     }

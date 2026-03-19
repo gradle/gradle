@@ -59,43 +59,36 @@ Many Gradle plugins add pre-defined configurations to your project.
 
 The Java Library plugin is used to define a project that produces a Java library.
 The plugin adds many dependency configurations.
-These configurations represent the various classpaths needed for source code compilation, executing tests, and more:
+These configurations represent the various classpaths needed for source code compilation, executing tests, and more.
+The configurations below are used to declare dependencies for different purposes:
 
 [cols="~,~,~"]
 |===
-|Configuration Name |Description |Used to:
+|Configuration Name |Description
 
 |`api`
 |Dependencies required for both compilation and runtime, and included in the published API.
-|Declare Dependencies
 
 |`implementation`
 |Dependencies required for both compilation and runtime.
-|Declare Dependencies
 
 |`compileOnly`
 |Dependencies needed only for compilation, not included in runtime or publication.
-|Declare Dependencies
 
 |`compileOnlyApi`
 |Dependencies needed only for compilation, but included in the published API.
-|Declare Dependencies
 
 |`runtimeOnly`
 |Dependencies needed only at runtime, not included in the compile classpath.
-|Declare Dependencies
 
 |`testImplementation`
 |Dependencies required for compiling and running tests.
-|Declare Dependencies
 
 |`testCompileOnly`
 |Dependencies needed only for test compilation.
-|Declare Dependencies
 
 |`testRuntimeOnly`
 |Dependencies needed only for running tests.
-|Declare Dependencies
 
 |===
 
@@ -133,6 +126,7 @@ dependencies {
 === Other Configurations
 
 There are other types of configurations (such as `runtimeClasspath`, `compileClasspath`, `apiElements`, `runtimeElements`), but they are not used to declare dependencies.
+They are used internally by Gradle to assemble the classpaths for application or to configure dependencies between projects.
 
 It is also possible to create custom configurations.
 A custom configuration allows you to define a distinct group of dependencies that can be used for specific purposes, such as toolchains or code generation, separate from the standard configurations (e.g., `implementation`, `testImplementation`):

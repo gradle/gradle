@@ -14,7 +14,7 @@ dependencies {
     performanceTestCompileOnly(projects.internalIntegTesting)
     performanceTestCompileOnly(projects.internalPerformanceTesting)
 
-    performanceTestImplementation(libs.gradleProfiler)
+    performanceTestImplementation(testLibs.gradleProfiler)
 
     testFixturesApi(projects.baseServices)
 

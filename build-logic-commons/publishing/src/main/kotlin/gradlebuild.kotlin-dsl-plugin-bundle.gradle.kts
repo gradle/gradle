@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.capitalize
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
+import org.gradle.plugin.compatibility.compatibility
 import java.time.Year
 
 plugins {
@@ -124,6 +125,12 @@ gradlePlugin {
 
         writeFuturePluginVersions {
             property(plugin.id, version)
+        }
+
+        compatibility {
+            features {
+                configurationCache = true
+            }
         }
     }
 }
