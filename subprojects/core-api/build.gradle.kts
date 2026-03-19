@@ -15,6 +15,7 @@ dependencies {
     api(projects.files)
     api(projects.loggingApi)
     api(projects.persistentCache)
+    api(projects.problemsApi)
     api(projects.processServicesApi)
     api(projects.resources)
     api(projects.startParameter)

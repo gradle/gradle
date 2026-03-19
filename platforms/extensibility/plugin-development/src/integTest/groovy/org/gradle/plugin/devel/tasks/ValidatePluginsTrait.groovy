@@ -60,12 +60,12 @@ trait ValidatePluginsTrait implements CommonPluginValidationTrait, ValidationMes
     void assertValidationFailsWith(List<AbstractPluginValidationIntegrationSpec.DocumentedProblem> messages) {
         fails "validatePlugins"
         def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.json"))
-        report.verify(messages.collectEntries {
+        report.verify(messages.collect {
             def fullMessage = it.message
             if (!it.defaultDocLink) {
                 fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}"
             }
-            [(fullMessage): it.severity]
+            fullMessage
         })
 
         failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${getPluralEnding(messages)}"

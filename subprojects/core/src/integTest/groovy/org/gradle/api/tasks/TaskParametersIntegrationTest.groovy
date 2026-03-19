@@ -719,6 +719,7 @@ task someTask(type: SomeTask) {
             additionalData.asMap == [
                 'typeName': 'org.gradle.api.DefaultTask',
                 'propertyName': 'input',
+                'fatal': true,
             ]
         }
 
@@ -760,6 +761,7 @@ task someTask(type: SomeTask) {
             additionalData.asMap == [
                 'typeName' : 'org.gradle.api.DefaultTask',
                 'propertyName' : 'output',
+                'fatal': true,
             ]
         }
         where:
@@ -797,6 +799,7 @@ task someTask(type: SomeTask) {
             additionalData.asMap == [
                 'typeName' : 'org.gradle.api.DefaultTask',
                 'propertyName' : 'output',
+                'fatal': true,
             ]
         }
         where:
@@ -840,6 +843,7 @@ task someTask(type: SomeTask) {
             additionalData.asMap == [
                 'typeName' : 'org.gradle.api.DefaultTask',
                 'propertyName' : 'output',
+                'fatal': true,
             ]
         }
     }

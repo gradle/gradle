@@ -96,6 +96,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'direct',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -106,6 +107,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'listPropertyInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(2)) {
@@ -116,6 +118,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'mapPropertyInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(3)) {
@@ -127,6 +130,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'nestedBean',
                 'typeName' : 'MyTask',
                 'propertyName' : 'nestedInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(4)) {
@@ -137,6 +141,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'propertyInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(5)) {
@@ -147,6 +152,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'providerInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(6)) {
@@ -157,6 +163,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'setPropertyInput',
+                'fatal' : true,
             ]
         }
     }
@@ -247,6 +254,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'file',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -261,6 +269,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'fileCollection',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(2)) {
@@ -275,6 +284,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'filePath',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(3)) {
@@ -289,6 +299,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'fileTree',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(4)) {
@@ -299,6 +310,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'inputDirectory',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(5)) {
@@ -309,6 +321,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'inputFile',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(6)) {
@@ -319,6 +332,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'inputFiles',
+                'fatal' : true,
             ]
         }
     }
@@ -450,6 +464,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'doubleIterableOptions.*.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -464,6 +479,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'iterableMappedOptions.*.<key>.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(2)) {
@@ -478,6 +494,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'iterableOptions.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(3)) {
@@ -492,6 +509,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'mappedOptions.<key>',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(4)) {
@@ -506,6 +524,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'namedIterable.<name>',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(5)) {
@@ -520,6 +539,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'options',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(6)) {
@@ -534,6 +554,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'optionsList.*',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(7)) {
@@ -548,6 +569,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'providedOptions',
                 'typeName' : 'MyTask',
                 'propertyName' : 'notAnnotated',
+                'fatal' : true,
             ]
         }
     }
@@ -657,6 +679,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'mapWithUnsupportedKey',
+                'fatal' : true,
             ]
         }
     }
@@ -701,6 +724,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : "my$typeName",
+                'fatal' : true,
             ]
         }
 
@@ -799,7 +823,8 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             ]
             additionalData.asMap == [
                 'typeName' : 'MyTask',
-                'propertyName' : "my$typeName"
+                'propertyName' : "my$typeName",
+                'fatal' : true,
             ]
         }
 
