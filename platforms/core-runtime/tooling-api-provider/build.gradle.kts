@@ -28,6 +28,7 @@ dependencies {
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.core)
+    implementation(projects.daemonMessaging)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.launcher)
     implementation(projects.logging)

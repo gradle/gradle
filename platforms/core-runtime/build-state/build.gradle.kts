@@ -25,6 +25,7 @@ dependencies {
     api(projects.buildProcessServices)
     api(projects.classloaders)
     api(projects.core)
+    api(projects.daemonMessaging)
     api(projects.daemonProtocol)
     api(projects.instrumentationAgentServices)
     api(projects.logging)

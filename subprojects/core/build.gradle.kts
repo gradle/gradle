@@ -56,6 +56,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.coreApi)
     api(projects.credentialsApi)
+    api(projects.daemonMessaging)
     api(projects.declarativeDslApi)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)

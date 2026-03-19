@@ -45,6 +45,7 @@ dependencies {
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
+    implementation(projects.daemonMessaging)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)

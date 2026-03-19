@@ -24,6 +24,7 @@ dependencies {
     api(projects.buildEvents)
     api(projects.buildOperations)
     api(projects.core)
+    api(projects.daemonMessaging)
     api(projects.enterpriseOperations)
     api(projects.serialization)
     api(projects.serviceProvider)
