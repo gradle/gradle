@@ -2,14 +2,25 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = """
+    Contains StartParameter and StartParameterInternal, which are serialized
+    from the client to the daemon during startup
+"""
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildDiscovery)
+    api(projects.buildDiscoveryImpl)
+    api(projects.buildOption)
+    api(projects.cli)
+    api(projects.fileWatching)
     api(projects.loggingApi)
     api(projects.stdlibJavaExtensions)
+
     api(libs.jspecify)
 
     implementation(projects.logging)
+    implementation(projects.inputTracking)
     implementation(projects.internalInstrumentationApi)
 
     implementation(libs.guava)

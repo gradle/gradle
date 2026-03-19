@@ -49,6 +49,7 @@ dependencies {
     implementation(projects.native)
     implementation(projects.problemsApi)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.startParameter)
     implementation(projects.stdlibJavaExtensions)
 
     testImplementation(testFixtures(projects.core))

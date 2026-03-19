@@ -41,6 +41,7 @@ dependencies {
     api(projects.persistentCache)
     api(projects.processServices)
     api(projects.resources)
+    api(projects.startParameter)
     api(projects.toolchainsJvmShared)
 
     api(libs.inject)
@@ -52,7 +53,6 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.logging)
     implementation(projects.modelCore)
-    implementation(projects.startParameter)
 
     implementation(libs.guava)
     implementation(libs.slf4jApi)

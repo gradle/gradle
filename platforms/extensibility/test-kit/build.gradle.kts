@@ -13,11 +13,11 @@ dependencies {
     api(projects.toolingApi)
 
     api(libs.jspecify)
-
-    implementation(projects.core)
-    implementation(projects.fileTemp)
     api(libs.guava)
+
+    implementation(projects.fileTemp)
     implementation(projects.logging)
+    implementation(projects.startParameter)
     implementation(projects.wrapperShared)
     implementation(projects.buildProcessServices)
 
