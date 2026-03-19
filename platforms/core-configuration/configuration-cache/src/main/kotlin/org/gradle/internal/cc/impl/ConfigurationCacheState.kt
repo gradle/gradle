@@ -317,7 +317,8 @@ class ConfigurationCacheState(
         }
     }
 
-    private fun collectTransformedProjectsPerBuild(builds: MutableMap<BuildState, BuildToStore>): Map<BuildIdentifier, Set<Path>> {
+    private
+    fun collectTransformedProjectsPerBuild(builds: MutableMap<BuildState, BuildToStore>): Map<BuildIdentifier, Set<Path>> {
         val result = mutableMapOf<BuildIdentifier, MutableSet<Path>>()
         builds.keys.forEach { buildState ->
             buildState.mutableModel.taskGraph.collectScheduledWork().scheduledNodes
@@ -326,11 +327,20 @@ class ConfigurationCacheState(
                 .forEach { node ->
                     val id = node.inputArtifact.id.componentIdentifier
                     if (id is ProjectComponentIdentifier) {
-                        result.computeIfAbsent(id.build) { mutableSetOf() }.add(Path.path(id.projectPath))
+                        // Include parent projects so they get stored as ProjectWithWork
+                        // and registered during CC load, allowing child project registration to find its parent.
+                        result.computeIfAbsent(id.build) { mutableSetOf() }
+                            .addWithParents(Path.path(id.projectPath))
                     }
                 }
         }
         return result
+    }
+
+    private
+    fun MutableSet<Path>.addWithParents(path: Path) {
+        // Produces: path, path.parent, path.parent.parent, ... until root
+        generateSequence(path) { it.parent }.forEach { add(it) }
     }
 
     private
@@ -895,6 +905,12 @@ class ConfigurationCacheState(
             .filter(shouldStoreProject)
             .map { project ->
                 val mutableModel = project.mutableModel
+                // Relevant projects are those observed during dependency resolution or owning scheduled nodes.
+                // A build-logic build may have no scheduled nodes since it has already been executed by this point.
+                // However, if one of its projects is used as a transform input in another build, we still need
+                // to store it as ProjectWithWork. Such a project is not captured by this build's RelevantProjectsRegistry
+                // because the dependency resolution that observed it happened in a different build's context.
+                // So we explicitly include it (along with its parent hierarchy) via transformInputProjects.
                 if (relevantProjects.contains(project) || project.projectPath in transformInputProjects) {
                     mutableModel.layout.buildDirectory.finalizeValue()
                     ProjectWithWork(

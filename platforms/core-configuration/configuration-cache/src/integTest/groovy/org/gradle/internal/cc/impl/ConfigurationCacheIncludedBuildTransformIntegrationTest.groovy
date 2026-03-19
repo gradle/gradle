@@ -21,8 +21,11 @@ import spock.lang.Issue
 class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @Issue("https://github.com/gradle/gradle/issues/36177")
-    def "can use a project from included build in buildscript classpath when the project is an input for transform"() {
-        buildFile("included/build.gradle", """
+    def "can use #projectType of included build in buildscript classpath when the project is an input for transform"() {
+        buildFile("included/settings.gradle", """
+            include("$projectPath")
+        """)
+        buildFile("included/${relativeDir(projectPath)}/build.gradle", """
             plugins {
                 id("java-library")
             }
@@ -38,7 +41,7 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
             import org.gradle.api.artifacts.transform.TransformParameters
             buildscript {
                 dependencies {
-                    classpath("org.test:included:1.0")
+                    classpath("org.test:$artifactName:1.0")
                 }
             }
 
@@ -46,30 +49,38 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
                 id("java-library")
             }
 
-            ${withFooTransformedDependency("org.test:included:1.0")}
+            ${withFooTransformedDependency("org.test:$artifactName:1.0")}
         """
 
         when:
         configurationCacheRun "syncFoo"
 
+        and:
+        // Run again as projects load logic is not triggered by load-after-store
+        configurationCacheRun "syncFoo"
+
         then:
-        file("build/included-1.0.jar.foo").exists()
+        file("build/${artifactName}-1.0.jar.foo").exists()
+
+        where:
+        projectType         | projectPath   | artifactName
+        "project"           | ":lib"        | "lib"
+        "nested subproject" | ":lib:sublib" | "sublib"
     }
 
-    def "can use a project from included build logic build as an input for transform"() {
+    def "can use #projectType from included build logic build as an input for transform"() {
         buildFile("build-logic/settings.gradle", """
-            include(":lib")
+            include("$projectPath")
         """)
         buildFile("build-logic/build.gradle", """
             plugins {
                 id("groovy-gradle-plugin")
             }
-        """
-        )
+        """)
         file("build-logic/src/main/groovy/my-plugin.gradle") << """
             println 'In script plugin'
         """
-        buildFile("build-logic/lib/build.gradle", """
+        buildFile("build-logic/${relativeDir(projectPath)}/build.gradle", """
             plugins {
                 id("java-library")
             }
@@ -91,21 +102,30 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
                 id("java-library")
             }
 
-            ${withFooTransformedDependency("org.test:lib:1.0")}
+            ${withFooTransformedDependency("org.test:$artifactName:1.0")}
         """
 
         when:
         configurationCacheRun "syncFoo"
 
+        and:
+        // Run again as projects load logic is not triggered by load-after-store
+        configurationCacheRun "syncFoo"
+
         then:
-        file("build/lib-1.0.jar.foo").exists()
+        file("build/${artifactName}-1.0.jar.foo").exists()
+
+        where:
+        projectType         | projectPath   | artifactName
+        "project"           | ":lib"        | "lib"
+        "nested subproject" | ":lib:sublib" | "sublib"
     }
 
-    def "can use a project from included build in buildscript classpath and as transform input in another included build"() {
+    def "can use #projectType from included build in buildscript classpath and as transform input in another included build"() {
         buildFile("build-logic/settings.gradle", """
-            include(":lib")
+            include("$projectPath")
         """)
-        buildFile("build-logic/lib/build.gradle", """
+        buildFile("build-logic/${relativeDir(projectPath)}/build.gradle", """
             plugins {
                 id("java-library")
             }
@@ -120,7 +140,7 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
             import org.gradle.api.artifacts.transform.TransformParameters
             buildscript {
                 dependencies {
-                    classpath("org.test:lib:1.0")
+                    classpath("org.test:$artifactName:1.0")
                 }
             }
 
@@ -128,7 +148,7 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
                 id("java-library")
             }
 
-            ${withFooTransformedDependency("org.test:lib:1.0")}
+            ${withFooTransformedDependency("org.test:$artifactName:1.0")}
         """)
 
         settingsFile """
@@ -145,13 +165,22 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
         when:
         configurationCacheRun "run"
 
+        and:
+        // Run again as projects load logic is not triggered by load-after-store
+        configurationCacheRun "run"
+
         then:
-        file("consumer/build/lib-1.0.jar.foo").exists()
+        file("consumer/build/${artifactName}-1.0.jar.foo").exists()
+
+        where:
+        projectType        | projectPath    | artifactName
+        "project"          | ":lib"         | "lib"
+        "nested subproject"| ":lib:sublib"  | "sublib"
     }
 
-    def "can use a project from included build logic build as transform input in another included build"() {
+    def "can use #projectType from included build logic build as transform input in another included build"() {
         buildFile("build-logic/settings.gradle", """
-            include(":lib")
+            include("$projectPath")
         """)
         buildFile("build-logic/build.gradle", """
             plugins {
@@ -161,7 +190,7 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
         file("build-logic/src/main/groovy/my-plugin.gradle") << """
             println 'In script plugin'
         """
-        buildFile("build-logic/lib/build.gradle", """
+        buildFile("build-logic/${relativeDir(projectPath)}/build.gradle", """
             plugins {
                 id("java-library")
             }
@@ -182,7 +211,7 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
                 id("java-library")
             }
 
-            ${withFooTransformedDependency("org.test:lib:1.0")}
+            ${withFooTransformedDependency("org.test:$artifactName:1.0")}
         """)
 
         settingsFile """
@@ -199,8 +228,21 @@ class ConfigurationCacheIncludedBuildTransformIntegrationTest extends AbstractCo
         when:
         configurationCacheRun "run"
 
+        and:
+        // Run again as projects load logic is not triggered by load-after-store
+        configurationCacheRun "run"
+
         then:
-        file("consumer/build/lib-1.0.jar.foo").exists()
+        file("consumer/build/${artifactName}-1.0.jar.foo").exists()
+
+        where:
+        projectType         | projectPath   | artifactName
+        "project"           | ":lib"        | "lib"
+        "nested subproject" | ":lib:sublib" | "sublib"
+    }
+
+    private static String relativeDir(String projectPath) {
+        projectPath.replace(':', '/')
     }
 
     private static withFooTransformedDependency(String dependency) {
