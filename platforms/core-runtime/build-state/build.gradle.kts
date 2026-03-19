@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.serialization)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.startParameter)
 
     compileOnly(libs.jspecify)
 

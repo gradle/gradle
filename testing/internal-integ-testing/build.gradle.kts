@@ -97,6 +97,7 @@ dependencies {
     implementation(projects.serialization)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.startParameter)
     implementation(projects.time)
 
     implementation(testFixtures(projects.buildProcessServices))

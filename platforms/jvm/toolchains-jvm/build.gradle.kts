@@ -52,6 +52,7 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.logging)
     implementation(projects.modelCore)
+    implementation(projects.startParameter)
 
     implementation(libs.guava)
     implementation(libs.slf4jApi)

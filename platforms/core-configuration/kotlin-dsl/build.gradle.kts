@@ -1,5 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin.Companion.shadowRuntimeElements
 import gradlebuild.basics.PublicKotlinDslApi
+import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 plugins {
@@ -28,6 +29,7 @@ dependencies {
     api(projects.loggingApi)
     api(projects.modelCore)
     api(projects.persistentCache)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 

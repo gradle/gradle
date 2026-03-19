@@ -1484,6 +1484,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "start-parameter",
+    "path": "platforms/core-runtime/start-parameter",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "stdlib-java-extensions",
     "path": "platforms/core-runtime/stdlib-java-extensions",
     "unitTests": true,

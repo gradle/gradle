@@ -25,6 +25,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.persistentCache)
     implementation(projects.serialization)
+    implementation(projects.startParameter)
 
     implementation(libs.guava)
     implementation(libs.jgitSsh)

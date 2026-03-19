@@ -88,6 +88,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.snapshots)
     api(projects.projectFeatures)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.versionedCache)

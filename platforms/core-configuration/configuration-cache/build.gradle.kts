@@ -38,6 +38,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)

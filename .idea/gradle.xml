@@ -206,6 +206,7 @@
             <option value="$PROJECT_DIR$/platforms/core-runtime/service-provider" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/service-registry-builder" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/service-registry-impl" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/start-parameter" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/stdlib-java-extensions" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/time" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/tooling-api-provider" />

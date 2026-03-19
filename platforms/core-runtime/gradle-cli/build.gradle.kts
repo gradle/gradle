@@ -44,7 +44,6 @@ dependencies {
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
-    implementation(projects.coreApi)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)
@@ -54,6 +53,7 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.startParameter)
     implementation(projects.stdlibJavaExtensions)
 
     runtimeOnly(libs.groovy)
