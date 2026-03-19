@@ -527,3 +527,29 @@ For the CC case (issue #29941), **Fix D** is the right direction but requires mo
 CC serialization path to know how many units of work to report upfront.
 
 **Fix A** (99% cap) is the safest short-term option if the mob wants a quick win without risk.
+
+projects config -> 90 -> task graph -> 95 -> cc load -> 100
+100 + extra for task gragph + extra for CC
+47% -> 95 -> 100 
+
+Can we express progress in terms of an ETA instead?
+
+
+## MOB Session
+
+### Extra phases
+
+CONFIGURING[100%] -> DISCOVERING[3] (counter instead of percentage) -> [CACHING] -> EXECUTING[0/3]
+
+CoD:
+CONFIGURING[100%] (instant/maybe not visible) -> DISCOVERING[3] -> EXECUTING[0/3]
+
+### Questions:
+Can we express progress in terms of an ETA instead?
+
+### Other ideas
+projects config -> 90 -> task graph -> 95 -> cc load -> 100
+100 + extra for task gragph + extra for CC
+47% -> 95 -> 100
+
+Can we express progress in terms of an ETA instead?
