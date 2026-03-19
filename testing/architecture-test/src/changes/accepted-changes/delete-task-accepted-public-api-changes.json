@@ -5,7 +5,8 @@
             "member": "Class org.gradle.api.tasks.Delete",
             "acceptation": "provider api migration",
             "changes": [
-                "Abstract method has been added in implemented interface"
+                "Abstract method has been added in implemented interface",
+                "Default method has been added in implemented interface"
             ]
         }
     ]

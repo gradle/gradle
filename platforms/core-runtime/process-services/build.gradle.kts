@@ -19,7 +19,6 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.logging)
     implementation(projects.persistentCache)
     implementation(projects.loggingApi)
     implementation(projects.messaging)
@@ -32,6 +31,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jnrConstants)
     implementation(libs.slf4jApi)
+    runtimeOnly(projects.logging)
 
     testImplementation(projects.io)
     testImplementation(testFixtures(projects.core)) {

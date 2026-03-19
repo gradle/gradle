@@ -154,14 +154,6 @@
         },
         {
             "type": "org.gradle.api.tasks.bundling.War",
-            "member": "Class org.gradle.api.tasks.bundling.War",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.bundling.War",
             "member": "Method org.gradle.api.tasks.bundling.War.getWebAppDirectory()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
@@ -250,34 +242,10 @@
         },
         {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
-            "member": "Class org.gradle.api.tasks.diagnostics.ProjectReportTask",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getProjectFeatureDeclarations()",
             "acceptation": "Removing unused internal service getter",
             "changes": [
                 "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.PropertyReportTask",
-            "member": "Class org.gradle.api.tasks.diagnostics.PropertyReportTask",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
-            "member": "Class org.gradle.api.tasks.diagnostics.TaskReportTask",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -470,14 +438,6 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
-            "member": "Class org.gradle.language.scala.tasks.AbstractScalaCompile",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -698,14 +658,6 @@
         },
         {
             "type": "org.gradle.plugins.ear.Ear",
-            "member": "Class org.gradle.plugins.ear.Ear",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ear.Ear",
             "member": "Method org.gradle.plugins.ear.Ear.getAppDirectory()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
@@ -750,14 +702,6 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.testing.jacoco.tasks.JacocoReport",
-            "member": "Class org.gradle.testing.jacoco.tasks.JacocoReport",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {

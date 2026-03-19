@@ -1,0 +1,260 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Class org.gradle.api.plugins.antlr.AntlrTask",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Class org.gradle.api.plugins.quality.Checkstyle",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CodeNarc",
+            "member": "Class org.gradle.api.plugins.quality.CodeNarc",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Class org.gradle.api.plugins.quality.Pmd",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor",
+            "member": "Class org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+            "member": "Class org.gradle.api.publish.maven.tasks.GenerateMavenPom",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Class org.gradle.api.reporting.GenerateBuildDashboard",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Class org.gradle.api.tasks.AbstractExecTask",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Class org.gradle.api.tasks.JavaExec",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.WriteProperties",
+            "member": "Class org.gradle.api.tasks.WriteProperties",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ant.AntTarget",
+            "member": "Class org.gradle.api.tasks.ant.AntTarget",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Class org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Class org.gradle.api.tasks.compile.AbstractCompile",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Class org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Class org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
+            "member": "Class org.gradle.api.tasks.javadoc.Groovydoc",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Class org.gradle.api.tasks.javadoc.Javadoc",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Class org.gradle.api.tasks.scala.ScalaDoc",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Class org.gradle.api.tasks.testing.Test",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.wrapper.Wrapper",
+            "member": "Class org.gradle.api.tasks.wrapper.Wrapper",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Class org.gradle.buildinit.tasks.InitBuild",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Class org.gradle.jvm.application.tasks.CreateStartScripts",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Class org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "member": "Class org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Class org.gradle.nativeplatform.tasks.InstallExecutable",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.LinkSharedLibrary",
+            "member": "Class org.gradle.nativeplatform.tasks.LinkSharedLibrary",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
+            "member": "Class org.gradle.nativeplatform.tasks.StripSymbols",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Class org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "member": "Class org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
+            "member": "Class org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest",
+            "member": "Class org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest",
+            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoBase",
+            "member": "Class org.gradle.testing.jacoco.tasks.JacocoBase",
+            "acceptation": "default-methods-added-to-interface-accepted-public-api-changes.json",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        }
+    ]
+}
