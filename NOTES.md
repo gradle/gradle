@@ -295,6 +295,103 @@ Relevant code:
 
 ---
 
+## Testing
+
+### Unit tests — fastest feedback loop
+
+`BuildStatusRendererTest.groovy` is the primary unit test for Fix B. It fires fake
+`ProgressStartEvent` / `ProgressCompleteEvent` objects directly into `BuildStatusRenderer` and
+asserts the resulting status bar string (e.g. `[###............] 25% CONFIGURING [0ms]`).
+
+```
+./gradlew :logging:test --tests "*.BuildStatusRendererTest"
+```
+
+The test helpers make it easy to add a new scenario. The existing `startOther` helper already
+shows how to fire an `UNCATEGORIZED` operation — a new `startCalculateTaskGraph` helper would just
+pass the new category:
+
+```groovy
+// in BuildStatusRendererTest.groovy — new helper alongside startConfigureProject etc.
+def startCalculateTaskGraph(Long id, Long parentId) {
+    return start(id, parentId, BuildOperationCategory.CALCULATE_TASK_GRAPH, 1)
+}
+```
+
+A new unit test case for Fix B would look like:
+
+```groovy
+def "calculate task graph is tracked as part of configuring phase"() {
+    given:
+    def event1 = startRootBuildOperation(1)
+    def event2 = startConfigureRootBuild(2, 1, 1)   // 1 project
+    def event3 = startConfigureProject(3, 2)
+    def event4 = startCalculateTaskGraph(4, 1)       // fires after project config
+
+    when:
+    renderer.onOutput(event1)
+    renderer.onOutput(event2)
+    renderer.onOutput(event3)
+    renderer.onOutput(complete(3))                   // project done → would be 100%
+    renderer.onOutput(event4)                        // task graph starts → total becomes 2
+    renderer.onOutput(updateNow())
+
+    then:
+    statusBar.display == '[###############] 50% CONFIGURING [0ms]'  // NOT 100%
+
+    when:
+    renderer.onOutput(complete(4))                   // task graph done → 100%
+    renderer.onOutput(updateNow())
+
+    then:
+    statusBar.display == '[###############] 100% CONFIGURING [0ms]'
+}
+```
+
+`ProgressBar` also has its own unit tests for rendering logic:
+
+```
+./gradlew :logging:test --tests "*.ProgressBarTest"
+```
+
+---
+
+### Integration tests — verify against a real running build
+
+`AbstractConsoleBuildPhaseFunctionalTest` runs a real Gradle build, uses a `BlockingHttpServer`
+to pause execution at specific points, and polls `gradle.standardOutput` for the expected progress
+string. The concrete implementations run with different console modes:
+
+| Class | Console mode | Command |
+|---|---|---|
+| `RichConsoleBuildPhaseFunctionalTest` | Rich (unicode) | `./gradlew :logging:integTest --tests "*.RichConsoleBuildPhaseFunctionalTest"` |
+| `AutoConsoleBuildPhaseFunctionalTest` | Auto-detected | `./gradlew :logging:integTest --tests "*.AutoConsoleBuildPhaseFunctionalTest"` |
+| `VerboseConsoleBuildPhaseFunctionalTest` | Verbose | `./gradlew :logging:integTest --tests "*.VerboseConsoleBuildPhaseFunctionalTest"` |
+
+The existing test `"shows progress bar and percent phase completion"` already has a blocking
+call **inside the task graph calculation** (`dependsOn { server.callFromBuild('task-graph'); null }`)
+and currently asserts `"100% CONFIGURING"` at that point:
+
+```groovy
+// AbstractConsoleBuildPhaseFunctionalTest.groovy:101-103 — currently asserts 100%
+taskGraph.waitForAllPendingCalls()
+assertHasBuildPhase("100% CONFIGURING")   // ← this assertion must change with Fix B
+taskGraph.releaseAll()
+```
+
+With Fix B implemented, this assertion should change to something less than 100% (e.g. `"80% CONFIGURING"`
+for a 4-project build with 1 extra task-graph slot). This existing test is the **integration-level
+acceptance test** for Fix B — it already blocks inside task graph calculation, it just asserts the
+wrong value right now.
+
+Run all build-phase integration tests:
+
+```
+./gradlew :logging:integTest --tests "*.ConsoleBuildPhaseFunctionalTest"
+```
+
+---
+
 ## Recommended Approach for Mob Session
 
 Start with **Fix B** (add `CALCULATE_TASK_GRAPH` category) as it is the most targeted, accurate fix
