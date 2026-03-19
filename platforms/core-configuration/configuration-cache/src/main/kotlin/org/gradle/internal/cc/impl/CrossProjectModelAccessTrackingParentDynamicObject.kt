@@ -38,8 +38,12 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting
 ) : HierarchicalDynamicObject {
+    override fun getDisplayName(): String {
+        return delegate.displayName
+    }
 
     override fun getParent(): HierarchicalDynamicObject? {
+        onAccess(MemberKind.PARENT, null)
         return delegate.getParent()
     }
 
@@ -106,10 +110,6 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     override fun invokeMethod(name: String, vararg arguments: Any?): Any? {
         onAccess(MemberKind.METHOD, name)
         return delegate.invokeMethod(name, *arguments)
-    }
-
-    override fun getDisplayName(): String {
-        return delegate.displayName
     }
 
     private

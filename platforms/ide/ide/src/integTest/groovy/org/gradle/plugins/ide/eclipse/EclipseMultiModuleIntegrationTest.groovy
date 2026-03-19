@@ -126,9 +126,11 @@ project(':services:utilities') {
             }
 
             subprojects {
-                eclipse {
-                    project {
-                        name = rootProject.name + path.replace(':', '-')
+                if (project.name != 'nonEclipse') {
+                    eclipse {
+                        project {
+                            name = rootProject.name + path.replace(':', '-')
+                        }
                     }
                 }
             }

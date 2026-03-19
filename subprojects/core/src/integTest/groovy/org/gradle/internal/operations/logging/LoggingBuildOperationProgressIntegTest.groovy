@@ -167,9 +167,9 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                 10.times {
                     task("myTask\$it") { tsk ->
                         doLast {
-                            threaded {
+                            Thread.start({
                                 logger.lifecycle("from \${tsk.path} task external thread")
-                            }
+                            }).join()
                         }
                     }
                 }

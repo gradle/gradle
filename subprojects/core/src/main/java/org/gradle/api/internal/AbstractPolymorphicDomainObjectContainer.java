@@ -132,6 +132,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
+        @Deprecated
         public Map<String, T> getProperties() {
             return getAsMap();
         }

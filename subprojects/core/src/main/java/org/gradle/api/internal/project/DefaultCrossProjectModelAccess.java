@@ -23,8 +23,8 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.invocation.GradleLifecycleActionExecutor;
-import org.jspecify.annotations.Nullable;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;

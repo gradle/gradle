@@ -88,6 +88,7 @@ public class CompositeDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
+    @Deprecated
     public Map<String, @Nullable Object> getProperties() {
         Map<String, @Nullable Object> properties = new HashMap<>();
         for (int i = objects.size() - 1; i >= 0; i--) {
@@ -117,4 +118,5 @@ public class CompositeDynamicObject extends AbstractDynamicObject {
         }
         return DynamicInvokeResult.notFound();
     }
+
 }

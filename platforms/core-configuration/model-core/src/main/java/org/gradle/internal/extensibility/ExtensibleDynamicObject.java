@@ -22,6 +22,7 @@ import org.codehaus.groovy.runtime.GeneratedClosure;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -310,6 +311,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         return DynamicInvokeResult.notFound();
     }
 
+
     private class InheritedDynamicObject implements HierarchicalDynamicObject {
 
         @Override
@@ -372,6 +374,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         }
 
         @Override
+        @Deprecated
         public Map<String, ? extends @Nullable Object> getProperties() {
             return snapshotInheritable().getProperties();
         }

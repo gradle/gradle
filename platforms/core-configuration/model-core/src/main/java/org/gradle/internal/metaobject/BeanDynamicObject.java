@@ -211,6 +211,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
+    @Deprecated
     public Map<String, ? extends @Nullable Object> getProperties() {
         return delegate.getProperties();
     }
@@ -510,6 +511,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         @SuppressWarnings("MixedMutabilityReturnType")
         // This might be too invasive to fix properly because it is in the dynamic code.
+        @Deprecated
         public Map<String, ? extends @Nullable Object> getProperties() {
             if (!includeProperties) {
                 return Collections.emptyMap();
