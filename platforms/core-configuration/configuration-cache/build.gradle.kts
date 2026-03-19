@@ -48,7 +48,6 @@ dependencies {
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(projects.buildDiscovery)
     implementation(projects.buildDiscoveryImpl)
-    implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
     implementation(projects.coreFlowServicesApi)

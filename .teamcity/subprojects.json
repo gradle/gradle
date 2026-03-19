@@ -178,7 +178,7 @@
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

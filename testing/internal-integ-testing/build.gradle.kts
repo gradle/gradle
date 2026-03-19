@@ -70,7 +70,6 @@ dependencies {
     implementation(projects.buildCache)
     implementation(projects.buildDiscovery)
     implementation(projects.buildDiscoveryImpl)
-    implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
