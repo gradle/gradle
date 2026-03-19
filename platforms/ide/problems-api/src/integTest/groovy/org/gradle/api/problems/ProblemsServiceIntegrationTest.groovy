@@ -204,7 +204,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can emit a problem with a severity"(Severity severity) {
+    def "report() always emits WARNING severity regardless of severity() call"(Severity severity) {
         given:
         withReportProblemTask """
             ${problemIdScript()}
@@ -217,7 +217,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        receivedProblem.definition.severity == severity
+        receivedProblem.definition.severity == Severity.WARNING
 
         where:
         severity << Severity.values()

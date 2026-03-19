@@ -46,7 +46,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         """
 
         expect:
-        assertValidationFailsWith([error(missingAnnotationConfig { type('MyTask').property('tree.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation')])
+        assertValidationFailsWith([warning(missingAnnotationConfig { type('MyTask').property('tree.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation')])
 
         and:
         verifyAll(receivedProblem) {
@@ -96,8 +96,8 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         assertValidationFailsWith([
-            error(annotationInvalidInContextConfig { annotation(ann.simpleName).type('MyTask').property('options.nestedThing').forTask() }, 'validation_problems', 'annotation_invalid_in_context'),
-            error(annotationInvalidInContextConfig { annotation(ann.simpleName).type('MyTask').property('thing').forTask() }, 'validation_problems', 'annotation_invalid_in_context')
+            warning(annotationInvalidInContextConfig { annotation(ann.simpleName).type('MyTask').property('options.nestedThing').forTask() }, 'validation_problems', 'annotation_invalid_in_context'),
+            warning(annotationInvalidInContextConfig { annotation(ann.simpleName).type('MyTask').property('thing').forTask() }, 'validation_problems', 'annotation_invalid_in_context')
         ])
 
         and:
@@ -172,9 +172,9 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
         then:
         assertValidationFailsWith([
-            error(missingNormalizationStrategyConfig { type('MyTask').property('dirProp').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
-            error(missingNormalizationStrategyConfig { type('MyTask').property('fileProp').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
-            error(missingNormalizationStrategyConfig { type('MyTask').property('filesProp').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
+            warning(missingNormalizationStrategyConfig { type('MyTask').property('dirProp').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
+            warning(missingNormalizationStrategyConfig { type('MyTask').property('fileProp').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
+            warning(missingNormalizationStrategyConfig { type('MyTask').property('filesProp').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
         ])
 
         and:
@@ -358,9 +358,9 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationConfig { type('MyTransformAction').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
-            error(annotationInvalidInContextConfig { annotation('InputFile').type('MyTransformAction').property('inputFile').forTransformAction() }, 'validation_problems', 'annotation_invalid_in_context'),
-            error(missingAnnotationConfig { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTransformAction').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
+            warning(annotationInvalidInContextConfig { annotation('InputFile').type('MyTransformAction').property('inputFile').forTransformAction() }, 'validation_problems', 'annotation_invalid_in_context'),
+            warning(missingAnnotationConfig { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
 
         and:
@@ -462,10 +462,10 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationConfig { type('MyTransformParameters').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
-            error(incompatibleAnnotationsConfig { type('MyTransformParameters').property('incrementalNonFileInput').annotatedWith('Incremental').incompatibleWith('Input') }, 'validation_problems', 'incompatible_annotations'),
-            error(annotationInvalidInContextConfig { annotation('InputArtifact').type('MyTransformParameters').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
-            error(missingAnnotationConfig { type('MyTransformParameters').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTransformParameters').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
+            warning(incompatibleAnnotationsConfig { type('MyTransformParameters').property('incrementalNonFileInput').annotatedWith('Incremental').incompatibleWith('Input') }, 'validation_problems', 'incompatible_annotations'),
+            warning(annotationInvalidInContextConfig { annotation('InputArtifact').type('MyTransformParameters').property('inputFile') }, 'validation_problems', 'annotation_invalid_in_context'),
+            warning(missingAnnotationConfig { type('MyTransformParameters').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
 
         and:
@@ -541,8 +541,8 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         assertValidationFailsWith([
-            error(missingCachingAnnotationConfig { forTask().type("MyTask") }, "validation_problems", "disable_caching_by_default"),
-            error(missingCachingAnnotationConfig { forTransformAction().type("MyTransformAction") }, "validation_problems", "disable_caching_by_default")
+            warning(missingCachingAnnotationConfig { forTask().type("MyTask") }, "validation_problems", "disable_caching_by_default"),
+            warning(missingCachingAnnotationConfig { forTransformAction().type("MyTransformAction") }, "validation_problems", "disable_caching_by_default")
         ])
 
          and:
@@ -637,13 +637,13 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
         assertValidationFailsWith([
-            error(unsupportedValueTypeConfig { type('MyTask').property('direct').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('ResolvedArtifactResult').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('listPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('ListProperty<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('mapPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('MapProperty<String, ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('nestedBean.nestedInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Property<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('propertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Property<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('providerInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Provider<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('setPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('SetProperty<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('direct').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('ResolvedArtifactResult').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('listPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('ListProperty<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('mapPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('MapProperty<String, ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('nestedBean.nestedInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Property<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('propertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Property<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('providerInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Provider<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('setPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('SetProperty<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
         ])
 
         and:

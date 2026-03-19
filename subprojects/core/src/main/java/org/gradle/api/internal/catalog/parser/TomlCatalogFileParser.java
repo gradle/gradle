@@ -67,7 +67,6 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.I
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_PLUGIN_NOTATION;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOML_SYNTAX_ERROR;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FORMAT_VERSION;
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.RenderingUtils.quotedOxfordListOf;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
@@ -160,9 +159,7 @@ public class TomlCatalogFileParser {
             .id(screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())
             .contextualLabel(label)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
-        InternalProblemSpec definingCategory = locationDefiner.apply(definingLocation);
-        return definingCategory
-            .severity(ERROR);
+        return locationDefiner.apply(definingLocation);
     }
 
     private void assertNoParseErrors(TomlParseResult result) {

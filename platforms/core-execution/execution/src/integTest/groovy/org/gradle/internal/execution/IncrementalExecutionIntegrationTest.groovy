@@ -33,7 +33,6 @@ import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegi
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.FingerprinterRegistration
-import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
@@ -85,7 +84,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def inputFingerprinter = new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)
     def buildOperationRunner = new TestBuildOperationRunner()
-    def validationWarningReporter = Mock(ValidateStep.ValidationWarningRecorder)
 
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")
@@ -121,7 +119,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             outputChangeListener,
             outputSnapshotter,
             overlappingOutputDetector,
-            validationWarningReporter,
             virtualFileSystem,
             problems
         )

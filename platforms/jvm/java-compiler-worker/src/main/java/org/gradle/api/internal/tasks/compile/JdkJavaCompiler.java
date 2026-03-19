@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDecla
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -86,8 +85,11 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             System.err.println(diagnosticCounts);
         }
         if (!success) {
+            // Report warning-kind diagnostics via report() → they keep WARNING severity
+            problemsService.getInternalReporter().report(diagnosticToProblemListener.getNonErrorProblems());
             CompilationFailedException exception = new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems().stream().map(InternalProblem.class::cast).collect(toList()), diagnosticCounts);
-            throw problemsService.getInternalReporter().throwing(exception, diagnosticToProblemListener.getReportedProblems());
+            // Throw with error-kind diagnostics via throwing() → they get ERROR severity
+            throw problemsService.getInternalReporter().throwing(exception, diagnosticToProblemListener.getErrorProblems());
         } else {
             problemsService.getInternalReporter().report(diagnosticToProblemListener.getReportedProblems());
         }
@@ -138,7 +140,6 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     }
 
     private static void buildProblemFrom(RuntimeException ex, ProblemSpec spec) {
-        spec.severity(Severity.ERROR);
         spec.contextualLabel(ex.getLocalizedMessage());
         spec.withException(ex);
     }

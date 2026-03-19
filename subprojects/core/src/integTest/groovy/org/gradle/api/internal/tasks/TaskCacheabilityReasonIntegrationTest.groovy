@@ -37,7 +37,6 @@ import static org.gradle.operations.execution.CachingDisabledReasonCategory.NOT_
 import static org.gradle.operations.execution.CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED
 import static org.gradle.operations.execution.CachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
 import static org.gradle.operations.execution.CachingDisabledReasonCategory.UNKNOWN
-import static org.gradle.operations.execution.CachingDisabledReasonCategory.VALIDATION_FAILURE
 
 class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
@@ -389,16 +388,15 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
     // This test only works in embedded mode because of the use of validation test fixtures
     @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    def "cacheability for task with disabled optimizations is VALIDATION_FAILURE"() {
+    def "task with validation failure fails the build"() {
         when:
         executer.noDeprecationChecks()
         buildFile """
             import org.gradle.integtests.fixtures.validation.ValidationProblem
-            import org.gradle.api.problems.Severity
 
             @CacheableTask
             abstract class InvalidTask extends DefaultTask {
-                @ValidationProblem(value = Severity.WARNING)
+                @ValidationProblem
                 abstract Property<String> getInput()
 
                 @OutputFile
@@ -417,8 +415,8 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         then:
-        withBuildCache().succeeds("invalid")
-        assertCachingDisabledFor VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.", ":invalid"
+        withBuildCache().fails("invalid")
+        failure.assertHasDescription("Some problems were found with the configuration of task ':invalid'")
     }
 
     def "cacheability for a cacheable task can be disabled via #condition"() {

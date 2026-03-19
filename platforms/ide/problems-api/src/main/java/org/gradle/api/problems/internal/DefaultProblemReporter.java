@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.Severity;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -50,10 +51,12 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void report(ProblemId problemId, Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         problemBuilder.id(problemId);
         spec.execute(problemBuilder);
+        problemBuilder.severity(Severity.WARNING);
         report(problemBuilder.build());
     }
 
@@ -63,18 +66,20 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public RuntimeException throwing(Throwable exception, ProblemId problemId, Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         problemBuilder.id(problemId);
         spec.execute(problemBuilder);
         problemBuilder.withException(exception);
+        problemBuilder.severity(Severity.ERROR);
         report(problemBuilder.build());
         throw runtimeException(exception);
     }
 
     @Override
     public RuntimeException throwing(Throwable exception, Problem problem) {
-        problem = addExceptionToProblem(exception, problem);
+        problem = addExceptionToProblem(exception, problem, Severity.ERROR);
         report(problem);
         throw runtimeException(exception);
     }
@@ -82,14 +87,15 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @Override
     public RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems) {
         for (Problem problem : problems) {
-            report(addExceptionToProblem(exception, problem));
+            report(addExceptionToProblem(exception, problem, Severity.ERROR));
         }
         throw runtimeException(exception);
     }
 
     @NonNull
-    private InternalProblem addExceptionToProblem(Throwable exception, Problem problem) {
-        return getBuilder(problem).withException(transform(exception)).build();
+    @SuppressWarnings("deprecation")
+    private InternalProblem addExceptionToProblem(Throwable exception, Problem problem, Severity severity) {
+        return getBuilder(problem).withException(transform(exception)).severity(severity).build();
     }
 
     private static RuntimeException runtimeException(Throwable exception) {

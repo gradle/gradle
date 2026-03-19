@@ -36,8 +36,8 @@ import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.ResolveMutableCachingStateStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.ValidateStep;
+import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
@@ -62,12 +62,11 @@ public class TestExecutionEngineFactory {
         OutputChangeListener outputChangeListener,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
-        ValidateStep.ValidationWarningRecorder validationWarningReporter,
         VirtualFileSystem virtualFileSystem,
         InternalProblems problems
     ) {
         NoOpBuildOperationProgressEventEmitter progressEventEmitter = new NoOpBuildOperationProgressEventEmitter();
-        ExecutionProblemHandler problemHandler = new DefaultExecutionProblemHandler(validationWarningReporter, virtualFileSystem);
+        ExecutionProblemHandler problemHandler = new DefaultExecutionProblemHandler();
         // @formatter:off
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationRunner, classloaderHierarchyHasher,

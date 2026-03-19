@@ -87,7 +87,6 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.vfs.FileSystemAccess;
-import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 
@@ -134,8 +133,8 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ExecutionProblemHandler createExecutionProblemHandler(ValidateStep.ValidationWarningRecorder warningRecorder, VirtualFileSystem virtualFileSystem) {
-        return new DefaultExecutionProblemHandler(warningRecorder, virtualFileSystem);
+    ExecutionProblemHandler createExecutionProblemHandler() {
+        return new DefaultExecutionProblemHandler();
     }
 
     @Provides

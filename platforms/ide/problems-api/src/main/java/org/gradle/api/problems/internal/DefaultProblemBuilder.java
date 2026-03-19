@@ -122,7 +122,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (problemStream == null || (!collectStackLocation && areLocationsProvided())) {
             return null;
         }
-        return problemStream.forCurrentCaller(exceptionForStackLocation(this.severity == Severity.ERROR));
+        return problemStream.forCurrentCaller(exceptionForStackLocation(this.exception != null));
     }
 
     private boolean areLocationsProvided() {
@@ -205,6 +205,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public InternalProblemBuilder severity(Severity severity) {
         this.severity = severity;
         return this;

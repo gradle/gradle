@@ -154,10 +154,9 @@ public @interface ValidationProblem {
     private void writeTaskInto(@GroovyBuildScriptLanguage String header = "", TestFile testFile) {
         testFile << """$header
             import org.gradle.integtests.fixtures.validation.ValidationProblem
-            import org.gradle.api.problems.Severity
 
             abstract class SomeTask extends DefaultTask {
-                @ValidationProblem(value=Severity.ERROR)
+                @ValidationProblem
                 abstract Property<String> getInput()
 
                 @OutputFile
