@@ -28,6 +28,7 @@ class DeclarativeAgpSmokeSpec extends AbstractIntegrationSpec {
 
     def 'a declarative project configures successfully with AGP'() {
         Assume.assumeTrue("Java version >= 11 required by AGP dependencies", Jvm.current().javaVersionMajor >= 11)
+        Assume.assumeTrue("Nightly AGP version available", !agpVersions.nightlies.empty)
 
         executer.usingInitScript(agpVersions.createAgpNightlyRepositoryInitScript())
 
