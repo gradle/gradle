@@ -69,9 +69,11 @@ public class WrapperGenerator {
         File unixScript, File batchScript,
         @Nullable String distributionUrl,
         boolean validateDistributionUrl,
-        @Nullable Integer networkTimeout
+        @Nullable Integer networkTimeout,
+        @Nullable Integer retries,
+        @Nullable Integer retryTimeoutMs
     ) {
-        writeProperties(wrapperPropertiesOutputFile, distributionUrl, distributionSha256Sum, distributionBase, distributionPath, archiveBase, archivePath, networkTimeout, validateDistributionUrl);
+        writeProperties(wrapperPropertiesOutputFile, distributionUrl, distributionSha256Sum, distributionBase, distributionPath, archiveBase, archivePath, networkTimeout, validateDistributionUrl, retries, retryTimeoutMs);
         writeWrapperJar(wrapperJarOutputFile);
         writeScripts(jarFileRelativePath, unixScript, batchScript);
     }
@@ -85,7 +87,9 @@ public class WrapperGenerator {
         PathBase archiveBase,
         String archivePath,
         @Nullable Integer networkTimeout,
-        boolean validateDistributionUrl
+        boolean validateDistributionUrl,
+        @Nullable Integer retries,
+        @Nullable Integer retryTimeoutMs
     ) {
         Properties wrapperProperties = new Properties();
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, distributionUrl);
@@ -100,7 +104,12 @@ public class WrapperGenerator {
             wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, String.valueOf(networkTimeout));
         }
         wrapperProperties.put(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, String.valueOf(validateDistributionUrl));
-
+        if (retries != null) {
+            wrapperProperties.put(WrapperExecutor.RETRIES_PROPERTY, String.valueOf(retries));
+        }
+        if (retryTimeoutMs != null) {
+            wrapperProperties.put(WrapperExecutor.RETRY_TIMEOUT_PROPERTY, String.valueOf(retryTimeoutMs));
+        }
         GFileUtils.parentMkdirs(propertiesFileDestination);
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);

@@ -53,6 +53,19 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
+### Automatic retries for Wrapper downloads
+
+The [Gradle Wrapper](userguide/gradle_wrapper.html) now supports automatic retries when downloading the Gradle distribution.
+This helps reduce build failures caused by unstable network connections or temporary server issues.
+By default, no retries are attempted.
+
+To enable retries, add the following properties to `gradle-wrapper.properties`:
+
+```properties
+retries=3 # Sets the maximum number of retry attempts
+retryTimeoutMs=5000 # Sets the delay between retries
+```
+
 #### Type-safe accessors for precompiled Kotlin Settings plugins
 
 Gradle now generates type-safe Kotlin accessors for [precompiled convention Settings plugins](userguide/pre_compiled_script_plugin_advanced.html) (`*.settings.gradle.kts`).
