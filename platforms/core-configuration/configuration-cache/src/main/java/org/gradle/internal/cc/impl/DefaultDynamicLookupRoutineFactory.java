@@ -18,8 +18,6 @@ package org.gradle.internal.cc.impl;
 
 import org.gradle.api.internal.project.DynamicLookupRoutineFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.configuration.problems.ProblemFactory;
-import org.gradle.internal.configuration.problems.ProblemsListener;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -30,34 +28,15 @@ import java.util.function.Consumer;
  * class loading issues during script initialization.
  */
 @NullMarked
-class IsolatedProjectsDynamicLookupRoutineFactory implements DynamicLookupRoutineFactory {
-
-    private final ProblemsListener problemsListener;
-    private final ProblemFactory problemFactory;
-
-    IsolatedProjectsDynamicLookupRoutineFactory(
-        ProblemsListener problemsListener,
-        ProblemFactory problemFactory
-    ) {
-        this.problemsListener = problemsListener;
-        this.problemFactory = problemFactory;
-    }
+class DefaultDynamicLookupRoutineFactory implements DynamicLookupRoutineFactory {
 
     @Override
     public @Nullable Consumer<String> createViolationReporter(ProjectInternal project) {
-        // Defer Kotlin class loading: create reporter lazily on first violation,
-        // not during script init (which would interfere with DynamicCallProblemReporting).
-        return new Consumer<>() {
-            private final IsolatedProjectsPropertyApiViolationReporter reporter = new IsolatedProjectsPropertyApiViolationReporter(project, problemsListener, problemFactory);
-            @Override
-            public void accept(String methodName) {
-                reporter.reportViolation(methodName);
-            }
-        };
+        return null;
     }
 
     @Override
     public boolean hasReporter() {
-        return true;
+        return false;
     }
 }

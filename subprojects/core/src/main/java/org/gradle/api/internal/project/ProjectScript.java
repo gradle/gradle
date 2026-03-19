@@ -81,11 +81,11 @@ public abstract class ProjectScript extends PluginsAwareScript {
     protected void initDynamicLookupRoutine(Object target, ServiceRegistry services) {
         dynamicLookupRoutineFactory = services.get(DynamicLookupRoutineFactory.class);
         // Check if IP is enabled without creating a reporter (no project reference yet)
-        if (dynamicLookupRoutineFactory.createViolationReporter(null) == null) {
+        if (!dynamicLookupRoutineFactory.hasReporter()) {
             super.initDynamicLookupRoutine(target, services);
             return;
         }
-        // Set up wrapper with lazy reporter — resolved on first violation, not during init
+        // Set up wrapper with a lazy reporter — resolved on first violation, not during init
         DynamicLookupRoutine buildScoped = services.get(DynamicLookupRoutine.class);
         dynamicLookupRoutine = new DelegatingDynamicLookupRoutine(buildScoped) {
             private Consumer<String> reporter;

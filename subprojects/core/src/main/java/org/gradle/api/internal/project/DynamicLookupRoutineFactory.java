@@ -36,4 +36,6 @@ public interface DynamicLookupRoutineFactory {
      * property API violations should not be reported.
      */
     @Nullable Consumer<String> createViolationReporter(ProjectInternal project);
+
+    boolean hasReporter();
 }
