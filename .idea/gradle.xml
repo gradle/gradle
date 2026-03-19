@@ -149,6 +149,8 @@
             <option value="$PROJECT_DIR$/platforms/core-execution/execution-e2e-tests" />
             <option value="$PROJECT_DIR$/platforms/core-execution/file-watching" />
             <option value="$PROJECT_DIR$/platforms/core-execution/hashing" />
+            <option value="$PROJECT_DIR$/platforms/core-execution/normalization" />
+            <option value="$PROJECT_DIR$/platforms/core-execution/normalization-api" />
             <option value="$PROJECT_DIR$/platforms/core-execution/persistent-cache" />
             <option value="$PROJECT_DIR$/platforms/core-execution/request-handler-worker" />
             <option value="$PROJECT_DIR$/platforms/core-execution/scoped-persistent-cache" />

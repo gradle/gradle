@@ -116,6 +116,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "model-groovy",
         "model-reflect",
         "native",
+        "normalization",
+        "normalization-api",
         "normalization-java",
         "persistent-cache",
         "problems",
