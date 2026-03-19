@@ -127,21 +127,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    void withInvalidPing() {
-        buildFile << """
-            abstract class InvalidPing extends Ping {
-                @org.gradle.integtests.fixtures.validation.ValidationProblem File invalidInput
-            }
-            allprojects {
-                tasks.addRule("<>InvalidPing") { String name ->
-                    if (name.endsWith("InvalidPing")) {
-                        tasks.create(name, InvalidPing)
-                    }
-                }
-            }
-        """
-    }
-
     void withParallelThreads(int threadCount) {
         executer.beforeExecute {
             withArgument("--max-workers=$threadCount")
@@ -529,23 +514,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
-    def "other tasks are not started when an invalid task is running"() {
-        given:
-        withParallelThreads(3)
-        withInvalidPing()
-
-        expect:
-        2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
-
-            blockingServer.expect(":aInvalidPing")
-            blockingServer.expectConcurrent(":bPing", ":cPing")
-            run ":aInvalidPing", ":bPing", ":cPing"
-        }
-    }
-
     def "cacheability warnings do not prevent a task from running in parallel"() {
         given:
         withParallelThreads(3)
@@ -553,23 +521,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         expect:
         blockingServer.expectConcurrent(":aPingWithCacheableWarnings", ":bPing", ":cPing")
         run ":aPingWithCacheableWarnings", ":bPing", ":cPing"
-    }
-
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
-    def "invalid task is not executed in parallel with other task"() {
-        given:
-        withParallelThreads(3)
-        withInvalidPing()
-
-        expect:
-        2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
-
-            blockingServer.expectConcurrent(":aPing", ":bPing")
-            blockingServer.expect(":cInvalidPing")
-            run ":aPing", ":bPing", ":cInvalidPing"
-        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17013")

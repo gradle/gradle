@@ -25,7 +25,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.InternalBuildListener;
@@ -54,7 +53,6 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
         BuildRequestMetaData requestMetaData,
         BuildStartedTime buildStartedTime,
         Clock clock,
-        WorkValidationWarningReporter workValidationWarningReporter,
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         FailureFactory failureFactory
     ) {
@@ -71,8 +69,7 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
             textOutputFactory,
             buildStartedTime,
             clock,
-            new TersePrettyDurationFormatter(),
-            workValidationWarningReporter
+            new TersePrettyDurationFormatter()
         );
     }
 

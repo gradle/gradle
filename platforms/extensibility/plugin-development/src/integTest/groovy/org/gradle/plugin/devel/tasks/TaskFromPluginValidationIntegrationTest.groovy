@@ -20,11 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 
-@Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-// this test only works in embedded mode because of the use of validation test fixtures
 class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def setup() {
@@ -50,17 +46,13 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         fails ':myTask'
 
         then:
-        failureDescriptionContains(dummyValidationProblem {
-            inPlugin('test.gradle.demo.plugin')
-            type('SomeTask').property('input')
-        }.trim())
+        failureDescriptionContains("In plugin 'test.gradle.demo.plugin' type 'SomeTask' property 'input' is missing")
     }
 
     def "detects that a problem is from a task declared in plugin"() {
         settingsFile << """
             includeBuild 'my-plugin'
         """
-        copyValidationProblemClass()
         def pluginFile = file("my-plugin/src/main/groovy/org/gradle/demo/plugin/MyTask.groovy")
         writeTaskInto("""package org.gradle.demo.plugin
 
@@ -107,40 +99,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         fails ':myTask'
 
         then:
-        failureDescriptionContains(dummyValidationProblem {
-            inPlugin('org.gradle.demo.plugin')
-            type('org.gradle.demo.plugin.SomeTask').property('input')
-        })
-    }
-
-    /**
-     * This method creates a dummy ValidationProblem class in the plugin source set, because
-     * the test fixture is not visible at compile time for included builds like they are
-     * typically for precompiled script plugins.
-     * This is really a workaround for the test setup, which doesn't bring any value to the
-     * test itself and therefore is separated for readability.
-     */
-    private void copyValidationProblemClass() {
-        file("my-plugin/src/main/groovy/org/gradle/integtests/fixtures/validation/ValidationProblem.groovy") << """
-package org.gradle.integtests.fixtures.validation;
-
-import org.gradle.api.problems.Severity;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-/**
- * A dummy annotation which is used to trigger validation problems
- * during tests
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target([ElementType.METHOD, ElementType.FIELD])
-public @interface ValidationProblem {
-    Severity value() default Severity.WARNING;
-}
-        """
+        failureDescriptionContains("In plugin 'org.gradle.demo.plugin' type 'org.gradle.demo.plugin.SomeTask' property 'input' is missing")
     }
 
     private TestFile withPrecompiledScriptPlugins() {
@@ -153,11 +112,7 @@ public @interface ValidationProblem {
 
     private void writeTaskInto(@GroovyBuildScriptLanguage String header = "", TestFile testFile) {
         testFile << """$header
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
-            import org.gradle.api.problems.Severity
-
             abstract class SomeTask extends DefaultTask {
-                @ValidationProblem(value=Severity.ERROR)
                 abstract Property<String> getInput()
 
                 @OutputFile

@@ -27,8 +27,6 @@ import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -381,83 +379,6 @@ task someTask {
         "file('1')"          | "files('1')"
         "123"                | "123L"
         "123"                | "123 as short"
-    }
-
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
-    def "invalid task causes VFS to drop"() {
-        buildFile << """
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
-
-            class InvalidTask extends DefaultTask {
-                @ValidationProblem inputFile
-
-                @TaskAction void execute() {
-                    println "Executed"
-                }
-            }
-
-            task invalid(type: InvalidTask)
-        """
-
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'), 'id', 'section')
-
-        when:
-        run "invalid", "--info"
-        then:
-        executedAndNotSkipped(":invalid")
-        outputContains("Invalidating VFS because task ':invalid' failed validation")
-    }
-
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
-    def "validation warnings are displayed once"() {
-        buildFile << """
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
-
-            class InvalidTask extends DefaultTask {
-                @ValidationProblem File inputFile
-
-                @TaskAction void execute() {
-                    println "Executed"
-                }
-            }
-
-            task invalid(type: InvalidTask)
-        """
-
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'), 'id', 'section')
-
-        when:
-        run "invalid"
-        then:
-        executedAndNotSkipped(":invalid")
-        output.count("- Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test.") == 1
-    }
-
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
-    def "validation warnings are reported even when task is skipped"() {
-        buildFile << """
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
-
-            abstract class InvalidTask extends SourceTask {
-                @ValidationProblem File inputFile
-
-                @TaskAction void execute() {
-                    println "Executed"
-                }
-            }
-
-            task invalid(type: InvalidTask)
-        """
-
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'), 'id', 'section')
-
-        when:
-        run "invalid"
-        then:
-        skipped(":invalid")
     }
 
     def "task can use input property of type #type"() {

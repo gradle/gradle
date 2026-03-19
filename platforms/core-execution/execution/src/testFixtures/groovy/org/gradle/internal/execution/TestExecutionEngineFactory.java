@@ -43,7 +43,6 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
-import org.gradle.internal.vfs.VirtualFileSystem;
 
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
@@ -62,12 +61,10 @@ public class TestExecutionEngineFactory {
         OutputChangeListener outputChangeListener,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
-        ValidateStep.ValidationWarningRecorder validationWarningReporter,
-        VirtualFileSystem virtualFileSystem,
         InternalProblems problems
     ) {
         NoOpBuildOperationProgressEventEmitter progressEventEmitter = new NoOpBuildOperationProgressEventEmitter();
-        ExecutionProblemHandler problemHandler = new DefaultExecutionProblemHandler(validationWarningReporter, virtualFileSystem);
+        ExecutionProblemHandler problemHandler = new DefaultExecutionProblemHandler();
         // @formatter:off
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationRunner, classloaderHierarchyHasher,

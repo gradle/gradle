@@ -18,7 +18,6 @@ package org.gradle.internal.buildevents;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -30,20 +29,17 @@ import org.gradle.internal.time.Clock;
 @ServiceScope({Scope.Global.class, Scope.BuildTree.class})
 public class BuildLoggerFactory {
     private final StyledTextOutputFactory styledTextOutputFactory;
-    private final WorkValidationWarningReporter workValidationWarningReporter;
     private final Clock clock;
     private final GradleEnterprisePluginManager gradleEnterprisePluginManager;
     private final FailureFactory failureFactory;
 
     public BuildLoggerFactory(
         StyledTextOutputFactory styledTextOutputFactory,
-        WorkValidationWarningReporter workValidationWarningReporter,
         Clock clock,
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         FailureFactory failureFactory
     ) {
         this.styledTextOutputFactory = styledTextOutputFactory;
-        this.workValidationWarningReporter = workValidationWarningReporter;
         this.clock = clock;
         this.gradleEnterprisePluginManager = gradleEnterprisePluginManager;
         this.failureFactory = failureFactory;
@@ -61,7 +57,6 @@ public class BuildLoggerFactory {
             buildRequestMetaData,
             buildStartedTime,
             clock,
-            workValidationWarningReporter,
             gradleEnterprisePluginManager,
             failureFactory
         );

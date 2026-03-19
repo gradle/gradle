@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
-import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -110,12 +109,10 @@ public class LauncherServices extends AbstractGradleModuleServices {
         @Provides
         BuildLoggerFactory createBuildLoggerFactory(
             StyledTextOutputFactory styledTextOutputFactory,
-            WorkValidationWarningReporter workValidationWarningReporter,
             FailureFactory failureFactory
         ) {
             return new BuildLoggerFactory(
                 styledTextOutputFactory,
-                workValidationWarningReporter,
                 Time.clock(),
                 null,
                 failureFactory
@@ -274,14 +271,12 @@ public class LauncherServices extends AbstractGradleModuleServices {
         @Provides
         BuildLoggerFactory createBuildLoggerFactory(
             StyledTextOutputFactory styledTextOutputFactory,
-            WorkValidationWarningReporter workValidationWarningReporter,
             Clock clock,
             GradleEnterprisePluginManager gradleEnterprisePluginManager,
             FailureFactory failureFactory
         ) {
             return new BuildLoggerFactory(
                 styledTextOutputFactory,
-                workValidationWarningReporter,
                 clock,
                 gradleEnterprisePluginManager,
                 failureFactory

@@ -37,7 +37,6 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.integtests.fixtures.FileSystemWatchingHelper;
-import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
@@ -118,8 +117,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         Collections.emptySet(),
         Arrays.asList(
             newCommandLineProcessLogging(),
-            NativeServicesTestFixture.getInstance(),
-            ValidationServicesFixture.getServices()
+            NativeServicesTestFixture.getInstance()
         )
     ).getServices();
 

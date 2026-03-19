@@ -818,42 +818,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         noExceptionThrown()
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
-    def "invalid tasks are not cached"() {
-        buildFile << """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
-
-            @CacheableTask
-            abstract class InvalidTask extends DefaultTask {
-                @ValidationProblem File input
-                @OutputFile outputFile
-                @TaskAction action() {
-                    outputFile.text = "created"
-                }
-            }
-
-            task invalid(type: InvalidTask) {
-                input = file("input.txt")
-                outputFile = file("build/output.txt")
-            }
-        """
-
-        executer.beforeExecute {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'input'), 'id', 'section')
-        }
-
-        when:
-        withBuildCache().run "invalid", "--info"
-        then:
-        outputContains("""|Caching disabled for task ':invalid' because:
-            |  Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.
-        """.stripMargin())
-        executedAndNotSkipped(":invalid")
-    }
-
     private static String defineCachedTask(String suffix = "") {
         """
             import org.gradle.api.*

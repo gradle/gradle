@@ -51,8 +51,6 @@ import org.gradle.cache.internal.DefaultCacheCleanupStrategyFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
-import org.gradle.execution.DefaultWorkValidationWarningRecorder;
-import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -70,7 +68,6 @@ import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector;
-import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -92,7 +89,6 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
@@ -133,12 +129,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         super(currentGradleInstallation);
         this.agentStatus = agentStatus;
         this.environment = () -> longLiving;
-    }
-
-    @Override
-    void configure(ServiceRegistration registration) {
-        super.configure(registration);
-        registration.add(ValidateStep.ValidationWarningRecorder.class, WorkValidationWarningReporter.class, DefaultWorkValidationWarningRecorder.class);
     }
 
     @Provides

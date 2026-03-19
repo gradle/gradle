@@ -16,38 +16,30 @@
 
 package org.gradle.internal.execution.impl
 
-import org.gradle.api.problems.Problem
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
 import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
-import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static com.google.common.collect.ImmutableList.of
 import static org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import static org.gradle.internal.deprecation.Documentation.userManual
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
 
 class DefaultExecutionProblemHandlerTest extends Specification implements ValidationMessageChecker {
 
     def identity = Mock(Identity)
     def work = Stub(UnitOfWork)
-    def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
-    def virtualFileSystem = Mock(VirtualFileSystem)
     def problems = TestUtil.problemsService()
     def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
-    def handler = new DefaultExecutionProblemHandler(warningReporter, virtualFileSystem)
+    def handler = new DefaultExecutionProblemHandler()
 
     def setup() {
         ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())
@@ -111,70 +103,6 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
   - ${validationProblem2.trim()}"""
         }
 
-        0 * _
-    }
-
-    def "reports deprecation warning and invalidates VFS for validation warning"() {
-        String expectedWarning = convertToSingleLine(dummyValidationProblem('java.lang.Object', null, 'Validation warning', 'Test').trim())
-        given:
-        validationContext.forType(JobType, true).visitTypeProblem {
-            it
-                .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem", "Validation warning", GradleCoreProblemGroup.validation().type()))
-                .documentedAt(userManual("id", "section"))
-                .severity(Severity.WARNING)
-                .details("Test")
-        }
-        when:
-        handler.handleReportedProblems(identity, work, validationContext)
-
-        then:
-        1 * warningReporter.recordValidationWarnings(identity, work, { List<Problem> warnings ->
-            convertToSingleLine(renderMinimalInformationAbout(warnings.first() as InternalProblem, false, false)) == expectedWarning
-        })
-
-        then:
-        1 * virtualFileSystem.invalidateAll()
-        0 * _
-    }
-
-    def "reports deprecation warning even when there's also an error"() {
-        String expectedWarning = convertToSingleLine(dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation problem', 'Test').trim())
-        // errors are reindented but not warnings
-        expectReindentedValidationMessage()
-        String expectedError = dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation problem', 'Test')
-
-        given:
-        def typeContext = validationContext.forType(JobType, true)
-        typeContext.visitTypeProblem {
-            it
-                .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
-                .documentedAt(userManual("id", "section"))
-                .severity(Severity.ERROR)
-                .details("Test")
-        }
-        typeContext.visitTypeProblem {
-            it
-                .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
-                .documentedAt(userManual("id", "section"))
-                .severity(Severity.WARNING)
-                .details("Test")
-        }
-
-        when:
-        handler.handleReportedProblems(identity, work, validationContext)
-
-        then:
-        1 * warningReporter.recordValidationWarnings(identity, work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first() as InternalProblem, true, false)) == expectedWarning })
-
-        then:
-        def ex = thrown WorkValidationException
-        WorkValidationExceptionChecker.check(ex) {
-            hasMessage """A problem was found with the configuration of job ':test' (type 'DefaultExecutionProblemHandlerTest.JobType').
-  - ${expectedError}"""
-        }
         0 * _
     }
 

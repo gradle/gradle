@@ -33,7 +33,6 @@ import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegi
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.FingerprinterRegistration
-import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
@@ -85,7 +84,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def inputFingerprinter = new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter)
     def buildCacheController = Mock(BuildCacheController)
     def buildOperationRunner = new TestBuildOperationRunner()
-    def validationWarningReporter = Mock(ValidateStep.ValidationWarningRecorder)
 
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")
@@ -121,8 +119,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             outputChangeListener,
             outputSnapshotter,
             overlappingOutputDetector,
-            validationWarningReporter,
-            virtualFileSystem,
             problems
         )
     }
@@ -236,31 +232,6 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         result.execution.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["No history is available."]
-    }
-
-    def "out of date when work fails validation"() {
-        given:
-        execute(unitOfWork)
-
-        def invalidWork = builder
-            .withValidator { context ->
-                context
-                    .forType(UnitOfWork, false)
-                    .visitPropertyProblem {
-                        it.id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
-                            .severity(Severity.WARNING)
-                            .documentedAt(Documentation.userManual("id", "section"))
-                            .details("Test")
-                    }
-            }
-            .build()
-        when:
-        def result = execute(invalidWork)
-
-        then:
-        result.execution.get().outcome == EXECUTED_NON_INCREMENTALLY
-        !result.reusedOutputOriginMetadata.present
-        result.executionReasons == ["Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details."]
     }
 
     def "out of date when output file removed"() {
