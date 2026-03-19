@@ -37,6 +37,7 @@ public class StartParameterInternal extends StartParameter {
 
     private Option.Value<Boolean> configurationCache = Option.Value.defaultValue(false);
     private Option.Value<Boolean> isolatedProjects = Option.Value.defaultValue(false);
+    private Option.Value<Boolean> isolatedProjectsSync = Option.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
     private boolean configurationCacheIgnoreInputsDuringStore = false;
@@ -85,6 +86,7 @@ public class StartParameterInternal extends StartParameter {
         p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;
         p.isolatedProjects = isolatedProjects;
+        p.isolatedProjectsSync = isolatedProjectsSync;
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
@@ -189,6 +191,14 @@ public class StartParameterInternal extends StartParameter {
 
     public void setIsolatedProjects(Option.Value<Boolean> isolatedProjects) {
         this.isolatedProjects = isolatedProjects;
+    }
+
+    public Option.Value<Boolean> getIsolatedProjectsSync() {
+        return isolatedProjectsSync;
+    }
+
+    public void setIsolatedProjectsSync(Option.Value<Boolean> isolatedProjectsSync) {
+        this.isolatedProjectsSync = isolatedProjectsSync;
     }
 
     public ConfigurationCacheProblemsOption.Value getConfigurationCacheProblems() {

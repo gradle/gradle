@@ -435,6 +435,103 @@ class BuildModelParametersProviderTest extends Specification {
         value << ['true', 'tasks']
     }
 
+    def "parameters when isolated projects sync is enabled for building models"() {
+        given:
+        def params = parameters(runsTasks: false, createsModel: true) {
+            isolatedProjectsSync = Option.Value.value(true)
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            modelBuilding: true,
+            parallelProjectExecution: true,
+            configurationCache: true,
+            configurationCacheParallelStore: true,
+            configurationCacheParallelLoad: true,
+            isolatedProjects: true,
+            parallelProjectConfiguration: true,
+            parallelModelBuilding: true,
+            invalidateCoupledProjects: true,
+            modelAsProjectDependency: true
+        ])
+    }
+
+    def "parameters when isolated projects sync is enabled for running tasks"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: false) {
+            isolatedProjectsSync = Option.Value.value(true)
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            configurationCache: true,
+            configurationCacheParallelLoad: true,
+        ])
+    }
+
+    def "parameters when isolated projects sync is enabled for running tasks and building models"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: true) {
+            isolatedProjectsSync = Option.Value.value(true)
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            modelBuilding: true,
+            parallelProjectExecution: true,
+            configurationCache: true,
+            configurationCacheParallelStore: true,
+            configurationCacheParallelLoad: true,
+            isolatedProjects: true,
+            parallelProjectConfiguration: true,
+            parallelModelBuilding: true,
+            invalidateCoupledProjects: true,
+            modelAsProjectDependency: true
+        ])
+    }
+
+    def "configuration cache cannot be disabled when isolated projects sync enabled"() {
+        when:
+        parameters(runsTasks: true, createsModel: false) {
+            isolatedProjectsSync = Option.Value.value(true)
+            configurationCache = Option.Value.value(false)
+        }
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Configuration Cache cannot be disabled when Isolated Projects is enabled."
+    }
+
+    def "isolated projects sync does not enable isolated projects for builds"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: false) {
+            isolatedProjectsSync = Option.Value.value(true)
+        }
+
+        expect:
+        !params.isIsolatedProjects()
+        params.isConfigurationCache()
+    }
+
+    def "full isolated projects flag takes precedence over sync-only flag"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: false) {
+            isolatedProjects = Option.Value.value(true)
+            isolatedProjectsSync = Option.Value.value(true)
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            parallelProjectExecution: true,
+            configurationCache: true,
+            configurationCacheParallelStore: true,
+            configurationCacheParallelLoad: true,
+            isolatedProjects: true,
+            parallelProjectConfiguration: true,
+            invalidateCoupledProjects: true,
+        ])
+    }
+
     def "configuration cache cannot be disabled when isolated projects enabled"() {
         when:
         parameters(runsTasks: true, createsModel: false) {

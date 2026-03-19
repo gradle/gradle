@@ -98,6 +98,7 @@ object BuildModelParametersProvider {
             // TODO:isolated should this also disable IP?
             ccDisabledReason != null -> vintageMode(requirements, startParameter, options, ccDisabledReason)
             startParameter.isolatedProjects.get() -> isolatedProjectsMode(requirements, startParameter, options)
+            startParameter.isolatedProjectsSync.get() -> isolatedProjectsSyncMode(requirements, startParameter, options)
             startParameter.configurationCache.get() ->
                 if (requirements.isCreatesModel) {
                     // CC by itself does not yet support caching models or caching of the work graph that runs before model building
@@ -231,6 +232,26 @@ object BuildModelParametersProvider {
                 modelAsProjectDependency = false,
                 resilientModelBuilding = false
             )
+        }
+    }
+
+    private
+    fun isolatedProjectsSyncMode(
+        requirements: BuildActionModelRequirements,
+        startParameter: StartParameterInternal,
+        options: InternalOptions
+    ): BuildModelParameters {
+
+        if (!startParameter.configurationCache.get() && startParameter.configurationCache.isExplicit) {
+            throw GradleException("Configuration Cache cannot be disabled when Isolated Projects is enabled.")
+        }
+
+        return if (requirements.isCreatesModel) {
+            // Sync: use full Isolated Projects mode
+            isolatedProjectsMode(requirements, startParameter, options)
+        } else {
+            // Build: use Configuration Cache mode (CC is implicitly enabled by this flag)
+            configurationCacheTasksOnlyMode(requirements, startParameter, options)
         }
     }
 
