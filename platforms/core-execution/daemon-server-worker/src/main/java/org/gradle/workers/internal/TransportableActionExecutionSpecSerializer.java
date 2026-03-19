@@ -34,7 +34,7 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
     public void write(Encoder encoder, TransportableActionExecutionSpec spec) throws Exception {
         encoder.writeString(spec.getImplementationClassName());
 
-        Set<String> additionalServices = spec.getAdditionalWhitelistedServicesClassNames();
+        Set<String> additionalServices = spec.getAdditionalAllowedServicesClassNames();
         encoder.writeInt(additionalServices.size());
         for (String additionalServiceClassName : additionalServices) {
             encoder.writeString(additionalServiceClassName);
@@ -59,9 +59,9 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
         String implementationClassName = decoder.readString();
 
         int additionalServicesCount = decoder.readInt();
-        Set<String> additionalWhitelistedServicesClassNames = new HashSet<>(additionalServicesCount);
+        Set<String> additionalAllowedServicesClassNames = new HashSet<>(additionalServicesCount);
         for (int i = 0; i < additionalServicesCount; i++) {
-            additionalWhitelistedServicesClassNames.add(decoder.readString());
+            additionalAllowedServicesClassNames.add(decoder.readString());
         }
 
         String baseDirPath = decoder.readString();
@@ -79,6 +79,6 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
             default:
                 throw new IllegalArgumentException("Unexpected payload type.");
         }
-        return new TransportableActionExecutionSpec(implementationClassName, serializedParameters, classLoaderStructure, new File(baseDirPath), new File(projectCacheDir), additionalWhitelistedServicesClassNames);
+        return new TransportableActionExecutionSpec(implementationClassName, serializedParameters, classLoaderStructure, new File(baseDirPath), new File(projectCacheDir), additionalAllowedServicesClassNames);
     }
 }
