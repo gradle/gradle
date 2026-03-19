@@ -28,7 +28,6 @@ import org.gradle.internal.build.event.types.DefaultTaskSkippedResult
 import org.gradle.internal.build.event.types.DefaultTaskSuccessResult
 import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.event.ListenerNotificationException
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager
@@ -44,8 +43,6 @@ import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.task.TaskSuccessResult
 
-import java.lang.reflect.UndeclaredThrowableException
-
 class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     def factory = new MockBuildEventListenerFactory()
     def listenerManager = new DefaultListenerManager(Scope.Build)
@@ -54,7 +51,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         isRootBuild() >> true
     }
     def buildResult = new BuildResult(gradle, null)
-    def registry = new DefaultBuildEventsListenerRegistry(new DefaultUserCodeApplicationContext(), factory, listenerManager, buildOperationListenerManager, executorFactory)
+    def registry = new DefaultBuildEventsListenerRegistry(new DefaultUserCodeApplicationContext(), factory, listenerManager, buildOperationListenerManager)
 
     def cleanup() {
         // Signal the end of the build, to stop everything
@@ -179,14 +176,14 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         0 * okListener._
 
         and:
-        def e = thrown(exceptionType)
-        exceptionCheck.call(e)
+        def e = thrown(IllegalStateException)
+        exceptionCheck.call(e.cause)
 
         where:
-        failure                 | exceptionType                     | exceptionCheck
-        new RuntimeException()  | RuntimeException                  | { t -> t.is(failure) }
-        new Error()             | ListenerNotificationException     | { t -> t.getCauses().get(0).is(failure) }
-        new Throwable()         | UndeclaredThrowableException      | { t -> t.getCause().is(failure) }
+        failure                | exceptionCheck
+        new RuntimeException() | { t -> t.is(failure) }
+        new Error()            | { t -> t.is(failure) }
+        new Throwable()        | { t -> t.cause.is(failure) }
     }
 
     private signalBuildFinished() {

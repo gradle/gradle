@@ -16,6 +16,7 @@
 
 package org.gradle.internal.concurrent;
 
+import org.gradle.api.JavaVersion;
 import org.jctools.queues.MessagePassingQueue;
 import org.jctools.queues.MpscUnboundedArrayQueue;
 import org.jspecify.annotations.Nullable;
@@ -45,6 +46,23 @@ public class MultiProducerSingleConsumerProcessor<T> {
      * before checking failure status or thread interruption.
      */
     static final int BATCH_SIZE = 1024;
+
+    /**
+     * Allows us to use {@link Thread#onSpinWait()}, while remaining compatible with JDK8.
+     */
+    private static final boolean AT_LEAST_JDK9 = JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9);
+
+    /**
+     * Number of hardware spins before we yield to the OS scheduler, allowing us to
+     * avoid the overhead of a syscall before waiting for more values.
+     */
+    private static final int SPIN_TRIES = 100;
+
+    /**
+     * Number of yields to execute before parking, allowing us to keep the {@link #awake}
+     * flag true for as long as possible, preventing producers from needing to unpark.
+     */
+    private static final int YIELD_TRIES = 5;
 
     /**
      * Processes submitted values on a separate thread.
@@ -131,6 +149,32 @@ public class MultiProducerSingleConsumerProcessor<T> {
             }
         }
 
+        doSubmit(value);
+    }
+
+    /**
+     * Submit a value to be processed, discarding the value if the processor is
+     * shutdown or in a failure state.
+     */
+    public void maybeSubmit(T value) {
+        if (failure != null) {
+            return;
+        }
+
+        if (!running) {
+            if (worker.getState() == Thread.State.NEW) {
+                throw new IllegalStateException("Cannot submit values before processor has been started.");
+            }
+            return;
+        }
+
+        doSubmit(value);
+    }
+
+    /**
+     * Submit the value to the queue, waking up the worker thread if necessary.
+     */
+    private void doSubmit(T value) {
         if (!queue.offer(value)) {
             throw new IllegalStateException("Failed to offer value to queue");
         }
@@ -171,7 +215,11 @@ public class MultiProducerSingleConsumerProcessor<T> {
         }
     }
 
+    @SuppressWarnings("ThreadPriorityCheck")
     private void workerLoop() {
+        int idleSpins = 0;
+        int idleYields = 0;
+
         try {
             while (running || !queue.isEmpty()) {
                 if (Thread.interrupted()) {
@@ -184,11 +232,45 @@ public class MultiProducerSingleConsumerProcessor<T> {
                 if (failure != null) {
                     break;
                 }
+
                 if (processed > 0) {
+                    idleSpins = 0;
+                    idleYields = 0;
                     continue;
                 }
 
-                // Signal that we are going to sleep.
+                // While a producer is submitting a value, the JCTools queue may report
+                // non-empty even if `drain` does not process any items. Wait for the item
+                // to be submitted before looping.
+                if (!queue.isEmpty()) {
+                    if (AT_LEAST_JDK9) {
+                        Thread.onSpinWait();
+                    } else {
+                        Thread.yield();
+                    }
+                    continue;
+                }
+
+                // A quick spin wait buffer, before we proceed with the overhead of yielding.
+                if (idleSpins < SPIN_TRIES) {
+                    idleSpins++;
+                    if (AT_LEAST_JDK9) {
+                        Thread.onSpinWait();
+                    }
+                    continue;
+                }
+
+                // Yield the worker thread to the CPU, queueing us up for later execution, allowing
+                // us to keep the `awake` flag enabled. This reduces the number of times producer
+                // threads need to unpark this thread.
+                if (idleYields < YIELD_TRIES) {
+                    idleYields++;
+                    Thread.yield();
+                    continue;
+                }
+
+                // The queue is truly idle. Go to sleep. After this moment, producer threads will
+                // face the overhead of unparking the worker thread.
                 awake.set(false);
 
                 // Double-check: It is possible that a new value was submitted after we drained the
@@ -204,6 +286,8 @@ public class MultiProducerSingleConsumerProcessor<T> {
                 // (spurious wakeup). Therefore, we must always set the `awake` flag to true
                 // unconditionally to maintain the invariant that awake=true when the worker is active.
                 awake.set(true);
+                idleSpins = 0;
+                idleYields = 0;
             }
         } catch (Throwable e) {
             // `processor` should never throw, but this catch ensures we do not miss any fatal JVM Errors.

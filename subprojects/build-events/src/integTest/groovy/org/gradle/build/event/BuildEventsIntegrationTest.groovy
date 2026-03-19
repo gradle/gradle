@@ -269,7 +269,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
 
         then:
         // TODO - add some context to the failure
-        failure.assertHasDescription("broken")
+        failure.assertHasCause("broken")
 
         output.count("BROKEN:") == 1
 
@@ -282,7 +282,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
 
         then:
         // TODO - add some context to the failure
-        failure.assertHasDescription("broken")
+        failure.assertHasCause("broken")
 
         output.count("BROKEN:") == 1
 
