@@ -30,13 +30,15 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     private final String functionName;
     private final String parentPropertyName;
     private final String typeName;
+    private final boolean fatal;
 
-    public DefaultTypeValidationData(String pluginId, String propertyName, String functionName, String parentPropertyName, String typeName) {
+    public DefaultTypeValidationData(String pluginId, String propertyName, String functionName, String parentPropertyName, String typeName, boolean fatal) {
         this.pluginId = pluginId;
         this.propertyName = propertyName;
         this.functionName = functionName;
         this.parentPropertyName = parentPropertyName;
         this.typeName = typeName;
+        this.fatal = fatal;
     }
 
     @Override
@@ -62,6 +64,11 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     @Override
     public String getTypeName() {
         return typeName;
+    }
+
+    @Override
+    public boolean isFatal() {
+        return fatal;
     }
 
     @Override
@@ -96,6 +103,7 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
         private String functionName;
         private String parentPropertyName;
         private String typeName;
+        private boolean fatal = true;
 
         public DefaultTypeValidationDataBuilder() {
         }
@@ -106,11 +114,12 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
             this.functionName = from.getFunctionName();
             this.parentPropertyName = from.getParentPropertyName();
             this.typeName = from.getTypeName();
+            this.fatal = from.isFatal();
         }
 
         @Override
         public DefaultTypeValidationData build() {
-            return new DefaultTypeValidationData(pluginId, propertyName, functionName, parentPropertyName, typeName);
+            return new DefaultTypeValidationData(pluginId, propertyName, functionName, parentPropertyName, typeName, fatal);
         }
 
         @Override
@@ -140,6 +149,12 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
         @Override
         public TypeValidationDataSpec typeName(String typeName) {
             this.typeName = typeName;
+            return this;
+        }
+
+        @Override
+        public TypeValidationDataSpec fatal(boolean fatal) {
+            this.fatal = fatal;
             return this;
         }
     }

@@ -114,6 +114,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
             additionalData.asMap == [
                 'typeName': 'org.gradle.api.DefaultTask',
                 'propertyName': 'input',
+                'fatal': true,
             ]
         }
 
@@ -191,6 +192,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
             additionalData.asMap == [
                 'typeName': 'CustomTask',
                 'propertyName': 'input',
+                'fatal': true,
             ]
         }
 
@@ -284,6 +286,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
             additionalData.asMap == [
                 'typeName': 'FooTask',
                 'propertyName': 'bar',
+                'fatal': true,
             ]
         }
     }

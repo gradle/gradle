@@ -45,6 +45,12 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     }
 
     @Override
+    public TypeAwareProblemBuilder asWarning() {
+        this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.fatal(false));
+        return this;
+    }
+
+    @Override
     public TypeAwareProblemBuilder forProperty(String propertyName) {
         this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.propertyName(propertyName));
         return this;

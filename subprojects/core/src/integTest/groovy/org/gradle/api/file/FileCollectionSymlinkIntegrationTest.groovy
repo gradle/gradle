@@ -407,6 +407,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
             additionalData.asMap == [
                 'typeName' : 'CustomTask',
                 'propertyName' : 'brokenInputFile',
+                'fatal' : true,
             ]
         }
 

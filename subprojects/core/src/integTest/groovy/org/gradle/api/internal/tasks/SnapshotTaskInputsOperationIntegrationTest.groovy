@@ -186,7 +186,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
             solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
             additionalData.asMap == [
-                'typeName' : 'CustomTask'
+                'typeName' : 'CustomTask',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -195,7 +196,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
             solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
             additionalData.asMap == [
-                'typeName' : 'CustomTask'
+                'typeName' : 'CustomTask',
+                'fatal' : true
             ]
         }
     }
@@ -239,6 +241,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
             additionalData.asMap == [
                 'typeName' : 'CustomTask',
+                'fatal' : true,
             ]
         }
 
@@ -553,7 +556,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
             additionalData.asMap == [
                 'typeName' : 'CustomTask',
-                'propertyName' : 'bean'
+                'propertyName' : 'bean',
+                'fatal' : true,
             ]
         }
     }

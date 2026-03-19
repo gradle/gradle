@@ -94,7 +94,18 @@ public class ValidationProblemSerialization {
 
     public static Stream<String> toPlainMessage(List<? extends InternalProblem> problems) {
         return problems.stream()
-            .map(problem -> problem.getDefinition().getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
+            .map(problem -> severityLabel(problem) + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
+    }
+
+    private static String severityLabel(InternalProblem problem) {
+        AdditionalData additionalData = problem.getAdditionalData();
+        if (additionalData instanceof TypeValidationData) {
+            TypeValidationData typeValidationData = (TypeValidationData) additionalData;
+            if (typeValidationData.isFatal()) {
+                return "Error";
+            }
+        }
+        return "Warning";
     }
 
     /**
@@ -552,6 +563,7 @@ public class ValidationProblemSerialization {
         public static final String PARENT_PROPERTY_NAME = "parentPropertyName";
         public static final String TYPE_NAME = "typeName";
         public static final String GENERAL_DATA_DATA = "data";
+        public static final String FATAL = "fatal";
 
         @Override
         public void write(JsonWriter out, AdditionalData value) throws IOException {
@@ -571,6 +583,7 @@ public class ValidationProblemSerialization {
                 out.name(FUNCTION_NAME).value(typeValidationData.getFunctionName());
                 out.name(PARENT_PROPERTY_NAME).value(typeValidationData.getParentPropertyName());
                 out.name(TYPE_NAME).value(typeValidationData.getTypeName());
+                out.name(FATAL).value(typeValidationData.isFatal());
             } else if (value instanceof GeneralData) {
                 out.name(ADDITIONAL_DATA_TYPE).value(GENERAL_DATA);
                 out.name(GENERAL_DATA_DATA);
@@ -604,6 +617,7 @@ public class ValidationProblemSerialization {
                 String name;
                 Map<String, String> generalData = null;
                 String propertyTrace = null;
+                Boolean fatal = true;
 
                 while (in.hasNext()) {
                     name = in.nextName();
@@ -636,6 +650,10 @@ public class ValidationProblemSerialization {
                             typeName = in.nextString();
                             break;
                         }
+                        case FATAL: {
+                            fatal = in.nextBoolean();
+                            break;
+                        }
                         case PROPERTY_TRACE: {
                             propertyTrace = in.nextString();
                             break;
@@ -661,13 +679,13 @@ public class ValidationProblemSerialization {
                 if (type == null) {
                     throw new JsonParseException("type must not be null");
                 }
-                return createAdditionalData(type, featureUsage, pluginId, propertyName, functionName, parentPropertyName, typeName, generalData, propertyTrace);
+                return createAdditionalData(type, featureUsage, pluginId, propertyName, functionName, parentPropertyName, typeName, generalData, propertyTrace, fatal);
             } finally {
                 in.endObject();
             }
         }
 
-        private static @NonNull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
+        private static @NonNull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace, boolean fatal) {
             switch (type) {
                 case DEPRECATION_DATA:
                     return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));
@@ -677,8 +695,8 @@ public class ValidationProblemSerialization {
                         propertyName,
                         methodName,
                         parentPropertyName,
-                        typeName
-                    );
+                        typeName,
+                        fatal);
                 case GENERAL_DATA:
                     return new DefaultGeneralData(generalData);
                 case PROPERTY_TRACE_DATA:

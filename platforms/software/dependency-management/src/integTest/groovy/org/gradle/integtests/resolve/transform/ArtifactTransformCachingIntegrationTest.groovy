@@ -226,6 +226,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     additionalData.asMap == [
                         'typeName': 'org.gradle.api.DefaultTask',
                         'propertyName': 'output',
+                        'fatal' : true,
                     ]
                 }
             }

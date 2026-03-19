@@ -214,6 +214,7 @@ class ValidationProblemSerializationTest extends Specification {
                     it.typeName("type")
                     it.parentPropertyName("parent")
                     it.pluginId("id")
+                    it.fatal(true)
                 }
         }
 
@@ -231,6 +232,7 @@ class ValidationProblemSerializationTest extends Specification {
         (deserialized[0].additionalData as TypeValidationData).typeName == 'type'
         (deserialized[0].additionalData as TypeValidationData).parentPropertyName == 'parent'
         (deserialized[0].additionalData as TypeValidationData).pluginId == 'id'
+        (deserialized[0].additionalData as TypeValidationData).fatal == true
     }
 
     def "can serialize generic additional data"() {

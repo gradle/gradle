@@ -150,6 +150,8 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
             additionalData.asMap == [
                 'typeName' : 'CustomTask',
                 'propertyName' : 'destFile',
+                'fatal' : true,
+
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -162,6 +164,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
             additionalData.asMap == [
                 'typeName' : 'CustomTask',
                 'propertyName' : 'srcFile',
+                'fatal' : true,
             ]
         }
     }

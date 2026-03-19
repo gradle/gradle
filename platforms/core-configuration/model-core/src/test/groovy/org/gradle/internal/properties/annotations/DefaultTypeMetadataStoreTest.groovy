@@ -27,7 +27,6 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
@@ -161,7 +160,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .forProperty(metadata.propertyName)
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -174,7 +172,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .forFunction(metadata.getMethodName())
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -213,7 +210,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .forProperty(metadata.propertyName)
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -225,7 +221,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .forFunction(metadata.getMethodName())
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -253,7 +248,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
                     .withAnnotationType(type)
                     .id("test-problem", "type is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }

@@ -18,9 +18,10 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -68,7 +69,7 @@ public class DefaultNodeValidator implements NodeValidator {
     private void logWarnings(List<? extends InternalProblem> problems) {
         // We are logging all the warnings that we encountered during validation here
         problems.stream()
-            .filter(DefaultNodeValidator::isWarning)
+            .filter(p -> !isFatal(p))
             .forEach(problem -> {
                 // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
                 // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
@@ -97,12 +98,16 @@ public class DefaultNodeValidator implements NodeValidator {
 
     private static Set<String> getUniqueErrors(List<? extends InternalProblem> problems) {
         return problems.stream()
-            .filter(problem -> !isWarning(problem))
+            .filter(problem -> isFatal(problem))
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(toImmutableSet());
     }
 
-    private static boolean isWarning(InternalProblem problem) {
-        return problem.getDefinition().getSeverity().equals(Severity.WARNING);
+    private static boolean isFatal(InternalProblem problem) {
+        AdditionalData additionalData = problem.getAdditionalData();
+        if (additionalData instanceof TypeValidationData) {
+            return ((TypeValidationData) additionalData).isFatal();
+        }
+        return false;
     }
 }
