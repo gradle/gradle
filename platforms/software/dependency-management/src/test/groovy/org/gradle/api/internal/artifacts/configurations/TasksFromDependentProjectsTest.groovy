@@ -47,6 +47,7 @@ class TasksFromDependentProjectsTest extends AbstractProjectBuilderSpec {
         when: dep.visitDependencies(context)
 
         then:
+        _ * context.deferAllProjectsDependencyVisitIfNeeded(_) >> false
         4 * context.getTask() >> child1.tasks["buildDependents"]
         1 * checker.isDependent(child1, "testRuntime", child2) >> false
         1 * checker.isDependent(child1, "testRuntime", child3) >> true

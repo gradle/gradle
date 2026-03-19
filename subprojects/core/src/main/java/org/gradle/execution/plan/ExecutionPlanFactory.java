@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -34,6 +35,7 @@ public class ExecutionPlanFactory {
     private final ResourceLockCoordinationService lockCoordinationService;
     private final WorkerLeaseService workerLeaseService;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ProjectStateRegistry projectStateRegistry;
     private final boolean parallelTaskDependencyResolution;
 
     public ExecutionPlanFactory(
@@ -46,6 +48,7 @@ public class ExecutionPlanFactory {
         ResourceLockCoordinationService lockCoordinationService,
         WorkerLeaseService workerLeaseService,
         BuildOperationExecutor buildOperationExecutor,
+        ProjectStateRegistry projectStateRegistry,
         BuildModelParameters buildModelParameters
     ) {
         this.displayName = displayName;
@@ -57,10 +60,11 @@ public class ExecutionPlanFactory {
         this.lockCoordinationService = lockCoordinationService;
         this.workerLeaseService = workerLeaseService;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.projectStateRegistry = projectStateRegistry;
         this.parallelTaskDependencyResolution = buildModelParameters.isParallelProjectConfiguration();
     }
 
     public ExecutionPlan createPlan() {
-        return new DefaultExecutionPlan(displayName, taskNodeFactory, ordinalGroupFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService, workerLeaseService, buildOperationExecutor, parallelTaskDependencyResolution);
+        return new DefaultExecutionPlan(displayName, taskNodeFactory, ordinalGroupFactory, dependencyResolver, outputHierarchy, destroyableHierarchy, lockCoordinationService, workerLeaseService, buildOperationExecutor, projectStateRegistry, parallelTaskDependencyResolution);
     }
 }

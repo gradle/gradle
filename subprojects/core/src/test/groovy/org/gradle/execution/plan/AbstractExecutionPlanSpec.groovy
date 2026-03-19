@@ -85,6 +85,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         _ * project.tasks >> Stub(TaskContainerInternal)
 
         _ * projectState.fromMutableState(_) >> { args -> args[0].apply(project) }
+        _ * projectState.getMutableModel() >> project
 
         def lock = new MockLock(project, acquired)
         locks.add(lock)

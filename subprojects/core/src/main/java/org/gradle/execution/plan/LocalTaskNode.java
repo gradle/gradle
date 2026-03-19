@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DeferredCrossProjectDependency;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -138,6 +139,46 @@ public class LocalTaskNode extends TaskNode {
         Set<Node> shouldRunAfter = getShouldRunAfter(dependencyResolver);
 
         return new ResolvedNodeRelationships(this, dependencies, lifecycle, finalizedBy, mustRunAfter, shouldRunAfter);
+    }
+
+    /**
+     * Same as {@link #resolveRelationships} but also collects deferred cross-project
+     * dependency items per relationship type. Used during parallel resolution.
+     */
+    public ResolvedRelationshipsWithDeferred resolveRelationshipsWithDeferral(TaskDependencyResolver dependencyResolver) {
+        taskProject.getTasks().prepareForExecution(task);
+
+        Set<Node> dependencies = getDependencies(dependencyResolver);
+        List<DeferredCrossProjectDependency> deferredDeps = dependencyResolver.collectAndClearDeferredItems();
+
+        Set<Node> lifecycle = dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
+        List<DeferredCrossProjectDependency> deferredLifecycle = dependencyResolver.collectAndClearDeferredItems();
+
+        Set<Node> finalizedBy = getFinalizedBy(dependencyResolver);
+        List<DeferredCrossProjectDependency> deferredFinalizedBy = dependencyResolver.collectAndClearDeferredItems();
+
+        Set<Node> mustRunAfter = getMustRunAfter(dependencyResolver);
+        List<DeferredCrossProjectDependency> deferredMustRunAfter = dependencyResolver.collectAndClearDeferredItems();
+
+        Set<Node> shouldRunAfter = getShouldRunAfter(dependencyResolver);
+        List<DeferredCrossProjectDependency> deferredShouldRunAfter = dependencyResolver.collectAndClearDeferredItems();
+
+        ResolvedNodeRelationships resolved = new ResolvedNodeRelationships(
+            this, dependencies, lifecycle, finalizedBy, mustRunAfter, shouldRunAfter);
+        DeferredNodeRelationships deferred = new DeferredNodeRelationships(
+            deferredDeps, deferredLifecycle, deferredFinalizedBy, deferredMustRunAfter, deferredShouldRunAfter);
+
+        return new ResolvedRelationshipsWithDeferred(resolved, deferred);
+    }
+
+    static class ResolvedRelationshipsWithDeferred {
+        final ResolvedNodeRelationships resolved;
+        final DeferredNodeRelationships deferred;
+
+        ResolvedRelationshipsWithDeferred(ResolvedNodeRelationships resolved, DeferredNodeRelationships deferred) {
+            this.resolved = resolved;
+            this.deferred = deferred;
+        }
     }
 
     /**
