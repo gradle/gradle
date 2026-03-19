@@ -19,6 +19,10 @@ package gradlebuild.docs;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 
+/**
+ * Configuration model for generating the HTML Release Notes page.
+ *
+ */
 public abstract class ReleaseNotes {
     /**
      * The source Markdown file for the release notes.
@@ -44,8 +48,6 @@ public abstract class ReleaseNotes {
      * The location of the release notes assets
      */
     public abstract DirectoryProperty getReleaseNotesAssets();
-
-    // TODO: Need staging root property too
 
     /**
      * The collection of rendered documentation.

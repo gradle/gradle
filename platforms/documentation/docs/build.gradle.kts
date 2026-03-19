@@ -4,13 +4,13 @@ import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
 import gradlebuild.basics.util.getSingleFileProvider
 import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 import gradlebuild.integrationtests.model.GradleDistribution
-import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
 import java.io.FileFilter
 
 plugins {
+    // Applies Java conventions
     id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
     id("gradlebuild.internal.java")
     // TODO: Apply asciidoctor in documentation plugin instead.
@@ -38,6 +38,7 @@ androidHomeWarmup {
 }
 
 configurations {
+    // Define an outgoing configuration that publishes the fully rendered docs
     consumable("gradleFullDocsElements") {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
@@ -48,6 +49,8 @@ configurations {
 }
 
 configurations {
+    // Make the docs test runtime extend the distribution runtime classpath,
+    // so docs tests can run with the built Gradle distribution.
     named("docsTestRuntimeClasspath") {
         extendsFrom(configurations.getByName("integTestDistributionRuntimeOnly"))
     }
@@ -61,6 +64,7 @@ configurations.docsTestImplementation {
 
 dependencyAnalysis {
     issues {
+        // Don’t flag unused deps for the docsTest source set
         ignoreSourceSet(sourceSets.docsTest.name)
     }
 }
@@ -75,6 +79,7 @@ dependencies {
 
     userGuideStyleSheets(variantOf(buildLibs.docbook) { classifier("resources"); artifactType("zip") })
 
+    // Test dependencies for various docs checks and link tests
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
@@ -82,6 +87,7 @@ dependencies {
     testImplementation(libs.commonsHttpclient)
     testImplementation(testLibs.httpmime)
 
+    // Docs tests: align versions to the distribution, and bring in internal test infra
     docsTestImplementation(platform(project(":distributions-dependencies")))
     docsTestImplementation(project(":internal-integ-testing"))
     docsTestImplementation(project(":base-services"))
@@ -89,6 +95,7 @@ dependencies {
     docsTestImplementation(testLibs.junit)
     docsTestRuntimeOnly(testLibs.junitPlatform)
 
+    // For running samples/tests with the full Gradle distribution
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 
     constraints {
@@ -106,25 +113,8 @@ java {
     }
 }
 
-asciidoctorj {
-    setVersion("2.5.13")
-    modules.pdf.setVersion("2.3.10")
-    // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
-    // TODO: tables are not handled properly in pdfs
-    fatalWarnings.add(
-        Regex("^(?!GIF image format not supported|dropping cells from incomplete row detected end of table|.*Asciidoctor PDF does not support table cell content that exceeds the height of a single page).*").toPattern()
-    )
-}
-
-tasks.withType<AsciidoctorTask>().configureEach {
-    val doctorj = extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>()
-    doctorj.docExtensions(
-        project.dependencies.create(project(":docs-asciidoctor-extensions")),
-        project.dependencies.create(files("src/main/resources"))
-    )
-}
-
 gradleDocumentation {
+    // Configure outbound API links for Javadoc/Groovydoc references in the site
     javadocs {
         val jvmVersion = jvmCompile.compilations.named("main").flatMap { it.targetJvmVersion }
         javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/api/") }

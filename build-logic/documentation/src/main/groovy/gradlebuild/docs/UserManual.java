@@ -20,11 +20,15 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 
 /**
- * Configuration for user manual documentation
+ * Configuration for the Gradle User Manual build.
+ *
+ * This extension is wired by the documentation plugin and is used by tasks that
+ * assemble and render the user manual.
  */
 public abstract class UserManual {
     /**
-     * The root of the user manual documentation.  This is the source of the adoc files.
+     * The root of the user manual documentation.
+     * This is the source of the adoc files.
      */
     public abstract DirectoryProperty getRoot();
 
@@ -38,6 +42,9 @@ public abstract class UserManual {
      */
     public abstract DirectoryProperty getStagingRoot();
 
+    /**
+     * This is an intermediate working directory (not the final rendered output).
+     */
     public abstract DirectoryProperty getStagedDocumentation();
 
     /**
