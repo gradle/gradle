@@ -181,6 +181,11 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         HierarchicalDynamicObject parent = this.parent;
         while (parent != null) {
             if (parent.hasProperty(name)) {
+                DeprecationLogger.deprecateAction("Calling 'hasProperty' to query presence of property from parent project")
+                    .withContext("Tried to query parent project " + parent.getDisplayName() + " for presence property '" + name + "' from " + getDisplayName() + ".")
+                    .willBecomeAnErrorInGradle10()
+                    .undocumented()
+                    .nagUser();
                 return true;
             }
             parent = parent.getParent();
@@ -198,6 +203,11 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         while (parent != null) {
             result = parent.tryGetProperty(name);
             if (result.isFound()) {
+                DeprecationLogger.deprecateAction("Calling 'getProperty' to retrieve property from parent project")
+                    .withContext("Tried to query parent project " + parent.getDisplayName() + " for property '" + name + "' from " + getDisplayName() + ".")
+                    .willBecomeAnErrorInGradle10()
+                    .undocumented()
+                    .nagUser();
                 return result;
             }
             parent = parent.getParent();
@@ -245,6 +255,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         HierarchicalDynamicObject parent = this.parent;
         while (parent != null) {
             if (parent.hasMethod(name, arguments)) {
+                emitMethodDeprecation(name, parent);
                 return true;
             }
             parent = parent.getParent();
@@ -261,6 +272,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         while (parent != null) {
             result = parent.tryInvokeMethod(name, arguments);
             if (result.isFound()) {
+                emitMethodDeprecation(name, parent);
                 return result;
             }
             parent = parent.getParent();
@@ -311,6 +323,13 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         return DynamicInvokeResult.notFound();
     }
 
+    private void emitMethodDeprecation(String name, DynamicObject parent) {
+        DeprecationLogger.deprecateAction("Dynamically invoking parent method from a child project")
+            .withContext("Cannot dynamically invoke method '" + name + "' on " + parent.getDisplayName() + " from " + getDisplayName() + ".")
+            .willBecomeAnErrorInGradle10()
+            .undocumented()
+            .nagUser();
+    }
 
     private class InheritedDynamicObject implements HierarchicalDynamicObject {
 

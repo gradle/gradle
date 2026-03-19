@@ -628,8 +628,9 @@ public class ExtensibleDynamicObjectTest {
             extensibleDynamicObject = new ExtensibleDynamicObject(this, Bean.class, TestUtil.instantiatorFactory().decorateLenient());
         }
 
-        public DynamicObject getAsDynamicObject() {
-            return extensibleDynamicObject;
+        @Override
+        public HierarchicalDynamicObject getAsDynamicObject() {
+            return extensibleDynamicObject.getInheritable();
         }
 
         public HierarchicalDynamicObject getInheritable() {
