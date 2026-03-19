@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.dependencycollectors
 import com.google.common.graph.Traverser
 import org.gradle.api.Action
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.Dependencies
@@ -31,7 +32,9 @@ import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
@@ -54,17 +57,47 @@ import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.typeOf
 
 internal
-class DependencyCollectorFunctionExtractorAndRuntimeResolver(
-    private val gavDependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature,
-    private val dependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature,
-    private val projectDependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature
-) : FunctionExtractor, RuntimeFunctionResolver {
+class DependencyCollectorFunctionExtractorAndRuntimeResolver : FunctionExtractor, RuntimeFunctionResolver {
 
     private
     val collectorDeclarationsByClass: MutableMap<KClass<*>, Map<DataMemberFunction, DeclarativeRuntimeFunction>> = mutableMapOf()
     val modifierDeclarationsByClass: MutableMap<KClass<*>, Map<DataMemberFunction, DeclarativeRuntimeFunction>> = mutableMapOf()
+
+    private
+    val gavDependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature = { host ->
+        @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+        DependencyFunctionSignature(
+            DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
+            host.modelTypeRef(typeOf<ExternalModuleDependency>()).orError()
+        )
+    }
+    private
+    val dependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature = { host ->
+        @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+        DependencyFunctionSignature(
+            DefaultDataParameter("dependency", host.modelTypeRef(typeOf<Dependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
+            host.modelTypeRef(typeOf<Dependency>()).orError()
+        )
+    }
+    private
+    val moduleDependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature = { host ->
+        @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+        DependencyFunctionSignature(
+            DefaultDataParameter("dependency", host.modelTypeRef(typeOf<ModuleDependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
+            host.modelTypeRef(typeOf<ModuleDependency>()).orError()
+        )
+    }
+    private
+    val projectDependencyParam: (SchemaBuildingHost) -> DependencyFunctionSignature = { host ->
+        @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+        DependencyFunctionSignature(
+            DefaultDataParameter("dependency", host.modelTypeRef(typeOf<ProjectDependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
+            host.modelTypeRef(typeOf<ProjectDependency>()).orError()
+        )
+    }
 
     private
     data class DependencyCollectorDeclaration(
@@ -75,7 +108,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
 
     private
     fun expandToOverloads(host: SchemaBuildingHost, produceDeclaration: (DataParameter, DataTypeRef) -> List<DependencyCollectorDeclaration>): List<DependencyCollectorDeclaration> =
-        listOf(gavDependencyParam, dependencyParam, projectDependencyParam).flatMap {
+        listOf(gavDependencyParam, dependencyParam, moduleDependencyParam, projectDependencyParam).flatMap {
             val signature = it(host)
             produceDeclaration(signature.parameter, signature.lambdaReceiverType)
         }
@@ -207,6 +240,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             val dependencyCollector = collectorAccessor.kCallable.call(checkNotNull(receiver)) as DependencyCollector
             when (val dependency = binding.values.single()) {
                 is ProjectDependency -> dependencyCollector.add(dependency)
+                is ModuleDependency -> dependencyCollector.add(dependency)
                 is Dependency -> dependencyCollector.add(dependency)
                 is String -> dependencyCollector.add(dependency)
                 else -> error("Cannot declare dependency of type: ${dependency!!.javaClass}")
@@ -222,6 +256,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             lateinit var target : Dependency
             when (val dependency = binding.values.single()) {
                 is ProjectDependency -> dependencyCollector.add(dependency, Action { target = it })
+                is ModuleDependency -> dependencyCollector.add(dependency, Action { target = it })
                 is Dependency -> dependencyCollector.add(dependency, Action { target = it })
                 is String -> dependencyCollector.add(dependency, Action { target = it })
                 else -> error("Cannot declare dependency of type: ${dependency!!.javaClass}")
