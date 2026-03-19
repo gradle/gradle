@@ -109,7 +109,12 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         def result = runner
             .deprecations(AndroidDeprecations) {
-                expectIsPropertyDeprecationWarnings()
+                // AGP 8.13.2+ fixed the is- property deprecations (https://issuetracker.google.com/issues/370546370)
+                if (VersionNumber.parse(agpVersion) < VersionNumber.parse("8.13.2")) {
+                    expectIsPropertyDeprecationWarnings()
+                } else {
+                    maybeExpectIsPropertyDeprecationWarnings()
+                }
             }
             .build()
 
