@@ -17,7 +17,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskProvenanceUtil;
+import org.gradle.api.internal.tasks.TaskProvenanceUtil;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 

@@ -21,7 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskProvenanceUtil;
+import org.gradle.api.internal.tasks.TaskProvenanceUtil;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.TaskOptionsGenerator;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;

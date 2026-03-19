@@ -17,7 +17,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskProvenanceUtil;
+import org.gradle.api.internal.tasks.TaskProvenanceUtil;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
