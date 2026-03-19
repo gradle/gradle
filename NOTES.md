@@ -118,6 +118,131 @@ BuildOperationDescriptor
     // No metadata / category → ignored
 ```
 
+### Scenario 4: Configure-on-Demand (CoD)
+
+With CoD enabled (`--configure-on-demand`), `DefaultProjectsPreparer` skips project configuration
+entirely during the project preparation phase and returns immediately:
+
+```java
+// DefaultProjectsPreparer.java:42-45
+public void prepareProjects(GradleInternal gradle) {
+    if (skipEvaluationDuringProjectPreparation(buildModelParameters, gradle)) {
+        return;  // ← CoD: returns immediately, no projects configured here
+    }
+    ...
+}
+
+// DeferredProjectEvaluationCondition.java:26-31
+public static boolean skipEvaluationDuringProjectPreparation(...) {
+    return buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild();
+}
+```
+
+The `CONFIGURE_ROOT_BUILD` operation still fires with `totalProgress = N` (all projects in the
+registry), but immediately completes with **zero** `CONFIGURE_PROJECT` children. Projects are then
+configured lazily on-demand **inside** the `Calculate task graph` operation as tasks request them.
+
+```
+CONFIGURE_ROOT_BUILD   totalProgress=N, fires 0 CONFIGURE_PROJECT ops → completes instantly
+                       bar: 0% CONFIGURING
+
+Calculate task graph   (UNCATEGORIZED — still in Configuring phase)
+  ├── CONFIGURE_PROJECT :a   ← on-demand: tracked, current=1
+  ├── CONFIGURE_PROJECT :b   ← on-demand: tracked, current=2
+  ...only M ≤ N projects get configured...
+                       bar: M/N * 100% CONFIGURING (never reaches 100% if M < N)
+
+RUN_MAIN_TASKS         → Executing phase
+```
+
+`BuildStatusRenderer` DOES track the on-demand `CONFIGURE_PROJECT` completions (they fire while
+`currentPhase == Phase.Configuring`), but `total` was set to N upfront. The bar can only reach
+`M/N * 100%` and **never hits 100%** unless all projects happen to be needed.
+
+**How Fix B interacts with CoD:**
+With Fix B, `CALCULATE_TASK_GRAPH` adds +1 to total (total = N+1). On-demand `CONFIGURE_PROJECT`
+ops fire inside it (current reaches M), then it completes (current = M+1). The bar shows
+`(M+1)/(N+1) * 100%` — still not 100% if M < N. The fundamental problem is the same: `totalProgress`
+was set to the wrong number upfront.
+
+**The root issue for CoD:** the progress total cannot be known at `CONFIGURE_ROOT_BUILD` start
+because CoD defers the decision of which projects to configure until task graph time.
+
+**Possible approaches for CoD specifically:**
+
+1. **Set `totalProgress = 0` for CoD** and call `moreProgress(1)` on each `CONFIGURE_PROJECT`
+   *start* event (not just on `CONFIGURE_BUILD`). This sounds natural but **causes oscillation**:
+   every time a project completes before the next one starts, `current == total` → bar flashes 100%,
+   then drops back when the next project starts. Step-by-step for sequential CoD:
+
+   ```
+   CONFIGURE_ROOT_BUILD starts  → total=0, current=0  →  0%
+   :a starts  → moreProgress(1) → total=1, current=0  →  0%
+   :a done    → update()        → total=1, current=1  → 100%  ← flash!
+   :b starts  → moreProgress(1) → total=2, current=1  → 50%
+   :b done    → update()        → total=2, current=2  → 100%  ← flash!
+   :c starts  → moreProgress(1) → total=3, current=2  → 66%
+   :c done    → update()        → total=3, current=3  → 100%  ← flash!
+   ```
+
+   With **parallel configuration** the oscillation is much less severe — multiple projects start
+   before any complete, so `total` grows faster than `current` and 100% only appears at the true end:
+
+   ```
+   :a,:b,:c start → total=3, current=0 →  0%
+   :a done        → total=3, current=1 → 33%
+   :b done        → total=3, current=2 → 66%
+   :c done        → total=3, current=3 → 100%  ← only once, at true end
+   ```
+
+   For sequential CoD (the default), render ticks fire every ~100ms. Real Android projects take
+   seconds to configure, so users would see repeated 100% flashes between projects.
+
+2. **Indeterminate / count-only mode:** When CoD is active, skip the percentage and show a
+   monotonically increasing count instead. The count increments on each `CONFIGURE_PROJECT`
+   completion and never goes backwards — no oscillation, no false 100%:
+
+   ```
+   CONFIGURE_ROOT_BUILD starts  → [···············] CONFIGURING [0ms]
+   :a done                      → [···············] CONFIGURING [1 project] [0.5s]
+   :b done                      → [···············] CONFIGURING [2 projects] [1.1s]
+   :c done                      → [···············] CONFIGURING [3 projects] [1.8s]
+   RUN_MAIN_TASKS               → [···············] 0% EXECUTING [1.8s]
+   ```
+
+   The bar itself stays empty (or animates as a spinner) since there is no meaningful percentage
+   to fill. The suffix switches from `N%` to `[N project(s)]` when CoD is active.
+
+   This requires changes to `ProgressBar` / `BuildStatusRenderer`:
+   - `ProgressBar` needs an indeterminate mode where `total = 0` renders a count label instead
+     of a percentage (currently `0/0` integer-casts to `0%` and the bar just stays empty silently)
+   - `BuildStatusRenderer` needs to detect CoD and pass `totalProgress = 0` to `phaseStarted`,
+     then call a new `phaseProjectConfigured()` on `CONFIGURE_PROJECT` complete that increments
+     the count label rather than `current`
+   - Or simpler: reuse `current` as the count and format the suffix conditionally based on whether
+     `total == 0`
+
+   **Behaviour is honest and monotonic** — users see progress happening and never get a premature
+   100%. The trade-off is no indication of how far through configuration we are, just raw counts.
+
+3. **Accept the inaccuracy for CoD:** Leave CoD showing a partial percentage (`M/N * 100%`). It
+   shows *increasing* progress and is at least not misleadingly stuck at 100%.
+
+4. **Fix C (separate Planning phase)** sidesteps the problem entirely: `CONFIGURE_ROOT_BUILD`
+   completes with whatever percentage was reached, then a new `PLANNING` phase covers task graph
+   calculation and on-demand project configuration. The phase label itself signals work is happening,
+   and `PLANNING 0% → 100%` is accurate because the task graph completion is the single known unit.
+
+**Isolated Projects (IP) note:** IP explicitly disables CoD's lazy project skipping — all projects
+are configured even if not all are needed for the requested tasks (IP docs, line 51: *"Parallel
+configuration does not support Configuration on Demand"*). So with IP, the full project count IS
+configured and Fix B applies cleanly.
+
+Relevant code:
+- `DefaultProjectsPreparer.java:42-45` — CoD early return
+- `DeferredProjectEvaluationCondition.java:26-31` — CoD condition
+- `BuildOperationFiringProjectsPreparer.java:64` — total set to N regardless of CoD
+
 ---
 
 ## Root Cause
