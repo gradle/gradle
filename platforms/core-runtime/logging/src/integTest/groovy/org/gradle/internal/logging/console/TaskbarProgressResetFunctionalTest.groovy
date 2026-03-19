@@ -25,6 +25,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.test.precondition.Requires
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 /**
@@ -55,6 +56,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
             .withConsole(ConsoleOutput.Rich)
     }
 
+    @Ignore("https://github.com/gradle/gradle-private/issues/5132")
     @Requires(value = [UnitTestPreconditions.Unix, IntegTestPreconditions.NotEmbeddedExecutor],
         reason = "sends SIGINT to a forked process works only on Unix and with a separate process")
     def "sends OSC 9;4;0 reset sequence when build receives SIGINT"() {
@@ -63,14 +65,16 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         buildFile << """
             task block {
                 doFirst {
-                    Thread.sleep(10_000)
+                    ${server.callFromBuild("block")}
                 }
             }
         """
+        def block = server.expectAndBlock("block")
 
         when:
         def gradle = executer.withTasks("block").start()
 
+        block.waitForAllPendingCalls()
         // Wait until the progress bar has started emitting OSC 9;4 sequences.
         ConcurrentTestUtil.poll {
             assert gradle.standardOutput.contains(OSC_PROGRESS_PREFIX)
@@ -78,6 +82,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
 
         gradle.sendSignal(SIGINT)
         gradle.waitForFailure()
+        block.releaseAll()
 
         then:
         gradle.standardOutput.contains(OSC_RESET)
