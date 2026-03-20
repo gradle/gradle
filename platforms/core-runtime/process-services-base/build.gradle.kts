@@ -13,6 +13,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.concurrent)
     api(projects.processServicesApi)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.nativePlatform)
     api(libs.jspecify)
@@ -21,7 +22,6 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.native)
     implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.jnrConstants)
     implementation(libs.guava)

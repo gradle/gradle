@@ -30,6 +30,7 @@ dependencies {
     api(projects.fileTemp)
     api(projects.fileCollections)
     api(projects.processServices)
+    api(projects.processServicesBase)
     api(projects.persistentCache)
 
     api(libs.inject)
@@ -39,7 +40,6 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.native)
     implementation(projects.processServicesApi)
-    implementation(projects.processServicesBase)
     implementation(projects.serialization)
 
     implementation(libs.asm)
