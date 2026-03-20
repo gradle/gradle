@@ -65,6 +65,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_dependencies.adoc#avoid_duplicate_dependencies,Avoid Redundant Dependency Declarations>> | Dependencies | 9.0.0
 | <<best_practices_dependencies.adoc#use_content_filtering,Use Content Filtering with multiple Repositories>> | Dependencies | 9.1.0
 | <<best_practices_dependencies.adoc#apply_exclusions_narrowly,Apply Exclusions Narrowly>> | Dependencies | 9.2.0
+| <<best_practices_dependencies.adoc#use_attributes_on_configurations,Always Declare Attributes on Consumable and Resolvable Configurations>> | Dependencies | 9.5.0
 
 | <<best_practices_tasks.adoc#avoid_depends_on,Avoid DependsOn>> | Task | 8.14
 | <<best_practices_tasks.adoc#use_cacheability_annotations, Favor @CacheableTask and @DisableCachingByDefault over cacheIf(Spec) and doNotCacheIf(String, Spec)>> | Task | 8.14
