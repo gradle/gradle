@@ -50,6 +50,7 @@ dependencies {
     implementation(projects.jvmServices)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
+    implementation(projects.processServicesBase)
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.toolingApi)

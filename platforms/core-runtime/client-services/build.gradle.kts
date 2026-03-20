@@ -38,6 +38,7 @@ dependencies {
     api(projects.native)
     api(projects.persistentCache)
     api(projects.processServices)
+    api(projects.processServicesBase)
     api(projects.resources)
     api(projects.resourcesHttp)
     api(projects.scopedPersistentCache)

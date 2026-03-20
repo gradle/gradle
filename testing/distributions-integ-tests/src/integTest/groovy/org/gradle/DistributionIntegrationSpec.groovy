@@ -124,6 +124,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "process-memory-services",
         "process-services",
         "process-services-api",
+        "process-services-base",
         "project-features",
         "project-features-api",
         "report-rendering",

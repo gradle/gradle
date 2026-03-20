@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.native)
     implementation(projects.processServicesApi)
+    implementation(projects.processServicesBase)
     implementation(projects.serialization)
 
     implementation(libs.asm)

@@ -41,6 +41,7 @@ dependencies {
     implementation(projects.pluginsDistribution)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
+    implementation(projects.processServicesBase)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
 
