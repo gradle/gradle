@@ -31,6 +31,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -229,7 +230,7 @@ class ParallelNodeRelationshipsResolver {
     }
 
     private List<Node> resolveAllProjectsSearch(DeferredCrossProjectDependency.AllProjectsSearch search) {
-        TaskCollectingContext collectingContext = new TaskCollectingContext();
+        TaskCollectingContext collectingContext = new TaskCollectingContext(search.getSourceTask());
         search.getResolutionAction().accept(collectingContext);
         List<Node> result = new ArrayList<>();
         for (Task task : collectingContext.collectedTasks) {
@@ -334,7 +335,17 @@ class ParallelNodeRelationshipsResolver {
      * Used to re-execute deferred {@link DeferredCrossProjectDependency.AllProjectsSearch} actions.
      */
     private static class TaskCollectingContext extends AbstractTaskDependencyResolveContext {
+        private final @Nullable Task sourceTask;
         final List<Task> collectedTasks = new ArrayList<>();
+
+        TaskCollectingContext(@Nullable Task sourceTask) {
+            this.sourceTask = sourceTask;
+        }
+
+        @Override
+        public @Nullable Task getTask() {
+            return sourceTask;
+        }
 
         @Override
         public void add(Object dependency) {
