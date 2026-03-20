@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.internal.code.UserCodeSource;
 
@@ -39,8 +40,12 @@ public final class TaskProvenanceUtil {
      * @return an {@link Optional} containing the provenance description, or empty if the source is unknown
      */
     public static Optional<String> getProvenance(TaskInternal task) {
-        UserCodeSource source = task.getTaskIdentity().getUserCodeSource();
-        if (source == UserCodeSource.UNKNOWN) {
+        TaskIdentity<?> identity = task.getTaskIdentity();
+        if (identity == null) {
+            return Optional.empty();
+        }
+        UserCodeSource source = identity.getUserCodeSource();
+        if (source == null || source == UserCodeSource.UNKNOWN) {
             return Optional.empty();
         }
         if (source == UserCodeSource.BY_RULE) {

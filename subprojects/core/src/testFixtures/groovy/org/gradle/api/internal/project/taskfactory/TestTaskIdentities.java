@@ -40,6 +40,10 @@ public class TestTaskIdentities {
         return DEFAULT_FACTORY.create(name, type, project, null);
     }
 
+    public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project, UserCodeSource source) {
+        return DEFAULT_FACTORY.create(name, type, project, source);
+    }
+
     /**
      * Create a {@link TaskIdentity} with the given {@link UserCodeSource}, using dummy values for all other fields.
      */

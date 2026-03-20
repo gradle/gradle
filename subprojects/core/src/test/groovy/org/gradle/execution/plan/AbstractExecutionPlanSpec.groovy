@@ -34,6 +34,8 @@ import org.gradle.api.internal.tasks.TaskRequiredServices
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
+import org.gradle.internal.Describables
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -91,11 +93,21 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         return project
     }
 
+    private static final UserCodeSource MOCK_USER_CODE_SOURCE = new UserCodeSource() {
+        @Override
+        org.gradle.internal.DisplayName getDisplayName() {
+            return Describables.of("mock")
+        }
+
+        @Override
+        String getPluginId() {
+            return null
+        }
+    }
+
     protected TaskInternal createTask(final String name, ProjectInternal project = this.project, Class type = TaskInternal) {
         def path = project.identityPath.child(name)
-        TaskInternal task = Mock(type, name: name) {
-            buildFailureMessage(_) >> "Execution failed for task '$path' (registered in mock)."
-        }
+        TaskInternal task = Mock(type, name: name)
         TaskStateInternal state = Mock()
         task.project >> project
         task.name >> name
@@ -111,7 +123,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
         task.requiredServices >> emptyTaskRequiredServices()
-        task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project)
+        task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project, MOCK_USER_CODE_SOURCE)
         return task
     }
 
