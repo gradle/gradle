@@ -135,15 +135,11 @@ class AndroidGradlePluginVersions {
                     $agpNightlyRepositoryDeclaration
                     gradlePluginPortal()
                 }
-            }
-            allprojects {
-                buildscript {
+                settings.dependencyResolutionManagement {
                     repositories {
                         $agpNightlyRepositoryDeclaration
                     }
-                }
-                repositories {
-                    $agpNightlyRepositoryDeclaration
+                    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
                 }
             }
         """
@@ -155,6 +151,10 @@ class AndroidGradlePluginVersions {
             maven {
                 name = 'agp-nightly-build-$nightlyBuildId'
                 url = 'https://androidx.dev/studio/builds/$nightlyBuildId/artifacts/artifacts/repository/'
+                content {
+                    includeGroupByRegex("com.android.*")
+                    includeGroupByRegex("androidx.*")
+                }
             }
         """
     }
