@@ -281,5 +281,8 @@ object BuildModelParametersProvider {
     }
 
     private
+    operator fun InternalOptions.get(option: InternalFlag): Boolean = getBoolean(option)
+
+    private
     operator fun <T : Any> InternalOptions.get(option: InternalOption<T>): T = getOption(option).get()
 }

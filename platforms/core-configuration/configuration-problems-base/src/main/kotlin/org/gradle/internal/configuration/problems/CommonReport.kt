@@ -68,7 +68,7 @@ class CommonReport(
     }
 
     private
-    val isStacktraceHashes = internalOptions.getOption(stacktraceHashes).get()
+    val isStacktraceHashes = internalOptions.getBoolean(stacktraceHashes)
 
     private
     val documentationRegistry = DocumentationRegistry()

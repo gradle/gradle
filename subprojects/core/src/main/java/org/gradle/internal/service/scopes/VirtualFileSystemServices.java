@@ -120,7 +120,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
     private static final int FILE_HASHER_MEMORY_CACHE_SIZE = 300000;
 
     public static boolean isDropVfs(InternalOptions options) {
-        return options.getOption(VFS_DROP_PROPERTY).get();
+        return options.getBoolean(VFS_DROP_PROPERTY);
     }
 
     public static int getMaximumNumberOfWatchedHierarchies(InternalOptions options) {

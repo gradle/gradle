@@ -83,7 +83,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         this.cancellationToken = cancellationToken;
         this.coordinationService = coordinationService;
         this.workerLeaseService = workerLeaseService;
-        this.stats = internalOptions.getOption(STATS).get() ? new CollectingExecutorStats(state) : state;
+        this.stats = internalOptions.getBoolean(STATS) ? new CollectingExecutorStats(state) : state;
         this.queue = new MergedQueues(coordinationService, false);
         this.executor = executorFactory.create("Execution worker");
     }

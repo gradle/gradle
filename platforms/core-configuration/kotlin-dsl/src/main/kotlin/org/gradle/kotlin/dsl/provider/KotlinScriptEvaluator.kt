@@ -399,7 +399,7 @@ class StandardKotlinScriptEvaluator(
         transformFactory: ClasspathElementTransformFactoryForLegacy,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
         propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
-        private val cachingDisabledByProperty: Boolean = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get()
+        private val cachingDisabledByProperty: Boolean = internalOptions.getBoolean(CACHING_DISABLED_PROPERTY)
 
     ) : BuildScriptCompilationAndInstrumentation(source, workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory, gradleCoreTypeRegistry, propertyUpgradeReportConfig) {
 

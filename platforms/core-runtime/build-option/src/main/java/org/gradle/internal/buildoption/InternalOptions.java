@@ -26,7 +26,20 @@ import org.jspecify.annotations.Nullable;
 @ServiceScope({Scope.CrossBuildSession.class, Scope.BuildTree.class})
 public interface InternalOptions {
     /**
-     * Lookup the value for an {@link InternalOption}.
+     * Look up the value for an {@link InternalOption}.
+     *
+     * @see #getBoolean(InternalFlag) for boolean options
      */
     <T extends @Nullable Object> Option.Value<T> getOption(InternalOption<T> option);
+
+    /**
+     * Look up the value for a boolean {@link InternalFlag} option.
+     */
+     default boolean getBoolean(InternalFlag option) {
+         Boolean value = getOption(option).get();
+         if (value == null) {
+             throw new IllegalStateException("Option '" + option.getPropertyName() + "' is not set");
+         }
+         return value;
+     }
 }

@@ -68,6 +68,26 @@ class DefaultInternalOptionsTest extends Specification {
         !value.explicit
     }
 
+    def "getBoolean returns value for boolean option"() {
+        sysProps["org.gradle.internal.prop1"] = sysProp
+
+        expect:
+        options.getBoolean(new InternalFlag("org.gradle.internal.prop1")) == result
+
+        where:
+        sysProp | result
+        "true"  | true
+        "false" | false
+    }
+
+    def "getBoolean returns default value when property is not set"() {
+        expect:
+        options.getBoolean(new InternalFlag("org.gradle.internal.prop1", defaultValue)) == defaultValue
+
+        where:
+        defaultValue << [true, false]
+    }
+
     def "throws if #option name does not start with expected prefix"() {
         when:
         create("org.gradle.feature.flag")

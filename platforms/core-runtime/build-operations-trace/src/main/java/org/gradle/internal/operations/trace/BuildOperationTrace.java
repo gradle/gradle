@@ -179,7 +179,7 @@ public class BuildOperationTrace implements Stoppable {
             this.outputTree = false;
             this.listener = new FilteringBuildOperationListener(serializer, filter);
         } else {
-            this.outputTree = internalOptions.getOption(TRACE_TREE_OPTION).get();
+            this.outputTree = internalOptions.getBoolean(TRACE_TREE_OPTION);
             this.listener = serializer;
         }
 
