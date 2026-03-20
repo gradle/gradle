@@ -52,7 +52,6 @@ dependencies {
     api(libs.guava)
     api(libs.jspecify)
 
-    implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
     implementation(projects.processServices)
     implementation(projects.processServicesBase)

@@ -62,7 +62,6 @@ dependencies {
 
     implementation(projects.baseAsm)
     implementation(projects.buildConfiguration)
-    implementation(projects.buildEvents)
     implementation(projects.processServices)
     implementation(projects.buildProcessServices)
     implementation(projects.coreApi)

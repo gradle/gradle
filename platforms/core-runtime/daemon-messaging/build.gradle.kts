@@ -8,9 +8,11 @@ description = """
 """
 
 dependencies {
+    api(projects.buildOperations)
     api(projects.classloaders)
     api(projects.logging)
     api(projects.loggingApi)
+    api(projects.problemsApi)
     api(projects.serialization)
     api(projects.startParameter)
     api(projects.toolingApi)
