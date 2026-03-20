@@ -16,13 +16,13 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.DeferredCrossProjectDependency;
-import org.gradle.api.Action;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -41,14 +41,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Pre-resolves {@link LocalTaskNode} dependency relationships in parallel using BFS waves,
  * without mutating the task graph. The result is consumed by the sequential DFS phase in
  * {@link DefaultExecutionPlan}.
  *
- * <p>Nodes are resolved wave-by-wave: each wave is grouped by owning project and resolved in
+ * <p>Node dependencies are resolved wave-by-wave: each wave is grouped by owning project and resolved in
  * parallel under that project's lock. Cross-project dependency lookups that cannot be performed
  * under a single project lock are represented as {@link DeferredCrossProjectNode} placeholders
  * in the dependency sets, resolved after the wave, and then substituted with the real nodes.</p>
@@ -84,65 +87,44 @@ class ParallelNodeRelationshipsResolver {
     @SuppressWarnings("NonApiType")
     Map<LocalTaskNode, ResolvedNodeRelationships> resolve(LinkedList<Node> initialQueue) {
         Map<LocalTaskNode, ResolvedNodeRelationships> results = new HashMap<>();
-        Set<LocalTaskNode> seen = new HashSet<>();
-        Set<Path> discoveredProjects = new HashSet<>();
+        BfsWaveQueue waves = new BfsWaveQueue(initialQueue);
+        CrossProjectPlaceholderRegistry placeholderRegistry = new CrossProjectPlaceholderRegistry();
+        Map<ProjectInternal, ProjectScopedTaskDependencyResolver> resolverCache = new HashMap<>();
 
-        // Shared across all waves — the factory in cached resolvers writes to these queues
-        ConcurrentLinkedQueue<DeferredCrossProjectNode> deferredNodesQueue = new ConcurrentLinkedQueue<>();
-        Set<LocalTaskNode> nodesWithPlaceholders = Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
-        Map<ProjectInternal, ParallelTaskDependencyResolver> resolverByProject = new HashMap<>();
+        while (waves.hasNextWave()) {
+            List<LocalTaskNode> currentWave = waves.takeNextWave();
 
-        List<LocalTaskNode> currentWave = new ArrayList<>();
-        for (Node node : initialQueue) {
-            addToWaveIfNew(node, seen, currentWave);
-        }
+            List<NodeResolutionResult> waveResults = resolveDependenciesInParallel(currentWave, placeholderRegistry, resolverCache);
 
-        while (!currentWave.isEmpty()) {
-            List<NodeResolutionResult> waveResults = resolveWaveInParallel(currentWave, resolverByProject, deferredNodesQueue, nodesWithPlaceholders);
-
-            List<LocalTaskNode> nextWave = new ArrayList<>();
             for (NodeResolutionResult result : waveResults) {
                 results.put(result.node, result.resolved);
-                for (Node dep : result.resolved.getDependencies()) {
-                    addToWaveIfNew(dep, seen, nextWave);
-                }
-                for (Node fin : result.resolved.getFinalizedBy()) {
-                    addToWaveIfNew(fin, seen, nextWave);
-                }
+                waves.enqueue(result.resolved.getDependencies());
+                waves.enqueue(result.resolved.getFinalizedBy());
             }
 
-            // Drain deferred nodes produced during this wave
-            List<DeferredCrossProjectNode> waveDeferredNodes = drainQueue(deferredNodesQueue);
-            if (!waveDeferredNodes.isEmpty()) {
-                resolveDeferredNodes(waveDeferredNodes, discoveredProjects);
-                for (DeferredCrossProjectNode deferred : waveDeferredNodes) {
-                    deferred.getResolvedNodes().forEach(node -> addToWaveIfNew(node, seen, nextWave));
+            List<DeferredCrossProjectNode> placeholders = placeholderRegistry.takePending();
+            if (!placeholders.isEmpty()) {
+                resolvePlaceholderNodes(placeholders);
+                for (DeferredCrossProjectNode deferred : placeholders) {
+                    waves.enqueue(deferred.getResolvedNodes());
                 }
             }
-
-            currentWave = nextWave;
         }
 
-        if (!nodesWithPlaceholders.isEmpty()) {
-            substitutePlaceholders(results, nodesWithPlaceholders);
-        }
-
-        return results;
+        return placeholderRegistry.substitutePlaceholders(results);
     }
 
     /**
-     * Resolves a wave of {@link LocalTaskNode}s in parallel, grouped by owning project.
-     * Cross-project dependencies are converted to {@link DeferredCrossProjectNode} placeholders
-     * by the resolver's context factory, which writes them to the shared {@code deferredNodesQueue}.
+     * Resolves dependencies of a wave of {@link LocalTaskNode}s in parallel, grouped by owning project.
      */
-    private List<NodeResolutionResult> resolveWaveInParallel(
+    @SuppressWarnings("MixedMutabilityReturnType")
+    private List<NodeResolutionResult> resolveDependenciesInParallel(
         List<LocalTaskNode> nodes,
-        Map<ProjectInternal, ParallelTaskDependencyResolver> resolverByProject,
-        ConcurrentLinkedQueue<DeferredCrossProjectNode> deferredNodesQueue,
-        Set<LocalTaskNode> nodesWithPlaceholders
+        CrossProjectPlaceholderRegistry placeholders,
+        Map<ProjectInternal, ProjectScopedTaskDependencyResolver> resolverCache
     ) {
         if (nodes.isEmpty()) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         Map<ProjectInternal, List<LocalTaskNode>> byProject = new LinkedHashMap<>();
@@ -152,7 +134,6 @@ class ParallelNodeRelationshipsResolver {
 
         if (byProject.size() == 1) {
             // Single project: all project locks are already held, so resolve on the calling thread.
-            // No cross-project deferral needed since everything is same-project.
             List<NodeResolutionResult> results = new ArrayList<>();
             for (LocalTaskNode node : nodes) {
                 results.add(new NodeResolutionResult(node, node.resolveRelationships(dependencyResolver)));
@@ -160,16 +141,13 @@ class ParallelNodeRelationshipsResolver {
             return results;
         }
 
-        // Multiple projects: release the calling thread's all-projects lock and resolve each
-        // project group in parallel, each acquiring its own project lock via fromMutableState.
+        // Multiple projects: resolve each project group in parallel under its own lock.
         List<List<LocalTaskNode>> projectGroups = new ArrayList<>(byProject.values());
         ConcurrentLinkedQueue<NodeResolutionResult> results = new ConcurrentLinkedQueue<>();
         runInParallelWithProjectAccess(queue -> {
             for (List<LocalTaskNode> group : projectGroups) {
                 ProjectInternal project = group.get(0).getOwningProject();
-                ParallelTaskDependencyResolver resolver = resolverByProject.computeIfAbsent(project,
-                    p -> createParallelResolver(p, deferredNodesQueue, nodesWithPlaceholders)
-                );
+                ProjectScopedTaskDependencyResolver resolver = resolverCache.computeIfAbsent(project, p -> createProjectScopedResolver(p, placeholders));
                 queue.add(buildOp("Resolve task dependencies for project " + project, () -> {
                     project.getOwner().fromMutableState(p -> {
                         for (LocalTaskNode node : group) {
@@ -185,14 +163,16 @@ class ParallelNodeRelationshipsResolver {
         return new ArrayList<>(results);
     }
 
+    private ProjectScopedTaskDependencyResolver createProjectScopedResolver(ProjectInternal project, CrossProjectPlaceholderRegistry placeholders) {
+        return dependencyResolver.newProjectScopedResolver(project, (dep, task) ->
+            placeholders.createCrossProjectPlaceholderNode(dep, task, taskNodeFactory)
+        );
+    }
+
     /**
-     * Resolves all {@link DeferredCrossProjectNode} placeholders by looking up their target
-     * tasks. {@link DeferredCrossProjectDependency.ByProjectTask} items have their target
-     * projects' tasks discovered in parallel; {@link DeferredCrossProjectDependency.AllProjectsSearch}
-     * items are resolved sequentially since they need all-projects access.
+     * Resolves all {@link DeferredCrossProjectNode} placeholders by looking up their target tasks.
      */
-    private void resolveDeferredNodes(List<DeferredCrossProjectNode> deferredNodes, Set<Path> discoveredProjects) {
-        // Group ByProjectTask items by target project
+    private void resolvePlaceholderNodes(List<DeferredCrossProjectNode> deferredNodes) {
         Map<Path, List<DeferredCrossProjectNode>> byTarget = new LinkedHashMap<>();
         List<DeferredCrossProjectNode> allProjectsSearchNodes = new ArrayList<>();
 
@@ -206,23 +186,10 @@ class ParallelNodeRelationshipsResolver {
             }
         }
 
-        // Discover tasks in parallel for target projects
-        discoverTasksInParallel(byTarget.keySet(), discoveredProjects);
+        // For each placeholder find a task
+        resolvePlaceholderNodesToLocalTaskNodes(byTarget);
 
-        // Resolve ByProjectTask items — task lookup and node creation is cheap
-        for (Map.Entry<Path, List<DeferredCrossProjectNode>> entry : byTarget.entrySet()) {
-            ProjectInternal project = projectStateRegistry.stateFor(entry.getKey()).getMutableModel();
-            for (DeferredCrossProjectNode node : entry.getValue()) {
-                DeferredCrossProjectDependency.ByProjectTask byProject =
-                    (DeferredCrossProjectDependency.ByProjectTask) node.getDeferredDependency();
-                Task task = project.getTasks().findByName(byProject.getTaskName());
-                if (task != null) {
-                    node.resolve(Collections.singletonList(taskNodeFactory.getOrCreateNode(task)));
-                }
-            }
-        }
-
-        // Resolve AllProjectsSearch items sequentially
+        // Resolve AllProjectsSearch items sequentially (needs all-projects access)
         for (DeferredCrossProjectNode node : allProjectsSearchNodes) {
             DeferredCrossProjectDependency.AllProjectsSearch search =
                 (DeferredCrossProjectDependency.AllProjectsSearch) node.getDeferredDependency();
@@ -231,54 +198,34 @@ class ParallelNodeRelationshipsResolver {
     }
 
     /**
-     * Substitutes {@link DeferredCrossProjectNode} placeholders with their resolved real nodes,
-     * only for the nodes known to contain placeholders.
+     * Discovers tasks and resolves {@link DeferredCrossProjectDependency.ByProjectTask} placeholders
+     * in parallel, one build operation per target project.
      */
-    private static void substitutePlaceholders(
-        Map<LocalTaskNode, ResolvedNodeRelationships> results,
-        Set<LocalTaskNode> nodesWithPlaceholders
-    ) {
-        for (LocalTaskNode sourceNode : nodesWithPlaceholders) {
-            ResolvedNodeRelationships rels = results.get(sourceNode);
-            if (rels != null) {
-                results.put(sourceNode, rels.substitutePlaceholders());
-            }
+    private void resolvePlaceholderNodesToLocalTaskNodes(Map<Path, List<DeferredCrossProjectNode>> byTarget) {
+        if (byTarget.isEmpty()) {
+            return;
         }
-    }
 
-    private static <T> List<T> drainQueue(ConcurrentLinkedQueue<T> queue) {
-        List<T> result = new ArrayList<>();
-        T item;
-        while ((item = queue.poll()) != null) {
-            result.add(item);
-        }
-        return result;
-    }
-
-    /**
-     * Ensures tasks are discovered for the given projects in parallel, skipping projects
-     * that have already been discovered in a previous iteration.
-     */
-    private void discoverTasksInParallel(Set<Path> projectPaths, Set<Path> alreadyDiscovered) {
-        List<Path> toDiscover = new ArrayList<>();
-        for (Path projectPath : projectPaths) {
-            if (alreadyDiscovered.add(projectPath)) {
-                toDiscover.add(projectPath);
+        runInParallelWithProjectAccess(queue -> {
+            for (Map.Entry<Path, List<DeferredCrossProjectNode>> entry : byTarget.entrySet()) {
+                Path projectPath = entry.getKey();
+                queue.add(buildOp("Resolve cross-project tasks for " + projectPath, () -> {
+                    ProjectState projectState = projectStateRegistry.stateFor(projectPath);
+                    projectState.fromMutableState(project -> {
+                        projectState.ensureTasksDiscovered();
+                        for (DeferredCrossProjectNode node : entry.getValue()) {
+                            DeferredCrossProjectDependency.ByProjectTask byProject = (DeferredCrossProjectDependency.ByProjectTask) node.getDeferredDependency();
+                            Task task = project.getTasks().findByName(byProject.getTaskName());
+                            // Task may not exist — skip silently, consistent with how the sequential resolution path handles missing tasks
+                            if (task != null) {
+                                node.resolve(Collections.singletonList(taskNodeFactory.getOrCreateNode(task)));
+                            }
+                        }
+                        return null;
+                    });
+                }));
             }
-        }
-        if (!toDiscover.isEmpty()) {
-            runInParallelWithProjectAccess(queue -> {
-                for (Path projectPath : toDiscover) {
-                    queue.add(buildOp("Discover tasks for project " + projectPath, () -> {
-                        ProjectState projectState = projectStateRegistry.stateFor(projectPath);
-                        projectState.fromMutableState(p -> {
-                            projectState.ensureTasksDiscovered();
-                            return null;
-                        });
-                    }));
-                }
-            });
-        }
+        });
     }
 
     private List<Node> resolveAllProjectsSearch(DeferredCrossProjectDependency.AllProjectsSearch search) {
@@ -291,20 +238,6 @@ class ParallelNodeRelationshipsResolver {
         return result;
     }
 
-    private ParallelTaskDependencyResolver createParallelResolver(
-        ProjectInternal project,
-        ConcurrentLinkedQueue<DeferredCrossProjectNode> deferredNodesQueue,
-        Set<LocalTaskNode> nodesWithPlaceholders
-    ) {
-        return dependencyResolver.newParallelResolver(project, (dep, task) -> {
-            DeferredCrossProjectNode placeholder = new DeferredCrossProjectNode(dep);
-            deferredNodesQueue.add(placeholder);
-            if (task != null) {
-                nodesWithPlaceholders.add((LocalTaskNode) taskNodeFactory.getOrCreateNode(task));
-            }
-            return placeholder;
-        });
-    }
 
     private void runInParallelWithProjectAccess(Action<BuildOperationQueue<RunnableBuildOperation>> scheduler) {
         workerLeaseService.runAsIsolatedTask(() -> buildOperationExecutor.runAllWithAccessToProjectState(scheduler));
@@ -324,12 +257,75 @@ class ParallelNodeRelationshipsResolver {
         };
     }
 
-    private static void addToWaveIfNew(Node node, Set<LocalTaskNode> seen, List<LocalTaskNode> wave) {
-        if (node instanceof LocalTaskNode) {
-            LocalTaskNode localNode = (LocalTaskNode) node;
-            if (!localNode.getDependenciesProcessed() && !localNode.isCannotRunInAnyPlan() && seen.add(localNode)) {
-                wave.add(localNode);
+    /**
+     * Manages BFS wave traversal: deduplication via a seen-set and a pending queue
+     * that becomes the next wave on {@link #takeNextWave()}.
+     */
+    private static class BfsWaveQueue {
+        private final Set<LocalTaskNode> seen = new HashSet<>();
+        private List<LocalTaskNode> pending = new ArrayList<>();
+
+        BfsWaveQueue(Iterable<? extends Node> seed) {
+            enqueue(seed);
+        }
+
+        boolean hasNextWave() {
+            return !pending.isEmpty();
+        }
+
+        List<LocalTaskNode> takeNextWave() {
+            List<LocalTaskNode> wave = pending;
+            pending = new ArrayList<>();
+            return wave;
+        }
+
+        void enqueue(Iterable<? extends Node> nodes) {
+            for (Node node : nodes) {
+                if (node instanceof LocalTaskNode) {
+                    LocalTaskNode localNode = (LocalTaskNode) node;
+                    if (!localNode.getDependenciesProcessed() && !localNode.isCannotRunInAnyPlan() && seen.add(localNode)) {
+                        pending.add(localNode);
+                    }
+                }
             }
+        }
+    }
+
+    /**
+     * Thread-safe registry that tracks {@link DeferredCrossProjectNode} placeholders
+     * created during parallel resolution. Worker threads call {@link #createCrossProjectPlaceholderNode} to
+     * create placeholders; the main thread calls {@link #takePending} and
+     * {@link #substitutePlaceholders} to drain and replace them.
+     */
+    private static class CrossProjectPlaceholderRegistry {
+        private final ConcurrentLinkedQueue<DeferredCrossProjectNode> pendingQueue = new ConcurrentLinkedQueue<>();
+        private final Set<LocalTaskNode> nodesWithPlaceholders = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+        DeferredCrossProjectNode createCrossProjectPlaceholderNode(DeferredCrossProjectDependency dep, Task task, TaskNodeFactory taskNodeFactory) {
+            DeferredCrossProjectNode placeholder = new DeferredCrossProjectNode(dep);
+            pendingQueue.add(placeholder);
+            if (task != null) {
+                nodesWithPlaceholders.add((LocalTaskNode) taskNodeFactory.getOrCreateNode(task));
+            }
+            return placeholder;
+        }
+
+        List<DeferredCrossProjectNode> takePending() {
+            List<DeferredCrossProjectNode> result = new ArrayList<>();
+            DeferredCrossProjectNode item;
+            while ((item = pendingQueue.poll()) != null) {
+                result.add(item);
+            }
+            return result;
+        }
+
+        Map<LocalTaskNode, ResolvedNodeRelationships> substitutePlaceholders(Map<LocalTaskNode, ResolvedNodeRelationships> results) {
+            for (LocalTaskNode sourceNode : nodesWithPlaceholders) {
+                ResolvedNodeRelationships relationships = results.get(sourceNode);
+                checkNotNull(relationships, "Node %s was marked as having placeholders but has no resolved relationships", sourceNode);
+                results.put(sourceNode, relationships.substitutePlaceholders());
+            }
+            return results;
         }
     }
 

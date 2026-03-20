@@ -50,11 +50,11 @@ public class TaskDependencyResolver {
     }
 
     /**
-     * Creates a new {@link ParallelTaskDependencyResolver} scoped to a specific project.
+     * Creates a new {@link ProjectScopedTaskDependencyResolver} scoped to a specific project.
      * Used for parallel resolution where each worker thread needs its own context and
      * cross-project access is deferred via placeholder nodes created by the factory.
      */
-    ParallelTaskDependencyResolver newParallelResolver(ProjectInternal project, BiFunction<DeferredCrossProjectDependency, Task, Node> placeholderFactory) {
-        return new ParallelTaskDependencyResolver(dependencyResolvers, project, placeholderFactory);
+    ProjectScopedTaskDependencyResolver newProjectScopedResolver(ProjectInternal project, BiFunction<DeferredCrossProjectDependency, Task, Node> crossProjectNodeFactory) {
+        return new ProjectScopedTaskDependencyResolver(dependencyResolvers, project, crossProjectNodeFactory);
     }
 }

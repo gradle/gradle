@@ -39,7 +39,7 @@ import java.util.function.BiFunction;
  * the placeholders — no post-processing needed.</p>
  */
 @NullMarked
-public class ParallelCachingTaskDependencyResolveContext<T> extends CachingTaskDependencyResolveContext<T> {
+public class ProjectScopedCachingTaskDependencyResolveContext<T> extends CachingTaskDependencyResolveContext<T> {
 
     private final Path buildPath;
     private final Path currentProjectPath;
@@ -47,7 +47,7 @@ public class ParallelCachingTaskDependencyResolveContext<T> extends CachingTaskD
     private final BiFunction<DeferredCrossProjectDependency, Task, T> placeholderFactory;
     private final List<T> createdPlaceholders = new ArrayList<>();
 
-    public ParallelCachingTaskDependencyResolveContext(
+    public ProjectScopedCachingTaskDependencyResolveContext(
         Collection<? extends WorkDependencyResolver<T>> workResolvers,
         Path buildPath,
         Path currentProjectPath,
