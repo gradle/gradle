@@ -371,7 +371,7 @@ a:hover, a:focus {
 
 a img { border: none; }
 
-p a code { color: var(--code-link-color); }
+a code { color: var(--code-link-color); }
 
 #content a[href^='../dsl/'],
 #content a[href^='../kotlin-dsl/'],
@@ -1326,8 +1326,8 @@ h4 > a.link:hover, h5 > a.link:hover, h6 > a.link:hover {
     }
 
     #header #toctitle {
-        margin-top: 2em;
-        margin-bottom: .5em;
+        margin-top: 1em;
+        margin-bottom: .3em;
     }
 
     #header #toc > ul {
@@ -1366,10 +1366,7 @@ h4 > a.link:hover, h5 > a.link:hover, h6 > a.link:hover {
 
 /* Sidebar TOC */
 @media only screen and (min-width: 768px) {
-    #toctitle {
-        font-size: 1.375em;
-        margin-bottom: .5em;
-    }
+    #toctitle { font-size: 1.375em; }
 
     body.toc2 { padding-left: 15em; padding-right: 0; }
 
