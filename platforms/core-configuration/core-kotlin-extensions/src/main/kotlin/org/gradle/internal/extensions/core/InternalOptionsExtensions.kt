@@ -21,7 +21,7 @@ import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildoption.StringInternalOption
 
 
-fun InternalOptions.getInternalFlag(systemPropertyName: String, defaultValue: Boolean = false): Boolean =
+fun InternalOptions.getBoolean(systemPropertyName: String, defaultValue: Boolean = false): Boolean =
     getBoolean(InternalFlag(systemPropertyName, defaultValue))
 
 
