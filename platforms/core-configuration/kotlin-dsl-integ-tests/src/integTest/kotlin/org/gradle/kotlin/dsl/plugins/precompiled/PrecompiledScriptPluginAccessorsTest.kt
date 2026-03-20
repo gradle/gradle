@@ -31,12 +31,11 @@ import org.gradle.kotlin.dsl.fixtures.bytecode.publicMethod
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
-import org.gradle.kotlin.dsl.support.zipTo
+import org.gradle.kotlin.dsl.fixtures.zipTo
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil.replaceLineSeparatorsOf
-import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo

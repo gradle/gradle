@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support
+package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.internal.file.archive.ZipEntryConstants.CONSTANT_TIME_FOR_ZIP_ENTRIES
 
 import org.gradle.internal.file.PathTraversalChecker.safePathName
+import org.gradle.kotlin.dsl.support.listFilesOrdered
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 import java.io.File
@@ -28,6 +29,7 @@ import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import kotlin.collections.iterator
 
 
 fun zipTo(zipFile: File, baseDir: File) {
@@ -74,7 +76,7 @@ fun fileEntriesRelativeTo(baseDir: File, files: Sequence<File>): Sequence<Pair<S
     }
 
 
-internal
+private
 fun File.normalisedPathRelativeTo(baseDir: File) =
     normaliseFileSeparators(relativeTo(baseDir).path)
 

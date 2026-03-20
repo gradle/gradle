@@ -153,7 +153,8 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
             return false
         }
 
-        val scriptPlugins = scriptPluginFiles.map(::PrecompiledScriptPlugin)
+        val scriptPluginsFactory = PrecompiledScriptPluginFactory()
+        val scriptPlugins = scriptPluginFiles.map { scriptPluginsFactory.create(it) }
         enableScriptCompilationOf(
             scriptPlugins,
             target.kotlinSourceDirectorySet

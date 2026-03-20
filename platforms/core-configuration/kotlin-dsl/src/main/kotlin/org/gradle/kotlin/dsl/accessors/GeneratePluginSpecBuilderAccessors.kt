@@ -313,7 +313,8 @@ fun BufferedWriter.appendSourceCodeForPluginDependencySpecAccessors(
 private
 fun defaultPackageTypesIn(pluginDependencySpecAccessors: List<PluginDependencySpecAccessor>) =
     defaultPackageTypesIn(
-        pluginImplementationClassesExposedBy(pluginDependencySpecAccessors)
+        pluginImplementationClassesExposedBy(pluginDependencySpecAccessors),
+        ClassNamesFromTypeStrings()
     )
 
 
@@ -379,9 +380,9 @@ fun pluginTreesFrom(pluginEntries: List<Pair<String, String>>): Map<String, Plug
 fun pluginEntriesFrom(classPathFiles: Iterable<File>, pluginEntryCache: PluginEntryCache): List<Pair<String, String>> =
     classPathFiles
         .asSequence()
-        .filter { it.isFile && it.extension.equals("jar", true) }
+        .filter { it.isFile && it.name.endsWith(".jar", ignoreCase = true) }
         .flatMap { pluginEntriesFrom(it, pluginEntryCache).asSequence() }
-        .map { Pair(it.pluginId, it.implementationClass)}
+        .map { Pair(it.pluginId, it.implementationClass) }
         .toCollection(mutableListOf())
 
 
