@@ -195,13 +195,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         verifyAll(receivedProblem(0)) {
             assertLocations(it, false, false)
-            severity == Severity.ADVICE
+            severity == Severity.WARNING
             fqid == 'compilation:java:compiler.note.unchecked.filename'
             contextualLabel == "${buildFile.parentFile.path}/src/main/java/Foo.java uses unchecked or unsafe operations.".replace('/', File.separator)
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, false, false)
-            severity == Severity.ADVICE
+            severity == Severity.WARNING
             fqid == 'compilation:java:compiler.note.unchecked.recompile'
             contextualLabel == "Recompile with -Xlint:unchecked for details."
         }

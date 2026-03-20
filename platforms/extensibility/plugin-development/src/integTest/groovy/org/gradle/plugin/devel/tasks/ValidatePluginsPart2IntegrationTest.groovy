@@ -78,13 +78,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
         assertValidationFailsWith([
-            error(unsupportedValueTypeConfig { type('MyTask').property('direct').propertyType('URL') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('listPropertyInput').propertyType('ListProperty<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('mapPropertyInput').propertyType('MapProperty<String, URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('nestedBean.nestedInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('propertyInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('providerInput').propertyType('Provider<URL>') }, "validation_problems", "unsupported_value_type"),
-            error(unsupportedValueTypeConfig { type('MyTask').property('setPropertyInput').propertyType('SetProperty<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('direct').propertyType('URL') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('listPropertyInput').propertyType('ListProperty<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('mapPropertyInput').propertyType('MapProperty<String, URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('nestedBean.nestedInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('propertyInput').propertyType('Property<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('providerInput').propertyType('Provider<URL>') }, "validation_problems", "unsupported_value_type"),
+            warning(unsupportedValueTypeConfig { type('MyTask').property('setPropertyInput').propertyType('SetProperty<URL>') }, "validation_problems", "unsupported_value_type"),
         ])
 
         and:
@@ -225,13 +225,13 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
 
         then:
         assertValidationFailsWith([
-            error(incorrectUseOfInputAnnotationConfig { type('MyTask').property('file').propertyType('File') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-            error(incorrectUseOfInputAnnotationConfig { type('MyTask').property('fileCollection').propertyType('FileCollection') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-            error(incorrectUseOfInputAnnotationConfig { type('MyTask').property('filePath').propertyType('Path') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-            error(incorrectUseOfInputAnnotationConfig { type('MyTask').property('fileTree').propertyType('FileTree') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-            error(missingNormalizationStrategyConfig { type('MyTask').property('inputDirectory').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
-            error(missingNormalizationStrategyConfig { type('MyTask').property('inputFile').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
-            error(missingNormalizationStrategyConfig { type('MyTask').property('inputFiles').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
+            warning(incorrectUseOfInputAnnotationConfig { type('MyTask').property('file').propertyType('File') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            warning(incorrectUseOfInputAnnotationConfig { type('MyTask').property('fileCollection').propertyType('FileCollection') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            warning(incorrectUseOfInputAnnotationConfig { type('MyTask').property('filePath').propertyType('Path') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            warning(incorrectUseOfInputAnnotationConfig { type('MyTask').property('fileTree').propertyType('FileTree') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+            warning(missingNormalizationStrategyConfig { type('MyTask').property('inputDirectory').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
+            warning(missingNormalizationStrategyConfig { type('MyTask').property('inputFile').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
+            warning(missingNormalizationStrategyConfig { type('MyTask').property('inputFiles').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
         ])
 
         and:
@@ -427,14 +427,14 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=8")
         assertValidationFailsWith([
-            error(missingAnnotationConfig { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
 
         and:
@@ -645,7 +645,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=1")
         assertValidationFailsWith([
-            error(nestedMapUnsupportedKeyTypeConfig { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
+            warning(nestedMapUnsupportedKeyTypeConfig { type('MyTask').property("mapWithUnsupportedKey").keyType("java.lang.Boolean") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
         ])
 
         and:
@@ -685,7 +685,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         expect:
         def reason = "Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types."
         assertValidationFailsWith([
-            error(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
+            warning(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
                 'validation_problems', 'unsupported_nested_type'),
         ])
 
@@ -784,7 +784,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         assertValidationFailsWith([
-            error(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
+            warning(nestedTypeUnsupportedConfig { type("MyTask").property("my$typeName").annotatedType(className).reason(reason) },
                 'validation_problems', 'unsupported_nested_type'),
         ])
 

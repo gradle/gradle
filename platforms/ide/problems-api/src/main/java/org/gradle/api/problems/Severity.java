@@ -25,6 +25,13 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum Severity {
+    /**
+     * An advisory problem severity, lower than a warning.
+     *
+     * @deprecated Use {@link #WARNING} instead. NOTE-level Java compiler diagnostics are now reported as warnings.
+     * @since 8.6
+     */
+    @Deprecated
     ADVICE("Advice"),
     WARNING("Warning"),
     ERROR("Error");

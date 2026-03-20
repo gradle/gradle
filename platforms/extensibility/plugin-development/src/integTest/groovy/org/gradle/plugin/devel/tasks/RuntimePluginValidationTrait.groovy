@@ -18,9 +18,6 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.api.problems.Severity.ERROR
-import static org.gradle.api.problems.Severity.WARNING
-
 trait RuntimePluginValidationTrait implements CommonPluginValidationTrait{
     @Override
     def setup() {
@@ -49,23 +46,9 @@ trait RuntimePluginValidationTrait implements CommonPluginValidationTrait{
     }
 
     void assertValidationFailsWith(List<AbstractPluginValidationIntegrationSpec.DocumentedProblem> messages) {
-        def expectedDeprecations = messages
-            .findAll { problem -> problem.severity == WARNING }
-        def expectedFailures = messages
-            .findAll { problem -> problem.severity == ERROR }
+        fails "run"
 
-        expectedDeprecations.forEach { warning ->
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, warning.message, warning.id, warning.section)
-        }
-        if (expectedFailures) {
-            fails "run"
-        } else {
-            succeeds "run"
-        }
-
-        switch (expectedFailures.size()) {
-            case 0:
-                break
+        switch (messages.size()) {
             case 1:
                 failure.assertHasDescription("A problem was found with the configuration of task ':run' (type 'MyTask').")
                 break
@@ -73,8 +56,8 @@ trait RuntimePluginValidationTrait implements CommonPluginValidationTrait{
                 failure.assertHasDescription("Some problems were found with the configuration of task ':run' (type 'MyTask').")
                 break
         }
-        expectedFailures.forEach { error ->
-            failureDescriptionContains(error.message)
+        messages.forEach { problem ->
+            failureDescriptionContains(problem.message)
         }
     }
 

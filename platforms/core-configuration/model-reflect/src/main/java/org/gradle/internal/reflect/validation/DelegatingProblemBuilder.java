@@ -131,6 +131,8 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public InternalProblemBuilder severity(Severity severity) {
         return validateDelegate(delegate.severity(severity));
     }

@@ -16,75 +16,32 @@
 
 package org.gradle.internal.execution.impl;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
-import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.internal.vfs.VirtualFileSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.api.problems.Severity.WARNING;
 
 public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExecutionProblemHandler.class);
-    private final ValidateStep.ValidationWarningRecorder warningReporter;
-    private final VirtualFileSystem virtualFileSystem;
 
-    public DefaultExecutionProblemHandler(
-        ValidateStep.ValidationWarningRecorder warningReporter,
-        VirtualFileSystem virtualFileSystem
-    ) {
-        this.warningReporter = warningReporter;
-        this.virtualFileSystem = virtualFileSystem;
+    public DefaultExecutionProblemHandler() {
     }
 
     @Override
     public void handleReportedProblems(Identity identity, UnitOfWork work, WorkValidationContext validationContext) {
-        InternalProblems problemsService = validationContext.getProblemsService();
-        InternalProblemReporter reporter = problemsService.getInternalReporter();
         List<InternalProblem> problems = validationContext.getProblems();
 
-        Map<Severity, ImmutableList<InternalProblem>> problemsMap = problems.stream()
-            .collect(
-                groupingBy(p -> p.getDefinition().getSeverity(),
-                    mapping(identity(), toImmutableList())));
-        List<InternalProblem> warnings = problemsMap.getOrDefault(WARNING, ImmutableList.of());
-        List<InternalProblem> errors = problemsMap.getOrDefault(ERROR, ImmutableList.of());
-
-        if (!warnings.isEmpty()) {
-            for (InternalProblem warning : warnings) {
-                reporter.report(warning);
-            }
-            warningReporter.recordValidationWarnings(identity, work, warnings);
-        }
-
-        if (!errors.isEmpty()) {
-            throwValidationException(work, validationContext, errors);
-        }
-
-        if (!warnings.isEmpty()) {
-            LOGGER.info("Invalidating VFS because {} failed validation", work.getDisplayName());
-            virtualFileSystem.invalidateAll();
+        if (!problems.isEmpty()) {
+            throwValidationException(work, validationContext, problems);
         }
     }
 

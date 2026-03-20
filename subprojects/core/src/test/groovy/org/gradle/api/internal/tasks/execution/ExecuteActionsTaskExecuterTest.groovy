@@ -49,7 +49,6 @@ import org.gradle.internal.execution.history.changes.DefaultExecutionStateChange
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
-import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -146,7 +145,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
     def fileCollectionFactory = fileCollectionFactory()
     def deleter = deleter()
-    def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
     def missingTaskDependencyDetector = Stub(MissingTaskDependencyDetector)
 
     // TODO Make this test work with a mock execution engine
@@ -160,7 +158,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         outputChangeListener,
         outputSnapshotter,
         overlappingOutputDetector,
-        validationWarningReporter,
         virtualFileSystem,
         problems
     )

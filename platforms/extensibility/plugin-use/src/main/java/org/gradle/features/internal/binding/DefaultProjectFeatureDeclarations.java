@@ -30,7 +30,6 @@ import org.gradle.features.binding.ProjectFeatureBinding;
 import org.gradle.features.binding.ProjectTypeBinding;
 import org.gradle.features.binding.TargetTypeInformation;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
@@ -120,7 +119,6 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 .contextualLabel("Project feature '" + projectFeatureName + "' is bound to 'BuildModel.None'")
                 .solution("Bind to a target definition type instead.")
                 .solution("Bind to a concrete build model type other than 'BuildModel.None'.")
-                .severity(Severity.ERROR)
             );
 
             throwTypeValidationException("Project feature '" + projectFeatureName + "' is bound to an invalid type:", singletonList(bindingTypeProblem));
@@ -146,7 +144,6 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                         .details("A project feature or type with a given name must bind to a unique target type.")
                         .contextualLabel("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "' but their bindings have overlapping target types.")
                         .solution("Remove one of the plugins from the build.")
-                        .severity(Severity.ERROR)
                     )
                 );
             });
@@ -220,7 +217,6 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 .contextualLabel("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but has an implementation type '" + binding.getDefinitionImplementationType().get().getSimpleName() + "'")
                 .solution("Mark the definition as unsafe.")
                 .solution("Remove the implementation type specification.")
-                .severity(Severity.ERROR)
             ));
         }
 
@@ -231,7 +227,6 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 .contextualLabel("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but is not an interface")
                 .solution("Mark the definition as unsafe.")
                 .solution("Refactor the type as an interface.")
-                .severity(Severity.ERROR)
             ));
         }
 
@@ -244,7 +239,6 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
 
     private static void throwTypeValidationException(String summary, List<InternalProblem> problems) {
         List<String> formattedErrors = problems.stream()
-            .filter(problem -> problem.getDefinition().getSeverity().equals(Severity.ERROR))
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(Collectors.toList());
 
@@ -268,7 +262,6 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                     .contextualLabel("The definition type has @Inject annotated property '" + propertyMetadata.getPropertyName() + "' in type '" + definitionType.getSimpleName() + "'")
                     .solution("Mark the definition as unsafe.")
                     .solution("Remove the @Inject annotation from the '" + propertyMetadata.getPropertyName() + "' property.")
-                    .severity(Severity.ERROR)
                 ));
             }
 

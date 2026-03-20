@@ -21,23 +21,18 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.ExecutionProblemHandler;
-import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.util.internal.TextUtil;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class ValidateStep<
@@ -140,7 +135,6 @@ public abstract class ValidateStep<
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
-                .severity(ERROR)
             );
         }
     }
@@ -154,13 +148,8 @@ public abstract class ValidateStep<
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .details(unknownImplSnapshot.getReasonDescription())
                 .solution(unknownImplSnapshot.getSolutionDescription())
-                .severity(ERROR)
             );
         }
     }
 
-    @ServiceScope(Scope.Global.class)
-    public interface ValidationWarningRecorder {
-        void recordValidationWarnings(Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings);
-    }
 }

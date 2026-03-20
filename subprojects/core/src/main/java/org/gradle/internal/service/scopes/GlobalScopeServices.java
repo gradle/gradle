@@ -70,7 +70,6 @@ import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector;
-import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -138,7 +137,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Override
     void configure(ServiceRegistration registration) {
         super.configure(registration);
-        registration.add(ValidateStep.ValidationWarningRecorder.class, WorkValidationWarningReporter.class, DefaultWorkValidationWarningRecorder.class);
+        registration.add(WorkValidationWarningReporter.class, DefaultWorkValidationWarningRecorder.class);
     }
 
     @Provides

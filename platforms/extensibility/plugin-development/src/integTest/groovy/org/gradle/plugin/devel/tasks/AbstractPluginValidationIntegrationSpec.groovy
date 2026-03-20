@@ -126,10 +126,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationConfig { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property('oldThing').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property('ter').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property('oldThing').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property('ter').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
 
         and:
@@ -257,7 +257,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(optionalOnPrimitiveConfig {
+            warning(optionalOnPrimitiveConfig {
                 type('MyTask').property('primitive')
                     .primitive(primitiveType)
             }, "validation_problems", "cannot_use_optional_on_primitive_types"),
@@ -322,10 +322,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(invalidUseOfCacheableAnnotationConfig { type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
-            error(invalidUseOfCacheableAnnotationConfig { type('MyTask.Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
-            error(invalidUseOfCacheableAnnotationConfig { type('MyTask.Options').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
-            error(invalidUseOfCacheableAnnotationConfig { type('MyTask.Options').invalidAnnotation('DisableCachingByDefault').onlyMakesSenseOn('Task', 'TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            warning(invalidUseOfCacheableAnnotationConfig { type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            warning(invalidUseOfCacheableAnnotationConfig { type('MyTask.Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            warning(invalidUseOfCacheableAnnotationConfig { type('MyTask.Options').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            warning(invalidUseOfCacheableAnnotationConfig { type('MyTask.Options').invalidAnnotation('DisableCachingByDefault').onlyMakesSenseOn('Task', 'TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
         ])
 
         and:
@@ -396,8 +396,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationConfig { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationConfig { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            warning(missingAnnotationConfig { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
 
         and:
@@ -551,7 +551,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(mutableSetterConfig {
+            warning(mutableSetterConfig {
                 type('MyTask').property('mutablePropertyWithSetter')
                 propertyType(testedType.replaceAll("<.+>", ""))
             }, 'validation_problems', 'mutable_type_with_setter')
@@ -617,9 +617,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(privateGetterAnnotatedConfig { type('MyTask').property('badTime').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
-            error(privateGetterAnnotatedConfig { type('MyTask').property('options.badNested').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
-            error(privateGetterAnnotatedConfig { type('MyTask').property('outputDir').annotation('OutputDirectory') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            warning(privateGetterAnnotatedConfig { type('MyTask').property('badTime').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            warning(privateGetterAnnotatedConfig { type('MyTask').property('options.badNested').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            warning(privateGetterAnnotatedConfig { type('MyTask').property('outputDir').annotation('OutputDirectory') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
         ])
 
         and:
@@ -704,8 +704,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
         expect:
         assertValidationFailsWith([
-                error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('function').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-                error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('function').method('notANestedGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                warning(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('function').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                warning(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('function').method('notANestedGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
         ])
 
         and:
@@ -782,11 +782,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-                error(missingAnnotationConfig { type('MyTask').property('readWrite').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-                error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-                error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-                error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-                error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                warning(missingAnnotationConfig { type('MyTask').property('readWrite').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                warning(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                warning(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                warning(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                warning(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
         ])
 
         and:
@@ -881,7 +881,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(ignoredAnnotatedPropertyConfig { type('MyTask').property('oldProperty').ignoring('ReplacedBy').alsoAnnotatedWith('Input') }, 'validation_problems', 'ignored_property_must_not_be_annotated')
+            warning(ignoredAnnotatedPropertyConfig { type('MyTask').property('oldProperty').ignoring('ReplacedBy').alsoAnnotatedWith('Input') }, 'validation_problems', 'ignored_property_must_not_be_annotated')
         ])
 
         and:
@@ -927,7 +927,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(conflictingAnnotationsConfig { type('MyTask').property('file').inConflict('InputFile', 'OutputFile') }, 'validation_problems', 'conflicting_annotations'),
+            warning(conflictingAnnotationsConfig { type('MyTask').property('file').inConflict('InputFile', 'OutputFile') }, 'validation_problems', 'conflicting_annotations'),
         ])
 
         and:

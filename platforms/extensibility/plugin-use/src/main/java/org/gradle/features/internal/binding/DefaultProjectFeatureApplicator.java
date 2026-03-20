@@ -44,7 +44,6 @@ import org.gradle.features.internal.registration.DefaultTaskRegistrar;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.features.registration.TaskRegistrar;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
@@ -492,7 +491,6 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                 .contextualLabel("Project feature '" + featureName + "' has an apply action that attempts to inject an unknown service with type '" + serviceType.getTypeName() + "'.")
                 .details("Services of type " + serviceType.getTypeName() + " are not available for injection into project feature apply actions.")
                 .solution("Remove the '" + serviceType.getTypeName() + "' injection from the apply action.")
-                .severity(Severity.ERROR)
             );
             problemReporter.report(problem);
             throw new UnknownServiceException(serviceType, TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
@@ -549,7 +547,6 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                 .details(getSafeServicesListExplanation())
                 .solution("Mark the apply action as unsafe.")
                 .solution("Remove the '" + serviceType.getTypeName() + "' injection from the apply action.")
-                .severity(Severity.ERROR)
             );
             problemReporter.report(problem);
             throw new UnknownServiceException(serviceType, TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
