@@ -54,6 +54,7 @@ class FlowParametersInstantiator(
         }
     }
 
+    @SuppressWarnings("deprecation")
     private
     fun <P : FlowParameters> validate(type: Class<P>, parameters: P) {
         val problems = ImmutableList.builder<InternalProblem>()
@@ -69,6 +70,7 @@ class FlowParametersInstantiator(
                     value.maybeFinalizeValue()
                 }
 
+                @Suppress("deprecation")
                 override fun visitInputProperty(propertyName: String, value: PropertyValue, optional: Boolean) {
                     value.taskDependencies.visitDependencies(
                         object : AbstractTaskDependencyResolveContext() {

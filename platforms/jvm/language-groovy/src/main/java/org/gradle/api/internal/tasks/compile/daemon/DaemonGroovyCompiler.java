@@ -89,6 +89,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         return Collections.emptySet();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected DaemonForkOptions toDaemonForkOptions(GroovyJavaJointCompileSpec spec) {
         MinimalJavaCompilerDaemonForkOptions javaOptions = spec.getCompileOptions().getForkOptions();

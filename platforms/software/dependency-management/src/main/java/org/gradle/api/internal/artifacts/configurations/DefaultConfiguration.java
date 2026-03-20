@@ -1281,6 +1281,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         warnOrFailOnInvalidUsage(methodName, false, properUsages);
     }
 
+    @SuppressWarnings("deprecation")
     private void warnOrFailOnInvalidUsage(String methodName, boolean allowDeprecated, ProperMethodUsage... properUsages) {
         if (!isProperUsage(properUsages)) {
             String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
@@ -1492,6 +1493,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             .nagUser();
     }
 
+    @SuppressWarnings("deprecation")
     private void failDueToChangingUsage(String methodName, boolean newValue) {
         GradleException ex = new GradleException(String.format("Calling %s(%b) on %s is not allowed.  This configuration's role was set upon creation and its usage should not be changed.", methodName, newValue, this));
         ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
@@ -1648,6 +1650,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void throwDetachedConfigurationWithExtendsFromError(Iterable<Configuration> extendsFrom) {
         String summarizedExtensionTargets = StreamSupport.stream(extendsFrom.spliterator(), false)
             .map(ConfigurationInternal.class::cast)

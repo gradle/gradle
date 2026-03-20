@@ -109,6 +109,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validateUnsupportedInputPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {

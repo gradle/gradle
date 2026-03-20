@@ -270,6 +270,7 @@ class ConfigurationCacheProblems(
     private
     val configCacheValidation: ProblemGroup = ProblemGroup.create("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())
 
+    @Suppress("deprecation")
     private
     fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         val message = problem.message.render()
@@ -307,6 +308,7 @@ class ConfigurationCacheProblems(
     private
     fun PropertyTrace.buildLogic() = sequence.filterIsInstance<PropertyTrace.BuildLogic>().firstOrNull()
 
+    @Suppress("deprecation")
     private
     fun ProblemSeverity.toProblemSeverity() = when {
         this == ProblemSeverity.Suppressed ||

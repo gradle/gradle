@@ -137,6 +137,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         return false;
     }
 
+    @SuppressWarnings("deprecation")
     private static void buildProblemFrom(RuntimeException ex, ProblemSpec spec) {
         spec.severity(Severity.ERROR);
         spec.contextualLabel(ex.getLocalizedMessage());

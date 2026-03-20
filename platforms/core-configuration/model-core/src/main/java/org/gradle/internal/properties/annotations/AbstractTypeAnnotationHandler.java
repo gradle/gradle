@@ -39,6 +39,7 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
         return annotationType;
     }
 
+    @SuppressWarnings("deprecation")
     protected static void reportInvalidUseOfTypeAnnotation(
         Class<?> classWithAnnotationAttached,
         TypeValidationContext visitor,

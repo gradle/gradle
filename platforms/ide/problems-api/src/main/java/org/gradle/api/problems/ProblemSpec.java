@@ -176,6 +176,9 @@ public interface ProblemSpec {
      * @param severity the severity
      * @return this
      * @since 8.6
+     *
+     * @deprecated The severity of a problem is now determined whether the report makes the build to fail. Setting Severity is now a no-op. This method will be removed in Gradle 10.0.
      */
+    @Deprecated
     ProblemSpec severity(Severity severity);
 }

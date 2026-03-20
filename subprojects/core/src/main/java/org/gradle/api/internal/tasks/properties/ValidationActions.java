@@ -157,6 +157,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static final String INPUT_FILE_DOES_NOT_EXIST = "INPUT_FILE_DOES_NOT_EXIST";
 
+    @SuppressWarnings("deprecation")
     private static void reportMissingInput(PropertyValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase(Locale.ROOT);
@@ -174,6 +175,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static final String UNEXPECTED_INPUT_FILE_TYPE = "UNEXPECTED_INPUT_FILE_TYPE";
 
+    @SuppressWarnings("deprecation")
     private static void reportUnexpectedInputKind(PropertyValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase(Locale.ROOT);
@@ -191,6 +193,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static final String CANNOT_WRITE_OUTPUT = "CANNOT_WRITE_OUTPUT";
 
+    @SuppressWarnings("deprecation")
     private static void reportCannotWriteToDirectory(String propertyName, PropertyValidationContext context, File directory, String cause) {
         context.visitPropertyProblem(problem ->
             problem
@@ -204,6 +207,7 @@ public enum ValidationActions implements ValidationAction {
         );
     }
 
+    @SuppressWarnings("deprecation")
     private static void reportFileTreeWithFileRoot(String propertyName, PropertyValidationContext context, File directory) {
         context.visitPropertyProblem(problem ->
             problem
@@ -217,6 +221,7 @@ public enum ValidationActions implements ValidationAction {
         );
     }
 
+    @SuppressWarnings("deprecation")
     private static void reportCannotWriteFileToDirectory(String propertyName, PropertyValidationContext context, File file) {
         context.visitPropertyProblem(problem ->
             problem
@@ -231,6 +236,7 @@ public enum ValidationActions implements ValidationAction {
         );
     }
 
+    @SuppressWarnings("deprecation")
     private static void reportCannotCreateParentDirectories(String propertyName, PropertyValidationContext context, File file, File ancestor) {
         context.visitPropertyProblem(problem ->
             problem
@@ -256,6 +262,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static final String CANNOT_WRITE_TO_RESERVED_LOCATION = "CANNOT_WRITE_TO_RESERVED_LOCATION";
 
+    @SuppressWarnings("deprecation")
     private static void validateNotInReservedFileSystemLocation(String propertyName, PropertyValidationContext context, File location) {
         if (context.isInReservedFileSystemLocation(location)) {
             context.visitPropertyProblem(problem ->
@@ -290,6 +297,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static final String UNSUPPORTED_NOTATION = "UNSUPPORTED_NOTATION";
 
+    @SuppressWarnings("deprecation")
     private static void reportUnsupportedValue(String propertyName, PropertyValidationContext context, String targetType, Object value, Collection<String> candidates) {
         context.visitPropertyProblem(problem -> {
                 ProblemSpec describedProblem = problem

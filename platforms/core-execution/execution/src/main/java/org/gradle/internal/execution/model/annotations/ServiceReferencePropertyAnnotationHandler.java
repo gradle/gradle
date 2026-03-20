@@ -60,6 +60,7 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
     private static final String SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE = "SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE";
 
     @Override
+    @SuppressWarnings("deprecation")
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         ModelType<?> propertyType = ModelType.of(propertyMetadata.getDeclaredType().getType());
         List<ModelType<?>> typeVariables = Cast.uncheckedNonnullCast(propertyType.getTypeVariables());

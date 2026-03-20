@@ -59,6 +59,7 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void maybeThrowOnTargetMismatch(Plugin<?> plugin) {
         Type typeParameter = TypeUtils.getTypeArguments(plugin.getClass(), Plugin.class).get(Plugin.class.getTypeParameters()[0]);
         if (!(typeParameter instanceof Class<?>)) {

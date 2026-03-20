@@ -75,6 +75,7 @@ public abstract class AbstractResolutionFailureException extends StyledException
         return resolutions;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public AbstractResolutionFailureException reportAsProblem(InternalProblems problemsService) {
         Problem problem = problemsService.getInternalReporter().internalCreate(builder -> {

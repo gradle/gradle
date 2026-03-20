@@ -120,6 +120,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     }
 
     @NonNull
+    @SuppressWarnings("deprecation")
     private ImmutableSet<PropertyMetadata> getEffectiveProperties(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
         ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(annotationMetadata.getPropertiesAnnotationMetadata().size());
         for (PropertyAnnotationMetadata propertyAnnotationMetadata : annotationMetadata.getPropertiesAnnotationMetadata()) {
@@ -189,6 +190,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     }
 
     @NonNull
+    @SuppressWarnings("deprecation")
     private ImmutableSet<FunctionMetadata> getEffectiveFunctions(TypeAnnotationMetadata annotationMetadata, ReplayingTypeValidationContext validationContext) {
         ImmutableSet.Builder<FunctionMetadata> effectiveFunctions = ImmutableSet.builderWithExpectedSize(annotationMetadata.getFunctionAnnotationMetadata().size());
         for (FunctionAnnotationMetadata functionAnnotationMetadata : annotationMetadata.getFunctionAnnotationMetadata()) {

@@ -162,6 +162,7 @@ public class MissingTaskDependencyDetector {
 
     private static final String IMPLICIT_DEPENDENCY = "IMPLICIT_DEPENDENCY";
 
+    @SuppressWarnings("deprecation")
     private static void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
             problem.id(TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY), "Property has implicit dependency", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage

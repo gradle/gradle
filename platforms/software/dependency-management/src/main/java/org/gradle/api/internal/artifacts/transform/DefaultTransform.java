@@ -206,6 +206,7 @@ public class DefaultTransform implements Transform {
 
     private static final String CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY = "CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY";
 
+    @SuppressWarnings("deprecation")
     public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
@@ -298,6 +299,7 @@ public class DefaultTransform implements Transform {
 
     private static final String ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT = "ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT";
 
+    @SuppressWarnings("deprecation")
     private static void fingerprintParameters(
         InputFingerprinter inputFingerprinter,
         FileCollectionFactory fileCollectionFactory,

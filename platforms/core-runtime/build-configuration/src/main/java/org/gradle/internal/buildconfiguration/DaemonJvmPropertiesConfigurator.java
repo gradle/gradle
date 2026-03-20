@@ -28,12 +28,12 @@ import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
-import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
-import org.gradle.jvm.toolchain.internal.JavaToolchainResolverService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchainResolverService;
 import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.BuildPlatformFactory;
@@ -51,6 +51,7 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
 
     public static final String TASK_NAME = "updateDaemonJvm";
 
+    @SuppressWarnings("deprecation")
     @Override
     public void execute(ProjectInternal project) {
         // Only useful for the root project

@@ -56,6 +56,7 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
 
     private static final String UNSUPPORTED_VALUE_TYPE = "UNSUPPORTED_VALUE_TYPE";
 
+    @SuppressWarnings("deprecation")
     private static void validateUnsupportedPropertyValueType(
         Class<? extends Annotation> annotationType,
         List<Class<?>> valueTypes,

@@ -30,6 +30,7 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaFailureMessageFormatter
 
+@Suppress("deprecation")
 internal fun schemaBuildingFailuresAsProblems(
     stageFailure: NotEvaluated.StageFailure.SchemaBuildingFailures,
     problems: InternalProblems

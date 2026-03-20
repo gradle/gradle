@@ -20,7 +20,13 @@ import org.gradle.api.Incubating;
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 
 /**
- * Represents a problem severity.
+ * Represents the severity of a problem reported via the Problems API.
+ *
+ * <p>Severity controls how a problem is surfaced to the user and whether it causes the build to fail:
+ * <ul>
+ *   <li>{@link #WARNING} — non-fatal; the build continues.</li>
+ *   <li>{@link #ERROR} — fatal; the build fails.</li>
+ * </ul>
  *
  * @since 8.6
  */
@@ -29,21 +35,25 @@ public interface Severity {
 
     // Note: the static fields must be in sync with entries from org.gradle.api.problems.Severity.
     /**
-     * Advice-level severity.
+     * Advice severity.
+     *
+     * @deprecated This severity level is unused in Gradle 9.5+ versions.
      *
      * @since 8.6
      */
+    @Deprecated
     Severity ADVICE = new DefaultSeverity(0, true);
 
     /**
-     * Warning-level severity.
+     * Indicates a non-fatal issue that the user should be aware of but that does not prevent the build from succeeding.
+     * This is the default severity for every problem report.
      *
      * @since 8.6
      */
     Severity WARNING = new DefaultSeverity(1, true);
 
     /**
-     * Error-level severity.
+     * Indicates a fatal issue that causes the build to fail.
      *
      * @since 8.6
      */

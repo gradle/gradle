@@ -94,7 +94,7 @@ public class ValidationProblemSerialization {
 
     public static Stream<String> toPlainMessage(List<? extends InternalProblem> problems) {
         return problems.stream()
-            .map(problem -> problem.getDefinition().getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
+            .map(problem -> "Error: " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
 
     /**

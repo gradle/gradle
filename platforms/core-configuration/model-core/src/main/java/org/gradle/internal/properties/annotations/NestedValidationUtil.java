@@ -49,6 +49,7 @@ public class NestedValidationUtil {
      * @param propertyName the name of the property
      * @param beanType the type of the bean
      */
+    @SuppressWarnings("deprecation")
     public static void validateBeanType(
         TypeValidationContext validationContext,
         String propertyName,
@@ -90,6 +91,7 @@ public class NestedValidationUtil {
      * @param propertyName the name of the property
      * @param keyType the type of the map key
      */
+    @SuppressWarnings("deprecation")
     public static void validateKeyType(
         TypeValidationContext validationContext,
         String propertyName,

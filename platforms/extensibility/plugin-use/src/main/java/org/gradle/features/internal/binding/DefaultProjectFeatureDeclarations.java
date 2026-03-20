@@ -22,13 +22,6 @@ import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
-import org.gradle.features.annotations.BindsProjectFeature;
-import org.gradle.features.annotations.BindsProjectType;
-import org.gradle.features.binding.BuildModel;
-import org.gradle.features.binding.Definition;
-import org.gradle.features.binding.ProjectFeatureBinding;
-import org.gradle.features.binding.ProjectTypeBinding;
-import org.gradle.features.binding.TargetTypeInformation;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -36,6 +29,13 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.Nested;
+import org.gradle.features.annotations.BindsProjectFeature;
+import org.gradle.features.annotations.BindsProjectType;
+import org.gradle.features.binding.BuildModel;
+import org.gradle.features.binding.Definition;
+import org.gradle.features.binding.ProjectFeatureBinding;
+import org.gradle.features.binding.ProjectTypeBinding;
+import org.gradle.features.binding.TargetTypeInformation;
 import org.gradle.internal.Pair;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.properties.annotations.TypeMetadata;
@@ -99,6 +99,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         return ImmutableMap.copyOf(projectFeatureDeclarations);
     }
 
+    @SuppressWarnings("deprecation")
     private <T extends Definition<V>, V extends BuildModel> void registerFeature(
         RegisteringPluginKey registeringPlugin,
         Class<? extends Plugin<Project>> pluginClass,
@@ -211,6 +212,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void validateDefinitionSafety(ProjectFeatureBindingDeclaration<?, ?> binding) {
         List<InternalProblem> problems = new ArrayList<>();
         if (binding.getDefinitionImplementationType().isPresent() && !binding.getDefinitionImplementationType().get().equals(binding.getDefinitionType())) {
@@ -258,6 +260,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void validateDefinition(Class<?> definitionType, List<InternalProblem> problems) {
         TypeMetadata definitionTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(definitionType);
         definitionTypeMetadata.getTypeAnnotationMetadata().getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.Severity;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -67,7 +68,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         problemBuilder.id(problemId);
         spec.execute(problemBuilder);
-        problemBuilder.withException(exception);
+        addExceptionToProblem(exception, problemBuilder);
         report(problemBuilder.build());
         throw runtimeException(exception);
     }
@@ -89,7 +90,12 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @NonNull
     private InternalProblem addExceptionToProblem(Throwable exception, Problem problem) {
-        return getBuilder(problem).withException(transform(exception)).build();
+        return addExceptionToProblem(exception, getBuilder(problem));
+    }
+
+    @NonNull
+    private InternalProblem addExceptionToProblem(Throwable exception, InternalProblemBuilder builder) {
+        return builder.severity(Severity.ERROR).withException(transform(exception)).build();
     }
 
     private static RuntimeException runtimeException(Throwable exception) {
