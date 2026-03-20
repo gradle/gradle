@@ -24,7 +24,7 @@ import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip
 
 class CachedRelocationIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE, because = "https://github.com/gradle/gradle/issues/35177")
     def "relocating the project doesn't invalidate custom tasks declared in build script"() {
         def originalLocation = file("original-location").createDir()
         def originalHome = file("original-home").createDir()
