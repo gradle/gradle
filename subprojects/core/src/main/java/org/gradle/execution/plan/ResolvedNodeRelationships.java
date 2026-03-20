@@ -18,7 +18,6 @@ package org.gradle.execution.plan;
 
 import org.jspecify.annotations.NullMarked;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -74,40 +73,5 @@ public class ResolvedNodeRelationships {
 
     public Set<Node> getShouldRunAfter() {
         return shouldRunAfter;
-    }
-
-    /**
-     * Returns a new instance with all {@link DeferredCrossProjectNode} placeholders replaced
-     * by their resolved real nodes. Returns {@code this} if no placeholders are present.
-     */
-    ResolvedNodeRelationships substitutePlaceholders() {
-        Set<Node> newDeps = substitutePlaceholders(dependencies);
-        Set<Node> newLifecycle = substitutePlaceholders(lifecycleDependencies);
-        Set<Node> newFinalizedBy = substitutePlaceholders(finalizedBy);
-        Set<Node> newMustRunAfter = substitutePlaceholders(mustRunAfter);
-        Set<Node> newShouldRunAfter = substitutePlaceholders(shouldRunAfter);
-        if (newDeps == dependencies
-            && newLifecycle == lifecycleDependencies
-            && newFinalizedBy == finalizedBy
-            && newMustRunAfter == mustRunAfter
-            && newShouldRunAfter == shouldRunAfter) {
-            return this;
-        }
-        return new ResolvedNodeRelationships(node, newDeps, newLifecycle, newFinalizedBy, newMustRunAfter, newShouldRunAfter);
-    }
-
-    private static Set<Node> substitutePlaceholders(Set<Node> original) {
-        if (original.stream().noneMatch(DeferredCrossProjectNode.class::isInstance)) {
-            return original;
-        }
-        Set<Node> result = new HashSet<>();
-        for (Node n : original) {
-            if (n instanceof DeferredCrossProjectNode) {
-                result.addAll(((DeferredCrossProjectNode) n).getResolvedNodes());
-            } else {
-                result.add(n);
-            }
-        }
-        return result;
     }
 }
