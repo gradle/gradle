@@ -25,6 +25,7 @@ import java.util.List;
 
 public class ShortExceptionFormatter implements TestExceptionFormatter {
     private static final String INDENT = "    ";
+    private static final int MAX_MESSAGE_LENGTH = 200;
 
     private final TestLogging testLogging;
 
@@ -52,6 +53,12 @@ public class ShortExceptionFormatter implements TestExceptionFormatter {
                 ? ((PlaceholderExceptionSupport) exception).getExceptionClassName() : exception.getClass().getName();
         builder.append(className);
 
+        String message = getExceptionMessage(exception);
+        if (message != null && !message.isEmpty()) {
+            builder.append(": ");
+            builder.append(message);
+        }
+
         StackTraceFilter filter = new StackTraceFilter(new ClassMethodNameStackTraceSpec(descriptor.getClassName(), null));
         List<StackTraceElement> stackTrace = filter.filter(exception);
         if (stackTrace.size() > 0) {
@@ -66,5 +73,30 @@ public class ShortExceptionFormatter implements TestExceptionFormatter {
         if (testLogging.getShowCauses() && exception.getCause() != null) {
             printException(descriptor, exception.getCause(), true, indentLevel + 1, builder);
         }
+    }
+
+    private static String getExceptionMessage(Throwable exception) {
+        String message;
+        try {
+            message = exception.getMessage();
+        } catch (Exception e) {
+            return null;
+        }
+        if (message == null || message.isEmpty()) {
+            return null;
+        }
+
+        // Take first line only
+        int newlineIndex = message.indexOf('\n');
+        if (newlineIndex >= 0) {
+            message = message.substring(0, newlineIndex);
+        }
+
+        // Truncate to max length
+        if (message.length() > MAX_MESSAGE_LENGTH) {
+            message = message.substring(0, MAX_MESSAGE_LENGTH) + " [truncated]";
+        }
+
+        return message;
     }
 }

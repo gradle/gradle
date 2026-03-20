@@ -36,6 +36,7 @@ import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
+import org.gradle.api.internal.tasks.testing.logging.TestFailureIndexWriter;
 import org.gradle.api.internal.tasks.testing.junit.result.TestEventReporterAsListener;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
@@ -183,6 +184,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
+    @Nullable
+    private TestFailureIndexWriter failureIndexWriter;
 
     public AbstractTestTask() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -571,6 +574,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         ListenerBroadcast<@NonNull TestListenerInternal> testListenerInternalBroadcaster = getListenerManager().createAnonymousBroadcaster(TestListenerInternal.class);
         testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerSubscriptions.get().getSource(), testOutputListenerSubscriptions.get().getSource(), testMetadataListenerSubscriptions.get().getSource()));
 
+        // Write structured failure index JSON for AI agents and tools
+        failureIndexWriter = new TestFailureIndexWriter(getFailureIndexPath());
+        testListenerInternalBroadcaster.add(failureIndexWriter);
+
         // Log to the console which tests are currently executing, and update live as current tests change
         ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(AbstractTestTask.class);
         parentProgressLogger.setDescription("Test Execution");
@@ -831,7 +838,19 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             }
         }
 
+        if (failureIndexWriter != null && failureIndexWriter.hasFailures()) {
+            message = message.concat("\n  Failure index: " + failureIndexWriter.getOutputFile());
+        }
+
         return message;
+    }
+
+    private Path getFailureIndexPath() {
+        DirectoryReport htmlReport = getReports().getHtml();
+        if (htmlReport.getRequired().get()) {
+            return htmlReport.getOutputLocation().get().getAsFile().toPath().resolve("failure-index.json");
+        }
+        return getBinaryResultsDirectory().getAsFile().get().toPath().resolve("failure-index.json");
     }
 
     /**
