@@ -51,7 +51,7 @@ public class DefaultBuildRequestContext implements BuildRequestContext {
     }
 
     @Override
-    public boolean isInteractive() {
-        return metaData.isInteractive();
+    public boolean isInteractiveConsole() {
+        return metaData.isInteractiveConsole();
     }
 }

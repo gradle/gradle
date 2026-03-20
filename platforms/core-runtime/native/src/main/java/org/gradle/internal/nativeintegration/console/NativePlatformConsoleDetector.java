@@ -68,7 +68,7 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
     }
 
     @Override
-    public boolean isConsoleInput() {
+    public boolean isInteractiveConsole() {
         return terminals.isTerminalInput();
     }
 }

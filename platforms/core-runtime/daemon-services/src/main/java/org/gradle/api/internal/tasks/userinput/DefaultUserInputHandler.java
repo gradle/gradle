@@ -60,6 +60,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
     private class InteractiveUserQuestions implements UserInteraction {
         private boolean hasPrompted;
 
+        @Nullable
         @Override
         public Boolean askYesNoQuestion(String question) {
             YesNoQuestionPromptEvent prompt = new YesNoQuestionPromptEvent(clock.getCurrentTime(), question);
