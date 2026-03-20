@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DeferredCrossProjectDependency;
@@ -25,26 +26,32 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 /**
  * A project-scoped resolver used during parallel task dependency resolution.
  * Extends {@link TaskDependencyResolver} so it can be passed to
  * {@link LocalTaskNode#resolveRelationships}, but uses a
- * {@link ParallelCachingTaskDependencyResolveContext} that intercepts
- * {@link DeferredCrossProjectDependency} markers to defer cross-project access.
+ * {@link ParallelCachingTaskDependencyResolveContext} that converts cross-project
+ * dependencies into placeholder nodes via the provided factory.
  */
 @NullMarked
 class ParallelTaskDependencyResolver extends TaskDependencyResolver {
 
     private final ParallelCachingTaskDependencyResolveContext<Node> parallelContext;
 
-    ParallelTaskDependencyResolver(List<DependencyResolver> dependencyResolvers, ProjectInternal project) {
+    ParallelTaskDependencyResolver(
+        List<DependencyResolver> dependencyResolvers,
+        ProjectInternal project,
+        BiFunction<DeferredCrossProjectDependency, Task, Node> placeholderFactory
+    ) {
         super(dependencyResolvers);
         this.parallelContext = new ParallelCachingTaskDependencyResolveContext<>(
             dependencyResolvers,
             project.getGradle().getIdentityPath(),
             project.getProjectPath(),
-            project.getIdentityPath()
+            project.getIdentityPath(),
+            placeholderFactory
         );
     }
 
@@ -56,10 +63,5 @@ class ParallelTaskDependencyResolver extends TaskDependencyResolver {
     @Override
     public Set<Node> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {
         return parallelContext.getDependencies(task, dependencies);
-    }
-
-    @Override
-    public List<DeferredCrossProjectDependency> collectAndClearDeferredItems() {
-        return parallelContext.collectAndClearDeferred();
     }
 }
