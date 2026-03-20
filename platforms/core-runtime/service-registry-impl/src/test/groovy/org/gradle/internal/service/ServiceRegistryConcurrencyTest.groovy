@@ -19,7 +19,8 @@ package org.gradle.internal.service
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
+class ServiceRegistryConcurrencyTest extends ConcurrentSpec {
+
     def "multiple threads can locate services"() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new ServiceRegistrationProvider() {

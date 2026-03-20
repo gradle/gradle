@@ -18,7 +18,7 @@ package org.gradle.internal.service
 
 import spock.lang.Specification
 
-class DefaultServiceRegistryServiceAccessTest extends Specification {
+class ServiceRegistryServiceAccessTest extends Specification implements ServiceRegistryFixture {
 
     ServiceRegistry registry = new DefaultServiceRegistry("test registry")
 
@@ -36,13 +36,13 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         when:
         def service1 = registry.get(ServiceWithDependency)
         then:
-        service1 instanceof ServiceWithDependency
+        (service1 instanceof ServiceWithDependency)
 
         when:
         registry.get(TestService)
         then:
         def e = thrown(UnknownServiceException)
-        withoutTestClassName(e.message) == "No service of type TestService available in test registry."
+        normalizedMessage(e) == "No service of type TestService available in test registry."
     }
 
     def "can use private service as a dependency in constructor-based injection within the same service provider"() {
@@ -60,13 +60,13 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         when:
         def service1 = registry.get(ServiceWithDependency)
         then:
-        service1 instanceof ServiceWithDependency
+        (service1 instanceof ServiceWithDependency)
 
         when:
         registry.get(TestService)
         then:
         def e = thrown(UnknownServiceException)
-        withoutTestClassName(e.message) == "No service of type TestService available in test registry."
+        normalizedMessage(e) == "No service of type TestService available in test registry."
     }
 
     def "private service is reused within the same service provider"() {
@@ -131,7 +131,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         registry.get(TestService)
         then:
         def e = thrown(UnknownServiceException)
-        withoutTestClassName(e.message) == "No service of type TestService available in test registry."
+        normalizedMessage(e) == "No service of type TestService available in test registry."
     }
 
     def "cannot use private services as dependencies in sibling providers"() {
@@ -150,7 +150,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         registry.get(ServiceWithDependency)
         then:
         def e = thrown(ServiceCreationException)
-        withoutTestClassName(e.message) == "Cannot create service of type ServiceWithDependency using method <anonymous>.create() as required service of type TestService for parameter #1 is not available."
+        normalizedMessage(e) == "Cannot create service of type ServiceWithDependency using method <anonymous>.create() as required service of type TestService for parameter #1 is not available."
     }
 
     def "cannot use private services as dependencies in service providers added via configure"() {
@@ -172,7 +172,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         registry.get(ServiceWithDependency)
         then:
         def e = thrown(ServiceCreationException)
-        withoutTestClassName(e.message) == 'Cannot create service of type ServiceWithDependency using method <anonymous>$<anonymous>.create() as required service of type TestService for parameter #1 is not available.'
+        normalizedMessage(e) == 'Cannot create service of type ServiceWithDependency using method <anonymous>$<anonymous>.create() as required service of type TestService for parameter #1 is not available.'
     }
 
     def "cannot use private services as dependencies in child registries"() {
@@ -194,7 +194,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         registry.get(ServiceWithDependency)
         then:
         def e = thrown(ServiceCreationException)
-        withoutTestClassName(e.message) == "Cannot create service of type ServiceWithDependency using method <anonymous>.create() as required service of type TestService for parameter #1 is not available."
+        normalizedMessage(e) == "Cannot create service of type ServiceWithDependency using method <anonymous>.create() as required service of type TestService for parameter #1 is not available."
     }
 
     def "can collect private services from the same service provider"() {
@@ -260,7 +260,7 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         services.toSorted() == [2, 4, 6]
     }
 
-    def "can declare a private service together with a private one"() {
+    def "can declare a private service together with a non-private one"() {
         given:
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
@@ -295,12 +295,11 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         registry.get(TestService)
         then:
         def e = thrown(ServiceCreationException)
-        withoutTestClassName(e.message) == 'Cannot create service of type TestService using method <anonymous>.create() as there is a problem with parameter #1 of type Integer.'
-        def cause = e.cause
-        cause instanceof ServiceLookupException
-        withoutTestClassName(cause.message).contains('Multiple services of type Integer available in test registry:')
-        withoutTestClassName(cause.message).contains('- Service Integer via <anonymous>.create1()')
-        withoutTestClassName(cause.message).contains('- Service Integer via <anonymous>.create2()')
+        normalizedMessage(e) == 'Cannot create service of type TestService using method <anonymous>.create() as there is a problem with parameter #1 of type Integer.'
+        e.cause instanceof ServiceLookupException
+        normalizedMessage(e.cause) == """Multiple services of type Integer available in test registry:
+   - Service Integer via <anonymous>.create1()
+   - Service Integer via <anonymous>.create2()"""
     }
 
     private interface TestService {
@@ -325,7 +324,4 @@ class DefaultServiceRegistryServiceAccessTest extends Specification {
         }
     }
 
-    private String withoutTestClassName(String s) {
-        s.replaceAll(this.class.simpleName + "\\\$", "")
-    }
 }
