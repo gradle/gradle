@@ -39,10 +39,28 @@ import java.util.zip.ZipFile
  * @property apiDependencyRoots The set of external JARs or directories that contain API dependencies of the [projectClasses].
  * @property implementationDependencyRoots The set of external JARs or directories that contain Implementation dependencies of the [projectClasses].
  */
+/**
+ * Describes how a class was discovered during traversal.
+ */
+sealed class DiscoveryReason {
+    /** Discovered as a direct dependency of [parent]. */
+    data class DependencyOf(val parent: String) : DiscoveryReason()
+    /** Discovered as a subtype of [supertype]. */
+    data class SubtypeOf(val supertype: String) : DiscoveryReason()
+}
+
 data class AnalysisResult(
     val projectClasses: Set<String>,
     val apiDependencyRoots: Set<File>,
-    val implementationDependencyRoots: Set<File>
+    val implementationDependencyRoots: Set<File>,
+    /** Maps each project class to its set of direct dependencies (both project and external). */
+    val dependencyGraph: Map<String, Set<String>>,
+    /** Maps each class to the file (JAR or directory) where it was found on the classpath. */
+    val classLocationMap: Map<String, File>,
+    /** The set of directories containing the current project's compiled classes. */
+    val projectClassesDirSet: Set<File>,
+    /** Maps each discovered class (except initial root classes) to the reason it was discovered. */
+    val discoveryReasons: Map<String, DiscoveryReason>
 )
 
 private data class ClassDependencies(val api: Set<String>, val impl: Set<String>) {
@@ -87,6 +105,8 @@ class DependencyAnalyzer {
 
         // Cache for parsed dependencies to avoid re-parsing jars/files
         val dependencyCache = mutableMapOf<String, ClassDependencies>()
+        val dependencyGraph = mutableMapOf<String, Set<String>>()
+        val discoveryReasons = mutableMapOf<String, DiscoveryReason>()
 
         val compiledClassesDirsSet = compiledClassesDirs.toSet()
 
@@ -105,11 +125,13 @@ class DependencyAnalyzer {
                             parseDependencies(currentClass, location, classLocationMap.keys)
                         }
 
+                        dependencyGraph[currentClass] = dependencies.all
                         apiExternalClasses.addAll(dependencies.api)
                         implExternalClasses.addAll(dependencies.impl)
 
                         for (dep in dependencies.all) {
                             if (!visited.contains(dep)) {
+                                discoveryReasons.putIfAbsent(dep, DiscoveryReason.DependencyOf(currentClass))
                                 queue.add(dep)
                             }
                         }
@@ -119,6 +141,7 @@ class DependencyAnalyzer {
                     if (followSubtypes) {
                         subtypeMap[currentClass]?.forEach { subtype ->
                             if (!visited.contains(subtype)) {
+                                discoveryReasons.putIfAbsent(subtype, DiscoveryReason.SubtypeOf(currentClass))
                                 queue.add(subtype)
                             }
                         }
@@ -149,7 +172,7 @@ class DependencyAnalyzer {
         // 3. Ensure disjoint sets
         implRoots.removeAll(apiRoots)
 
-        return AnalysisResult(projectClassesResult, apiRoots, implRoots)
+        return AnalysisResult(projectClassesResult, apiRoots, implRoots, dependencyGraph, classLocationMap, compiledClassesDirsSet, discoveryReasons)
     }
 
     private data class ClassIndex(

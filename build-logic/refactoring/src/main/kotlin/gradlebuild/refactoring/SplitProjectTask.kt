@@ -91,6 +91,23 @@ abstract class SplitProjectTask : DefaultTask() {
     abstract val followSubtypes: Property<Boolean>
 
     /**
+     * Whether to perform a dry run that prints the dependency tree without moving any files.
+     */
+    @get:Input
+    @get:Option(option = "log-tree", description = "Print the dependency tree without moving files or generating a build script")
+    @get:Optional
+    abstract val dryRun: Property<Boolean>
+
+    /**
+     * Whether to include external (third-party) dependencies in the tree output.
+     * Only meaningful when used with --log-tree.
+     */
+    @get:Input
+    @get:Option(option = "log-external", description = "Include external dependencies in the tree output")
+    @get:Optional
+    abstract val logExternal: Property<Boolean>
+
+    /**
      * Whether to amend an existing project instead of creating a new one.
      */
     @get:Input
@@ -180,6 +197,11 @@ abstract class SplitProjectTask : DefaultTask() {
             followSubtypes.getOrElse(false)
         )
 
+        if (dryRun.getOrElse(false)) {
+            printDependencyTree(rootClassNames, result, logExternal.getOrElse(false))
+            return
+        }
+
         val sourceFileMoves = mutableSetOf<Pair<File, String>>()
 
         // Find all source files to move to the new project
@@ -216,6 +238,85 @@ abstract class SplitProjectTask : DefaultTask() {
         println("- Run `./gradlew :generateSubprojectsInfo`")
         println("- Run `./gradlew projectHealth --continue` and resolve any reported dependency declaration issues")
         println("- Sync the build and commit the idea.xml file changes")
+    }
+
+    /**
+     * Prints a tree of classes to be moved and their dependencies, similar to
+     * the output of `gradle :dependencies` or the Linux `tree` command.
+     */
+    private fun printDependencyTree(rootClassNames: Set<String>, result: AnalysisResult, showExternal: Boolean) {
+        val graph = result.dependencyGraph
+        val projectClasses = result.projectClasses
+        val classLocationMap = result.classLocationMap
+        val projectClassesDirSet = result.projectClassesDirSet
+        val discoveryReasons = result.discoveryReasons
+
+        val artifactFilesToComponentIds: Map<File, ComponentIdentifier> =
+            compileClasspathFiles.get().zip(compileClasspathComponentIds.get()).toMap()
+
+        // Build a map of supertype -> discovered subtypes by inverting SubtypeOf entries
+        val discoveredSubtypes = mutableMapOf<String, MutableSet<String>>()
+        for ((className, reason) in discoveryReasons) {
+            if (reason is DiscoveryReason.SubtypeOf) {
+                discoveredSubtypes.getOrPut(reason.supertype) { mutableSetOf() }.add(className)
+            }
+        }
+
+        fun classLabel(className: String): String {
+            val location = classLocationMap[className] ?: return ""
+            if (location in projectClassesDirSet) {
+                return if (className in projectClasses) " [MOVED]" else ""
+            }
+            val componentId = artifactFilesToComponentIds[location]
+            return when (componentId) {
+                is ProjectComponentIdentifier -> " -> ${componentId.projectPath}"
+                is ModuleComponentIdentifier -> " -> ${componentId.group}:${componentId.module}"
+                else -> ""
+            }
+        }
+
+        fun isVisibleDep(dep: String): Boolean {
+            val loc = classLocationMap[dep] ?: return false
+            if (dep in projectClasses || loc in projectClassesDirSet) return true
+            if (showExternal) return true
+            return artifactFilesToComponentIds[loc] is ProjectComponentIdentifier
+        }
+
+        val printed = mutableSetOf<String>()
+
+        fun printNode(className: String, prefix: String, childPrefix: String, isSubtype: Boolean = false) {
+            val isProject = className in projectClasses
+            val alreadyPrinted = !printed.add(className)
+
+            val subtypeLabel = if (isSubtype) {
+                val reason = discoveryReasons[className]
+                if (reason is DiscoveryReason.SubtypeOf) " [subtype of ${reason.supertype}]" else " [subtype]"
+            } else ""
+            val suffix = when {
+                alreadyPrinted -> " (*)"
+                else -> "${classLabel(className)}$subtypeLabel"
+            }
+            println("$prefix$className$suffix")
+
+            if (alreadyPrinted || !isProject) return
+
+            // Children = direct dependencies + discovered subtypes of this class
+            val deps = (graph[className] ?: emptySet()).filter { isVisibleDep(it) }
+            val subtypes = discoveredSubtypes[className]?.filter { it !in deps } ?: emptyList()
+            val children = (deps + subtypes).sorted()
+
+            children.forEachIndexed { index, child ->
+                val isLast = index == children.lastIndex
+                val connector = if (isLast) "\\--- " else "+--- "
+                val nextChildPrefix = if (isLast) "$childPrefix     " else "$childPrefix|    "
+                printNode(child, "$childPrefix$connector", nextChildPrefix, isSubtype = child in (subtypes.toSet()))
+            }
+        }
+
+        rootClassNames.sorted().forEach { rootClass ->
+            printNode(rootClass, "", "")
+            println()
+        }
     }
 
     /**
