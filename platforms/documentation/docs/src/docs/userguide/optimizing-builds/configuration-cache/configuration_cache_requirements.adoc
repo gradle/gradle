@@ -334,6 +334,72 @@ Recommended Alternatives:
 - Register a Build Service to receive <<build_services#operation_listener, task execution notifications>>.
 - Replace `buildFinished` listeners with <<dataflow_actions.adoc#dataflow_action, dataflow actions>> to manage build results.
 
+[[config_cache:requirements:value_source]]
+== Using External Information Sources
+
+Examples of external sources include client environment variables, system properties, configuration files, shell commands, network services, among others.
+To represent such sources in a Gradle build in a Configuration Cache friendly way we use link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`].
+They make it possible for Gradle to transparently manage the Configuration Cache as values obtained from those sources change.
+For example, a build might run a different set of tasks depending on whether the `CI` environment variable is set or not.
+
+A `ValueSource` implementation is *exempt from the automatic detection of configuration cache inputs*.
+For example, if the `obtain()` method reads a system property, an environment variable, or a file, those reads do not individually become configuration cache inputs.
+Instead, only the _value returned_ by `obtain()` is tracked.
+If that value changes between builds, the Configuration Cache is invalidated.
+
+This makes `ValueSource` the recommended escape hatch when built-in providers like `providers.systemProperty()`, `providers.environmentVariable()`, or `providers.fileContents()` are too limited for your use case.
+
+=== Creating a `ValueSource`
+
+To integrate a new type of value source:
+
+1. Create an abstract class implementing `ValueSource<T, P>`.
+2. Implement the `obtain()` method to compute and return the value. The returned value must be effectively immutable (e.g., a `string`, `int`, `boolean`, an unmodifiable collection, or a serializable data class).
+3. Use link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#of-java.lang.Class-org.gradle.api.Action-[`providers.of(Class, Action)`] to get a `Provider` backed by your source.
+
+The returned `Provider` can be passed to task properties or queried during the configuration phase.
+If the value is queried at configuration time, the source is automatically considered a build configuration input.
+
+NOTE: Do not implement `getParameters()` in your class—Gradle provides the implementation automatically.
+
+TIP: Your `ValueSource` implementation does not need to be thread-safe, Gradle synchronizes calls to `obtain()`.
+
+=== Parameterizing a `ValueSource`
+
+A value source implementation will most likely take parameters.
+To do this, create a subtype of link:{javadocPath}/org/gradle/api/provider/ValueSourceParameters.html[`ValueSourceParameters`] and declare it as the type parameter `P` of your `ValueSource` implementation.
+The parameters are configured in the `Action` passed to `providers.of()`.
+If no parameters are needed, use `ValueSourceParameters.None`.
+
+=== Injecting Services
+
+Gradle <<service_injection.adoc#service_injection, services can be injected>> into a `ValueSource` implementation by adding a parameter to the constructor and annotating it with `@Inject`.
+Currently, the following service is supported:
+
+* link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] — provides means to execute external processes.
+This service can be used even at configuration time.
+Because `obtain()` is called on every build (see <<#sec:configuration_cache_behavior,Configuration Cache Behavior>> below), only fast-running commands should be used.
+
+You can also use standard Java/Kotlin/Groovy process APIs such as `java.lang.ProcessBuilder` inside `obtain()`.
+
+
+[[sec:configuration_cache_behavior]]
+=== Configuration Cache Behavior
+
+When a provider backed by a `ValueSource` is queried at configuration time, the value becomes a build configuration input.
+The `obtain()` method is then executed on every subsequent build to determine whether the Configuration Cache entry is still `UP-TO-DATE`:
+
+* If the value has *not* changed, the cached configuration is reused.
+* If the value *has* changed, the cache is invalidated and the configuration phase runs again.
+
+Because `obtain()` runs on every build, it is recommended to keep the implementation fast.
+
+`ValueSource` is the recommended approach for the following scenarios:
+
+* <<config_cache:requirements:external_processes, Running external processes at configuration time>> — such as calling git or a CLI tool to compute a version string or check a precondition.
+* <<config_cache:requirements:reading_sys_props_and_env_vars, Complex system property or environment variable access patterns>> — when you need to combine, transform, or conditionally read multiple properties.
+* <<config_cache:requirements:undeclared_file_read, Reading files at configuration time>>  — when `providers.fileContents()` is insufficient, such as parsing a file in a custom format.
+
 [[config_cache:requirements:external_processes]]
 == Running External Processes
 
@@ -358,7 +424,7 @@ include::sample[dir="snippets/valueProviders/externalProcessProvider/kotlin",fil
 include::sample[dir="snippets/valueProviders/externalProcessProvider/groovy",files="build.gradle[]"]
 ====
 
-For more complex cases, a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] implementation with injected `ExecOperations` can be used.
+For more complex cases, a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] implementation with injected `ExecOperations` can be used (see <<config_cache:requirements:value_source>> for a full overview of `ValueSource`).
 This `ExecOperations` instance can be used at configuration time without restrictions:
 
 ====
@@ -424,7 +490,7 @@ include::sample[dir="snippets/valueProviders/envVarsSysPropsDoPrefix/groovy",fil
 Note that the Configuration Cache would be invalidated not only when the value of the variable changes or the variable is removed but also
 when another variable with the matching prefix is added to the environment.
 
-For more complex use cases a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] implementation can be used.
+For more complex use cases, a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] implementation can be used (see <<config_cache:requirements:value_source>> for a full overview of `ValueSource`).
 System properties and environment variables referenced in the code of the `ValueSource` do not become build configuration inputs, so any processing can be applied.
 Instead, the value of the `ValueSource` is recomputed each time the build runs and only if the value changes the Configuration Cache is invalidated.
 For example, a `ValueSource` can be used to get all environment variables with names containing the substring `JDK`:
