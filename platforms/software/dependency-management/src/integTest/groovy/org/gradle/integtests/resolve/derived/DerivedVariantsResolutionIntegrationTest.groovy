@@ -44,13 +44,10 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
                 @InputFiles
                 abstract ConfigurableFileCollection getArtifactCollection()
 
-                @Internal
-                List<String> expectedFiles = []
-
                 @TaskAction
                 void assertThat() {
-                    assert artifacts.files*.name == expectedFiles
-                    assert artifactCollection.files*.name == expectedFiles
+                    println "artifacts: " + artifacts.files*.name
+                    println "artifactCollection: " + artifactCollection.files*.name
                 }
             }
 
@@ -94,14 +91,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.withModuleMetadata()
         direct.publish()
 
-        buildFile << """
-            tasks.resolveSources {
-                expectedFiles = []
-            }
-            tasks.resolveJavadoc {
-                expectedFiles = []
-            }
-        """
         expect:
         direct.pom.expectGet()
         direct.moduleMetadata.expectGet()
@@ -109,6 +98,8 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.moduleMetadata.expectGet()
 
         succeeds( 'resolveSources', 'resolveJavadoc')
+        outputContains("artifacts: []")
+        outputContains("artifactCollection: []")
     }
 
     def "direct has GMM and has sources jar"() {
@@ -148,11 +139,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.withModuleMetadata()
         direct.publish()
 
-        buildFile << """
-            tasks.resolveSources {
-                expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
-            }
-        """
         expect:
         direct.pom.expectGet()
         direct.moduleMetadata.expectGet()
@@ -162,6 +148,8 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.artifact(classifier: "sources").expectGet()
 
         succeeds( "resolveSources")
+        outputContains("artifacts: [direct-1.0-sources.jar, transitive-1.0-sources.jar]")
+        outputContains("artifactCollection: [direct-1.0-sources.jar, transitive-1.0-sources.jar]")
     }
 
     def "direct has GMM and has javadoc jar"() {
@@ -201,11 +189,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.withModuleMetadata()
         direct.publish()
 
-        buildFile << """
-            tasks.resolveJavadoc {
-                expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
-            }
-        """
         expect:
         direct.pom.expectGet()
         direct.moduleMetadata.expectGet()
@@ -215,6 +198,8 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.artifact(classifier: "javadoc").expectGet()
 
         succeeds( "resolveJavadoc")
+        outputContains("artifacts: [direct-1.0-javadoc.jar, transitive-1.0-javadoc.jar]")
+        outputContains("artifactCollection: [direct-1.0-javadoc.jar, transitive-1.0-javadoc.jar]")
     }
 
     def "direct has GMM and has both sources and javadoc jars"() {
@@ -270,11 +255,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.withModuleMetadata()
         direct.publish()
 
-        buildFile << """
-            tasks.resolveJavadoc {
-                expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
-            }
-        """
         expect:
         direct.pom.expectGet()
         direct.moduleMetadata.expectGet()
@@ -284,19 +264,17 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.artifact(classifier: 'javadoc').expectGet()
 
         succeeds( 'resolveJavadoc')
+        outputContains("artifacts: [direct-1.0-javadoc.jar, transitive-1.0-javadoc.jar]")
+        outputContains("artifactCollection: [direct-1.0-javadoc.jar, transitive-1.0-javadoc.jar]")
 
         and:
-        buildFile << """
-            tasks.resolveSources {
-                expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
-            }
-        """
-
         // POMs and GMM are already cached; querying for sources should do minimal additional work to fetch sources jars
         direct.artifact(classifier: 'sources').expectGet()
         transitive.artifact(classifier: 'sources').expectGet()
 
         succeeds( 'resolveSources')
+        outputContains("artifacts: [direct-1.0-sources.jar, transitive-1.0-sources.jar]")
+        outputContains("artifactCollection: [direct-1.0-sources.jar, transitive-1.0-sources.jar]")
     }
 
     def "direct has GMM and no sources jar and transitive has GMM and has sources jar"() {
@@ -320,11 +298,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         direct.withModuleMetadata()
         direct.publish()
 
-        buildFile << """
-            tasks.resolveSources {
-                expectedFiles = ['transitive-1.0-sources.jar']
-            }
-        """
         expect:
         direct.pom.expectGet()
         direct.moduleMetadata.expectGet()
@@ -333,20 +306,14 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.artifact(classifier: "sources").expectGet()
 
         succeeds( "resolveSources")
+        outputContains("artifacts: [transitive-1.0-sources.jar]")
+        outputContains("artifactCollection: [transitive-1.0-sources.jar]")
     }
 
     def "direct has no GMM and no sources or javadoc jars"() {
         transitive.publish()
         direct.publish()
 
-        buildFile << """
-            tasks.resolveSources {
-                expectedFiles = []
-            }
-            tasks.resolveJavadoc {
-                expectedFiles = []
-            }
-        """
         expect:
         direct.pom.expectGet()
         transitive.pom.expectGet()
@@ -356,6 +323,8 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.artifact(classifier: "javadoc").expectHeadMissing()
 
         succeeds( 'resolveSources', 'resolveJavadoc')
+        outputContains("artifacts: []")
+        outputContains("artifactCollection: []")
     }
 
     def "direct has no GMM and has sources jar"() {
@@ -365,11 +334,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.publish()
         direct.publish()
 
-        buildFile << """
-            tasks.resolveSources {
-                expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
-            }
-        """
         expect:
         direct.pom.expectGet()
         transitive.pom.expectGet()
@@ -379,6 +343,8 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.artifact(classifier: "sources").expectGet()
 
         succeeds("resolveSources")
+        outputContains("artifacts: [direct-1.0-sources.jar, transitive-1.0-sources.jar]")
+        outputContains("artifactCollection: [direct-1.0-sources.jar, transitive-1.0-sources.jar]")
     }
 
     def "direct has no GMM and has javadoc jar"() {
@@ -388,11 +354,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.publish()
         direct.publish()
 
-        buildFile << """
-            tasks.resolveJavadoc {
-                expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
-            }
-        """
         expect:
         direct.pom.expectGet()
         transitive.pom.expectGet()
@@ -402,6 +363,8 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.artifact(classifier: "javadoc").expectGet()
 
         succeeds("resolveJavadoc")
+        outputContains("artifacts: [direct-1.0-javadoc.jar, transitive-1.0-javadoc.jar]")
+        outputContains("artifactCollection: [direct-1.0-javadoc.jar, transitive-1.0-javadoc.jar]")
     }
 
     def "direct has no GMM and has both sources and javadoc jars"() {
@@ -411,11 +374,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.publish()
         direct.publish()
 
-        buildFile << """
-            tasks.resolveSources {
-                expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
-            }
-        """
         expect:
         direct.pom.expectGet()
         transitive.pom.expectGet()
@@ -425,14 +383,10 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.artifact(classifier: "sources").expectGet()
 
         succeeds("resolveSources")
+        outputContains("artifacts: [direct-1.0-sources.jar, transitive-1.0-sources.jar]")
+        outputContains("artifactCollection: [direct-1.0-sources.jar, transitive-1.0-sources.jar]")
 
         and:
-        buildFile << """
-            tasks.resolveJavadoc {
-                expectedFiles = ['direct-1.0-javadoc.jar', 'transitive-1.0-javadoc.jar']
-            }
-        """
-
         // POMs and GMM are already cached; querying for javadoc should do minimal additional work to fetch javadoc jars
         direct.artifact(classifier: "javadoc").expectHead()
         transitive.artifact(classifier: "javadoc").expectHead()
@@ -440,6 +394,8 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.artifact(classifier: 'javadoc').expectGet()
 
         succeeds( 'resolveJavadoc')
+        outputContains("artifacts: [direct-1.0-javadoc.jar, transitive-1.0-javadoc.jar]")
+        outputContains("artifactCollection: [direct-1.0-javadoc.jar, transitive-1.0-javadoc.jar]")
     }
 
     def "direct has no GMM and no sources jar and transitive has no GMM and has sources jar"() {
@@ -447,11 +403,6 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.publish()
         direct.publish()
 
-        buildFile << """
-            tasks.resolveSources {
-                expectedFiles = ['transitive-1.0-sources.jar']
-            }
-        """
         expect:
         direct.pom.expectGet()
         transitive.pom.expectGet()
@@ -460,6 +411,8 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
         transitive.artifact(classifier: "sources").expectGet()
 
         succeeds( "resolveSources")
+        outputContains("artifacts: [transitive-1.0-sources.jar]")
+        outputContains("artifactCollection: [transitive-1.0-sources.jar]")
     }
     // endregion
 }
