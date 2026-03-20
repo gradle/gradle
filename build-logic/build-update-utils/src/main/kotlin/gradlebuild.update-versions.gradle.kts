@@ -1,6 +1,7 @@
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.buildutils.model.ReleasedVersion
 import gradlebuild.buildutils.tasks.FixProjectHealthTask
+import gradlebuild.buildutils.tasks.PreparePatchRelease
 import gradlebuild.buildutils.tasks.UpdateAgpVersions
 import gradlebuild.buildutils.tasks.UpdateKotlinVersions
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
@@ -50,3 +51,11 @@ tasks.register("updateSmokeTestedVersions") {
 }
 
 tasks.register<FixProjectHealthTask>("fixProjectHealth")
+
+tasks.register<PreparePatchRelease>("preparePatchRelease") {
+    group = "Versioning"
+    description = "Prepares the repository for a patch release: bumps version.txt, updates released-versions.json, and clears accepted API changes."
+    versionFile = layout.projectDirectory.file("version.txt")
+    releasedVersionsFile = releasedVersionsFile()
+    dependsOn(":architecture-test:cleanAcceptedApiChanges")
+}
