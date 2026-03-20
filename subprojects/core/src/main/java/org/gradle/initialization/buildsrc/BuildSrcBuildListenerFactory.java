@@ -82,7 +82,7 @@ public class BuildSrcBuildListenerFactory {
                 resolutionContext = resolver.prepareDependencyHandler(rootProject.getDependencies());
                 classpathConfiguration = rootProject.getConfigurations().resolvableDependencyScopeLocked("buildScriptClasspath");
                 resolver.prepareClassPath(classpathConfiguration, resolutionContext);
-                classpathConfiguration.getDependencies().add(rootProject.getDependencies().create(rootProject));
+                classpathConfiguration.getDependencies().add(rootProject.getDependencyFactory().createProjectDependency());
                 plan.addEntryTasks(getDependenciesForInternalUse(classpathConfiguration));
             });
         }

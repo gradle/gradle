@@ -908,7 +908,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
                 public void apply(Project project) {
                     ConfigurationContainer configurations = project.getConfigurations();
                     NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope = configurations.dependencyScope("deps", config -> {
-                        config.getDependencies().add(project.getDependencies().create(project));
+                        config.getDependencies().add(project.getDependencyFactory().createProjectDependency());
                     });
 
                     NamedDomainObjectProvider<Configuration> resolvable = configurations.register("resolvable", config -> {

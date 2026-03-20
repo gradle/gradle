@@ -2858,7 +2858,7 @@ Found the following transformation chains:
                 }
             }
             def deps = configurations.dependencyScope("deps") {
-                dependencies.add(dependencyFactory.create(project))
+                dependencies.add(dependencyFactory.createProjectDependency())
             }
             def resolvable = configurations.resolvable("res") {
                 attributes.attribute(direct, "direct")

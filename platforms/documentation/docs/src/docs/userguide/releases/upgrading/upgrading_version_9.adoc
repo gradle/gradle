@@ -36,6 +36,54 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.6.0]]
+== Upgrading from 9.5.0 and earlier
+
+=== Deprecations
+
+[[dependency_project_notation]]
+==== Deprecation of using Project objects as dependency notation
+
+Passing a `Project` object directly as a dependency notation has been deprecated and will become an error in Gradle 10.
+
+Previously, you could declare a project dependency by passing a `Project` instance directly:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def someProject = project(":some-project")
+dependencies {
+    implementation someProject  // Deprecated
+}
+----
+=====
+====
+
+Instead, use the `project()` method on `DependencyHandler` or the `createProjectDependency()` method on `DependencyFactory`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation project(":some-project")
+}
+----
+=====
+====
+
+Or, when using the `DependencyFactory` directly (e.g., from a plugin):
+
+[source,java]
+----
+project.getDependencyFactory().createProjectDependency(":some-project");
+----
+
 [[changes_9.5.0]]
 == Upgrading from 9.4.0 and earlier
 
