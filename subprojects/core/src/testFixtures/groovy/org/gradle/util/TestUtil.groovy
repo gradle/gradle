@@ -155,7 +155,9 @@ class TestUtil {
     }
 
     static TestProblems problemsService() {
-        return services().get(TestProblems)
+        TestProblems problems = services().get(TestProblems)
+        problems.resetRecordedProblems()
+        return problems
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
