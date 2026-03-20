@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Task;
 import org.gradle.util.Path;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -60,13 +62,19 @@ public abstract class DeferredCrossProjectDependency {
      */
     public static class AllProjectsSearch extends DeferredCrossProjectDependency {
         private final Consumer<TaskDependencyResolveContext> resolutionAction;
+        private final @Nullable Task sourceTask;
 
-        public AllProjectsSearch(Consumer<TaskDependencyResolveContext> resolutionAction) {
+        public AllProjectsSearch(Consumer<TaskDependencyResolveContext> resolutionAction, @Nullable Task sourceTask) {
             this.resolutionAction = resolutionAction;
+            this.sourceTask = sourceTask;
         }
 
         public Consumer<TaskDependencyResolveContext> getResolutionAction() {
             return resolutionAction;
+        }
+
+        public @Nullable Task getSourceTask() {
+            return sourceTask;
         }
     }
 }
