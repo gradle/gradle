@@ -81,28 +81,23 @@ public class ResolvedNodeRelationships {
      * by their resolved real nodes. Returns {@code this} if no placeholders are present.
      */
     ResolvedNodeRelationships substitutePlaceholders() {
-        Set<Node> newDeps = substituteSet(dependencies);
-        Set<Node> newLifecycle = substituteSet(lifecycleDependencies);
-        Set<Node> newFinalizedBy = substituteSet(finalizedBy);
-        Set<Node> newMustRunAfter = substituteSet(mustRunAfter);
-        Set<Node> newShouldRunAfter = substituteSet(shouldRunAfter);
-        if (newDeps == dependencies && newLifecycle == lifecycleDependencies
-            && newFinalizedBy == finalizedBy && newMustRunAfter == mustRunAfter
+        Set<Node> newDeps = substitutePlaceholders(dependencies);
+        Set<Node> newLifecycle = substitutePlaceholders(lifecycleDependencies);
+        Set<Node> newFinalizedBy = substitutePlaceholders(finalizedBy);
+        Set<Node> newMustRunAfter = substitutePlaceholders(mustRunAfter);
+        Set<Node> newShouldRunAfter = substitutePlaceholders(shouldRunAfter);
+        if (newDeps == dependencies
+            && newLifecycle == lifecycleDependencies
+            && newFinalizedBy == finalizedBy
+            && newMustRunAfter == mustRunAfter
             && newShouldRunAfter == shouldRunAfter) {
             return this;
         }
         return new ResolvedNodeRelationships(node, newDeps, newLifecycle, newFinalizedBy, newMustRunAfter, newShouldRunAfter);
     }
 
-    private static Set<Node> substituteSet(Set<Node> original) {
-        boolean hasPlaceholder = false;
-        for (Node n : original) {
-            if (n instanceof DeferredCrossProjectNode) {
-                hasPlaceholder = true;
-                break;
-            }
-        }
-        if (!hasPlaceholder) {
+    private static Set<Node> substitutePlaceholders(Set<Node> original) {
+        if (original.stream().noneMatch(DeferredCrossProjectNode.class::isInstance)) {
             return original;
         }
         Set<Node> result = new HashSet<>();

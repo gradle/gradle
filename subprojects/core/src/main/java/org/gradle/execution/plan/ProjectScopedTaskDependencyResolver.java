@@ -20,7 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DeferredCrossProjectDependency;
-import org.gradle.api.internal.tasks.ParallelCachingTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.ProjectScopedCachingTaskDependencyResolveContext;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -32,21 +32,21 @@ import java.util.function.BiFunction;
  * A project-scoped resolver used during parallel task dependency resolution.
  * Extends {@link TaskDependencyResolver} so it can be passed to
  * {@link LocalTaskNode#resolveRelationships}, but uses a
- * {@link ParallelCachingTaskDependencyResolveContext} that converts cross-project
+ * {@link ProjectScopedCachingTaskDependencyResolveContext} that converts cross-project
  * dependencies into placeholder nodes via the provided factory.
  */
 @NullMarked
-class ParallelTaskDependencyResolver extends TaskDependencyResolver {
+class ProjectScopedTaskDependencyResolver extends TaskDependencyResolver {
 
-    private final ParallelCachingTaskDependencyResolveContext<Node> parallelContext;
+    private final ProjectScopedCachingTaskDependencyResolveContext<Node> cachingContext;
 
-    ParallelTaskDependencyResolver(
+    ProjectScopedTaskDependencyResolver(
         List<DependencyResolver> dependencyResolvers,
         ProjectInternal project,
         BiFunction<DeferredCrossProjectDependency, Task, Node> placeholderFactory
     ) {
         super(dependencyResolvers);
-        this.parallelContext = new ParallelCachingTaskDependencyResolveContext<>(
+        this.cachingContext = new ProjectScopedCachingTaskDependencyResolveContext<>(
             dependencyResolvers,
             project.getGradle().getIdentityPath(),
             project.getProjectPath(),
@@ -62,6 +62,6 @@ class ParallelTaskDependencyResolver extends TaskDependencyResolver {
 
     @Override
     public Set<Node> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {
-        return parallelContext.getDependencies(task, dependencies);
+        return cachingContext.getDependencies(task, dependencies);
     }
 }

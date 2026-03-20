@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 /**
  * Marker type passed to {@link TaskDependencyResolveContext#add} during parallel task
  * dependency resolution to defer cross-project dependency lookups. Intercepted by
- * {@link ParallelCachingTaskDependencyResolveContext#add} before reaching the graph walker.
+ * {@link ProjectScopedCachingTaskDependencyResolveContext#add} before reaching the graph walker.
  */
 @NullMarked
 public abstract class DeferredCrossProjectDependency {
