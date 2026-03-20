@@ -256,7 +256,9 @@ class ConfigurationCacheProblems(
     }
 
     override fun onViolation(problem: PropertyProblem) {
-        val severity = if (buildModelParameters.isIsolatedProjectsDiagnostics) ProblemSeverity.Deferred else ProblemSeverity.Interrupting
+        val severity =
+            if (buildModelParameters.isIsolatedProjectsDiagnostics || startParameter.isWarningMode) ProblemSeverity.Deferred
+            else ProblemSeverity.Interrupting
         onProblem(problem, severity)
     }
 

@@ -42,8 +42,6 @@ import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.configuration.problems.IsolatedProjectsViolationsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
-import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.extensions.core.get
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationRunner
