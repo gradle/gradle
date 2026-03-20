@@ -190,12 +190,6 @@ class AndroidGradlePluginVersions {
     }
 
     static String getBuildToolsVersionFor(String agpVersion) {
-        VersionNumber version = VersionNumber.parse(agpVersion).baseVersion
-
-        if (version < AGP_9_0) {
-            return "35.0.0"
-        }
-
         return buildToolsVersion()
     }
 
