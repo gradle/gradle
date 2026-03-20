@@ -35,7 +35,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 /**
@@ -82,10 +81,9 @@ public abstract class AbstractResolutionFailureException extends StyledException
             builder.id(TextUtil.screamingSnakeToKebabCase(problemId.name()), problemId.getDisplayName(), GradleCoreProblemGroup.variantResolution())
                 .contextualLabel(getMessage())
                 .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
-                .severity(ERROR)
                 .additionalDataInternal(ResolutionFailureDataSpec.class, data -> data.from(getFailure()));
         });
-        problemsService.getInternalReporter().report(problem);
+        problemsService.getInternalReporter().reportError(problem);
 
         return this;
     }

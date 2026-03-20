@@ -51,6 +51,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
+            definition.severity == Severity.WARNING
             with(oneLocation(StackTraceLocation).fileLocation) {
                 length == -1
                 column == -1
@@ -204,25 +205,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can emit a problem with a severity"(Severity severity) {
-        given:
-        withReportProblemTask """
-            ${problemIdScript()}
-            problems.getReporter().report(problemId) {
-                it.severity(Severity.${severity.name()})
-            }
-        """
-
-        when:
-        run('reportProblem')
-
-        then:
-        receivedProblem.definition.severity == severity
-
-        where:
-        severity << Severity.values()
-    }
-
     def "can emit a problem with a solution"() {
         given:
         withReportProblemTask """
@@ -335,7 +317,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         fails('reportProblem')
 
         then:
-        receivedProblem.exception.message == 'test'
+        verifyAll(receivedProblem) {
+            exception.message == 'test'
+            definition.severity == Severity.ERROR
+        }
     }
 
     def "can rethrow a caught exception"() {
@@ -365,8 +350,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
                 problems.getReporter().report(problemId) {
-                        it.severity(Severity.WARNING)
-                        .solution("solution \$i")
+                    it.solution("solution \$i")
                 }
             }
         """
@@ -395,8 +379,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
                 problems.getReporter().report(${ProblemId.name}.create("type\$i", "This is the heading problem text\$i", problemGroup)) {
-                        it.severity(Severity.WARNING)
-                        .details("This is a huge amount of extremely and very relevant details for this problem\$i")
+                    it.details("This is a huge amount of extremely and very relevant details for this problem\$i")
                         .solution("solution")
                 }
             }
@@ -429,8 +412,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
                 problems.getReporter().report(${ProblemId.name}.create("type\$i", "This is the heading problem text\$i", problemGroup)) {
-                        it.severity(Severity.WARNING)
-                        .details("This is a huge amount of extremely and very relevant details for this problem\$i")
+                    it.details("This is a huge amount of extremely and very relevant details for this problem\$i")
                         .solution("solution")
                 }
             }
@@ -448,7 +430,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             verifyAll(receivedProblem(num)) {
                 definition.id.displayName == "This is the heading problem text$num"
                 definition.id.name == "type$num"
-                definition.severity == Severity.WARNING
                 details == "This is a huge amount of extremely and very relevant details for this problem$num"
                 solutions == ["solution"]
             }
@@ -481,7 +462,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             ${ProblemId.name} problemId = ${ProblemId.name}.create("prototype-project", "Project is a prototype", problemGroup)
             problems.getReporter().report(problemId) { spec ->
                 spec.contextualLabel("This is a prototype and not a guideline for modeling real-life projects")
-                spec.severity(Severity.WARNING)
                 spec.details("Complex build logic like the Problems API usage should be integrated into plugins")
                 spec.solution("Look up the samples index for real-life examples")
                 spec.documentedAt("https://example.com/some-problem")

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
@@ -246,9 +245,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             .withValidator { context ->
                 context
                     .forType(UnitOfWork, false)
-                    .visitPropertyProblem {
+                    .visitPropertyWarning {
                         it.id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
-                            .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
                             .details("Test")
                     }
@@ -564,13 +562,11 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def "invalid work is not executed"() {
         def invalidWork = builder
             .withValidator { validationContext ->
-                validationContext.forType(Object, true).visitTypeProblem {
-                    it
-                        .withAnnotationType(Object)
+                validationContext.forType(Object, true).visitTypeError {
+                    it.withAnnotationType(Object)
                         .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
                         .documentedAt(Documentation.userManual("id", "section"))
                         .details("Test")
-                        .severity(Severity.ERROR)
                 }
             }
             .withWork({ throw new RuntimeException("Should not get executed") })

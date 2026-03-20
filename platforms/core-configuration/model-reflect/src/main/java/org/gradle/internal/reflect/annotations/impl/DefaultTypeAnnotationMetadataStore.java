@@ -67,7 +67,6 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
@@ -347,7 +346,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     propertyBuilders.put(propertyName, metadataBuilder);
                     continue;
                 }
-                previouslySeenBuilder.visitPropertyProblem(problem ->
+                previouslySeenBuilder.visitPropertyError(problem ->
                     problem
                         .forProperty(propertyName)
                         .id(TextUtil.screamingSnakeToKebabCase(REDUNDANT_GETTERS), "Property has redundant getters", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
@@ -359,7 +358,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             )
                         )
                         .documentedAt(userManual("validation_problems", REDUNDANT_GETTERS.toLowerCase(Locale.ROOT)))
-                        .severity(ERROR)
                         .details("Boolean property '" + propertyName + "' has both an `is` and a `get` getter")
                         .solution("Remove one of the getters")
                         .solution("Annotate one of the getters with @Internal")
@@ -396,7 +394,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 // Function method annotations should not be applicable to fields and should throw a compile time error, but in the
                 // event that they are marked applicable to fields, we report them as a problem.  If we add an annotation that is somehow
                 // valid in this context, we'll need to handle it in some way to avoid the problem being generated.
-                validationContext.visitTypeProblem(problem ->
+                validationContext.visitTypeError(problem ->
                     problem.withAnnotationType(declaredField.getDeclaringClass())
                         .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
                         .contextualLabel(
@@ -407,7 +405,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                             )
                         )
                         .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
-                        .severity(ERROR)
                         .details("Function annotations are ignored if they are placed on a field")
                         .solution("Remove the annotations")
                 );
@@ -449,7 +446,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .forEach(entry -> {
                     String fieldName = entry.getKey();
                     ImmutableMap<Class<? extends Annotation>, Annotation> fieldAnnotations = entry.getValue();
-                    validationContext.visitTypeProblem(problem ->
+                    validationContext.visitTypeError(problem ->
                         problem
                             .withAnnotationType(type)
                             .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD), "Incorrect annotations on field", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
@@ -461,7 +458,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                                 )
                             )
                             .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_FIELD.toLowerCase(Locale.ROOT)))
-                            .severity(ERROR)
                             .details("Annotations on fields are only used if there's a corresponding getter for the field")
                             .solution("Add a getter for field '" + fieldName + "'")
                             .solution("Remove the annotations on '" + fieldName + "'")
@@ -542,13 +538,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         if (privateGetter) {
             // At this point we must have annotations on this private getter
-            metadataBuilder.visitPropertyProblem(problem ->
+            metadataBuilder.visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
                     .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED), "Private property with wrong annotation", GradleCoreProblemGroup.validation().property())
                     .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .documentedAt(userManual("validation_problems", PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
                     .details("Annotations on private getters are ignored")
                     .solution("Make the getter public")
                     .solution("Annotate the public version of the getter")
@@ -602,7 +597,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED), "Private method with wrong annotation", GradleCoreProblemGroup.validation().property())
                     .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .documentedAt(userManual("validation_problems", PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
                     .details("Annotations on private methods are ignored")
                     .solution("Make the method public")
                     .solution("Annotate the public version of the method")
@@ -619,13 +613,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private void validateSetterForMutableType(Method setterMethod, PropertyAccessorType setterAccessorType, TypeValidationContext validationContext, String propertyName) {
         Class<?> setterType = setterAccessorType.propertyTypeFor(setterMethod);
         if (isSetterProhibitedForType(setterType)) {
-            validationContext.visitPropertyProblem(problem ->
+            validationContext.visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
                     .id(TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER), "Mutable type with setter", GradleCoreProblemGroup.validation().property())
                     .contextualLabel(String.format("of mutable type '%s' is writable", setterType.getName()))
                     .documentedAt(userManual("validation_problems", MUTABLE_TYPE_WITH_SETTER.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
                     .details("Properties of type '" + setterType.getName() + "' are already mutable")
                     .solution("Remove the '" + setterMethod.getName() + "' method")
             );
@@ -655,7 +648,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static void validateNotAnnotatedForProperty(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
-            validationContext.visitTypeProblem(problem ->
+            validationContext.visitTypeError(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
                     .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), "Ignored annotations on method", GradleCoreProblemGroup.validation().type())
                     .contextualLabel(
@@ -666,7 +659,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         )
                     )
                     .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_METHOD.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
                     .details("Input/Output annotations are ignored if they are placed on something else than a getter")
                     .solution("Remove the annotations")
                     .solution("Rename the method")
@@ -678,7 +670,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static void validateNotAnnotatedForPropertyGetter(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
-            validationContext.visitTypeProblem(problem ->
+            validationContext.visitTypeError(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
                     .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
                     .contextualLabel(
@@ -689,7 +681,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         )
                     )
                     .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
                     .details("Function annotations are ignored if they are placed on a property getter")
                     .solution("Remove the annotations")
                     .solution("Rename the method")
@@ -699,7 +690,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static void validateNotAnnotatedForStaticFunction(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
-            validationContext.visitTypeProblem(problem ->
+            validationContext.visitTypeError(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
                     .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
                     .contextualLabel(
@@ -710,7 +701,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         )
                     )
                     .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
                     .details("Function annotations are ignored if they are placed on a static method")
                     .solution("Remove the annotations")
                     .solution("Make the method non-static")
@@ -861,8 +851,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return new DefaultPropertyAnnotationMetadata(propertyName, getMethod(), resolveAnnotations());
         }
 
-        private void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-            validationContext.visitPropertyProblem(problemSpec);
+        private void visitPropertyError(Action<? super TypeAwareProblemBuilder> problemSpec) {
+            validationContext.visitPropertyError(problemSpec);
         }
 
         @Override
@@ -887,7 +877,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         private void handleAnnotatedIgnoredMethod(Class<? extends Annotation> ignoredMethodAnnotation) {
-            visitPropertyProblem(problem ->
+            visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
                     .id(TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED), "Has wrong combination of annotations", GradleCoreProblemGroup.validation().property())
@@ -901,7 +891,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         )
                     )
                     .documentedAt(userManual("validation_problems", IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
                     .details("A property is ignored but also has input annotations")
                     .solution("Remove the input annotations")
                     .solution("Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
@@ -910,7 +899,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         @Override
         protected void handleConflictingAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory) {
-            visitPropertyProblem(problem ->
+            visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
                     .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", GradleCoreProblemGroup.validation().property())
@@ -923,7 +912,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         )
                     )
                     .documentedAt(userManual("validation_problems", CONFLICTING_ANNOTATIONS.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
                     .details("The different annotations have different semantics and Gradle cannot determine which one to pick")
                     .solution("Choose between one of the conflicting annotations")
             );
@@ -950,7 +938,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         private void visitFunctionProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-            validationContext.visitTypeProblem(problemSpec);
+            validationContext.visitTypeError(problemSpec);
         }
 
         @Override
@@ -968,7 +956,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         )
                     )
                     .documentedAt(userManual("validation_problems", CONFLICTING_ANNOTATIONS.toLowerCase(Locale.ROOT)))
-                    .severity(ERROR)
                     .details("The different annotations have different semantics and Gradle cannot determine which one to pick")
                     .solution("Choose between one of the conflicting annotations")
             );

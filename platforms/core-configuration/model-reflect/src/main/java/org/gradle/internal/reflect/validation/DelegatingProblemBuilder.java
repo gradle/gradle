@@ -131,8 +131,14 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
+    @Deprecated
     public InternalProblemBuilder severity(Severity severity) {
         return validateDelegate(delegate.severity(severity));
+    }
+
+    @Override
+    public InternalProblemBuilder internalSeverity(Severity severity) {
+        return validateDelegate(delegate.internalSeverity(severity));
     }
 
     @Override

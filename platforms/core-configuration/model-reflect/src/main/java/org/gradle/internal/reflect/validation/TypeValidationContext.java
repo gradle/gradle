@@ -21,29 +21,53 @@ import org.gradle.api.Action;
 public interface TypeValidationContext {
 
     /**
-     * Visits a validation problem associated with the given type.
+     * Visits a validation error associated with the given type.
      * Callers are encouraged to provide as much information as they can on
      * the problem following the problem builder instructions.
      *
      * @param problemSpec the problem builder
      */
-    void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec);
+    void visitTypeError(Action<? super TypeAwareProblemBuilder> problemSpec);
 
     /**
-     * Visits a validation problem associated with the given property.
+     * Visits a validation warning associated with the given type.
      * Callers are encouraged to provide as much information as they can on
      * the problem following the problem builder instructions.
      *
      * @param problemSpec the problem builder
      */
-    void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec);
+    void visitTypeWarning(Action<? super TypeAwareProblemBuilder> problemSpec);
+
+    /**
+     * Visits a validation error associated with the given property.
+     * Callers are encouraged to provide as much information as they can on
+     * the problem following the problem builder instructions.
+     *
+     * @param problemSpec the problem builder
+     */
+    void visitPropertyError(Action<? super TypeAwareProblemBuilder> problemSpec);
+
+    /**
+     * Visits a validation warning associated with the given property.
+     * Callers are encouraged to provide as much information as they can on
+     * the problem following the problem builder instructions.
+     *
+     * @param problemSpec the problem builder
+     */
+    void visitPropertyWarning(Action<? super TypeAwareProblemBuilder> problemSpec);
 
     TypeValidationContext NOOP = new TypeValidationContext() {
         @Override
-        public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
+        public void visitPropertyError(Action<? super TypeAwareProblemBuilder> problemSpec) {}
 
         @Override
-        public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {}
+        public void visitPropertyWarning(Action<? super TypeAwareProblemBuilder> problemSpec) {}
+
+        @Override
+        public void visitTypeError(Action<? super TypeAwareProblemBuilder> problemSpec) {}
+
+        @Override
+        public void visitTypeWarning(Action<? super TypeAwareProblemBuilder> problemSpec) {}
     };
 
 }

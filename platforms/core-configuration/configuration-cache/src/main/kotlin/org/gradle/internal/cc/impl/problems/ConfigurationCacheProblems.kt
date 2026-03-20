@@ -24,7 +24,6 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
@@ -282,11 +281,16 @@ class ConfigurationCacheProblems(
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)
-            severity(severity.toProblemSeverity())
             additionalDataInternal(PropertyTraceDataSpec::class.java) {
                 trace(problem.trace.containingUserCode)
             }
-        }.also { internalReporter.report(it) }
+        }.also {
+            if (severity == ProblemSeverity.Interrupting || (severity == ProblemSeverity.Deferred && !isWarningMode)) {
+                internalReporter.reportError(it)
+            } else {
+                internalReporter.report(it)
+            }
+        }
     }
 
     private
@@ -306,15 +310,6 @@ class ConfigurationCacheProblems(
 
     private
     fun PropertyTrace.buildLogic() = sequence.filterIsInstance<PropertyTrace.BuildLogic>().firstOrNull()
-
-    private
-    fun ProblemSeverity.toProblemSeverity() = when {
-        this == ProblemSeverity.Suppressed ||
-            this == ProblemSeverity.SuppressedSilently -> Severity.ADVICE
-
-        isWarningMode -> Severity.WARNING
-        else -> Severity.ERROR
-    }
 
     override fun getId(): String {
         return "configuration-cache"

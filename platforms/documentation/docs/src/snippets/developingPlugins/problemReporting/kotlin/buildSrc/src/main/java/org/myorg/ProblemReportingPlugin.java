@@ -33,7 +33,6 @@ public class ProblemReportingPlugin implements Plugin<Project> {
         this.problemReporter.report(problemId, builder -> builder // <3>
             .details("The plugin 'x' is deprecated since version 2.5")
             .solution("Please use plugin 'y'")
-            .severity(Severity.WARNING)
             .additionalData(SomeData.class, additionalData -> {
                 additionalData.setName("Some name"); // <4>
             })

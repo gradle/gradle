@@ -21,6 +21,8 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.operations.OperationIdentifier;
 
+import java.util.Collection;
+
 public interface InternalProblemReporter extends ProblemReporter {
 
     /**
@@ -32,6 +34,22 @@ public interface InternalProblemReporter extends ProblemReporter {
      * @param id The operation identifier.
      */
     void report(Problem problem, OperationIdentifier id);
+
+    /**
+     * Reports the target problem as it will cause the build to fail. Unlike {@link #throwing(Throwable, Problem)}, this method does not throw an exception.
+     * This is a temporary workaround as not all fatal problems can be reported via {@link #throwing(Throwable, Problem)} without significant refactoring. The goal is to eventually remove this method.
+     *
+     * @param problem The problem to report.
+     */
+    void reportError(Problem problem);
+
+    /**
+     * Reports the target problems as they will cause the build to fail. Unlike  {@link #throwing(Throwable, Collection)}, this method does not throw an exception.
+     * This is a temporary workaround as not all fatal problems can be reported via {@link #throwing(Throwable, Collection)} without significant refactoring. The goal is to eventually remove this method.
+     *
+     * @param problems The problems to report.
+     */
+    void reportError(Collection<? extends Problem> problems);
 
     InternalProblem internalCreate(Action<? super InternalProblemSpec> action);
 }

@@ -21,7 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GeneralDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemSpec;
@@ -183,7 +182,6 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
 
     private static void configureProblem(ProblemSpec spec, String message, String requestedPath) {
         spec.contextualLabel(message);
-        spec.severity(Severity.ERROR);
         ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
     }
 

@@ -68,7 +68,7 @@ private fun reportEvaluationFailuresAsProblemsAndThrow(
             else -> emptyList() // TODO: report all other DCL failures as problems
         }
     }
-    problems.reporter.report(failureProblems)
+    problems.internalReporter.reportError(failureProblems)
     /**
      * Instead of [org.gradle.api.problems.ProblemReporter.throwing], we just throw
      * this single exception here to avoid duplicating the full message of the

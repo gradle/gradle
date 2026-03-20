@@ -23,7 +23,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
@@ -62,7 +61,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.stream.Collectors.joining;
-import static org.gradle.api.problems.Severity.ERROR;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -159,19 +157,29 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<? extends InternalProblem> problems = ValidationProblemSerialization.parseMessageList(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
+        ValidationProblemSerialization.SerializationResult parsedProblems = ValidationProblemSerialization.deserialize(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
+        List<? extends InternalProblem> warnings = parsedProblems.getWarnings();
+        List<? extends InternalProblem> errors = parsedProblems.getErrors();
 
-        Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problems).sorted();
-        if (problems.isEmpty()) {
+        Stream<String> messages = Stream.concat(
+            ValidationProblemSerialization.toPlainWarning(warnings).sorted(),
+            ValidationProblemSerialization.toPlainError(errors).sorted()
+        );
+
+        if (errors.isEmpty() && warnings.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (getFailOnWarning().get() || problems.stream().anyMatch(problem -> problem.getDefinition().getSeverity() == ERROR)) {
+            if (getFailOnWarning().get() || !errors.isEmpty()) {
                 if (getIgnoreFailures().get()) {
                     getLogger().warn("Plugin validation finished with errors. {} {}",
                         annotateTaskPropertiesDoc(),
                         messages.collect(joining()));
                 } else {
-                    reportProblems(problems);
+
+                    InternalProblemReporter reporter = getServices().get(InternalProblems.class)
+                        .getInternalReporter();
+                    reporter.report(warnings);
+                    reporter.reportError(errors);
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
                         .getWithExplanation(annotateTaskPropertiesDoc());
@@ -181,11 +189,6 @@ public abstract class ValidatePlugins extends DefaultTask {
                     messages.collect(joining()));
             }
         }
-    }
-
-    private void reportProblems(List<? extends Problem> problems) {
-        InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
-        problems.forEach(reporter::report);
     }
 
     private String annotateTaskPropertiesDoc() {

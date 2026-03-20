@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemReporter
@@ -56,13 +55,15 @@ class FlowParametersInstantiator(
 
     private
     fun <P : FlowParameters> validate(type: Class<P>, parameters: P) {
-        val problems = ImmutableList.builder<InternalProblem>()
+        val errors = ImmutableList.builder<InternalProblem>()
         inspection.propertyWalker.visitProperties(
             parameters,
             object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }, problemsService) {
-                override fun recordProblem(problem: InternalProblem) {
-                    problems.add(problem)
+                override fun recordError(problem: InternalProblem) {
+                    errors.add(problem)
                 }
+
+                override fun recordWarning(problem: InternalProblem) = Unit
             },
             object : PropertyVisitor {
                 override fun visitServiceReference(propertyName: String, optional: Boolean, value: PropertyValue, serviceName: String?, buildServiceType: Class<out BuildService<*>>) {
@@ -73,11 +74,10 @@ class FlowParametersInstantiator(
                     value.taskDependencies.visitDependencies(
                         object : AbstractTaskDependencyResolveContext() {
                             override fun add(dependency: Any) {
-                                problems.add(
+                                errors.add(
                                     internalProblemReporter.internalCreate {
                                         id("invalid-dependency", "Property cannot carry dependency", GradleCoreProblemGroup.validation().property())
                                         contextualLabel("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
-                                        severity(Severity.ERROR)
                                     }
                                 )
                             }
@@ -86,7 +86,7 @@ class FlowParametersInstantiator(
                 }
             }
         )
-        DefaultTypeValidationContext.throwOnProblemsOf(type, problems.build())
+        DefaultTypeValidationContext.throwOnProblemsOf(type, errors.build())
     }
 
     private

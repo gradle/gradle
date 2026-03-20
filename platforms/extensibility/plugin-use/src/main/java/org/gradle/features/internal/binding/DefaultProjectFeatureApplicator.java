@@ -27,41 +27,39 @@ import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Nested;
-import org.gradle.features.binding.ProjectFeatureApplyAction;
-import org.gradle.features.internal.file.DefaultProjectFeatureLayout;
-import org.gradle.features.file.ProjectFeatureLayout;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.model.ObjectFactoryFactory;
-import org.gradle.features.binding.BuildModel;
-import org.gradle.features.binding.Definition;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.features.binding.ProjectFeatureApplicationContext;
-import org.gradle.features.registration.ConfigurationRegistrar;
-import org.gradle.features.internal.registration.DefaultConfigurationRegistrar;
-import org.gradle.features.internal.registration.DefaultTaskRegistrar;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.features.registration.TaskRegistrar;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.features.binding.BuildModel;
+import org.gradle.features.binding.Definition;
+import org.gradle.features.binding.ProjectFeatureApplicationContext;
+import org.gradle.features.binding.ProjectFeatureApplyAction;
+import org.gradle.features.file.ProjectFeatureLayout;
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext;
+import org.gradle.features.internal.file.DefaultProjectFeatureLayout;
+import org.gradle.features.internal.registration.DefaultConfigurationRegistrar;
+import org.gradle.features.internal.registration.DefaultTaskRegistrar;
+import org.gradle.features.registration.ConfigurationRegistrar;
+import org.gradle.features.registration.TaskRegistrar;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
-
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
-import org.gradle.features.internal.binding.ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -492,9 +490,8 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                 .contextualLabel("Project feature '" + featureName + "' has an apply action that attempts to inject an unknown service with type '" + serviceType.getTypeName() + "'.")
                 .details("Services of type " + serviceType.getTypeName() + " are not available for injection into project feature apply actions.")
                 .solution("Remove the '" + serviceType.getTypeName() + "' injection from the apply action.")
-                .severity(Severity.ERROR)
             );
-            problemReporter.report(problem);
+            problemReporter.reportError(problem);
             throw new UnknownServiceException(serviceType, TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
         }
     }
@@ -549,9 +546,8 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                 .details(getSafeServicesListExplanation())
                 .solution("Mark the apply action as unsafe.")
                 .solution("Remove the '" + serviceType.getTypeName() + "' injection from the apply action.")
-                .severity(Severity.ERROR)
             );
-            problemReporter.report(problem);
+            problemReporter.reportError(problem);
             throw new UnknownServiceException(serviceType, TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
         }
     }

@@ -35,7 +35,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ImportsReader;
@@ -222,7 +221,6 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(new ScriptCompilationException(message, e, source, lineNumber), problemId, builder -> builder
             .contextualLabel(message)
             .lineInFileLocation(source.getFileName(), lineNumber)
-            .severity(Severity.ERROR)
             .withException(new ScriptCompilationException(message, e, source, lineNumber))
         );
     }

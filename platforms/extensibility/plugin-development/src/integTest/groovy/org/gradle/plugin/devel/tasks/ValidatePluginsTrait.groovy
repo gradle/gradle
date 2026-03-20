@@ -71,7 +71,7 @@ trait ValidatePluginsTrait implements CommonPluginValidationTrait, ValidationMes
         failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${getPluralEnding(messages)}"
         messages.forEach { problem ->
             String indentedMessage = problem.message.replaceAll('\n', '\n    ').trim()
-            failure.assertThatCause(containsString("$problem.severity: $indentedMessage"))
+            failure.assertThatCause(containsString("${problem.severity.capitalize()}: $indentedMessage"))
         }
 
         // TODO (donat) do probably don't want to have this, as the explicit problem assertions are preferred
