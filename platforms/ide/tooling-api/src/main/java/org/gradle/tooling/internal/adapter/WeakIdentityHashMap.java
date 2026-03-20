@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.adapter;
 
-import org.jetbrains.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.ref.ReferenceQueue;
