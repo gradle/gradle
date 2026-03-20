@@ -202,7 +202,7 @@ class ParallelNodeRelationshipsResolverTest extends AbstractExecutionPlanSpec {
         result.isEmpty()
     }
 
-    def "resolves deferred cross-project dependencies through full phase 1-2-3 flow"() {
+    def "resolves deferred cross-project dependencies with placeholder substitution"() {
         given:
         def projectA = project(project, "a")
         _ * projectA.projectPath >> projectA.projectIdentity.projectPath
@@ -210,56 +210,40 @@ class ParallelNodeRelationshipsResolverTest extends AbstractExecutionPlanSpec {
         def projectB = project(project, "b")
         _ * projectB.projectPath >> projectB.projectIdentity.projectPath
 
-        // Task B in project B (no dependencies)
         def taskB = task("taskB", project: projectB)
         def nodeB = nodeFor(taskB)
 
-        // Stub project state registry so deferred resolution can find project B
+        // Stub project state registry so placeholder resolution can discover project B's tasks
         def projectBIdentityPath = projectB.identityPath
-        def projectBState = projectB.owner
-        _ * projectStateRegistry.stateFor(projectBIdentityPath) >> projectBState
-        _ * projectBState.ensureTasksDiscovered() >> {}
-        // Make project B's tasks container return taskB when looked up by name
+        _ * projectStateRegistry.stateFor(projectBIdentityPath) >> projectB.owner
+        _ * projectB.owner.ensureTasksDiscovered() >> {}
         _ * projectB.tasks.findByName("taskB") >> taskB
 
-        // Task A in project A, with a deferred cross-project dependency on project B's taskB
+        // Task A has a deferred cross-project dependency on projectB:taskB.
+        // We use separate mock instances for taskDependencies and lifecycleDependencies
+        // to avoid CachingDirectedGraphWalker returning cached results.
         def taskA = createTask("taskA", projectA)
-        // Use separate mock instances for taskDependencies and lifecycleDependencies
-        // to avoid CachingDirectedGraphWalker returning cached results
-        def deferredTaskDep = Mock(TaskDependencyContainerInternal) {
-            visitDependencies(_) >> { TaskDependencyResolveContext context ->
-                context.add(new DeferredCrossProjectDependency.ByProjectTask(projectBIdentityPath, "taskB"))
-            }
-        }
-        def deferredLifecycleDep = Mock(TaskDependencyContainerInternal) {
-            visitDependencies(_) >> { TaskDependencyResolveContext context ->
-                context.add(new DeferredCrossProjectDependency.ByProjectTask(projectBIdentityPath, "taskB"))
-            }
-        }
-        _ * taskA.taskDependencies >> deferredTaskDep
-        _ * taskA.lifecycleDependencies >> deferredLifecycleDep
+        _ * taskA.taskDependencies >> deferredDependencyOn(projectBIdentityPath, "taskB")
+        _ * taskA.lifecycleDependencies >> deferredDependencyOn(projectBIdentityPath, "taskB")
         _ * taskA.finalizedBy >> taskDependencyResolvingTo(taskA, [])
         _ * taskA.shouldRunAfter >> taskDependencyResolvingTo(taskA, [])
         _ * taskA.mustRunAfter >> taskDependencyResolvingTo(taskA, [])
         _ * taskA.sharedResources >> []
         _ * taskA.taskIdentity >> TestTaskIdentities.create("taskA", DefaultTask, projectA)
-        TaskStateInternal stateA = Mock()
-        _ * taskA.state >> stateA
-
-        // A dummy task in project B so the initial wave has multiple projects (triggers multi-project path)
-        def taskDummy = task("dummy", project: projectB)
+        _ * taskA.state >> Mock(TaskStateInternal)
         def nodeA = nodeFor(taskA)
+
+        // A second task in project B so the initial wave has multiple projects (triggers multi-project path)
+        def taskDummy = task("dummy", project: projectB)
         def nodeDummy = nodeFor(taskDummy)
 
         when:
         def result = resolver.resolve(queueOf(nodeA, nodeDummy))
 
         then:
-        // Phase 1: nodeA resolved with deferred deps, nodeDummy resolved normally
-        // Phase 2: deferred ByProjectTask resolved → discovers nodeB
-        // Phase 3: deferred results merged into nodeA's relationships
         result.containsKey(nodeA)
         result.containsKey(nodeDummy)
+        // Placeholders were resolved and substituted with the real nodeB
         result[nodeA].dependencies.contains(nodeB)
         result[nodeA].lifecycleDependencies.contains(nodeB)
     }
@@ -300,5 +284,17 @@ class ParallelNodeRelationshipsResolverTest extends AbstractExecutionPlanSpec {
         result[nodeA].finalizedBy.contains(nodeB)
         result[nodeB].dependencies.contains(nodeC)
         result[nodeC].dependencies.isEmpty()
+    }
+
+    /**
+     * Creates a mock TaskDependencyContainer that adds a deferred cross-project dependency
+     * when visited. Each call creates a new mock to avoid CachingDirectedGraphWalker cache hits.
+     */
+    private TaskDependencyContainerInternal deferredDependencyOn(org.gradle.util.Path targetProjectIdentityPath, String taskName) {
+        return Mock(TaskDependencyContainerInternal) {
+            visitDependencies(_) >> { TaskDependencyResolveContext context ->
+                context.add(new DeferredCrossProjectDependency.ByProjectTask(targetProjectIdentityPath, taskName))
+            }
+        }
     }
 }
