@@ -16,43 +16,49 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableList;
+import org.gradle.api.Task;
 import org.gradle.util.Path;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.BiFunction;
 
 /**
  * A project-scoped variant of {@link CachingTaskDependencyResolveContext} used during
  * parallel task dependency resolution. Intercepts {@link DeferredCrossProjectDependency}
- * markers in {@link #add} before they reach the graph walker's queue.
+ * markers in {@link #add} and converts them to placeholder nodes using a provided factory.
  *
- * <p>Since {@link CachingTaskDependencyResolveContext} passes {@code this} to
- * {@link TaskDependencyContainer#visitDependencies}, implementations automatically
- * receive this subclass and can use the {@code defer*IfNeeded} methods to defer
- * cross-project access.</p>
+ * <p>The placeholder nodes are injected directly into the result set returned by
+ * {@link #getDependencies}, so callers get dependency sets that already contain
+ * the placeholders — no post-processing needed.</p>
  */
 @NullMarked
 public class ParallelCachingTaskDependencyResolveContext<T> extends CachingTaskDependencyResolveContext<T> {
 
-    private final Path buildPath;                  // build identity path (e.g., ":build" or ":")
-    private final Path currentProjectPath;         // build-scoped (e.g., ":projectA")
-    private final Path currentProjectIdentityPath; // build-tree-scoped (e.g., ":build:projectA")
-    private final List<DeferredCrossProjectDependency> deferredItems = new ArrayList<>();
+    private final Path buildPath;
+    private final Path currentProjectPath;
+    private final Path currentProjectIdentityPath;
+    private final BiFunction<DeferredCrossProjectDependency, Task, T> placeholderFactory;
+    private final List<T> createdPlaceholders = new ArrayList<>();
 
     public ParallelCachingTaskDependencyResolveContext(
         Collection<? extends WorkDependencyResolver<T>> workResolvers,
         Path buildPath,
         Path currentProjectPath,
-        Path currentProjectIdentityPath
+        Path currentProjectIdentityPath,
+        BiFunction<DeferredCrossProjectDependency, Task, T> placeholderFactory
     ) {
         super(workResolvers);
         this.buildPath = buildPath;
         this.currentProjectPath = currentProjectPath;
         this.currentProjectIdentityPath = currentProjectIdentityPath;
+        this.placeholderFactory = placeholderFactory;
     }
 
     @Override
@@ -91,19 +97,21 @@ public class ParallelCachingTaskDependencyResolveContext<T> extends CachingTaskD
     @Override
     public void add(Object dependency) {
         if (dependency instanceof DeferredCrossProjectDependency) {
-            deferredItems.add((DeferredCrossProjectDependency) dependency);
+            createdPlaceholders.add(placeholderFactory.apply((DeferredCrossProjectDependency) dependency, getTask()));
         } else {
             super.add(dependency);
         }
     }
 
-    @SuppressWarnings("MixedMutabilityReturnType")
-    public List<DeferredCrossProjectDependency> collectAndClearDeferred() {
-        if (deferredItems.isEmpty()) {
-            return ImmutableList.of();
+    @Override
+    public Set<T> getDependencies(@Nullable Task task, Object dependencies) {
+        Set<T> result = super.getDependencies(task, dependencies);
+        if (!createdPlaceholders.isEmpty()) {
+            Set<T> merged = new HashSet<>(result);
+            merged.addAll(createdPlaceholders);
+            createdPlaceholders.clear();
+            return merged;
         }
-        ImmutableList<DeferredCrossProjectDependency> result = ImmutableList.copyOf(deferredItems);
-        deferredItems.clear();
         return result;
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
@@ -25,9 +26,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 @NullMarked
 @ServiceScope(Scope.Build.class)
@@ -49,20 +50,11 @@ public class TaskDependencyResolver {
     }
 
     /**
-     * Collects deferred cross-project dependency items accumulated during the last
-     * {@link #resolveDependenciesFor} call and clears them. Returns an empty list
-     * when not using a parallel context.
-     */
-    public List<DeferredCrossProjectDependency> collectAndClearDeferredItems() {
-        return Collections.emptyList();
-    }
-
-    /**
      * Creates a new {@link ParallelTaskDependencyResolver} scoped to a specific project.
      * Used for parallel resolution where each worker thread needs its own context and
-     * cross-project access is deferred.
+     * cross-project access is deferred via placeholder nodes created by the factory.
      */
-    ParallelTaskDependencyResolver newParallelResolver(ProjectInternal project) {
-        return new ParallelTaskDependencyResolver(dependencyResolvers, project);
+    ParallelTaskDependencyResolver newParallelResolver(ProjectInternal project, BiFunction<DeferredCrossProjectDependency, Task, Node> placeholderFactory) {
+        return new ParallelTaskDependencyResolver(dependencyResolvers, project, placeholderFactory);
     }
 }

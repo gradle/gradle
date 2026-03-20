@@ -77,32 +77,42 @@ public class ResolvedNodeRelationships {
     }
 
     /**
-     * Returns a new instance with additional nodes merged into each relationship set.
-     * Used to incorporate deferred cross-project dependencies resolved in later waves.
+     * Returns a new instance with all {@link DeferredCrossProjectNode} placeholders replaced
+     * by their resolved real nodes. Returns {@code this} if no placeholders are present.
      */
-    ResolvedNodeRelationships withAdditionalRelationships(
-        Set<Node> additionalDeps,
-        Set<Node> additionalLifecycle,
-        Set<Node> additionalFinalizedBy,
-        Set<Node> additionalMustRunAfter,
-        Set<Node> additionalShouldRunAfter
-    ) {
-        return new ResolvedNodeRelationships(
-            node,
-            merge(dependencies, additionalDeps),
-            merge(lifecycleDependencies, additionalLifecycle),
-            merge(finalizedBy, additionalFinalizedBy),
-            merge(mustRunAfter, additionalMustRunAfter),
-            merge(shouldRunAfter, additionalShouldRunAfter)
-        );
+    ResolvedNodeRelationships substitutePlaceholders() {
+        Set<Node> newDeps = substituteSet(dependencies);
+        Set<Node> newLifecycle = substituteSet(lifecycleDependencies);
+        Set<Node> newFinalizedBy = substituteSet(finalizedBy);
+        Set<Node> newMustRunAfter = substituteSet(mustRunAfter);
+        Set<Node> newShouldRunAfter = substituteSet(shouldRunAfter);
+        if (newDeps == dependencies && newLifecycle == lifecycleDependencies
+            && newFinalizedBy == finalizedBy && newMustRunAfter == mustRunAfter
+            && newShouldRunAfter == shouldRunAfter) {
+            return this;
+        }
+        return new ResolvedNodeRelationships(node, newDeps, newLifecycle, newFinalizedBy, newMustRunAfter, newShouldRunAfter);
     }
 
-    private static Set<Node> merge(Set<Node> original, Set<Node> additional) {
-        if (additional.isEmpty()) {
+    private static Set<Node> substituteSet(Set<Node> original) {
+        boolean hasPlaceholder = false;
+        for (Node n : original) {
+            if (n instanceof DeferredCrossProjectNode) {
+                hasPlaceholder = true;
+                break;
+            }
+        }
+        if (!hasPlaceholder) {
             return original;
         }
-        Set<Node> merged = new HashSet<>(original);
-        merged.addAll(additional);
-        return merged;
+        Set<Node> result = new HashSet<>();
+        for (Node n : original) {
+            if (n instanceof DeferredCrossProjectNode) {
+                result.addAll(((DeferredCrossProjectNode) n).getResolvedNodes());
+            } else {
+                result.add(n);
+            }
+        }
+        return result;
     }
 }
