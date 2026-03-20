@@ -81,6 +81,16 @@ abstract class SplitProjectTask : DefaultTask() {
     abstract val toProject: Property<String>
 
     /**
+     * Whether to also follow subtypes (classes that extend or implement a visited class)
+     * as outgoing edges during dependency traversal. This causes the analysis to pull in
+     * all known subtypes of each reachable class transitively.
+     */
+    @get:Input
+    @get:Option(option = "follow-subtypes", description = "Whether to follow subtypes as outgoing edges during traversal")
+    @get:Optional
+    abstract val followSubtypes: Property<Boolean>
+
+    /**
      * Whether to amend an existing project instead of creating a new one.
      */
     @get:Input
@@ -166,7 +176,8 @@ abstract class SplitProjectTask : DefaultTask() {
         val result = DependencyAnalyzer().analyze(
             projectClassesDirs.files,
             compileClasspathFiles.get().toSet(),
-            rootClassNames
+            rootClassNames,
+            followSubtypes.getOrElse(false)
         )
 
         val sourceFileMoves = mutableSetOf<Pair<File, String>>()
