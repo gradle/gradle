@@ -99,9 +99,8 @@ class PrecompiledScriptPluginFactory {
     }
 }
 
-@ConsistentCopyVisibility
 internal
-data class PrecompiledScriptPlugin internal constructor(
+class PrecompiledScriptPlugin internal constructor(
     internal val scriptFile: File,
     val scriptFileName: String,
     val scriptText: String,
