@@ -22,12 +22,12 @@ import org.gradle.internal.buildoption.StringInternalOption
 
 
 fun InternalOptions.getInternalFlag(systemPropertyName: String, defaultValue: Boolean = false): Boolean =
-    getOption(InternalFlag(systemPropertyName, defaultValue)).get()
+    getOptionValue(InternalFlag(systemPropertyName, defaultValue)).get()
 
 
 fun InternalOptions.getString(systemPropertyName: String, defaultValue: String): String =
-    getOption(StringInternalOption.of(systemPropertyName, defaultValue)).get()
+    getOptionValue(StringInternalOption.of(systemPropertyName, defaultValue)).get()
 
 
 fun InternalOptions.getStringOrNull(systemPropertyName: String): String? =
-    getOption(StringInternalOption.of(systemPropertyName)).get()
+    getOptionValue(StringInternalOption.of(systemPropertyName)).get()

@@ -28,5 +28,5 @@ public interface InternalOptions {
     /**
      * Lookup the value for an {@link InternalOption}.
      */
-    <T extends @Nullable Object> Option.Value<T> getOption(InternalOption<T> option);
+    <T extends @Nullable Object> Option.Value<T> getOptionValue(InternalOption<T> option);
 }

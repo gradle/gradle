@@ -179,7 +179,7 @@ public class BuildOperationTrace implements Stoppable {
             this.outputTree = false;
             this.listener = new FilteringBuildOperationListener(serializer, filter);
         } else {
-            this.outputTree = internalOptions.getOption(TRACE_TREE_OPTION).get();
+            this.outputTree = internalOptions.getOptionValue(TRACE_TREE_OPTION).get();
             this.listener = serializer;
         }
 
@@ -188,7 +188,7 @@ public class BuildOperationTrace implements Stoppable {
 
     @Nullable
     private static Path resolveBasePath(InternalOptions internalOptions, File userActionRootDir) {
-        String basePath = internalOptions.getOption(TRACE_OPTION).get();
+        String basePath = internalOptions.getOptionValue(TRACE_OPTION).get();
         if (basePath == null || basePath.equals("false")) {
             return null;
         }
@@ -199,7 +199,7 @@ public class BuildOperationTrace implements Stoppable {
 
     @Nullable
     private static Set<String> getFilter(InternalOptions internalOptions) {
-        String filterProperty = internalOptions.getOption(FILTER_OPTION).get();
+        String filterProperty = internalOptions.getOptionValue(FILTER_OPTION).get();
         if (filterProperty == null) {
             return null;
         }

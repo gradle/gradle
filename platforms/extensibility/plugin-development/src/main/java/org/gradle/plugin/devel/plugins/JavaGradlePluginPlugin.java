@@ -174,7 +174,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private static void applyDependencies(Project project) {
         // TODO This should be provided via GradlePluginDevelopmentExtension.gradleApiVersion once it's not an experimental feature
         InternalOptions internalOptions = ((ProjectInternal) project).getServices().get(InternalOptions.class);
-        if (internalOptions.getOption(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY).get()) {
+        if (internalOptions.getOptionValue(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY).get()) {
             return;
         }
         DependencyHandler dependencies = project.getDependencies();

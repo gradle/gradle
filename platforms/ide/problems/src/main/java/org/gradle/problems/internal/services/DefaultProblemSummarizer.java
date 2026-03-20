@@ -61,7 +61,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
-        this.summarizerStrategy = new SummarizerStrategy(internalOptions.getOption(THRESHOLD_OPTION).get());
+        this.summarizerStrategy = new SummarizerStrategy(internalOptions.getOptionValue(THRESHOLD_OPTION).get());
         this.problemReportCreator = problemReportCreator;
         this.taskProvider = taskProvider;
     }

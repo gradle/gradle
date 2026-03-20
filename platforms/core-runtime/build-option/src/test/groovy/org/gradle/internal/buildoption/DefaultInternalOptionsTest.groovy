@@ -26,7 +26,7 @@ class DefaultInternalOptionsTest extends Specification {
         sysProps["org.gradle.internal.prop1"] = sysProp
 
         when:
-        def value = options.getOption(new InternalFlag("org.gradle.internal.prop1"))
+        def value = options.getOptionValue(new InternalFlag("org.gradle.internal.prop1"))
 
         then:
         value.explicit
@@ -44,7 +44,7 @@ class DefaultInternalOptionsTest extends Specification {
 
     def "uses default for boolean option when system property is not set"() {
         expect:
-        def value = options.getOption(new InternalFlag("org.gradle.internal.prop", defaultValue))
+        def value = options.getOptionValue(new InternalFlag("org.gradle.internal.prop", defaultValue))
         !value.explicit
         value.get() == defaultValue
 
@@ -56,14 +56,14 @@ class DefaultInternalOptionsTest extends Specification {
         sysProps["org.gradle.internal.prop1"] = "12"
 
         expect:
-        def value = options.getOption(new IntegerInternalOption("org.gradle.internal.prop1", 45))
+        def value = options.getOptionValue(new IntegerInternalOption("org.gradle.internal.prop1", 45))
         value.get() == 12
         value.explicit
     }
 
     def "uses default for int option when system property is not set"() {
         expect:
-        def value = options.getOption(new IntegerInternalOption("org.gradle.internal.prop", 23))
+        def value = options.getOptionValue(new IntegerInternalOption("org.gradle.internal.prop", 23))
         value.get() == 23
         !value.explicit
     }

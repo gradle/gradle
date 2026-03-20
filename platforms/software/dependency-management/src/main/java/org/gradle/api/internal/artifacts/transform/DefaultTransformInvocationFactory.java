@@ -147,7 +147,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     }
 
     private boolean isCachingDisabledByProperty(Transform transform) {
-        String experimentalProperty = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get();
+        String experimentalProperty = internalOptions.getOptionValue(CACHING_DISABLED_PROPERTY).get();
         if (experimentalProperty != null) {
             if (experimentalProperty.isEmpty() || experimentalProperty.equals("true")) {
                 return true;

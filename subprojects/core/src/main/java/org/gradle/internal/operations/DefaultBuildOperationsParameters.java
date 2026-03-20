@@ -31,7 +31,7 @@ public class DefaultBuildOperationsParameters implements BuildOperationsParamete
     private final boolean emitLockingOperations;
 
     public DefaultBuildOperationsParameters(InternalOptions internalOptions) {
-        this.emitLockingOperations = internalOptions.getOption(VERBOSE_LOCKING_OPERATIONS_OPTION).get();
+        this.emitLockingOperations = internalOptions.getOptionValue(VERBOSE_LOCKING_OPERATIONS_OPTION).get();
     }
 
     @Override

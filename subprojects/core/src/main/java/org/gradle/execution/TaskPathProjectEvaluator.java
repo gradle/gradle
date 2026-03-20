@@ -114,7 +114,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     }
 
     private String schedulingStrategy() {
-        return internalOptions.getOption(PARALLEL_CONFIGURATION_SCHEDULER).get();
+        return internalOptions.getOptionValue(PARALLEL_CONFIGURATION_SCHEDULER).get();
     }
 
     private void scheduleProjectsAheadOfTime(ProjectInternal root) {
