@@ -25,51 +25,82 @@ abstract class IdeCommandLineUtil {
     private IdeCommandLineUtil() {}
 
     static String generateGradleProbeInitFile(String ideTaskName, String ideCommandLineTool) {
-        return """
-            gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS_FULL
-            Properties properties = new Properties()
-            properties.JAVA_HOME = String.valueOf(System.getenv('JAVA_HOME'))
-            properties.GRADLE_USER_HOME = String.valueOf(gradle.gradleUserHomeDir.absolutePath)
-            properties.GRADLE_OPTS = String.valueOf(System.getenv('GRADLE_OPTS'))
+        """
+            import org.gradle.api.flow.*
 
-            class Check {
+            gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS_FULL
+
+            abstract class VerificationPlugin implements Plugin<Project> {
+                @Inject
+                abstract FlowScope getFlowScope()
+
+                @Inject
+                abstract FlowProviders getFlowProviders()
+
+                @Override
+                void apply(Project target) {
+                    Properties properties = new Properties()
+                    properties.JAVA_HOME = String.valueOf(System.getenv('JAVA_HOME'))
+                    properties.GRADLE_USER_HOME = String.valueOf(target.gradle.gradleUserHomeDir.absolutePath)
+                    properties.GRADLE_OPTS = String.valueOf(System.getenv('GRADLE_OPTS'))
+
+                    target.tap {
+                        def gradleEnvironment = file("gradle-environment")
+                        tasks.matching { it.name == '$ideTaskName' }.configureEach { ideTask ->
+                            ideTask.doLast {
+                                try (def writer = gradleEnvironment.newOutputStream()) {
+                                    properties.store(writer, null)
+                                }
+                            }
+                        }
+
+                        getFlowScope().always(VerificationFlowAction) { spec ->
+                            spec.parameters.gradleEnvironmentPath.set(gradleEnvironment.absolutePath)
+                            // Ensure the action runs at the end of the build.
+                            spec.parameters.expectedEnvironment.putAll(getFlowProviders().buildWorkResult.map { properties })
+                        }
+                    }
+                }
+            }
+
+            abstract class VerificationFlowAction implements FlowAction<VerificationFlowAction.Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input Property<String> getGradleEnvironmentPath()
+                    @Input MapProperty<Object, Object> getExpectedEnvironment()
+                }
+
+                @Override
+                void execute(Parameters parameters) {
+                    def gradleEnvironment = new File(parameters.gradleEnvironmentPath.get())
+                    if (!gradleEnvironment.exists()) {
+                        throw new GradleException("could not determine if $ideCommandLineTool is using the correct environment, did $ideTaskName task run?")
+                    }
+
+                    def actualEnvironment = new Properties()
+                    try (def reader = gradleEnvironment.newInputStream()) {
+                        actualEnvironment.load(reader)
+                    }
+
+                    def expectedEnvironment = parameters.expectedEnvironment.get()
+
+                    assertEquals('JAVA_HOME', expectedEnvironment, actualEnvironment)
+                    assertEquals('GRADLE_USER_HOME', expectedEnvironment, actualEnvironment)
+                    assertEquals('GRADLE_OPTS', expectedEnvironment, actualEnvironment)
+                }
+
                 static void assertEquals(key, expected, actual) {
-                    assert expected[key] == actual[key]
                     if (expected[key] != actual[key]) {
                         throw new GradleException(""\"
-Environment's \$key did not match!
-Expected: \${expected[key]}
-Actual: \${actual[key]}
-""\")
+                            Environment's \$key did not match!
+                            Expected: \${expected[key]}
+                            Actual: \${actual[key]}
+                        ""\".stripIndent(true))
                     }
                 }
             }
 
             rootProject {
-                def gradleEnvironment = file("gradle-environment")
-                tasks.matching { it.name == '$ideTaskName' }.all { ideTask ->
-                    ideTask.doLast {
-                        def writer = gradleEnvironment.newOutputStream()
-                        properties.store(writer, null)
-                        writer.close()
-                    }
-                }
-                gradle.taskGraph.whenReady { taskGraph ->
-                    taskGraph.allTasks.last().doLast {
-                        if (!gradleEnvironment.exists()) {
-                            throw new GradleException("could not determine if $ideCommandLineTool is using the correct environment, did $ideTaskName task run?")
-                        } else {
-                            def expectedEnvironment = new Properties()
-                            expectedEnvironment.load(gradleEnvironment.newInputStream())
-
-                            def actualEnvironment = properties
-
-                            Check.assertEquals('JAVA_HOME', expectedEnvironment, actualEnvironment)
-                            Check.assertEquals('GRADLE_USER_HOME', expectedEnvironment, actualEnvironment)
-                            Check.assertEquals('GRADLE_OPTS', expectedEnvironment, actualEnvironment)
-                        }
-                    }
-                }
+                apply plugin: VerificationPlugin
             }
         """
     }
