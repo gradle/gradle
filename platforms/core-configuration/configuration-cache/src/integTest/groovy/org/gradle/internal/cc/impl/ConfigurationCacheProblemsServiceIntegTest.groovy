@@ -97,7 +97,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         }
     }
 
-    def "notCompatibleWithConfigurationCache task problems are reported as Advice"() {
+    def "notCompatibleWithConfigurationCache task problems are reported as Warning"() {
         given:
         buildFile """
             task run {
@@ -115,7 +115,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         verifyAll(receivedProblem) {
             fqid == 'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache'
             contextualLabel == "invocation of 'Task.project' at execution time is unsupported with the configuration cache."
-            definition.severity == Severity.ADVICE
+            definition.severity == Severity.WARNING
         }
     }
 }

@@ -282,7 +282,7 @@ class ConfigurationCacheProblems(
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)
-            severity(severity.toProblemSeverity())
+            severity(Severity.WARNING)
             additionalDataInternal(PropertyTraceDataSpec::class.java) {
                 trace(problem.trace.containingUserCode)
             }
@@ -306,15 +306,6 @@ class ConfigurationCacheProblems(
 
     private
     fun PropertyTrace.buildLogic() = sequence.filterIsInstance<PropertyTrace.BuildLogic>().firstOrNull()
-
-    private
-    fun ProblemSeverity.toProblemSeverity() = when {
-        this == ProblemSeverity.Suppressed ||
-            this == ProblemSeverity.SuppressedSilently -> Severity.ADVICE
-
-        isWarningMode -> Severity.WARNING
-        else -> Severity.ERROR
-    }
 
     override fun getId(): String {
         return "configuration-cache"
