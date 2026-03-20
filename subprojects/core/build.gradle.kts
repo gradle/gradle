@@ -45,7 +45,6 @@ dependencies {
     api(projects.buildCacheSpi)
     api(projects.buildDiscovery)
     api(projects.buildDiscoveryImpl)
-    api(projects.buildEvents)
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)

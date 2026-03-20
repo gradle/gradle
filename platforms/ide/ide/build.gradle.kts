@@ -45,11 +45,6 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
-    runtimeOnly(projects.buildEvents)
-    runtimeOnly(projects.languageJvm)
-    runtimeOnly(projects.testingBase)
-    runtimeOnly(projects.testingJvm)
-
     testFixturesApi(projects.baseServices) {
         because("test fixtures export the Action class")
     }

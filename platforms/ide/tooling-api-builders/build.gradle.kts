@@ -21,7 +21,6 @@ dependencies {
     implementation(libs.guava)
 
     api(projects.baseServices)
-    api(projects.buildEvents)
     api(projects.buildOperations)
     api(projects.core)
     api(projects.daemonMessaging)

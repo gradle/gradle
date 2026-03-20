@@ -30,7 +30,6 @@ apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 // Gradle implementation projects
 unassigned {
     subproject("core")
-    subproject("build-events")
     subproject("composite-builds")
     subproject("core-api")
 }
