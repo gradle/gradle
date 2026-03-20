@@ -8,6 +8,9 @@ description = """
 """
 
 dependencies {
+    api(projects.classloaders)
+    api(projects.logging)
+    api(projects.loggingApi)
     api(projects.serialization)
     api(projects.startParameter)
     api(projects.toolingApi)
@@ -16,8 +19,8 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.buildOption)
+    implementation(projects.enterpriseLogging)
     implementation(projects.fileWatching)
-    implementation(projects.loggingApi)
     implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.guava)
