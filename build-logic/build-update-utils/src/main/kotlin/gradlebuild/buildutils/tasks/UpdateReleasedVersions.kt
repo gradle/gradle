@@ -16,18 +16,13 @@
 
 package gradlebuild.buildutils.tasks
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import gradlebuild.buildutils.model.ReleasedVersion
-import gradlebuild.buildutils.model.ReleasedVersions
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.util.GradleVersion
 import org.gradle.work.DisableCachingByDefault
-import java.io.File
 
 
 @DisableCachingByDefault(because = "Not worth caching")
@@ -41,50 +36,6 @@ abstract class UpdateReleasedVersions : DefaultTask() {
 
     @TaskAction
     fun updateVersions() {
-        val currentReleasedVersionValue = currentReleasedVersion.get()
-        val releasedVersionsFileObject = releasedVersionsFile.get().asFile
-
-        updateReleasedVersionFile(releasedVersionsFileObject, currentReleasedVersionValue)
-    }
-
-    companion object {
-
-        private
-        fun updateReleasedVersionFile(releasedVersionsFile: File, currentReleasedVersion: ReleasedVersion) {
-            val releasedVersions = releasedVersionsFile.reader().use {
-                Gson().fromJson(it, ReleasedVersions::class.java)
-            }
-
-            val newReleasedVersions = updateReleasedVersions(currentReleasedVersion, releasedVersions)
-
-            releasedVersionsFile.writeText(GsonBuilder().setPrettyPrinting().create().toJson(newReleasedVersions))
-        }
-
-        private
-        fun updateReleasedVersions(currentReleasedVersion: ReleasedVersion, releasedVersions: ReleasedVersions) =
-            ReleasedVersions(
-                if (currentReleasedVersion.gradleVersion().isSnapshot) {
-                    newerVersion(currentReleasedVersion, releasedVersions.latestReleaseSnapshot)
-                } else {
-                    releasedVersions.latestReleaseSnapshot
-                },
-                if (!currentReleasedVersion.gradleVersion().isSnapshot && !currentReleasedVersion.gradleVersion().finalRelease()) {
-                    newerVersion(currentReleasedVersion, releasedVersions.latestRc)
-                } else {
-                    releasedVersions.latestRc
-                },
-                if (currentReleasedVersion.gradleVersion().finalRelease()) {
-                    (releasedVersions.finalReleases + currentReleasedVersion).sortedBy { it.gradleVersion() }.reversed()
-                } else {
-                    releasedVersions.finalReleases
-                }
-            )
-
-        private
-        fun newerVersion(releasedVersion: ReleasedVersion, other: ReleasedVersion) =
-            if (releasedVersion.gradleVersion() > other.gradleVersion()) releasedVersion else other
-
-        private
-        fun GradleVersion.finalRelease() = this.equals(baseVersion)
+        updateReleasedVersionFile(releasedVersionsFile.get().asFile, currentReleasedVersion.get())
     }
 }
