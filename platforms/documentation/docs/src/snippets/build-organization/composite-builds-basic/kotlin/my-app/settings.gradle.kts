@@ -1,5 +1,3 @@
-rootProject.name = "my-app"
-
 // tag::mag[]
 pluginManagement {
     includeBuild("my-plugin")
@@ -9,5 +7,7 @@ pluginManagement {
     }
 }
 // end::mag[]
+
+rootProject.name = "my-app"
 
 include("app")
