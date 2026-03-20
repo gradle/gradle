@@ -63,15 +63,19 @@ class DependencyAnalyzer {
      * @param compiledClassesDirs The directories containing the compiled class files of the project.
      * @param compileClasspath The compile classpath of the project (JARs or directories).
      * @param splitClasses The set of Fully Qualified Class Names (FQCNs) to start the analysis from.
+     * @param followSubtypes Whether to also follow subtypes as outgoing edges during traversal.
      * @return An [AnalysisResult] containing the reachable project classes and external dependency roots.
      */
     fun analyze(
         compiledClassesDirs: Iterable<File>,
         compileClasspath: Set<File>,
-        splitClasses: Set<String>
+        splitClasses: Set<String>,
+        followSubtypes: Boolean = false
     ): AnalysisResult {
         // 1. Index all available classes
-        val classLocationMap = indexClassLocations(compiledClassesDirs, compileClasspath)
+        val classIndex = indexClassLocations(compiledClassesDirs, compileClasspath)
+        val classLocationMap = classIndex.classLocationMap
+        val subtypeMap = classIndex.subtypeMap
 
         // 2. Transitive Traversal
         val visited = mutableSetOf<String>()
@@ -110,6 +114,15 @@ class DependencyAnalyzer {
                             }
                         }
                     }
+
+                    // Follow subtypes: if enabled, enqueue all known subtypes of this class
+                    if (followSubtypes) {
+                        subtypeMap[currentClass]?.forEach { subtype ->
+                            if (!visited.contains(subtype)) {
+                                queue.add(subtype)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -139,11 +152,27 @@ class DependencyAnalyzer {
         return AnalysisResult(projectClassesResult, apiRoots, implRoots)
     }
 
+    private data class ClassIndex(
+        val classLocationMap: Map<String, File>,
+        /** Maps a supertype to all its known direct subtypes. */
+        val subtypeMap: Map<String, Set<String>>
+    )
+
+    private data class ClassInfo(val className: String, val superTypes: List<String>)
+
     private fun indexClassLocations(
         compiledClassesDirs: Iterable<File>,
         compileClasspath: Set<File>
-    ): Map<String, File> {
+    ): ClassIndex {
         val classLocationMap = mutableMapOf<String, File>()
+        val subtypeMap = mutableMapOf<String, MutableSet<String>>()
+
+        fun registerClass(className: String, location: File, superTypes: List<String>) {
+            classLocationMap.putIfAbsent(className, location)
+            for (superType in superTypes) {
+                subtypeMap.getOrPut(superType) { mutableSetOf() }.add(className)
+            }
+        }
 
         // Index compiled classes
         for (dir in compiledClassesDirs) {
@@ -151,8 +180,12 @@ class DependencyAnalyzer {
                 dir.walk()
                     .filter { it.isFile && it.extension == "class" }
                     .forEach { file ->
-                        parseClassName(file)?.let { className ->
-                            classLocationMap[className] = dir
+                        val info = parseClassInfo(file)
+                        if (info != null) {
+                            classLocationMap[info.className] = dir
+                            for (superType in info.superTypes) {
+                                subtypeMap.getOrPut(superType) { mutableSetOf() }.add(info.className)
+                            }
                         }
                     }
             }
@@ -164,8 +197,9 @@ class DependencyAnalyzer {
                 path.walk()
                     .filter { it.isFile && it.extension == "class" }
                     .forEach { file ->
-                        parseClassName(file)?.let { className ->
-                            classLocationMap.putIfAbsent(className, path)
+                        val info = parseClassInfo(file)
+                        if (info != null) {
+                            registerClass(info.className, path, info.superTypes)
                         }
                     }
             } else if (path.isFile && path.name.endsWith(".jar", ignoreCase = true)) {
@@ -173,20 +207,34 @@ class DependencyAnalyzer {
                     zip.entries().asSequence()
                         .filter { !it.isDirectory && it.name.endsWith(".class") }
                         .forEach { entry ->
-                            val className = entry.name.substringBeforeLast(".class").replace('/', '.')
-                            classLocationMap.putIfAbsent(className, path)
+                            val bytes = zip.getInputStream(entry).readBytes()
+                            val info = parseClassInfoFromBytes(bytes)
+                            if (info != null) {
+                                registerClass(info.className, path, info.superTypes)
+                            }
                         }
                 }
             }
         }
-        return classLocationMap
+        return ClassIndex(classLocationMap, subtypeMap)
     }
 
-    private fun parseClassName(file: File): String? {
-        return file.inputStream().use {
-            val reader = ClassReader(it)
-            reader.className.replace('/', '.')
+    private fun parseClassInfo(file: File): ClassInfo? {
+        return file.inputStream().use { parseClassInfoFromBytes(it.readBytes()) }
+    }
+
+    private fun parseClassInfoFromBytes(bytes: ByteArray): ClassInfo? {
+        val reader = ClassReader(bytes)
+        val className = reader.className.replace('/', '.')
+        val superTypes = mutableListOf<String>()
+        val superName = reader.superName
+        if (superName != null && superName != "java/lang/Object") {
+            superTypes.add(superName.replace('/', '.'))
         }
+        reader.interfaces?.forEach { iface ->
+            superTypes.add(iface.replace('/', '.'))
+        }
+        return ClassInfo(className, superTypes)
     }
 
     private fun parseDependencies(className: String, location: File, knownClasses: Set<String>): ClassDependencies {
