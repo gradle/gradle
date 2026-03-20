@@ -224,7 +224,9 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     @Override
     public ProcessForkOptions copyTo(ProcessForkOptions options) {
-        delegate.copyTo(options);
+        options.setExecutable(delegate.getExecutable());
+        options.setWorkingDir(delegate.getWorkingDir());
+        options.setEnvironment(delegate.getEnvironment());
         return this;
     }
 }
