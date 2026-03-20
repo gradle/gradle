@@ -49,5 +49,3 @@ By using the Test Event Reporting API:
 - **Integration**: Custom tests (even those outside JVM frameworks) can generate events compatible with Gradle's test reporting infrastructure.
 - **Rich Metadata**: Developers can attach additional context (e.g., error messages or parent class details) to test events.
 - **Consistency**: Results integrate seamlessly with Gradle’s HTML reports, making it easier to debug and understand test outcomes.
-
-For a downloadable example, refer to the link:../samples/sample_custom_test_task.html[Custom Test Task Sample].

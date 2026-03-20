@@ -52,7 +52,7 @@ In the *configuration phase*, Gradle registers tasks and other properties to the
 
 Gradle evaluates the build files of every participating project, then constructs the <<#task_graph,task graph>> by analyzing the input and output dependencies of tasks.
 
-NOTE: When the *Configuration Cache* is enabled, the configuration phase also includes a serialization sub-phase in which task inputs are 'snapshotted' and dependencies are resolved. This is work that would otherwise be deferred to execution. See <<configuration_cache.adoc#config_cache,Configuration Cache - How It Works>> for more details.
+NOTE: When the *Configuration Cache* is enabled, the configuration phase also includes a _serialization sub-phase_, where Gradle stores the task graph while simultaneously precomputing some of the task state and resolving dependencies. This is work that would otherwise be deferred to execution. See <<configuration_cache.adoc#config_cache,Configuration Cache - How It Works>> for more details.
 
 [[execution]]
 === Phase 3. Execution
@@ -236,8 +236,7 @@ This timeline provides a comprehensive overview of the Gradle build flow **when 
 However, any build logic that eagerly accesses a configuration's resolved state, such as calling `configuration.files`,
 `configuration.resolvedConfiguration`, or iterating a configuration directly, will trigger resolution immediately at that point in the build lifecycle.
 
-When the *Configuration Cache is enabled*, *Task Input Snapshotting*, *Dependency Graph Resolution*, and *Artifact Resolution* must be completed during the *Configuration Phase* rather than at execution time, since they are required to fully describe task inputs before the result can be serialized.
-The *Configuration Cache* also fundamentally changes how *Task Input Snapshotting* works.
+When the *Configuration Cache is enabled*, *Dependency Graph Resolution* and *Artifact Resolution* must be completed during the *Configuration Phase* rather than at execution time, since they are required to fully describe the task graph before the result can be serialized.
 You can refer to <<configuration_cache.adoc#config_cache,Configuration Cache - How It Works>> to learn more.
 
 [[task_graph]]
@@ -470,7 +469,7 @@ BUILD SUCCESSFUL in 0s
 2 actionable tasks: 2 executed
 ----
 
-=== Flow Actions
+=== Flow Actions incubating-label:[]
 
 <<dataflow_actions#dataflow_action,FlowAction>> is a newer API (introduced in Gradle 7.6) that lets you run logic in response to build lifecycle events, most commonly, when the build finishes.
 It was introduced as a <<configuration_cache.adoc#config_cache,Configuration Cache>> and <<isolated_projects.adoc#isolated_projects,Isolated Projects>> compatible alternative to `BuildListener` and other deprecated lifecycle listeners.

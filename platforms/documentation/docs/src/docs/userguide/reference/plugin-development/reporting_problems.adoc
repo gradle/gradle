@@ -36,8 +36,6 @@ include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc
 <3> Report a recoverable problem so the build can continue.
 <4> Add optional extra data to the problem.
 
-See the full link:../samples/sample_problems_api_usage.html[end-to-end sample] for more details.
-
 == Problems API Usage
 
 The following simple plugin adds a `greet` task:

@@ -20,14 +20,12 @@ abstract class BuildDurationService
     }
 }
 
-def buildDurationService = gradle.sharedServices
-    .registerIfAbsent("buildDuration", BuildDurationService) {
-        maxParallelUsages = 1
-    }
-
 tasks.register("taskA") {
     group = "demo"
     usesService(buildDurationService)
+    def buildDurationService = gradle.sharedServices.registerIfAbsent("buildDuration", BuildDurationService) {
+        maxParallelUsages = 1
+    }
     doLast {
         buildDurationService.get()
         println("taskA running...")

@@ -1,15 +1,12 @@
 // tag::task-execution-graph-listener[]
-gradle.taskGraph.addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
-    @Override
-    void graphPopulated(TaskExecutionGraph graph) {
-        def tasks = graph.allTasks.collect { it.path }.join("\n  ")
-        println("[TaskExecutionGraphListener] Graph is ready. Tasks to execute:\n  ${tasks}")
+gradle.taskGraph.addTaskExecutionGraphListener { graph ->
+    def tasks = graph.allTasks.collect { it.path }.join("\n  ")
+    println("[TaskExecutionGraphListener] Graph is ready. Tasks to execute:\n  ${tasks}")
 
-        if (graph.hasTask(":skippedTask")) {
-            println("[TaskExecutionGraphListener] :skippedTask is in the graph (it will still be skipped via onlyIf)")
-        }
+    if (graph.hasTask(":skippedTask")) {
+        println("[TaskExecutionGraphListener] :skippedTask is in the graph (it will still be skipped via onlyIf)")
     }
-})
+}
 
 tasks.register("hello") {
     group = "demo"
