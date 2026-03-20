@@ -187,8 +187,8 @@ class ParallelNodeRelationshipsResolver {
             }
         }
 
-        // For each placeholder find a task
-        resolvePlaceholderNodesToLocalTaskNodes(byTarget);
+        // For ByTarget placeholder node find a task
+        resolveByTargetPlaceholderNodesToLocalTaskNodes(byTarget);
 
         // Resolve AllProjectsSearch items sequentially (needs all-projects access)
         for (DeferredCrossProjectNode node : allProjectsSearchNodes) {
@@ -202,7 +202,7 @@ class ParallelNodeRelationshipsResolver {
      * Discovers tasks and resolves {@link DeferredCrossProjectDependency.ByProjectTask} placeholders
      * in parallel, one build operation per target project.
      */
-    private void resolvePlaceholderNodesToLocalTaskNodes(Map<Path, List<DeferredCrossProjectNode>> byTarget) {
+    private void resolveByTargetPlaceholderNodesToLocalTaskNodes(Map<Path, List<DeferredCrossProjectNode>> byTarget) {
         if (byTarget.isEmpty()) {
             return;
         }
@@ -324,9 +324,49 @@ class ParallelNodeRelationshipsResolver {
             for (LocalTaskNode sourceNode : nodesWithPlaceholders) {
                 ResolvedNodeRelationships relationships = results.get(sourceNode);
                 checkNotNull(relationships, "Node %s was marked as having placeholders but has no resolved relationships", sourceNode);
-                results.put(sourceNode, relationships.substitutePlaceholders());
+                results.put(sourceNode, substituteInRelationships(relationships));
             }
             return results;
+        }
+
+        private static ResolvedNodeRelationships substituteInRelationships(ResolvedNodeRelationships relationships) {
+            Set<Node> newDeps = substitutePlaceholders(relationships.getDependencies());
+            Set<Node> newLifecycle = substitutePlaceholders(relationships.getLifecycleDependencies());
+            Set<Node> newFinalizedBy = substitutePlaceholders(relationships.getFinalizedBy());
+            Set<Node> newMustRunAfter = substitutePlaceholders(relationships.getMustRunAfter());
+            Set<Node> newShouldRunAfter = substitutePlaceholders(relationships.getShouldRunAfter());
+            if (newDeps == relationships.getDependencies()
+                && newLifecycle == relationships.getLifecycleDependencies()
+                && newFinalizedBy == relationships.getFinalizedBy()
+                && newMustRunAfter == relationships.getMustRunAfter()
+                && newShouldRunAfter == relationships.getShouldRunAfter()) {
+                return relationships;
+            }
+            return new ResolvedNodeRelationships(relationships.getNode(), newDeps, newLifecycle, newFinalizedBy, newMustRunAfter, newShouldRunAfter);
+        }
+
+        private static Set<Node> substitutePlaceholders(Set<Node> original) {
+            if (!hasAnyPlaceholder(original)) {
+                return original;
+            }
+            Set<Node> result = new HashSet<>();
+            for (Node n : original) {
+                if (n instanceof DeferredCrossProjectNode) {
+                    result.addAll(((DeferredCrossProjectNode) n).getResolvedNodes());
+                } else {
+                    result.add(n);
+                }
+            }
+            return result;
+        }
+
+        private static boolean hasAnyPlaceholder(Set<Node> nodes) {
+            for (Node n : nodes) {
+                if (n instanceof DeferredCrossProjectNode) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
