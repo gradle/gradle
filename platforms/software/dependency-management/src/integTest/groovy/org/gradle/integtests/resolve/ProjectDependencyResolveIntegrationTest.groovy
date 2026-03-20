@@ -730,7 +730,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             }
 
             dependencies {
-                a project
+                a project()
             }
 
             configurations.b.dependencies.addAllLater provider(() -> {

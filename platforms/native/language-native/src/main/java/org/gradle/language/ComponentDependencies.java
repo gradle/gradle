@@ -17,7 +17,9 @@
 package org.gradle.language;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 
 /**
  * Allows the implementation dependencies of a component to be specified.
@@ -25,6 +27,18 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
  * @since 4.6
  */
 public interface ComponentDependencies {
+    /**
+     * Creates a dependency on a project by path.
+     *
+     * @param projectPath the path of the project, e.g. ":sub-project"
+     * @return The dependency.
+     *
+     * @since 9.6.0
+     * @see org.gradle.api.Project#getPath()
+     */
+    @Incubating
+    ProjectDependency project(String projectPath);
+
     /**
      * Adds an implementation dependency to this component. An implementation dependency is not visible to consumers that are compiled against this component.
      *
