@@ -18,8 +18,8 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -29,7 +29,6 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Timeout
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @Requires(IntegTestPreconditions.NotParallelExecutor)
 @ToBeFixedForIsolatedProjects(because = "allprojects")
@@ -268,7 +267,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "With CC, resolution happens during configuration phase")
     def "tasks from same project do not run in parallel even when tasks do undeclared dependency resolution"() {
         given:
         executer.beforeExecute {
