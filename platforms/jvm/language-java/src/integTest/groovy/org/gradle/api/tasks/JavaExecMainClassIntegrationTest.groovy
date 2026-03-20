@@ -24,7 +24,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 
 class JavaExecMainClassIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly in the test")
     def "can add JavaExec mainClass convention to automatically find class at execution time"() {
         given:
         def configurationCache = new ConfigurationCacheFixture(this)
