@@ -20,12 +20,10 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.test.precondition.Requires
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 /**
@@ -35,7 +33,6 @@ import spock.lang.Issue
  * @see <a href="https://github.com/gradle/gradle/issues/37022">Issue #37022</a>
  */
 @Issue("https://github.com/gradle/gradle/issues/37022")
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/5132")
 class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
     /** OSC 9;4 prefix — signals that taskbar progress is being reported. */
     static final String OSC_PROGRESS_PREFIX = "\u001B]9;4;"
@@ -56,7 +53,6 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
             .withConsole(ConsoleOutput.Rich)
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/5132")
     @Requires(value = [UnitTestPreconditions.Unix, IntegTestPreconditions.NotEmbeddedExecutor],
         reason = "sends SIGINT to a forked process works only on Unix and with a separate process")
     def "sends OSC 9;4;0 reset sequence when build receives SIGINT"() {
@@ -82,7 +78,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
 
         gradle.sendSignal(SIGINT)
         gradle.waitForFailure()
-        block.releaseAll()
+        server.resetExpectations()
 
         then:
         gradle.standardOutput.contains(OSC_RESET)
