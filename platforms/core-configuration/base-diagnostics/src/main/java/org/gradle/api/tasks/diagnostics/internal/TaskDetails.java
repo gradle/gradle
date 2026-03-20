@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskProvenanceUtil;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -33,7 +34,7 @@ public interface TaskDetails {
     String getProvenance();
 
     static TaskDetails of(Path path, Task task) {
-        return of(path, new DslObject(task).getPublicType().getFullyQualifiedName(), task.getDescription(), ((TaskInternal) task).getProvenance().orElse(null));
+        return of(path, new DslObject(task).getPublicType().getFullyQualifiedName(), task.getDescription(), TaskProvenanceUtil.getProvenance((TaskInternal) task).orElse(null));
     }
 
     static TaskDetails of(Path path, String typeName, @Nullable String description, @Nullable String provenance) {

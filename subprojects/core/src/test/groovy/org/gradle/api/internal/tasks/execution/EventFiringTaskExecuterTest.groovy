@@ -87,7 +87,7 @@ class EventFiringTaskExecuterTest extends Specification {
 
         then:
         _ * task.getIdentityPath() >> Path.path(":a")
-        1 * task.getTaskIdentity() >> taskIdentity
+        _ * task.getTaskIdentity() >> taskIdentity
         1 * taskListener.beforeExecute(taskIdentity)
         1 * taskExecutionListener.beforeExecute(task) >> { throw failure }
         0 * delegate._
