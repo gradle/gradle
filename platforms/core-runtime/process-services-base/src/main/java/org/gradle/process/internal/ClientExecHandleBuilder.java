@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.internal.streams.StreamsHandler;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 

@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.File;
 import java.io.InputStream;

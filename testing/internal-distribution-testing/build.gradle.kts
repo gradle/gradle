@@ -48,6 +48,7 @@ dependencies {
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.buildProcessServices)
+    implementation(projects.processServicesBase)
     implementation(projects.credentialsApi)
     implementation(projects.buildOperations)
     implementation(projects.clientServices)

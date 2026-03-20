@@ -3367,7 +3367,7 @@ Class <org.gradle.process.internal.ProcessArgumentsSpec> is not annotated (direc
 Class <org.gradle.process.internal.ProcessBuilderFactory> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ProcessBuilderFactory.java:0)
 Class <org.gradle.process.internal.ProcessSettings> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ProcessSettings.java:0)
 Class <org.gradle.process.internal.ProcessStreamsSpec> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ProcessStreamsSpec.java:0)
-Class <org.gradle.process.internal.StreamsHandler> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (StreamsHandler.java:0)
+Class <org.gradle.process.internal.streams.StreamsHandler> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (StreamsHandler.java:0)
 Class <org.gradle.process.internal.health.memory.CGroupMemoryInfo> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (CGroupMemoryInfo.java:0)
 Class <org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultJvmMemoryInfo.java:0)
 Class <org.gradle.process.internal.health.memory.DefaultMemoryManager$MemoryCheck> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultMemoryManager.java:0)

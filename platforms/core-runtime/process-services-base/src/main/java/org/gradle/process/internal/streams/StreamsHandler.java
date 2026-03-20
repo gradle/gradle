@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.process.internal.streams;
 
 import org.gradle.internal.concurrent.Stoppable;
 

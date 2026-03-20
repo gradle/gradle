@@ -24,6 +24,7 @@ import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
 import org.gradle.process.internal.streams.OutputStreamsForwarder;
 import org.gradle.process.internal.streams.SafeStreams;
+import org.gradle.process.internal.streams.StreamsHandler;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 

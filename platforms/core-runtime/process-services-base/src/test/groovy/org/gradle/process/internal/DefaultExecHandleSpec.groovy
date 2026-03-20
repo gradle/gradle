@@ -25,6 +25,7 @@ import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.ProcessExecutionException
+import org.gradle.process.internal.streams.StreamsHandler
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires

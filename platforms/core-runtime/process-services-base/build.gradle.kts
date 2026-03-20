@@ -26,8 +26,10 @@ dependencies {
     implementation(libs.jnrConstants)
     implementation(libs.guava)
     implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
     implementation(libs.slf4jApi)
 
+    testImplementation(projects.io)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 }

@@ -7,7 +7,6 @@ description = "Process execution abstractions."
 dependencies {
     api(projects.concurrent)
     api(projects.baseServices)
-    api(projects.buildOperations)
     api(projects.coreApi)
     api(projects.modelCore)
     api(projects.processServicesApi)
@@ -26,7 +25,6 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.native)
 
-    implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.slf4jApi)
