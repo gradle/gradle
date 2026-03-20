@@ -37,7 +37,11 @@ class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaProjectTestFixt
 
             dependencies {
                api(localGroovy())
-               testFixturesApi(localGroovy())
+            }
+            javaTestFixtures {
+              dependencies {
+                api(localGroovy())
+              }
             }
         """
         buildFile << """
