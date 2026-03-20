@@ -93,4 +93,125 @@ class DefaultInternalOptionsTest extends Specification {
         "IntegerInternalOption" | { String it -> new IntegerInternalOption(it, 0) }
         "StringInternalOption"  | { String it -> StringInternalOption.of(it, "") }
     }
+
+    //region Convenience accessors: boolean
+
+    def "getBoolean resolves declared option"() {
+        sysProps["org.gradle.internal.prop1"] = "true"
+        def option = InternalOptions.ofBoolean("org.gradle.internal.prop1", false)
+
+        expect:
+        options.getBoolean(option)
+    }
+
+    def "getBoolean returns default for declared option when property is not set"() {
+        def option = InternalOptions.ofBoolean("org.gradle.internal.prop1", true)
+
+        expect:
+        options.getBoolean(option)
+    }
+
+    def "getBoolean resolves ad-hoc option"() {
+        sysProps["org.gradle.internal.prop1"] = sysProp
+
+        expect:
+        options.getBoolean("org.gradle.internal.prop1", false) == result
+
+        where:
+        sysProp | result
+        "true"  | true
+        "false" | false
+    }
+
+    def "getBoolean returns default for ad-hoc option when property is not set"() {
+        expect:
+        options.getBoolean("org.gradle.internal.prop1", defaultValue) == defaultValue
+
+        where:
+        defaultValue << [true, false]
+    }
+
+    //endregion
+
+    //region Convenience accessors: int
+
+    def "getInt resolves declared option"() {
+        sysProps["org.gradle.internal.prop1"] = "42"
+
+        expect:
+        options.getInt(InternalOptions.ofInt("org.gradle.internal.prop1", 0)) == 42
+    }
+
+    def "getInt returns default for declared option when property is not set"() {
+        expect:
+        options.getInt(InternalOptions.ofInt("org.gradle.internal.prop1", 99)) == 99
+    }
+
+    def "getInt resolves ad-hoc option"() {
+        sysProps["org.gradle.internal.prop1"] = "42"
+
+        expect:
+        options.getInt("org.gradle.internal.prop1", 0) == 42
+    }
+
+    def "getInt returns default for ad-hoc option when property is not set"() {
+        expect:
+        options.getInt("org.gradle.internal.prop1", 99) == 99
+    }
+
+    //endregion
+
+    //region Convenience accessors: string
+
+    def "getString resolves ad-hoc option"() {
+        sysProps["org.gradle.internal.prop1"] = "hello"
+
+        expect:
+        options.getString("org.gradle.internal.prop1", "default") == "hello"
+    }
+
+    def "getString returns default for ad-hoc option when property is not set"() {
+        expect:
+        options.getString("org.gradle.internal.prop1", "default") == "default"
+    }
+
+    def "getStringOrNull resolves set property"() {
+        sysProps["org.gradle.internal.prop1"] = "hello"
+
+        expect:
+        options.getStringOrNull("org.gradle.internal.prop1") == "hello"
+    }
+
+    def "getStringOrNull returns null when property is not set"() {
+        expect:
+        options.getStringOrNull("org.gradle.internal.prop1") == null
+    }
+
+    def "empty string is a valid value for string options"() {
+        sysProps["org.gradle.internal.prop1"] = ""
+
+        expect:
+        options.getString("org.gradle.internal.prop1", "default") == ""
+        options.getStringOrNull("org.gradle.internal.prop1") == ""
+    }
+
+    //endregion
+
+    //region isExplicitlySet
+
+    def "isExplicitlySet returns true for explicitly set property"() {
+        sysProps["org.gradle.internal.prop1"] = "anything"
+        sysProps["org.gradle.internal.prop2"] = ""
+
+        expect:
+        options.isExplicitlySet("org.gradle.internal.prop1")
+        options.isExplicitlySet("org.gradle.internal.prop2")
+    }
+
+    def "isExplicitlySet returns false for unset property"() {
+        expect:
+        !options.isExplicitlySet("org.gradle.internal.prop1")
+    }
+
+    //endregion
 }
