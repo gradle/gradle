@@ -120,7 +120,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         fails 'checkState'
 
         if (!GradleContextualExecuter.isConfigCache()) {
-            failure.assertHasDescription("Execution failed for task ':checkState'.")
+            failure.assertHasDescription("Execution failed for task ':checkState' (registered in build file 'build.gradle').")
         }
         if ((method as String) in ['getResolvedConfiguration()']) {
             failure.assertHasCause("""Method call not allowed

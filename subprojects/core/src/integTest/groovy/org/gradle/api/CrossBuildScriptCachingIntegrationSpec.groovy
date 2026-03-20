@@ -682,10 +682,13 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void scriptsAreReused(List<ClassDetails> before, List<ClassDetails> after) {
-        assert before.size() == after.size()
-        for (int i = 0; i < before.size(); i++) {
-            def script1 = before[i]
-            def script2 = after[i]
+        def sort = { List<ClassDetails> list -> list.sort(false) { a, b -> a.path <=> b.path ?: a.className <=> b.className } }
+        def sortedBefore = sort(before)
+        def sortedAfter = sort(after)
+        assert sortedBefore.size() == sortedAfter.size()
+        for (int i = 0; i < sortedBefore.size(); i++) {
+            def script1 = sortedBefore[i]
+            def script2 = sortedAfter[i]
             assert script1.path == script2.path
             assert script1.className == script2.className
             assert script1.classpath == script2.classpath

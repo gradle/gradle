@@ -63,7 +63,7 @@ task showMissing {
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertThatDescription(CoreMatchers.startsWith("Configuration cache state could not be cached"))
         } else {
-            failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+            failure.assertHasDescription("Execution failed for task ':showMissing' (registered in build file 'build.gradle').")
         }
         failure.assertResolutionFailure(':missing')
             .assertHasCause("""Could not find group:projectA:1.2.
@@ -80,7 +80,7 @@ Required by:
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertThatDescription(CoreMatchers.startsWith("Configuration cache state could not be cached"))
         } else {
-            failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+            failure.assertHasDescription("Execution failed for task ':showMissing' (registered in build file 'build.gradle').")
         }
         failure.assertResolutionFailure(':missing')
             .assertHasCause("""Could not find group:projectA:1.2.
@@ -142,7 +142,7 @@ task showMissing {
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertThatDescription(CoreMatchers.startsWith("Configuration cache state could not be cached"))
         } else {
-            failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+            failure.assertHasDescription("Execution failed for task ':showMissing' (registered in build file 'build.gradle').")
         }
         failure.assertResolutionFailure(':missing')
             .assertHasCause("""Could not find group:projectA:1.2.
@@ -245,7 +245,7 @@ Required by:
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertThatDescription(CoreMatchers.startsWith("Configuration cache state could not be cached"))
         } else {
-            failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+            failure.assertHasDescription( "Execution failed for task ':showMissing' (registered in build file 'build.gradle').")
         }
         failure.assertResolutionFailure(':compile')
             .assertHasCause("""Could not find group:projectA:1.2.
@@ -314,7 +314,7 @@ task showMissing {
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertThatDescription(CoreMatchers.startsWith("Configuration cache state could not be cached"))
         } else {
-            failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+            failure.assertHasDescription("Execution failed for task ':showMissing' (registered in build file 'build.gradle').")
         }
         failure.assertHasCause('Could not resolve all files for configuration \':missing\'.')
             .assertHasCause("""Could not find group:projectA:1.2.
@@ -376,7 +376,7 @@ task showMissing {
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertThatDescription(CoreMatchers.startsWith("Configuration cache state could not be cached"))
         } else {
-            failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+            failure.assertHasDescription("Execution failed for task ':showMissing' (registered in build file 'build.gradle').")
         }
         failure.assertHasCause('Could not resolve all files for configuration \':missing\'.')
             .assertHasCause("""Could not find group:projectA:1.2.
@@ -421,7 +421,7 @@ task showMissing {
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertThatDescription(CoreMatchers.startsWith("Configuration cache state could not be cached"))
         } else {
-            failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+            failure.assertHasDescription("Execution failed for task \':showMissing\' (registered in build file 'build.gradle').")
         }
         failure.assertResolutionFailure(':missing')
             .assertHasCause("Cannot resolve external dependency group:projectA:1.2 because no repositories are defined.")
@@ -475,7 +475,7 @@ task showBroken {
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertThatDescription(CoreMatchers.startsWith("Configuration cache state could not be cached"))
         } else {
-            failure.assertHasDescription('Execution failed for task \':showBroken\'.')
+            failure.assertHasDescription("Execution failed for task ':showBroken' (registered in build file 'build.gradle').")
         }
         failure.assertResolutionFailure(':broken')
             .assertHasCause('Could not resolve group:projectA:1.3.')

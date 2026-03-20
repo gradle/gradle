@@ -18,8 +18,6 @@ package org.gradle.integtests.tooling.r950
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
@@ -70,12 +68,6 @@ class HelpConsumerCrossVersionSpec extends ToolingApiSpecification {
         "test launcher" | { ProjectConnection conn -> conn.newTestLauncher().withJvmTestClasses("MyTest").withArguments('--help').run() }
         "model builder" | { ProjectConnection conn -> conn.model(GradleProject) .withArguments('--help').get() }
         "build action"  | { ProjectConnection conn -> conn.action(new GetGradleProjectAction()).withArguments('--help').run() }
-    }
-
-    static class GetGradleProjectAction implements BuildAction<GradleProject> {
-        GradleProject execute(BuildController controller) {
-            return controller.getModel(GradleProject)
-        }
     }
 
     def "help takes precedence over version flags"() {

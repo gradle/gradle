@@ -308,7 +308,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private <T extends BuildOperationType<?, ?>> BuildOperationRecord verifyTaskDetails(Map<String, ?> expectedDetails, Class<T> type, Spec<? super BuildOperationRecord> spec) {
-        def ops = buildOperations.all(type, spec)
+        def ops = buildOperations.typed(type, spec)
         assert !ops.empty
         if (type == RealizeTaskBuildOperationType && GradleContextualExecuter.configCache) {
             // When using load after store, the task will be realized twice:

@@ -18,6 +18,7 @@
 package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.api.credentials.AwsCredentials
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resource.s3.AbstractS3DependencyResolutionTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Module
 
@@ -62,8 +63,11 @@ task retrieve(type: Sync) {
         module.pom.expectDownloadAuthenticationError()
         then:
         fails 'retrieve'
+
         and:
-        assertResolutionTaskFailed(":retrieve")
+        if (!GradleContextualExecuter.isConfigCache()) {
+            assertResolutionTaskFailed(":retrieve", "build file 'build.gradle'")
+        }
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
                 .assertHasCause('Could not resolve org.gradle:test:1.85')
                 .assertHasCause("Could not get resource '${module.pom.uri}'.")
@@ -88,7 +92,9 @@ repositories {
         fails 'retrieve'
         then:
         //TODO would be good to have a reference of the wrong configured repository in the error message
-        assertResolutionTaskFailed(":retrieve")
+        if (!GradleContextualExecuter.isConfigCache()) {
+            assertResolutionTaskFailed(":retrieve", "build file 'build.gradle'")
+        }
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause("Credentials must be an instance of '${AwsCredentials.class.getName()}'.")
     }
@@ -105,8 +111,11 @@ repositories {
 
         when:
         fails 'retrieve'
+
         then:
-        assertResolutionTaskFailed(":retrieve")
+        if (!GradleContextualExecuter.isConfigCache()) {
+            assertResolutionTaskFailed(":retrieve", "build file 'build.gradle'")
+        }
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause("S3 resource should either specify AwsImAuthentication or provide some AwsCredentials.")
 
@@ -121,7 +130,9 @@ repositories {
         fails 'retrieve'
 
         and:
-        assertResolutionTaskFailed(":retrieve")
+        if (!GradleContextualExecuter.isConfigCache()) {
+            assertResolutionTaskFailed(":retrieve", "build file 'build.gradle'")
+        }
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause(
                 """Could not find org.gradle:test:1.85.
@@ -154,8 +165,11 @@ Required by:
 
         expect:
         fails 'retrieve'
+
         and:
-        assertResolutionTaskFailed(":retrieve")
+        if (!GradleContextualExecuter.isConfigCache()) {
+            assertResolutionTaskFailed(":retrieve", "build file 'build.gradle'")
+        }
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 's3'")
     }

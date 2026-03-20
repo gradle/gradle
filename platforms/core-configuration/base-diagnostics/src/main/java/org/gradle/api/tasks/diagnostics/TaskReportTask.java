@@ -164,6 +164,18 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @Option(option = "types", description = "Show task class types")
     public abstract Property<Boolean> getShowTypes();
 
+    /**
+     * Whether to show where tasks were registered next to their names in the output.
+     *
+     * This property can be set via command-line option '--provenance'.
+     *
+     * @since 9.5.0
+     */
+    @Console
+    @Option(option = "provenance", description = "Show task provenance information")
+    @Incubating
+    public abstract Property<Boolean> getShowProvenance();
+
     @TaskAction
     void generate() {
         reportGenerator().generateReport(
@@ -227,6 +239,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
     private void render(ProjectReportModel reportModel) {
         renderer.showDetail(isDetail());
         renderer.showTypes(getShowTypes().get());
+        renderer.showProvenance(getShowProvenance().get());
         renderer.addDefaultTasks(reportModel.defaultTasks);
 
         DefaultGroupTaskReportModel model = reportModel.tasks;

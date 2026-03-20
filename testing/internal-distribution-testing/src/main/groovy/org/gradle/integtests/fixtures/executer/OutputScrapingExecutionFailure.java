@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import junit.framework.AssertionFailedError;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.Pair;
 import org.gradle.util.internal.TextUtil;
 import org.hamcrest.Matcher;
@@ -203,20 +202,14 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
     @Override
     public ExecutionFailure assertHasResolution(String resolution) {
-        assertThat(this.resolution, containsString("> " + resolution));
-        return this;
-    }
-
-    @Override
-    public ExecutionFailure assertHasDocumentationInResolutions(String pageWithAnchor) {
-        assertThat(this.resolution, containsString("For more information, see " + DocumentationRegistry.BASE_URL + "/userguide/" + pageWithAnchor));
+        assertThat(this.resolution, containsString("> " + DocumentationUtils.normalizeDocumentationLink(resolution)));
         return this;
     }
 
     @Override
     public ExecutionFailure assertHasResolutions(String... resolutions) {
         String expected = Arrays.stream(resolutions)
-            .map(resolution -> "> " + resolution)
+            .map(resolution -> "> " + DocumentationUtils.normalizeDocumentationLink(resolution))
             .collect(joining("\n"));
         assertThat(this.resolution, equalTo(expected));
         return this;

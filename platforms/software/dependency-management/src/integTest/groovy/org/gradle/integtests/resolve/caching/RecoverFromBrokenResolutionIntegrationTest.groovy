@@ -72,7 +72,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertThatCause(CoreMatchers.containsString("Received status code 500 from server: broken"))
 
@@ -107,7 +107,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${port} (\\[.*\\])? failed: Connection refused.*"))
 
@@ -141,7 +141,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${port} (\\[.*\\])? failed: Connection refused.*"))
 
@@ -178,7 +178,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertThatCause(CoreMatchers.containsString("Received status code 401 from server: Unauthorized"))
 
@@ -238,7 +238,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${port} (\\[.*\\])? failed: Connection refused.*"))
 
@@ -292,7 +292,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not list versions using Ivy pattern 'http://127.0.0.1:${port}/ivyRepo/[organisation]/[module]/[revision]/ivy-[revision].xml")
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${port} (\\[.*\\])? failed: Connection refused.*"))

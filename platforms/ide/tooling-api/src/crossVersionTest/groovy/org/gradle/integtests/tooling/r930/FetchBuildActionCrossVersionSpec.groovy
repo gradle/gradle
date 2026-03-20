@@ -43,7 +43,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.modelValue == ['root']
     }
 
-    @TargetGradleVersion("<9.4.0")
+    @TargetGradleVersion(">=7.6.6 <9.4.0")
     def "returns a failure for GradleBuild model if settings script fails due to #description with #dsl DSL"() {
         given:
         settingsFile.delete()
@@ -122,6 +122,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.failureMessages == ["broken builder"]
     }
 
+    @TargetGradleVersion(">=7.6.6")
     def "returns a failure if project configuration fails due to #description with #dsl DSL"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -188,6 +189,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
     }
 
+    @TargetGradleVersion(">=7.6.6")
     def "'#method' returns the same result as other fetch methods in the presence of project build script failures"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -220,6 +222,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     }
 
+    @TargetGradleVersion(">=7.6.6")
     def "'#method' method returns the same failed result as other fetch methods with #dsl DSL"() {
         given:
         setupInitScriptWithCustomModelBuilder()

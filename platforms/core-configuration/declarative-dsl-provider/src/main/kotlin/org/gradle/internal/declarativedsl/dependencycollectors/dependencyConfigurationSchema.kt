@@ -16,14 +16,12 @@
 
 package org.gradle.internal.declarativedsl.dependencycollectors
 
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
-import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
@@ -31,10 +29,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionCompo
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
-import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.orError
-import kotlin.reflect.typeOf
 
 internal
 fun EvaluationSchemaBuilder.dependencyCollectors() {
@@ -61,27 +56,7 @@ class DependencyFunctionSignature(
  */
 private
 class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionComponent {
-    @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
-    private val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(
-        gavDependencyParam = { host ->
-            DependencyFunctionSignature(
-                DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
-                host.modelTypeRef(typeOf<ExternalModuleDependency>()).orError()
-            )
-        },
-        dependencyParam = { host ->
-            DependencyFunctionSignature(
-                DefaultDataParameter("dependency", host.modelTypeRef(typeOf<Dependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
-                host.modelTypeRef(typeOf<Dependency>()).orError()
-            )
-        },
-        projectDependencyParam = { host ->
-            DependencyFunctionSignature(
-                DefaultDataParameter("dependency", host.modelTypeRef(typeOf<ProjectDependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown),
-                host.modelTypeRef(typeOf<ProjectDependency>()).orError()
-            )
-        }
-    )
+    private val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver()
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         dependencyCollectorFunctionExtractorAndRuntimeResolver

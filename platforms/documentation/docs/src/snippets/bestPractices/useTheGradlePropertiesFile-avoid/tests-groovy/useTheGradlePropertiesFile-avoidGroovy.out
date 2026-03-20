@@ -7,7 +7,7 @@ Second task succeeding as expected
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':first'.
+Execution failed for task ':first' (registered in build file 'build.gradle').
 > First task failing as expected
 
 * Try:

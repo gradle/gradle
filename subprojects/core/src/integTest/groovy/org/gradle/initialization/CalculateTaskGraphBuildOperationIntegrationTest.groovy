@@ -16,13 +16,16 @@
 
 package org.gradle.initialization
 
+import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
+import org.gradle.launcher.exec.RunBuildBuildOperationType
+
+import static org.gradle.integtests.fixtures.TestableBuildOperationRecord.buildOp
 
 class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -31,79 +34,81 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     @SuppressWarnings("GroovyUnusedDeclaration")
     final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
-    @ToBeFixedForConfigurationCache(because = "Emits extra TaskGraph build operations when loading after store")
     def "requested and filtered tasks are exposed"() {
-        createDirs("a", "b", "a/c")
-        settingsFile << """
+        def subprojects = ["a", "b", "a/c"]
+        createDirs(*subprojects)
+        settingsFile """
             include "a"
             include "b"
             include "a:c"
         """
 
-        buildFile << """
-            allprojects {
+        (subprojects + ".").each { dir ->
+            buildFile "$dir/build.gradle", """
                 task otherTask
                 task someTask
                 someTask.dependsOn otherTask
-            }
-        """
+            """
+        }
+
         when:
         succeeds('help')
 
         then:
-        operation().result.requestedTaskPaths == [":help"]
-        operation().result.excludedTaskPaths == []
+        calculateTaskGraphResult().requestedTaskPaths == [":help"]
+        calculateTaskGraphResult().excludedTaskPaths == []
 
         when:
         succeeds('someTask')
 
         then:
-        operation().result.requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
-        operation().result.excludedTaskPaths == []
+        calculateTaskGraphResult().requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
+        calculateTaskGraphResult().excludedTaskPaths == []
 
         when:
         succeeds('someTask', '-x', ':b:someTask')
 
         then:
-        operation().result.requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
-        operation().result.excludedTaskPaths == [":b:someTask"]
+        calculateTaskGraphResult().requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
+        calculateTaskGraphResult().excludedTaskPaths == [":b:someTask"]
 
         when:
         succeeds('someTask', '-x', 'otherTask')
 
         then:
-        operation().result.requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
-        operation().result.excludedTaskPaths == [":a:c:otherTask", ":a:otherTask", ":b:otherTask", ":otherTask"]
+        calculateTaskGraphResult().requestedTaskPaths == [":a:c:someTask", ":a:someTask", ":b:someTask", ":someTask"]
+        calculateTaskGraphResult().excludedTaskPaths == [":a:c:otherTask", ":a:otherTask", ":b:otherTask", ":otherTask"]
 
         when:
         succeeds(':a:someTask')
 
         then:
-        operation().result.requestedTaskPaths == [":a:someTask"]
-        operation().result.excludedTaskPaths == []
+        calculateTaskGraphResult().requestedTaskPaths == [":a:someTask"]
+        calculateTaskGraphResult().excludedTaskPaths == []
     }
 
-    @ToBeFixedForConfigurationCache(because = "Emits extra TaskGraph build operations when loading after store")
     def "task plan is exposed"() {
-        createDirs("a", "b", "a/c")
-        settingsFile << """
+        def subprojects = ["a", "b", "a/c"]
+        createDirs(*subprojects)
+        settingsFile """
             include "a"
             include "b"
             include "a:c"
         """
 
-        buildFile << """
-            allprojects {
+        (subprojects + ".").each { dir ->
+            buildFile "$dir/build.gradle", """
                 task otherTask
                 task someTask
                 someTask.dependsOn otherTask
-            }
-        """
+            """
+        }
+
         when:
         succeeds('someTask')
 
         then:
-        operation().result.taskPlan.task.taskPath == [':otherTask', ':someTask', ':a:otherTask', ':a:someTask', ':b:otherTask', ':b:someTask', ':a:c:otherTask', ':a:c:someTask']
+        calculateTaskGraphResult().taskPlan.task.taskPath == [':otherTask', ':someTask', ':a:otherTask', ':a:someTask', ':b:otherTask', ':b:someTask', ':a:c:otherTask', ':a:c:someTask']
     }
 
     def "errors in calculating task graph are exposed"() {
@@ -111,10 +116,9 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         fails('someNonexistent')
 
         then:
-        operation().failure.contains("Task 'someNonexistent' not found in root project")
+        buildOperations.only(CalculateTaskGraphBuildOperationType).failure.contains("Task 'someNonexistent' not found in root project")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Emits extra TaskGraph build operations when loading after store")
     def "build path for calculated task graph is exposed"() {
         createDirs("b")
         settingsFile << """
@@ -141,19 +145,34 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         when:
         succeeds('build')
 
-        def taskGraphCalculations = buildOperations.all(CalculateTaskGraphBuildOperationType)
-
         then:
-        taskGraphCalculations.size() == 3
-        taskGraphCalculations[0].details.buildPath == ":buildSrc"
-        taskGraphCalculations[0].result.requestedTaskPaths == [":jar"]
-        taskGraphCalculations[1].details.buildPath == ":"
-        taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
-        taskGraphCalculations[2].details.buildPath == ":b"
-        taskGraphCalculations[2].result.requestedTaskPaths == [":compileJava", ":jar"]
+        def root = buildOperations.root(RunBuildBuildOperationType)
+
+        def treeOperations = buildOperations.all(CalculateTreeTaskGraphBuildOperationType)
+        def expectedTreeOperations = [
+            buildOp(displayName: "Calculate build tree task graph", parent: buildOperations.first(BuildBuildSrcBuildOperationType)),
+            buildOp(displayName: "Calculate build tree task graph", parent: root)
+        ]
+        if (GradleContextualExecuter.configCache) {
+            expectedTreeOperations << buildOp(displayName: "Calculate build tree task graph", parent: buildOperations.only("Load configuration cache state"))
+        }
+        treeOperations == expectedTreeOperations
+
+        def taskGraphCalculations = buildOperations.all(CalculateTaskGraphBuildOperationType)
+        def expectedTaskGraphCalculations = [
+            buildOp(displayName: "Calculate task graph (:buildSrc)", parent: treeOperations[0], details: [buildPath: ":buildSrc"], result: [requestedTaskPaths: [":jar"]]),
+            buildOp(displayName: "Calculate task graph", parent: treeOperations[1], details: [buildPath: ":"], result: [requestedTaskPaths: [":build"]]),
+            buildOp(displayName: "Calculate task graph (:b)", parent: treeOperations[1], details: [buildPath: ":b"], result: [requestedTaskPaths: [":compileJava", ":jar"]])
+        ]
+        if (GradleContextualExecuter.configCache) {
+            expectedTaskGraphCalculations += [
+                buildOp(displayName: "Calculate task graph", parent: treeOperations[2], details: [buildPath: ":"], result: [requestedTaskPaths: [":build"]]),
+                buildOp(displayName: "Calculate task graph (:b)", parent: treeOperations[2], details: [buildPath: ":b"], result: [requestedTaskPaths: [":compileJava", ":jar"]]),
+            ]
+        }
+        taskGraphCalculations == expectedTaskGraphCalculations
     }
 
-    @ToBeFixedForConfigurationCache(because = "Emits extra TaskGraph build operations when loading after store")
     def "exposes task plan details"() {
         file("included-build").mkdir()
         file("included-build/settings.gradle")
@@ -198,9 +217,9 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('classes', 'independentTask', 'someTask')
 
         then:
-        def operations = this.operations()
-        operations.size() == 2
-        with(operations[0].result.taskPlan) {
+        def results = calculateTaskGraphResults()
+        results.size() == 2
+        with(results[0].taskPlan) {
             task.taskPath == [":compileJava", ":processResources", ":classes", ":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
             task.buildPath == [":", ":", ":", ":", ":", ":", ":", ":"]
             nodeDependencies.taskPath.collect { it.sort() } == [[":compileJava"], [], [":compileJava", ":processResources"], [], [], [], [":anotherTask", ":otherTask"], []]
@@ -209,13 +228,12 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
             mustRunAfter.taskPath == [[], [], [], [], [], [], [":firstTask"], []]
             shouldRunAfter.taskPath == [[], [], [], [], [], [], [":secondTask"], []]
         }
-        with(operations[1].result.taskPlan) {
+        with(results[1].taskPlan) {
             task.taskPath == [':compileJava']
             task.buildPath == [':included-build']
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "Emits extra TaskGraph build operations when loading after store")
     def "exposes plan details with nested artifact transforms"() {
         file('producer/src/main/java/artifact/transform/sample/producer/Producer.java') << """
             package artifact.transform.sample.producer;
@@ -321,26 +339,28 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds(':distZip')
 
         then:
-        with(operations()[0].result.taskPlan) {
+        with(calculateTaskGraphResult().taskPlan) {
             task.taskPath == [":producer:compileJava", ":producer:processResources", ":producer:classes", ":producer:jar", ":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distZip"]
             nodeDependencies.taskPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes", ":producer:compileJava"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes", ":compileJava"], [":jar", ":producer:jar"], [":jar", ":producer:jar", ":startScripts"]]
         }
     }
 
-    private List<BuildOperationRecord> operations() {
+    private List<Map<String, ?>> calculateTaskGraphResults() {
         def treeOperations = buildOperations.all(CalculateTreeTaskGraphBuildOperationType)
-        assert treeOperations.size() == 1
+        assert treeOperations.size() == (GradleContextualExecuter.configCache ? 2 : 1)
 
-        def buildOperations = buildOperations.all(CalculateTaskGraphBuildOperationType)
+        def buildOperations = buildOperations.all(CalculateTaskGraphBuildOperationType) {
+            GradleContextualExecuter.notConfigCache || it.parentId != treeOperations.last().id
+        }
         buildOperations.each {
             assert it.parentId == treeOperations.first().id
         }
-        return buildOperations
+        return buildOperations*.result
     }
 
-    private BuildOperationRecord operation() {
-        def operations = operations()
-        assert operations.size() == 1
-        return operations[0]
+    private Map<String, ?> calculateTaskGraphResult() {
+        def results = calculateTaskGraphResults()
+        assert results.size() == 1
+        return results[0]
     }
 }

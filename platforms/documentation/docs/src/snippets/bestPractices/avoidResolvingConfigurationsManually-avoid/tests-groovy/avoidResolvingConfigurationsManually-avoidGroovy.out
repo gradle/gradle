@@ -4,7 +4,7 @@
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':app:badClasspathPrinter'.
+Execution failed for task ':app:badClasspathPrinter' (registered in build file 'app/build.gradle').
 > File or directory /home/user/gradle/samples/lib/build/libs/lib.jar doesn't exist
 
 * Try:

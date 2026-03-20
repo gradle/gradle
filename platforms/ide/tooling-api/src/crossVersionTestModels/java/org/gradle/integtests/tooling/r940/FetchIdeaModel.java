@@ -24,6 +24,7 @@ import org.gradle.tooling.model.idea.IdeaProject;
  * Example build action used in the r940 cross-version tooling API tests.
  */
 public class FetchIdeaModel implements BuildAction<IdeaProject> {
+    @Override
     public IdeaProject execute(BuildController controller) {
         return controller.getModel(IdeaProject.class);
     }

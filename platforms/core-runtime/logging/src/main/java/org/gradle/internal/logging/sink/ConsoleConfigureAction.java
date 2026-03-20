@@ -22,6 +22,7 @@ import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
+import org.gradle.internal.logging.console.ProgressBar;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
@@ -56,6 +57,27 @@ public class ConsoleConfigureAction {
             configurePlainConsole(renderer, consoleMetadata, stdout, stderr);
         } else if (consoleOutput == ConsoleOutput.Colored) {
             configureColoredConsole(renderer, consoleMetadata, stdout, stderr);
+        }
+
+        registerTaskbarReset(consoleMetadata, stdout);
+    }
+
+    private static void registerTaskbarReset(ConsoleMetaData consoleMetadata, OutputStream stdout) {
+        String reset = ProgressBar.buildTaskbarProgressResetSequence(consoleMetadata);
+        if (!reset.isEmpty()) {
+            try {
+                byte[] resetBytes = reset.getBytes(StandardCharsets.UTF_8);
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    try {
+                        stdout.write(resetBytes);
+                        stdout.flush();
+                    } catch (IOException ignored) {
+                        //ignore
+                    }
+                }, "taskbar-progress-reset"));
+            } catch (SecurityException | IllegalStateException ignored) {
+                // Unable to register shutdown hook; proceed without it
+            }
         }
     }
 
