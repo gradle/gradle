@@ -394,11 +394,10 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         executer.noDeprecationChecks()
         buildFile """
             import org.gradle.integtests.fixtures.validation.ValidationProblem
-            import org.gradle.api.problems.Severity
 
             @CacheableTask
             abstract class InvalidTask extends DefaultTask {
-                @ValidationProblem(value = Severity.WARNING)
+                @ValidationProblem(fatal=false)
                 abstract Property<String> getInput()
 
                 @OutputFile

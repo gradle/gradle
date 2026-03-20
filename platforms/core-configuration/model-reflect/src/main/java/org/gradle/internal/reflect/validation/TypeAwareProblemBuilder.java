@@ -29,4 +29,11 @@ public interface TypeAwareProblemBuilder extends InternalProblemSpec {
     TypeAwareProblemBuilder forFunction(String methodName);
 
     TypeAwareProblemBuilder parentProperty(@Nullable String parentProperty);
+
+    /**
+     * Mark the problems as warning, ie it won't fail the build.
+     *
+     * @return this
+     */
+    TypeAwareProblemBuilder asWarning();
 }

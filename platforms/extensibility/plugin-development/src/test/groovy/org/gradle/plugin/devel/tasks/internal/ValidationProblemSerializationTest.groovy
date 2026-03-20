@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.tasks.internal
 
 import com.google.gson.Gson
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemReporter
 import org.gradle.api.problems.internal.DeprecationData
@@ -162,28 +161,6 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].exception.message == "cause"
     }
 
-    def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
-        given:
-        def problem = problemReporter.create(problemId) {
-            it.severity(severity)
-        }
-
-        when:
-        def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
-
-        then:
-        deserialized.size() == 1
-        deserialized[0].definition.id.name == "id"
-        deserialized[0].definition.id.displayName == "label"
-        deserialized[0].originLocations == [] as List
-        deserialized[0].definition.documentationLink == null
-        deserialized[0].definition.severity == severity
-
-        where:
-        severity << Severity.values()
-    }
-
     def "can serialize and deserialize a validation problem with a solution"() {
         given:
         def problem = problemReporter.create(problemId) {
@@ -214,6 +191,7 @@ class ValidationProblemSerializationTest extends Specification {
                     it.typeName("type")
                     it.parentPropertyName("parent")
                     it.pluginId("id")
+                    it.fatal(false)
                 }
         }
 
@@ -231,6 +209,7 @@ class ValidationProblemSerializationTest extends Specification {
         (deserialized[0].additionalData as TypeValidationData).typeName == 'type'
         (deserialized[0].additionalData as TypeValidationData).parentPropertyName == 'parent'
         (deserialized[0].additionalData as TypeValidationData).pluginId == 'id'
+        (deserialized[0].additionalData as TypeValidationData).fatal == false
     }
 
     def "can serialize generic additional data"() {

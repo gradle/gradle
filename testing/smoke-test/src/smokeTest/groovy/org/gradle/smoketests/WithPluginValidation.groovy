@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
-import org.gradle.api.problems.Severity
 import org.gradle.plugin.devel.tasks.TaskValidationReportFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.TaskOutcome
@@ -139,7 +138,7 @@ trait WithPluginValidation {
         private final String pluginId
         private final File reportFile
 
-        private Map<String, Severity> messages = [:]
+        private List<String> messages = []
 
         boolean skipped
         boolean tested
@@ -174,10 +173,10 @@ trait WithPluginValidation {
         }
 
         void passes() {
-            messages = [:]
+            messages = []
         }
 
-        void failsWith(Map<String, Severity> messages) {
+        void failsWith(List<String> messages) {
             this.messages = messages
         }
     }

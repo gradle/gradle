@@ -25,4 +25,5 @@ public interface TypeValidationDataSpec extends AdditionalDataSpec {
     TypeValidationDataSpec functionName(String methodName);
     TypeValidationDataSpec parentPropertyName(String parentPropertyName);
     TypeValidationDataSpec typeName(String typeName);
+    TypeValidationDataSpec fatal(boolean fatal);
 }

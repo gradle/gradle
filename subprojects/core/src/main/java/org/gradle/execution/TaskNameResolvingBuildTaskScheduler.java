@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.project.BuiltInCommand;
@@ -93,7 +92,6 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
                     ProblemId id = ProblemId.create("init invocation problem", "Init invocation problem", GradleCoreProblemGroup.taskSelection());
                     throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
                         spec.contextualLabel(ex.getMessage());
-                        spec.severity(Severity.ERROR);
                     });
                 });
             }

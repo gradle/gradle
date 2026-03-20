@@ -27,4 +27,5 @@ public interface TypeValidationData extends AdditionalData {
     String getFunctionName();
     String getParentPropertyName();
     String getTypeName();
+    boolean isFatal();
 }

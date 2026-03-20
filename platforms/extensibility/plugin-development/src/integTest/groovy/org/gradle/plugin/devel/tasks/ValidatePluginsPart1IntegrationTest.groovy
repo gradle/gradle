@@ -61,6 +61,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'tree',
                 'typeName' : 'MyTask',
                 'propertyName' : 'nonAnnotated',
+                'fatal' : true,
             ]
         }
 
@@ -113,6 +114,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'options',
                 'typeName' : 'MyTask',
                 'propertyName' : 'nestedThing',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -126,6 +128,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'thing',
+                'fatal' : true,
             ]
         }
 
@@ -186,6 +189,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'dirProp',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -196,6 +200,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'fileProp',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(2)) {
@@ -206,6 +211,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'filesProp',
+                'fatal' : true,
             ]
         }
     }
@@ -375,6 +381,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformAction',
                 'propertyName' : 'inputFile',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -388,6 +395,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformAction',
                 'propertyName' : 'badTime',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(2)) {
@@ -401,6 +409,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformAction',
                 'propertyName' : 'oldThing',
+                'fatal' : true,
             ]
         }
     }
@@ -480,6 +489,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformParameters',
                 'propertyName' : 'inputFile',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -490,6 +500,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformParameters',
                 'propertyName' : 'incrementalNonFileInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(2)) {
@@ -503,6 +514,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformParameters',
                 'propertyName' : 'badTime',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(3)) {
@@ -516,6 +528,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTransformParameters',
                 'propertyName' : 'oldThing',
+                'fatal' : true,
             ]
         }
 
@@ -555,7 +568,10 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
                  'Add @CacheableTask',
                  'Add @UntrackedTask(because = ...)',
              ]
-             additionalData.asMap == [ 'typeName' : 'MyTask' ]
+             additionalData.asMap == [
+                 'typeName' : 'MyTask',
+                 'fatal' : true,
+             ]
          }
          verifyAll(receivedProblem(1)) {
              fqid == 'validation:type-validation:not-cacheable-without-reason'
@@ -565,7 +581,10 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
                  'Add @DisableCachingByDefault(because = ...)',
                  'Add @CacheableTransform',
              ]
-             additionalData.asMap == [ 'typeName' : 'MyTransformAction' ]
+             additionalData.asMap == [
+                 'typeName' : 'MyTransformAction',
+                 'fatal' : true,
+             ]
          }
     }
 
@@ -658,6 +677,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'direct',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(1)) {
@@ -671,6 +691,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'listPropertyInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(2)) {
@@ -684,6 +705,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'mapPropertyInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(3)) {
@@ -698,6 +720,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
                 'parentPropertyName' : 'nestedBean',
                 'typeName' : 'MyTask',
                 'propertyName' : 'nestedInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(4)) {
@@ -711,6 +734,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'propertyInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(5)) {
@@ -724,6 +748,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'providerInput',
+                'fatal' : true,
             ]
         }
         verifyAll(receivedProblem(6)) {
@@ -737,6 +762,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'setPropertyInput',
+                'fatal' : true,
             ]
         }
 

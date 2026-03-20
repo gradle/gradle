@@ -29,7 +29,7 @@ public interface Severity {
 
     // Note: the static fields must be in sync with entries from org.gradle.api.problems.Severity.
     /**
-     * Advice-level severity.
+     * Advice-level severity. Only emitted by Gradle versions < 9.6.
      *
      * @since 8.6
      */
@@ -37,6 +37,7 @@ public interface Severity {
 
     /**
      * Warning-level severity.
+     * Gradle versions < 9.6 allow explicitly setting severity to warning, but starting from 9.6, they will only emit warnings for problems that won't the build.
      *
      * @since 8.6
      */
@@ -44,6 +45,7 @@ public interface Severity {
 
     /**
      * Error-level severity.
+     * Gradle versions < 9.6 allow explicitly setting severity to error, but starting from 9.6, they will only emit errors for problems that will fail the build.
      *
      * @since 8.6
      */

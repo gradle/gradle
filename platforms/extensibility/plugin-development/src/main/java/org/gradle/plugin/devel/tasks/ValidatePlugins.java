@@ -23,13 +23,11 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -47,6 +45,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.jvm.SupportedJavaVersions;
+import org.gradle.internal.validation.TypeValidationUtil;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
@@ -62,7 +61,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.stream.Collectors.joining;
-import static org.gradle.api.problems.Severity.ERROR;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -165,13 +163,15 @@ public abstract class ValidatePlugins extends DefaultTask {
         if (problems.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (getFailOnWarning().get() || problems.stream().anyMatch(problem -> problem.getDefinition().getSeverity() == ERROR)) {
+            if (getFailOnWarning().get() || problems.stream().anyMatch(problem -> TypeValidationUtil.isFatal(problem))) {
                 if (getIgnoreFailures().get()) {
                     getLogger().warn("Plugin validation finished with errors. {} {}",
                         annotateTaskPropertiesDoc(),
                         messages.collect(joining()));
                 } else {
-                    reportProblems(problems);
+                    getServices().get(InternalProblems.class)
+                        .getInternalReporter()
+                        .reportError(problems);
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
                         .getWithExplanation(annotateTaskPropertiesDoc());
@@ -181,11 +181,6 @@ public abstract class ValidatePlugins extends DefaultTask {
                     messages.collect(joining()));
             }
         }
-    }
-
-    private void reportProblems(List<? extends Problem> problems) {
-        InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
-        problems.forEach(reporter::report);
     }
 
     private String annotateTaskPropertiesDoc() {

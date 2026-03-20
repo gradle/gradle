@@ -97,9 +97,9 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
      * @param expectLineLocation Whether to expect a line location (defaults to true)
      * @param fileLocation Optional file location for additional verification
      */
-    void verifyWarningProblem(ReceivedProblem problem, boolean expectLineLocation = true, String fileLocation = null) {
+    void verifyWarningProblem(ReceivedProblem problem, boolean expectLineLocation = true, String fileLocation = null, Severity severity = Severity.WARNING) {
         assertLocations(problem, expectLineLocation)
-        assert problem.severity == Severity.WARNING
+        assert problem.severity == severity
         assert problem.fqid == 'compilation:java:compiler.warn.redundant.cast'
         assert problem.definition.id.displayName == 'redundant cast to java.lang.String'
         assertRedundantCastInContextualLabel(problem.contextualLabel)
@@ -195,13 +195,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         verifyAll(receivedProblem(0)) {
             assertLocations(it, false, false)
-            severity == Severity.ADVICE
+            severity == Severity.WARNING
             fqid == 'compilation:java:compiler.note.unchecked.filename'
             contextualLabel == "${buildFile.parentFile.path}/src/main/java/Foo.java uses unchecked or unsafe operations.".replace('/', File.separator)
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, false, false)
-            severity == Severity.ADVICE
+            severity == Severity.WARNING
             fqid == 'compilation:java:compiler.note.unchecked.recompile'
             contextualLabel == "Recompile with -Xlint:unchecked for details."
         }
@@ -268,12 +268,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         fails("compileJava")
 
         then:
+        true
         // Special -Werror error
         verifyWerrorProblem(receivedProblem(0))
 
         // The two expected warnings
-        verifyWarningProblem(receivedProblem(1), true, "$fooFileLocation:11")
-        verifyWarningProblem(receivedProblem(2), true, "$fooFileLocation:7")
+        verifyWarningProblem(receivedProblem(1), true, "$fooFileLocation:11", Severity.ERROR)
+        verifyWarningProblem(receivedProblem(2), true, "$fooFileLocation:7", Severity.ERROR)
 
         result.error.contains("1 error\n")
         result.error.contains("2 warnings\n")

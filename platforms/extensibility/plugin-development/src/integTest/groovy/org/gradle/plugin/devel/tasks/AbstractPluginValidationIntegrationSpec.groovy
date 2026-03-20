@@ -145,6 +145,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'badTime',
+                    'fatal' : true,
                 ]
             }
             verifyAll(receivedProblem(1)) {
@@ -158,6 +159,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'oldThing',
+                    'fatal' : true,
                 ]
             }
             verifyAll(receivedProblem(2)) {
@@ -172,6 +174,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'parentPropertyName' : 'options',
                     'typeName' : 'MyTask',
                     'propertyName' : 'badNested',
+                    'fatal' : true,
                 ]
             }
             verifyAll(receivedProblem(3)) {
@@ -185,6 +188,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'ter',
+                    'fatal' : true,
                 ]
             }
 
@@ -275,7 +279,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 ]
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
-                    'propertyName' : 'primitive'
+                    'propertyName' : 'primitive',
+                    'fatal' : true,
                 ]
             }
         }
@@ -335,28 +340,40 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 contextualLabel == 'Type \'MyTask\' is incorrectly annotated with @CacheableTransform'
                 details == 'This annotation only makes sense on TransformAction types'
                 solutions == [ 'Remove the annotation' ]
-                additionalData.asMap == [ 'typeName' : 'MyTask' ]
+                additionalData.asMap == [
+                    'typeName' : 'MyTask',
+                    'fatal' : true,
+                ]
             }
             verifyAll(receivedProblem(1)) {
                 fqid == 'validation:type-validation:invalid-use-of-type-annotation'
                 contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTask'
                 details == 'This annotation only makes sense on Task types'
                 solutions == [ 'Remove the annotation' ]
-                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [
+                    'typeName' : 'MyTask.Options',
+                    'fatal' : true,
+                ]
             }
             verifyAll(receivedProblem(2)) {
                 fqid == 'validation:type-validation:invalid-use-of-type-annotation'
                 contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTransform'
                 details == 'This annotation only makes sense on TransformAction types'
                 solutions == [ 'Remove the annotation' ]
-                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [
+                    'typeName' : 'MyTask.Options',
+                    'fatal' : true,
+                ]
             }
             verifyAll(receivedProblem(3)) {
                 fqid == 'validation:type-validation:invalid-use-of-type-annotation'
                 contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @DisableCachingByDefault'
                 details == 'This annotation only makes sense on Task, TransformAction types'
                 solutions == [ 'Remove the annotation' ]
-                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [
+                    'typeName' : 'MyTask.Options',
+                    'fatal' : true,
+                ]
             }
         }
     }
@@ -413,6 +430,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'badTime',
+                    'fatal' : true,
                 ]
             }
             verifyAll(receivedProblem(1)) {
@@ -427,6 +445,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'parentPropertyName' : 'options',
                     'typeName' : 'MyTask',
                     'propertyName' : 'badNested',
+                    'fatal' : true,
                 ]
             }
         }
@@ -567,6 +586,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'mutablePropertyWithSetter',
+                    'fatal' : true,
                 ]
             }
         }
@@ -635,6 +655,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'badTime',
+                    'fatal' : true,
                 ]
             }
             verifyAll(receivedProblem(1)) {
@@ -649,6 +670,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'parentPropertyName' : 'options',
                     'typeName' : 'MyTask',
                     'propertyName' : 'badNested',
+                    'fatal' : true,
                 ]
             }
             verifyAll(receivedProblem(2)) {
@@ -662,6 +684,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'outputDir',
+                    'fatal' : true,
                 ]
             }
         }
@@ -718,7 +741,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData.asMap == [ 'typeName' : 'MyTask' ]
+                additionalData.asMap == [
+                    'typeName' : 'MyTask',
+                    'fatal' : true,
+                ]
             }
             verifyAll(receivedProblem(1)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
@@ -728,7 +754,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [
+                    'typeName' : 'MyTask.Options',
+                    'fatal' : true,
+                ]
             }
         }
     }
@@ -802,6 +831,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'readWrite',
+                    'fatal' : true,
                 ]
             }
             verifyAll(receivedProblem(1)) {
@@ -812,7 +842,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData.asMap == [ 'typeName' : 'MyTask' ]
+                additionalData.asMap == [
+                    'typeName' : 'MyTask',
+                    'fatal' : true,
+                ]
             }
             verifyAll(receivedProblem(2)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
@@ -822,7 +855,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData.asMap == [ 'typeName' : 'MyTask' ]
+                additionalData.asMap == [
+                    'typeName' : 'MyTask',
+                    'fatal' : true,
+                ]
             }
             verifyAll(receivedProblem(3)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
@@ -832,7 +868,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [
+                    'typeName' : 'MyTask.Options',
+                    'fatal' : true,
+                ]
             }
             verifyAll(receivedProblem(4)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
@@ -842,7 +881,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     'Remove the annotations',
                     'Rename the method',
                 ]
-                additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
+                additionalData.asMap == [
+                    'typeName' : 'MyTask.Options',
+                    'fatal' : true,
+                ]
             }
         }
     }
@@ -897,6 +939,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'oldProperty',
+                    'fatal' : true,
                 ]
             }
         }
@@ -940,6 +983,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 additionalData.asMap == [
                     'typeName' : 'MyTask',
                     'propertyName' : 'file',
+                    'fatal' : true,
                 ]
             }
 

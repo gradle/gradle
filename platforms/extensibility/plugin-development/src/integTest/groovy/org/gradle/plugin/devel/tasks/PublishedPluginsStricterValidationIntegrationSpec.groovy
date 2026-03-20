@@ -60,6 +60,7 @@ class PublishedPluginsStricterValidationIntegrationSpec extends AbstractIntegrat
             additionalData.asMap == [
                 'typeName': 'MyTask',
                 'propertyName': 'fileProp',
+                'fatal' : true,
             ]
         }
 

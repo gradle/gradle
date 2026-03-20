@@ -51,6 +51,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
+            definition.severity == Severity.WARNING
             with(oneLocation(StackTraceLocation).fileLocation) {
                 length == -1
                 column == -1
@@ -204,25 +205,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can emit a problem with a severity"(Severity severity) {
-        given:
-        withReportProblemTask """
-            ${problemIdScript()}
-            problems.getReporter().report(problemId) {
-                it.severity(Severity.${severity.name()})
-            }
-        """
-
-        when:
-        run('reportProblem')
-
-        then:
-        receivedProblem.definition.severity == severity
-
-        where:
-        severity << Severity.values()
-    }
-
     def "can emit a problem with a solution"() {
         given:
         withReportProblemTask """
@@ -335,7 +317,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         fails('reportProblem')
 
         then:
-        receivedProblem.exception.message == 'test'
+        verifyAll(receivedProblem) {
+            exception.message == 'test'
+            definition.severity == Severity.ERROR
+        }
     }
 
     def "can rethrow a caught exception"() {
