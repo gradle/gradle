@@ -304,10 +304,12 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
         }
     }
 
-    private void serviceRequested() {
+    private void serviceRequested(Type serviceType) {
         noLongerMutable();
         if (state.get() == State.CLOSED) {
-            throw new IllegalStateException(String.format("%s has been closed.", getDisplayName()));
+            throw new IllegalStateException(String.format(
+                "Failed to obtain service '%s', because %s has been closed.", format(serviceType), getDisplayName()
+            ));
         }
     }
 
@@ -347,7 +349,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
 
     @Nullable
     private Service getService(Type serviceType) {
-        serviceRequested();
+        serviceRequested(serviceType);
         return find(serviceType, null, allServices);
     }
 
@@ -355,7 +357,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
     public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
         assertValidServiceType(serviceType);
         List<T> services = new ArrayList<T>();
-        serviceRequested();
+        serviceRequested(serviceType);
         allServices.getAll(serviceType, null, new InstanceUnpackingVisitor<T>(serviceType, services));
         return services;
     }
@@ -550,7 +552,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
 
         @Override
         public Object getInstance() {
-            serviceRequested();
+            serviceRequested(serviceProvider.serviceTypes.get(0));
             return serviceProvider.getPreparedInstance();
         }
     }

@@ -1286,14 +1286,14 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "test registry has been closed."
+        e.message == "Failed to obtain service 'String', because test registry has been closed."
 
         when:
         registry.getAll(String)
 
         then:
         e = thrown()
-        e.message == "test registry has been closed."
+        e.message == "Failed to obtain service 'String', because test registry has been closed."
     }
 
     /**
