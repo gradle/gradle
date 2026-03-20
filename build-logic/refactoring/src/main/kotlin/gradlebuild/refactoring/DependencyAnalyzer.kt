@@ -263,8 +263,22 @@ class DependencyAnalyzer {
     private class ClassDependenciesVisitor(private val knownClasses: Set<String>) : ClassVisitor(Opcodes.ASM9) {
         val apiTypes = mutableSetOf<String>()
         val implTypes = mutableSetOf<String>()
+        private var currentPackage: String = ""
 
         private fun isAccessible(access: Int): Boolean = (access and Opcodes.ACC_PRIVATE) == 0
+
+        /**
+         * Attempts to resolve an unqualified class name by prepending the current class's package.
+         * This mirrors the resolution strategy used by Groovy's IndyInterface.bootstrap at runtime,
+         * which resolves short names relative to the calling class's package.
+         */
+        private fun tryResolveShortName(types: MutableSet<String>, shortName: String) {
+            if (shortName.contains('.') || shortName.contains('/')) return
+            val candidate = if (currentPackage.isEmpty()) shortName else "$currentPackage.$shortName"
+            if (knownClasses.contains(candidate)) {
+                types.add(candidate)
+            }
+        }
 
         private fun maybeAddType(types: MutableSet<String>, type: Type) {
             when (type.sort) {
@@ -310,6 +324,8 @@ class DependencyAnalyzer {
                     val normalized = arg.replace('/', '.')
                     if (knownClasses.contains(normalized)) {
                         maybeAddType(types, Type.getObjectType(normalized.replace('.', '/')))
+                    } else {
+                        tryResolveShortName(types, normalized)
                     }
                 }
             }
@@ -323,6 +339,10 @@ class DependencyAnalyzer {
             superName: String?,
             interfaces: Array<out String>?
         ) {
+            val className = name.replace('/', '.')
+            val lastDot = className.lastIndexOf('.')
+            currentPackage = if (lastDot >= 0) className.substring(0, lastDot) else ""
+
             val types = if (isAccessible(access)) apiTypes else implTypes
             maybeAddTypeFromSignature(types, signature)
             if (superName != null) maybeAddType(types, Type.getObjectType(superName))
@@ -343,6 +363,8 @@ class DependencyAnalyzer {
                 val normalized = value.replace('/', '.')
                 if (knownClasses.contains(normalized)) {
                     maybeAddType(implTypes, Type.getObjectType(normalized.replace('.', '/')))
+                } else {
+                    tryResolveShortName(implTypes, normalized)
                 }
             }
             return object : FieldVisitor(Opcodes.ASM9) {
@@ -455,6 +477,8 @@ class DependencyAnalyzer {
                             val normalized = arg.replace('/', '.')
                             if (knownClasses.contains(normalized)) {
                                 maybeAddType(implTypes, Type.getObjectType(normalized.replace('.', '/')))
+                            } else {
+                                tryResolveShortName(implTypes, normalized)
                             }
                         }
                     }
