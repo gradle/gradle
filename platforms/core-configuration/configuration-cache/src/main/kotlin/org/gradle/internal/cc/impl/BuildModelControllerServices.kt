@@ -16,7 +16,9 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.internal.project.DefaultCrossBuildModelAccess
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.CrossBuildModelAccess
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
@@ -104,6 +106,15 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
 
     private
     class ConfigurationCacheIsolatedProjectsProvider : ServiceRegistrationProvider {
+
+        @Provides
+        fun createCrossBuildModelAccess(
+            problems: ProblemsListener,
+            problemFactory: ProblemFactory
+        ): CrossBuildModelAccess {
+            return ProblemReportingCrossBuildModelAccess(problems, problemFactory)
+        }
+
         @Provides
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry,
@@ -151,6 +162,12 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
 
     private
     class VintageIsolatedProjectsProvider : ServiceRegistrationProvider {
+
+        @Provides
+        fun createCrossBuildModelAccess(): CrossBuildModelAccess {
+            return DefaultCrossBuildModelAccess()
+        }
+
         @Provides
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry,
