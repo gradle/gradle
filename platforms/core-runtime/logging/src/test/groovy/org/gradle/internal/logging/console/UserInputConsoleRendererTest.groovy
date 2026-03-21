@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console
 
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
@@ -32,7 +33,8 @@ class UserInputConsoleRendererTest extends Specification {
     def buildProgressArea = Mock(BuildProgressArea)
     def textArea = Mock(TextArea)
     def userInput = Mock(GlobalUserInputReceiver)
-    @Subject def renderer = new UserInputConsoleRenderer(listener, console, userInput)
+    def tempFileProvider = Mock(TemporaryFileProvider)
+    @Subject def renderer = new UserInputConsoleRenderer(listener, console, userInput, tempFileProvider)
 
     def "can handle user input request and resume events"() {
         given:

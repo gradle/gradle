@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console
 
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
@@ -27,7 +28,8 @@ import spock.lang.Subject
 class UserInputStandardOutputRendererTest  extends Specification {
     def listener = Mock(OutputEventListener)
     def userInput = Mock(GlobalUserInputReceiver)
-    @Subject def renderer = new UserInputStandardOutputRenderer(listener, userInput)
+    def tempFileProvider = Mock(TemporaryFileProvider)
+    @Subject def renderer = new UserInputStandardOutputRenderer(listener, userInput, tempFileProvider)
 
     def "can handle user input request and resume events"() {
         given:

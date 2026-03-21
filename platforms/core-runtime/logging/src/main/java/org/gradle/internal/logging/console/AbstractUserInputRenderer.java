@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
@@ -32,12 +33,15 @@ import java.util.ListIterator;
 public abstract class AbstractUserInputRenderer implements OutputEventListener {
     protected final OutputEventListener delegate;
     private final GlobalUserInputReceiver userInput;
+    @SuppressWarnings("unused") // used in a follow-up phase for disk overflow
+    private final TemporaryFileProvider temporaryFileProvider;
     private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
     private boolean paused;
 
-    public AbstractUserInputRenderer(OutputEventListener delegate, GlobalUserInputReceiver userInput) {
+    public AbstractUserInputRenderer(OutputEventListener delegate, GlobalUserInputReceiver userInput, TemporaryFileProvider temporaryFileProvider) {
         this.delegate = delegate;
         this.userInput = userInput;
+        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     @Override
