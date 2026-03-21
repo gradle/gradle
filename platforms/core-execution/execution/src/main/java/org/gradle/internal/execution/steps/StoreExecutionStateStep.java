@@ -42,21 +42,26 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext & Cachin
     }
 
     @Override
+    @SuppressWarnings("FutureReturnValueIgnored")
     protected R executeMutable(MutableUnitOfWork work, C context) {
         R result = delegate.execute(work, context);
-        work.getHistory()
-            .ifPresent(history -> context.getCachingState().getCacheKeyCalculatedState()
-                .flatMap(cacheKeyCalculatedState -> result.getAfterExecutionOutputState()
-                    .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
-                    .map(executionOutputState -> new DefaultAfterExecutionState(
-                        ((BuildCacheKeyInternal) cacheKeyCalculatedState.getKey()).getHashCodeInternal(),
-                        cacheKeyCalculatedState.getBeforeExecutionState(),
-                        executionOutputState
-                    )))
-                .ifPresent(afterExecutionState -> history.store(
-                    context.getIdentity().getUniqueId(),
-                    // TODO: Encode the "no cache key available" case in the context type hierarchy
-                    afterExecutionState)));
+        work.getHistory().ifPresent(history ->
+            context.getCachingState().getCacheKeyCalculatedState()
+                .ifPresent(cacheKeyCalculatedState ->
+                    result.getAfterExecutionOutputStateFuture().thenAccept(optState ->
+                        optState.filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))
+                            .map(executionOutputState -> new DefaultAfterExecutionState(
+                                ((BuildCacheKeyInternal) cacheKeyCalculatedState.getKey()).getHashCodeInternal(),
+                                cacheKeyCalculatedState.getBeforeExecutionState(),
+                                executionOutputState
+                            ))
+                            .ifPresent(afterExecutionState -> history.store(
+                                context.getIdentity().getUniqueId(),
+                                // TODO: Encode the "no cache key available" case in the context type hierarchy
+                                afterExecutionState))
+                    )
+                )
+        );
         return result;
     }
 

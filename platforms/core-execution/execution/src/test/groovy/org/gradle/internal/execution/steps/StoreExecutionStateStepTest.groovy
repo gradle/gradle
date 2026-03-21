@@ -32,6 +32,8 @@ import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
+import java.util.concurrent.CompletableFuture
+
 class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implements SnapshotterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
     def cacheKey = TestHashCodes.hashCodeFrom(1234)
@@ -65,10 +67,10 @@ class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implem
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionOutputState >> Optional.of(Mock(AfterExecutionState) {
-            _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
-            _ * getOriginMetadata() >> originMetadata
-        })
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(Stub(AfterExecutionState) {
+            getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+            getOriginMetadata() >> originMetadata
+        }))
 
         _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState)
         _ * delegateResult.execution >> Try.successful(Mock(Execution))
@@ -87,10 +89,10 @@ class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implem
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionOutputState >> Optional.of(Mock(AfterExecutionState) {
-            1 * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
-            1 * getOriginMetadata() >> originMetadata
-        })
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(Stub(AfterExecutionState) {
+            getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+            getOriginMetadata() >> originMetadata
+        }))
         _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState)
         _ * delegateResult.execution >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.empty()
@@ -111,10 +113,10 @@ class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implem
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionOutputState >> Optional.of(Mock(AfterExecutionState) {
-            _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
-            _ * getOriginMetadata() >> originMetadata
-        })
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(Stub(AfterExecutionState) {
+            getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+            getOriginMetadata() >> originMetadata
+        }))
         _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState)
         _ * delegateResult.execution >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
@@ -136,9 +138,9 @@ class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implem
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionOutputState >> Optional.of(Mock(AfterExecutionState) {
-            _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
-        })
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(Stub(AfterExecutionState) {
+            getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
+        }))
         _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState)
         _ * delegateResult.execution >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)

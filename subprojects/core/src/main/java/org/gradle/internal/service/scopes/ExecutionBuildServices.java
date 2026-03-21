@@ -26,11 +26,14 @@ import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.DefaultPostExecutionWorkQueue;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.PostExecutionWorkQueue;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -97,6 +100,23 @@ import java.util.function.Supplier;
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
 public class ExecutionBuildServices implements ServiceRegistrationProvider {
+    /**
+     * Must be the first service defined so it is stopped first. After the PostExecutionWorkQueue is
+     * drained, all thenAccept callbacks (e.g. recordOutputs(), history.store()) have completed and
+     * their async cache writes are queued. Only then can the caches below be safely closed:
+     * their ExclusiveCacheAccessingWorker will drain the pending writes and release file locks
+     * before returning. If PostExecutionWorkQueue were stopped after any of these caches, the
+     * thenAccept callbacks would fire against an already-closed cache, re-open its file lock via
+     * acquireFileLock(), and then fail to enqueue the completion runnable (worker already stopped),
+     * leaving the file lock permanently open and causing the next build to fail with
+     * "Cannot lock X as it has already been locked by this process."
+     */
+    @Provides
+    PostExecutionWorkQueue createPostExecutionWorkQueue(ExecutorFactory executorFactory, StartParameter startParameter) {
+        int packingThreads = Math.max(1, startParameter.getMaxWorkerCount() / 2);
+        return new DefaultPostExecutionWorkQueue(executorFactory.create("Build cache packing", packingThreads));
+    }
+
     @Provides
     ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheBuilderFactory cacheBuilderFactory) {
         return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);
@@ -154,13 +174,15 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         FileSystemAccess fileSystemAccess,
         ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
         OutputChangeListener outputChangeListener,
-        WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
+        WorkInputListeners workInputListeners,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         StartParameter startParameter,
         TimeoutHandler timeoutHandler,
         InternalProblems problems,
-        WorkerLeaseService workerLeaseService
+        WorkerLeaseService workerLeaseService,
+        PostExecutionWorkQueue postExecutionWorkQueue,
+        OutputFilesRepository outputFilesRepository
     ) {
         UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
@@ -177,7 +199,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
             new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER, postExecutionWorkQueue,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
@@ -200,7 +222,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new StoreExecutionStateStep<>(
             new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new ResolveInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, new OverlappingOutputsFilter(),
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, new OverlappingOutputsFilter(), postExecutionWorkQueue,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new PreCreateOutputParentsStep<>(

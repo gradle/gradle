@@ -30,12 +30,11 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
-import org.gradle.internal.execution.history.ExecutionOutputState
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.vfs.FileSystemAccess
 
 import java.time.Duration
-import java.time.temporal.ChronoUnit
+import java.util.concurrent.CompletableFuture
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.FROM_CACHE
 
@@ -171,7 +170,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
         then:
         1 * delegate.execute(work, context) >> delegateResult
         1 * delegateResult.execution >> Try.successful(execution)
-        1 * delegateResult.afterExecutionOutputState >> Optional.empty()
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.empty())
         1 * execution.canStoreOutputsInCache() >> true
 
         then:
@@ -227,23 +226,16 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
         0 * _
     }
 
-    def "fails when cache backend throws exception while storing cached result"() {
+    def "warns when cache backend throws exception while storing cached result"() {
         given:
         def execution = Mock(Execution)
         def failure = new RuntimeException("store failure")
-        def afterExecutionOutputState = Mock(ExecutionOutputState)
-        def duration = Duration.of(5, ChronoUnit.SECONDS)
 
         when:
         def result = step.execute(work, context)
 
         then:
-        def ex = result.execution.failure.get()
-        ex.message == "Failed to store cache entry $cacheKeyHashCode for job ':test': store failure"
-        ex.cause == failure
-
-        result.afterExecutionOutputState.get() == afterExecutionOutputState
-        result.duration == duration
+        result == delegateResult
 
         interaction { withValidCacheKey() }
 
@@ -257,11 +249,6 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         interaction { outputStored { throw failure } }
-
-
-        then:
-        1 * delegateResult.getDuration() >> duration
-        1 * delegateResult.getAfterExecutionOutputState() >> Optional.of(afterExecutionOutputState)
 
         then:
         0 * _
@@ -305,10 +292,10 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
         def originMetadata = Mock(OriginMetadata)
         def outputFilesProducedByWork = snapshotsOf("test": [])
 
-        1 * delegateResult.afterExecutionOutputState >> Optional.of(Mock(AfterExecutionState) {
-            1 * getOutputFilesProducedByWork() >> outputFilesProducedByWork
-            1 * getOriginMetadata() >> originMetadata
-        })
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(Stub(AfterExecutionState) {
+            getOutputFilesProducedByWork() >> outputFilesProducedByWork
+            getOriginMetadata() >> originMetadata
+        }))
         1 * originMetadata.executionTime >> Duration.ofMillis(123L)
         1 * buildCacheController.store(cacheKey, _, outputFilesProducedByWork, Duration.ofMillis(123L)) >> { storeResult() }
     }

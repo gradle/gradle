@@ -150,7 +150,7 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
             );
             return result;
         } catch (Exception storeFailure) {
-            return new AfterExecutionResult(Result.failed(storeFailure, result.getDuration()), result.getAfterExecutionOutputState().orElse(null));
+            return new AfterExecutionResult(Result.failed(storeFailure, result.getDuration()), (ExecutionOutputState) null);
         }
     }
 
@@ -158,11 +158,19 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
      * Stores the results of the given work in the build cache, unless storing was disabled for this execution or work was untracked.
      * <p>
      * The former is currently used only for tasks and can be triggered via {@code org.gradle.api.internal.TaskOutputsEnterpriseInternal}.
+     * <p>
+     * Cache packing runs in the callback of the snapshotting future, keeping it off the worker thread.
      */
+    @SuppressWarnings("FutureReturnValueIgnored")
     private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, Execution executionResult) {
         if (executionResult.canStoreOutputsInCache()) {
-            result.getAfterExecutionOutputState()
-                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
+            result.getAfterExecutionOutputStateFuture().thenAccept(optState ->
+                optState.ifPresent(afterExecutionState -> {
+                    ImmutableSortedMap<String, FileSystemSnapshot> outputs = afterExecutionState.getOutputFilesProducedByWork();
+                    Duration executionTime = afterExecutionState.getOriginMetadata().getExecutionTime();
+                    store(cacheableWork, cacheKey, outputs, executionTime);
+                })
+            );
         } else {
             LOGGER.debug("Not storing result of {} in cache because storing was disabled for this execution", cacheableWork.getDisplayName());
         }
@@ -176,12 +184,8 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
                     work.getDisplayName(), cacheKey.getHashCode());
             }
         } catch (Exception e) {
-            throw new RuntimeException(
-                String.format("Failed to store cache entry %s for %s: %s",
-                    cacheKey.getHashCode(),
-                    work.getDisplayName(),
-                    e.getMessage()),
-                e);
+            LOGGER.warn("Failed to store cache entry {} for {}: {}",
+                cacheKey.getHashCode(), work.getDisplayName(), e.getMessage(), e);
         }
     }
 

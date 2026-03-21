@@ -26,6 +26,8 @@ import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
 
+import java.util.concurrent.CompletableFuture
+
 class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements SnapshotterFixture {
     def cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     def deleter = Mock(Deleter)
@@ -79,7 +81,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionOutputState >> Optional.of(afterExecutionState)
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(afterExecutionState))
         1 * outputFilesRepository.recordOutputs(outputFilesProducedByWork.values())
         0 * _
 
@@ -106,7 +108,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionOutputState >> Optional.empty()
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.empty())
         0 * _
     }
 
@@ -119,7 +121,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionOutputState >> Optional.of(afterExecutionState)
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(afterExecutionState))
         1 * outputFilesRepository.recordOutputs(outputFilesProducedByWork.values())
         0 * _
     }
@@ -133,7 +135,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
         1 * delegate.execute(work, context) >> delegateResult
 
         then:
-        1 * delegateResult.afterExecutionOutputState >> Optional.empty()
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.empty())
         0 * _
     }
 }

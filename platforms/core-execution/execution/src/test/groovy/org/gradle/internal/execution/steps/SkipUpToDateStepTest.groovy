@@ -26,6 +26,7 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
 import java.time.Duration
+import java.util.concurrent.CompletableFuture
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE
 
@@ -63,7 +64,7 @@ class SkipUpToDateStepTest extends StepSpec<MutableChangesContext> {
         def delegateAfterExecutionState = Stub(AfterExecutionState)
 
         delegateResult.execution >> delegateOutcome
-        delegateResult.afterExecutionOutputState >> Optional.of(delegateAfterExecutionState)
+        delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.of(delegateAfterExecutionState))
 
         when:
         def result = step.execute(work, context)
@@ -94,6 +95,9 @@ class SkipUpToDateStepTest extends StepSpec<MutableChangesContext> {
     }
 
     def "executes when change tracking is disabled"() {
+        given:
+        delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.empty())
+
         when:
         def result = step.execute(work, context)
         delegateResult.duration >> Duration.ofSeconds(1)

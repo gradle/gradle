@@ -762,6 +762,17 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
         0 * _
     }
 
+    def "cannot acquire lock after closed"() {
+        when:
+        cacheAccess.close()
+        cacheAccess.acquireFileLock()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Cannot acquire lock for <cache> as it has already been closed.'
+        0 * _
+    }
+
     def "close fails when lock is currently held by another thread"() {
         def lock = Mock(FileLock)
 

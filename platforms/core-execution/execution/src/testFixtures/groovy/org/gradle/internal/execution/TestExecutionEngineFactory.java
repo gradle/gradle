@@ -45,6 +45,9 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
 /**
@@ -68,6 +71,24 @@ public class TestExecutionEngineFactory {
     ) {
         NoOpBuildOperationProgressEventEmitter progressEventEmitter = new NoOpBuildOperationProgressEventEmitter();
         ExecutionProblemHandler problemHandler = new DefaultExecutionProblemHandler(validationWarningReporter, virtualFileSystem);
+        // Synchronous queue: runs work inline so tests are deterministic
+        PostExecutionWorkQueue syncQueue = new PostExecutionWorkQueue() {
+            @Override
+            public void submit(Runnable work) {
+                work.run();
+            }
+
+            @Override
+            public <T> CompletableFuture<T> submitAsync(Callable<T> callable) {
+                CompletableFuture<T> future = new CompletableFuture<>();
+                try {
+                    future.complete(callable.call());
+                } catch (Throwable t) {
+                    future.completeExceptionally(t);
+                }
+                return future;
+            }
+        };
         // @formatter:off
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationRunner, classloaderHierarchyHasher,
@@ -81,7 +102,7 @@ public class TestExecutionEngineFactory {
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER, syncQueue,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,

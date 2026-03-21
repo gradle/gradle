@@ -28,6 +28,7 @@ public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extend
     }
 
     @Override
+    @SuppressWarnings("FutureReturnValueIgnored")
     protected R executeMutable(MutableUnitOfWork work, C context) {
         Identity identity = context.getIdentity();
         PreviousExecutionState previousExecutionState = work.getHistory()
@@ -35,13 +36,15 @@ public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extend
             .orElse(null);
         R result = delegate.execute(work, new PreviousExecutionContext(context, previousExecutionState));
 
-        // If we did not capture any outputs after execution, remove them from history
-        work.getHistory()
-            .ifPresent(history -> {
-                if (!result.getAfterExecutionOutputState().isPresent()) {
-                    history.remove(context.getIdentity().getUniqueId());
+        // If we did not capture any outputs after execution, remove them from history.
+        // Using thenAccept so this runs on the background thread for async snapshotting.
+        work.getHistory().ifPresent(history ->
+            result.getAfterExecutionOutputStateFuture().thenAccept(optState -> {
+                if (!optState.isPresent()) {
+                    history.remove(identity.getUniqueId());
                 }
-            });
+            })
+        );
         return result;
     }
 }

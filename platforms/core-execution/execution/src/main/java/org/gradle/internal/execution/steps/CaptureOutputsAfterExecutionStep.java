@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.BuildCacheKeyInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.PostExecutionWorkQueue;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
@@ -32,22 +33,33 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * Capture the outputs of the unit of work after its execution finished.
  *
  * All changes to the outputs must be done at this point, so this step needs to be around anything
  * that changes the outputs.
+ *
+ * Output snapshotting is submitted to the {@link PostExecutionWorkQueue} background thread pool so
+ * that the worker lease (and worker thread) can be released while I/O-heavy snapshotting proceeds.
+ * Downstream steps chain off the returned {@link CompletableFuture} rather than blocking.
  */
 // TODO Find better names for Result types
 @SuppressWarnings("SameNameButDifferent")
 public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & CachingContext> extends BuildOperationStep<C, AfterExecutionResult> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CaptureOutputsAfterExecutionStep.class);
+
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
     private final AfterExecutionOutputFilter<? super C> outputFilter;
+    private final PostExecutionWorkQueue postExecutionWorkQueue;
     private final Step<? super C, ? extends Result> delegate;
 
     public CaptureOutputsAfterExecutionStep(
@@ -55,22 +67,32 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
         AfterExecutionOutputFilter<? super C> outputFilter,
+        PostExecutionWorkQueue postExecutionWorkQueue,
         Step<? super C, ? extends Result> delegate
     ) {
         super(buildOperationRunner);
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.outputSnapshotter = outputSnapshotter;
         this.outputFilter = outputFilter;
+        this.postExecutionWorkQueue = postExecutionWorkQueue;
         this.delegate = delegate;
     }
 
     @Override
     public AfterExecutionResult execute(UnitOfWork work, C context) {
         Result result = delegate.execute(work, context);
-        Optional<ExecutionOutputState> afterExecutionOutputState = context.getCachingState().getCacheKeyCalculatedState()
-            .map(cacheKeyCalculatedState -> captureOutputsAfterExecution(work, context, cacheKeyCalculatedState, result));
+        CompletableFuture<Optional<ExecutionOutputState>> futureOutputState = context.getCachingState().getCacheKeyCalculatedState()
+            .map(cacheKeyCalculatedState ->
+                postExecutionWorkQueue.submitAsync(() -> Optional.of(captureOutputsAfterExecution(work, context, cacheKeyCalculatedState, result)))
+                    .exceptionally(ex -> {
+                        Throwable cause = ex instanceof CompletionException ? ex.getCause() : ex;
+                        LOGGER.error("Failed to snapshot outputs after executing {}", work.getDisplayName(), cause);
+                        return Optional.empty();
+                    })
+            )
+            .orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()));
 
-        return new AfterExecutionResult(result, afterExecutionOutputState.orElse(null));
+        return new AfterExecutionResult(result, futureOutputState);
     }
 
     private ExecutionOutputState captureOutputsAfterExecution(UnitOfWork work, C context, CachingState.CacheKeyCalculatedState cacheKeyCalculatedState, Result result) {

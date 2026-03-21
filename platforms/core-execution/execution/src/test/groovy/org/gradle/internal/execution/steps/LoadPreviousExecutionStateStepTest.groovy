@@ -22,6 +22,8 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.PreviousExecutionState
 
+import java.util.concurrent.CompletableFuture
+
 class LoadPreviousExecutionStateStepTest extends StepSpec<WorkspaceContext> {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
@@ -54,7 +56,7 @@ class LoadPreviousExecutionStateStepTest extends StepSpec<WorkspaceContext> {
         }
 
         then:
-        1 * delegateResult.afterExecutionOutputState >> Optional.empty()
+        _ * delegateResult.afterExecutionOutputStateFuture >> CompletableFuture.completedFuture(Optional.empty())
         1 * executionHistoryStore.remove(identity.uniqueId)
     }
 }
