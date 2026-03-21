@@ -67,6 +67,7 @@ dependencies {
     api(projects.files)
     api(projects.functional)
     api(projects.hashing)
+    api(projects.hashingServices)
     api(projects.instrumentationAgentServices)
     api(projects.instrumentationReporting)
     api(projects.internalInstrumentationApi)
