@@ -19,6 +19,9 @@ package org.gradle.api.internal.file.temp
 import spock.lang.Specification
 import spock.lang.TempDir
 
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
+
 class TempFilesTest extends Specification {
 
     @TempDir
@@ -30,6 +33,8 @@ class TempFilesTest extends Specification {
 
         then:
         file.exists()
+        file.canRead()
+        file.canWrite()
     }
 
     def "can generate temp files for no prefix"() {
@@ -38,5 +43,23 @@ class TempFilesTest extends Specification {
 
         then:
         file.exists()
+        file.canRead()
+        file.canWrite()
+    }
+
+    def "creates temp files with owner-only permissions on POSIX systems"() {
+        when:
+        def file = TempFiles.createTempFile("test-", ".tmp", tempDir)
+
+        then:
+        file.exists()
+        file.canRead()
+        file.canWrite()
+
+        and:
+        if (Files.getFileStore(tempDir.toPath()).supportsFileAttributeView("posix")) {
+            def perms = Files.getPosixFilePermissions(file.toPath())
+            assert perms == [PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE] as Set
+        }
     }
 }

@@ -21,11 +21,19 @@ import org.jspecify.annotations.Nullable;
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
 
 /**
  * Security safe API's for creating temporary files.
  */
 public final class TempFiles {
+
+    private static final Set<PosixFilePermission> OWNER_ONLY_PERMISSIONS =
+        PosixFilePermissions.fromString("rw-------");
 
     private TempFiles() {
         /* no-op */
@@ -47,6 +55,11 @@ public final class TempFiles {
         if(prefix.length() <= 3) {
             prefix = "tmp-" + prefix;
         }
-        return File.createTempFile(prefix, suffix, directory);
+        Path dir = directory.toPath();
+        if (Files.getFileStore(dir).supportsFileAttributeView("posix")) {
+            return Files.createTempFile(dir, prefix, suffix,
+                PosixFilePermissions.asFileAttribute(OWNER_ONLY_PERMISSIONS)).toFile();
+        }
+        return Files.createTempFile(dir, prefix, suffix).toFile();
     }
 }

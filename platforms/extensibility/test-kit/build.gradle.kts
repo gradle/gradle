@@ -18,7 +18,6 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.logging)
     implementation(projects.startParameter)
-    implementation(projects.wrapperShared)
     implementation(projects.buildProcessServices)
 
     implementation(libs.commonsIo)
@@ -26,7 +25,6 @@ dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(projects.launcher)
     testFixturesImplementation(projects.toolingApi)
-    testFixturesImplementation(projects.wrapperShared)
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(libs.guava)
 

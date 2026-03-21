@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.internal.initialization.GradleUserHomeLookup;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.wrapper.GradleUserHomeLookup;
 import org.gradle.wrapper.PropertiesFileHandler;
 import org.jspecify.annotations.NullMarked;
 

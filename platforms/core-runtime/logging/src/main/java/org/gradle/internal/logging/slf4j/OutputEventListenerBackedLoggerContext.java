@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.slf4j;
 
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
+import org.gradle.api.internal.initialization.GradleUserHomeLookup;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.console.DefaultUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -86,7 +88,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     public void reset() {
         setLevel(DEFAULT_LOG_LEVEL);
         DefaultUserInputReceiver userInputReceiver = new DefaultUserInputReceiver();
-        OutputEventRenderer renderer = new OutputEventRenderer(clock, userInputReceiver);
+        OutputEventRenderer renderer = new OutputEventRenderer(clock, userInputReceiver, new GradleUserHomeTemporaryFileProvider(GradleUserHomeLookup::gradleUserHome));
         userInputReceiver.attachConsole(renderer);
         renderer.attachSystemOutAndErr();
         setOutputEventListener(renderer);

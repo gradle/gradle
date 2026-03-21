@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import com.google.common.io.FileBackedOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
+import org.gradle.api.internal.initialization.GradleUserHomeLookup;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
@@ -47,7 +48,6 @@ import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
-import org.gradle.wrapper.GradleUserHomeLookup;
 
 import java.io.File;
 import java.io.IOException;
