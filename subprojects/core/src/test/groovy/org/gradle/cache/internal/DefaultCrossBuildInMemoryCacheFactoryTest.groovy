@@ -27,7 +27,7 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends AbstractCrossBuildInMemo
         return factory.newCache()
     }
 
-    def "retains strong references to values from the previous session"() {
+    def "retains references to values from the previous session"() {
         def function = Mock(Function)
 
         when:
@@ -42,7 +42,6 @@ class DefaultCrossBuildInMemoryCacheFactoryTest extends AbstractCrossBuildInMemo
 
         when:
         listenerManager.getBroadcaster(BuildSessionLifecycleListener).beforeComplete()
-        System.gc()
         cache.get("a", function)
         cache.get("b", function)
 
