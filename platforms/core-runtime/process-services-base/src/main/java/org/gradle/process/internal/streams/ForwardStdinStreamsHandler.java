@@ -17,7 +17,6 @@
 package org.gradle.process.internal.streams;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.process.internal.StreamsHandler;
 import org.gradle.util.internal.DisconnectableInputStream;
 
 import java.io.IOException;

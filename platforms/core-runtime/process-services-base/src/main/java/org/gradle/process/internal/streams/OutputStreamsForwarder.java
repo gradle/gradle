@@ -18,7 +18,6 @@ package org.gradle.process.internal.streams;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.process.internal.StreamsHandler;
 
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;

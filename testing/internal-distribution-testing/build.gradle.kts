@@ -62,7 +62,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.native)
     implementation(projects.problemsApi)
-    implementation(projects.processServices)
+    implementation(projects.processServicesBase)
     implementation(projects.serviceLookup)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.time)

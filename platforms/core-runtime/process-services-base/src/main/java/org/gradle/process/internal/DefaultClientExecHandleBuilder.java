@@ -20,11 +20,11 @@ import com.google.common.collect.Maps;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
 import org.gradle.process.internal.streams.OutputStreamsForwarder;
 import org.gradle.process.internal.streams.SafeStreams;
+import org.gradle.process.internal.streams.StreamsHandler;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -250,13 +250,6 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     public ClientExecHandleBuilder setWorkingDir(@Nullable Object dir) {
         this.workingDir = dir == null ? null : fileResolver.resolve(dir);
         return this;
-    }
-
-    @Override
-    public void copyTo(ProcessForkOptions options) {
-        options.setExecutable(executable);
-        options.setWorkingDir(getWorkingDir());
-        options.setEnvironment(getEnvironment());
     }
 
     private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {

@@ -17,7 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.process.CommandLineArgumentProvider;
-import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.internal.streams.StreamsHandler;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -95,9 +95,6 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     void environment(Map<String, ?> environmentVariables);
 
     InputStream getStandardInput();
-
-
-    void copyTo(ProcessForkOptions options);
 
     ExecHandle buildWithEffectiveArguments(List<String> effectiveArguments);
 }

@@ -200,6 +200,7 @@
             <option value="$PROJECT_DIR$/platforms/core-runtime/process-memory-services" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/process-services" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/process-services-api" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/process-services-base" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/report-rendering" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/serialization" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/service-lookup" />

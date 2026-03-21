@@ -15,8 +15,7 @@ dependencies {
     api(projects.native)
     api(projects.platformBase)
     api(projects.platformNative)
-    api(projects.processServices)
-    implementation(projects.processServicesApi)
+    api(projects.processServicesBase)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.testSuitesBase)
@@ -30,6 +29,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.io)
+    implementation(projects.processServicesApi)
     implementation(projects.softwareDiagnostics)
 
     implementation(libs.commonsIo)

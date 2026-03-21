@@ -33,8 +33,8 @@ dependencies {
     api(projects.loggingApi)
     api(projects.native)
     api(projects.problemsApi)
-    api(projects.processServices)
     api(projects.processServicesApi)
+    api(projects.processServicesBase)
     api(projects.serviceLookup)
 
     api(libs.groovy)
@@ -92,6 +92,7 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.modelReflect)
     implementation(projects.persistentCache)
+    implementation(projects.processServices)
     implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)
     implementation(projects.serviceProvider)
