@@ -82,8 +82,6 @@ For example, reflective access to an internal package from another module can fa
 The configured _main class_ is also baked into the `module-info.class` file of your application Jar.
 If you run the modular application directly using the `java` command, it is then sufficient to provide the module name.
 
-You can also look at a link:../samples/sample_java_modules_multi_project.html[ready made example] that includes a modular application as part of a multi-project.
-
 [[sec:the_distribution]]
 == Building a distribution
 

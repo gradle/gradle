@@ -425,7 +425,7 @@ $ ./gradlew -q help --task processUrl
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/commandLineOption-optionValues/tests/helpTaskOptions.out[]
+include::{snippetsPath}/tasks/commandLineOption-optionValues/tests-kotlin/helpTaskOptions.kotlin.out[]
 ----
 
 === Limitations
