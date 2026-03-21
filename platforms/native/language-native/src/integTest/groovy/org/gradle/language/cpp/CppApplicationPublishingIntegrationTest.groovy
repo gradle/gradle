@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -59,7 +59,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 targetPlatform.set(binary.map { it.compileTask.get().targetPlatform.get() })
                 toolChain.set(binary.map { it.toolChain })
                 installDirectory = layout.projectDirectory.dir("install")
-                lib(configurations.install.filter { it != configurations.install.files[0] })
+                lib(configurations.install.elements.map { (it as List).drop(1) })
                 executableFile = layout.file(provider {
                     def appFile = configurations.install.files[0]
                     appFile.executable = true
@@ -69,7 +69,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish the binaries of an application to a Maven repository"() {
         def app = new CppApp()
 
@@ -161,7 +160,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish an executable and library to a Maven repository"() {
         def app = new CppAppWithLibrary()
 
@@ -243,7 +241,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish an executable and a binary-specific dependency to a Maven repository"() {
         def app = new CppAppWithLibrary()
         def logger = new CppLogger().asLib()
@@ -338,7 +335,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses the basename to calculate the coordinates"() {
         def app = new CppAppWithLibrary()
 
@@ -418,7 +414,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish the binaries of an application with multiple target operating systems to a Maven repository"() {
         def app = new CppApp()
         def targetMachines = [machine(WINDOWS, X86), machine(LINUX, X86), machine(MACOS, X86_64)]
@@ -467,7 +462,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @ToBeFixedForConfigurationCache
     def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {
         def app = new CppApp()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]

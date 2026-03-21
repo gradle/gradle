@@ -67,7 +67,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         assert file("Package.swift").text.contains('"src/main/cpp/lib.cpp"')
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/37225")
     def "regenerates manifest when Swift source files added or removed"() {
         given:
         swiftBuild()
@@ -264,7 +264,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/37225")
     def "regenerates manifest when C++ source files added or removed"() {
         given:
         cppBuild()
