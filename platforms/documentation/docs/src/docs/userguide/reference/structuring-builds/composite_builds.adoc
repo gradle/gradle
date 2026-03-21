@@ -56,10 +56,11 @@ Included builds do not share any configuration with other included builds.
 
 IMPORTANT: Each included build is *configured* in isolation — included builds do not share repositories, plugins, or properties with one another or with the root build, but they can be *executed* together and depend on each other's tasks.
 
-Composite builds typically take one of two layouts depending on the use case: a *co-development* layout, where an included build lives outside the consumer and is substituted temporarily during development; or a *monorepo* layout, where an uber-root build knits together a set of independent builds that can also be worked on in isolation.
+Composite builds typically take one of two layouts depending on the use case: a <<#codev_composite,*co-development* layout>>, where an included build lives outside the consumer and is substituted temporarily during development; or a <<#separate_composite,*monorepo* layout>>, where an uber-root build knits together a set of independent builds that can also be worked on in isolation.
 
 NOTE: For reference, a *build tree* consists of the root build and all of its included builds, recursively.
 
+[[codev_composite]]
 === Co-development Layout Example
 
 The following example demonstrates *co-development* — temporarily substituting a dependency to work across a library and its consumer simultaneously.
@@ -110,6 +111,34 @@ my-utils/                           // The library build (Included Build)
 
 In this example, `my-utils` lives outside of `my-app` and is included temporarily during development. Once the library changes are published, the `includeBuild` can be removed.
 
+The `my-app` root settings file looks as follows:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+.settings.gradle.kts
+----
+rootProject.name = "my-app"
+
+include("app")
+includeBuild("../my-utils")
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+.settings.gradle
+----
+rootProject.name = "my-app"
+
+include("app")
+includeBuild("../my-utils")
+----
+=====
+====
+
+[[separate_composite]]
 === Monorepo Layout Example
 
 The following example demonstrates a *monorepo* layout in which an uber-root build knits together independent builds.
@@ -160,23 +189,6 @@ my-composite/                       // The root of the Composite Build
 In this example, `my-composite` is a composite build that includes the `my-app` build and the `my-utils` build.
 `my-app` and `my-utils` are included builds:
 
-[cols="1,1,2", options="header"]
-|===
-| Component | Role | Description
-
-| *`my-composite`*
-| *Composite Root*
-| The entry point. It doesn't contain code but "knits" other builds together via `settings.gradle(.kts)`.
-
-| *`my-app`*
-| *Consumer Build*
-| A standalone build that produces an executable. It declares dependencies on the libraries produced by `my-utils`.
-
-| *`my-utils`*
-| *Producer Build*
-| A standalone multi-project build that provides two distinct libraries: `number-utils` and `string-utils`.
-|===
-
 The `my-composite` root settings file looks as follows:
 
 ++++
@@ -205,24 +217,22 @@ Included builds are added by location using a file path:
 The path should point to the **root directory** of the build (the directory containing the `settings.gradle(.kts)` file of the included build):
 
 ====
-include::sample[dir="snippets/build-organization/composite-builds-basic/kotlin",files="settings.gradle.kts[tags=inc]"]
-include::sample[dir="snippets/build-organization/composite-builds-basic/groovy",files="settings.gradle[tags=inc]"]
-====
-
-[[separate_composite]]
-In the example, the `settings.gradle(.kts)` file combines otherwise separate builds:
-
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/samples/build-organization/composite-builds-basic">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
-====
-include::sample[dir="snippets/build-organization/composite-builds-basic/kotlin",files="settings.gradle.kts[]"]
-include::sample[dir="snippets/build-organization/composite-builds-basic/groovy",files="settings.gradle[]"]
+[.multi-language-sample]
+=====
+[source,kotlin]
+.settings.gradle.kts
+----
+includeBuild("../dir/other-build")
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+.settings.gradle
+----
+includeBuild("../dir/other-build")
+----
+=====
 ====
 
 [[command_line_composite]]
@@ -236,7 +246,7 @@ $ ./gradlew --include-build ../my-utils run
 ----
 [source,text]
 ----
-include::sample[dir="snippets/build-organization/composite-builds-basic/tests",files="basicCli.out"]
+include::{snippetsPath}/build-organization/composite-builds-basic/tests/basicCli.out[]
 ----
 
 [[interacting_with_composite_builds]]
@@ -468,7 +478,7 @@ The following output is produced, showcasing the propagation of the properties f
 
 [source,text]
 ----
-include::sample[dir="snippets/build-organization/composite-builds-basic/tests",files="inheritance.out"]
+include::{snippetsPath}/build-organization/composite-builds-basic/tests/inheritance.out[]
 ----
 
 If you need to share credentials (like repository tokens) or common configuration across a composite build tree, consider using system environment variables or extracting the logic into a shared convention plugin included via `pluginManagement`.
