@@ -16,11 +16,11 @@
 
 package org.gradle.internal.execution.impl;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
@@ -37,13 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.api.problems.Severity.WARNING;
+import static java.util.stream.Collectors.partitioningBy;
 
 public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExecutionProblemHandler.class);
@@ -64,12 +59,9 @@ public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
         InternalProblemReporter reporter = problemsService.getInternalReporter();
         List<InternalProblem> problems = validationContext.getProblems();
 
-        Map<Severity, ImmutableList<InternalProblem>> problemsMap = problems.stream()
-            .collect(
-                groupingBy(p -> p.getDefinition().getSeverity(),
-                    mapping(identity(), toImmutableList())));
-        List<InternalProblem> warnings = problemsMap.getOrDefault(WARNING, ImmutableList.of());
-        List<InternalProblem> errors = problemsMap.getOrDefault(ERROR, ImmutableList.of());
+        Map<Boolean, List<InternalProblem>> collect = problems.stream().collect(partitioningBy(DefaultExecutionProblemHandler::isFatal));
+        List<InternalProblem> errors = collect.get(true);
+        List<InternalProblem> warnings = collect.get(false);
 
         if (!warnings.isEmpty()) {
             for (InternalProblem warning : warnings) {
@@ -86,6 +78,14 @@ public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
             LOGGER.info("Invalidating VFS because {} failed validation", work.getDisplayName());
             virtualFileSystem.invalidateAll();
         }
+    }
+
+    private static boolean isFatal(InternalProblem problem) {
+        AdditionalData additionalData = problem.getAdditionalData();
+        if (additionalData instanceof TypeValidationData) {
+            return ((TypeValidationData) additionalData).isFatal();
+        }
+        return false;
     }
 
     private static void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<? extends InternalProblem> validationErrors) {

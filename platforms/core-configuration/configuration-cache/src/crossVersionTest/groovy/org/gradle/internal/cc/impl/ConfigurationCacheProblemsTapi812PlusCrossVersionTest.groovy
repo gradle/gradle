@@ -24,7 +24,6 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
-import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.util.GradleVersion
 
@@ -82,7 +81,6 @@ class ConfigurationCacheProblemsTapi812PlusCrossVersionTest extends ToolingApiSp
             definition.id.displayName == "registration of listener on 'Gradle.buildFinished' is unsupported"
             definition.id.group.displayName == "configuration cache validation"
             definition.id.group.name == "configuration-cache"
-            definition.severity == Severity.ERROR
             (locations[0] as LineInFileLocation).path == "build file 'build.gradle'" // FIXME: the path should not contain a prefix nor extra quotes
             if (targetVersion.baseVersion < GradleVersion.version("8.14")) {
                 (locations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)

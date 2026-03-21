@@ -956,6 +956,7 @@ assert custom.prop.get() == "value 4"
             additionalData.asMap == [
                 'typeName' : 'MyTask',
                 'propertyName' : 'strings',
+                'fatal' : true,
             ]
         }
     }
