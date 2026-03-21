@@ -30,10 +30,10 @@ plugins {
 description = "Entry point of the Gradle wrapper command"
 
 dependencies {
+    implementation(projects.baseServices)
     implementation(projects.cli)
     implementation(projects.wrapperShared)
 
-    testImplementation(projects.baseServices)
     testImplementation(testFixtures(projects.core))
 
     integTestImplementation(projects.buildOption)

@@ -4078,7 +4078,6 @@ Class <org.gradle.wrapper.Download$DefaultDownloadProgressListener> is not annot
 Class <org.gradle.wrapper.Download$ProxyAuthenticator> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (Download.java:0)
 Class <org.gradle.wrapper.Download> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (Download.java:0)
 Class <org.gradle.wrapper.DownloadProgressListener> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DownloadProgressListener.java:0)
-Class <org.gradle.wrapper.GradleUserHomeLookup> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (GradleUserHomeLookup.java:0)
 Class <org.gradle.wrapper.GradleWrapperMain> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (GradleWrapperMain.java:0)
 Class <org.gradle.wrapper.IDownload> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IDownload.java:0)
 Class <org.gradle.wrapper.Install$InstallCheck> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (Install.java:0)

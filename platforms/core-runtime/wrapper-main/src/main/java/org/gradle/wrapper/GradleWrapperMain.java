@@ -16,6 +16,7 @@
 
 package org.gradle.wrapper;
 
+import org.gradle.api.internal.initialization.GradleUserHomeLookup;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;

@@ -19,6 +19,7 @@ package org.gradle.testkit.runner
 import groovy.transform.Sortable
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.internal.initialization.GradleUserHomeLookup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
@@ -53,7 +54,6 @@ import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
-import org.gradle.wrapper.GradleUserHomeLookup
 import org.junit.AssumptionViolatedException
 import org.junit.Rule
 import org.spockframework.runtime.extension.IMethodInvocation
