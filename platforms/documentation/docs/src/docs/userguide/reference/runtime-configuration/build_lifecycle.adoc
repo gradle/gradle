@@ -236,8 +236,7 @@ This timeline provides a comprehensive overview of the Gradle build flow **when 
 However, any build logic that eagerly accesses a configuration's resolved state, such as calling `configuration.files`,
 `configuration.resolvedConfiguration`, or iterating a configuration directly, will trigger resolution immediately at that point in the build lifecycle.
 
-When the *Configuration Cache is enabled*, *Dependency Graph Resolution* and *Artifact Resolution* must be completed during the *Configuration Phase* rather than at execution time, since they are required to fully describe the task graph before the result can be serialized.
-You can refer to <<configuration_cache.adoc#config_cache,Configuration Cache - How It Works>> to learn more.
+IMPORTANT: When the *Configuration Cache is enabled*, *Dependency Graph Resolution* and *Artifact Resolution* must be completed during the *Configuration Phase* rather than at execution time, since they are required to fully describe the task graph before the result can be serialized. You can refer to <<configuration_cache.adoc#config_cache,Configuration Cache - How It Works>> to learn more.
 
 [[task_graph]]
 == Task Graphs
