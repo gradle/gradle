@@ -17,6 +17,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonLogging)
+    api(projects.daemonMessaging)
     api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
     api(projects.execution)
@@ -51,7 +52,6 @@ dependencies {
     api(libs.guava)
     api(libs.jspecify)
 
-    implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
     implementation(projects.processServices)
     implementation(projects.classloaders)

@@ -8,11 +8,11 @@ description = "Source for JavaCompile and JavaExec tasks, it also contains logic
 dependencies {
     api(projects.baseCompilerWorker)
     api(projects.baseServices)
-    api(projects.buildEvents)
     api(projects.buildOperations)
     api(projects.buildProcessServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonMessaging)
     api(projects.daemonServerWorker)
     api(projects.dependencyManagement)
     api(projects.fileOperations)

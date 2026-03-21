@@ -28,6 +28,7 @@ dependencies {
     api(projects.classloaders)
     api(projects.concurrent)
     api(projects.credentialsApi)
+    api(projects.daemonMessaging)
     api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
     api(projects.functional)
@@ -61,7 +62,6 @@ dependencies {
 
     implementation(projects.baseAsm)
     implementation(projects.buildConfiguration)
-    implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
     implementation(projects.coreApi)
     implementation(projects.daemonLogging)
