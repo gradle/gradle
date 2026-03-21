@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Issue
@@ -152,7 +151,6 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot mutate the resolution strategy of configuration ':a' after the configuration was resolved. After a configuration has been observed, it should not be modified.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses dependencies API")
     def "does not allow changing dependencies of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
@@ -187,7 +185,64 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             }
         """
 
-        file("impl/build.gradle") << """
+        when:
+        file("impl/build.gradle").text =  """
+            $common
+
+            dependencies {
+                compile project(":api")
+            }
+
+            task addDependency {
+                doLast {
+                    dependencies {
+                        compile "org.utils:extra:1.5"
+                    }
+                }
+            }
+            task modifyConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.compile]) {
+                inputs.files(configurations.compile)
+                doLast {
+                    assert inputs.files*.name.sort() == ["api.jar", "extra-1.5.jar"]
+                    assert inputs.files*.exists() == [ true, true ]
+                }
+            }
+        """
+        fails("impl:modifyConfigDuringTaskExecution")
+
+        then:
+        failure.assertHasCause("Cannot mutate the dependencies of configuration ':impl:compile' after the configuration was resolved. After a configuration has been observed, it should not be modified.")
+
+        when:
+        file("impl/build.gradle").text =  """
+            $common
+
+            dependencies {
+                compile project(":api")
+            }
+
+            task addDependency {
+                doLast {
+                    dependencies {
+                        compile "org.utils:extra:1.5"
+                    }
+                }
+            }
+            task modifyParentConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.testCompile]) {
+                inputs.files(configurations.testCompile)
+                doLast {
+                    assert inputs.files*.name.sort() == ["api.jar", "extra-1.5.jar"]
+                    assert inputs.files*.exists() == [ true, true ]
+                }
+            }
+        """
+        fails("impl:modifyParentConfigDuringTaskExecution")
+
+        then:
+        failure.assertHasCause("Cannot mutate the dependencies of configuration ':impl:compile' after the configuration's child configuration ':impl:testCompile' was resolved. After a configuration has been observed, it should not be modified.")
+
+        when:
+        file("impl/build.gradle").text = """
             $common
 
             dependencies {
@@ -202,49 +257,20 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task modifyConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.compile]) {
-                doLast {
-                    def files = configurations.compile.files
-                    assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
-                    assert files*.exists() == [ true, true ]
-                }
-            }
-            task modifyParentConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.testCompile]) {
-                doLast {
-                    def files = configurations.testCompile.files
-                    assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
-                    assert files*.exists() == [ true, true ]
-                }
-            }
             task modifyDependentConfigDuringTaskExecution(dependsOn: [':api:addDependency', configurations.compile]) {
+                inputs.files(configurations.compile.files)
                 doLast {
-                    def files = configurations.compile.files
-                    assert files*.name.sort() == ["api.jar"] // Late dependency is not honoured
-                    assert files*.exists() == [ true ]
+                    assert inputs.files*.name.sort() == ["api.jar"] // Late dependency is not honoured
+                    assert inputs.files*.exists() == [ true ]
                 }
             }
         """
-
-        when:
-        fails("impl:modifyConfigDuringTaskExecution")
-
-        then:
-        failure.assertHasCause("Cannot mutate the dependencies of configuration ':impl:compile' after the configuration was resolved. After a configuration has been observed, it should not be modified.")
-
-        when:
-        fails("impl:modifyParentConfigDuringTaskExecution")
-
-        then:
-        failure.assertHasCause("Cannot mutate the dependencies of configuration ':impl:compile' after the configuration's child configuration ':impl:testCompile' was resolved. After a configuration has been observed, it should not be modified.")
-
-        when:
         fails("impl:modifyDependentConfigDuringTaskExecution")
 
         then:
         failure.assertHasCause("Cannot mutate the dependencies of configuration ':api:compile' after the configuration was consumed as a variant. After a configuration has been observed, it should not be modified.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses dependencies API")
     def "does not allow changing artifacts of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
@@ -497,7 +523,6 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3297")
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "using offline flag does not emit deprecation warning when child configuration is explicitly resolved"() {
         def repo = new MavenFileRepository(file("repo"))
         repo.module('org.test', 'moduleA', '1.0').publish()
@@ -516,9 +541,9 @@ repositories {
 }
 
 task resolveChildFirst {
+    inputs.files(configurations.childConfig)
     doLast {
-        configurations.childConfig.resolve()
-        configurations.parentConfig.resolve()
+        println "Resolved child configuration: " + inputs.files
     }
 }
         """
