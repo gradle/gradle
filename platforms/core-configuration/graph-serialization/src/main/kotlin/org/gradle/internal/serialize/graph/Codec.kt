@@ -333,10 +333,15 @@ inline fun <T, C : Decoder> C.decodePreservingIdentity(identities: ReadIdentitie
     return when {
         previousValue != null -> previousValue.uncheckedCast()
         else -> {
-            decode(id).also {
-                require(identities.getInstance(id) === it) {
-                    "`decode(id)` should register the decoded instance"
+            identities.startDecoding(id)
+            try {
+                decode(id).also {
+                    require(identities.getInstance(id) === it) {
+                        "`decode(id)` should register the decoded instance"
+                    }
                 }
+            } finally {
+                identities.endDecoding(id)
             }
         }
     }
