@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
 import org.gradle.api.internal.project.DynamicLookupRoutine
+import org.gradle.api.internal.project.DynamicLookupRoutineFactory
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
@@ -141,12 +142,19 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
 
         @Provides
         fun createDynamicLookupRoutine(
-            dynamicCallContextTracker: DynamicCallContextTracker,
-            buildModelParameters: BuildModelParameters
-        ): DynamicLookupRoutine = when {
-            buildModelParameters.isIsolatedProjects -> TrackingDynamicLookupRoutine(dynamicCallContextTracker)
-            else -> DefaultDynamicLookupRoutine()
-        }
+            dynamicCallContextTracker: DynamicCallContextTracker
+        ): DynamicLookupRoutine =
+            TrackingDynamicLookupRoutine(dynamicCallContextTracker)
+
+        @Provides
+        fun createDynamicLookupRoutineFactory(
+            problemsListener: ProblemsListener,
+            problemFactory: ProblemFactory
+        ): DynamicLookupRoutineFactory =
+            IsolatedProjectsDynamicLookupRoutineFactory(
+                problemsListener,
+                problemFactory
+            )
     }
 
     private
@@ -163,6 +171,10 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
         @Provides
         fun createDynamicLookupRoutine(): DynamicLookupRoutine =
             DefaultDynamicLookupRoutine()
+
+        @Provides
+        fun createDynamicLookupRoutineFactory(): DynamicLookupRoutineFactory =
+            DefaultDynamicLookupRoutineFactory()
     }
 
     private
