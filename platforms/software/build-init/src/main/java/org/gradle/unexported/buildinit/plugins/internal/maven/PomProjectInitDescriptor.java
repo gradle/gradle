@@ -15,13 +15,19 @@
  */
 package org.gradle.unexported.buildinit.plugins.internal.maven;
 
+import org.apache.maven.settings.Mirror;
+import org.apache.maven.settings.Profile;
+import org.apache.maven.settings.Repository;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.SettingsBuildingException;
+import org.apache.maven.settings.io.DefaultSettingsReader;
+import org.apache.maven.settings.io.SettingsReader;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -34,10 +40,15 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.workers.WorkerExecutor;
+import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -48,13 +59,17 @@ public class PomProjectInitDescriptor implements BuildConverter {
     private final static String MAVEN_RESOLVER_VERSION = "1.9.16";
 
     private final MavenSettingsProvider settingsProvider;
+    private final MavenFileLocations mavenFileLocations;
     private final DocumentationRegistry documentationRegistry;
     private final WorkerExecutor executor;
 
+    @Nullable
     private FileCollection mavenClasspath;
+    private ProjectInternal.@Nullable DetachedResolver classpathResolver;
 
-    public PomProjectInitDescriptor(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, WorkerExecutor executor) {
+    public PomProjectInitDescriptor(MavenSettingsProvider mavenSettingsProvider, MavenFileLocations mavenFileLocations, DocumentationRegistry documentationRegistry, WorkerExecutor executor) {
         this.settingsProvider = mavenSettingsProvider;
+        this.mavenFileLocations = mavenFileLocations;
         this.documentationRegistry = documentationRegistry;
         this.executor = executor;
     }
@@ -97,13 +112,23 @@ public class PomProjectInitDescriptor implements BuildConverter {
             dependencies.create("org.apache.maven.resolver:maven-resolver-transport-wagon:" + MAVEN_RESOLVER_VERSION)
         );
         jvmPluginServices.configureAsRuntimeClasspath(config);
-        detachedResolver.getRepositories().mavenCentral();
+        classpathResolver = detachedResolver;
         mavenClasspath = config;
     }
 
     @Override
     public void generate(InitSettings initSettings) {
         IncubationLogger.incubatingFeatureUsed("Maven to Gradle conversion");
+
+        ProjectInternal.DetachedResolver resolver = Objects.requireNonNull(classpathResolver);
+        String customMavenRepo = initSettings.getCustomMavenRepo();
+        if (customMavenRepo != null) {
+            resolver.getRepositories().maven(repo -> repo.setUrl(customMavenRepo));
+        }
+        addRepositoriesFromMavenSettings(resolver);
+        resolver.getRepositories().mavenLocal();
+        resolver.getRepositories().mavenCentral();
+
         try {
             Settings settings = settingsProvider.buildSettings();
             executor.classLoaderIsolation(config -> config.getClasspath().from(mavenClasspath))
@@ -113,10 +138,45 @@ public class PomProjectInitDescriptor implements BuildConverter {
                         params.getUseIncubatingAPIs().set(initSettings.isUseIncubatingAPIs());
                         params.getMavenSettings().set(settings);
                         params.getInsecureProtocolOption().set(initSettings.getInsecureProtocolOption());
+                        params.getCustomMavenRepo().set(customMavenRepo);
                     });
             GradlePropertiesGenerator.generate(initSettings);
         } catch (SettingsBuildingException exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", initSettings.getTarget().file("pom.xml").getAsFile()), exception);
+        }
+    }
+
+    /**
+     * Reads mirror URLs and active profile repository URLs directly from Maven settings.xml files
+     * using a lightweight XML reader, without requiring the full Maven infrastructure.
+     */
+    private void addRepositoriesFromMavenSettings(ProjectInternal.DetachedResolver resolver) {
+        addRepositoriesFromSettingsFile(resolver, mavenFileLocations.getUserSettingsFile());
+        addRepositoriesFromSettingsFile(resolver, mavenFileLocations.getGlobalSettingsFile());
+    }
+
+    private static void addRepositoriesFromSettingsFile(ProjectInternal.DetachedResolver resolver, @Nullable File settingsFile) {
+        if (settingsFile == null || !settingsFile.exists()) {
+            return;
+        }
+        Map<String, ?> options = Collections.singletonMap(SettingsReader.IS_STRICT, Boolean.FALSE);
+        try {
+            Settings settings = new DefaultSettingsReader().read(settingsFile, options);
+            for (Mirror mirror : settings.getMirrors()) {
+                String url = mirror.getUrl();
+                resolver.getRepositories().maven(repo -> repo.setUrl(url));
+            }
+            Set<String> activeProfiles = new HashSet<>(settings.getActiveProfiles());
+            for (Profile profile : settings.getProfiles()) {
+                if (activeProfiles.contains(profile.getId())) {
+                    for (Repository repository : profile.getRepositories()) {
+                        String url = repository.getUrl();
+                        resolver.getRepositories().maven(repo -> repo.setUrl(url));
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // If settings.xml cannot be parsed, fall back to default repositories
         }
     }
 
