@@ -17,6 +17,7 @@
 
 package org.gradle.internal.logging.sink
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.logging.configuration.ConsoleOutput
@@ -32,17 +33,20 @@ import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.time.Time
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
+import spock.lang.TempDir
 import spock.lang.Unroll
 
 class OutputEventRendererTest extends OutputSpecification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
+    @TempDir
+    File tempDir
     private final ConsoleStub console = new ConsoleStub()
     private final ConsoleMetaData metaData = Mock()
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer(Time.clock(), Stub(GlobalUserInputReceiver))
+        renderer = new OutputEventRenderer(Time.clock(), Stub(GlobalUserInputReceiver), TestFiles.tmpDirTemporaryFileProvider(tempDir))
         renderer.configure(LogLevel.INFO)
     }
 
