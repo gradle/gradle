@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.metaobject;
 
+import org.gradle.api.Describable;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
@@ -25,20 +26,19 @@ import java.util.Map;
  *
  * Can be used to provide a dynamic view of an object with enhancements.
  */
-public abstract class CompositeDynamicObject extends AbstractDynamicObject {
+public class CompositeDynamicObject extends AbstractDynamicObject {
 
-    private static final DynamicObject[] NONE = new DynamicObject[0];
+    private final DynamicObject[] objects;
+    private final Describable displayName;
 
-    private DynamicObject[] objects = NONE;
-    private DynamicObject[] updateObjects = NONE;
-
-    protected void setObjects(DynamicObject... objects) {
+    public CompositeDynamicObject(DynamicObject[] objects, Describable displayName) {
         this.objects = objects;
-        updateObjects = objects;
+        this.displayName = displayName;
     }
 
-    protected void setObjectsForUpdate(DynamicObject... objects) {
-        this.updateObjects = objects;
+    @Override
+    public String getDisplayName() {
+        return displayName.getDisplayName();
     }
 
     @Override
@@ -64,7 +64,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
 
     @Override
     public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
-        for (DynamicObject object : updateObjects) {
+        for (DynamicObject object : objects) {
             DynamicInvokeResult result = object.trySetProperty(name, value);
             if (result.isFound()) {
                 return result;
@@ -75,7 +75,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
 
     @Override
     public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
-        for (DynamicObject object : updateObjects) {
+        for (DynamicObject object : objects) {
             DynamicInvokeResult result = object.trySetPropertyWithoutInstrumentation(name, value);
             if (result.isFound()) {
                 return result;
@@ -85,6 +85,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
+    @Deprecated
     public Map<String, @Nullable Object> getProperties() {
         Map<String, Object> properties = new HashMap<String, Object>();
         for (int i = objects.length - 1; i >= 0; i--) {
@@ -115,4 +116,5 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
         }
         return DynamicInvokeResult.notFound();
     }
+
 }

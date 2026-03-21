@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
  * The {@link org.gradle.internal.extensibility.ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
  */
 public interface DynamicObject extends MethodAccess, PropertyAccess {
+
     /**
      * Creates a {@link MissingPropertyException} for getting an unknown property of this object.
      */
@@ -58,4 +59,10 @@ public interface DynamicObject extends MethodAccess, PropertyAccess {
      */
     @Nullable
     Object invokeMethod(String name, @Nullable Object... arguments) throws MissingMethodException;
+
+    /**
+     * A name that can be used to describe this object.
+     */
+    String getDisplayName();
+
 }
