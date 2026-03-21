@@ -41,7 +41,6 @@ dependencies {
 
     implementation(libs.guava)
     implementation(libs.jsr305)
-    implementation(projects.enterpriseLogging)
     implementation(projects.daemonLogging)
     implementation(projects.time)
 
