@@ -16,7 +16,6 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectState;
@@ -45,7 +44,7 @@ public interface BuildState {
      * <p>
      * Prefer {@link #getIdentityPath()}.
      */
-    default BuildIdentifier getBuildIdentifier() {
+    default BuildIdentity getBuildIdentifier() {
         return new DefaultBuildIdentifier(getIdentityPath());
     }
 

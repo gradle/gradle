@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.cache.MarkingStrategy
 import org.gradle.api.file.FileCollection
@@ -40,6 +39,7 @@ import org.gradle.initialization.BuildStructureOperationProject
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
 import org.gradle.internal.Actions
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.IncludedBuildState
@@ -297,7 +297,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun WriteContext.writeBuildsInTree(buildEventListeners: List<RegisteredBuildServiceProvider<*, *>>) {
-        val requiredBuildServicesPerBuild = buildEventListeners.groupBy { it.buildIdentifier }
+        val requiredBuildServicesPerBuild = buildEventListeners.groupBy { it.buildIdentity }
         val builds = mutableMapOf<BuildState, BuildToStore>()
         host.visitBuilds { state ->
             val gradle = state.mutableModel
@@ -409,7 +409,7 @@ class ConfigurationCacheState(
     private
     suspend fun ReadContext.readBuildSrcBuild(rootBuild: ConfigurationCacheBuild): CachedBuildState {
         val build = withGradleIsolate(rootBuild.gradle, userTypesCodec) {
-            val ownerIdentifier = readNonNull<BuildIdentifier>()
+            val ownerIdentifier = readNonNull<BuildIdentity>()
             rootBuild.getBuildSrcOf(ownerIdentifier)
         }
         return readNestedBuildState(build)
@@ -926,13 +926,13 @@ class ConfigurationCacheState(
 
     private
     fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =
-        Path.path(provider.buildIdentifier.buildPath).name != BUILD_SRC
+        Path.path(provider.buildIdentity.buildPath).name != BUILD_SRC
 }
 
 
 internal
 class StoredBuildTreeState(
-    val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<BuildServiceProvider<*, *>>>
+    val requiredBuildServicesPerBuild: Map<BuildIdentity, List<BuildServiceProvider<*, *>>>
 )
 
 

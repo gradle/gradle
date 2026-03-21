@@ -17,10 +17,9 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -37,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultBuildControllers implements BuildControllers {
     // Always iterate over the controllers in a fixed order
-    private final Map<BuildIdentifier, BuildController> controllers = new TreeMap<>(idComparator());
+    private final Map<BuildIdentity, BuildController> controllers = new TreeMap<>(idComparator());
     private final ManagedExecutor executorService;
     private final WorkerLeaseService workerLeaseService;
     private final PlanExecutor planExecutor;
@@ -129,17 +128,17 @@ class DefaultBuildControllers implements BuildControllers {
         CompositeStoppable.stoppable(controllers.values()).stop();
     }
 
-    private static Comparator<BuildIdentifier> idComparator() {
+    private static Comparator<BuildIdentity> idComparator() {
         return (id1, id2) -> {
             // Root is always last
-            if (id1.equals(DefaultBuildIdentifier.ROOT)) {
-                if (id2.equals(DefaultBuildIdentifier.ROOT)) {
+            if (id1.isRoot()) {
+                if (id2.isRoot()) {
                     return 0;
                 } else {
                     return 1;
                 }
             }
-            if (id2.equals(DefaultBuildIdentifier.ROOT)) {
+            if (id2.isRoot()) {
                 return -1;
             }
             return id1.getBuildPath().compareTo(id2.getBuildPath());

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -33,6 +32,7 @@ import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.ProjectDescriptorInternal
 import org.gradle.initialization.SettingsState
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.service
@@ -146,7 +146,7 @@ class DefaultConfigurationCacheHost internal constructor(
             return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition, buildPath), fileResolver, buildStateRegistry, settingsFile)
         }
 
-        override fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild {
+        override fun getBuildSrcOf(ownerId: BuildIdentity): ConfigurationCacheBuild {
             return DefaultConfigurationCacheBuild(buildStateRegistry.getBuildSrcNestedBuild(buildStateRegistry.getBuild(ownerId))!!, fileResolver, buildStateRegistry, null)
         }
 

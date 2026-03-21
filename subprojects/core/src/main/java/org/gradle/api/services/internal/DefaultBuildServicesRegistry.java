@@ -24,7 +24,6 @@ import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.provider.Provider;
@@ -33,6 +32,7 @@ import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.Cast;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -60,7 +60,7 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal, HoldsProjectState {
 
-    private final BuildIdentifier buildIdentifier;
+    private final BuildIdentity buildIdentity;
     private final Lock registrationsLock = new ReentrantLock();
     private NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
     private final DomainObjectCollectionFactory collectionFactory;
@@ -75,7 +75,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final BuildServiceProvider.Listener listener;
 
     public DefaultBuildServicesRegistry(
-        BuildIdentifier buildIdentifier,
+        BuildIdentity buildIdentity,
         DomainObjectCollectionFactory collectionFactory,
         InstantiatorFactory instantiatorFactory,
         ServiceRegistry services,
@@ -84,7 +84,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         SharedResourceLeaseRegistry leaseRegistry,
         BuildServiceProvider.Listener listener
     ) {
-        this.buildIdentifier = buildIdentifier;
+        this.buildIdentity = buildIdentity;
         this.registrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
         this.collectionFactory = collectionFactory;
         this.instantiatorFactory = instantiatorFactory;
@@ -247,7 +247,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     private <T extends BuildService<BuildServiceParameters>> BuildServiceProvider<T, BuildServiceParameters> doConsume(String name, Class<T> implementationType) {
-        return new ConsumedBuildServiceProvider<>(buildIdentifier, name, implementationType, services);
+        return new ConsumedBuildServiceProvider<>(buildIdentity, name, implementationType, services);
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
@@ -258,7 +258,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations
     ) {
         RegisteredBuildServiceProvider<T, P> provider = new RegisteredBuildServiceProvider<>(
-            buildIdentifier,
+            buildIdentity,
             name,
             implementationType,
             parameters,
