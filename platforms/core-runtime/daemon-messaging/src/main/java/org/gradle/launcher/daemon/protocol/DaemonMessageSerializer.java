@@ -21,37 +21,8 @@ import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.logging.events.BooleanQuestionPromptEvent;
-import org.gradle.internal.logging.events.IntQuestionPromptEvent;
-import org.gradle.internal.logging.events.LogEvent;
-import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
-import org.gradle.internal.logging.events.ProgressCompleteEvent;
-import org.gradle.internal.logging.events.ProgressEvent;
-import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.logging.events.ReadStdInEvent;
-import org.gradle.internal.logging.events.SelectOptionPromptEvent;
-import org.gradle.internal.logging.events.StyledTextOutputEvent;
-import org.gradle.internal.logging.events.TextQuestionPromptEvent;
-import org.gradle.internal.logging.events.UserInputRequestEvent;
-import org.gradle.internal.logging.events.UserInputResumeEvent;
-import org.gradle.internal.logging.events.YesNoQuestionPromptEvent;
-import org.gradle.internal.logging.serializer.BooleanQuestionPromptEventSerializer;
-import org.gradle.internal.logging.serializer.IntQuestionPromptEventSerializer;
-import org.gradle.internal.logging.serializer.LogEventSerializer;
-import org.gradle.internal.logging.serializer.LogLevelChangeEventSerializer;
-import org.gradle.internal.logging.serializer.ProgressCompleteEventSerializer;
-import org.gradle.internal.logging.serializer.ProgressEventSerializer;
-import org.gradle.internal.logging.serializer.ProgressStartEventSerializer;
-import org.gradle.internal.logging.serializer.ReadStdInEventSerializer;
-import org.gradle.internal.logging.serializer.SelectOptionPromptEventSerializer;
-import org.gradle.internal.logging.serializer.SpanSerializer;
-import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
-import org.gradle.internal.logging.serializer.TextQuestionPromptEventSerializer;
-import org.gradle.internal.logging.serializer.UserInputRequestEventSerializer;
-import org.gradle.internal.logging.serializer.UserInputResumeEventSerializer;
-import org.gradle.internal.logging.serializer.YesNoQuestionPromptEventSerializer;
-import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.serializer.OutputEventSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
@@ -78,7 +49,6 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.NO_NULL_STRING
 public class DaemonMessageSerializer {
     public static Serializer<Message> create(Serializer<BuildAction> buildActionSerializer) {
         BaseSerializerFactory factory = new BaseSerializerFactory();
-        Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
 
@@ -100,20 +70,7 @@ public class DaemonMessageSerializer {
         registry.register(CloseInput.class, new CloseInputSerializer());
 
         // Output events
-        registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
-        registry.register(UserInputRequestEvent.class, new UserInputRequestEventSerializer());
-        registry.register(YesNoQuestionPromptEvent.class, new YesNoQuestionPromptEventSerializer());
-        registry.register(BooleanQuestionPromptEvent.class, new BooleanQuestionPromptEventSerializer());
-        registry.register(TextQuestionPromptEvent.class, new TextQuestionPromptEventSerializer());
-        registry.register(IntQuestionPromptEvent.class, new IntQuestionPromptEventSerializer());
-        registry.register(SelectOptionPromptEvent.class, new SelectOptionPromptEventSerializer());
-        registry.register(UserInputResumeEvent.class, new UserInputResumeEventSerializer());
-        registry.register(ReadStdInEvent.class, new ReadStdInEventSerializer());
-        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
-        registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
-        registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
-        registry.register(ProgressEvent.class, new ProgressEventSerializer());
-        registry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));
+        OutputEventSerializer.registerTypes(registry);
         registry.register(OutputMessage.class, new OutputMessageSerializer(registry.build(OutputEvent.class)));
 
         // Default for everything else
