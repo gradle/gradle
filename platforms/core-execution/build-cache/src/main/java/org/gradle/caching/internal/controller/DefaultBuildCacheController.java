@@ -45,6 +45,7 @@ import org.gradle.caching.local.internal.BuildCacheTempFileStore;
 import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.caching.local.internal.TemporaryFileFactory;
+import org.gradle.internal.concurrent.BlockingNotifier;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
@@ -71,6 +72,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultBuildCacheController implements BuildCacheController {
+    private final BlockingNotifier blockingNotifier;
 
     @VisibleForTesting
     final RemoteBuildCacheServiceHandle remote;
@@ -84,6 +86,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
     private boolean closed;
 
     public DefaultBuildCacheController(
+        BlockingNotifier blockingNotifier,
         BuildCacheServicesConfiguration config,
         BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
@@ -94,6 +97,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         OriginMetadataFactory originMetadataFactory,
         Interner<String> stringInterner
     ) {
+        this.blockingNotifier = blockingNotifier;
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush(), buildOperationRunner);
         this.remote = toRemoteHandle(config.getBuildPath(), config.getRemote(), config.isRemotePush(), buildOperationRunner, buildOperationProgressEventEmitter, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), temporaryFileFactory);
@@ -135,7 +139,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
         tmp.withTempFile(((BuildCacheKeyInternal) key).getHashCodeInternal(), file -> {
             Optional<BuildCacheLoadResult> remoteResult;
             try {
-                remoteResult = remote.maybeLoad(key, file, f -> packExecutor.unpack(key, entity, f));
+                remoteResult = blockingNotifier.blocking(() -> remote.maybeLoad(key, file, f -> packExecutor.unpack(key, entity, f)));
             } catch (Exception e) {
                 throw new BuildCacheOperationException("Could not load from remote cache: " + e.getMessage(), e);
             }

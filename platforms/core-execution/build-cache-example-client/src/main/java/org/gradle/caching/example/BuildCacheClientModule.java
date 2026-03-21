@@ -52,6 +52,7 @@ import org.gradle.caching.local.internal.DirectoryBuildCacheService;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.caching.local.internal.TemporaryFileFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.BlockingNotifier;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -130,6 +131,7 @@ class BuildCacheClientModule extends AbstractModule {
         Interner<String> stringInterner
     ) {
         return new DefaultBuildCacheController(
+            BlockingNotifier.NO_NOTIFICATION,
             buildCacheServicesConfig,
             buildOperationRunner,
             eventEmitter,
