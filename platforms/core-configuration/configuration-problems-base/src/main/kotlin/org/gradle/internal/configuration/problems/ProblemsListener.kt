@@ -17,8 +17,11 @@
 package org.gradle.internal.configuration.problems
 
 import org.gradle.api.Task
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 
+@ServiceScope(Scope.BuildTree::class)
 interface ProblemsListener {
 
     fun onProblem(problem: PropertyProblem)

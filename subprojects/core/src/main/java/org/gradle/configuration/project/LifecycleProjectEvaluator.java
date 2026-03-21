@@ -27,6 +27,8 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -52,6 +54,7 @@ import java.io.File;
  *
  * @see ProjectEvaluationListener
  */
+@ServiceScope(Scope.Build.class)
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private final BuildOperationRunner buildOperationRunner;
     private final ProjectEvaluator delegate;
