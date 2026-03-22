@@ -70,8 +70,8 @@ dependencies {
 
         // Test dependencies - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>(
-            "xyz.rogfam:littleproxy",
-            setOf("barchart-udt-bundle", "guava", "commons-cli")
+            "io.github.littleproxy:littleproxy",
+            setOf("barchart-udt-bundle", "guava", "commons-cli", "netty-all")
         )
 
         // TODO: Gradle profiler should use the bundled tooling API.
