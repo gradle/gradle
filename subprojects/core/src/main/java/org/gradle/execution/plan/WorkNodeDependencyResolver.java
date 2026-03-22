@@ -23,11 +23,11 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.IdentityHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.Build.class)
 public class WorkNodeDependencyResolver implements DependencyResolver, HoldsProjectState {
-    private final IdentityHashMap<WorkNodeAction, ActionNode> nodesForAction = new IdentityHashMap<>();
+    private final ConcurrentHashMap<WorkNodeAction, ActionNode> nodesForAction = new ConcurrentHashMap<>();
 
     @Override
     public boolean resolve(Task task, final Object node, Action<? super Node> resolveAction) {
@@ -47,11 +47,6 @@ public class WorkNodeDependencyResolver implements DependencyResolver, HoldsProj
     }
 
     private ActionNode actionNodeFor(WorkNodeAction action) {
-        ActionNode actionNode = nodesForAction.get(action);
-        if (actionNode == null) {
-            actionNode = new ActionNode(action);
-            nodesForAction.put(action, actionNode);
-        }
-        return actionNode;
+        return nodesForAction.computeIfAbsent(action, ActionNode::new);
     }
 }

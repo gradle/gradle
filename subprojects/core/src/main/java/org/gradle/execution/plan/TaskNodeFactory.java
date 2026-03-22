@@ -89,7 +89,7 @@ public class TaskNodeFactory {
         if (sameBuild) {
             return new LocalTaskNode(task, new DefaultWorkValidationContext(typeOriginInspectorFactory.forTask(task), problems), resolveMutationsNodeFactory);
         }
-        return TaskInAnotherBuild.of(task, workGraphController);
+        return TaskInAnotherBuild.lazy(task, workGraphController);
     }
 
     public void resetState() {

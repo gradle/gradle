@@ -19,7 +19,10 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
+
+import java.util.function.Consumer;
 
 public interface TaskDependencyResolveContext extends Action<Task> {
     @Override
@@ -58,4 +61,32 @@ public interface TaskDependencyResolveContext extends Action<Task> {
      */
     @Nullable
     Task getTask();
+
+    /**
+     * Defers the resolution of a task project from another project with parallel dependency resolution.
+     *
+     * @return {@code true} if the resolution was deferred; {@code false} if the caller should proceed with immediate resolution.
+     */
+    default boolean deferCrossProjectResolution(Path targetProjectIdentityPath, String taskName) {
+        return false;
+    }
+
+    /**
+     * Defers the resolution of a task project from another project with parallel dependency resolution.
+     *
+     * @return {@code true} if the resolution was deferred; {@code false} if the caller should proceed with immediate resolution.
+     */
+    default boolean deferCrossProjectResolution(Path taskPath) {
+        return false;
+    }
+
+    /**
+     * Defers a global task search (e.g., by name) to avoid cross-project contention with parallel dependency resolution.
+     *
+     * @param resolutionAction the logic to be re-executed later under proper locks.
+     * @return {@code true} if the search was deferred; {@code false} if the caller should execute it now.
+     */
+    default boolean deferAllProjectsSearch(Consumer<TaskDependencyResolveContext> resolutionAction) {
+        return false;
+    }
 }

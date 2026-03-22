@@ -21,8 +21,12 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.AbstractCollection;
 import java.util.Collection;
@@ -61,8 +65,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private final Set<Node> filteredNodes = newIdentityHashSet();
     private final Set<Node> finalizers = new LinkedHashSet<>();
     private final OrdinalNodeAccess ordinalNodeAccess;
+    @Nullable
+    private final ParallelNodeRelationshipsResolver parallelNodeRelationshipsResolver;
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
+
 
     private DefaultFinalizedExecutionPlan finalizedPlan;
     // An immutable copy of the final plan
@@ -75,7 +82,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         TaskDependencyResolver dependencyResolver,
         ExecutionNodeAccessHierarchy outputHierarchy,
         ExecutionNodeAccessHierarchy destroyableHierarchy,
-        ResourceLockCoordinationService lockCoordinator
+        ResourceLockCoordinationService lockCoordinator,
+        WorkerLeaseService workerLeaseService,
+        BuildOperationExecutor buildOperationExecutor,
+        ProjectStateRegistry projectStateRegistry,
+        boolean parallelTaskDependencyResolution
     ) {
         this.displayName = displayName;
         this.taskNodeFactory = taskNodeFactory;
@@ -84,6 +95,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         this.destroyableHierarchy = destroyableHierarchy;
         this.lockCoordinator = lockCoordinator;
         this.ordinalNodeAccess = new OrdinalNodeAccess(ordinalGroupFactory);
+        this.parallelNodeRelationshipsResolver = parallelTaskDependencyResolution
+            ? new ParallelNodeRelationshipsResolver(dependencyResolver, workerLeaseService, buildOperationExecutor, projectStateRegistry, taskNodeFactory)
+            : null;
     }
 
     @Override
@@ -156,6 +170,16 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void discoverNodeRelationships(LinkedList<Node> queue) {
+        if (parallelNodeRelationshipsResolver != null) {
+            Map<LocalTaskNode, ResolvedNodeRelationships> preResolved = parallelNodeRelationshipsResolver.resolve(queue);
+            discoverNodeRelationshipsSequential(queue, preResolved);
+        } else {
+            discoverNodeRelationshipsSequential(queue, null);
+        }
+    }
+
+    @SuppressWarnings("NonApiType")
+    private void discoverNodeRelationshipsSequential(LinkedList<Node> queue, @Nullable Map<LocalTaskNode, ResolvedNodeRelationships> preResolved) {
         Set<Node> visiting = new HashSet<>();
         while (!queue.isEmpty()) {
             Node node = queue.getFirst();
@@ -180,7 +204,19 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
             if (visiting.add(node)) {
                 // Have not seen this node before - add its dependencies to the head of the queue and leave this
                 // node in the queue
-                node.resolveDependencies(dependencyResolver);
+                if (preResolved != null && node instanceof LocalTaskNode) {
+                    LocalTaskNode localNode = (LocalTaskNode) node;
+                    ResolvedNodeRelationships resolved = preResolved.remove(localNode);
+                    if (resolved == null) {
+                        // We preresolve only LocalTaskNodes, but not other nodes,
+                        // so if a task comes in the graph as an artifact transform dependency, we may not have preresolved dependencies for that task
+                        localNode.resolveDependencies(dependencyResolver);
+                    } else {
+                        localNode.applyRelationships(resolved);
+                    }
+                } else {
+                    node.resolveDependencies(dependencyResolver);
+                }
                 for (Node successor : node.getHardSuccessors()) {
                     successor.maybeInheritOrdinalAsDependency(node.getGroup().asOrdinal());
                 }
