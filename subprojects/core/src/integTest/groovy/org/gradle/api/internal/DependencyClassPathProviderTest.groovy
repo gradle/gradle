@@ -51,6 +51,7 @@ class DependencyClassPathProviderTest extends Specification {
             "gradle-dependency-management",
             "gradle-plugin-use",
             "gradle-tooling-api-builders",
+            "gradle-build-tree-control",
             "gradle-configuration-cache",
             "gradle-isolated-action-services",
             "gradle-unit-test-fixtures"
