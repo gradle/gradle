@@ -48,6 +48,7 @@ import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.process.CommandLineArgumentProvider
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 
 fun Project.addDependenciesAndConfigurations(prefix: String) {
@@ -239,6 +240,15 @@ fun Project.configureIde(sourceSet: SourceSet) {
             module {
                 testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs)
                 testResources.from(sourceSet.resources.srcDirs)
+            }
+        }
+    }
+    plugins.withId("org.jetbrains.kotlin.jvm") {
+        plugins.withType<IdeaPlugin> {
+            with(model) {
+                module {
+                    testSources.from(the<KotlinJvmProjectExtension>().sourceSets.named(sourceSet.name).get().kotlin.srcDirs)
+                }
             }
         }
     }

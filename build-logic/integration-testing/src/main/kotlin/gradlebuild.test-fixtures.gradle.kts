@@ -15,6 +15,7 @@
  */
 
 import org.gradle.plugins.ide.idea.model.IdeaModel
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 /**
  * Test Fixtures Plugin.
@@ -90,6 +91,16 @@ plugins.withType<IdeaPlugin> {
             testSources.from(testFixtures.java.srcDirs)
             testSources.from(testFixtures.groovy.srcDirs)
             testResources.from(testFixtures.resources.srcDirs)
+        }
+    }
+}
+plugins.withId("org.jetbrains.kotlin.jvm") {
+    plugins.withType<IdeaPlugin> {
+        configure<IdeaModel> {
+            module {
+                val testFixtures = sourceSets.testFixtures.get()
+                testSources.from(the<KotlinJvmProjectExtension>().sourceSets.named(testFixtures.name).get().kotlin.srcDirs)
+            }
         }
     }
 }

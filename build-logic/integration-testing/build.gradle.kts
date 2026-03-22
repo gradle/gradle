@@ -27,6 +27,7 @@ dependencies {
     implementation(projects.cleanup)
     implementation(projects.dependencyModules)
     implementation(projects.jvm)
+    implementation(buildLibs.kgp)
 
     testImplementation(testLibs.junit)
 }
