@@ -14,6 +14,7 @@
 
 :gradle-issues: https://github.com/gradle/gradle/issues/
 
+[[isolated_projects]]
 = Isolated Projects
 :keywords: ip
 

@@ -95,7 +95,7 @@ The following class makes use of a couple of third-party libraries, one of which
 [source,java]
 .src/main/java/org/gradle/HttpClientWrapper.java
 ----
-include::{snippetsPath}/java-library/quickstart/groovy/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
+include::{snippetsPath}/java-library/quickstart/common/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
 ----
 
 The _public_ constructor of `HttpClientWrapper` uses `HttpClient` as a parameter, so it is exposed to consumers and therefore belongs to the API. Note that `HttpGet` and `HttpEntity` are used in the signature of a _private_ method, and so they don't count towards making HttpClient an API dependency.
@@ -240,9 +240,6 @@ Gradle will automatically put a Jar of your dependencies on the module path, ins
 * The Jar our module depends on is itself a module, which Gradles decides based on the presence of a `module-info.class` -- the compiled version of the module descriptor -- in the Jar.
   (Or, alternatively, the presence of an `Automatic-Module-Name` attribute the Jar manifest)
 
-In the following, some more details about defining Java modules and how that interacts with Gradle's dependency management are described.
-You can also look at a link:../samples/sample_java_modules_multi_project.html[ready made example] to try out the Java Module support directly.
-
 === Declaring module dependencies
 
 There is a direct relationship to the dependencies you declare in the build file and the module dependencies you declare in the `module-info.java` file.
@@ -320,8 +317,6 @@ Thus, if you cannot avoid to rely on a library without module information, you c
 How you do that is described in the next section.
 
 Another way to deal with non-modules is to enrich existing Jars with module descriptors yourself using <<artifact_transforms.adoc#sec:abm-artifact-transforms,artifact transforms>>.
-link:../samples/sample_java_modules_with_transform.html[This sample] contains a small _buildSrc_ plugin registering such a transform which you may use and adjust to your needs.
-This can be interesting if you want to build a fully <<application_plugin.adoc#sec:application_modular,modular application>> and want the java runtime to treat everything as a real module.
 
 === Disabling Java Module support
 

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
@@ -229,12 +230,12 @@ class DefaultConfigurationCacheIO internal constructor(
             }
         }
 
-    override fun WriteContext.writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) =
+    override fun WriteContext.writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState, shouldStoreProject: (ProjectState) -> Boolean) =
         // we share the string encoder with the root build, but not the shared object encoder
         withSharedObjectEncoderFor(stateFile, currentStringEncoder) { sharedObjectEncoder ->
             writeConfigurationCacheStateWithSpecialEncoders(SpecialEncoders(currentStringEncoder, sharedObjectEncoder), stateFile) { cacheState ->
                 cacheState.run {
-                    writeBuildContent(host.currentBuild, buildTreeState)
+                    writeBuildContent(host.currentBuild, buildTreeState, shouldStoreProject)
                 }
             }
         }
