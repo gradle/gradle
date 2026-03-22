@@ -17,9 +17,9 @@ package org.gradle.integtests.wrapper
 
 import org.gradle.integtests.fixtures.TargetVersions
 
-@TargetVersions("8.0.0+")
+@TargetVersions("8.14+")
 @SuppressWarnings("IntegrationTestFixtures")
-class Wrapper8PlusCrossVersionIntegrationTest extends AbstractWrapperCrossVersionIntegrationTest {
+class WrapperScriptUpgradeCrossVersionIntegrationTest extends AbstractWrapperCrossVersionIntegrationTest {
     void canUseWrapperFromPreviousVersionToUpgradeToCurrentVersionWrapper() {
         when:
         def executer = prepareWrapperExecuter(previous, current)
