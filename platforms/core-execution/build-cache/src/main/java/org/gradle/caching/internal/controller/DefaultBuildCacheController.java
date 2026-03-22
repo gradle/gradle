@@ -45,6 +45,8 @@ import org.gradle.caching.local.internal.BuildCacheTempFileStore;
 import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.caching.local.internal.TemporaryFileFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
@@ -59,6 +61,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,6 +76,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultBuildCacheController implements BuildCacheController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildCacheController.class);
+
     @VisibleForTesting
     final RemoteBuildCacheServiceHandle remote;
 
@@ -80,6 +86,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
     private final BuildCacheTempFileStore tmp;
     private final PackOperationExecutor packExecutor;
+    private final ManagedExecutor storeExecutor;
 
     private boolean closed;
 
@@ -92,7 +99,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
         boolean disableRemoteOnError,
         BuildCacheEntryPacker packer,
         OriginMetadataFactory originMetadataFactory,
-        Interner<String> stringInterner
+        Interner<String> stringInterner,
+        ExecutorFactory executorFactory
     ) {
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush(), buildOperationRunner);
         this.remote = toRemoteHandle(config.getBuildPath(), config.getRemote(), config.isRemotePush(), buildOperationRunner, buildOperationProgressEventEmitter, logStackTraces, disableRemoteOnError);
@@ -103,6 +111,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
             originMetadataFactory,
             stringInterner
         );
+        this.storeExecutor = executorFactory.create("Build cache store");
     }
 
     @Override
@@ -160,9 +169,21 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     @Override
+    public void storeAsync(BuildCacheKey key, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+        storeExecutor.execute(() -> {
+            try {
+                store(key, entity, snapshots, executionTime);
+            } catch (Exception e) {
+                LOGGER.warn("Failed to store cache entry {} for {}: {}", key.getHashCode(), entity.getDisplayName(), e.getMessage(), e);
+            }
+        });
+    }
+
+    @Override
     public void close() throws IOException {
         if (!closed) {
             closed = true;
+            storeExecutor.stop();
             Closer closer = Closer.create();
             closer.register(local);
             closer.register(remote);
