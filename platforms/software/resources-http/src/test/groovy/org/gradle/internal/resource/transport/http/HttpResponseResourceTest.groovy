@@ -76,6 +76,66 @@ class HttpResponseResourceTest extends Specification {
         1 * response.close()
     }
 
+    def "falls back to URL path when Content-Disposition has no filename"() {
+        given:
+        def url = new URI("https://example.com/jdks-bin/jdk-17.0.1.tar.gz")
+        response.getHeader("Content-Disposition") >> 'attachment'
+
+        expect:
+        new HttpResponseResource(method, url, response).metaData.filename == "jdk-17.0.1.tar.gz"
+    }
+
+    def "extracts filename from URL when no Content-Disposition header"() {
+        given:
+        def url = new URI("https://example.com/jdks-bin/jdk-17.0.1.tar.gz")
+
+        expect:
+        new HttpResponseResource(method, url, response).metaData.filename == "jdk-17.0.1.tar.gz"
+    }
+
+    def "extracts filename from effective URI when available"() {
+        given:
+        def effectiveUri = new URI("https://cdn.example.com/jdk-redirected.tar.gz")
+        response.getEffectiveUri() >> effectiveUri
+
+        expect:
+        resource().metaData.filename == "jdk-redirected.tar.gz"
+    }
+
+    def "extracts filename from URL path ignoring query parameters"() {
+        given:
+        def url = new URI("https://example.com/jdks/jdk-17.tar.gz?token=abc&expires=123")
+
+        expect:
+        new HttpResponseResource(method, url, response).metaData.filename == "jdk-17.tar.gz"
+    }
+
+    def "extracts filename from Content-Disposition header"() {
+        expect:
+        HttpResponseResource.extractFilenameFromContentDisposition(header) == expected
+
+        where:
+        header                                                                          | expected
+        null                                                                            | null
+        'attachment'                                                                    | null
+        'inline'                                                                        | null
+        'attachment; creation-date="today"'                                             | null
+        'attachment; filename=""'                                                        | null
+        'attachment; filename='                                                          | null
+        'attachment; filename="example.tar.gz"'                                         | "example.tar.gz"
+        'attachment; filename=example.tar.gz'                                           | "example.tar.gz"
+        'attachment; FILENAME="Example.TXT"'                                            | "Example.TXT"
+        'attachment; FileName=Example.TXT'                                              | "Example.TXT"
+        'attachment ; filename = "a.txt" '                                              | "a.txt"
+        'attachment; filename="jdk-17.tar.gz"; size=12345'                              | "jdk-17.tar.gz"
+        'attachment; filename="a;b.txt"; size=123'                                      | "a;b.txt"
+        'attachment; filename="a\\"b.txt"'                                              | 'a"b.txt'
+        "attachment; filename*=UTF-8''na%C3%AFve%20file.txt"                            | "na\u00EFve file.txt"
+        "attachment; filename*=iso-8859-1'en'%A3%20rates.txt"                           | "\u00A3 rates.txt"
+        "attachment; filename=\"fallback.txt\"; filename*=UTF-8''%E2%82%AC%20rates.txt" | "\u20AC rates.txt"
+        "attachment; filename=\"fallback.txt\"; filename*=UTF-8''%ZZ%20bad"             | "fallback.txt"
+    }
+
     HttpResponseResource resource() {
         new HttpResponseResource(method, sourceUrl, response)
     }

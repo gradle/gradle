@@ -72,6 +72,14 @@ class JdkRepository {
         }))
     }
 
+    void expectGetWithContentDispositionAttachment() {
+        server.expect(server.get(archiveName, { e ->
+            e.getResponseHeaders().add("Content-Disposition", "attachment")
+            e.sendResponseHeaders(200, 0)
+            IOUtils.copy(archiveFile, e.getResponseBody())
+        }))
+    }
+
     void stop() {
         server.stop()
         archiveFile.delete()
