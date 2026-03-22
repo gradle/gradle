@@ -205,7 +205,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
 
-        throwOnSelfSubtraction(fileCollection);
+        throwIfContainsSelfReferenceInSubtraction(fileCollection);
 
         // Don't allow a += b or a = (a + b), this is not support
         fileCollection.visitStructure(new FileCollectionStructureVisitor() {
@@ -240,16 +240,27 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         setFrom(Cast.castNullable(FileCollection.class, object));
     }
 
-    // We don't support 'a -= b' in Groovy DSL due to the inherent self-referencing.
-    // At the same time, Groovy always rewrites that as 'a = a - b'
-    // and at runtime all these options look the same as 'a = a.minus(b)', and we can't distinguish
-    private void throwOnSelfSubtraction(FileCollectionInternal fileCollection) {
+    // We don't support self-referencing through the '-' operator. This includes:
+    // - 'a -= b' in Groovy DSL (Groovy rewrites this as 'a = a - b', i.e. a = a.minus(b))
+    // - 'a = b - a' or 'a.setFrom(a - b)' and 'a.setFrom(b - a)'
+    private void throwIfContainsSelfReferenceInSubtraction(FileCollectionInternal fileCollection) {
         if (fileCollection instanceof SubtractingFileCollection) {
             SubtractingFileCollection subtraction = (SubtractingFileCollection) fileCollection;
-            if (DefaultConfigurableFileCollection.this == subtraction.getLeft()) {
-                throw new UnsupportedOperationException("ConfigurableFileCollection does not support '-=' operator or assignment of subtraction via '-' operator or a minus() method");
+            if (referencesSelf(subtraction.getLeft()) || referencesSelf(subtraction.getRight())) {
+                throw new UnsupportedOperationException("ConfigurableFileCollection does not support self-referencing through the '-' operator or minus() method");
             }
         }
+    }
+
+    private boolean referencesSelf(FileCollection collection) {
+        if (collection == this) {
+            return true;
+        }
+        if (collection instanceof SubtractingFileCollection) {
+            SubtractingFileCollection subtraction = (SubtractingFileCollection) collection;
+            return referencesSelf(subtraction.getLeft()) || referencesSelf(subtraction.getRight());
+        }
+        return false;
     }
 
     @Override
@@ -260,6 +271,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void setFrom(Iterable<?> path) {
         assertMutable();
+        if (path instanceof FileCollectionInternal) {
+            throwIfContainsSelfReferenceInSubtraction((FileCollectionInternal) path);
+        }
         setExplicitCollector(newExplicitValue(path));
     }
 
@@ -327,6 +341,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void setFrom(Object... paths) {
         assertMutable();
+        for (Object path : paths) {
+            if (path instanceof FileCollectionInternal) {
+                throwIfContainsSelfReferenceInSubtraction((FileCollectionInternal) path);
+            }
+        }
         setExplicitCollector(paths.length > 0
             ? newExplicitValue(paths)
             : EMPTY_COLLECTOR);
