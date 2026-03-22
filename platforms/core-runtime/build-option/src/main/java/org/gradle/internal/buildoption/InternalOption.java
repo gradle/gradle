@@ -19,9 +19,18 @@ package org.gradle.internal.buildoption;
 import org.jspecify.annotations.Nullable;
 
 /**
- * An internal Gradle option, that can be set using a system property.
+ * An internal Gradle option that can be defined in (first one wins):
+ * <ol>
+ *     <li>A system property ({@code -Dorg.gradle.internal.…})</li>
+ *     <li>Gradle User Home {@code gradle.properties}</li>
+ *     <li>Build root {@code gradle.properties}</li>
+ *     <li>Gradle installation (GRADLE_HOME) {@code gradle.properties}</li>
+ * </ol>
  *
- * @param <T> The value of the option.
+ * Values are scoped to the build tree and are not overridden by included builds.
+ *
+ * @param <T> the type of the option value
+ * @see InternalOptions
  */
 public abstract class InternalOption<T extends @Nullable Object> implements Option {
 

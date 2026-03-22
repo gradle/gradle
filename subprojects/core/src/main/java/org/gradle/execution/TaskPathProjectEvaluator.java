@@ -25,7 +25,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.buildoption.StringInternalOption;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -47,7 +46,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
      * Default is {@code jit}.
      */
     private static final InternalOption<String> PARALLEL_CONFIGURATION_SCHEDULER =
-        StringInternalOption.of("org.gradle.internal.isolated-projects.scheduler", "jit");
+        InternalOptions.ofString("org.gradle.internal.isolated-projects.scheduler", "jit");
 
     private final BuildCancellationToken cancellationToken;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -114,7 +113,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     }
 
     private String schedulingStrategy() {
-        return internalOptions.getOption(PARALLEL_CONFIGURATION_SCHEDULER).get();
+        return internalOptions.getValue(PARALLEL_CONFIGURATION_SCHEDULER);
     }
 
     private void scheduleProjectsAheadOfTime(ProjectInternal root) {
