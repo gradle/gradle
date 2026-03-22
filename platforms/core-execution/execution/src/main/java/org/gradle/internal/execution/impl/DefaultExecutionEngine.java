@@ -24,6 +24,8 @@ import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
+
+import java.util.concurrent.CompletableFuture;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.steps.ExecutionRequestContext;
@@ -69,7 +71,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             }
 
             @Override
-            public <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, DeferredResult<T>> cache) {
+            public <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, CompletableFuture<DeferredResult<T>>> cache) {
                 return pipeline.executeDeferred(work, createExecutionRequestContext(), cache);
             }
         };

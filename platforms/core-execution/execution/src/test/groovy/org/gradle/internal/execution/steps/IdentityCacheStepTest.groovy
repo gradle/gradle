@@ -25,8 +25,10 @@ import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.history.ExecutionOutputState
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 
+import java.util.concurrent.CompletableFuture
+
 class IdentityCacheStepTest extends StepSpec<IdentityContext> {
-    Cache<Identity, DeferredResult<Object>> cache = new ManualEvictionInMemoryCache<>()
+    Cache<Identity, CompletableFuture<DeferredResult<Object>>> cache = new ManualEvictionInMemoryCache<>()
     def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
 
     def step = new IdentityCacheStep<>(progressEventEmitter, delegate)
@@ -111,7 +113,7 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
             result >> cachedResult
             originMetadata >> Optional.of(returnedOriginMetadata)
         }
-        cache.put(identity, identityCacheResult)
+        cache.put(identity, CompletableFuture.completedFuture(identityCacheResult))
 
         def execution = step.executeDeferred(work, context, cache)
 
