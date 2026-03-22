@@ -17,7 +17,6 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.collect.PersistentArray;
 import org.gradle.internal.collect.PersistentList;
-import org.gradle.internal.collect.PersistentMap;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
@@ -399,44 +398,39 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
 
         public OwnServices() {
             final ThisAsService thisServiceRegistry = new ThisAsService(ServiceAccess.getPublicScope());
+            ConcurrentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType = new ConcurrentHashMap<>();
+            providersByType.put(ServiceRegistry.class, PersistentArray.of(thisServiceRegistry));
             services = new AtomicReference<>(
-                ServicesSnapshot.of(
-                    PersistentMap.of(
-                        ServiceRegistry.class,
-                        PersistentArray.of(thisServiceRegistry)
-                    )
-                )
+                ServicesSnapshot.of(providersByType)
             );
         }
 
         @Override
         public @Nullable Service getService(Type type, @Nullable ServiceAccessToken token) {
             PersistentArray<ServiceProvider> serviceProviders = getProviders(unwrap(type));
-            if (serviceProviders.isEmpty()) {
-                return null;
-            }
-            if (serviceProviders.size() == 1) {
-                return serviceProviders.get(0).getService(type, token);
-            }
 
-            List<Service> services = new ArrayList<Service>(serviceProviders.size());
-            for (ServiceProvider serviceProvider : serviceProviders) {
-                Service service = serviceProvider.getService(type, token);
-                if (service != null) {
-                    services.add(service);
+            Service service = null;
+            List<Service> duplicatedServices = null;
+            for (int i = 0; i < serviceProviders.size(); i++) {
+                Service serviceCandidate = serviceProviders.get(i).getService(type, token);
+                if (serviceCandidate != null) {
+                    if (service == null) {
+                        service = serviceCandidate;
+                    } else {
+                        duplicatedServices = duplicatedServices == null
+                            ? new ArrayList<>(Collections.singletonList(service))
+                            : duplicatedServices;
+                        duplicatedServices.add(serviceCandidate);
+                    }
                 }
             }
 
-            if (services.isEmpty()) {
-                return null;
+            if (duplicatedServices == null) {
+                return service;
             }
 
-            if (services.size() == 1) {
-                return services.get(0);
-            }
-
-            Set<String> descriptions = new TreeSet<String>();
-            for (Service candidate : services) {
+            Set<String> descriptions = new TreeSet<>();
+            for (Service candidate : duplicatedServices) {
                 descriptions.add(candidate.getDisplayName());
             }
 
@@ -450,15 +444,15 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
 
         private PersistentArray<ServiceProvider> getProviders(Class<?> type) {
             @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
-            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType = services.get().providersByType;
-
+            ConcurrentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType = services.get().providersByType;
             return providersByType.getOrDefault(type, PersistentArray.of());
         }
 
         @Override
         public Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor) {
-            for (ServiceProvider serviceProvider : getProviders(serviceType)) {
-                visitor = serviceProvider.getAll(serviceType, token, visitor);
+            PersistentArray<ServiceProvider> providers = getProviders(serviceType);
+            for (int i = 0; i < providers.size(); i++) {
+                visitor = providers.get(i).getAll(serviceType, token, visitor);
             }
             return visitor;
         }
@@ -1426,8 +1420,11 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
      * rarely (once per lifecycle handler).
      */
     private static class ServicesSnapshot {
+        private final PersistentList<SingletonService> services;
+        private final PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers;
+        private final ConcurrentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType;
 
-        public static ServicesSnapshot of(PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType) {
+        public static ServicesSnapshot of(ConcurrentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType) {
             return new ServicesSnapshot(
                 PersistentList.of(),
                 PersistentArray.of(),
@@ -1435,14 +1432,10 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
             );
         }
 
-        final PersistentList<SingletonService> services;
-        final PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers;
-        final PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType;
-
         private ServicesSnapshot(
             PersistentList<SingletonService> services,
             PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers,
-            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
+            ConcurrentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
         ) {
             this.services = services;
             this.lifecycleHandlers = lifecycleHandlers;
@@ -1465,12 +1458,11 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
             );
         }
 
-        private static PersistentMap<Class<?>, PersistentArray<ServiceProvider>> collectProvidersForClassHierarchyOf(
+        private static ConcurrentMap<Class<?>, PersistentArray<ServiceProvider>> collectProvidersForClassHierarchyOf(
             SingletonService serviceProvider,
             ClassInspector inspector,
-            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
+            ConcurrentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
         ) {
-            PersistentArray<ServiceProvider> newProviders = PersistentArray.of(serviceProvider);
             for (Class<?> serviceType : serviceProvider.getDeclaredServiceTypes()) {
                 for (Class<?> type : inspector.getHierarchy(serviceType)) {
                     if (type.equals(Object.class)) {
@@ -1480,9 +1472,9 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
                         // Disallow custom services of type ServiceRegistry, as these are automatically provided
                         throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
                     }
-                    providersByType = providersByType.modify(type, (key, providers) -> {
+                    providersByType.compute(type, (key, providers) -> {
                         if (providers == null) {
-                            return newProviders;
+                            return PersistentArray.of(serviceProvider);
                         } else {
                             return providers.contains(serviceProvider)
                                 ? providers
