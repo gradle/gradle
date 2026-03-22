@@ -73,6 +73,7 @@ import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
+import org.gradle.internal.execution.steps.FastUpToDateCheckState;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -93,6 +94,9 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.internal.watch.registry.FileWatcherRegistry;
+import org.gradle.internal.watch.vfs.FileChangeListener;
+import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider;
 import org.gradle.util.GradleVersion;
@@ -126,6 +130,23 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         for (GradleModuleServices services : globalServices.getAll(GradleModuleServices.class)) {
             services.registerGradleUserHomeServices(registration);
         }
+    }
+
+    @Provides
+    FastUpToDateCheckState createFastUpToDateCheckState(FileChangeListeners fileChangeListeners) {
+        FastUpToDateCheckState state = new FastUpToDateCheckState();
+        fileChangeListeners.addListener(new FileChangeListener() {
+            @Override
+            public void handleChange(FileWatcherRegistry.Type type, java.nio.file.Path path) {
+                state.recordChange(path);
+            }
+
+            @Override
+            public void stopWatchingAfterError() {
+                state.stopWatchingAfterError();
+            }
+        });
+        return state;
     }
 
     @Provides
