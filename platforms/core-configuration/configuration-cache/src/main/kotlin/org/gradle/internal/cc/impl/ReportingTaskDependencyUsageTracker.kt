@@ -19,17 +19,19 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
+import org.gradle.internal.configuration.problems.IsolatedProjectsViolationsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
-import org.gradle.internal.configuration.problems.ProblemsListener
 
 
-/** Reports all usages of the tracked TaskDependency APIs as problems using the [problems] listener.
- * Also checks which tasks in the API return value come from the other projects and tracks the projects coupling using the [coupledProjectsListener]. */
+/**
+ * Reports all usages of the tracked TaskDependency APIs as problems using the [violationsListener] listener.
+ * Also checks which tasks in the API return value come from the other projects and tracks the projects coupling using the [coupledProjectsListener].
+ */
 internal
 class ReportingTaskDependencyUsageTracker(
     private val referrer: ProjectInternal,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val problems: ProblemsListener,
+    private val violationsListener: IsolatedProjectsViolationsListener,
     private val problemFactory: ProblemFactory
 ) : TaskDependencyUsageTracker {
     override fun onTaskDependencyUsage(taskDependencies: Set<Task>) {
@@ -55,6 +57,6 @@ class ReportingTaskDependencyUsageTracker(
         }
             .exception()
             .build()
-        problems.onProblem(problem)
+        violationsListener.onViolation(problem)
     }
 }

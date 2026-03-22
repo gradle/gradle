@@ -33,7 +33,7 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         }
 
         when:
-        isolatedProjectsFails("help")
+        isolatedProjectsDiagnosticsFails("help")
 
         then:
         outputContains("Configuration cache entry discarded with 530 problems.")
@@ -96,7 +96,7 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         """
 
         when:
-        isolatedProjectsFails ':module:help'
+        isolatedProjectsDiagnosticsFails ':module:help'
 
         then:
         failure.assertHasFailures(2)

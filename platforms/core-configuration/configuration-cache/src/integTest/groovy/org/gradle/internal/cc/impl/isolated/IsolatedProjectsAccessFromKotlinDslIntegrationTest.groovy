@@ -33,7 +33,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -63,7 +63,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -123,7 +123,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -180,7 +180,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("help")
+        isolatedProjectsDiagnosticsFails("help")
 
         then:
         outputContains("myProperty: hello")

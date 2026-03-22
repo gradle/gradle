@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 
@@ -52,7 +53,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         """
 
         when:
-        isolatedProjectsFails("thing", "--no-configuration-cache")
+        isolatedProjectsDiagnosticsFails("thing", "--no-configuration-cache")
 
         then:
         failure.assertHasDescription("Configuration Cache cannot be disabled when Isolated Projects is enabled.")
@@ -112,6 +113,29 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         then:
         result.assertTasksScheduled(":a:producer", ":b:producer", ":c:producer")
         fixture.assertStateLoaded()
+    }
+
+    def "diagnostics mode continues execution upon encountering violations"() {
+        settingsFile """
+            include(":sub")
+        """
+
+        buildFile "sub/build.gradle", """
+            rootProject.tasks
+
+            rootProject.configurations
+        """
+
+        when:
+        isolatedProjectsDiagnosticsFails("help", "-D${StartParameterBuildOptions.IsolatedProjectsDiagnosticsOption.PROPERTY_NAME}=true")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'sub/build.gradle': line 2: Project ':sub' cannot access 'Project.tasks' functionality on another project ':'")
+            withProblem("Build file 'sub/build.gradle': line 4: Project ':sub' cannot access 'Project.configurations' functionality on another project ':'")
+            totalProblemsCount = 2
+            problemsWithStackTraceCount = 2
+        }
     }
 
     TestFile customType(TestFile dir) {

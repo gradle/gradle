@@ -29,6 +29,7 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
@@ -44,6 +45,7 @@ import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.IsolatedProjectsViolationsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemReportDetails
 import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
@@ -94,8 +96,11 @@ class ConfigurationCacheProblems(
     val buildNameProvider: BuildNameProvider,
 
     private
-    val degradationController: DefaultConfigurationCacheDegradationController
-) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
+    val degradationController: DefaultConfigurationCacheDegradationController,
+
+    private
+    val buildModelParameters: BuildModelParameters,
+) : AbstractProblemsListener(), IsolatedProjectsViolationsListener, ProblemReporter, AutoCloseable {
 
     private
     val summarizer = ConfigurationCacheProblemsSummary()
@@ -248,6 +253,13 @@ class ConfigurationCacheProblems(
             .build()
         summarizer.onIncompatibleFeature(problem)
         report.onProblem(problem)
+    }
+
+    override fun onViolation(problem: PropertyProblem) {
+        val severity =
+            if (buildModelParameters.isIsolatedProjectsDiagnostics || startParameter.isWarningMode) ProblemSeverity.Deferred
+            else ProblemSeverity.Interrupting
+        onProblem(problem, severity)
     }
 
     override fun onProblem(problem: PropertyProblem) {
