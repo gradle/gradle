@@ -110,7 +110,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             def detached = project.configurations.detachedConfiguration()
-            detached.dependencies.add(project.dependencies.create(project(':other')))
+            detached.dependencies.add(project.dependencies.create(project.dependencies.project(':other')))
 
             task checkDependencies(type: CheckDependencies) {
                 result = detached.incoming.resolutionResult.rootComponent
@@ -147,7 +147,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
             def detached = configurations.detachedConfiguration()
             detached.attributes.attribute(Attribute.of("attr", String), "value")
-            detached.dependencies.add(dependencies.create(project(":")))
+            detached.dependencies.add(dependencies.create(dependencies.project(":")))
 
             task resolve {
                 def files = detached
@@ -253,7 +253,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             ${mavenTestRepository()}
 
             def copy = configurations.detachedConfiguration(
-                dependencies.create(project(":")),
+                dependencies.create(dependencies.project(":")),
                 dependencies.create("org:foo:1.0")
             ).copy()
 

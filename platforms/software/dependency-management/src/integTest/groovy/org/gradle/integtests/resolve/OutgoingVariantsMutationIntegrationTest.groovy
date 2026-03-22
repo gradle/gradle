@@ -38,7 +38,7 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                deps(project)
+                deps(project())
             }
         """
     }

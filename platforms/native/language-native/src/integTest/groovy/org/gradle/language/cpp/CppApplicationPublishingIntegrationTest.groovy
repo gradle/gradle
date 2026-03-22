@@ -180,8 +180,10 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             }
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':greeter')
+                application {
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                 }
             }
             project(':greeter') {
@@ -263,10 +265,10 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             }
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':greeter')
-                }
                 application {
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                     binaries.configureEach {
                         dependencies {
                             if (!optimized) {
@@ -357,9 +359,11 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             }
             project(':app') {
                 apply plugin: 'cpp-application'
-                application.baseName = 'testApp'
-                dependencies {
-                    implementation project(':greeter')
+                application {
+                    baseName = 'testApp'
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                 }
             }
             project(':greeter') {

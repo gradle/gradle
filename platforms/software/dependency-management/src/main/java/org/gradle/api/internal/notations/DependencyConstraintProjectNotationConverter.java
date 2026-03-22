@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
@@ -44,6 +45,11 @@ public class DependencyConstraintProjectNotationConverter implements NotationCon
 
     @Override
     public void convert(Project notation, NotationConvertResult<? super DependencyConstraint> result) throws TypeConversionException {
+        DeprecationLogger.deprecateAction("Using a Project object as a dependency constraint notation")
+            .withAdvice("Please use the project(String) method on DependencyHandler or the createProjectDependency(String) method on DependencyFactory instead.")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "dependency_project_notation")
+            .nagUser();
         result.converted(instantiator.newInstance(DefaultProjectDependencyConstraint.class, factory.create(((ProjectInternal) notation).getOwner())));
     }
 }

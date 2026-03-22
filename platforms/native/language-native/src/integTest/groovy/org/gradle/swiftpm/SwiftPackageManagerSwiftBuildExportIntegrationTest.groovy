@@ -79,12 +79,16 @@ let package = Package(
             subprojects {
                 apply plugin: 'swift-library'
             }
-            dependencies {
-                implementation project(':hello')
+            application {
+                dependencies {
+                    implementation project(':hello')
+                }
             }
             project(':hello') {
-                dependencies {
-                    implementation project(':log')
+                library {
+                    dependencies {
+                        implementation project(':log')
+                    }
                 }
             }
 """
@@ -248,8 +252,10 @@ let package = Package(
             subprojects {
                 apply plugin: 'swift-library'
             }
-            dependencies {
-                implementation project(':lib1')
+            application {
+                dependencies {
+                    implementation project(':lib1')
+                }
             }
             project(':lib1') {
                 library {

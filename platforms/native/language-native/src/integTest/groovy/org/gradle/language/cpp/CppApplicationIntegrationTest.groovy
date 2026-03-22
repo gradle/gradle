@@ -374,8 +374,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -407,9 +409,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 apply plugin: 'cpp-application'
                 application {
                     targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}, machines.os('host-family')]
-                }
-                dependencies {
-                    implementation project(':hello')
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -630,8 +632,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -663,8 +667,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -696,8 +702,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
                 application.binaries.get { it.optimized }.configure {
                     compileTask.get().setMacros(WITH_FEATURE: "true")
@@ -743,15 +751,19 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':deck')
+                application {
+                    dependencies {
+                        implementation project(':deck')
+                    }
                 }
             }
             project(':deck') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
+                library {
+                    dependencies {
+                        api project(':card')
+                        implementation project(':shuffle')
+                    }
                 }
             }
             project(':card') {
@@ -788,16 +800,20 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':deck')
+                application {
+                    dependencies {
+                        implementation project(':deck')
+                    }
                 }
             }
             project(':deck') {
                 apply plugin: 'cpp-library'
-                library.linkage = [Linkage.STATIC]
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
+                library {
+                    linkage = [Linkage.STATIC]
+                    dependencies {
+                        api project(':card')
+                        implementation project(':shuffle')
+                    }
                 }
             }
             project(':card') {
@@ -836,14 +852,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':lib1')
+                application {
+                    dependencies {
+                        implementation project(':lib1')
+                    }
                 }
             }
             project(':lib1') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':lib2')
+                library {
+                    dependencies {
+                        implementation project(':lib2')
+                    }
                 }
             }
             project(':lib2') {
@@ -878,14 +898,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':lib1')
+                application {
+                    dependencies {
+                        implementation project(':lib1')
+                    }
                 }
             }
             project(':lib1') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':lib2')
+                library {
+                    dependencies {
+                        implementation project(':lib2')
+                    }
                 }
             }
             project(':lib2') {
@@ -926,16 +950,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':lib1')
+                application {
+                    dependencies {
+                        implementation project(':lib1')
+                    }
                 }
             }
             project(':lib1') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':lib2')
-                }
                 library {
+                    dependencies {
+                        implementation project(':lib2')
+                    }
                     publicHeaders.from('include')
                 }
             }
@@ -975,19 +1001,19 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':greeter')
-                }
                 application {
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                     source.from '../Sources/main.cpp'
                 }
             }
             project(':greeter') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':logger')
-                }
                 library {
+                    dependencies {
+                        implementation project(':logger')
+                    }
                     source.from '../Sources/greeter.cpp'
                 }
             }
