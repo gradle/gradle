@@ -18,10 +18,12 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
+import org.gradle.api.internal.provider.AbstractCollectionProperty
 import org.gradle.api.provider.HasMultipleValues
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.kotlin.dsl.support.uncheckedCast
 import java.io.File
 
 
@@ -102,4 +104,115 @@ fun <K : Any, V : Any> MapProperty<K, V>.assign(entries: Map<out K, V>?) {
  */
 fun <K : Any, V : Any> MapProperty<K, V>.assign(provider: Provider<out Map<out K, V>>) {
     this.set(provider)
+}
+
+
+/**
+ * Appends a single element to the collection property.
+ */
+@Suppress("UNCHECKED_CAST")
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(element: T) {
+    val prop: AbstractCollectionProperty<T, Collection<T>> = uncheckedCast(this)
+    val result: Provider<out Iterable<T>> = uncheckedCast(prop.plus(element))
+    this.set(result)
+}
+
+
+/**
+ * Appends all elements of the given iterable to the collection property.
+ */
+@Suppress("UNCHECKED_CAST")
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(elements: Iterable<T>) {
+    val prop: AbstractCollectionProperty<T, Collection<T>> = uncheckedCast(this)
+    val result: Provider<out Iterable<T>> = uncheckedCast(prop.plus(elements))
+    this.set(result)
+}
+
+
+/**
+ * Appends all elements of the given array to the collection property.
+ */
+@Suppress("UNCHECKED_CAST")
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(elements: Array<out T>) {
+    val prop: AbstractCollectionProperty<T, Collection<T>> = uncheckedCast(this)
+    val result: Provider<out Iterable<T>> = uncheckedCast(prop.plus(elements))
+    this.set(result)
+}
+
+
+/**
+ * Appends the value of the given provider to the collection property.
+ */
+@JvmName("plusAssignProvider")
+@Suppress("UNCHECKED_CAST")
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(provider: Provider<out T>) {
+    val prop: AbstractCollectionProperty<T, Collection<T>> = uncheckedCast(this)
+    val result: Provider<out Iterable<T>> = uncheckedCast(prop.plus(provider))
+    this.set(result)
+}
+
+
+/**
+ * Appends all elements provided by the given iterable provider to the collection property.
+ */
+@JvmName("plusAssignProviderOfIterable")
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(provider: Provider<out Iterable<T>>) {
+    this.addAll(provider)
+}
+
+
+/**
+ * Removes a single element from the collection property.
+ */
+@Suppress("UNCHECKED_CAST")
+operator fun <T : Any> HasMultipleValues<T>.minusAssign(element: T) {
+    val prop: AbstractCollectionProperty<T, Collection<T>> = uncheckedCast(this)
+    val result: Provider<out Iterable<T>> = uncheckedCast(prop.minus(element))
+    this.set(result)
+}
+
+
+/**
+ * Removes all elements of the given iterable from the collection property.
+ */
+@Suppress("UNCHECKED_CAST")
+operator fun <T : Any> HasMultipleValues<T>.minusAssign(elements: Iterable<T>) {
+    val prop: AbstractCollectionProperty<T, Collection<T>> = uncheckedCast(this)
+    val result: Provider<out Iterable<T>> = uncheckedCast(prop.minus(elements))
+    this.set(result)
+}
+
+
+/**
+ * Removes all elements of the given array from the collection property.
+ */
+@Suppress("UNCHECKED_CAST")
+operator fun <T : Any> HasMultipleValues<T>.minusAssign(elements: Array<out T>) {
+    val prop: AbstractCollectionProperty<T, Collection<T>> = uncheckedCast(this)
+    val result: Provider<out Iterable<T>> = uncheckedCast(prop.minus(elements))
+    this.set(result)
+}
+
+
+/**
+ * Removes the value of the given provider from the collection property.
+ */
+@JvmName("minusAssignProvider")
+@Suppress("UNCHECKED_CAST")
+operator fun <T : Any> HasMultipleValues<T>.minusAssign(provider: Provider<out T>) {
+    val prop: AbstractCollectionProperty<T, Collection<T>> = uncheckedCast(this)
+    val result: Provider<out Iterable<T>> = uncheckedCast(prop.minus(provider))
+    this.set(result)
+}
+
+
+/**
+ * Removes all elements provided by the given iterable provider from the collection property.
+ */
+@JvmName("minusAssignProviderOfIterable")
+@Suppress("UNCHECKED_CAST")
+operator fun <T : Any> HasMultipleValues<T>.minusAssign(provider: Provider<out Iterable<T>>) {
+    val prop: AbstractCollectionProperty<T, Collection<T>> = uncheckedCast(this)
+    val result: Provider<out Iterable<T>> = uncheckedCast(prop.minus(provider))
+    this.set(result)
 }
