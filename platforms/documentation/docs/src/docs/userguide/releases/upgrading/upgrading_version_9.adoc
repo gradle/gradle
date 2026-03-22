@@ -86,6 +86,9 @@ The new script includes the following changes:
 - `& CALL` is now used after invoking the application, which suppresses the "Terminate batch job (Y/N)?" prompt. If your scripts rely on this prompt for flow control, they will need to be updated.
 - `exit /b` has been replaced with `"%COMSPEC%" /c exit`, enabling the use of `&&` and `||` operators when calling the script from another batch file.
 
+Upgrading the wrapper to the new script may cause a one-time error if done from before Gradle 8.14 due to `cmd.exe` re-reading the script after it changes.
+To avoid this, first upgrade to Gradle 8.14 or 9.0.0, then upgrade to 9.5.0.
+
 ==== Upgrade to Kotlin 2.3.20
 
 The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20[Kotlin 2.3.20].

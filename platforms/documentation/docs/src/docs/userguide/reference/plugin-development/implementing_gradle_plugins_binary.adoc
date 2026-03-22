@@ -419,18 +419,10 @@ Currently, the only other parameter the data object stores is a URL.
 
 The following `ServerEnvironment` object fulfills those requirements:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/namedDomainObjectContainer">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .ServerEnvironment.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/common/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[tags=snippet]
 ----
 
 Gradle exposes the factory method
@@ -441,18 +433,10 @@ The created instance of type link:{javadocPath}/org/gradle/api/NamedDomainObject
 
 It's common for a plugin to post-process the captured values within the plugin implementation, e.g., to configure tasks:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/namedDomainObjectContainer">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .ServerEnvironmentPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/common/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[tags=snippet]
 ----
 
 In the example above, a deployment task is created dynamically for every user-configured environment.
@@ -512,7 +496,7 @@ First, introduce a new data object for managing the properties `websiteUrl` and 
 .SiteInfo.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteInfo.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/pluginExtension/common/buildSrc/src/main/java/org/myorg/SiteInfo.java[tags=snippet]
 ----
 
 In the extension, create an instance of the `siteInfo` class and a method to delegate the captured values to the data instance.
@@ -521,18 +505,10 @@ To configure underlying data objects, define a parameter of type link:{javadocPa
 
 The following example demonstrates the use of `Action` in an extension definition:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/pluginExtension">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .SiteExtension.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/pluginExtension/common/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
 ----
 
 [[sec:mapping_extension_properties_to_task_properties_in_binary_plugins]]
@@ -936,24 +912,16 @@ Ideally, the plugin implementation does not need to ask the user for the coordin
 Let’s look at an example of a plugin that downloads files containing data for further processing.
 The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#one-declaring-dependencies,assigning those external dependencies with dependency coordinates>>:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/defaultDependency">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .DataProcessingPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/defaultDependency/common/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[tags=snippet]
 ----
 
 .DataProcessing.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessing.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/defaultDependency/common/buildSrc/src/main/java/org/myorg/DataProcessing.java[tags=snippet]
 ----
 
 This approach is convenient for the end user as there is no need to actively declare a dependency.

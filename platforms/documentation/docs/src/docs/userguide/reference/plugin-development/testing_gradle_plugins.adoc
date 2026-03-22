@@ -253,7 +253,7 @@ The method `DefaultHttpCaller.get(String)` is responsible for calling a given UR
 .HttpResponse.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/main/java/org/myorg/http/HttpResponse.java[]
+include::{snippetsPath}/developingPlugins/testingPlugins/common/url-verifier-plugin/src/main/java/org/myorg/http/HttpResponse.java[]
 ----
 
 The class `HttpResponse` represents a good candidate for a unit test.
@@ -262,7 +262,7 @@ It does not reach out to any other classes nor does it use the Gradle API.
 .HttpResponseTest.groovy
 [source,groovy]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/test/groovy/org/myorg/http/HttpResponseTest.groovy[]
+include::{snippetsPath}/developingPlugins/testingPlugins/common/url-verifier-plugin/src/test/groovy/org/myorg/http/HttpResponseTest.groovy[]
 ----
 
 IMPORTANT: When writing unit tests, it's important to test boundary conditions and various forms of invalid input.
@@ -291,7 +291,7 @@ At the time of executing a test for the class `DefaultHttpCaller`, the runtime e
 .DefaultHttpCaller.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/main/java/org/myorg/http/DefaultHttpCaller.java[]
+include::{snippetsPath}/developingPlugins/testingPlugins/common/url-verifier-plugin/src/main/java/org/myorg/http/DefaultHttpCaller.java[]
 ----
 
 Implementing an integration test for `DefaultHttpCaller` doesn't look much different from the unit test shown in the previous section:
@@ -299,7 +299,7 @@ Implementing an integration test for `DefaultHttpCaller` doesn't look much diffe
 .DefaultHttpCallerIntegrationTest.groovy
 [source,groovy]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/integrationTest/groovy/org/myorg/http/DefaultHttpCallerIntegrationTest.groovy[]
+include::{snippetsPath}/developingPlugins/testingPlugins/common/url-verifier-plugin/src/integrationTest/groovy/org/myorg/http/DefaultHttpCallerIntegrationTest.groovy[]
 ----
 
 [[functional-tests]]
@@ -312,7 +312,7 @@ The `UrlVerifierPlugin` class exposes an extension and a task instance that uses
 .UrlVerifierPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/main/java/org/myorg/UrlVerifierPlugin.java[]
+include::{snippetsPath}/developingPlugins/testingPlugins/common/url-verifier-plugin/src/main/java/org/myorg/UrlVerifierPlugin.java[]
 ----
 
 Every Gradle plugin project should apply the <<java_gradle_plugin.adoc#java_gradle_plugin,plugin development plugin>> to reduce boilerplate code.
@@ -336,7 +336,7 @@ Please see the <<test_kit.adoc#test_kit,TestKit documentation>> to get more fami
 .UrlVerifierPluginFunctionalTest.groovy
 [source,groovy]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/functionalTest/groovy/org/myorg/UrlVerifierPluginFunctionalTest.groovy[]
+include::{snippetsPath}/developingPlugins/testingPlugins/common/url-verifier-plugin/src/functionalTest/groovy/org/myorg/UrlVerifierPluginFunctionalTest.groovy[]
 ----
 
 ==== IDE integration
