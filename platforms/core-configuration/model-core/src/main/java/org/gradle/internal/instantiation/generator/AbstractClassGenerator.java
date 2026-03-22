@@ -163,10 +163,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private GeneratedClassImpl generateUnderLock(Class<?> type) {
-        List<CustomInjectAnnotationPropertyHandler> customAnnotationPropertyHandlers = new ArrayList<>(enabledAnnotations.size());
+        List<InjectAnnotationPropertyHandler> customAnnotationPropertyHandlers = new ArrayList<>(enabledAnnotations.size());
 
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
-        InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
+        InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler(Inject.class);
         LazyGroovySupportTypePropertyHandler lazyGroovySupportTypedHandler = new LazyGroovySupportTypePropertyHandler();
         ManagedPropertiesHandler managedPropertiesHandler = new ManagedPropertiesHandler();
         NamePropertyHandler namePropertyHandler = new NamePropertyHandler();
@@ -182,7 +182,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         handlers.add(namePropertyHandler);
         handlers.add(managedPropertiesHandler);
         for (Class<? extends Annotation> annotation : enabledAnnotations) {
-            customAnnotationPropertyHandlers.add(new CustomInjectAnnotationPropertyHandler(annotation));
+            customAnnotationPropertyHandlers.add(new InjectAnnotationPropertyHandler(annotation));
         }
         handlers.addAll(customAnnotationPropertyHandlers);
         handlers.add(injectionHandler);
@@ -234,7 +234,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         ImmutableList.Builder<Class<? extends Annotation>> annotationsTriggeringServiceInjection = ImmutableList.builder();
-        for (CustomInjectAnnotationPropertyHandler handler : customAnnotationPropertyHandlers) {
+        for (InjectAnnotationPropertyHandler handler : customAnnotationPropertyHandlers) {
             if (handler.isUsed()) {
                 annotationsTriggeringServiceInjection.add(handler.getAnnotation());
             }
@@ -1402,8 +1402,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class InjectAnnotationPropertyHandler extends AbstractInjectedPropertyHandler {
-        public InjectAnnotationPropertyHandler() {
-            super(Inject.class);
+        public InjectAnnotationPropertyHandler(Class<? extends Annotation> annotation) {
+            super(annotation);
         }
 
         @Override
@@ -1415,25 +1415,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 }
                 for (Method setter : property.getOverridableSetters()) {
                     visitor.applyServiceInjectionToSetter(property, setter);
-                }
-            }
-        }
-    }
-
-    private static class CustomInjectAnnotationPropertyHandler extends AbstractInjectedPropertyHandler {
-        public CustomInjectAnnotationPropertyHandler(Class<? extends Annotation> injectAnnotation) {
-            super(injectAnnotation);
-        }
-
-        @Override
-        public void applyTo(ClassGenerationVisitor visitor) {
-            for (PropertyMetadata property : serviceInjectionProperties) {
-                visitor.applyServiceInjectionToProperty(property);
-                for (MethodMetadata getter : property.getOverridableGetters()) {
-                    visitor.applyServiceInjectionToGetter(property, annotation, getter);
-                }
-                for (Method setter : property.getOverridableSetters()) {
-                    visitor.applyServiceInjectionToSetter(property, annotation, setter);
                 }
             }
         }
@@ -1517,10 +1498,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyServiceInjectionToGetter(PropertyMetadata property, MethodMetadata getter);
 
         void applyServiceInjectionToSetter(PropertyMetadata property, Method setter);
-
-        void applyServiceInjectionToGetter(PropertyMetadata property, Class<? extends Annotation> annotation, MethodMetadata getter);
-
-        void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter);
 
         void applyManagedStateToProperty(PropertyMetadata property);
 

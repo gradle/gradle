@@ -47,7 +47,6 @@ import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Map;
@@ -231,11 +230,6 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
                 return service;
             }
             throw new UnknownServiceException(serviceType, "Service of type " + serviceType + " is not available for repository metadata rules. Available services: " + availableServicesDescription() + ".");
-        }
-
-        @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            throw new UnknownServiceException(serviceType, "Service of type " + serviceType + " annotated with @" + annotatedWith.getSimpleName() + " is not available for repository metadata rules. Available services: " + availableServicesDescription() + ".");
         }
 
         private String availableServicesDescription() {
