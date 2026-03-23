@@ -33,8 +33,6 @@ class BuildLayoutParametersTest extends Specification {
     @Rule SetSystemProperties props = new SetSystemProperties()
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
-    @Requires(UnitTestPreconditions.NotEC2Agent)
-    @Issue('https://github.com/gradle/gradle-private/issues/2876')
     def "has reasonable defaults"() {
         expect:
         def params = new BuildLayoutParameters()

@@ -35,7 +35,6 @@ class LayoutCommandLineConverterTest extends Specification {
         converter.convert(Arrays.asList(args), new BuildLayoutParameters())
     }
 
-    @Requires(UnitTestPreconditions.NotEC2Agent)
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
     def "has reasonable defaults"() {
         expect:
