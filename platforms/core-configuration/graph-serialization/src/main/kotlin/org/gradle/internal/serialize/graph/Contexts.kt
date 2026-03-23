@@ -389,6 +389,7 @@ abstract class AbstractIsolateContext<T>(
         get() = currentProblemsListener
 
     override fun onProblem(problem: PropertyProblem) {
+        // TODO:isolated where does this violation belong should it be interrupting by default in IP?
         currentProblemsListener.onProblem(problem)
     }
 

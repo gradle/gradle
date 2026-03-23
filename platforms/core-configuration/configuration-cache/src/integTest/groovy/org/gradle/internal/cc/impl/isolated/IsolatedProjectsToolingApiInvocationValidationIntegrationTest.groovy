@@ -29,7 +29,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
@@ -40,7 +40,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         }
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
@@ -62,7 +62,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
@@ -73,7 +73,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         }
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:

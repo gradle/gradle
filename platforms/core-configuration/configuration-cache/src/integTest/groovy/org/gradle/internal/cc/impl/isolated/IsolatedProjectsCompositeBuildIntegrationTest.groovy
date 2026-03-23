@@ -58,7 +58,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> : -> :plugins-a.")
@@ -73,7 +73,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: : -> :library -> :.")
@@ -87,7 +87,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> : -> :plugins-a.")
@@ -110,7 +110,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :plugins-b -> :plugins-c -> :plugins-a.")
@@ -133,7 +133,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-b -> :library-c -> :plugins-a.")
@@ -160,7 +160,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-c -> :library-b -> :plugins-a.")
@@ -184,7 +184,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-b -> :library-c -> :plugins-a.")
@@ -209,7 +209,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :build-logic -> :build-logic.")

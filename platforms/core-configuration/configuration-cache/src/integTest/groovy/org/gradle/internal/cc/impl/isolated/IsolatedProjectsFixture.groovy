@@ -98,6 +98,23 @@ class IsolatedProjectsFixture {
         assertModelsQueried(details)
     }
 
+    void assertProjectConfigurationFailedWithProblems(@DelegatesTo(StateDiscardedWithProblemsDetails) Closure closure) {
+        def details = new StateDiscardedWithProblemsDetails()
+        // Expect to fail before the Store phase
+        details.hasStoreFailure = false
+        details.loadsAfterStore = false
+        details.hasLoadFailure = false
+        details.reportedOutsideBuildFailure = true
+        closure.delegate = details
+        closure()
+
+        configurationCache.assertStateDiscardedWithoutStoring(details, details)
+
+        assertHasWarningThatIncubatingFeatureUsed()
+        assertProjectsConfigured(details)
+        assertModelsQueried(details)
+    }
+
     /**
      * Asserts that the cache entry was written but discarded due to some problems.
      *

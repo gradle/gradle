@@ -29,8 +29,8 @@ import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.ExecutionResult
+import org.gradle.internal.configuration.problems.IsolatedProjectsViolationsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
-import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.util.Path
 import java.util.Objects
@@ -40,7 +40,7 @@ internal
 class CrossProjectConfigurationReportingTaskExecutionGraph(
     taskGraph: TaskExecutionGraphInternal,
     private val referrerProject: ProjectInternal,
-    private val problems: ProblemsListener,
+    private val violationsListener: IsolatedProjectsViolationsListener,
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val problemFactory: ProblemFactory
@@ -167,7 +167,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
             // As the exception message is not used for grouping, we can safely add the exact task name to it:
             message.capitalized() + if (requestPath != null) "; tried to access '$requestPath'" else '"'
         }.build()
-        problems.onProblem(problem)
+        violationsListener.onViolation(problem)
     }
 
     private

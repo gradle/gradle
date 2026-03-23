@@ -67,7 +67,7 @@ class ConfigurationCacheFixture {
     }
 
     void assertStateStored(HasBuildActions details) {
-        assertHasStoreReason(details)
+        assertHasCacheMissReason(details)
 
         assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsAfterStore)
 
@@ -89,7 +89,7 @@ class ConfigurationCacheFixture {
     }
 
     void assertStateStoredWithProblems(HasBuildActions details, HasProblems problemDetails) {
-        assertHasStoreReason(details)
+        assertHasCacheMissReason(details)
 
         assertStateStored(details)
 
@@ -113,7 +113,7 @@ class ConfigurationCacheFixture {
     }
 
     void assertStateStoredAndDiscarded(HasBuildActions details, HasProblems problemDetails) {
-        assertHasStoreReason(details)
+        assertHasCacheMissReason(details)
 
         assert details.runsTasks || details.createsModels
         if (details.runsTasks) {
@@ -145,6 +145,28 @@ class ConfigurationCacheFixture {
             configurationCacheBuildOperations.assertNoModelOperations()
         }
 
+        assertCacheEntryMessage(details, problemDetails)
+    }
+
+    void assertStateDiscardedWithoutStoring(HasBuildActions details, HasProblems problemDetails) {
+        assertHasCacheMissReason(details)
+
+        assert details.runsTasks || details.createsModels
+
+        // because we don't even get to the Store phase:
+        assert !details.hasStoreFailure
+        assert !details.loadsAfterStore
+
+        if (details.runsTasks) {
+            configurationCacheBuildOperations.assertNoConfigurationCache()
+        } else {
+            configurationCacheBuildOperations.assertNoWorkGraphOperations()
+        }
+
+        assertCacheEntryMessage(details, problemDetails)
+    }
+
+    private void assertCacheEntryMessage(HasBuildActions details, HasProblems problemDetails) {
         def message = "Configuration cache entry ${details.storeAction}"
         boolean isFailure = spec.result instanceof ExecutionFailure
         if (isFailure) {
@@ -318,7 +340,7 @@ class ConfigurationCacheFixture {
         spec.outputContains("Reusing configuration cache.")
     }
 
-    private void assertHasStoreReason(HasBuildActions details) {
+    private void assertHasCacheMissReason(HasBuildActions details) {
         if (quietLogging) {
             // Runs in quiet mode, and does not log anything
             return
