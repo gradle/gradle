@@ -431,7 +431,6 @@ public abstract class InitBuild extends DefaultTask {
 
     private UserInputHandler getEffectiveInputHandler() {
         if (isNonInteractive || getUseDefaults().get()) {
-            System.out.println("NON INTERACTIVE INIT");
             return new NonInteractiveUserInputHandler();
         }
 
