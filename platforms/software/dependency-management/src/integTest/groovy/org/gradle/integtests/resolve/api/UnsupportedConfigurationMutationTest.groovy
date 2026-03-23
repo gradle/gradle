@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Issue
@@ -152,7 +153,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot mutate the resolution strategy of configuration ':a' after the configuration was resolved. After a configuration has been observed, it should not be modified.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses dependencies API")
+    @UnsupportedWithConfigurationCache(because = "task uses dependencies API at execution time")
     def "does not allow changing dependencies of a configuration that has been resolved for task dependencies"() {
         mavenRepo.module("org.utils", "extra", '1.5').publish()
 
