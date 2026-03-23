@@ -28,9 +28,14 @@ import org.gradle.api.plugins.PluginAware
 import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
 import org.gradle.kotlin.dsl.ScriptHandlerScope
 import org.gradle.plugin.use.PluginDependenciesSpec
+import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.defaultImports
+import kotlin.script.experimental.api.implicitReceivers
 
 
-@ImplicitReceiver(Project::class)
+@KotlinScript(compilationConfiguration = CompiledKotlinBuildScriptCompilationConfiguration::class)
+@ImplicitReceiver(Project::class) // TODO: remove
 open class CompiledKotlinBuildScript(
     private val host: KotlinScriptHost<Project>
 ) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)), PluginAware by host.target {
@@ -60,11 +65,20 @@ open class CompiledKotlinBuildScript(
         invalidPluginsCall()
 }
 
+object CompiledKotlinBuildScriptCompilationConfiguration : ScriptCompilationConfiguration(
+    {
+        implicitReceivers(Project::class)
+        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
+    })
+
+
+
 
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
-@ImplicitReceiver(Project::class)
+@KotlinScript(compilationConfiguration = CompiledKotlinBuildscriptBlockCompilationConfiguration::class)
+@ImplicitReceiver(Project::class) // TODO: remove
 open class CompiledKotlinBuildscriptBlock(
     private val host: KotlinScriptHost<Project>
 ) : CompiledKotlinBuildScript(host) {
@@ -79,11 +93,20 @@ open class CompiledKotlinBuildscriptBlock(
     }
 }
 
+object CompiledKotlinBuildscriptBlockCompilationConfiguration : ScriptCompilationConfiguration(
+    {
+        implicitReceivers(Project::class)
+        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
+    })
+
+
+
 
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Settings.
  */
-@ImplicitReceiver(Settings::class)
+@KotlinScript(compilationConfiguration = CompiledKotlinSettingsBuildscriptBlockCompilationConfiguration::class)
+@ImplicitReceiver(Settings::class) // TODO: remove
 open class CompiledKotlinSettingsBuildscriptBlock(
     host: KotlinScriptHost<Settings>
 ) : CompiledKotlinSettingsScript(host) {
@@ -98,8 +121,16 @@ open class CompiledKotlinSettingsBuildscriptBlock(
     }
 }
 
+object CompiledKotlinSettingsBuildscriptBlockCompilationConfiguration : ScriptCompilationConfiguration(
+    {
+        implicitReceivers(Settings::class)
+        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
+    })
 
-@ImplicitReceiver(Gradle::class)
+
+
+@KotlinScript(compilationConfiguration = CompiledKotlinInitScriptCompilationConfiguration::class)
+@ImplicitReceiver(Gradle::class) // TODO: remove
 open class CompiledKotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
 ) : DefaultKotlinScript(InitScriptHost(host)), PluginAware by PluginAwareScript(host) {
@@ -118,11 +149,20 @@ open class CompiledKotlinInitScript(
     }
 }
 
+object CompiledKotlinInitScriptCompilationConfiguration : ScriptCompilationConfiguration(
+    {
+        implicitReceivers(Gradle::class)
+        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
+    })
+
+
+
 
 /**
  * Base class for `initscript` block evaluation on scripts targeting Gradle.
  */
-@ImplicitReceiver(Gradle::class)
+@KotlinScript(compilationConfiguration = CompiledKotlinInitscriptBlockCompilationConfiguration::class)
+@ImplicitReceiver(Gradle::class) // TODO: remove
 open class CompiledKotlinInitscriptBlock(
     host: KotlinScriptHost<Gradle>
 ) : CompiledKotlinInitScript(host) {
@@ -134,6 +174,14 @@ open class CompiledKotlinInitscriptBlock(
         ScriptHandlerScope(initscript).block()
     }
 }
+
+object CompiledKotlinInitscriptBlockCompilationConfiguration : ScriptCompilationConfiguration(
+    {
+        implicitReceivers(Gradle::class)
+        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
+    })
+
+
 
 
 internal

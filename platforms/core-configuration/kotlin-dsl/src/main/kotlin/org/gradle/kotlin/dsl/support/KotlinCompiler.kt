@@ -223,10 +223,11 @@ fun btaCompileKotlinScriptToDirectory(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
     scriptFile: File,
-    classPath: List<File>,
     template: KClass<out Any>,
+    classPath: List<File>,
     logger: Logger,
-): CompilationResult {
+    pathTranslation: (String) -> String
+): String {
     fun configureClasspath(arguments: JvmCompilerArguments.Builder, classPath: List<File>) {
         arguments[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
         arguments[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath. // TODO: is it really covered by NO_STDLIB?
@@ -256,7 +257,9 @@ fun btaCompileKotlinScriptToDirectory(
         )
     }
 
-    return btaCompiler.compile(listOf(Path(scriptFile.path)), outputDirectory.toPath(), logger) {
+    println("pathTranslation $pathTranslation ignored for now") // TODO
+
+    val compilationResult = btaCompiler.compile(listOf(Path(scriptFile.path)), outputDirectory.toPath(), logger) {
         // TODO: put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         it[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
         it[X_USE_FIR_LT] = false
@@ -286,6 +289,9 @@ fun btaCompileKotlinScriptToDirectory(
 
         it[SCRIPT_TEMPLATES] = arrayOf(template.jvmName)
     }
+    println("compilationResult $compilationResult ignored for now") // TODO
+
+    return NameUtils.getScriptNameForFile(scriptFile.name).asString()
 }
 
 
