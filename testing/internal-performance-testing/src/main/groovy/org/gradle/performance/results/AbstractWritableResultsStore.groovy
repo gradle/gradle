@@ -71,12 +71,15 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
      * - The old single-query form used one large OR predicate:
      *   {@code (... channel like ? ... OR teamcitybuildid in (...))}.
      * - On MySQL, that shape can trigger unstable plans (e.g. broad startTime scans).
-     * - Splitting into two selective branches and joining with {@code UNION DISTINCT}
+     * - Splitting into selective branches and joining with {@code UNION DISTINCT}
      *   gives the optimizer a more predictable path.
      *
      * Query shape produced:
-     * - Channel branch (only when {@code channelPatterns} is non-empty):
-     *   {@code select <columns> from testExecution ... and (channel like ? or ...)}
+     * - One branch per channel pattern (when {@code channelPatterns} is non-empty):
+     *   {@code select <columns> from testExecution ... and channel like ?}
+     *   Each pattern gets its own branch so MySQL can use the composite index
+     *   (testClass, testId, testProject, channel, startTime) instead of scanning
+     *   on a single-column index when confronted with OR.
      * - Build ID branch (only when {@code teamcityBuildIds} is non-empty):
      *   {@code select <columns> from testExecution ... and teamcitybuildid in (?, ...)}
      * - Branches are combined using {@code union distinct}.
@@ -84,16 +87,25 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
      * Parameter binding contract:
      * - This method only generates SQL text.
      * - Parameter order is defined by {@link #bindHistoryQueryParams}:
-     *   1) channel branch fixed params + channel patterns
-     *   2) build-id branch fixed params + build IDs
-     *   3) any outer query params (e.g. LIMIT) are bound by callers.
+     *   1) per channel branch: testClass, testId, testProject, startTime, channelPattern
+     *   2) build-id branch: testClass, testId, testProject, startTime, build IDs
+     *   3) limit (bound by callers)
      *
      * Edge cases:
      * - If both lists are empty, returns a no-op query
      *   ({@code select ... from testExecution where 1 = 0}) to keep SQL valid.
      */
     protected static String createHistoryFilterUnionSql(String selectColumns, List<String> channelPatterns, List<String> teamcityBuildIds) {
-        String baseSqlTemplate = """
+        String channelBranchTemplate = """
+            select %s
+            from testExecution
+            where testClass = ?
+              and testId = ?
+              and testProject = ?
+              and startTime >= ?
+              and channel like ?
+            """
+        String buildIdBranchTemplate = """
             select %s
             from testExecution
             where testClass = ?
@@ -102,13 +114,13 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
               and startTime >= ?
               and %s
             """
-        List<String> branches = new ArrayList<>(2)
-        if (!channelPatterns.isEmpty()) {
-            branches.add(baseSqlTemplate.formatted(selectColumns, "(${channelPatternQueryFor(channelPatterns)})"))
+        List<String> branches = new ArrayList<>(channelPatterns.size() + (teamcityBuildIds.isEmpty() ? 0 : 1))
+        for (int i = 0; i < channelPatterns.size(); i++) {
+            branches.add(channelBranchTemplate.formatted(selectColumns))
         }
         if (!teamcityBuildIds.isEmpty()) {
             String teamCityBuildIdInClause = "teamcitybuildid in (${String.join(',', Collections.nCopies(teamcityBuildIds.size(), '?'))})"
-            branches.add(baseSqlTemplate.formatted(selectColumns, teamCityBuildIdInClause))
+            branches.add(buildIdBranchTemplate.formatted(selectColumns, teamCityBuildIdInClause))
         }
         if (branches.isEmpty()) {
             return """
@@ -129,14 +141,12 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
         int mostRecentN
     ) throws SQLException {
         int idx = 0
-        if (!channelPatterns.isEmpty()) {
+        for (String channelPattern : channelPatterns) {
             statement.setString(++idx, experiment.getScenario().getClassName())
             statement.setString(++idx, experiment.getScenario().getTestName())
             statement.setString(++idx, experiment.getTestProject())
             statement.setTimestamp(++idx, minDate)
-            for (String channelPattern : channelPatterns) {
-                statement.setString(++idx, channelPattern)
-            }
+            statement.setString(++idx, channelPattern)
         }
         if (!teamcityBuildIds.isEmpty()) {
             statement.setString(++idx, experiment.getScenario().getClassName())
@@ -157,13 +167,21 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
         List<String> teamcityBuildIds,
         int mostRecentN
     ) {
-        List<Object> params = new ArrayList<>(5 + channelPatterns.size() + teamcityBuildIds.size())
-        params.add(experiment.getScenario().getClassName())
-        params.add(experiment.getScenario().getTestName())
-        params.add(experiment.getTestProject())
-        params.add(minDate)
-        params.addAll(channelPatterns)
-        params.addAll(teamcityBuildIds)
+        List<Object> params = new ArrayList<>()
+        for (String channelPattern : channelPatterns) {
+            params.add(experiment.getScenario().getClassName())
+            params.add(experiment.getScenario().getTestName())
+            params.add(experiment.getTestProject())
+            params.add(minDate)
+            params.add(channelPattern)
+        }
+        if (!teamcityBuildIds.isEmpty()) {
+            params.add(experiment.getScenario().getClassName())
+            params.add(experiment.getScenario().getTestName())
+            params.add(experiment.getTestProject())
+            params.add(minDate)
+            params.addAll(teamcityBuildIds)
+        }
         params.add(mostRecentN)
         return params
     }
