@@ -24,7 +24,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserQuestions;
@@ -99,7 +98,7 @@ public abstract class InitBuild extends DefaultTask {
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
-    private final boolean isNonInteractive = getServices().get(StartParameterInternal.class).isNonInteractive();
+    private final boolean isNonInteractive = getProject().getGradle().getStartParameter().isNonInteractive();
 
     /**
      * Should default values automatically be accepted for options that are not configured explicitly?
