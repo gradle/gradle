@@ -129,7 +129,7 @@ public class WorkValidationException extends GradleException {
             if (explanation != null) {
                 formatter.node(explanation);
             }
-            return new WorkValidationException(formatter.toString(), ImmutableList.copyOf(problems));
+            return new WorkValidationException(summary, ImmutableList.copyOf(problems));
         }
     }
 }

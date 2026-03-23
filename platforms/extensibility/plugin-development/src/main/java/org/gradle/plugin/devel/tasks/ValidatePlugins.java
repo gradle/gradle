@@ -23,7 +23,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
@@ -169,21 +168,17 @@ public abstract class ValidatePlugins extends DefaultTask {
                         annotateTaskPropertiesDoc(),
                         messages.collect(joining()));
                 } else {
-                    reportProblems(problems);
-                    throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
+
+                    ProblemReporter reporter = getServices().get(Problems.class).getReporter();
+                    throw reporter.throwing(WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
-                        .getWithExplanation(annotateTaskPropertiesDoc());
+                        .getWithExplanation(annotateTaskPropertiesDoc()), problems);
                 }
             } else {
                 getLogger().warn("Plugin validation finished with warnings:{}",
                     messages.collect(joining()));
             }
         }
-    }
-
-    private void reportProblems(List<? extends Problem> problems) {
-        ProblemReporter reporter = getServices().get(Problems.class).getReporter();
-        problems.forEach(reporter::report);
     }
 
     private String annotateTaskPropertiesDoc() {

@@ -23,6 +23,7 @@ import org.gradle.api.problems.ProblemId.create
 import org.gradle.api.problems.ProblemSpec
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup.scripts
+import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.evaluation.SchemaIssue
@@ -34,7 +35,9 @@ internal fun schemaBuildingFailuresAsProblems(
     stageFailure: NotEvaluated.StageFailure.SchemaBuildingFailures,
     problems: InternalProblems
 ): List<Problem> = stageFailure.failures.map { failure ->
-    problems.reporter.create(schemaBuildingFailureProblemId(failure)) { problem ->
+    (problems.reporter as InternalProblemReporter).internalCreate { problem ->
+        problem.id(schemaBuildingFailureProblemId(failure))
+        // TODO should problem with problems.throwing to get the proper problem severity
         problem.severity(Severity.ERROR)
         problem.details(SchemaFailureMessageFormatter.failureMessage(failure))
         problem.solutionFor(failure)

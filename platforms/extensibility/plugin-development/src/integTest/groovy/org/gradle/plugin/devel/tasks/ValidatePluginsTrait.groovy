@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.util.internal.TextUtil.getPluralEnding
-import static org.hamcrest.Matchers.containsString
 
 @SelfType(AbstractIntegrationSpec)
 trait ValidatePluginsTrait implements CommonPluginValidationTrait, ValidationMessageChecker {
@@ -70,8 +69,8 @@ trait ValidatePluginsTrait implements CommonPluginValidationTrait, ValidationMes
 
         failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${getPluralEnding(messages)}"
         messages.forEach { problem ->
-            String indentedMessage = problem.message.replaceAll('\n', '\n    ').trim()
-            failure.assertThatCause(containsString("$problem.severity: $indentedMessage"))
+            String indentedMessage = problem.message.replaceAll('\n', '\n      ').trim()
+            failure.assertHasErrorOutput(indentedMessage)
         }
 
         // TODO (donat) do probably don't want to have this, as the explicit problem assertions are preferred

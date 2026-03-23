@@ -18,8 +18,11 @@ package org.gradle.problems.internal.rendering;
 
 
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Collection;
@@ -67,7 +70,7 @@ public abstract class ProblemWriter {
      * Creates a problem writer that writes problems in groups based on their problem id.
      * @return the problem writer
      */
-    public static ProblemWriter grouping() {
+    public static GroupingProblemWriter grouping() {
         return new GroupingProblemWriter(
             ProblemWriterRegistry.INSTANCE,
             new RenderOptions("", false, false));
@@ -107,7 +110,7 @@ public abstract class ProblemWriter {
     /**
      * Writes a collection of problems, grouping them by problem id.
      */
-    private static class GroupingProblemWriter extends ProblemWriter {
+    public static class GroupingProblemWriter extends ProblemWriter {
 
         private final ProblemWriterRegistry problemWriterRegistry;
         private final RenderOptions options;
@@ -125,6 +128,32 @@ public abstract class ProblemWriter {
         @Override
         public void write(Collection<InternalProblem> problems, Writer writer) {
             write(problems, new PrintWriter(writer));
+        }
+
+        public void write(Throwable t, Collection<InternalProblem> problems, Writer writer) {
+            // TODO cleanup
+            boolean isValidationBuildFailure = problems.stream().allMatch(p -> {
+                ProblemId problemId = p.getDefinition().getId();
+                return problemId.getGroup().equals(GradleCoreProblemGroup.validation().type()) ||
+                    problemId.getGroup().equals(GradleCoreProblemGroup.validation().property());
+            });
+
+            if (isValidationBuildFailure) {
+                try {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node(t.getMessage());
+                    formatter.startChildren();
+                    for (InternalProblem problem : problems) {
+                        formatter.node(ValidationWriter.renderMinimalInformationAbout(problem));
+                    }
+                    formatter.endChildren();
+                    writer.write(formatter.toString());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                write(problems, writer);
+            }
         }
 
         private void write(Collection<InternalProblem> problems, PrintWriter output) {

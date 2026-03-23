@@ -466,7 +466,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                     builder.append(System.lineSeparator());
                 }
                 StringWriter problemWriter = new StringWriter();
-                ProblemWriter.grouping().write(problems, problemWriter);
+                ProblemWriter.grouping().write(failure.getOriginal(), problems, problemWriter);
                 builder.append(problemWriter);
 
                 // Workaround to keep the original behavior for Java compilation. We should render counters for all problems in the future.
@@ -523,7 +523,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
 
         void appendDetails() {
-            renderStyledError(failure.withoutProblems(), details);
+            renderStyledError(failure, details);
         }
 
         void renderStackTrace() {

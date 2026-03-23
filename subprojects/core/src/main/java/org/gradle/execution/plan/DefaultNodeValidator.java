@@ -89,9 +89,9 @@ public class DefaultNodeValidator implements NodeValidator {
 
         Set<String> uniqueErrors = getUniqueErrors(problems);
         if (!uniqueErrors.isEmpty()) {
-            throw WorkValidationException.forProblems(uniqueErrors)
+            throw  problemsService.getReporter().throwing(WorkValidationException.forProblems(uniqueErrors)
                 .withSummaryForContext(task.toString(), validationContext)
-                .get();
+                .get(), problems);
         }
     }
 
