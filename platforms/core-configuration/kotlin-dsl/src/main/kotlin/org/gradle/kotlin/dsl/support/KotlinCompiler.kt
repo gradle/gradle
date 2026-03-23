@@ -116,7 +116,7 @@ fun compileKotlinScriptToDirectory(
     template: KClass<out Any>,
     classPath: List<File>,
     logger: Logger,
-    pathTranslation: (String) -> String
+    @Suppress("unused") pathTranslation: (String) -> String // TODO: path translation ignored for now
 ): String {
     fun configureClasspath(arguments: JvmCompilerArguments.Builder, classPath: List<File>) {
         arguments[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
@@ -147,9 +147,7 @@ fun compileKotlinScriptToDirectory(
         )
     }
 
-    println("pathTranslation $pathTranslation ignored for now") // TODO
-
-    val compilationResult = compiler.compile(listOf(Path(scriptFile.path)), outputDirectory.toPath(), logger) {
+    compiler.compile(listOf(Path(scriptFile.path)), outputDirectory.toPath(), logger) {
         // TODO: put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         it[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
         it[X_USE_FIR_LT] = false
@@ -178,8 +176,7 @@ fun compileKotlinScriptToDirectory(
         configurePlugins(it, classPath)
 
         it[SCRIPT_TEMPLATES] = arrayOf(template.jvmName)
-    }
-    println("compilationResult $compilationResult ignored for now") // TODO
+    } // TODO: compilation result ignored
 
     return NameUtils.getScriptNameForFile(scriptFile.name).asString()
 }

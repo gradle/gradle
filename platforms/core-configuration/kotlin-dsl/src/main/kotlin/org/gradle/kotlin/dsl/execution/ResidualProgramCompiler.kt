@@ -89,7 +89,7 @@ class ResidualProgramCompiler(
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
     private val programTarget: ProgramTarget,
-    private val implicitImports: List<String> = emptyList(),
+    @Suppress("unused") private val implicitImports: List<String> = emptyList(), // TODO: would be good to use in the templates
     private val logger: Logger = interpreterLogger,
     private val temporaryFileProvider: TemporaryFileProvider,
     private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
@@ -766,11 +766,12 @@ class ResidualProgramCompiler(
     val pluginsScriptTemplate
         get() = CompiledKotlinPluginsBlock::class
 
-    private val buildscriptWithPluginsScriptTemplate = when (programTarget) {
-        ProgramTarget.Project -> CompiledKotlinBuildscriptAndPluginsBlock::class
-        ProgramTarget.Settings -> CompiledKotlinSettingsPluginManagementBlock::class
-        else -> TODO("Unsupported program target: `$programTarget`")
-    }
+    private val buildscriptWithPluginsScriptTemplate
+        get() = when (programTarget) {
+            ProgramTarget.Project -> CompiledKotlinBuildscriptAndPluginsBlock::class
+            ProgramTarget.Settings -> CompiledKotlinSettingsPluginManagementBlock::class
+            else -> TODO("Unsupported program target: `$programTarget`")
+        }
 
     private
     fun implicitReceiverOf(template: KClass<*>): KClass<*>? =

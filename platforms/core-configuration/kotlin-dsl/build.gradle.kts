@@ -85,13 +85,10 @@ dependencies {
     api(libs.kotlinScriptingCommon) {
         isTransitive = false
     }
-    implementation(libs.kotlinScriptingJvm) {
-        isTransitive = false
-    }
     implementation(libs.kotlinScriptingCompilerEmbeddable) {
         isTransitive = false
     }
-    api(libs.kotlinScriptingCompilerImplEmbeddable) {
+    implementation(libs.kotlinScriptingCompilerImplEmbeddable) {
         isTransitive = false
     }
     implementation(libs.kotlinSamWithReceiverCompilerPlugin) {
@@ -105,6 +102,9 @@ dependencies {
     }
 
     runtimeOnly(libs.kotlinBuildToolsImpl) {
+        isTransitive = false
+    }
+    runtimeOnly(libs.kotlinScriptingJvm) {
         isTransitive = false
     }
 
