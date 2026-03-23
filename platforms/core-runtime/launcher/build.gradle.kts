@@ -54,6 +54,7 @@ dependencies {
     implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
     implementation(projects.processServices)
+    implementation(projects.processServicesBase)
     implementation(projects.classloaders)
     implementation(projects.collections)
     implementation(projects.enterpriseOperations)

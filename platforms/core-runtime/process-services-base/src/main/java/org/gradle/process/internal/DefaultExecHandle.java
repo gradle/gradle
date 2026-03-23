@@ -30,6 +30,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
+import org.gradle.process.internal.streams.StreamsHandler;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;

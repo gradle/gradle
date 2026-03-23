@@ -17,7 +17,6 @@
 package org.gradle.process.internal.streams;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.process.internal.StreamsHandler;
 
 import java.io.IOException;
 import java.util.concurrent.Executor;

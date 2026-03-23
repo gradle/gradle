@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.io.CharStreams;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.JavaVersion;
@@ -23,9 +24,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
-
-import com.google.common.io.CharStreams;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.process.internal.streams.StreamsHandler;
+
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
