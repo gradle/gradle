@@ -80,7 +80,7 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
 
         then:
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
-Configuration legacy (l)
+Configuration legacy (l) (n)
 --------------------------------------------------
 My custom legacy configuration""")
 
@@ -105,15 +105,45 @@ My custom legacy configuration""")
 
         then:
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
-Configuration custom
+Configuration custom (n)
 --------------------------------------------------
-My custom configuration
-""")
+My custom configuration""")
 
         and:
         doesNotHaveLegacyLegend()
         doesNotHaveIncubatingLegend()
+        hasConfigurationsLackingAttributesLegend()
         doesNotPromptForRerunToFindMoreConfigurations()
+    }
+
+    def "if resolvable configuration without attributes and legacy configuration present, task reports resolvable config and does not prompt for legacy"() {
+        given:
+        buildFile << """
+            configurations.create("custom") {
+                description = "My custom configuration"
+                assert canBeResolved
+                canBeConsumed = false
+            }
+            configurations.create("legacy") {
+                description = "My legacy configuration"
+                assert canBeResolved
+                assert canBeConsumed
+            }
+        """
+
+        when:
+        succeeds ':resolvableConfigurations'
+
+        then:
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
+Configuration custom (n)
+--------------------------------------------------
+My custom configuration""")
+
+        and:
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
+        hasConfigurationsLackingAttributesLegend()
     }
 
     def "if single resolvable configuration present with attributes, task reports it and them"() {
@@ -357,7 +387,7 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration archiveLegacy (l)
+Configuration archiveLegacy (l) (n)
 --------------------------------------------------
 Example legacy configuration.
 
@@ -440,6 +470,7 @@ Extended Configurations
 
         and:
         hasLegacyLegend()
+        hasConfigurationsLackingAttributesLegend()
     }
 
     def "specifying a missing config with no configs produces empty report"() {
@@ -712,10 +743,16 @@ The following Attributes have disambiguation rules defined.
     def "specifying --recursive includes transitively extended configurations"() {
         given:
         buildFile << """
+            def flavor = Attribute.of('flavor', String)
+
             def base = configurations.create("base") {
                 description = "Base configuration"
                 assert canBeResolved
                 canBeConsumed = false
+
+                attributes {
+                    attribute(flavor, 'vanilla')
+                }
             }
 
             def mid = configurations.create("mid") {
@@ -723,6 +760,10 @@ The following Attributes have disambiguation rules defined.
                 assert canBeResolved
                 canBeConsumed = false
                 extendsFrom base
+
+                attributes {
+                    attribute(flavor, 'vanilla')
+                }
             }
 
             def leaf = configurations.create("leaf") {
@@ -730,6 +771,10 @@ The following Attributes have disambiguation rules defined.
                 assert canBeResolved
                 canBeConsumed = false
                 extendsFrom mid
+
+                attributes {
+                    attribute(flavor, 'vanilla')
+                }
             }
         """
 
@@ -740,11 +785,16 @@ The following Attributes have disambiguation rules defined.
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Base configuration
 
+Attributes
+    - flavor = vanilla
+
 --------------------------------------------------
 Configuration leaf
 --------------------------------------------------
 Leaf configuration
 
+Attributes
+    - flavor = vanilla
 Extended Configurations
     - base (t)
     - mid
@@ -754,6 +804,8 @@ Configuration mid
 --------------------------------------------------
 Mid configuration
 
+Attributes
+    - flavor = vanilla
 Extended Configurations
     - base""")
 
@@ -764,10 +816,16 @@ Extended Configurations
     def "not specifying --recursive does not includes transitively extended configurations"() {
         given:
         buildFile << """
+            def flavor = Attribute.of('flavor', String)
+
             def base = configurations.create("base") {
                 description = "Base configuration"
                 assert canBeResolved
                 canBeConsumed = false
+
+                attributes {
+                    attribute(flavor, 'vanilla')
+                }
             }
 
             def mid = configurations.create("mid") {
@@ -775,6 +833,10 @@ Extended Configurations
                 assert canBeResolved
                 canBeConsumed = false
                 extendsFrom base
+
+                attributes {
+                    attribute(flavor, 'vanilla')
+                }
             }
 
             def leaf = configurations.create("leaf") {
@@ -782,6 +844,10 @@ Extended Configurations
                 assert canBeResolved
                 canBeConsumed = false
                 extendsFrom mid
+
+                attributes {
+                    attribute(flavor, 'vanilla')
+                }
             }
         """
 
@@ -792,11 +858,16 @@ Extended Configurations
         result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
 Base configuration
 
+Attributes
+    - flavor = vanilla
+
 --------------------------------------------------
 Configuration leaf
 --------------------------------------------------
 Leaf configuration
 
+Attributes
+    - flavor = vanilla
 Extended Configurations
     - mid
 
@@ -805,6 +876,8 @@ Configuration mid
 --------------------------------------------------
 Mid configuration
 
+Attributes
+    - flavor = vanilla
 Extended Configurations
     - base""")
 
@@ -815,10 +888,16 @@ Extended Configurations
     def "specifying --recursive with no transitively extended configurations does not print legend"() {
         given:
         buildFile << """
+            def flavor = Attribute.of('flavor', String)
+
             def base = configurations.create("base") {
                 description = "Base configuration"
                 assert canBeResolved
                 canBeConsumed = false
+
+                attributes {
+                    attribute(flavor, 'vanilla')
+                }
             }
 
             def mid = configurations.create("mid") {
@@ -826,6 +905,10 @@ Extended Configurations
                 assert canBeResolved
                 canBeConsumed = false
                 extendsFrom base
+
+                attributes {
+                    attribute(flavor, 'vanilla')
+                }
             }
         """
 
@@ -838,11 +921,16 @@ Configuration base
 --------------------------------------------------
 Base configuration
 
+Attributes
+    - flavor = vanilla
+
 --------------------------------------------------
 Configuration mid
 --------------------------------------------------
 Mid configuration
 
+Attributes
+    - flavor = vanilla
 Extended Configurations
     - base""")
 

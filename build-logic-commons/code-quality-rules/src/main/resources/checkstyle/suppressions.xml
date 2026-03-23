@@ -70,6 +70,8 @@
               files=".*[/\\]jvm-compiler-worker[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]compile[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]groovy-compiler-worker[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]compile[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]start-parameter[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\][^/\\]+"/>
 
     <!-- These packages are duplicated in scala-compiler-worker from scala, don't require a package-info.java in each place -->
     <suppress checks="JavadocPackage"

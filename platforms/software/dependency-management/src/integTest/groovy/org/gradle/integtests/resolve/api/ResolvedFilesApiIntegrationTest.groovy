@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -62,7 +61,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "result includes files from local and external components and file dependencies in a fixed order"() {
         mavenRepo.module("org", "test", "1.0").publish()
         mavenRepo.module("org", "test2", "1.0").publish()
@@ -87,8 +85,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
 
             task show {
+                inputs.files(${expression})
                 doLast {
-                    println "files: " + ${expression}.collect { it.name }
+                    println "files: " + inputs.files.collect { it.name }
                 }
             }
         """
@@ -128,7 +127,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         expression << ALL_EXPRESSIONS
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "applies compatibility rules to select variant"() {
         settingsFile << """
             include 'a', 'b'
@@ -156,9 +154,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
 
             task show {
-                inputs.files ${expression}
+                inputs.files(${expression})
                 doLast {
-                    println "files: " + ${expression}.collect { it.name }
+                    println "files: " + inputs.files.collect { it.name }
                 }
             }
         """
@@ -211,7 +209,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         expression << ALL_EXPRESSIONS
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "applies disambiguation rules to select variant"() {
         settingsFile << """
             include 'a', 'b'
@@ -226,9 +223,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
 
             task show {
-                inputs.files ${expression}
+                inputs.files(${expression})
                 doLast {
-                    println "files: " + ${expression}.collect { it.name }
+                    println "files: " + inputs.files.collect { it.name }
                 }
             }
         """
@@ -281,7 +278,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         expression << ALL_EXPRESSIONS
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure when there is more than one compatible variant"() {
         settingsFile << """
             include 'a', 'b'
@@ -297,8 +293,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
 
             task show {
+                inputs.files(${expression})
                 doLast {
-                    println "files: " + ${expression}.collect { it.name }
+                    println "files: " + inputs.files.collect { it.name }
                 }
             }
         """
@@ -342,7 +339,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         expression << ALL_EXPRESSIONS
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure when there is no compatible variant"() {
         mavenRepo.module("test", "test", "1.2").publish()
 
@@ -373,8 +369,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
 
             task show {
+                inputs.files(${expression})
                 doLast {
-                    println "files: " + ${expression}.collect { it.name }
+                    println "files: " + inputs.files.collect { it.name }
                 }
             }
         """
@@ -404,25 +401,31 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
   - Configuration ':a:compile' variant paid declares attribute 'usage' with value 'compile':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'paid' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'""")
 
-        failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
+        // Eager expressions (Set<File>) resolve all transitive dependencies and report all failures.
+        // Lazy FileCollection expressions only report the direct dependency failure.
+        if (FILE_EXPRESSION_LIST.contains(expression)) {
+            failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
       - Other compatible attributes:
           - Doesn't say anything about flavor (required 'preview')
           - Doesn't say anything about usage (required 'compile')""")
 
-        failure.assertHasCause("""No variants of things.jar match the consumer attributes:
+            failure.assertHasCause("""No variants of things.jar match the consumer attributes:
   - things.jar:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
       - Other compatible attributes:
           - Doesn't say anything about flavor (required 'preview')
           - Doesn't say anything about usage (required 'compile')""")
+        } else {
+            // Lazy FileCollection expressions resolve the project dependency graph but not external or file dependencies
+            failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+        }
 
         where:
         expression << ALL_EXPRESSIONS
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure to resolve component when files are queried using #expression"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -439,8 +442,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
 
             task show {
+                inputs.files(${expression})
                 doLast {
-                    ${expression}.collect { it.name }
+                    inputs.files.collect { it.name }
                 }
             }
         """
@@ -462,7 +466,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         expression << ALL_EXPRESSIONS
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure to download artifact when files are queried using #expression"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -479,8 +482,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
 
             task show {
+                inputs.files(${expression})
                 doLast {
-                    ${expression}.collect { it.name }
+                    inputs.files.collect { it.name }
                 }
             }
         """
@@ -504,7 +508,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         expression << ALL_EXPRESSIONS
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure to query file dependency when files are queried using #expression"() {
         buildFile << """
             $header
@@ -515,8 +518,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
 
             task show {
+                inputs.files(${expression})
                 doLast {
-                    ${expression}.collect { it.name }
+                    inputs.files.collect { it.name }
                 }
             }
         """
@@ -525,14 +529,19 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         fails 'show'
 
         then:
-        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
+        // Eager expressions (Set<File>) wrap the error with "Could not resolve all files".
+        // Lazy FileCollection expressions fail during task dependency calculation with a different wrapper.
+        if (FILE_EXPRESSION_LIST.contains(expression)) {
+            failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
+        } else {
+            failure.assertHasDescription("Could not determine the dependencies of task ':show'.")
+        }
         failure.assertHasCause("broken")
 
         where:
         expression << ALL_EXPRESSIONS
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports multiple failures to resolve artifacts when files are queried using #expression"() {
         settingsFile << """
             include 'a'
@@ -552,8 +561,9 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
 
             task show {
+                inputs.files(${expression})
                 doLast {
-                    ${expression}.collect { it.name }
+                    inputs.files.collect { it.name }
                 }
             }
         """
@@ -569,22 +579,32 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
         given:
         def m1 = mavenHttpRepo.module('org', 'test', '1.0').publish()
-        m1.pom.expectGet()
-        m1.artifact.expectGetMissing()
         def m2 = mavenHttpRepo.module('org', 'test2', '2.0').publish()
-        m2.pom.expectGet()
-        m2.artifact.expectGetBroken()
+        // Lazy FileCollection expressions fail fast when the file dependency closure throws
+        // at configuration time, before any HTTP dependency resolution occurs
+        if (FILE_EXPRESSION_LIST.contains(expression)) {
+            m1.pom.expectGet()
+            m1.artifact.expectGetMissing()
+            m2.pom.expectGet()
+            m2.artifact.expectGetBroken()
+        }
 
         when:
         fails 'show'
 
         then:
-        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertHasCause("Could not find test-1.0.jar (org:test:1.0).")
-        failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
-        failure.assertHasCause("broken 2")
-        failure.assertHasCause("The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:")
+        // Eager expressions (Set<File>) resolve everything and report all failures.
+        // Lazy FileCollection expressions fail fast on the first file closure error.
+        if (FILE_EXPRESSION_LIST.contains(expression)) {
+            failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
+            failure.assertHasCause("Could not find test-1.0.jar (org:test:1.0).")
+            failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
+            failure.assertHasCause("broken 2")
+            failure.assertHasCause("The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:")
+        } else {
+            failure.assertHasDescription("Could not determine the dependencies of task ':show'.")
+        }
 
         where:
         expression << ALL_EXPRESSIONS

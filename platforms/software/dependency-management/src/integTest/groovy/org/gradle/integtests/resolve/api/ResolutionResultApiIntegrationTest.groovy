@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -31,7 +28,6 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
     The ResolutionResult API is also covered by the dependency report integration tests.
      */
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "selection reasons are described"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -57,9 +53,9 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
                 conf 'org:foo:0.5', 'org:bar:1.0', 'org:baz:1.0'
             }
             task resolutionResult {
+                def allComponents = provider { configurations.conf.incoming.resolutionResult.allComponents }
                 doLast {
-                    def result = configurations.conf.incoming.resolutionResult
-                    result.allComponents {
+                    allComponents.get().each {
                         if(it.id instanceof ModuleComponentIdentifier) {
                             println it.id.module + ":" + it.id.version + " " + it.selectionReason
                         }
@@ -84,7 +80,6 @@ baz:1.0 requested
 """
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolution result API gives access to dependency reasons in case of conflict"() {
         given:
         mavenRepo.with {
@@ -116,9 +111,9 @@ baz:1.0 requested
             }
 
             task checkDeps {
+                def allComponents = provider { configurations.conf.incoming.resolutionResult.allComponents }
                 doLast {
-                    def result = configurations.conf.incoming.resolutionResult
-                    result.allComponents {
+                    allComponents.get().each {
                         if (it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf') {
                             def selectionReason = it.selectionReason
                             assert selectionReason.conflictResolution
@@ -140,7 +135,6 @@ baz:1.0 requested
         run "checkDeps"
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolution result API gives access to dependency reasons in case of conflict and selection by rule"() {
         given:
         ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
@@ -188,9 +182,9 @@ baz:1.0 requested
             }
 
             tasks.register("checkResolutionResult") {
+                def allComponents = provider { configurations.conf.incoming.resolutionResult.allComponents }
                 doLast {
-                    def result = configurations.conf.incoming.resolutionResult
-                    result.allComponents {
+                    allComponents.get().each {
                         if (it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf') {
                             def selectionReason = it.selectionReason
                             assert selectionReason.conflictResolution
@@ -230,7 +224,6 @@ baz:1.0 requested
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "constraint are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -267,9 +260,9 @@ baz:1.0 requested
             }
 
             task checkWithApi {
+                def allComponents = provider { configurations.conf.incoming.resolutionResult.allComponents }
                 doLast {
-                    def result = configurations.conf.incoming.resolutionResult
-                    result.allComponents {
+                    allComponents.get().each {
                         if (it.id instanceof ModuleComponentIdentifier) {
                             println "Module \$it.id"
                             it.selectionReason.descriptions.each {
@@ -294,7 +287,6 @@ baz:1.0 requested
         useReason << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "direct dependency reasons are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -324,9 +316,9 @@ baz:1.0 requested
             }
 
             task checkWithApi {
+                def allComponents = provider { configurations.conf.incoming.resolutionResult.allComponents }
                 doLast {
-                    def result = configurations.conf.incoming.resolutionResult
-                    result.allComponents {
+                    allComponents.get().each {
                         if (it.id instanceof ModuleComponentIdentifier) {
                             println "Module \$it.id"
                             it.selectionReason.descriptions.each {
@@ -350,7 +342,6 @@ baz:1.0 requested
         useReason << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     void "expired cache entry doesn't break reading from cache"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -390,9 +381,9 @@ baz:1.0 requested
             }
 
             task resolveTwice {
+                def allComponents = provider { configurations.conf.incoming.resolutionResult.allComponents }
                 doLast {
-                    def result = configurations.conf.incoming.resolutionResult
-                    result.allComponents {
+                    allComponents.get().each {
                         it.selectionReason.descriptions.each {
                            println "\${it.cause} : \${it.description}"
                         }
@@ -401,7 +392,7 @@ baz:1.0 requested
                     // see org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.CachedStoreFactory
                     Thread.sleep(800) // must be > cache expiry
                     println 'Read result again'
-                    result.allComponents {
+                    allComponents.get().each {
                         it.selectionReason.descriptions.each {
                            println "\${it.cause} : \${it.description}"
                         }
@@ -418,7 +409,6 @@ baz:1.0 requested
         noExceptionThrown()
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "each dependency is associated to its resolved variant"() {
         mavenRepo.module("org", "dep", "1.0").publish()
         mavenRepo.module("com", "foo", "1.0").publish()
@@ -496,7 +486,6 @@ testCompileClasspath
 """
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "requested dependency attributes are reported on dependency result as desugared attributes"() {
         settingsFile << "include 'platform'"
         buildFile << """
@@ -509,9 +498,9 @@ testCompileClasspath
             }
 
             task checkDependencyAttributes {
-                def compileClasspath = configurations.compileClasspath
+                def rootDependencies = provider { configurations.compileClasspath.incoming.resolutionResult.root.dependencies }
                 doLast {
-                    compileClasspath.incoming.resolutionResult.root.dependencies.each {
+                    rootDependencies.get().each {
                         def desugaredCategory = Attribute.of("org.gradle.category", String)
                         assert it.requested.attributes.getAttribute(desugaredCategory) == 'platform'
                     }
@@ -529,7 +518,6 @@ testCompileClasspath
         succeeds 'checkDependencyAttributes'
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "reports duplicated dependencies in all variants"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -598,7 +586,6 @@ testRuntimeClasspath
 """)
     }
 
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "reports if we try to get dependencies from a different variant"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         settingsFile << """
@@ -628,14 +615,14 @@ testRuntimeClasspath
             }
 
             task resolve {
-                def testCompileClasspath = configurations.testCompileClasspath
+                def result = provider { configurations.testCompileClasspath.incoming.resolutionResult }
+                def rootComponent = result.map { it.root }
+                def allComponents = result.map { it.allComponents }
                 doLast {
-                    def result = testCompileClasspath.incoming.resolutionResult
-                    def rootComponent = result.root
-                    def childComponent = result.allComponents.find { it.toString() == 'project :producer' }
+                    def childComponent = allComponents.get().find { it.toString() == 'project :producer' }
                     def childVariant = childComponent.variants[0]
                     // try to get dependencies for child variant on the wrong component
-                    println(rootComponent.getDependenciesForVariant(childVariant))
+                    println(rootComponent.get().getDependenciesForVariant(childVariant))
                 }
             }
         """
@@ -648,7 +635,6 @@ testRuntimeClasspath
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12643")
-    @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolved variant of a selected node shouldn't be null"() {
         buildFile << """
             plugins {
@@ -677,10 +663,9 @@ testRuntimeClasspath
             }
 
             task resolve {
-                def compileClasspath = configurations.compileClasspath
+                def allDependencies = provider { configurations.compileClasspath.incoming.resolutionResult.allDependencies }
                 doLast {
-                    def result = compileClasspath.incoming.resolutionResult
-                    result.allDependencies {
+                    allDependencies.get().each {
                         assert it instanceof ResolvedDependencyResult
                         assert it.resolvedVariant != null
                     }
@@ -693,59 +678,59 @@ testRuntimeClasspath
     }
 
     private void withResolutionResultDumper(String... configurations) {
-        def confCapture = configurations.collect( configuration ->
-            "def $configuration = configurations.$configuration"
-        )
+        def confSetup = configurations.collect { configuration ->
+            """def root_$configuration = configurations.${configuration}.incoming.resolutionResult.root
+                def requestedAttributes_$configuration = configurations.${configuration}.incoming.resolutionResult.requestedAttributes
+                def consumerAttributes_$configuration = configurations.${configuration}.attributes"""
+        }
 
-        def confList = configurations.collect { configuration ->
+        def confExec = configurations.collect { configuration ->
             """
                 // dump variant dependencies
-                def result_$configuration = ${configuration}.incoming.resolutionResult
-                dump("$configuration", result_${configuration}.root, null, 0)
+                dump.call("$configuration", root_${configuration}, null, 0, [] as Set)
 
                 // check that configuration attributes are visible and desugared
-                def consumerAttributes_$configuration = configurations.${configuration}.attributes
-                assert result_${configuration}.requestedAttributes.keySet().size() == consumerAttributes_${configuration}.keySet().size()
+                assert requestedAttributes_${configuration}.keySet().size() == consumerAttributes_${configuration}.keySet().size()
                 consumerAttributes_${configuration}.keySet().each {
                     println "Checking \$it of type \$it.type"
                     def desugared = Attribute.of(it.name, String)
-                    assert result_${configuration}.requestedAttributes.getAttribute(desugared) == consumerAttributes_${configuration}.getAttribute(it).toString()
+                    assert requestedAttributes_${configuration}.getAttribute(desugared) == consumerAttributes_${configuration}.getAttribute(it).toString()
                 }
             """
         }
         buildFile << """
 
             task resolve {
-                ${confCapture.join('\n')}
+                ${confSetup.join('\n')}
                 doLast {
-                    { -> ${confList.join('\n')} }()
+                    Closure dump = null
+                    dump = { String root, ResolvedComponentResult result, ResolvedVariantResult variant, int depth, Set visited ->
+                        if (visited.add([result, variant])) {
+                            if (variant == null) {
+                                println(root)
+                            }
+                            def dependencies = variant == null ? result.dependencies : result.getDependenciesForVariant(variant)
+                            depth++
+                            dependencies.each {
+                                if (it instanceof ResolvedDependencyResult) {
+                                    def resolvedVariant = it.resolvedVariant
+                                    def selected = it.selected
+                                    println("   " * depth + "\$selected (\$resolvedVariant)")
+                                    dump.call(root, selected, resolvedVariant, depth, visited)
+                                } else {
+                                    println("   " * depth + "\$it (unresolved)")
+                                }
+                            }
+                        }
+                    }
+                    ${confExec.join('\n')}
                     println()
                     println 'Waiting for the cache to expire'
                     // see org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.CachedStoreFactory
                     Thread.sleep(800) // must be > cache expiry
                     println 'Read result again to make sure serialization state is ok'
-                    println();
-                    { -> ${confList.join('\n')} }()
-                }
-            }
-
-            void dump(String root, ResolvedComponentResult result, ResolvedVariantResult variant, int depth, Set visited = []) {
-                if (visited.add([result, variant])) {
-                    if (variant == null) {
-                        println(root)
-                    }
-                    def dependencies = variant == null ? result.dependencies : result.getDependenciesForVariant(variant)
-                    depth++
-                    dependencies.each {
-                        if (it instanceof ResolvedDependencyResult) {
-                            def resolvedVariant = it.resolvedVariant
-                            def selected = it.selected
-                            println("   " * depth + "\$selected (\$resolvedVariant)")
-                            dump(root, selected, resolvedVariant, depth, visited)
-                        } else {
-                            println("   " * depth + "\$it (unresolved)")
-                        }
-                    }
+                    println()
+                    ${confExec.join('\n')}
                 }
             }
 """
@@ -846,9 +831,9 @@ testRuntimeClasspath
             }
 
             task resolve {
-                def rootComponent = configurations.conf.incoming.resolutionResult.rootComponent
+                def rootComponent = provider { configurations.conf.incoming.resolutionResult.rootComponent }
                 doLast {
-                    def root = rootComponent.get()
+                    def root = rootComponent.get().get()
                     assert root.dependencies.size() == 1
                     def producer = root.dependencies[0].selected
                     assert producer.variants.first().displayName == "conf"
@@ -886,11 +871,12 @@ testRuntimeClasspath
             }
 
             task resolve {
-                def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
-                def rootVariant = configurations.runtimeClasspath.incoming.resolutionResult.rootVariant
+                def result = provider { configurations.runtimeClasspath.incoming.resolutionResult }
+                def rootComponent = result.map { it.rootComponent }
+                def rootVariant = result.map { it.rootVariant }
                 doLast {
-                    def componentRootVariant = rootComponent.get().variants.find { it.displayName == "runtimeClasspath" }
-                    assert rootVariant.get() == componentRootVariant
+                    def componentRootVariant = rootComponent.get().get().variants.find { it.displayName == "runtimeClasspath" }
+                    assert rootVariant.get().get() == componentRootVariant
                 }
             }
         """
@@ -944,11 +930,12 @@ testRuntimeClasspath
             }
 
             task resolve {
-                def rootVariantProvider = configurations.runtimeClasspath.incoming.resolutionResult.rootVariant
-                def rootComponentProvider = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                def result = provider { configurations.runtimeClasspath.incoming.resolutionResult }
+                def rootComponentProvider = result.map { it.rootComponent }
+                def rootVariantProvider = result.map { it.rootVariant }
                 doLast {
-                    def rootVariant = rootVariantProvider.get()
-                    def rootComponent = rootComponentProvider.get()
+                    def rootVariant = rootVariantProvider.get().get()
+                    def rootComponent = rootComponentProvider.get().get()
 
                     def rootDependencies = rootComponent.getDependenciesForVariant(rootVariant)
                     assert rootComponent.dependencies.size() == 1
@@ -1098,14 +1085,14 @@ testRuntimeClasspath
             }
 
             task resolve {
-                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootVariant
+                def root = provider { configurations.runtimeClasspath.incoming.resolutionResult.rootVariant }
 
                 doLast {
-                    def usage = root.get().attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+                    def usage = root.get().get().attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
                     assert Usage.class.isAssignableFrom(usage.class)
                     assert usage.name == "java-runtime"
 
-                    def usageAsString = root.get().attributes.getAttribute(Attribute.of(Usage.USAGE_ATTRIBUTE.name, String.class))
+                    def usageAsString = root.get().get().attributes.getAttribute(Attribute.of(Usage.USAGE_ATTRIBUTE.name, String.class))
                     assert usageAsString == "java-runtime"
                 }
             }
@@ -1130,9 +1117,9 @@ testRuntimeClasspath
             }
 
             tasks.register("resolve") {
-                def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                def rootComponent = provider { configurations.runtimeClasspath.incoming.resolutionResult.rootComponent }
                 doLast {
-                    def variant = rootComponent.get().dependencies.first().resolvedVariant
+                    def variant = rootComponent.get().get().dependencies.first().resolvedVariant
                     assert variant.capabilities.is(variant.capabilities)
                 }
             }

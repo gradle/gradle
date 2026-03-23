@@ -20,6 +20,7 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.jspecify.annotations.Nullable;
@@ -40,17 +41,18 @@ public class ProjectFeatureSupportInternal {
     public interface ProjectFeatureDefinitionContext {
         Object getBuildModel();
 
-        Map<ProjectFeatureImplementation<?, ?>, Object> childrenDefinitions();
+        // Child features that have been bound to this definition
+        Map<ProjectFeatureImplementation<?, ?>, ProjectFeatureApplicator.FeatureApplication<?, ?>> childFeatures();
 
-        ChildDefinitionAdditionResult getOrAddChildDefinition(ProjectFeatureImplementation<?, ?> feature, Supplier<Object> definition);
+        <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> ChildDefinitionAdditionResult<OwnDefinition, OwnBuildModel> getOrAddChildDefinition(ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> feature, Supplier<ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel>> definition);
 
-        final class ChildDefinitionAdditionResult {
+        final class ChildDefinitionAdditionResult<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
             public final boolean isNew;
-            public final Object definition;
+            public final ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel> featureApplication;
 
-            public ChildDefinitionAdditionResult(boolean isNew, Object definition) {
+            public ChildDefinitionAdditionResult(boolean isNew, ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel> featureApplication) {
                 this.isNew = isNew;
-                this.definition = definition;
+                this.featureApplication = featureApplication;
             }
         }
 
@@ -66,7 +68,7 @@ public class ProjectFeatureSupportInternal {
         private final ProjectFeatureDeclarations projectFeatureDeclarations;
         private final ObjectFactory objectFactory;
         protected final Object buildModel;
-        private final Map<ProjectFeatureImplementation<?, ?>, Object> childrenDefinitions = new LinkedHashMap<>();
+        private final Map<ProjectFeatureImplementation<?, ?>, ProjectFeatureApplicator.FeatureApplication<?, ?>> childFeatures = new LinkedHashMap<>();
 
         public static class Factory {
             private final ProjectFeatureApplicator projectFeatureApplicator;
@@ -108,18 +110,22 @@ public class ProjectFeatureSupportInternal {
         }
 
         @Override
-        public Map<ProjectFeatureImplementation<?, ?>, Object> childrenDefinitions() {
-            return Collections.unmodifiableMap(childrenDefinitions);
+        public Map<ProjectFeatureImplementation<?, ?>, ProjectFeatureApplicator.FeatureApplication<?, ?>> childFeatures() {
+            return Collections.unmodifiableMap(childFeatures);
         }
 
         @Override
-        public ChildDefinitionAdditionResult getOrAddChildDefinition(ProjectFeatureImplementation<?, ?> feature, Supplier<Object> computeDefinition) {
-            if (childrenDefinitions.containsKey(feature)) {
-                return new ChildDefinitionAdditionResult(false, childrenDefinitions.get(feature));
+        public <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
+        ChildDefinitionAdditionResult<OwnDefinition, OwnBuildModel> getOrAddChildDefinition(
+            ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> feature,
+            Supplier<ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel>> featureApplicationSupplier
+        ) {
+            if (childFeatures.containsKey(feature)) {
+                return new ChildDefinitionAdditionResult<>(false, Cast.uncheckedCast(childFeatures.get(feature)));
             }
-            Object definition = computeDefinition.get();
-            childrenDefinitions.put(feature, definition);
-            return new ChildDefinitionAdditionResult(true, definition);
+            ProjectFeatureApplicator.FeatureApplication<OwnDefinition, OwnBuildModel> featureApplication = featureApplicationSupplier.get();
+            childFeatures.put(feature, featureApplication);
+            return new ChildDefinitionAdditionResult<>(true, featureApplication);
         }
 
         @Override

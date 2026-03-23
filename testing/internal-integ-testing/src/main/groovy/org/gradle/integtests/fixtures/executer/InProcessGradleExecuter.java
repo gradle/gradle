@@ -81,6 +81,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -113,9 +115,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         true,
         AgentStatus.of(isAgentInstrumentationEnabled()),
         getCurrentInstallation(),
-        newCommandLineProcessLogging(),
-        NativeServicesTestFixture.getInstance(),
-        ValidationServicesFixture.getServices()
+        Collections.emptySet(),
+        Arrays.asList(
+            newCommandLineProcessLogging(),
+            NativeServicesTestFixture.getInstance(),
+            ValidationServicesFixture.getServices()
+        )
     ).getServices();
 
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
@@ -315,7 +320,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
         FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory();
-        BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(new BuildLayoutFactory(), fileCollectionFactory);
+        BuildLayoutFactory buildLayoutFactory = GLOBAL_SERVICES.get(BuildLayoutFactory.class);
+        BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(buildLayoutFactory, fileCollectionFactory);
         buildEnvironmentConfigurationConverter.configure(parser);
         Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(parser.parse(getAllArgs()), getWorkingDir());
 

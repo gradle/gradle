@@ -169,7 +169,7 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
 Detailed task information for sample
 
 Path
-     :sample
+     :sample (registered in build file 'build.gradle')
 
 Type
      SampleTask (SampleTask)

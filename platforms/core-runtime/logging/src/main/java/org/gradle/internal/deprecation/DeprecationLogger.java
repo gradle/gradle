@@ -58,12 +58,7 @@ public class DeprecationLogger {
     /**
      * Counts the levels of nested {@code whileDisabled} invocations.
      */
-    private static final ThreadLocal<Integer> DISABLE_COUNT = new ThreadLocal<Integer>() {
-        @Override
-        protected Integer initialValue() {
-            return 0;
-        }
-    };
+    private static final ThreadLocal<int[]> DISABLE_COUNT = ThreadLocal.withInitial(() -> new int[]{0});
 
     private static final LoggingDeprecatedFeatureHandler DEPRECATED_FEATURE_HANDLER = new LoggingDeprecatedFeatureHandler();
 
@@ -285,16 +280,16 @@ public class DeprecationLogger {
     }
 
     private static void disable() {
-        DISABLE_COUNT.set(DISABLE_COUNT.get() + 1);
+        DISABLE_COUNT.get()[0]++;
     }
 
     private static void maybeEnable() {
-        DISABLE_COUNT.set(DISABLE_COUNT.get() - 1);
+        DISABLE_COUNT.get()[0]--;
     }
 
     private static boolean isEnabled() {
         // log deprecation messages only after the outermost whileDisabled finished execution
-        return DISABLE_COUNT.get() == 0;
+        return DISABLE_COUNT.get()[0] == 0;
     }
 
     public interface ThrowingFactory<T, E extends Exception> {

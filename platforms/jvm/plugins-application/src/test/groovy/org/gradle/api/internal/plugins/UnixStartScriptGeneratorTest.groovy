@@ -197,7 +197,7 @@ class UnixStartScriptGeneratorTest extends Specification {
         String scriptRelPath,
         AppEntryPoint appEntryPoint = new MainClass(""),
         List<String> classpath = ['path\\to\\Jar.jar'],
-        String gitRef = null
+        String gitRef = "HEAD" // HEAD convention in CreateStartScripts / WrapperGenerator always populates a specific ref
     ) {
         final String applicationName = 'TestApp'
         return new DefaultJavaAppStartScriptGenerationDetails(applicationName, gitRef, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)

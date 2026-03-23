@@ -19,6 +19,7 @@ package gradlebuild.basics.util
 
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
 import org.gradle.internal.jvm.Jvm
+import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
@@ -72,6 +73,7 @@ class KotlinSourceParser {
             parseKotlinFiles(sourceRoots, emptyList()).let(block)
         }
 
+    @OptIn(K1Deprecation::class)
     private
     fun Disposable.parseKotlinFiles(sourceRoots: List<File>, compilationClasspath: List<File>): List<KtFile> {
         configureKotlinCompilerIoForWindowsSupport()

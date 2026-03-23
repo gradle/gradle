@@ -53,23 +53,26 @@ trait FlowActionsFixture {
             interface Params extends ${FlowParameters.name} {
                 @${Input.name}
                 ${Property.name}<${BuildWorkResult.name}> getBuildResult()
+
+                @${Input.name}
+                org.gradle.api.provider.Property<String> getBuildPath()
             }
 
             @Override
             public void execute(Params params) {
                 def $resultVar = params.buildResult.get()
+                def buildPath = params.buildPath.get()
                 ${buildFinished}
             }
         }
 
-        if (true) {
-            def gradleServices = (gradle as ${GradleInternal.name}).services
-            gradleServices.get(${FlowScope.name}).always($actionClassName, {
-                parameters {
-                    buildResult = gradleServices.get(${FlowProviders.name}).buildWorkResult
-                }
-            })
-        }
+        def gradleServices = (gradle as ${GradleInternal.name}).services
+        gradleServices.get(${FlowScope.name}).always($actionClassName, {
+            parameters {
+                buildResult = gradleServices.get(${FlowProviders.name}).buildWorkResult
+                buildPath = gradle.buildPath
+            }
+        })
         """
     }
 
@@ -95,9 +98,40 @@ trait FlowActionsFixture {
         """
     }
 
+    /**
+     * Builds a {@link org.gradle.api.invocation.Gradle#addBuildListener(org.gradle.BuildListener buildListener)} callback implementation.
+     * This method builds Groovy DSL code.
+     *
+     * @param buildFinished the implementation of the callback
+     * @param resultVar the variable in which {@link BuildWorkResult} is stored
+     * @return the Groovy DSL snippet that registers a callback
+     */
+    String listenerBuildFinishedCallback(@GroovyBuildScriptLanguage buildFinished, String resultVar = "result") {
+        """
+        gradle.addBuildListener(new LoggingBuildListener(gradle.buildPath))
+        class LoggingBuildListener extends BuildAdapter {
+            private final String buildPath
+
+            LoggingBuildListener(String buildPath) {
+                this.buildPath = buildPath
+            }
+
+            void buildFinished(BuildResult originalResult) {
+                def $resultVar = new ${BuildWorkResult.name}() {
+                    @Override
+                    ${Optional.name}<Throwable> getFailure() { ${Optional.name}.ofNullable(originalResult.failure) }
+                }
+
+                $buildFinished
+            }
+        }
+        """
+    }
+
     enum BuildFinishCallbackType {
         FLOW_ACTION,
-        BUILD_FINISHED
+        BUILD_FINISHED,
+        BUILD_LISTENER,
     }
 
     static List<BuildFinishCallbackType> buildFinishCallbackTypes() {
@@ -118,6 +152,7 @@ trait FlowActionsFixture {
         switch (callbackType) {
             case BuildFinishCallbackType.FLOW_ACTION -> buildFinishedFlowAction(buildFinished)
             case BuildFinishCallbackType.BUILD_FINISHED -> legacyBuildFinishedCallback(buildFinished)
+            case BuildFinishCallbackType.BUILD_LISTENER -> listenerBuildFinishedCallback(buildFinished)
             default -> throw new IllegalArgumentException("Unexpected callback type $callbackType")
         }
     }

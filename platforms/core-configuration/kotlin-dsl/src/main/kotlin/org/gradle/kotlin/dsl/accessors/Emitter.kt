@@ -30,6 +30,7 @@ import org.gradle.kotlin.dsl.support.bytecode.closeHeader
 import org.gradle.kotlin.dsl.support.bytecode.endKotlinClass
 import org.gradle.kotlin.dsl.support.bytecode.moduleFileFor
 import org.gradle.kotlin.dsl.support.bytecode.moduleMetadataBytesFor
+import org.jetbrains.kotlin.lexer.KotlinLexer
 import java.io.File
 
 
@@ -48,6 +49,7 @@ fun IO.emitAccessorsFor(
     // giving the generated accessors lower priority in Kotlin overload resolution.
     val useLowPriorityOverloadResolution = projectSchema.scriptTarget is Settings
     val moduleName = binDir?.name ?: "kotlin-dsl-accessors"
+    val classNamesFromTypeStrings = ClassNamesFromTypeStrings()
     val emittedClassNames =
         accessorsFor(projectSchema).map { accessor ->
             emitClassFor(
@@ -57,7 +59,8 @@ fun IO.emitAccessorsFor(
                 outputPackage,
                 format,
                 moduleName,
-                useLowPriorityOverloadResolution
+                useLowPriorityOverloadResolution,
+                importsRequiredBy(accessor, classNamesFromTypeStrings)
             )
         }.toList()
 
@@ -99,7 +102,8 @@ fun IO.emitClassFor(
     outputPackage: OutputPackage,
     format: AccessorFormat,
     moduleName: String,
-    useLowPriorityOverloadResolution: Boolean
+    useLowPriorityOverloadResolution: Boolean,
+    requiredImports: List<String>
 ): InternalName {
 
     val (simpleClassName, fragments) = fragmentsFor(accessor)
@@ -128,7 +132,7 @@ fun IO.emitClassFor(
     writeAccessorsTo(
         sourceFileFor(className, srcDir),
         sourceCode,
-        importsRequiredBy(accessor),
+        requiredImports,
         outputPackage.name
     )
 
@@ -168,22 +172,24 @@ fun IO.writeAccessorsBytecodeTo(
 
 
 private
-fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
+fun importsRequiredBy(accessor: Accessor, classNamesFromTypeStrings: ClassNamesFromTypeStrings): List<String> = accessor.run {
     when (this) {
-        is Accessor.ForExtension -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForTask -> importsRequiredBy(spec.type)
-        is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForModelDefault -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForProjectType -> importsRequiredBy(spec.modelType) + importsRequiredBy(spec.targetType) + listOf(Incubating::class.java.name, Project::class.java.name)
-        is Accessor.ForContainerElementFactory -> importsRequiredBy(spec.receiverType, spec.elementType) + listOf(Incubating::class.java.name)
+        is Accessor.ForExtension -> importsRequiredBy(classNamesFromTypeStrings, spec.receiver, spec.type)
+        is Accessor.ForTask -> importsRequiredBy(classNamesFromTypeStrings, spec.type)
+        is Accessor.ForContainerElement -> importsRequiredBy(classNamesFromTypeStrings, spec.receiver, spec.type)
+        is Accessor.ForModelDefault -> importsRequiredBy(classNamesFromTypeStrings, spec.receiver, spec.type)
+        is Accessor.ForProjectType -> importsRequiredBy(classNamesFromTypeStrings, spec.modelType) +
+            importsRequiredBy(classNamesFromTypeStrings, spec.targetType) + listOf(Incubating::class.java.name, Project::class.java.name)
+
+        is Accessor.ForContainerElementFactory -> importsRequiredBy(classNamesFromTypeStrings, spec.receiverType, spec.elementType) + listOf(Incubating::class.java.name)
         else -> emptyList()
     }
 }
 
 
 private
-fun importsRequiredBy(vararg candidateTypes: TypeAccessibility): List<String> =
-    importsRequiredBy(candidateTypes.asList())
+fun importsRequiredBy(classNamesFromTypeStrings: ClassNamesFromTypeStrings, vararg candidateTypes: TypeAccessibility): List<String> =
+    importsRequiredBy(candidateTypes.asList(), classNamesFromTypeStrings)
 
 
 internal
@@ -216,19 +222,19 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(uniqueAccessorsFor(containerElements).map(Accessor::ForContainerElement))
 
             val configurationNames = configurations.asSequence().mapNotNull { entry ->
-                AccessorNameSpec.createOrNull(entry.target)?.let { accessorNameSpec -> entry.map { accessorNameSpec } }
+                AccessorNameSpec.createOrNull(lexer, entry.target)?.let { accessorNameSpec -> entry.map { accessorNameSpec } }
             }
             yieldAll(
                 uniqueAccessorsFrom(
-                    configurationNames.map { it.target }.map(::configurationAccessorSpec)
+                    configurationNames.map { configurationAccessorSpec(it.target) }
                 ).map(Accessor::ForContainerElement)
             )
             yieldAll(configurationNames.map(Accessor::ForConfiguration))
 
             yieldAll(uniqueAccessorsFor(modelDefaults).map(Accessor::ForModelDefault))
-            yieldAll(uniqueProjectFeatureEntries(projectFeatureEntries.mapNotNull(::typedProjectType)).map(Accessor::ForProjectType))
-            yieldAll(uniqueContainerElementFactories(containerElementFactories.mapNotNull(::typedContainerElementFactory)).map(Accessor::ForContainerElementFactory))
-            yieldAll(nestedModelEntries.mapNotNull(::typedNestedModel).map(Accessor::ForDeclarativeNestedModel))
+            yieldAll(uniqueProjectFeatureEntries(projectFeatureEntries.mapNotNull { typedProjectType(it, lexer) }).map(Accessor::ForProjectType))
+            yieldAll(uniqueContainerElementFactories(containerElementFactories.mapNotNull { typedContainerElementFactory(it, lexer) }).map(Accessor::ForContainerElementFactory))
+            yieldAll(nestedModelEntries.mapNotNull { typedNestedModel(it, lexer) }.map(Accessor::ForDeclarativeNestedModel))
         }
     }
 }
@@ -242,22 +248,22 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
         accessibleType<Configuration>()
     )
 
-private fun typedProjectType(projectFeatureEntry: ProjectFeatureEntry<TypeAccessibility>) : TypedProjectFeatureEntry? {
-    val name = AccessorNameSpec.createOrNull(projectFeatureEntry.featureName)
+private fun typedProjectType(projectFeatureEntry: ProjectFeatureEntry<TypeAccessibility>, lexer: KotlinLexer): TypedProjectFeatureEntry? {
+    val name = AccessorNameSpec.createOrNull(lexer, projectFeatureEntry.featureName)
     return name?.let {
         TypedProjectFeatureEntry(name, projectFeatureEntry.ownDefinitionType, projectFeatureEntry.targetDefinitionType)
     }
 }
 
-private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>) : TypedContainerElementFactoryEntry? {
-    val name = AccessorNameSpec.createOrNull(containerElementFactoryEntry.factoryName)
+private fun typedContainerElementFactory(containerElementFactoryEntry: ContainerElementFactoryEntry<TypeAccessibility>, lexer: KotlinLexer): TypedContainerElementFactoryEntry? {
+    val name = AccessorNameSpec.createOrNull(lexer, containerElementFactoryEntry.factoryName)
     return name?.let {
         TypedContainerElementFactoryEntry(name, containerElementFactoryEntry.containerReceiverType, containerElementFactoryEntry.publicType)
     }
 }
 
-private fun typedNestedModel(nestedModelEntry: NestedModelEntry<TypeAccessibility>) : TypedAccessorSpec? {
-    val name = AccessorNameSpec.createOrNull(nestedModelEntry.nestedModelPropertyName)
+private fun typedNestedModel(nestedModelEntry: NestedModelEntry<TypeAccessibility>, lexer: KotlinLexer): TypedAccessorSpec? {
+    val name = AccessorNameSpec.createOrNull(lexer, nestedModelEntry.nestedModelPropertyName)
     return name?.let {
         TypedAccessorSpec(
             nestedModelEntry.ownerType as? TypeAccessibility.Accessible ?: return null,

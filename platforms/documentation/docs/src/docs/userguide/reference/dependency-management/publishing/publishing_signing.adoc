@@ -23,7 +23,6 @@ The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> can be used to sign a
 
 Here's an example that configures the plugin to sign the `mavenJava` publication:
 
-.Signing a publication
 ====
 include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=sign-publication]"]
 include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=sign-publication]"]
@@ -33,8 +32,11 @@ This will create a `Sign` task for each publication you specify and wire all `pu
 
 == Example: Sign and publish a project
 
-.Output of `gradle publish`
+[source,bash]
 ----
-> gradle publish
+$ ./gradlew publish
+----
+[source,text]
+----
 include::{snippetsPath}/signing/maven-publish/tests/publishingMavenSignAndPublish.out[]
 ----

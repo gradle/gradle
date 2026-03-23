@@ -18,13 +18,11 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
 class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "rules are not fired when no candidate matches selector"() {
         buildFile << """
 
@@ -43,8 +41,9 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
 
             task lenientCheck {
+                def avArtifacts = configurations.conf.getIncoming().artifactView { lenient = true }.artifacts
                 doLast {
-                    def artifacts = configurations.conf.getIncoming().artifactView { lenient = true }.artifacts.artifacts
+                    def artifacts = avArtifacts.artifacts
                     assert artifacts.size() == 0
                     assert candidates.empty
                 }
@@ -473,7 +472,6 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         checkDependencies()
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can provide component selection all rule as rule source"() {
         buildFile << """
 
@@ -491,11 +489,14 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            tasks.checkDeps.doLast {
-                def artifacts = configurations.conf.incoming.artifacts.artifacts
-                assert artifacts.size() == 1
-                assert artifacts[0].id.componentIdentifier.version == '1.1'
-                assert ruleSource.candidates == ['1.2', '1.1']
+            tasks.checkDeps {
+                def avArtifacts = configurations.conf.incoming.artifacts
+                doLast {
+                    def artifacts = avArtifacts.artifacts
+                    assert artifacts.size() == 1
+                    assert artifacts[0].id.componentIdentifier.version == '1.1'
+                    assert ruleSource.candidates == ['1.2', '1.1']
+                }
             }
 
             class Select11 {
@@ -526,7 +527,6 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         checkDependencies()
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can provide component selection withModule rule as rule source"() {
         buildFile << """
 
@@ -544,11 +544,14 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            tasks.checkDeps.doLast {
-                def artifacts = configurations.conf.incoming.artifacts.artifacts
-                assert artifacts.size() == 1
-                assert artifacts[0].id.componentIdentifier.version == '1.1'
-                assert ruleSource.candidates == ['1.2', '1.1']
+            tasks.checkDeps {
+                def avArtifacts = configurations.conf.incoming.artifacts
+                doLast {
+                    def artifacts = avArtifacts.artifacts
+                    assert artifacts.size() == 1
+                    assert artifacts[0].id.componentIdentifier.version == '1.1'
+                    assert ruleSource.candidates == ['1.2', '1.1']
+                }
             }
 
             class Select11 {

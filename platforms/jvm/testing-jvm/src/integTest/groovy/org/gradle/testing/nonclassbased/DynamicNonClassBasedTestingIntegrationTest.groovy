@@ -65,10 +65,10 @@ class DynamicNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTe
         then:
         def testResults = resultsFor()
         testResults.assertTestPathsExecuted(
-            ":src/test/definitions/SomeTestSpec.rbt:Dynamic Test",
+            ":SomeTestSpec.rbt:Dynamic Test",
         )
         testResults.testPath(
-            ":src/test/definitions/SomeTestSpec.rbt:Dynamic Test"
+            ":SomeTestSpec.rbt:Dynamic Test"
         ).onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertDisplayName(equalTo("Dynamic Test"))

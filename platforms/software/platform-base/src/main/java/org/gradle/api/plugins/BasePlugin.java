@@ -25,7 +25,6 @@ import org.gradle.api.internal.DomainObjectCollectionInternal;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -47,7 +46,7 @@ public abstract class BasePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
-        BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
+        BasePluginExtension baseExtension = project.getExtensions().create("base", BasePluginExtension.class);
         configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
         configureArchiveDefaults(project, baseExtension);

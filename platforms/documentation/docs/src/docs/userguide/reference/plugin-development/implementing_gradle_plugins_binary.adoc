@@ -87,7 +87,6 @@ plugin/     // <1>
 <1> *`plugin/`*: This is the root directory for the Gradle plugin project.
 <2> *`build.gradle`*: The build script for the plugin itself. It specifies dependencies like the Gradle API and Groovy, and it's where you apply the `groovy-gradle-plugin` or `java-gradle-plugin` to make your code a runnable Gradle plugin.
 <3> *`src/main/groovy/org/example/`*: This is the standard source directory for Groovy code, organized by package name.
-
 =====
 ====
 
@@ -298,8 +297,12 @@ include::sample[dir="snippets/tasks/customTaskWithFileProperty/kotlin",files="bu
 include::sample[dir="snippets/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q sayGreeting
+$ ./gradlew -q sayGreeting
+----
+[source,text]
+----
 include::{snippetsPath}/tasks/customTaskWithFileProperty/tests/lazyFileProperties.out[]
 ----
 
@@ -336,8 +339,12 @@ include::sample[dir="snippets/customPlugins/customPluginNoConvention/kotlin",fil
 include::sample[dir="snippets/customPlugins/customPluginNoConvention/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPluginNoConvention/tests/customPluginNoConvention.out[]
 ----
 
@@ -362,8 +369,12 @@ include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/k
 include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPluginWithAdvancedConvention/tests/customPluginWithAdvancedConvention.out[]
 ----
 
@@ -408,18 +419,10 @@ Currently, the only other parameter the data object stores is a URL.
 
 The following `ServerEnvironment` object fulfills those requirements:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/namedDomainObjectContainer">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .ServerEnvironment.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/common/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[tags=snippet]
 ----
 
 Gradle exposes the factory method
@@ -430,18 +433,10 @@ The created instance of type link:{javadocPath}/org/gradle/api/NamedDomainObject
 
 It's common for a plugin to post-process the captured values within the plugin implementation, e.g., to configure tasks:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/namedDomainObjectContainer">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .ServerEnvironmentPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/common/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[tags=snippet]
 ----
 
 In the example above, a deployment task is created dynamically for every user-configured environment.
@@ -501,7 +496,7 @@ First, introduce a new data object for managing the properties `websiteUrl` and 
 .SiteInfo.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteInfo.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/pluginExtension/common/buildSrc/src/main/java/org/myorg/SiteInfo.java[tags=snippet]
 ----
 
 In the extension, create an instance of the `siteInfo` class and a method to delegate the captured values to the data instance.
@@ -510,18 +505,10 @@ To configure underlying data objects, define a parameter of type link:{javadocPa
 
 The following example demonstrates the use of `Action` in an extension definition:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/pluginExtension">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .SiteExtension.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/groovy/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/pluginExtension/common/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
 ----
 
 [[sec:mapping_extension_properties_to_task_properties_in_binary_plugins]]
@@ -572,8 +559,12 @@ include::sample[dir="snippets/customPlugins/customPluginWithConvention/kotlin",f
 include::sample[dir="snippets/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/customPlugins/customPluginWithConvention/tests/customPluginWithConvention.out[]
 ----
 
@@ -605,9 +596,12 @@ GreetingPluginExtension {
 =====
 ====
 
+[source,bash]
+----
+$ ./gradlew -q hello
+----
 [source,text]
 ----
-$ gradle -q hello
 Custom message
 ----
 
@@ -756,7 +750,6 @@ When the `active` provider value is:
 Note that the `active` status does not depend on the `requested` status.
 Even if the user requests a feature, it may still not be active due to other build options being used in the build.
 Gradle can also activate a feature by default, even if the user did not specify a preference.
-
 
 [[custom_dependencies_blocks]]
 == Using a custom `dependencies` block
@@ -919,24 +912,16 @@ Ideally, the plugin implementation does not need to ask the user for the coordin
 Let’s look at an example of a plugin that downloads files containing data for further processing.
 The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#one-declaring-dependencies,assigning those external dependencies with dependency coordinates>>:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/defaultDependency">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .DataProcessingPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/defaultDependency/common/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[tags=snippet]
 ----
 
 .DataProcessing.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/defaultDependency/groovy/buildSrc/src/main/java/org/myorg/DataProcessing.java[tags=snippet]
+include::{snippetsPath}/developingPlugins/defaultDependency/common/buildSrc/src/main/java/org/myorg/DataProcessing.java[tags=snippet]
 ----
 
 This approach is convenient for the end user as there is no need to actively declare a dependency.
@@ -988,8 +973,12 @@ include::sample[dir="snippets/developingPlugins/externalLibraries/groovy",files=
 
 The output of the task clearly indicates the classpath of the `classpath` configuration:
 
+[source,bash]
 ----
-$ gradle buildEnvironment
+$ ./gradlew buildEnvironment
+----
+[source,text]
+----
 include::{snippetsPath}/developingPlugins/externalLibraries/tests/buildEnvironment.out[]
 ----
 

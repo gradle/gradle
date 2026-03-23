@@ -35,7 +35,7 @@ All available tasks in your project come from Gradle plugins and build scripts.
 
 You can list all the available tasks in a project by running the following command in the terminal:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew tasks
 ----
@@ -103,10 +103,12 @@ Currently, the `app` subproject's build file is empty.
 
 To see the tasks available in the `app` subproject, run `./gradlew :app:tasks`:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -160,10 +162,12 @@ plugins {
 The `base` plugin adds central lifecycle tasks.
 Now when we run `./gradlew app:tasks`, we can see the `assemble` and `build` tasks are available:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -238,10 +242,12 @@ The build contains a subproject called `app`.
 
 Let's list the available tasks in `app` at the moment:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -319,10 +325,12 @@ tasks.register("helloTask") {
 
 Although `helloTask` is not listed, it can still be executed by Gradle:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -369,10 +377,12 @@ tasks.register("helloTask") {
 
 Now that the group is added, the task is visible:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -465,10 +475,12 @@ gradle-project
 
 Run `app:tasks` to see available tasks in the `app` subproject:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -569,10 +581,12 @@ tasks.named("tasks", TaskReportTask) {          // Move all existing tasks to th
 
 Now, when we list tasks available in `app`, the list is shorter:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -628,10 +642,12 @@ plugins {
 
 Once again, we list the available tasks to see what new tasks are available:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -677,10 +693,12 @@ We see that many new tasks are available such as `jar` and `testClasses`.
 Additionally, the `java-library` plugin has wired actionable tasks to lifecycle tasks.
 If we call the `:build` task, we can see several tasks have been executed, including the `:app:compileJava` task.
 
+[source,bash]
+----
+$ ./gradlew :app:build
+----
 [source,text]
 ----
-$./gradlew :app:build
-
 > Task :app:compileJava
 > Task :app:processResources NO-SOURCE
 > Task :app:classes
@@ -707,10 +725,12 @@ Therefore, if we've built our project before and made only minor changes, rerunn
 For example, if we modify only the test code in our project, leaving the production code unchanged, executing the build will solely recompile the test code.
 Gradle marks the tasks for the production code as `UP-TO-DATE`, indicating that it remains unchanged since the last successful build:
 
+[source,bash]
+----
+$ ./gradlew :app:build
+----
 [source,text]
 ----
-$./gradlew :app:build
-
 gradle@MacBook-Pro temp1 % ./gradlew :app:build
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
@@ -734,10 +754,12 @@ To enable this feature, activate the build cache by using the `--build-cache` <<
 
 This optimization has the potential to accelerate your builds significantly:
 
+[source,bash]
+----
+$ ./gradlew :app:clean :app:build --build-cache
+----
 [source,text]
 ----
-$./gradlew :app:clean :app:build --build-cache
-
 > Task :app:compileJava FROM-CACHE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE

@@ -25,6 +25,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
@@ -42,12 +43,14 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -83,7 +86,16 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         Property<String> stylesheetString = parameters.getStylesheetString();
         File htmlOutputLocation = parameters.getHtmlOutputLocation().getAsFile().getOrNull();
         File sarifOutputLocation = parameters.getSarifOutputLocation().getAsFile().getOrNull();
-        VersionNumber currentToolVersion = determineCheckstyleVersion(Thread.currentThread().getContextClassLoader());
+
+        // TODO: Make this a generic feature of all Ant workers
+        VersionNumber checkstyleVersion = determineCheckstyleVersion(Thread.currentThread().getContextClassLoader());
+        JavaVersion checkstyleJavaVersion = determineCheckstyleJavaVersion(Thread.currentThread().getContextClassLoader());
+        if (!JavaVersion.current().isCompatibleWith(checkstyleJavaVersion)) {
+            // 10.0 requires Java 11
+            // 11.0 requires Java 17
+            // 13.0 requires Java 21
+            throw new UnsupportedWorkerJvmException("Checkstyle", checkstyleVersion);
+        }
 
         // User provided their own config_loc
         Object userProvidedConfigLoc = configProperties.get(CONFIG_LOC_PROPERTY);
@@ -91,8 +103,8 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
             throw new InvalidUserDataException("Cannot add config_loc to checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.");
         }
 
-        if (isSarifRequired && !isSarifSupported(currentToolVersion)) {
-            assertUnsupportedReportFormatSARIF(currentToolVersion);
+        if (isSarifRequired && !isSarifSupported(checkstyleVersion)) {
+            assertUnsupportedReportFormatSARIF(checkstyleVersion);
         }
 
         try {
@@ -184,18 +196,49 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         return xmlOutputLocation;
     }
 
-    private static VersionNumber determineCheckstyleVersion(ClassLoader antLoader) {
-        Class<?> checkstyleTaskClass;
-        try {
-            checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.CheckStyleTask");
-        } catch (ClassNotFoundException e) {
-            try {
-                checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask");
-            } catch (ClassNotFoundException ex) {
-                throw new RuntimeException(ex);
+    private static JavaVersion determineCheckstyleJavaVersion(ClassLoader antLoader) {
+        InputStream checkstyleTask = antLoader.getResourceAsStream("com/puppycrawl/tools/checkstyle/CheckStyleTask.class");
+        if (checkstyleTask == null) {
+            checkstyleTask = antLoader.getResourceAsStream("com/puppycrawl/tools/checkstyle/ant/CheckstyleAntTask.class");
+            if (checkstyleTask == null) {
+                throw new IllegalArgumentException("Could not find checkstyle task class");
             }
         }
-        return VersionNumber.parse(checkstyleTaskClass.getPackage().getImplementationVersion());
+        try (DataInputStream in = new DataInputStream(checkstyleTask)) {
+            if (in.readInt() == 0xCAFEBABE) {
+                int unused = in.readUnsignedShort();
+                int major = in.readUnsignedShort();
+                return JavaVersion.forClassVersion(major);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return JavaVersion.current();
+    }
+
+    private static VersionNumber determineCheckstyleVersion(ClassLoader antLoader) {
+        InputStream in = antLoader.getResourceAsStream("META-INF/maven/com.puppycrawl.tools/checkstyle/pom.properties");
+        if (in == null) {
+            Class<?> checkstyleTaskClass;
+            try {
+                checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.CheckStyleTask");
+            } catch (ClassNotFoundException e2) {
+                try {
+                    checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask");
+                } catch (ClassNotFoundException e3) {
+                    throw new RuntimeException(e3);
+                }
+            }
+            return VersionNumber.parse(checkstyleTaskClass.getPackage().getImplementationVersion());
+        } else {
+            try {
+                Properties checkstyleProperties = new Properties();
+                checkstyleProperties.load(in);
+                return VersionNumber.parse(checkstyleProperties.getProperty("version"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private static boolean isSarifSupported(VersionNumber versionNumber) {

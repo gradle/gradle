@@ -134,4 +134,11 @@ public class DefaultTestFilter implements TestFilter {
     public TestFilterSpec toSpec() {
         return new TestFilterSpec(getIncludePatterns(), getExcludePatterns(), getCommandLineIncludePatterns());
     }
+
+    /**
+     * Are there any include or exclude filters at all?
+     */
+    public boolean hasPatterns() {
+        return !commandLineIncludeTestNames.isEmpty() || !includeTestNames.isEmpty() || !excludeTestNames.isEmpty();
+    }
 }

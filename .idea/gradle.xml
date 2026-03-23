@@ -11,7 +11,6 @@
                 <projects>
                   <project path="$PROJECT_DIR$/build-logic" />
                   <project path="$PROJECT_DIR$/build-logic/binary-compatibility" />
-                  <project path="$PROJECT_DIR$/build-logic/build-init-samples" />
                   <project path="$PROJECT_DIR$/build-logic/build-update-utils" />
                   <project path="$PROJECT_DIR$/build-logic/buildquality" />
                   <project path="$PROJECT_DIR$/build-logic/cleanup" />
@@ -74,7 +73,6 @@
             <option value="$PROJECT_DIR$/build-logic-settings/default-settings-plugins" />
             <option value="$PROJECT_DIR$/build-logic-settings/version-catalogs" />
             <option value="$PROJECT_DIR$/build-logic/binary-compatibility" />
-            <option value="$PROJECT_DIR$/build-logic/build-init-samples" />
             <option value="$PROJECT_DIR$/build-logic/build-update-utils" />
             <option value="$PROJECT_DIR$/build-logic/buildquality" />
             <option value="$PROJECT_DIR$/build-logic/cleanup" />
@@ -129,6 +127,7 @@
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-plugins" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-provider-plugins" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-tooling-builders" />
+            <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-tooling-model-impls" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-tooling-models" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/model-core" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/model-groovy" />
@@ -155,6 +154,7 @@
             <option value="$PROJECT_DIR$/platforms/core-execution/scoped-persistent-cache" />
             <option value="$PROJECT_DIR$/platforms/core-execution/snapshots" />
             <option value="$PROJECT_DIR$/platforms/core-execution/worker-main" />
+            <option value="$PROJECT_DIR$/platforms/core-execution/worker-process-services" />
             <option value="$PROJECT_DIR$/platforms/core-execution/workers" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/base-asm" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/base-services" />
@@ -199,12 +199,15 @@
             <option value="$PROJECT_DIR$/platforms/core-runtime/native" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/process-memory-services" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/process-services" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/process-services-api" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/process-services-base" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/report-rendering" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/serialization" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/service-lookup" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/service-provider" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/service-registry-builder" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/service-registry-impl" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/start-parameter" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/stdlib-java-extensions" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/time" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/tooling-api-provider" />
@@ -226,6 +229,7 @@
             <option value="$PROJECT_DIR$/platforms/extensibility/unit-test-fixtures" />
             <option value="$PROJECT_DIR$/platforms/ide/base-ide-plugins" />
             <option value="$PROJECT_DIR$/platforms/ide/ide" />
+            <option value="$PROJECT_DIR$/platforms/ide/ide-model-impls" />
             <option value="$PROJECT_DIR$/platforms/ide/ide-native" />
             <option value="$PROJECT_DIR$/platforms/ide/ide-plugins" />
             <option value="$PROJECT_DIR$/platforms/ide/problems" />
@@ -233,7 +237,6 @@
             <option value="$PROJECT_DIR$/platforms/ide/problems-rendering" />
             <option value="$PROJECT_DIR$/platforms/ide/tooling-api" />
             <option value="$PROJECT_DIR$/platforms/ide/tooling-api-builders" />
-            <option value="$PROJECT_DIR$/platforms/jvm/ant-worker" />
             <option value="$PROJECT_DIR$/platforms/jvm/antlr" />
             <option value="$PROJECT_DIR$/platforms/jvm/code-quality" />
             <option value="$PROJECT_DIR$/platforms/jvm/code-quality-workers" />
@@ -275,10 +278,18 @@
             <option value="$PROJECT_DIR$/platforms/native/platform-native" />
             <option value="$PROJECT_DIR$/platforms/native/testing-native" />
             <option value="$PROJECT_DIR$/platforms/native/tooling-native" />
+            <option value="$PROJECT_DIR$/platforms/native/tooling-native-model-impls" />
+            <option value="$PROJECT_DIR$/platforms/software/ant" />
+            <option value="$PROJECT_DIR$/platforms/software/ant-api" />
+            <option value="$PROJECT_DIR$/platforms/software/ant-impl" />
+            <option value="$PROJECT_DIR$/platforms/software/ant-worker" />
             <option value="$PROJECT_DIR$/platforms/software/base-compiler-worker" />
             <option value="$PROJECT_DIR$/platforms/software/build-init" />
             <option value="$PROJECT_DIR$/platforms/software/build-init-specs" />
             <option value="$PROJECT_DIR$/platforms/software/build-init-specs-api" />
+            <option value="$PROJECT_DIR$/platforms/software/credentials" />
+            <option value="$PROJECT_DIR$/platforms/software/credentials-api" />
+            <option value="$PROJECT_DIR$/platforms/software/credentials-impl" />
             <option value="$PROJECT_DIR$/platforms/software/dependency-management" />
             <option value="$PROJECT_DIR$/platforms/software/distributions-publishing" />
             <option value="$PROJECT_DIR$/platforms/software/ivy" />
@@ -310,6 +321,7 @@
             <option value="$PROJECT_DIR$/testing/distributions-integ-tests" />
             <option value="$PROJECT_DIR$/testing/integ-test" />
             <option value="$PROJECT_DIR$/testing/internal-architecture-testing" />
+            <option value="$PROJECT_DIR$/testing/internal-distribution-testing" />
             <option value="$PROJECT_DIR$/testing/internal-integ-testing" />
             <option value="$PROJECT_DIR$/testing/internal-performance-testing" />
             <option value="$PROJECT_DIR$/testing/internal-testing" />

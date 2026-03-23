@@ -266,7 +266,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
             return formatter.format((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
         } catch (Exception ex) {
             LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
-            return diagnostic.getMessage(Locale.getDefault());
+            return diagnostic.toString();
         }
     }
 

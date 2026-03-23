@@ -17,12 +17,19 @@
 package org.gradle.features.internal.binding;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Nested;
+import org.gradle.features.binding.ProjectFeatureApplyAction;
 import org.gradle.features.internal.file.DefaultProjectFeatureLayout;
 import org.gradle.features.file.ProjectFeatureLayout;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -47,6 +54,9 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
+
+import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
@@ -57,10 +67,13 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Applies project features to a target object by registering the software model as an extension of the target object (unless
+ * Applies project features to a target object by registering the feature application as a child of the target object (unless
  * configured otherwise) and performing validations.  Application returns the public model object of the feature.  Features
  * are applied only once per target object and always return the same public model object for a given target/feature
  * combination.
@@ -70,6 +83,8 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
     private final ObjectFactory projectObjectFactory;
     private final InternalProblemReporter problemReporter;
     private final ServiceLookup allServices;
+    private final PropertyWalker propertyWalker = new DefaultPropertyWalker(getTypeAnnotationMetadataStore());
+    private final List<FeatureApplication<?, ?>> pendingFeatureApplications = new ArrayList<>();
 
     @Inject
     public DefaultProjectFeatureApplicator(
@@ -84,32 +99,40 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         this.allServices = allServices;
     }
 
-    @Override
-    public <T extends Definition<V>, V extends BuildModel> T applyFeatureTo(DynamicObjectAware parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
-        ProjectFeatureDefinitionContext parentDefinitionContext = ProjectFeatureSupportInternal.getContext(parentDefinition);
-
-        ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult result = parentDefinitionContext.getOrAddChildDefinition(projectFeature, () -> {
+    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult<OwnDefinition, OwnBuildModel> instantiateDefinition(DynamicObjectAware parentDefinition, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature, ProjectFeatureDefinitionContext parentDefinitionContext) {
+        return parentDefinitionContext.getOrAddChildDefinition(projectFeature, () -> {
             if (parentDefinition instanceof Project) {
                 checkSingleProjectTypeApplication(parentDefinitionContext, projectFeature);
             }
 
             getPluginManager().apply(projectFeature.getPluginClass());
 
-            Object definition = instantiateBoundFeatureObjectsAndApply(parentDefinition, projectFeature);
-
-            return Cast.uncheckedNonnullCast(definition);
+            return instantiateBoundFeatureObjects(parentDefinition, projectFeature);
         });
+    }
+
+    @Override
+    public <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> FeatureApplication<OwnDefinition, OwnBuildModel> registerFeatureApplicationFor(DynamicObjectAware parentDefinition, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
+        ProjectFeatureDefinitionContext parentDefinitionContext = ProjectFeatureSupportInternal.getContext(parentDefinition);
+
+        ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult<OwnDefinition, OwnBuildModel> result = instantiateDefinition(parentDefinition, projectFeature, parentDefinitionContext);
 
         if (result.isNew) {
             Plugin<Project> plugin = getPluginManager().getPluginContainer().getPlugin(projectFeature.getPluginClass());
-            getModelDefaultsApplicator().applyDefaultsTo(parentDefinition, result.definition, new ClassLoaderContextFromScope(classLoaderScope), plugin, projectFeature);
+            getModelDefaultsApplicator().applyDefaultsTo(parentDefinition, result.featureApplication.getDefinitionInstance(), new ClassLoaderContextFromScope(classLoaderScope), plugin, projectFeature);
+            pendingFeatureApplications.add(result.featureApplication);
         }
 
-        return Cast.uncheckedNonnullCast(result.definition);
+        return result.featureApplication;
     }
 
-    private static <T extends Definition<V>, V extends BuildModel> void checkSingleProjectTypeApplication(ProjectFeatureDefinitionContext context, ProjectFeatureImplementation<T, V> projectFeature) {
-        context.childrenDefinitions().keySet().stream().findFirst().ifPresent(projectTypeAlreadyApplied -> {
+    @Override
+    public void applyFeatures() {
+        pendingFeatureApplications.forEach(FeatureApplication::apply);
+    }
+
+    private static <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> void checkSingleProjectTypeApplication(ProjectFeatureDefinitionContext context, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
+        context.childFeatures().keySet().stream().findFirst().ifPresent(projectTypeAlreadyApplied -> {
             throw new IllegalStateException(
                 "The project has already applied the '" +
                     projectTypeAlreadyApplied.getFeatureName() +
@@ -120,29 +143,65 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         });
     }
 
-    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> OwnDefinition instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
+    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> FeatureApplication<OwnDefinition, OwnBuildModel> instantiateBoundFeatureObjects(Object parentDefinition, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
         // Context-specific services for this feature binding
         ServiceLookup featureServices = getContextSpecificServiceLookup(projectFeature);
         ObjectFactory featureObjectFactory = getObjectFactoryFactory().createObjectFactory(featureServices);
 
         // Instantiate the definition and build model objects with the feature-specific object factory
-        OwnDefinition definition = instantiateDefinitionObject(featureObjectFactory, projectFeature);
+        OwnDefinition definition = featureObjectFactory.newInstance(projectFeature.getDefinitionImplementationType());
         OwnBuildModel buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(featureObjectFactory, projectFeature);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, getProjectFeatureDeclarations(), featureObjectFactory);
 
         // Construct an apply action context with the feature-specific object factory
-        ProjectFeatureApplicationContext applyActionContext =
+        ProjectFeatureApplicationContextInternal applyActionContext =
             projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
 
-        // Invoke the feature's binding transform
-        projectFeature.getApplyActionFactory()
-            .create(featureObjectFactory)
-            .apply(applyActionContext, definition, buildModelInstance, Cast.uncheckedCast(parentDefinition));
+        // bind any nested definitions to build model instances
+        bindNestedDefinitions(projectFeature.getDefinitionPublicType(), Cast.uncheckedCast(definition), applyActionContext, projectFeature.getNestedBuildModelTypes());
 
-        return definition;
+        return new DefaultFeatureApplication<>(
+            projectFeature.getDefinitionImplementationType(),
+            definition,
+            buildModelInstance,
+            parentDefinition,
+            applyActionContext,
+            projectFeature.getApplyActionFactory().create(featureObjectFactory),
+            propertyWalker
+        );
     }
 
-    private <T extends Definition<V>, V extends BuildModel> ServiceLookup getContextSpecificServiceLookup(ProjectFeatureImplementation<T, V> projectFeature) {
+    private void bindNestedDefinitions(Class<?> publicType, DynamicObjectAware parent, ProjectFeatureApplicationContextInternal applyActionContext, Map<Class<?>, Class<?>> buildModelImplementationTypes) {
+        // Must use an anonymous class for config cache compatibility
+        propertyWalker.walkProperties(publicType, parent, new PropertyWalker.Visitor() {
+            @Override
+            public void visit(PropertyAnnotationMetadata propertyMetadata, Object propertyValue) {
+                if (Definition.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
+                    bindNestedDefinition(propertyValue, applyActionContext, buildModelImplementationTypes);
+                }
+                if (NamedDomainObjectContainer.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
+                    NamedDomainObjectContainer<?> ndoc = Cast.uncheckedCast(propertyValue);
+                    Class<?> elementType = ((AbstractNamedDomainObjectContainer<?>) ndoc).getType();
+                    if (Definition.class.isAssignableFrom(elementType)) {
+                        // Must use an anonymous class for config cache compatibility
+                        ndoc.all(new Action<Object>() {
+                            @Override
+                            public void execute(Object element) {
+                                bindNestedDefinition(element, applyActionContext, buildModelImplementationTypes);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+    private static void bindNestedDefinition(Object propertyValue, ProjectFeatureApplicationContextInternal applyActionContext, Map<Class<?>, Class<?>> buildModelImplementationTypes) {
+        Definition<?> nestedDefinition = Cast.uncheckedCast(propertyValue);
+        applyActionContext.registerBuildModel(nestedDefinition, buildModelImplementationTypes);
+    }
+
+    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> ServiceLookup getContextSpecificServiceLookup(ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
         TaskRegistrar taskRegistrar = new DefaultTaskRegistrar(getTaskContainer());
         ProjectFeatureLayout projectFeatureLayout = new DefaultProjectFeatureLayout(getProjectLayout());
         ConfigurationRegistrar configurationRegistrar = new DefaultConfigurationRegistrar(getConfigurationContainer());
@@ -151,10 +210,6 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         return projectFeature.getApplyActionSafety() == ProjectFeatureBindingDeclaration.Safety.SAFE
             ? new SafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar, projectFeature.getFeatureName(), problemReporter)
             : new UnsafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar, projectFeature.getFeatureName(), problemReporter);
-    }
-
-    private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(ObjectFactory featureObjectFactory, ProjectFeatureImplementation<T, V> projectFeature) {
-        return featureObjectFactory.newInstance(projectFeature.getDefinitionImplementationType());
     }
 
     @Inject
@@ -177,6 +232,114 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
 
     @Inject
     abstract protected ProjectFeatureDeclarations getProjectFeatureDeclarations();
+
+    @Inject
+    abstract protected TypeAnnotationMetadataStore getTypeAnnotationMetadataStore();
+
+    /**
+     * Walks the public properties of a given object, visiting each property and descending into any properties that are annotated with {@link Nested}.
+     *
+     * Ignores any properties that are null, although properties whose value is null will be visited (e.g. ignores getFoo() == null, but will visit
+     * getFoo().getOrNull() == null)
+     */
+    private static class DefaultPropertyWalker implements PropertyWalker {
+        private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
+
+        private DefaultPropertyWalker(TypeAnnotationMetadataStore typeAnnotationMetadataStore) {
+            this.typeAnnotationMetadataStore = typeAnnotationMetadataStore;
+        }
+
+        @Override
+        public void walkProperties(Class<?> publicType, Object parent, PropertyWalker.Visitor visitor) {
+            typeAnnotationMetadataStore.getTypeAnnotationMetadata(publicType).getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
+                Object propertyValue = propertyMetadata.getPropertyValue(parent);
+                if (propertyValue != null) {
+                    visitor.visit(propertyMetadata, propertyValue);
+
+                    if (propertyMetadata.isAnnotationPresent(Nested.class)) {
+                        walkProperties(propertyMetadata.getDeclaredReturnType().getRawType(), Cast.uncheckedCast(propertyValue), visitor);
+                    }
+                    if (DomainObjectCollection.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
+                        DomainObjectCollection<?> collection = Cast.uncheckedCast(propertyValue);
+                        // Must use an anonymous class for config cache compatibility
+                        collection.all(new Action<Object>() {
+                            @Override
+                            public void execute(Object element) {
+                                walkProperties(element.getClass(), element, visitor);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    private interface PropertyWalker {
+        void walkProperties(Class<?> publicType, Object parent, Visitor visitor);
+        interface Visitor {
+            void visit(PropertyAnnotationMetadata propertyMetadata, Object propertyValue);
+        }
+    }
+
+    private static class DefaultFeatureApplication<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> implements FeatureApplication<OwnDefinition, OwnBuildModel> {
+        // We don't want to store the Project object because of configuration cache compatibility, so we use a placeholder
+        private static final Object PROJECT = new Object();
+        private final Class<? extends OwnDefinition> definitionImplementationType;
+        private final OwnDefinition definitionInstance;
+        private final OwnBuildModel buildModelInstance;
+        private final Object parentDefinition;
+        private final ProjectFeatureApplicationContext context;
+        private final ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, ?> applyAction;
+        private final PropertyWalker propertyWalker;
+        private final boolean isProjectType;
+        private boolean applied;
+
+        public DefaultFeatureApplication(Class<? extends OwnDefinition> definitionImplementationType, OwnDefinition definitionInstance, OwnBuildModel buildModelInstance, Object parentDefinition, ProjectFeatureApplicationContext context, ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, ?> applyAction, PropertyWalker propertyWalker) {
+            this.definitionImplementationType = definitionImplementationType;
+            this.definitionInstance = definitionInstance;
+            this.buildModelInstance = buildModelInstance;
+            this.isProjectType = parentDefinition instanceof Project;
+            this.parentDefinition = isProjectType ? PROJECT : parentDefinition;
+            this.context = context;
+            this.applyAction = applyAction;
+            this.propertyWalker = propertyWalker;
+        }
+
+        @Override
+        public OwnDefinition getDefinitionInstance() {
+            return definitionInstance;
+        }
+
+        @Override
+        public boolean isProjectType() {
+            return isProjectType;
+        }
+
+        @Override
+        public void apply() {
+            if (!applied) {
+                finalizeProperties();
+                applyAction.apply(context, definitionInstance, buildModelInstance, Cast.uncheckedCast(parentDefinition));
+                applied = true;
+            }
+        }
+
+        private void finalizeProperties() {
+            // // Must use an anonymous class for config cache compatibility
+            propertyWalker.walkProperties(definitionImplementationType, definitionInstance, new PropertyWalker.Visitor() {
+                @Override
+                public void visit(PropertyAnnotationMetadata propertyMetadata, Object propertyValue) {
+                    if (Property.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
+                        ((Property<?>) propertyValue).finalizeValue();
+                    }
+                    if (NamedDomainObjectContainer.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
+                        NamedDomainObjectContainer<?> ndoc = Cast.uncheckedCast(propertyValue);
+                        ndoc.disallowChanges();
+                    }
+                }
+            });
+        }
+    }
 
     /**
      * The internal implementation of the context passed to project feature apply actions, exposing an object factory

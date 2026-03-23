@@ -36,6 +36,8 @@ public abstract class WrapperPlugin implements Plugin<Project> {
                 wrapper.setDescription("Generates Gradle wrapper files.");
                 wrapper.getNetworkTimeout().convention(WrapperDefaults.NETWORK_TIMEOUT);
                 wrapper.getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
+                wrapper.getRetries().convention(WrapperDefaults.RETRIES);
+                wrapper.getRetryTimeoutMs().convention(WrapperDefaults.RETRY_TIMEOUT_MS);
             });
         }
     }

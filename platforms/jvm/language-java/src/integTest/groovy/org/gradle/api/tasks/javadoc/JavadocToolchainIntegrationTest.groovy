@@ -18,7 +18,6 @@ package org.gradle.api.tasks.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
@@ -104,7 +103,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         withInstallations(jdkCurrent, jdkOther).runAndFail(":javadoc")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':javadoc'.")
+        failureDescriptionStartsWith("Execution failed for task ':javadoc' (registered by plugin 'org.gradle.java').")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javadocTool` property")
     }
 
@@ -122,7 +121,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         withInstallations(jdkCurrent, jdkOther).runAndFail(":javadoc")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':javadoc'.")
+        failureDescriptionStartsWith("Execution failed for task ':javadoc' (registered in build file 'build.gradle').")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javadocTool` property")
     }
 
@@ -231,7 +230,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         failure.assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${jre.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
-                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                "Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection.",
                 STACKTRACE_MESSAGE,
                 INFO_DEBUG,
                 SCAN,

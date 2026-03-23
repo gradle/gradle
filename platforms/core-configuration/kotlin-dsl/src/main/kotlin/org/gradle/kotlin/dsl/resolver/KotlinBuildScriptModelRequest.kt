@@ -215,9 +215,9 @@ fun projectRootOf(scriptFile: File, importedProjectRoot: File, stopAt: File? = n
 
     // TODO remove hardcoded reference to settings.gradle once there's a public TAPI client api for that
     fun isProjectRoot(dir: File) =
-        File(dir, "settings.gradle.kts").isFile
+        dir.name == "buildSrc"
+            || File(dir, "settings.gradle.kts").isFile
             || File(dir, "settings.gradle").isFile
-            || dir.name == "buildSrc"
 
     tailrec fun test(dir: File): File =
         when {

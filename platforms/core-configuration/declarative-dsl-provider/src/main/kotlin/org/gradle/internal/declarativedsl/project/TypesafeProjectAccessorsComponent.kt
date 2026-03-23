@@ -81,7 +81,7 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : ObjectC
     override fun typeDiscovery(): List<TypeDiscovery> = when (projectAccessorsClass) {
         null -> emptyList()
         else -> listOf(
-            FixedTypeDiscovery(ProjectTopLevelReceiver::class, listOf(TypeDiscovery.DiscoveredClass(projectAccessorsClass, listOf(Special("project accessors"))))),
+            FixedTypeDiscovery(ProjectTopLevelReceiver::class, listOf(TypeDiscovery.DiscoveredClass(projectAccessorsClass, Special("project accessors")))),
             TypesafeProjectAccessorTypeDiscovery()
         )
     }
@@ -108,7 +108,7 @@ class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
     override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> {
         return if (kClass.isGeneratedAccessors()) {
             allClassesReachableFromGetters(typeDiscoveryServices.host, kClass).map {
-                schemaResult(TypeDiscovery.DiscoveredClass(it, listOf(Special("type-safe project accessor"))))
+                schemaResult(TypeDiscovery.DiscoveredClass(it, Special("type-safe project accessor")))
             }
         } else {
             emptyList()

@@ -4,6 +4,6 @@ plugins { // <4>
 }
 
 myProperties { // <5>
-    propertyA = project.properties.get("propertyA") as String
-    propertyB = project.properties.get("propertyB") as String
+    propertyA = providers.gradleProperty("propertyA")
+    propertyB = providers.gradleProperty("propertyB")
 }

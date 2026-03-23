@@ -129,7 +129,9 @@ public class BuildStatusRenderer implements OutputEventListener {
     }
 
     private void phaseHasMoreProgress(ProgressStartEvent progressStartEvent) {
-        progressBar.moreProgress(progressStartEvent.getTotalProgress());
+        if (progressBar != null) {
+            progressBar.moreProgress(progressStartEvent.getTotalProgress());
+        }
     }
 
     private void phaseProgressed(ProgressCompleteEvent progressEvent) {

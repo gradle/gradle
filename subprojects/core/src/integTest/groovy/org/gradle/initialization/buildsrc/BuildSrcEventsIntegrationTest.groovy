@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.flow.FlowActionsFixture
 
 class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec implements FlowActionsFixture {
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".*BUILD_FINISHED hook.*", because = "gradle.buildFinished")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".*BUILD_.*", because = "gradle.buildFinished")
     def "buildSrc build finished hook is executed after running main tasks and before root build #callback hook"() {
         buildFile("buildSrc/build.gradle", """
             System.clearProperty("buildsrc")
@@ -57,7 +57,7 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec implements F
         callback << buildFinishCallbackTypes()
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".*BUILD_FINISHED hook.*", because = "gradle.buildFinished")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".*BUILD_.*", because = "gradle.buildFinished")
     def "buildSrc build finished failure is visible to root build #callback hook"() {
         buildFile("buildSrc/build.gradle", """
             ${buildFinishCallback callback, """
@@ -84,7 +84,7 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec implements F
         callback << buildFinishCallbackTypes()
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".*BUILD_FINISHED hook.*", because = "gradle.buildFinished")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".*BUILD_.*", because = "gradle.buildFinished")
     def "buildSrc build finished failure is not lost when root #callback hook fails"() {
         buildFile("buildSrc/build.gradle", """
             ${buildFinishCallback callback, """

@@ -18,9 +18,16 @@ package org.gradle.api.plugins.java.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
+import org.gradle.api.plugins.java.GroovyProjectType
 import org.gradle.features.annotations.RegistersProjectFeatures
 
 @RegistersProjectFeatures(GroovyProjectTypePlugin::class)
 class GroovyEcosystemPlugin : Plugin<Settings> {
-    override fun apply(target: Settings) = Unit
+    override fun apply(target: Settings) {
+        target.defaults.add("groovyLibrary", GroovyProjectType::class.java) { definition ->
+            // Conventional groovy source sets
+            definition.sources.register("main")
+            definition.sources.register("test")
+        }
+    }
 }

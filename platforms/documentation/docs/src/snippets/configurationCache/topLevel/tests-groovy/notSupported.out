@@ -1,2 +1,2 @@
-Execution failed for task ':listFiles'.
+Execution failed for task ':listFiles' (registered in build file 'build.gradle').
 > Could not find method listFiles() for arguments [/home/user/gradle/samples/data] on task ':listFiles' of type org.gradle.api.DefaultTask.

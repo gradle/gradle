@@ -19,7 +19,7 @@ package org.gradle.performance.annotations
 import groovy.transform.CompileStatic
 import org.gradle.performance.fixture.PerformanceTestScenarioDefinition
 import org.gradle.performance.results.OperatingSystem
-import org.junit.Assume
+import org.junit.jupiter.api.Assumptions
 import org.spockframework.runtime.extension.ExtensionAnnotation
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
@@ -146,7 +146,7 @@ class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
                 if (!groups.isEmpty()) {
                     scenarioDefinition.getPerformanceTests().add(new PerformanceTestScenarioDefinition.PerformanceTestsBean("${invocation.getSpec().getReflection().getName()}.$testId", groups))
                 }
-                Assume.assumeFalse(true)
+                Assumptions.assumeFalse(true)
             } else {
                 invocation.proceed()
             }

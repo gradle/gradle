@@ -24,7 +24,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
@@ -57,11 +56,6 @@ import java.util.Collection;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InstallExecutable extends DefaultTask {
-    private final Property<NativePlatform> targetPlatform;
-    private final Property<NativeToolChain> toolChain;
-    private final DirectoryProperty installDirectory;
-    private final RegularFileProperty executable;
-    private final RegularFileProperty installedExecutable;
     private final ConfigurableFileCollection libs;
     private final WorkerLeaseService workerLeaseService;
 
@@ -72,17 +66,11 @@ public abstract class InstallExecutable extends DefaultTask {
      */
     @Inject
     public InstallExecutable(WorkerLeaseService workerLeaseService) {
-        ObjectFactory objectFactory = getProject().getObjects();
         this.workerLeaseService = workerLeaseService;
         this.libs = getProject().files();
-        this.installDirectory = objectFactory.directoryProperty();
-        this.installedExecutable = objectFactory.fileProperty();
-        this.executable = objectFactory.fileProperty();
-        this.installedExecutable.set(getLibDirectory().map(directory -> directory.file(executable.getAsFile().get().getName())));
+        this.getInstalledExecutable().convention(getLibDirectory().map(directory -> directory.file(getExecutableFile().getAsFile().get().getName())));
         // A further work around for missing ability to skip task when input file is missing (see #getInputFileIfExists below)
-        getInputs().file(executable);
-        this.targetPlatform = objectFactory.property(NativePlatform.class);
-        this.toolChain = objectFactory.property(NativeToolChain.class);
+        getInputs().file(getExecutableFile());
     }
 
     /**
@@ -91,9 +79,7 @@ public abstract class InstallExecutable extends DefaultTask {
      * @since 4.7
      */
     @Internal
-    public Property<NativeToolChain> getToolChain() {
-        return toolChain;
-    }
+    public abstract Property<NativeToolChain> getToolChain();
 
     /**
      * The platform being linked for.
@@ -101,9 +87,7 @@ public abstract class InstallExecutable extends DefaultTask {
      * @since 4.7
      */
     @Nested
-    public Property<NativePlatform> getTargetPlatform() {
-        return targetPlatform;
-    }
+    public abstract Property<NativePlatform> getTargetPlatform();
 
     /**
      * The directory to install files into.
@@ -111,9 +95,7 @@ public abstract class InstallExecutable extends DefaultTask {
      * @since 4.1
      */
     @OutputDirectory
-    public DirectoryProperty getInstallDirectory() {
-        return installDirectory;
-    }
+    public abstract DirectoryProperty getInstallDirectory();
 
     /**
      * The executable file to install.
@@ -121,9 +103,7 @@ public abstract class InstallExecutable extends DefaultTask {
      * @since 4.7
      */
     @Internal("Covered by inputFileIfExists")
-    public RegularFileProperty getExecutableFile() {
-        return executable;
-    }
+    public abstract RegularFileProperty getExecutableFile();
 
     /**
      * The location of the installed executable file.
@@ -131,9 +111,7 @@ public abstract class InstallExecutable extends DefaultTask {
      * @since 4.7
      */
     @OutputFile
-    public RegularFileProperty getInstalledExecutable() {
-        return installedExecutable;
-    }
+    public abstract RegularFileProperty getInstalledExecutable();
 
     /**
      * Workaround for when the task is given an input file that doesn't exist
@@ -182,7 +160,7 @@ public abstract class InstallExecutable extends DefaultTask {
      */
     @Internal("covered by getInstallDirectory")
     public Provider<RegularFile> getRunScriptFile() {
-        return installDirectory.file(executable.getLocationOnly().map(executableFile -> OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName()).getScriptName(executableFile.getAsFile().getName())));
+        return getInstallDirectory().file(getExecutableFile().getLocationOnly().map(executableFile -> OperatingSystem.forName(getTargetPlatform().get().getOperatingSystem().getName()).getScriptName(executableFile.getAsFile().getName())));
     }
 
     @Inject
@@ -193,7 +171,7 @@ public abstract class InstallExecutable extends DefaultTask {
 
     @TaskAction
     protected void install() {
-        NativePlatform nativePlatform = targetPlatform.get();
+        NativePlatform nativePlatform = getTargetPlatform().get();
         File executable = getExecutableFile().get().getAsFile();
         File libDirectory = getLibDirectory().get().getAsFile();
         File runScript = getRunScriptFile().get().getAsFile();

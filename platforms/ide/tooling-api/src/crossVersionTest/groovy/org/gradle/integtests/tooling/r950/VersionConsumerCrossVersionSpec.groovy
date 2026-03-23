@@ -19,8 +19,6 @@ package org.gradle.integtests.tooling.r950
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
@@ -71,12 +69,6 @@ class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
         "test launcher" | { ProjectConnection conn -> conn.newTestLauncher().withJvmTestClasses("MyTest").withArguments('--version').run() }
         "model builder" | { ProjectConnection conn -> conn.model(GradleProject) .withArguments('--version').get() }
         "build action"  | { ProjectConnection conn -> conn.action(new GetGradleProjectAction()).withArguments('--version').run() }
-    }
-
-    static class GetGradleProjectAction implements BuildAction<GradleProject> {
-        GradleProject execute(BuildController controller) {
-            return controller.getModel(GradleProject)
-        }
     }
 
     def "prints version and runs tasks when --show-version is present"() {

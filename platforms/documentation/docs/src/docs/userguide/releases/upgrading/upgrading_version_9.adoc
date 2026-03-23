@@ -41,39 +41,91 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Plugins requested by precompiled settings plugins are now resolved in the build that compiles them
+==== Plugins requested by precompiled settings plugins are now validated at compile time
 
-When a precompiled settings plugin (`*.settings.gradle.kts`) declares a plugin in a `plugins {}` block, that
-plugin request is now resolved against the dependencies of the build that compiles the plugin.
+Gradle now validates plugin requests in precompiled settings plugins (`*.settings.gradle.kts`) during compilation, failing the build if a requested plugin cannot be resolved.
+This matches the existing behavior for precompiled script plugins targeting `Project`.
 
-Previously, if a precompiled settings plugin was never applied, it could contain an invalid plugin request
-without being detected:
+Previously, if a precompiled settings plugin was never applied, invalid plugin requests in its `plugins {}` block went undetected until the plugin was used by a consuming build, at which point the build would fail unexpectedly.
 
-.buildSrc/src/main/kotlin/my-precompiled-plugin.settings.gradle.kts
 [source,kotlin]
+.buildSrc/src/main/kotlin/my-precompiled-plugin.settings.gradle.kts
 ----
 plugins {
-    id("com.example.invalid.plugin") // a plugin that does not exist in the dependencies
+    id("com.example.invalid.plugin") // now fails at compile time if unresolvable
 }
 ----
 
-If such a plugin was published, the invalid request would only fail later, when the plugin was used by a
-consuming build. Gradle now validates these plugin requests during compilation and fails the build if the
-requested plugin cannot be resolved. This behavior now matches that of precompiled script plugins targeting `Project`.
-
-Avoid invalid plugin requests in unused precompiled settings plugins.
+If you have precompiled settings plugins that are declared but not currently applied, check their `plugins {}` blocks and remove or fix any plugin requests that cannot be resolved from the compiling build's dependencies.
 
 ==== Calling `.values()` on environment variables or system properties now tracked by Configuration Cache
 
-Gradle <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, tracks>> accesses to environment variables and system properties during configuration time to record them as inputs to the Configuration Cache, so the cache entry is invalidated when those variables change.
+Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` now records all environment variables or system properties as Configuration Cache inputs.
+This is consistent with how <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, `.forEach()` calls are already tracked>>.
 
-Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` records **all** environment variables or system properties respectively as inputs to the Configuration Cache, similarly to how `.forEach()` calls are tracked in previous versions.
-If your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, you may experience more frequent Configuration Cache invalidations.
+As a result, if your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, any change to any environment variable or system property will invalidate the Configuration Cache entry, not just the ones your build actually uses.
+If you experience unexpected cache invalidations after upgrading, check whether your build or any plugins call `.values()` on these maps, and consider switching to targeted property lookups instead.
+
+==== Dependency lockfiles are generated with a platform-independent line ending
+
+Dependency lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
+Existing lockfiles using Windows line endings (CRLF, `\r\n`) can still be read, but newly generated lockfiles will always use LF.
+
+When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed, this is expected and only happens once.
+
+==== The Windows start script has been reworked to improve usability
+
+The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
+
+If you use a custom start script template or invoke `gradlew.bat` from another batch file, review the changes below as some may affect your build.
+
+The new script includes the following changes:
+
+- The `OS` variable check has been removed, since Gradle no longer supports non-NT-based versions of Windows.
+- `endlocal` is now called before invoking the application, so environment variable changes made inside the script do not leak into the invoked process. Any environment variables needed by the application must be set before calling `gradlew.bat`.
+- `& CALL` is now used after invoking the application, which suppresses the "Terminate batch job (Y/N)?" prompt. If your scripts rely on this prompt for flow control, they will need to be updated.
+- `exit /b` has been replaced with `"%COMSPEC%" /c exit`, enabling the use of `&&` and `||` operators when calling the script from another batch file.
+
+Upgrading the wrapper to the new script may cause a one-time error if done from before Gradle 8.14 due to `cmd.exe` re-reading the script after it changes.
+To avoid this, first upgrade to Gradle 8.14 or 9.0.0, then upgrade to 9.5.0.
+
+==== Upgrade to Kotlin 2.3.20
+
+The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20[Kotlin 2.3.20].
+
+=== Deprecations
+
+[[deprecate_exit_environment_var]]
+==== Deprecation of setting an exit environment variable
+
+link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#getExitEnvironmentVar()[`CreateStartScripts.getExitEnvironmentVar()`] and link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#setExitEnvironmentVar(java.lang.String)[`CreateStartScripts.setExitEnvironmentVar(String)`] have been deprecated and will be removed in Gradle 10.0.0.
+
+As of this release, these methods are no-ops and have no effect, even with custom start script templates.
+This is a result of the link:https://github.com/gradle/gradle/pull/36510[Windows start script template no longer using an exit environment variable].
+
+If you are using a custom start script template that references the exit environment variable, update your template to remove this dependency.
+There is no replacement API, the exit environment variable concept has been removed entirely.
 
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
 
 === Potential breaking changes
+
+==== `ProjectBuilder` now enforces consistent build-scoped locations
+
+link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[`ProjectBuilder`] allows you to configure a specific project directory for tests.
+While `project.projectDir` and `project.rootDir` have always respected this setting, `project.layout.settingsDirectory` previously did not.
+This discrepancy could cause file resolution to inadvertently escape the project directory.
+
+Gradle now anchors the settings search directly to the configured project directory.
+This ensures that `layout.settingsDirectory`, `projectDir`, and `rootDir` all point to the same consistent location.
+Projects created via `ProjectBuilder` are now better isolated from the host build environment.
+
+If your tests specifically relied on `layout.settingsDirectory` pointing to an external location, they will need to be adjusted.
+Even if you do not use `settingsDirectory` directly, you may still observe changes in file resolution.
+Previously, dependency management files could be "leaked" into the test from the host build environment; this is no longer the case.
+
+For more details see link:https://github.com/gradle/gradle/issues/32928[the related issue].
 
 ==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
 
@@ -240,6 +292,47 @@ plugins {
     id("org.gradle.test-retry") version "x.y.z"
     // Recommended:
     id("org.gradle.test-retry")
+}
+----
+
+==== Deprecation of `Dependencies.getProject()` method
+
+The `getProject()` method on `Dependencies` has been deprecated and will be removed in Gradle 10.0.0.
+
+`Dependencies` is used to configure dependencies in test suites.
+Previously, `getProject()` was used by Gradle internally to reference the current project.
+While never intended for public use, it could be used unintentionally in build scripts.
+
+For example, the following configuration accidentally invokes the deprecated method because `project.path` resolves against the `Dependencies` object rather than the top-level `Project` object:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project(project.path)) // `project.path` accesses `Dependencies.getProject()`
+            }
+        }
+    }
+}
+----
+
+The configuration above may now fail to compile with an error in 9.5.0 if `-Werror` is set.
+
+To depend on the current project, use the `project()` method without arguments.
+This syntax is the idiomatic way to reference the project in both test suites and standard `dependencies {}` blocks:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project())
+            }
+        }
+    }
 }
 ----
 

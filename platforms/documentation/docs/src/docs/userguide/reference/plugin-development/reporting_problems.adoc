@@ -31,13 +31,10 @@ The following example shows how a plugin can report a problem:
 ====
 include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc/src/main/java/org/myorg",files="ProblemReportingPlugin.java[tags=snippet]"]
 ====
-
 <1> Inject the `Problem` service into the plugin.
 <2> Create a `ProblemReporter` for the plugin.
 <3> Report a recoverable problem so the build can continue.
 <4> Add optional extra data to the problem.
-
-See the full link:../samples/sample_problems_api_usage.html[end-to-end sample] for more details.
 
 == Problems API Usage
 
@@ -147,7 +144,7 @@ The standard way to fail a build is by throwing an exception.
 The Problems API enhances this by allowing you to throw exceptions tied to detailed problem reports:
 
 ====
-include::sample[dir="samples/templates/problems-api-usage/reporters/standard-plugin/src/main/java/reporters",files="FailingTask.java[tags=problems-api-fail-the-build]"]
+include::sample[dir="snippets/ide/problems-api-usage/common/reporters/standard-plugin/src/main/java/reporters",files="FailingTask.java[tags=problems-api-fail-the-build]"]
 ====
 
 This ensures build failures are clearly associated with their underlying issues and are visible across all Gradle clients (CLI, Build Scan, IDEs, Tooling API).

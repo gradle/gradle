@@ -19,6 +19,8 @@ package org.gradle.performance.results
 import com.google.common.collect.ImmutableMap
 import groovy.transform.CompileStatic
 
+import java.sql.PreparedStatement
+import java.sql.SQLException
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
@@ -56,6 +58,145 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
 
     static String channelPatternQueryFor(List<String> channelPatterns) {
         return String.join(' or ', Collections.nCopies(channelPatterns.size(), "channel like ?"))
+    }
+
+    protected static List<String> distinctValues(List<String> values) {
+        return new ArrayList<>(new LinkedHashSet<>(values))
+    }
+
+    /**
+     * Builds a UNION-based history query for testExecution lookups.
+     *
+     * Why this exists:
+     * - The old single-query form used one large OR predicate:
+     *   {@code (... channel like ? ... OR teamcitybuildid in (...))}.
+     * - On MySQL, that shape can trigger unstable plans (e.g. broad startTime scans).
+     * - Splitting into selective branches and joining with {@code UNION DISTINCT}
+     *   gives the optimizer a more predictable path.
+     *
+     * Query shape produced:
+     * - One branch per channel pattern (when {@code channelPatterns} is non-empty):
+     *   {@code select <columns> from testExecution ... and channel like ?}
+     *   Each pattern gets its own branch so MySQL can use the composite index
+     *   (testClass, testId, testProject, channel, startTime) instead of scanning
+     *   on a single-column index when confronted with OR.
+     * - Build ID branch (only when {@code teamcityBuildIds} is non-empty):
+     *   {@code select <columns> from testExecution ... and teamcitybuildid in (?, ...)}
+     * - Branches are combined using {@code union distinct}.
+     *
+     * Parameter binding contract:
+     * - This method only generates SQL text.
+     * - Parameter order is defined by {@link #bindHistoryQueryParams}:
+     *   1) per channel branch: testClass, testId, testProject, startTime, channelPattern
+     *   2) build-id branch: testClass, testId, testProject, startTime, build IDs
+     *   3) limit (bound by callers)
+     *
+     * Edge cases:
+     * - If both lists are empty, returns a no-op query
+     *   ({@code select ... from testExecution where 1 = 0}) to keep SQL valid.
+     */
+    protected static String createHistoryFilterUnionSql(String selectColumns, List<String> channelPatterns, List<String> teamcityBuildIds) {
+        String channelBranchTemplate = """
+            select %s
+            from testExecution
+            where testClass = ?
+              and testId = ?
+              and testProject = ?
+              and startTime >= ?
+              and channel like ?
+            """
+        String buildIdBranchTemplate = """
+            select %s
+            from testExecution
+            where testClass = ?
+              and testId = ?
+              and testProject = ?
+              and startTime >= ?
+              and %s
+            """
+        List<String> branches = new ArrayList<>(channelPatterns.size() + (teamcityBuildIds.isEmpty() ? 0 : 1))
+        for (int i = 0; i < channelPatterns.size(); i++) {
+            branches.add(channelBranchTemplate.formatted(selectColumns))
+        }
+        if (!teamcityBuildIds.isEmpty()) {
+            String teamCityBuildIdInClause = "teamcitybuildid in (${String.join(',', Collections.nCopies(teamcityBuildIds.size(), '?'))})"
+            branches.add(buildIdBranchTemplate.formatted(selectColumns, teamCityBuildIdInClause))
+        }
+        if (branches.isEmpty()) {
+            return """
+                select ${selectColumns}
+                from testExecution
+                where 1 = 0
+                """
+        }
+        return String.join(" union distinct ", branches)
+    }
+
+    protected static void bindHistoryQueryParams(
+        PreparedStatement statement,
+        PerformanceExperiment experiment,
+        Timestamp minDate,
+        List<String> channelPatterns,
+        List<String> teamcityBuildIds,
+        int mostRecentN
+    ) throws SQLException {
+        int idx = 0
+        for (String channelPattern : channelPatterns) {
+            statement.setString(++idx, experiment.getScenario().getClassName())
+            statement.setString(++idx, experiment.getScenario().getTestName())
+            statement.setString(++idx, experiment.getTestProject())
+            statement.setTimestamp(++idx, minDate)
+            statement.setString(++idx, channelPattern)
+        }
+        if (!teamcityBuildIds.isEmpty()) {
+            statement.setString(++idx, experiment.getScenario().getClassName())
+            statement.setString(++idx, experiment.getScenario().getTestName())
+            statement.setString(++idx, experiment.getTestProject())
+            statement.setTimestamp(++idx, minDate)
+            for (String teamcityBuildId : teamcityBuildIds) {
+                statement.setString(++idx, teamcityBuildId)
+            }
+        }
+        statement.setInt(++idx, mostRecentN)
+    }
+
+    protected static List<Object> createHistoryQueryParams(
+        PerformanceExperiment experiment,
+        Timestamp minDate,
+        List<String> channelPatterns,
+        List<String> teamcityBuildIds,
+        int mostRecentN
+    ) {
+        List<Object> params = new ArrayList<>()
+        for (String channelPattern : channelPatterns) {
+            params.add(experiment.getScenario().getClassName())
+            params.add(experiment.getScenario().getTestName())
+            params.add(experiment.getTestProject())
+            params.add(minDate)
+            params.add(channelPattern)
+        }
+        if (!teamcityBuildIds.isEmpty()) {
+            params.add(experiment.getScenario().getClassName())
+            params.add(experiment.getScenario().getTestName())
+            params.add(experiment.getTestProject())
+            params.add(minDate)
+            params.addAll(teamcityBuildIds)
+        }
+        params.add(mostRecentN)
+        return params
+    }
+
+    protected static Boolean toNullableBoolean(Object value) {
+        if (value == null) {
+            return null
+        }
+        if (value instanceof Boolean) {
+            return (Boolean) value
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue() != 0
+        }
+        return Boolean.valueOf(value.toString())
     }
 
     @Override
