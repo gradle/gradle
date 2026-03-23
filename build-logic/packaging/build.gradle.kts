@@ -20,6 +20,7 @@ dependencies {
 
     implementation(buildLibs.gson)
     implementation(libs.asm)
+    implementation(libs.maven3Model)
 
     testImplementation(testLibs.junitJupiter)
 }

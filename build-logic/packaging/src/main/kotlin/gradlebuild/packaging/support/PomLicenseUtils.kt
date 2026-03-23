@@ -16,11 +16,9 @@
 
 package gradlebuild.packaging.support
 
-import org.w3c.dom.Element
-import org.w3c.dom.Node
-import org.w3c.dom.NodeList
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader
 import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
+import java.io.FileInputStream
 
 
 /**
@@ -49,41 +47,23 @@ object PomLicenseUtils {
      * lacks the mandatory `groupId` / `artifactId` coordinates.
      */
     fun parsePom(pomFile: File): PomInfo? {
-        val doc = runCatching {
-            DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(pomFile)
+        val model = runCatching {
+            FileInputStream(pomFile).use { stream -> MavenXpp3Reader().read(stream) }
         }.getOrNull() ?: return null
-        doc.documentElement.normalize()
-        val root = doc.documentElement
 
-        fun Node.directChildText(name: String): String? =
-            childNodes.asSequence().firstOrNull { it.nodeName == name }
-                ?.textContent?.trim()?.takeIf { it.isNotBlank() }
+        val groupId = model.groupId ?: model.parent?.groupId ?: return null
+        val artifactId = model.artifactId ?: return null
+        val version = model.version ?: model.parent?.version
 
-        val parentElement = root.childNodes.asSequence().firstOrNull { it.nodeName == "parent" } as? Element
+        val firstLicense = model.licenses.firstOrNull()
+        val licenseName = firstLicense?.name?.trim()?.takeIf { it.isNotBlank() }
+        val licenseUrl = firstLicense?.url?.trim()?.takeIf { it.isNotBlank() }
 
-        // groupId may be declared directly or inherited from <parent>
-        val groupId = root.directChildText("groupId") ?: parentElement?.directChildText("groupId") ?: return null
-        val artifactId = root.directChildText("artifactId") ?: return null
-        val version = root.directChildText("version") ?: parentElement?.directChildText("version")
-
-        val firstLicense = root.childNodes.asSequence()
-            .firstOrNull { it.nodeName == "licenses" }
-            ?.childNodes?.asSequence()
-            ?.firstOrNull { it.nodeName == "license" }
-        val licenseName = firstLicense?.childNodes?.asSequence()
-            ?.firstOrNull { it.nodeName == "name" }
-            ?.textContent?.trim()?.takeIf { it.isNotBlank() }
-        val licenseUrl = firstLicense?.childNodes?.asSequence()
-            ?.firstOrNull { it.nodeName == "url" }
-            ?.textContent?.trim()?.takeIf { it.isNotBlank() }
-
-        val parent = if (parentElement != null) {
-            val pg = parentElement.directChildText("groupId")
-            val pa = parentElement.directChildText("artifactId")
-            val pv = parentElement.directChildText("version")
+        val parent = model.parent?.let { p ->
+            val pg = p.groupId
+            val pa = p.artifactId
+            val pv = p.version
             if (pg != null && pa != null && pv != null) ParentCoordinates(pg, pa, pv) else null
-        } else {
-            null
         }
 
         return PomInfo(
@@ -95,6 +75,4 @@ object PomLicenseUtils {
             parent = parent,
         )
     }
-
-    private fun NodeList.asSequence(): Sequence<Node> = (0 until length).asSequence().map(::item)
 }
