@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,12 @@ import org.gradle.api.tasks.TaskAction
 import java.util.Properties
 
 
-private const val EQUALS_SEPARATOR = "=============================================================================="
-private const val DASH_SEPARATOR = "------------------------------------------------------------------------------"
+/** Maximum depth when walking the parent POM chain to find a license declaration. */
+private const val MAX_PARENT_POM_DEPTH = 10
+
+private const val SEPARATOR_LENGTH = 80
+private val MAIN_LICENSE_SEPARATOR = "=".repeat(SEPARATOR_LENGTH)
+private val COMPONENT_LICENSE_SEPARATOR = "-".repeat(SEPARATOR_LENGTH)
 
 
 /**
@@ -153,7 +157,7 @@ abstract class GenerateLicenseFile : DefaultTask() {
         val output = buildString {
             append(baseLicenseFile.get().asFile.readText().trimEnd())
             append("\n\n\n")
-            append(EQUALS_SEPARATOR)
+            append(MAIN_LICENSE_SEPARATOR)
             append("\n")
             append("Licenses for included components:")
             append("\n")
@@ -161,7 +165,7 @@ abstract class GenerateLicenseFile : DefaultTask() {
             for ((licenseName, components) in byLicense) {
                 val url = licenseByCoords[components.first().coordKey]?.url
                 append("\n")
-                append(DASH_SEPARATOR)
+                append(COMPONENT_LICENSE_SEPARATOR)
                 append("\n")
                 append(licenseName)
                 append("\n")
@@ -220,7 +224,7 @@ abstract class GenerateLicenseFile : DefaultTask() {
         val startKey = "${component.group}:${component.name}:${component.version}"
         val pomChain = generateSequence(pomMap[startKey] ?: pomMap["${component.group}:${component.name}"]) { info ->
             info.parent?.let { p -> pomMap["${p.groupId}:${p.artifactId}:${p.version}"] ?: pomMap["${p.groupId}:${p.artifactId}"] }
-        }.take(11)
+        }.take(MAX_PARENT_POM_DEPTH)
         for (pomInfo in pomChain) {
             val licenseName = pomInfo.licenseName ?: continue
             return License.fromPomName(licenseName)
@@ -259,6 +263,6 @@ private sealed class LicenseLookupResult {
  */
 private val licenseOverrides: Map<String, License> = mapOf(
     // All net.rubygrapefruit:native-platform-* artifacts are Apache 2.0 licensed but do not
-    // include <licenses> in their POMs (https://github.com/gradle/native-platform)
+    // include <licenses> in their POMs (https://github.com/gradle/native-platform/issues/40)
     "net.rubygrapefruit" to License.Apache2,
 )
