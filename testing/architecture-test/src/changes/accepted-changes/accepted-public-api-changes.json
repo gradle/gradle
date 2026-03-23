@@ -10,14 +10,6 @@
         },
         {
             "type": "org.gradle.api.plugins.quality.Checkstyle",
-            "member": "Class org.gradle.api.plugins.quality.Checkstyle",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.quality.Checkstyle",
             "member": "Method org.gradle.api.plugins.quality.Checkstyle.getConfigDirectory()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
@@ -30,14 +22,6 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.quality.Pmd",
-            "member": "Class org.gradle.api.plugins.quality.Pmd",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -74,26 +58,10 @@
         },
         {
             "type": "org.gradle.api.tasks.JavaExec",
-            "member": "Class org.gradle.api.tasks.JavaExec",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.JavaExec",
             "member": "Method org.gradle.api.tasks.JavaExec.getJavaLauncher()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
-            "member": "Class org.gradle.api.tasks.bundling.AbstractArchiveTask",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -150,14 +118,6 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.bundling.War",
-            "member": "Class org.gradle.api.tasks.bundling.War",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -226,34 +186,10 @@
         },
         {
             "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
-            "member": "Class org.gradle.api.tasks.diagnostics.ConventionReportTask",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getProjectReportDirectory()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
-            "member": "Class org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
-            "member": "Class org.gradle.api.tasks.diagnostics.ProjectReportTask",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -265,35 +201,11 @@
             ]
         },
         {
-            "type": "org.gradle.api.tasks.diagnostics.PropertyReportTask",
-            "member": "Class org.gradle.api.tasks.diagnostics.PropertyReportTask",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
-            "member": "Class org.gradle.api.tasks.diagnostics.TaskReportTask",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
             "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getShowTypes()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.Javadoc",
-            "member": "Class org.gradle.api.tasks.javadoc.Javadoc",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -330,14 +242,6 @@
         },
         {
             "type": "org.gradle.api.tasks.scala.ScalaDoc",
-            "member": "Class org.gradle.api.tasks.scala.ScalaDoc",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.scala.ScalaDoc",
             "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getCompilationOutputs()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
@@ -370,34 +274,10 @@
         },
         {
             "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Class org.gradle.api.tasks.testing.Test",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.Test",
             "member": "Method org.gradle.api.tasks.testing.Test.getJavaLauncher()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.wrapper.Wrapper",
-            "member": "Class org.gradle.api.tasks.wrapper.Wrapper",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.buildinit.tasks.InitBuild",
-            "member": "Class org.gradle.buildinit.tasks.InitBuild",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -426,14 +306,6 @@
         },
         {
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
-            "member": "Class org.gradle.jvm.application.tasks.CreateStartScripts",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
@@ -450,14 +322,6 @@
         },
         {
             "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
-            "member": "Class org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
             "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getObjects()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
@@ -470,14 +334,6 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
-            "member": "Class org.gradle.language.scala.tasks.AbstractScalaCompile",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -502,14 +358,6 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
-            "member": "Class org.gradle.nativeplatform.tasks.ExtractSymbols",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -542,14 +390,6 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
-            "member": "Class org.gradle.nativeplatform.tasks.InstallExecutable",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -593,22 +433,6 @@
             ]
         },
         {
-            "type": "org.gradle.nativeplatform.tasks.LinkSharedLibrary",
-            "member": "Class org.gradle.nativeplatform.tasks.LinkSharedLibrary",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
-            "member": "Class org.gradle.nativeplatform.tasks.StripSymbols",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
             "type": "org.gradle.nativeplatform.tasks.StripSymbols",
             "member": "Method org.gradle.nativeplatform.tasks.StripSymbols.getBinaryFile()",
             "acceptation": "Make explicit properties into managed properties",
@@ -642,14 +466,6 @@
         },
         {
             "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
-            "member": "Class org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
             "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getBundleBinaryFile()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
@@ -662,14 +478,6 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.nativeplatform.test.xctest.tasks.XCTest",
-            "member": "Class org.gradle.nativeplatform.test.xctest.tasks.XCTest",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -698,14 +506,6 @@
         },
         {
             "type": "org.gradle.plugins.ear.Ear",
-            "member": "Class org.gradle.plugins.ear.Ear",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ear.Ear",
             "member": "Method org.gradle.plugins.ear.Ear.getAppDirectory()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
@@ -718,14 +518,6 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest",
-            "member": "Class org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -750,14 +542,6 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.testing.jacoco.tasks.JacocoReport",
-            "member": "Class org.gradle.testing.jacoco.tasks.JacocoReport",
-            "acceptation": "Default methods added to TaskInternal for task provenance reporting",
-            "changes": [
-                "Default method has been added in implemented interface"
             ]
         },
         {
