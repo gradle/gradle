@@ -48,14 +48,9 @@ public class BuildScopedTaskResolver implements TaskResolver {
         build.ensureProjectsConfigured();
 
         Path targetProjectPath = path.getParent() == null ? Path.ROOT : path.getParent();
-
-        // We need project lock for parallel task dependency resolution, since projectState is accessed from another project
-        // TODO: Optimize this, we need to acquire lock only on first projectState.ensureTasksDiscovered()
         ProjectState projectState = build.getProjects().getProject(targetProjectPath);
-        return projectState.fromMutableState(p -> {
-            projectState.ensureTasksDiscovered();
-            return p.getTasks().getByName(targetTaskName);
-        });
+        projectState.ensureTasksDiscovered();
+        return projectState.getMutableModel().getTasks().getByName(targetTaskName);
     }
 
 }
