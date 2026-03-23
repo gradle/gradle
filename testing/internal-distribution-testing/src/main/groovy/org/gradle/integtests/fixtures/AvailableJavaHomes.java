@@ -469,7 +469,7 @@ public abstract class AvailableJavaHomes {
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
         ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
 
-        final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), metadataDetector, null, OperatingSystem.current(), null, new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter())
+        final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), metadataDetector, null, OperatingSystem.current(), null, new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter(), null)
             .toolchains()
             .stream()
             .map(x -> x.metadata)

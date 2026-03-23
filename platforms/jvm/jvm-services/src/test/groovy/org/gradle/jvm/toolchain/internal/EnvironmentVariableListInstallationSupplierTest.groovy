@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal
 
 
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -67,6 +68,24 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         directories[0].source == "environment variable 'JDK8'"
         directories[1].location == jdk9
         directories[1].source == "environment variable 'JDK9'"
+    }
+
+    def "skips unresolvable env var paths without failing"() {
+        given:
+        def buildOpts = Mock(ToolchainConfiguration) {
+            getEnvironmentVariableValue("BAD_JDK") >> "/some/relative/path"
+        }
+        def fileResolver = Mock(FileResolver) {
+            resolve("/some/relative/path") >> { throw new UnsupportedOperationException("Cannot convert relative path") }
+        }
+        def supplier = new EnvironmentVariableListInstallationSupplier(buildOpts, fileResolver)
+
+        when:
+        buildOpts.getJavaInstallationsFromEnvironment() >> ["BAD_JDK"]
+        def directories = supplier.get()
+
+        then:
+        directories.isEmpty()
     }
 
     Set<InstallationLocation> consistentOrder(Set<InstallationLocation> s) {
