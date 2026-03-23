@@ -403,9 +403,12 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
     /**
      * Sets a custom threadPoolExecutorFactory class.
-     * This should be a fully qualified class name and the class should implement org.testng.IExecutorFactory
-     * More details in https://github.com/testng-team/testng/pull/2042
-     * Requires TestNG 7.0 or higher
+     * This should be a fully qualified class name of a class with a public no-arg constructor.
+     * For TestNG 7.10 and above, the class should implement {@code org.testng.IExecutorServiceFactory}.
+     * For TestNG 7.0 through 7.9, the class should implement {@code org.testng.thread.IExecutorFactory}.
+     * More details in <a href="https://github.com/testng-team/testng/pull/2042">testng#2042</a>
+     * and <a href="https://github.com/testng-team/testng/pull/3095">testng#3095</a>.
+     * Requires TestNG 7.0 or higher.
      * @since 8.7
      */
     @Incubating
