@@ -65,7 +65,7 @@ dependencies {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
 
-    testImplementation(projects.buildEvents)
+    testImplementation(projects.daemonMessaging)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
