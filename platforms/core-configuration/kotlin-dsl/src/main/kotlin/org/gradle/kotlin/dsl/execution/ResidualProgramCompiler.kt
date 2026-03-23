@@ -37,6 +37,7 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 import org.gradle.kotlin.dsl.support.ImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.ASTORE
@@ -59,11 +60,9 @@ import org.gradle.kotlin.dsl.support.bytecode.loadByteArray
 import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
-import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
-import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 import org.gradle.plugin.management.internal.MultiPluginRequests
 import org.gradle.plugin.use.internal.PluginRequestCollector
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
+import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
@@ -90,7 +89,7 @@ class ResidualProgramCompiler(
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
     private val programTarget: ProgramTarget,
-    private val implicitImports: List<String> = emptyList(),
+    @Suppress("unused") private val implicitImports: List<String> = emptyList(), // TODO: would be good to use in the templates
     private val logger: Logger = interpreterLogger,
     private val temporaryFileProvider: TemporaryFileProvider,
     private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
@@ -703,6 +702,7 @@ class ResidualProgramCompiler(
             )
         }
 
+    @OptIn(ExperimentalCompilerArgument::class)
     private
     fun compileScript(
         scriptFile: File,
@@ -718,7 +718,7 @@ class ResidualProgramCompiler(
                     outputDir,
                     compilerOptions,
                     scriptFile,
-                    scriptDefinitionFromTemplate(scriptTemplate),
+                    scriptTemplate,
                     compileClassPath.asFiles,
                     logger
                 ) { path ->
@@ -766,20 +766,12 @@ class ResidualProgramCompiler(
     val pluginsScriptTemplate
         get() = CompiledKotlinPluginsBlock::class
 
-    private val buildscriptWithPluginsScriptTemplate = when (programTarget) {
-        ProgramTarget.Project -> CompiledKotlinBuildscriptAndPluginsBlock::class
-        ProgramTarget.Settings -> CompiledKotlinSettingsPluginManagementBlock::class
-        else -> TODO("Unsupported program target: `$programTarget`")
-    }
-
-    private
-    fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
-        scriptDefinitionFromTemplate(
-            template,
-            implicitImports,
-            implicitReceiverOf(template),
-            classPath.asFiles
-        )
+    private val buildscriptWithPluginsScriptTemplate
+        get() = when (programTarget) {
+            ProgramTarget.Project -> CompiledKotlinBuildscriptAndPluginsBlock::class
+            ProgramTarget.Settings -> CompiledKotlinSettingsPluginManagementBlock::class
+            else -> TODO("Unsupported program target: `$programTarget`")
+        }
 
     private
     fun implicitReceiverOf(template: KClass<*>): KClass<*>? =
