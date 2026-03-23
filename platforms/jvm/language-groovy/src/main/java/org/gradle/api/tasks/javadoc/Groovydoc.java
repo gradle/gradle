@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.javadoc;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
@@ -37,6 +38,9 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.jvm.JpmsConfiguration;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.workers.WorkerExecutor;
 import org.jspecify.annotations.Nullable;
 
@@ -87,7 +91,24 @@ public abstract class Groovydoc extends SourceTask {
     private Set<Link> links = new LinkedHashSet<Link>();
 
     @Inject
+    public Groovydoc() {
+        getJavaLauncher().convention(getJavaToolchainService().launcherFor(spec -> {}));
+    }
+
+    @Inject
     protected abstract WorkerExecutor getWorkerExecutor();
+
+    @Inject
+    protected abstract JavaToolchainService getJavaToolchainService();
+
+    /**
+     * The Java launcher used to start the worker process for generating Groovydoc.
+     *
+     * @since 9.6.0
+     */
+    @Incubating
+    @Nested
+    public abstract Property<JavaLauncher> getJavaLauncher();
 
     @TaskAction
     protected void generate() {
@@ -105,7 +126,12 @@ public abstract class Groovydoc extends SourceTask {
         fsOperations.delete(spec -> spec.delete(tmpDir));
         fsOperations.copy(spec -> spec.from(getSource()).into(tmpDir));
 
-        getWorkerExecutor().classLoaderIsolation().submit(GroovydocAntAction.class, parameters -> {
+        JavaLauncher launcher = getJavaLauncher().get();
+        int javaVersionMajor = Integer.parseInt(launcher.getMetadata().getLanguageVersion().toString());
+        getWorkerExecutor().processIsolation(spec -> {
+            spec.getForkOptions().setExecutable(launcher.getExecutablePath().getAsFile().getAbsolutePath());
+            spec.getForkOptions().jvmArgs(JpmsConfiguration.forGroovyCompilerWorker(javaVersionMajor));
+        }).submit(GroovydocAntAction.class, parameters -> {
             parameters.getAntLibraryClasspath().from(getClasspath());
             parameters.getAntLibraryClasspath().from(getGroovyClasspath());
             parameters.getSource().convention(getSource());
