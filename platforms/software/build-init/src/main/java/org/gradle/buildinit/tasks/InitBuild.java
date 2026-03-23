@@ -98,8 +98,6 @@ public abstract class InitBuild extends DefaultTask {
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
-    private final boolean isNonInteractive = getProject().getGradle().getStartParameter().isNonInteractive();
-
     /**
      * Should default values automatically be accepted for options that are not configured explicitly?
      * <p>
@@ -429,7 +427,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private UserInputHandler getEffectiveInputHandler() {
-        if (isNonInteractive || getUseDefaults().get()) {
+        if (getUseDefaults().get()) {
             return new NonInteractiveUserInputHandler();
         }
 
