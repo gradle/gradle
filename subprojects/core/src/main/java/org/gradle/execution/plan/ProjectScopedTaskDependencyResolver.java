@@ -16,17 +16,15 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DeferredCrossProjectDependency;
 import org.gradle.api.internal.tasks.ProjectScopedCachingTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.ProjectScopedCachingTaskDependencyResolveContext.PlaceholderHandler;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiFunction;
 
 /**
  * A project-scoped resolver used during parallel task dependency resolution.
@@ -43,7 +41,7 @@ class ProjectScopedTaskDependencyResolver extends TaskDependencyResolver {
     ProjectScopedTaskDependencyResolver(
         List<DependencyResolver> dependencyResolvers,
         ProjectInternal project,
-        BiFunction<DeferredCrossProjectDependency, Task, Node> placeholderFactory
+        PlaceholderHandler<Node> placeholderHandler
     ) {
         super(dependencyResolvers);
         this.cachingContext = new ProjectScopedCachingTaskDependencyResolveContext<>(
@@ -51,7 +49,7 @@ class ProjectScopedTaskDependencyResolver extends TaskDependencyResolver {
             project.getGradle().getIdentityPath(),
             project.getProjectPath(),
             project.getIdentityPath(),
-            placeholderFactory
+            placeholderHandler
         );
     }
 

@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.ProjectScopedCachingTaskDependencyResolveContext.PlaceholderHandler;
 import org.gradle.api.internal.tasks.DeferredCrossProjectDependency;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -89,7 +90,7 @@ class ParallelNodeRelationshipsResolver {
     Map<LocalTaskNode, ResolvedNodeRelationships> resolve(LinkedList<Node> initialQueue) {
         Map<LocalTaskNode, ResolvedNodeRelationships> results = new HashMap<>();
         BfsWaveQueue waves = new BfsWaveQueue(initialQueue);
-        CrossProjectPlaceholderRegistry placeholderRegistry = new CrossProjectPlaceholderRegistry();
+        CrossProjectPlaceholderRegistry placeholderRegistry = new CrossProjectPlaceholderRegistry(taskNodeFactory);
         Map<ProjectInternal, ProjectScopedTaskDependencyResolver> resolverCache = new HashMap<>();
 
         while (waves.hasNextWave()) {
@@ -165,9 +166,7 @@ class ParallelNodeRelationshipsResolver {
     }
 
     private ProjectScopedTaskDependencyResolver createProjectScopedResolver(ProjectInternal project, CrossProjectPlaceholderRegistry placeholders) {
-        return dependencyResolver.newProjectScopedResolver(project, (dep, task) ->
-            placeholders.createCrossProjectPlaceholderNode(dep, task, taskNodeFactory)
-        );
+        return dependencyResolver.newProjectScopedResolver(project, placeholders);
     }
 
     /**
@@ -294,21 +293,29 @@ class ParallelNodeRelationshipsResolver {
 
     /**
      * Thread-safe registry that tracks {@link DeferredCrossProjectNode} placeholders
-     * created during parallel resolution. Worker threads call {@link #createCrossProjectPlaceholderNode} to
+     * created during parallel resolution. Worker threads call {@link #createPlaceholder} to
      * create placeholders; the main thread calls {@link #takePending} and
      * {@link #substitutePlaceholders} to drain and replace them.
      */
-    private static class CrossProjectPlaceholderRegistry {
+    private static class CrossProjectPlaceholderRegistry implements PlaceholderHandler<Node> {
+        private final TaskNodeFactory taskNodeFactory;
         private final ConcurrentLinkedQueue<DeferredCrossProjectNode> pendingQueue = new ConcurrentLinkedQueue<>();
         private final Set<LocalTaskNode> nodesWithPlaceholders = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-        DeferredCrossProjectNode createCrossProjectPlaceholderNode(DeferredCrossProjectDependency dep, Task task, TaskNodeFactory taskNodeFactory) {
+        CrossProjectPlaceholderRegistry(TaskNodeFactory taskNodeFactory) {
+            this.taskNodeFactory = taskNodeFactory;
+        }
+
+        @Override
+        public Node createPlaceholder(DeferredCrossProjectDependency dep) {
             DeferredCrossProjectNode placeholder = new DeferredCrossProjectNode(dep);
             pendingQueue.add(placeholder);
-            if (task != null) {
-                nodesWithPlaceholders.add((LocalTaskNode) taskNodeFactory.getOrCreateNode(task));
-            }
             return placeholder;
+        }
+
+        @Override
+        public void registerSourceTaskWithPlaceholder(Task task) {
+            nodesWithPlaceholders.add((LocalTaskNode) taskNodeFactory.getOrCreateNode(task));
         }
 
         List<DeferredCrossProjectNode> takePending() {

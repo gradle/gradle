@@ -16,27 +16,31 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.util.Path;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
+import com.google.common.collect.ImmutableList;
+
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.BiFunction;
 
 /**
  * A project-scoped variant of {@link CachingTaskDependencyResolveContext} used during
  * parallel task dependency resolution. Intercepts {@link DeferredCrossProjectDependency}
- * markers in {@link #add} and converts them to placeholder nodes using a provided factory.
+ * markers in {@link #add} and converts them to placeholder nodes using the provided
+ * {@link PlaceholderHandler}.
  *
- * <p>The placeholder nodes are injected directly into the result set returned by
- * {@link #getDependencies}, so callers get dependency sets that already contain
- * the placeholders — no post-processing needed.</p>
+ * <p>Placeholders are injected into the underlying graph walker via {@link #add} so they
+ * participate in the walker's cache. When cached placeholders appear in subsequent results,
+ * the source task is registered via the handler so that placeholder substitution knows
+ * which tasks need post-processing.</p>
  */
 @NullMarked
 public class ProjectScopedCachingTaskDependencyResolveContext<T> extends CachingTaskDependencyResolveContext<T> {
@@ -44,21 +48,33 @@ public class ProjectScopedCachingTaskDependencyResolveContext<T> extends Caching
     private final Path buildPath;
     private final Path currentProjectPath;
     private final Path currentProjectIdentityPath;
-    private final BiFunction<DeferredCrossProjectDependency, Task, T> placeholderFactory;
-    private final List<T> createdPlaceholders = new ArrayList<>();
+    private final PlaceholderHandler<T> placeholderHandler;
+
+    /**
+     * All placeholders ever created via the handler, used to detect whether a
+     * result set contains placeholders that require source task registration.
+     */
+    private final Set<T> createdPlaceholders = Collections.newSetFromMap(new IdentityHashMap<>());
 
     public ProjectScopedCachingTaskDependencyResolveContext(
         Collection<? extends WorkDependencyResolver<T>> workResolvers,
         Path buildPath,
         Path currentProjectPath,
         Path currentProjectIdentityPath,
-        BiFunction<DeferredCrossProjectDependency, Task, T> placeholderFactory
+        PlaceholderHandler<T> placeholderHandler
     ) {
-        super(workResolvers);
+        super(prependPlaceholderResolver(workResolvers));
         this.buildPath = buildPath;
         this.currentProjectPath = currentProjectPath;
         this.currentProjectIdentityPath = currentProjectIdentityPath;
-        this.placeholderFactory = placeholderFactory;
+        this.placeholderHandler = placeholderHandler;
+    }
+
+    private static <T> List<WorkDependencyResolver<T>> prependPlaceholderResolver(Collection<? extends WorkDependencyResolver<T>> workResolvers) {
+        return ImmutableList.<WorkDependencyResolver<T>>builderWithExpectedSize(workResolvers.size() + 1)
+            .add(new PlaceholderResolver<>())
+            .addAll(workResolvers)
+            .build();
     }
 
     @Override
@@ -98,7 +114,11 @@ public class ProjectScopedCachingTaskDependencyResolveContext<T> extends Caching
     @Override
     public void add(Object dependency) {
         if (dependency instanceof DeferredCrossProjectDependency) {
-            createdPlaceholders.add(placeholderFactory.apply((DeferredCrossProjectDependency) dependency, getTask()));
+            T placeholder = placeholderHandler.createPlaceholder((DeferredCrossProjectDependency) dependency);
+            createdPlaceholders.add(placeholder);
+            // Wrap in a PlaceholderMarker and feed into the walker so the placeholder
+            // becomes a cached value of the parent container node.
+            super.add(new PlaceholderMarker<>(placeholder));
         } else {
             super.add(dependency);
         }
@@ -107,12 +127,70 @@ public class ProjectScopedCachingTaskDependencyResolveContext<T> extends Caching
     @Override
     public Set<T> getDependencies(@Nullable Task task, Object dependencies) {
         Set<T> result = super.getDependencies(task, dependencies);
-        if (!createdPlaceholders.isEmpty()) {
-            Set<T> merged = new HashSet<>(result);
-            merged.addAll(createdPlaceholders);
-            createdPlaceholders.clear();
-            return merged;
+        if (task != null && resultContainsPlaceholder(result)) {
+            placeholderHandler.registerSourceTaskWithPlaceholder(task);
         }
         return result;
+    }
+
+    private boolean resultContainsPlaceholder(Set<T> result) {
+        if (createdPlaceholders.isEmpty()) {
+            return false;
+        }
+        for (T value : result) {
+            if (createdPlaceholders.contains(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Thin wrapper that carries a placeholder value through the graph walker.
+     * The walker visits it as a node, and {@link PlaceholderResolver} unwraps it
+     * into a resolved value that gets cached alongside same-project dependencies.
+     */
+    private static class PlaceholderMarker<T> {
+        final T placeholder;
+
+        PlaceholderMarker(T placeholder) {
+            this.placeholder = placeholder;
+        }
+    }
+
+    /**
+     * {@link WorkDependencyResolver} that handles {@link PlaceholderMarker} nodes
+     * by unwrapping and emitting the placeholder as a resolved value.
+     */
+    private static class PlaceholderResolver<T> implements WorkDependencyResolver<T> {
+        @Override
+        @SuppressWarnings("unchecked")
+        public boolean resolve(Task task, Object node, Action<? super T> resolveAction) {
+            if (node instanceof PlaceholderMarker) {
+                resolveAction.execute(((PlaceholderMarker<T>) node).placeholder);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Handles cross-project dependency placeholders during parallel task dependency resolution.
+     *
+     * @param <T> the dependency node type
+     */
+    public interface PlaceholderHandler<T> {
+
+        /**
+         * Creates a placeholder node for a deferred cross-project dependency and
+         * registers it for later resolution.
+         */
+        T createPlaceholder(DeferredCrossProjectDependency dep);
+
+        /**
+         * Registers the given task as having placeholder nodes in its resolved dependencies,
+         * so that placeholder substitution knows to process it.
+         */
+        void registerSourceTaskWithPlaceholder(Task task);
     }
 }

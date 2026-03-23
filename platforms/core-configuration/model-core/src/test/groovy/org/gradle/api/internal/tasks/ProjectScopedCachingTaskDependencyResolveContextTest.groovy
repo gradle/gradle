@@ -28,17 +28,35 @@ class ProjectScopedCachingTaskDependencyResolveContextTest extends Specification
     def currentProjectIdentityPath = Path.path(":projectA")
 
     List<DeferredCrossProjectDependency> capturedDeps = []
+    ProjectScopedCachingTaskDependencyResolveContext<Task> context
 
-    def context = new ProjectScopedCachingTaskDependencyResolveContext<Task>(
-        [WorkDependencyResolver.TASK_AS_TASK],
-        buildPath,
-        currentProjectPath,
-        currentProjectIdentityPath,
-        { dep, task ->
-            capturedDeps.add(dep)
-            return Mock(Task) // placeholder
+    def setup() {
+        def handler = new TestPlaceholderHandler(capturedDeps)
+        context = new ProjectScopedCachingTaskDependencyResolveContext<Task>(
+            [WorkDependencyResolver.TASK_AS_TASK],
+            buildPath,
+            currentProjectPath,
+            currentProjectIdentityPath,
+            handler
+        )
+    }
+
+    static class TestPlaceholderHandler implements ProjectScopedCachingTaskDependencyResolveContext.PlaceholderHandler<Task> {
+        private final List<DeferredCrossProjectDependency> capturedDeps
+
+        TestPlaceholderHandler(List<DeferredCrossProjectDependency> capturedDeps) {
+            this.capturedDeps = capturedDeps
         }
-    )
+
+        @Override
+        Task createPlaceholder(DeferredCrossProjectDependency dep) {
+            capturedDeps.add(dep)
+            return [:] as Task
+        }
+
+        @Override
+        void registerSourceTaskWithPlaceholder(Task task) {}
+    }
 
     def "deferCrossProjectResolution defers when target project differs from current"() {
         when:
@@ -151,6 +169,33 @@ class ProjectScopedCachingTaskDependencyResolveContextTest extends Specification
         capturedDeps.isEmpty()
     }
 
+    def "getDependencies returns cross-project placeholder on second call with same shared dependency container"() {
+        given:
+        def realTask = Mock(Task)
+        // A shared container that produces both a same-project task and a cross-project deferred dep
+        def sharedContainer = Mock(TaskDependencyContainerInternal) {
+            visitDependencies(_) >> { TaskDependencyResolveContext ctx ->
+                ctx.add(realTask)
+                ctx.add(new DeferredCrossProjectDependency.ByProjectTask(Path.path(":projectB"), "compile"))
+            }
+        }
+
+        when: "first resolution — walker traverses the container"
+        def result1 = context.getDependencies(null, sharedContainer)
+
+        then: "returns both the real task and the placeholder"
+        result1.size() == 2
+        result1.contains(realTask)
+        capturedDeps.size() == 1
+
+        when: "second resolution with the same container — walker cache hit"
+        def result2 = context.getDependencies(null, sharedContainer)
+
+        then: "should still return both the real task and the cached placeholder"
+        result2.size() == 2
+        result2.contains(realTask)
+    }
+
     def "deferCrossProjectResolution computes correct identity path in non-root build"() {
         given:
         // Build path ":includedBuild", current project ":app", identity path ":includedBuild:app"
@@ -159,10 +204,7 @@ class ProjectScopedCachingTaskDependencyResolveContextTest extends Specification
             Path.path(":includedBuild"),
             Path.path(":app"),
             Path.path(":includedBuild:app"),
-            { dep, task ->
-                capturedDeps.add(dep)
-                return Mock(Task)
-            }
+            new TestPlaceholderHandler(capturedDeps)
         )
 
         when:
