@@ -17,10 +17,13 @@
 package org.gradle.internal.jvm.inspection;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -44,6 +47,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -55,6 +59,9 @@ import java.util.stream.Collectors;
 
 @NullMarked
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
+
+    private static final ProblemGroup TOOLCHAIN_PROBLEM_GROUP = ProblemGroup.create("jvm-toolchain", "JVM Toolchain");
+
     private final @Nullable BuildOperationRunner buildOperationRunner;
     private final Installations installations;
     private final JvmMetadataDetector metadataDetector;
@@ -62,6 +69,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     private final OperatingSystem os;
     private final @Nullable ProgressLoggerFactory progressLoggerFactory;
     private final JvmInstallationProblemReporter problemReporter;
+    private final @Nullable InternalProblems problems;
 
     @Inject
     public DefaultJavaInstallationRegistry(
@@ -73,9 +81,10 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         @Nullable ProgressLoggerFactory progressLoggerFactory,
         FileResolver fileResolver,
         JdkCacheDirectory jdkCacheDirectory,
-        JvmInstallationProblemReporter problemReporter
+        JvmInstallationProblemReporter problemReporter,
+        @Nullable InternalProblems problems
     ) {
-        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, problemReporter);
+        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, problemReporter, problems);
     }
 
     @VisibleForTesting
@@ -88,7 +97,8 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         @Nullable BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
         @Nullable ProgressLoggerFactory progressLoggerFactory,
-        JvmInstallationProblemReporter problemReporter
+        JvmInstallationProblemReporter problemReporter,
+        @Nullable InternalProblems problems
     ) {
         this.logger = logger;
         this.buildOperationRunner = buildOperationRunner;
@@ -101,6 +111,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         this.os = os;
         this.progressLoggerFactory = progressLoggerFactory;
         this.problemReporter = problemReporter;
+        this.problems = problems;
     }
 
     private static List<InstallationSupplier> builtInSuppliers(ToolchainConfiguration toolchainConfiguration, FileResolver fileResolver, JdkCacheDirectory jdkCacheDirectory) {
@@ -161,6 +172,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
             .flatMap(Set::stream)
             .filter(this::installationExists)
             .map(this::canonicalize)
+            .filter(Objects::nonNull)
             .map(this::maybeGetEnclosedInstallation)
             .filter(this::installationHasExecutable)
             .filter(distinctByKey(InstallationLocation::getLocation))
@@ -170,11 +182,11 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     protected boolean installationExists(InstallationLocation installationLocation) {
         File file = installationLocation.getLocation();
         if (!file.exists()) {
-            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Directory " + installationLocation.getDisplayName() + " used for java installations does not exist");
+            reportProblem(installationLocation, "Directory " + installationLocation.getDisplayName() + " used for java installations does not exist");
             return false;
         }
         if (!file.isDirectory()) {
-            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " points to a file, not a directory");
+            reportProblem(installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " points to a file, not a directory");
             return false;
         }
         return true;
@@ -182,20 +194,33 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     protected boolean installationHasExecutable(InstallationLocation installationLocation) {
         if (!hasJavaExecutable(installationLocation.getLocation())) {
-            problemReporter.reportProblemIfNeeded(logger, installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " does not contain a java executable");
+            reportProblem(installationLocation, "Path for java installation " + installationLocation.getDisplayName() + " does not contain a java executable");
             return false;
         }
         return true;
     }
 
-    private InstallationLocation canonicalize(InstallationLocation location) {
+    private @Nullable InstallationLocation canonicalize(InstallationLocation location) {
         final File file = location.getLocation();
         try {
             final File canonicalFile = file.getCanonicalFile();
             final File javaHome = findJavaHome(canonicalFile);
             return location.withLocation(javaHome);
         } catch (IOException e) {
-            throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
+            reportProblem(location, "Could not canonicalize path to java installation " + location.getDisplayName() + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void reportProblem(InstallationLocation installationLocation, String message) {
+        problemReporter.reportProblemIfNeeded(logger, installationLocation, message);
+        if (problems != null) {
+            ProblemId problemId = ProblemId.create("invalid-jvm-installation", "Invalid JVM installation", TOOLCHAIN_PROBLEM_GROUP);
+            problems.getInternalReporter().report(problemId, spec -> spec
+                .contextualLabel(message)
+                .severity(installationLocation.isAutoDetected() ? Severity.ADVICE : Severity.WARNING)
+                .solution("Ensure that the configured JVM installation path is a valid, absolute path to a JDK or JRE installation")
+            );
         }
     }
 
