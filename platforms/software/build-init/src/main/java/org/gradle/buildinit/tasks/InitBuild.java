@@ -99,7 +99,7 @@ public abstract class InitBuild extends DefaultTask {
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
-    private final Boolean isNonInteractive = getServices().get(StartParameterInternal.class).isNonInteractive();
+    private final boolean isNonInteractive = getServices().get(StartParameterInternal.class).isNonInteractive();
 
     /**
      * Should default values automatically be accepted for options that are not configured explicitly?
