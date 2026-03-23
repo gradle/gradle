@@ -823,6 +823,18 @@ A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>>
 `-Dorg.gradle.java.home`::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that sets the JDK home dir.
 
+[[sec:non_interactive]]
+== Non-interactive mode
+
+By default, Gradle may prompt the user for input on the console when an interactive terminal is available.
+You can disable all interactive prompting by using the `--non-interactive` command-line option.
+
+In non-interactive mode, Gradle uses default values instead of prompting.
+This is useful for running Gradle in automated environments such as CI pipelines, scripts, and AI agents.
+
+`--non-interactive`::
+Do not prompt for user input.
+
 [[sec:task_options]]
 == Task options
 

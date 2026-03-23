@@ -35,14 +35,17 @@ Help:
   --version, -v                      Prints version information and exits.
 
 Logging:
-  --console                          Specifies which type of console output to generate. Supported values are 'plain', 'colored', 'auto' (default), 'rich', or 'verbose'.
-  --console-unicode                  Specifies which character types are allowed in the console output. Supported values are 'auto' (default), 'disable', or 'enable'.
   --debug, -d                        Sets log level to debug. Includes the normal stacktrace.
   --full-stacktrace, -S              Prints the full (very verbose) stacktrace for all exceptions.
   --info, -i                         Sets the log level to info.
   --quiet, -q                        Logs errors only.
   --stacktrace, -s                   Prints the stacktrace for all exceptions.
   --warn, -w                         Sets the log level to warn.
+
+Console:
+  --console                          Specifies which type of console output to generate. Supported values are 'plain', 'colored', 'auto' (default), 'rich', or 'verbose'.
+  --console-unicode                  Specifies which character types are allowed in the console output. Supported values are 'auto' (default), 'disable', or 'enable'.
+  --non-interactive                  Do not do interactive prompting.
 
 Configuration:
   --gradle-user-home, -g             Specifies the Gradle user home directory. Default is ~/.gradle.

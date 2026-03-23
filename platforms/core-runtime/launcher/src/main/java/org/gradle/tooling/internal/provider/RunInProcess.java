@@ -38,7 +38,7 @@ public class RunInProcess implements BuildActionExecutor<BuildActionParameters, 
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, ClientBuildRequestContext context) {
-        DefaultBuildRequestMetaData requestMetadata = new DefaultBuildRequestMetaData(new DefaultBuildClientMetaData(context.getClient()), context.getStartTime(), context.isInteractive());
+        DefaultBuildRequestMetaData requestMetadata = new DefaultBuildRequestMetaData(new DefaultBuildClientMetaData(context.getClient()), context.getStartTime(), context.isInteractiveConsole());
         return delegate.execute(action, actionParameters, new DefaultBuildRequestContext(requestMetadata, context.getCancellationToken(), context.getEventConsumer()));
     }
 }

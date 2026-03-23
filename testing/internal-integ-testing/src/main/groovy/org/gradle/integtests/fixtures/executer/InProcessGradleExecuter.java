@@ -376,7 +376,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     private BuildRequestContext createBuildRequestContext() {
         return new DefaultBuildRequestContext(
-            new DefaultBuildRequestMetaData(Time.currentTimeMillis(), interactive),
+            new DefaultBuildRequestMetaData(Time.currentTimeMillis(), interactiveSession),
             new DefaultBuildCancellationToken(),
             new NoOpBuildEventConsumer());
     }
