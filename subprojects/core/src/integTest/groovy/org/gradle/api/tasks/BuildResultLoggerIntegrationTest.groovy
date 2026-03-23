@@ -96,7 +96,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "1 actionable task: 1 executed"
     }
 
-    @ToBeFixedForConfigurationCache(because = "CC doesn't save/load excluded tasks, causing noActions task to appear skipped")
+    @ToBeFixedForConfigurationCache(because = "CC doesn't save/load excluded tasks, causing noActions task to appear skipped, https://github.com/gradle/gradle/issues/37241")
     def "skipped tasks are not counted"() {
         given:
         executer.withArguments "-x", "executedTask"
@@ -110,7 +110,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertNotOutput("actionable tasks")
     }
 
-    @ToBeFixedForConfigurationCache(because = "buildSrc tasks are not executed when loaded from cache")
+    @ToBeFixedForConfigurationCache(because = "buildSrc tasks are not executed when loaded from cache, https://github.com/gradle/gradle/issues/37241")
     def "reports tasks from buildSrc"() {
         file("buildSrc/src/main/java/Thing.java") << """
             public class Thing {
@@ -154,7 +154,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "2 actionable tasks: 2 executed"
     }
 
-    @ToBeFixedForConfigurationCache(because = "build logic tasks are not executed when loaded from cache")
+    @ToBeFixedForConfigurationCache(because = "build logic tasks are not executed when loaded from cache, https://github.com/gradle/gradle/issues/37241")
     def "reports tasks from included builds that provide project plugins"() {
         settingsFile << """
             includeBuild("plugins")
