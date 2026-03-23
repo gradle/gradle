@@ -50,7 +50,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         new WarningsOption(),
         new ConsoleOption(),
         new ConsoleUnicodeOption(),
-        new NonInteractiveBuildOption()
+        new NonInteractiveOption()
     );
 
     @Override
@@ -246,8 +246,8 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
     }
 
     @NullMarked
-    private static class NonInteractiveBuildOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
-        public NonInteractiveBuildOption() {
+    private static class NonInteractiveOption extends EnabledOnlyBooleanBuildOption<LoggingConfiguration> {
+        public NonInteractiveOption() {
             super(null, CommandLineOptionConfiguration.create("non-interactive", "Do not do interactive prompting."));
         }
 
