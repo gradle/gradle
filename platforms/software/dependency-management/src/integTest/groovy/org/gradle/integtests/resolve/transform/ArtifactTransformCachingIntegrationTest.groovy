@@ -1639,9 +1639,10 @@ resultsFile:
         if (GradleContextualExecuter.configCache) {
             // Under CC, the broken artifact download happens during configuration cache entry writing,
             // so the error is reported as a cache serialization failure
-            failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
+            failure.assertHasDescription("Configuration cache state could not be cached: field `artifacts` of task `:app:resolve` of type `Resolve`: error writing value of type 'org.gradle.api.internal.provider.DefaultProperty'")
+            failure.assertHasCause("Could not download test-1.3.jar (test:test:1.3)")
         } else {
-            failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+            failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
             failure.assertResolutionFailure(":app:compile")
         }
         failure.hasErrorOutput("Received status code 500 from server: broken")
