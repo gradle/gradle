@@ -27,8 +27,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -419,7 +417,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         noneSkipped()
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "Custom actions flag is not restored, https://github.com/gradle/gradle/issues/37246")
     def "task with custom actions gets logged"() {
         when:
         withBuildCache().run "compileJava", "--info"
