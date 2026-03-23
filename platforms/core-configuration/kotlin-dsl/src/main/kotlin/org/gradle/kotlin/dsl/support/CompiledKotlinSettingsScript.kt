@@ -23,9 +23,14 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
+import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.defaultImports
+import kotlin.script.experimental.api.implicitReceivers
 
 
-@ImplicitReceiver(Settings::class)
+@KotlinScript(compilationConfiguration = CompiledKotlinSettingsScriptCompilationConfiguration::class)
+@ImplicitReceiver(Settings::class) // TODO: remove
 open class CompiledKotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
 ) : DefaultKotlinScript(SettingsScriptHost(host)), PluginAware by PluginAwareScript(host) {
@@ -43,3 +48,10 @@ open class CompiledKotlinSettingsScript(
         override fun getFileOperations(): FileOperations = host.fileOperations
     }
 }
+
+object CompiledKotlinSettingsScriptCompilationConfiguration : ScriptCompilationConfiguration(
+    {
+        implicitReceivers(Settings::class)
+        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
+    })
+
