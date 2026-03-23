@@ -31,39 +31,51 @@ class ImplicitImports internal constructor(
     private val importsReader: ImportsReader
 ) : GradleApiImplicitImportsProvider {
 
+    companion object Constants {
+        val groovySpecificImplicitImports by lazy {
+            listOf(
+                "java.lang.*",
+                "java.io.*",
+                "java.net.*",
+                "java.util.*",
+                "java.time.*",
+                "java.math.BigDecimal",
+                "java.math.BigInteger",
+                "javax.inject.Inject"
+            )
+        }
+
+        val kotlinSpecificImplicitImports by lazy {
+            listOf(
+                "org.gradle.kotlin.dsl.*",
+                // TODO: let this be contributed by :plugins
+                "org.gradle.kotlin.dsl.plugins.dsl.*",
+                // TODO: infer list of types below at build time by inspecting the Gradle API
+                "java.util.concurrent.Callable",
+                "java.util.concurrent.TimeUnit",
+                "java.math.BigDecimal",
+                "java.math.BigInteger",
+                "java.io.File",
+                "javax.inject.Inject"
+            )
+        }
+
+        val kotlinImplicitImportApproximations by lazy {
+            listOf(
+                "org.gradle.*",
+                "java.util.concurrent.Callable",
+                "java.util.concurrent.TimeUnit",
+                "java.math.BigDecimal",
+                "java.math.BigInteger",
+                "java.io.File",
+                "javax.inject.Inject"
+            )
+        } // TODO: how to get an accurate hardcoded version, when needing to use it in annotations?
+    }
+
     private
     val defaultGradleApiImports by lazy {
         importsReader.simpleNameToFullClassNamesMapping.values.map { it.first() }
-    }
-
-    private
-    val groovySpecificImplicitImports by lazy {
-        listOf(
-            "java.lang.*",
-            "java.io.*",
-            "java.net.*",
-            "java.util.*",
-            "java.time.*",
-            "java.math.BigDecimal",
-            "java.math.BigInteger",
-            "javax.inject.Inject"
-        )
-    }
-
-    private
-    val kotlinSpecificImplicitImports by lazy {
-        listOf(
-            "org.gradle.kotlin.dsl.*",
-            // TODO: let this be contributed by :plugins
-            "org.gradle.kotlin.dsl.plugins.dsl.*",
-            // TODO: infer list of types below at build time by inspecting the Gradle API
-            "java.util.concurrent.Callable",
-            "java.util.concurrent.TimeUnit",
-            "java.math.BigDecimal",
-            "java.math.BigInteger",
-            "java.io.File",
-            "javax.inject.Inject"
-        )
     }
 
     override fun getGroovyDslImplicitImports(): List<String> =
