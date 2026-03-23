@@ -59,7 +59,6 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.files)
     implementation(projects.functional)
-    implementation(projects.io)
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.projectFeaturesApi)
@@ -87,9 +86,6 @@ dependencies {
         isTransitive = false
     }
     implementation(libs.kotlinScriptingJvm) {
-        isTransitive = false
-    }
-    implementation(libs.kotlinScriptingJvmHost) {
         isTransitive = false
     }
     implementation(libs.kotlinScriptingCompilerEmbeddable) {
