@@ -188,6 +188,13 @@ public class HttpClientConfigurer {
         builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
     }
 
+    private static boolean hasProxyCredentials(HttpSettings httpSettings) {
+        HttpProxySettings.HttpProxy httpProxy = httpSettings.getProxySettings().getProxy();
+        HttpProxySettings.HttpProxy httpsProxy = httpSettings.getSecureProxySettings().getProxy();
+        return (httpProxy != null && httpProxy.credentials != null)
+            || (httpsProxy != null && httpsProxy.credentials != null);
+    }
+
     private void useCredentialsForProxy(CredentialsProvider credentialsProvider, HttpProxySettings.HttpProxy httpsProxy) {
         if (httpsProxy != null && httpsProxy.credentials != null) {
             AllSchemesAuthentication authentication1 = new AllSchemesAuthentication(httpsProxy.credentials);
@@ -289,6 +296,7 @@ public class HttpClientConfigurer {
             .setConnectTimeout(timeoutSettings.getConnectionTimeoutMs())
             .setSocketTimeout(timeoutSettings.getSocketTimeoutMs())
             .setMaxRedirects(httpSettings.getMaxRedirects())
+            .setExpectContinueEnabled(hasProxyCredentials(httpSettings))
             .build();
         builder.setDefaultRequestConfig(config);
     }
