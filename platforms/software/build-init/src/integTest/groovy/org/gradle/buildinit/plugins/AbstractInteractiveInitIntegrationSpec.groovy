@@ -47,7 +47,7 @@ abstract class AbstractInteractiveInitIntegrationSpec extends AbstractInitIntegr
     String subprojectName() { 'app' }
 
     protected GradleHandle startInteractiveExecutorWithTasks(String... names) {
-        executer.withForceInteractiveConsole(true)
+        executer.withForceInteractiveSession(true)
         executer.withStdinPipe()
         executer.withTasks(names)
         executer.start()

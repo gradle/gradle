@@ -199,7 +199,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
-    protected boolean interactiveConsole;
+    protected boolean interactiveSession;
 
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace;
@@ -276,7 +276,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DebugUtil.DAEMON_DEBUG_PORT);
         debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP), LAUNCHER_DEBUG_PORT);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
-        interactiveConsole = false;
+        interactiveSession = false;
         checkDeprecations = true;
         filterJavaVersionDeprecation = true;
         durationMeasurement = null;
@@ -440,7 +440,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         executer
             .withProfiler(profiler)
-            .withForceInteractiveConsole(interactiveConsole);
+            .withForceInteractiveSession(interactiveSession);
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
@@ -1228,7 +1228,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, Boolean.toString(eagerClassLoaderCreationChecksOn));
 
-        if (interactiveConsole) {
+        if (interactiveSession) {
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_CONSOLE_TOGGLE, "true");
         }
 
@@ -1514,8 +1514,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withForceInteractiveConsole(boolean flag) {
-        interactiveConsole = flag;
+    public GradleExecuter withForceInteractiveSession(boolean flag) {
+        interactiveSession = flag;
         return this;
     }
 

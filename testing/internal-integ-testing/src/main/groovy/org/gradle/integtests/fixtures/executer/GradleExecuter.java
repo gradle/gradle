@@ -509,7 +509,7 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Forces Gradle to consider the build to be attached to an interactive console
      */
-    GradleExecuter withForceInteractiveConsole(boolean flag);
+    GradleExecuter withForceInteractiveSession(boolean flag);
 
     boolean isDebug();
 

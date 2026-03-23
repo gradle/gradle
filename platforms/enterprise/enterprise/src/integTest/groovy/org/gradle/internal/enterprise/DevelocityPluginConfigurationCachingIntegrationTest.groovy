@@ -177,7 +177,7 @@ class DevelocityPluginConfigurationCachingIntegrationTest extends AbstractIntegr
     }
 
     private void runInteractive(String task, String answer) {
-        executer.withForceInteractiveConsole(true)
+        executer.withForceInteractiveSession(true)
         executer.withStdinPipe()
         executer.withTasks(task, "--configuration-cache")
         def handle = executer.start()
