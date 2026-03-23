@@ -68,7 +68,7 @@ class TasksFromProjectDependenciesTest extends AbstractProjectBuilderSpec {
         tasks.visitDependencies(context)
 
         then:
-        _ * context.deferCrossProjectTaskVisitIfNeeded(_, _) >> false
+        _ * context.deferCrossProjectResolution(_, _) >> false
         1 * project1State.ensureTasksDiscovered()
         1 * tasks1.findByName("buildNeeded") >> task
         1 * project2State.ensureTasksDiscovered()

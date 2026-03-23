@@ -40,9 +40,9 @@ class ProjectScopedCachingTaskDependencyResolveContextTest extends Specification
         }
     )
 
-    def "deferCrossProjectTaskVisitIfNeeded defers when target project differs from current"() {
+    def "deferCrossProjectResolution defers when target project differs from current"() {
         when:
-        def deferred = context.deferCrossProjectTaskVisitIfNeeded(Path.path(":projectB"), "compile")
+        def deferred = context.deferCrossProjectResolution(Path.path(":projectB"), "compile")
 
         then:
         deferred
@@ -52,18 +52,18 @@ class ProjectScopedCachingTaskDependencyResolveContextTest extends Specification
         capturedDependency.taskName == "compile"
     }
 
-    def "deferCrossProjectTaskVisitIfNeeded does not defer when target is current project"() {
+    def "deferCrossProjectResolution does not defer when target is current project"() {
         when:
-        def deferred = context.deferCrossProjectTaskVisitIfNeeded(Path.path(":projectA"), "compile")
+        def deferred = context.deferCrossProjectResolution(Path.path(":projectA"), "compile")
 
         then:
         !deferred
         capturedDeps.isEmpty()
     }
 
-    def "deferCrossProjectTaskPathIfNeeded defers cross-project path '#taskPath' with target '#expectedTarget:#expectedTask'"() {
+    def "deferCrossProjectResolution defers cross-project path '#taskPath' with target '#expectedTarget:#expectedTask'"() {
         when:
-        def deferred = context.deferCrossProjectTaskPathIfNeeded(Path.path(taskPath))
+        def deferred = context.deferCrossProjectResolution(Path.path(taskPath))
 
         then:
         deferred
@@ -83,9 +83,9 @@ class ProjectScopedCachingTaskDependencyResolveContextTest extends Specification
         "sub:compile"              | ":projectA:sub" | "compile"
     }
 
-    def "deferCrossProjectTaskPathIfNeeded does not defer same-project path '#taskPath'"() {
+    def "deferCrossProjectResolution does not defer same-project path '#taskPath'"() {
         when:
-        def deferred = context.deferCrossProjectTaskPathIfNeeded(Path.path(taskPath))
+        def deferred = context.deferCrossProjectResolution(Path.path(taskPath))
 
         then:
         !deferred
@@ -99,12 +99,12 @@ class ProjectScopedCachingTaskDependencyResolveContextTest extends Specification
         ":projectA:compile" | _
     }
 
-    def "deferAllProjectsDependencyVisitIfNeeded always defers"() {
+    def 'deferAllProjectsSearch always defers'() {
         given:
         def action = { TaskDependencyResolveContext ctx -> } as java.util.function.Consumer
 
         when:
-        def deferred = context.deferAllProjectsDependencyVisitIfNeeded(action)
+        def deferred = context.deferAllProjectsSearch(action)
 
         then:
         deferred
@@ -151,7 +151,7 @@ class ProjectScopedCachingTaskDependencyResolveContextTest extends Specification
         capturedDeps.isEmpty()
     }
 
-    def "deferCrossProjectTaskPathIfNeeded computes correct identity path in non-root build"() {
+    def "deferCrossProjectResolution computes correct identity path in non-root build"() {
         given:
         // Build path ":includedBuild", current project ":app", identity path ":includedBuild:app"
         def nonRootContext = new ProjectScopedCachingTaskDependencyResolveContext<Task>(
@@ -166,7 +166,7 @@ class ProjectScopedCachingTaskDependencyResolveContextTest extends Specification
         )
 
         when:
-        def deferred = nonRootContext.deferCrossProjectTaskPathIfNeeded(Path.path(":lib:compile"))
+        def deferred = nonRootContext.deferCrossProjectResolution(Path.path(":lib:compile"))
 
         then:
         deferred

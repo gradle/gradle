@@ -58,7 +58,7 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
         for (ProjectDependency projectDependency : projectDependencies) {
             Path identityPath = ((ProjectDependencyInternal) projectDependency).getTargetProjectIdentity().getBuildTreePath();
 
-            if (context.deferCrossProjectTaskVisitIfNeeded(identityPath, taskName)) {
+            if (context.deferCrossProjectResolution(identityPath, taskName)) {
                 continue;
             }
 

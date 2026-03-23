@@ -46,13 +46,13 @@ class TasksFromDependentProjects implements TaskDependencyContainerInternal {
         this.configurationName = configurationName;
         this.checker = checker;
         this.taskDependencyDelegate = taskDependencyFactory.visitingDependencies(context -> {
-            if (!context.deferAllProjectsDependencyVisitIfNeeded(this::resolveAllProjectsDependencies)) {
-                resolveAllProjectsDependencies(context);
+            if (!context.deferAllProjectsSearch(this::searchAllProjectsForTasks)) {
+                searchAllProjectsForTasks(context);
             }
         });
     }
 
-    private void resolveAllProjectsDependencies(TaskDependencyResolveContext context) {
+    private void searchAllProjectsForTasks(TaskDependencyResolveContext context) {
         Project thisProject = context.getTask().getProject();
         Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
         for (Task nextTask : tasksWithName) {
