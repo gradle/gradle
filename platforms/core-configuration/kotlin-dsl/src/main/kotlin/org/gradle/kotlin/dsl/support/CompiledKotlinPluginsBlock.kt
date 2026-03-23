@@ -21,11 +21,16 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugin.use.PluginDependenciesSpec
+import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.defaultImports
+import kotlin.script.experimental.api.implicitReceivers
 
 
 /**
  * Base class for `plugins` block evaluation for any target.
  */
+@KotlinScript(compilationConfiguration = CompiledKotlinPluginsBlockCompilationConfiguration::class)
 open class CompiledKotlinPluginsBlock(
     private val host: KotlinScriptHost<ExtensionAware>,
     private val pluginDependencies: PluginDependenciesSpec,
@@ -36,6 +41,12 @@ open class CompiledKotlinPluginsBlock(
     }
 }
 
+object CompiledKotlinPluginsBlockCompilationConfiguration : ScriptCompilationConfiguration(
+    {
+        implicitReceivers(emptyList())
+        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
+    })
+
 
 /**
  * Base class for the evaluation of a `pluginManagement` block followed by a
@@ -43,7 +54,8 @@ open class CompiledKotlinPluginsBlock(
  *
  * @constructor Must match the constructor of the [CompiledKotlinBuildscriptAndPluginsBlock] the object!
  */
-@ImplicitReceiver(Settings::class)
+@KotlinScript(compilationConfiguration = CompiledKotlinSettingsPluginManagementBlockCompilationConfiguration::class)
+@ImplicitReceiver(Settings::class) // TODO: remove
 open class CompiledKotlinSettingsPluginManagementBlock(
     host: KotlinScriptHost<Settings>,
     private val pluginDependencies: PluginDependenciesSpec
@@ -63,13 +75,22 @@ open class CompiledKotlinSettingsPluginManagementBlock(
     }
 }
 
+object CompiledKotlinSettingsPluginManagementBlockCompilationConfiguration : ScriptCompilationConfiguration(
+    {
+        implicitReceivers(Settings::class)
+        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
+    })
+
+
+
 
 /**
  * Base class for the evaluation of a `buildscript` block followed by a `plugins` block.
  *
  * @constructor Must match the constructor of the [CompiledKotlinSettingsPluginManagementBlock] object!
  */
-@ImplicitReceiver(Project::class)
+@KotlinScript(compilationConfiguration = CompiledKotlinBuildscriptAndPluginsBlockCompilationConfiguration::class)
+@ImplicitReceiver(Project::class) // TODO: remove
 open class CompiledKotlinBuildscriptAndPluginsBlock(
     private val host: KotlinScriptHost<Project>,
     private val pluginDependencies: PluginDependenciesSpec
@@ -88,3 +109,10 @@ open class CompiledKotlinBuildscriptAndPluginsBlock(
         PluginDependenciesSpecScopeInternal(host.objectFactory, pluginDependencies).block()
     }
 }
+
+object CompiledKotlinBuildscriptAndPluginsBlockCompilationConfiguration : ScriptCompilationConfiguration(
+    {
+        implicitReceivers(Project::class)
+        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
+    })
+
