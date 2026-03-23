@@ -19,7 +19,6 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
-import org.gradle.integtests.fixtures.initialization.NonInteractiveActivation
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
@@ -476,29 +475,21 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated("app")
     }
 
-    def "use defaults when run from an interactive session with #activation and no options"() {
-        given:
-        activation.applyTo(executer)
-
+    def "use defaults when run from an interactive session with --non-interactive and no options"() {
         when:
         closeInteractiveExecutor(
-            startInteractiveExecutorWithTasks("init")
+            startInteractiveExecutorWithTasks("--non-interactive", "init")
         )
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
-
-        where:
-        activation << NonInteractiveActivation.values()
     }
 
     def "use defaults when run from an interactive session with --non-interactive and not enough options"() {
-        given:
-        activation.applyTo(executer)
-
         when:
         closeInteractiveExecutor(
             startInteractiveExecutorWithTasks(
+                "--non-interactive",
                 "init",
                 "--type", "basic",
                 "--dsl", "kotlin",
@@ -507,18 +498,13 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
-
-        where:
-        activation << NonInteractiveActivation.values()
     }
 
     def "use defaults when run from an interactive session with --non-interactive and all options"() {
-        given:
-        activation.applyTo(executer)
-
         when:
         closeInteractiveExecutor(
             startInteractiveExecutorWithTasks(
+                "--non-interactive",
                 "init",
                 "--type", "basic",
                 "--dsl", "kotlin",
@@ -529,8 +515,5 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
-
-        where:
-        activation << NonInteractiveActivation.values()
     }
 }

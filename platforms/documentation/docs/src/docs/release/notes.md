@@ -78,7 +78,7 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 
 #### Non-interactive mode
 
-Gradle now supports a `--non-interactive` command-line option and a `NONINTERACTIVE` environment variable to disable all interactive console prompting.
+Gradle now supports a `--non-interactive` command-line option to disable all interactive console prompting.
 This is useful for running Gradle in automated environments such as CI pipelines, scripts, and AI agents where no user input is available.
 
 See the [Non-interactive mode](userguide/command_line_interface.html#sec:non_interactive) section in the Gradle User Manual for more information.

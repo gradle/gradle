@@ -1006,8 +1006,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     }
 
     public static class NonInteractiveBuildOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
-        private static final String ENV_VAR_NAME = "NONINTERACTIVE";
-
         public NonInteractiveBuildOption() {
             super(null, CommandLineOptionConfiguration.create("non-interactive", "Do not do interactive prompting."));
         }
@@ -1020,14 +1018,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setNonInteractive(true);
-        }
-
-        @Override
-        public void applyFromEnvVar(Map<String, String> envVars, StartParameterInternal settings) {
-            // Conventionally, CLI tools only check the presence of this environment variable with a non-empty value
-            if (envVars.containsKey(ENV_VAR_NAME) && !envVars.get(ENV_VAR_NAME).isEmpty()) {
-                settings.setNonInteractive(true);
-            }
         }
     }
 }
