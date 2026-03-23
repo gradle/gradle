@@ -91,6 +91,7 @@
          <trusted-key id="19BEAB2D799C020F17C69126B16698A4ADF4D638" group="org.checkerframework" name="checker-qual"/>
          <trusted-key id="1A55F091AD28C07F831FA44D7905DE25C78AD456" group="com.google.protobuf"/>
          <trusted-key id="1BD97A6A154E7810EE0BC832E2F38302C8075E3D">
+            <trusting group="io.github.gradle" name="gradle-org-conventions-plugin"/>
             <trusting group="net.rubygrapefruit"/>
             <trusting group="org.gradle"/>
             <trusting group="org.gradle.exemplar"/>
@@ -886,11 +887,6 @@
       <component group="io.github.eisop" name="dataflow-errorprone" version="3.41.0-eisop1">
          <artifact name="dataflow-errorprone-3.41.0-eisop1.jar">
             <pgp value="7186BBF993566D8C2F4F7ED7D945E643368FEF62"/>
-         </artifact>
-      </component>
-      <component group="io.github.gradle" name="gradle-org-conventions-plugin" version="0.13.0">
-         <artifact name="gradle-org-conventions-plugin-0.13.0.jar">
-            <sha256 value="effde7e5859e137c6bb2d127e2ce301f6ce56b744f301fa3656be6f8cbc202a0" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">

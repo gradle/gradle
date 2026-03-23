@@ -30,7 +30,7 @@ plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
     id("com.gradle.develocity").version("4.3.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
-    id("io.github.gradle.develocity-conventions-plugin").version("0.13.0")
+    id("io.github.gradle.develocity-conventions-plugin").version("0.14.1")
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
