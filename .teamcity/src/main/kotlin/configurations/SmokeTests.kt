@@ -5,7 +5,6 @@ import common.JvmCategory
 import common.Os
 import common.buildScanTagParam
 import common.getBuildScanCustomValueParam
-import common.requiresNotEc2Agent
 import common.toCapitalized
 import model.CIBuildModel
 import model.Stage
@@ -27,11 +26,6 @@ class SmokeTests(
         if (flakyTestStrategy != FlakyTestStrategy.ONLY) {
             // No need to split in FlakyTestQuarantine
             tcParallelTests(splitNumber)
-        }
-
-        requirements {
-            // Smoke tests is usually heavy and the build time is twice on EC2 agents
-            requiresNotEc2Agent()
         }
 
         applyTestDefaults(

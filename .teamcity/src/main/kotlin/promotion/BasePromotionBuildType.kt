@@ -20,7 +20,6 @@ import common.BuildToolBuildJvm
 import common.Os
 import common.VersionedSettingsBranch
 import common.paramsForBuildToolBuild
-import common.requiresNotEc2Agent
 import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.BuildType
@@ -40,7 +39,6 @@ abstract class BasePromotionBuildType(
 
         requirements {
             requiresOs(Os.LINUX)
-            requiresNotEc2Agent()
         }
 
         paramsForBuildToolBuild(BuildToolBuildJvm, Os.LINUX)
