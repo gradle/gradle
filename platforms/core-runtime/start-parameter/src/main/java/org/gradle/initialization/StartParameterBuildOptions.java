@@ -93,8 +93,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
         new TaskGraphOption(),
-        new ParallelToolingModelBuildingOption(),
-        new NonInteractiveBuildOption()
+        new ParallelToolingModelBuildingOption()
     );
 
     @Override
@@ -1002,22 +1001,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, @Nullable Origin origin) {
             settings.setParallelToolingModelBuilding(Option.Value.value(value));
-        }
-    }
-
-    public static class NonInteractiveBuildOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
-        public NonInteractiveBuildOption() {
-            super(null, CommandLineOptionConfiguration.create("non-interactive", "Do not do interactive prompting."));
-        }
-
-        @Override
-        protected OptionCategory getCategory() {
-            return OptionCategory.LOGGING;
-        }
-
-        @Override
-        public void applyTo(StartParameterInternal settings, Origin origin) {
-            settings.setNonInteractive(true);
         }
     }
 }

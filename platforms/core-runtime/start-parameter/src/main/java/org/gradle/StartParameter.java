@@ -182,6 +182,22 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * {@inheritDoc}
      */
     @Override
+    public boolean isNonInteractive() {
+        return loggingConfiguration.isNonInteractive();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setNonInteractive(boolean nonInteractive) {
+        this.loggingConfiguration.setNonInteractive(nonInteractive);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setWarningMode(WarningMode warningMode) {
         loggingConfiguration.setWarningMode(warningMode);
     }
@@ -215,6 +231,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Creates a {@code StartParameter} initialized from the given {@link BuildLayoutParameters}.
+     *
      * @since 7.0
      */
     protected StartParameter(BuildLayoutParameters layoutParameters) {

@@ -66,15 +66,33 @@ public interface LoggingConfiguration {
 
     /**
      * Specifies which type of warnings should be written to the console.
+     *
      * @since 4.5
      */
     WarningMode getWarningMode();
 
     /**
      * Specifies which type of warnings should be written to the console.
+     *
      * @since 4.5
      */
     void setWarningMode(WarningMode warningMode);
+
+    /**
+     * Can the build do interactive prompting on the console.
+     *
+     * @since 9.6.0
+     */
+    @Incubating
+    boolean isNonInteractive();
+
+    /**
+     * Sets if the build can do interactive prompting on the console.
+     *
+     * @since 9.6.0
+     */
+    @Incubating
+    void setNonInteractive(boolean nonInteractive);
 
     /**
      * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.

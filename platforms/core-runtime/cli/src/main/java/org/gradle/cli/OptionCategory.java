@@ -24,6 +24,7 @@ import org.jspecify.annotations.NullMarked;
 public enum OptionCategory {
     HELP("Help"),
     LOGGING("Logging"),
+    CONSOLE("Console"),
     CONFIGURATION("Configuration"),
     EXECUTION("Execution"),
     PERFORMANCE("Performance"),
