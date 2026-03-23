@@ -62,7 +62,7 @@ public class ProjectScopedCachingTaskDependencyResolveContext<T> extends Caching
     }
 
     @Override
-    public boolean deferCrossProjectTaskVisitIfNeeded(Path targetProjectIdentityPath, String taskName) {
+    public boolean deferCrossProjectResolution(Path targetProjectIdentityPath, String taskName) {
         if (currentProjectIdentityPath.equals(targetProjectIdentityPath)) {
             return false;
         }
@@ -71,7 +71,7 @@ public class ProjectScopedCachingTaskDependencyResolveContext<T> extends Caching
     }
 
     @Override
-    public boolean deferCrossProjectTaskPathIfNeeded(Path taskPath) {
+    public boolean deferCrossProjectResolution(Path taskPath) {
         if (!taskPath.isAbsolute() && taskPath.segmentCount() <= 1) {
             // Relative single-segment path like "compileJava" — always targets current project
             return false;
@@ -90,7 +90,7 @@ public class ProjectScopedCachingTaskDependencyResolveContext<T> extends Caching
     }
 
     @Override
-    public boolean deferAllProjectsDependencyVisitIfNeeded(Consumer<TaskDependencyResolveContext> resolutionAction) {
+    public boolean deferAllProjectsSearch(Consumer<TaskDependencyResolveContext> resolutionAction) {
         add(new DeferredCrossProjectDependency.AllProjectsSearch(resolutionAction, getTask()));
         return true;
     }

@@ -63,31 +63,30 @@ public interface TaskDependencyResolveContext extends Action<Task> {
     Task getTask();
 
     /**
-     * If in parallel mode and the given target project (identified by build-tree identity path)
-     * is not the current project, defers the task lookup and returns {@code true}.
-     * Returns {@code false} if the target is the current project or if not in parallel mode.
+     * Defers the resolution of a task project from another project with parallel dependency resolution.
+     *
+     * @return {@code true} if the resolution was deferred; {@code false} if the caller should proceed with immediate resolution.
      */
-    default boolean deferCrossProjectTaskVisitIfNeeded(Path targetProjectIdentityPath, String taskName) {
+    default boolean deferCrossProjectResolution(Path targetProjectIdentityPath, String taskName) {
         return false;
     }
 
     /**
-     * If in parallel mode and the given task path targets another project, defers its
-     * resolution and returns {@code true}. Returns {@code false} if the path targets the
-     * current project or if not in parallel mode.
+     * Defers the resolution of a task project from another project with parallel dependency resolution.
+     *
+     * @return {@code true} if the resolution was deferred; {@code false} if the caller should proceed with immediate resolution.
      */
-    default boolean deferCrossProjectTaskPathIfNeeded(Path taskPath) {
+    default boolean deferCrossProjectResolution(Path taskPath) {
         return false;
     }
 
     /**
-     * If in parallel mode, defers a dependency visit that needs access to all projects
-     * (e.g. searching tasks by name across the entire build) and returns {@code true}.
-     * The provided action captures the original resolution logic and will be re-executed
-     * later under proper locking.
-     * Returns {@code false} if not in parallel mode.
+     * Defers a global task search (e.g., by name) to avoid cross-project contention with parallel dependency resolution.
+     *
+     * @param resolutionAction the logic to be re-executed later under proper locks.
+     * @return {@code true} if the search was deferred; {@code false} if the caller should execute it now.
      */
-    default boolean deferAllProjectsDependencyVisitIfNeeded(Consumer<TaskDependencyResolveContext> resolutionAction) {
+    default boolean deferAllProjectsSearch(Consumer<TaskDependencyResolveContext> resolutionAction) {
         return false;
     }
 }
