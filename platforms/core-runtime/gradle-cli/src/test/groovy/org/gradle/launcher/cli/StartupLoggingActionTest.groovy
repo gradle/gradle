@@ -16,22 +16,27 @@
 
 package org.gradle.launcher.cli
 
-import com.google.common.base.Function
 import org.gradle.api.Action
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.LoggingConfiguration
+import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.ToStringLogger
 import org.gradle.launcher.bootstrap.ExecutionListener
-import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
+import org.jspecify.annotations.Nullable
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.TempDir
 
-class WelcomeMessageActionTest extends Specification {
+import java.nio.charset.StandardCharsets
+import java.util.function.Supplier
+
+class StartupLoggingActionTest extends Specification {
 
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
@@ -39,31 +44,26 @@ class WelcomeMessageActionTest extends Specification {
     @TempDir
     public File temporaryFolder
 
-    BuildLayoutResult buildLayout
+    ToStringLogger log  = new ToStringLogger()
+    Action<ExecutionListener> delegateAction  = Mock()
+    ExecutionListener listener = Mock()
+    WelcomeMessageConfiguration welcomeMessageConfiguration = Stub()
+    LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration()
+
     File gradleUserHomeDir
-    ToStringLogger log
-    Action<ExecutionListener> delegateAction
-    ExecutionListener listener
-    WelcomeMessageConfiguration welcomeMessageConfiguration
 
     def setup() {
         gradleUserHomeDir = temporaryFolder
-        buildLayout = Mock(BuildLayoutResult) {
-            getGradleUserHomeDir() >> gradleUserHomeDir
-        }
-        log = new ToStringLogger()
-        delegateAction = Mock()
-        listener = Mock()
-        welcomeMessageConfiguration = Stub()
     }
 
-    private WelcomeMessageAction createWelcomeMessage(GradleVersion gradleVersion = GradleVersion.current(), String welcomeMessage) {
-        return new WelcomeMessageAction(log, buildLayout, welcomeMessageConfiguration, gradleVersion, { welcomeMessage == null ? null : new ByteArrayInputStream(welcomeMessage.bytes) } as Function, delegateAction)
+    private StartupLoggingAction createStartupLogging(GradleVersion gradleVersion = GradleVersion.current(), @Nullable String welcomeMessage) {
+        def releaseFeaturesSupplier = () -> new ByteArrayInputStream((welcomeMessage ?: "").getBytes(StandardCharsets.UTF_8))
+        return new StartupLoggingAction(log, gradleUserHomeDir, welcomeMessageConfiguration, loggingConfiguration, gradleVersion, releaseFeaturesSupplier, delegateAction)
     }
 
     def "prints highlights when file exists and contains visible content"() {
         given:
-        def action = createWelcomeMessage(GradleVersion.version("42.0"), """ - foo
+        def action = createStartupLogging(GradleVersion.version("42.0"), """ - foo
  - bar
  """)
 
@@ -84,7 +84,7 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
 
     def "omits highlights when file contains only whitespace"() {
         given:
-        def action = createWelcomeMessage("""
+        def action = createStartupLogging("""
 
 """)
 
@@ -98,7 +98,7 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
 
     def "omits highlights when file does not exist"() {
         given:
-        def action = createWelcomeMessage(null)
+        def action = createStartupLogging(null)
 
         when:
         action.execute(listener)
@@ -111,15 +111,13 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
     def "closes InputStream after reading features"() {
         given:
         def inputStreamWasClosed = false
-        def inputStreamProvider = Mock(Function) {
-            apply(_) >> new ByteArrayInputStream(Byte.parseByte('0')) {
-                @Override
-                void close() throws IOException {
-                    inputStreamWasClosed = true
-                }
+        Supplier<InputStream> inputStreamProvider = () -> new ByteArrayInputStream(Byte.parseByte('0')) {
+            @Override
+            void close() throws IOException {
+                inputStreamWasClosed = true
             }
         }
-        def action = new WelcomeMessageAction(log, buildLayout, welcomeMessageConfiguration, GradleVersion.version("42.0"), inputStreamProvider, delegateAction)
+        def action = new StartupLoggingAction(log, gradleUserHomeDir, welcomeMessageConfiguration, loggingConfiguration, GradleVersion.version("42.0"), inputStreamProvider, delegateAction)
 
         when:
         action.execute(listener)
@@ -131,7 +129,7 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
 
     def "does not print links to release notes for snapshot versions"() {
         given:
-        def action = createWelcomeMessage(GradleVersion.version("1.0-SNAPSHOT"), null)
+        def action = createStartupLogging(GradleVersion.version("1.0-SNAPSHOT"), null)
 
         when:
         action.execute(listener)
@@ -143,7 +141,7 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
 
     def "prints links to release notes for non-snapshot versions"() {
         given:
-        def action = createWelcomeMessage(GradleVersion.version("1.0"), null)
+        def action = createStartupLogging(GradleVersion.version("1.0"), null)
 
         when:
         action.execute(listener)
@@ -156,23 +154,23 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
     def "writes marker file after printing welcome message"() {
         given:
         def version = "42.0"
-        def action = createWelcomeMessage(GradleVersion.version(version), null)
+        def action = createStartupLogging(GradleVersion.version(version), null)
 
         when:
         action.execute(listener)
 
         then:
-        markerFile(version).exists()
+        welcomeMarkerFile(version).exists()
         1 * delegateAction.execute(_)
     }
 
-    def "does not print anything if marker file exists"() {
+    def "does not print welcome if marker file exists"() {
         given:
         def version = "42.0"
-        def markerFile = markerFile(version)
+        def markerFile = welcomeMarkerFile(version)
         markerFile.getParentFile().mkdirs()
         markerFile.touch()
-        def action = createWelcomeMessage(GradleVersion.version(version), null)
+        def action = createStartupLogging(GradleVersion.version(version), null)
 
         when:
         action.execute(listener)
@@ -184,8 +182,8 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
 
     def "does not print anything if system property is set to false"() {
         given:
-        System.setProperty(WelcomeMessageAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, "false")
-        def action = createWelcomeMessage(null)
+        System.setProperty(StartupLoggingAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, "false")
+        def action = createStartupLogging(null)
 
         when:
         action.execute(listener)
@@ -198,7 +196,7 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
     def "does not print anything if gradle property is set to hide welcome message"() {
         given:
         welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.NEVER)
-        def action = createWelcomeMessage(null)
+        def action = createStartupLogging(null)
 
         when:
         action.execute(listener)
@@ -208,7 +206,40 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
         1 * delegateAction.execute(_)
     }
 
-    private TestFile markerFile(String version) {
+    def "prints twice when debugging is enabled"() {
+        given:
+        loggingConfiguration.setLogLevel(LogLevel.DEBUG)
+        def action = createStartupLogging(null)
+        when:
+        action.execute(listener)
+        then:
+        def output = TextUtil.normaliseFileSeparators(log.toString())
+        assertDoublePrintInOutput(output)
+        1 * delegateAction.execute(_)
+    }
+
+    def "prints twice when debugging is enabled and an exception is thrown"() {
+        delegateAction.execute(listener) >> { throw new RuntimeException("Boom!") }
+
+        given:
+        loggingConfiguration.setLogLevel(LogLevel.DEBUG)
+        def action = createStartupLogging(null)
+
+        when:
+        action.execute(listener)
+
+        then:
+        thrown(RuntimeException)
+        def output = TextUtil.normaliseFileSeparators(log.toString())
+        assertDoublePrintInOutput(output)
+    }
+
+    private void assertDoublePrintInOutput(String output) {
+        // This should exist twice
+        assert output.count(StartupLoggingAction.DEBUG_WARNING_MESSAGE_BODY) == 2
+    }
+
+    private TestFile welcomeMarkerFile(String version) {
         new TestFile(gradleUserHomeDir, "notifications", version, "release-features.rendered")
     }
 }
