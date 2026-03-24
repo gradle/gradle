@@ -61,7 +61,7 @@ def legacy = tasks.register('legacy', LegacyTask) {
 
 tasks.register('consumeLegacy', ConsumerTask) {
     // CORRECT: Use map for eager (non-Provider) properties
-    inputFile = legacy.map { new File(it.destinationDir, 'output.txt') }
+    inputFile.fileProvider(legacy.map { new File(it.destinationDir, 'output.txt') })
     inputContent = legacy.map { new File(it.destinationDir, 'output.txt').text }
 }
 // end::eager-property[]
