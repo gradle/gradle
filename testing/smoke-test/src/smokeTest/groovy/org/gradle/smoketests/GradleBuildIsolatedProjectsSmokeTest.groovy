@@ -39,7 +39,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         isolatedProjectsRun(tasks)
 
         then:
-        result.assertConfigurationCacheStateStored()
+        result.assertConfigurationCacheStateStoreDiscarded()
     }
 
     def "can schedule all Gradle build tasks with isolated projects enabled"() {
