@@ -19,6 +19,8 @@ package org.gradle.performance.results
 import com.google.common.collect.ImmutableMap
 import groovy.transform.CompileStatic
 
+import java.sql.PreparedStatement
+import java.sql.SQLException
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
@@ -58,6 +60,96 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
         return String.join(' or ', Collections.nCopies(channelPatterns.size(), "channel like ?"))
     }
 
+    protected static List<String> distinctValues(List<String> values) {
+        return new ArrayList<>(new LinkedHashSet<>(values))
+    }
+
+    /**
+     * Builds a UNION-based history query for testExecution lookups.
+     *
+     * Why this exists:
+     * - The old single-query form used one large OR predicate:
+     *   {@code (... channel like ? ... OR teamcitybuildid in (...))}.
+     * - On MySQL, that shape can trigger unstable plans (e.g. broad startTime scans).
+     * - Splitting into two selective branches and joining with {@code UNION DISTINCT}
+     *   gives the optimizer a more predictable path.
+     *
+     * Query shape produced:
+     * - Channel branch (only when {@code channelPatterns} is non-empty):
+     *   {@code select <columns> from testExecution ... and (channel like ? or ...)}
+     * - Build ID branch (only when {@code teamcityBuildIds} is non-empty):
+     *   {@code select <columns> from testExecution ... and teamcitybuildid in (?, ...)}
+     * - Branches are combined using {@code union distinct}.
+     *
+     * Parameter binding contract:
+     * - This method only generates SQL text.
+     * - Parameter order is defined by {@link #bindHistoryQueryParams}:
+     *   1) channel branch fixed params + channel patterns
+     *   2) build-id branch fixed params + build IDs
+     *   3) any outer query params (e.g. LIMIT) are bound by callers.
+     *
+     * Edge cases:
+     * - If both lists are empty, returns a no-op query
+     *   ({@code select ... from testExecution where 1 = 0}) to keep SQL valid.
+     */
+    protected static String createHistoryFilterUnionSql(String selectColumns, List<String> channelPatterns, List<String> teamcityBuildIds) {
+        String baseSqlTemplate = """
+            select %s
+            from testExecution
+            where testClass = ?
+              and testId = ?
+              and testProject = ?
+              and startTime >= ?
+              and %s
+            """
+        List<String> branches = new ArrayList<>(2)
+        if (!channelPatterns.isEmpty()) {
+            branches.add(baseSqlTemplate.formatted(selectColumns, "(${channelPatternQueryFor(channelPatterns)})"))
+        }
+        if (!teamcityBuildIds.isEmpty()) {
+            String teamCityBuildIdInClause = "teamcitybuildid in (${String.join(',', Collections.nCopies(teamcityBuildIds.size(), '?'))})"
+            branches.add(baseSqlTemplate.formatted(selectColumns, teamCityBuildIdInClause))
+        }
+        if (branches.isEmpty()) {
+            return """
+                select ${selectColumns}
+                from testExecution
+                where 1 = 0
+                """
+        }
+        return String.join(" union distinct ", branches)
+    }
+
+    protected static void bindHistoryQueryParams(
+        PreparedStatement statement,
+        PerformanceExperiment experiment,
+        Timestamp minDate,
+        List<String> channelPatterns,
+        List<String> teamcityBuildIds,
+        int mostRecentN
+    ) throws SQLException {
+        int idx = 0
+        if (!channelPatterns.isEmpty()) {
+            statement.setString(++idx, experiment.getScenario().getClassName())
+            statement.setString(++idx, experiment.getScenario().getTestName())
+            statement.setString(++idx, experiment.getTestProject())
+            statement.setTimestamp(++idx, minDate)
+            for (String channelPattern : channelPatterns) {
+                statement.setString(++idx, channelPattern)
+            }
+        }
+        if (!teamcityBuildIds.isEmpty()) {
+            statement.setString(++idx, experiment.getScenario().getClassName())
+            statement.setString(++idx, experiment.getScenario().getTestName())
+            statement.setString(++idx, experiment.getTestProject())
+            statement.setTimestamp(++idx, minDate)
+            for (String teamcityBuildId : teamcityBuildIds) {
+                statement.setString(++idx, teamcityBuildId)
+            }
+        }
+        statement.setInt(++idx, mostRecentN)
+    }
+
     protected static List<Object> createHistoryQueryParams(
         PerformanceExperiment experiment,
         Timestamp minDate,
@@ -74,6 +166,19 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
         params.addAll(teamcityBuildIds)
         params.add(mostRecentN)
         return params
+    }
+
+    protected static Boolean toNullableBoolean(Object value) {
+        if (value == null) {
+            return null
+        }
+        if (value instanceof Boolean) {
+            return (Boolean) value
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue() != 0
+        }
+        return Boolean.valueOf(value.toString())
     }
 
     @Override

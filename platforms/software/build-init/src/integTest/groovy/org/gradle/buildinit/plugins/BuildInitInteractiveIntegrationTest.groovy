@@ -118,7 +118,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'")
+        result.assertHasDescription("Execution failed for task ':init' (registered by plugin 'org.gradle.build-init').")
         assertBuildAborted(handle)
         assertSuggestedResolutionsToExistingFilesProblem(handle)
     }
@@ -171,7 +171,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'")
+        result.assertHasDescription("Execution failed for task ':init' (registered by plugin 'org.gradle.build-init').")
         assertPromptedToOverwriteExistingFiles(handle)
         assertSuggestedResolutionsToExistingFilesProblem(handle)
 
@@ -304,7 +304,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasDescription("Execution failed for task ':init' (registered by plugin 'org.gradle.build-init').")
         result.assertHasCause("Build cancelled.")
 
         and:
@@ -335,7 +335,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasDescription("Execution failed for task ':init' (registered by plugin 'org.gradle.build-init').")
         result.assertHasCause("Build cancelled.")
 
         and:

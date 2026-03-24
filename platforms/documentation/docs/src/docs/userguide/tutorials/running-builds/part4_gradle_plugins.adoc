@@ -250,7 +250,5 @@ plugins {
 Gradle recommends using convention plugins to avoid duplication and manage shared settings in large builds.
 ====
 
-You can learn more from the link:../samples/sample_convention_plugins.html[Convention Plugin Samples].
-
 [.text-right]
 **Next Step:** <<part5_gradle_inc_builds.adoc#part5_begin,Exploring Incremental Builds>> >>

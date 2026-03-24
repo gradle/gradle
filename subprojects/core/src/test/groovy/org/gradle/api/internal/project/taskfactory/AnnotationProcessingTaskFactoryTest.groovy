@@ -32,6 +32,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
@@ -127,6 +128,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [Optional, SkipWhenEmpty], functionHandlers, [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory(), typeMetadataStore)
     def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers)
+    def userCodeContext = UserCodeSource.UNKNOWN
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
@@ -920,7 +922,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     private <T extends TaskInternal> T expectTaskCreated(String name, final Class<T> type, T task) {
         // We cannot just stub here as we want to return a different task each time.
         def projectId = ProjectIdentity.forRootProject(Path.ROOT, "root")
-        def id = new TaskIdentity(type, name, projectId, 12)
+        def id = new TaskIdentity(type, name, projectId, 12, userCodeContext)
         1 * delegate.create(id) >> task
         def createdTask = factory.create(id)
         assert createdTask.is(task)

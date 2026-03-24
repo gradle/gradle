@@ -28,6 +28,6 @@ public interface CompilerWorkerExecutor {
     /**
      * Executes a compiler specified by the {@link CompilerParameters}
      */
-    DefaultWorkResult execute(CompilerParameters parameters, DaemonForkOptions daemonForkOptions, Set<Class<?>> additionalWhitelistedServices);
+    DefaultWorkResult execute(CompilerParameters parameters, DaemonForkOptions daemonForkOptions, Set<Class<?>> additionalAllowedServices);
 
 }

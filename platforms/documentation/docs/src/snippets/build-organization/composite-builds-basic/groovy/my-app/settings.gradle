@@ -1,3 +1,13 @@
+// tag::mag[]
+pluginManagement {
+    includeBuild('my-plugin')
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+// end::mag[]
+
 rootProject.name = 'my-app'
 
 include 'app'

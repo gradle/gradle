@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProbl
 class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedProjectsSmokeTest {
 
     def "can run Gradle build tasks with isolated projects enabled"() {
-        def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
         given:
         def tasks = [
             "build",
@@ -36,20 +35,11 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         ]
 
         when:
-        maxIsolatedProjectProblems = 1
+        maxIsolatedProjectProblems = 0
         isolatedProjectsRun(tasks)
 
         then:
         result.assertConfigurationCacheStateStoreDiscarded()
-
-        // Prevents the power assert from dumping all the output if the check below fails.
-        def report = fixture.htmlReport(result.output)
-
-        report.assertContents {
-            withUniqueProblems(
-                "Project ':docs' cannot dynamically look up a property in the parent project ':'",
-            )
-        }
     }
 
     def "can schedule all Gradle build tasks with isolated projects enabled"() {

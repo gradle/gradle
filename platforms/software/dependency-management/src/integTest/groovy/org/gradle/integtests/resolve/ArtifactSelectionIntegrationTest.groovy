@@ -1109,7 +1109,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         if (GradleContextualExecuter.configCache) {
             failure.assertHasDescription("Configuration cache state could not be cached")
         } else {
-            failure.assertHasDescription("Execution failed for task ':app:resolveView'.")
+            failure.assertHasDescription("Execution failed for task ':app:resolveView' (registered in build file 'app${File.separatorChar}build.gradle').")
         }
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
 

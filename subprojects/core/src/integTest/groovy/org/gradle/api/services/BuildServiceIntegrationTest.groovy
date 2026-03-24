@@ -587,7 +587,7 @@ service: closed with value 10001
         fails 'missingService'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':missingService'")
+        failure.assertHasDescription("Execution failed for task ':missingService' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot query the value of task ':missingService' property 'counter' because it has no value available.")
     }
 
@@ -945,7 +945,7 @@ Hello, subproject1
         outputContains """
 > Task :subproject2:hello FAILED
 """
-        failureDescriptionContains("Execution failed for task ':subproject2:hello'.")
+        failureDescriptionContains("Execution failed for task ':subproject2:hello' (registered by plugin 'my.plugin1').")
         failureCauseContains("assert MyService == myService.type")
     }
 
@@ -1423,7 +1423,7 @@ Hello, subproject1
         fails("check")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':check'.")
+        failure.assertHasDescription("Execution failed for task ':check' (registered in build file 'build.gradle').")
         failure.assertHasCause("Services of type ${serviceType.simpleName} are not available for injection into instances of type BuildService.")
 
         where:
@@ -1555,11 +1555,11 @@ Hello, subproject1
 
         then:
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Execution failed for task ':first'.")
+        failure.assertHasDescription("Execution failed for task ':first' (registered in build file 'build.gradle').")
         failure.assertHasCause("Failed to create service 'counter1'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")
-        failure.assertHasDescription("Execution failed for task ':second'.")
+        failure.assertHasDescription("Execution failed for task ':second' (registered in build file 'build.gradle').")
         failure.assertHasCause("Failed to create service 'counter2'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")
@@ -1569,11 +1569,11 @@ Hello, subproject1
 
         then:
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Execution failed for task ':first'.")
+        failure.assertHasDescription("Execution failed for task ':first' (registered in build file 'build.gradle').")
         failure.assertHasCause("Failed to create service 'counter1'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")
-        failure.assertHasDescription("Execution failed for task ':second'.")
+        failure.assertHasDescription("Execution failed for task ':second' (registered in build file 'build.gradle').")
         failure.assertHasCause("Failed to create service 'counter2'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")

@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r940
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
@@ -25,6 +24,7 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.GradleVersion
 
 import java.util.regex.Pattern
 
@@ -96,14 +96,14 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
             plugins {
                 `kotlin-dsl`
             }
-            
+
             repositories {
                 gradlePluginPortal()
             }
         """
 
         file("buildSrc/src/main/kotlin/my-conventions.gradle.kts") << """
-             broken !!! 
+             broken !!!
         """
 
         when:
@@ -111,12 +111,20 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
 
         then:
         def e = thrown(BuildException)
-        e.cause.message.contains("Execution failed for task ':buildSrc:compileKotlin'.")
+        e.cause.message.contains("Execution failed for task ':buildSrc:compileKotlin'")
         def model = modelCollector.model
-        assertFailures(model,
+
+        if (targetVersion >= GradleVersion.version("9.5.0")) {
+            assertFailures(model,
+                "Execution failed for task ':buildSrc:compileKotlin' \\(registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper'\\).",
+                "Execution failed for task ':buildSrc:compileKotlin' \\(registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper'\\).",
+            )
+        } else {
+            assertFailures(model,
                 "Execution failed for task ':buildSrc:compileKotlin'.",
                 "Execution failed for task ':buildSrc:compileKotlin'.",
-        )
+            )
+        }
         assertModel(model, true, [], ["buildSrc"])
     }
 

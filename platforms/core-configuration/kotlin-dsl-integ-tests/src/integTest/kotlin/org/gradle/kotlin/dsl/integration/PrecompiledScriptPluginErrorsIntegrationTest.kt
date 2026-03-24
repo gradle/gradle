@@ -152,7 +152,7 @@ class PrecompiledScriptPluginErrorsIntegrationTest : AbstractKotlinIntegrationTe
         withPrecompiledKotlinScript("some.gradle.kts", "")
 
         buildAndFail("compileKotlin").apply {
-            assertHasFailure("Execution failed for task ':compileKotlin'.") {
+            assertHasFailure("Execution failed for task ':compileKotlin' (registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper').") {
                 assertHasCause(
                     "Kotlin compiler arguments of task ':compileKotlin' do not work for the `kotlin-dsl` plugin. " +
                         "The 'freeCompilerArgs' property has been reassigned. " +

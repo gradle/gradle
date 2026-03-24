@@ -115,8 +115,8 @@ interface DelegatingExecutionFailure extends DelegatingExecutionResult, Executio
     }
 
     @Override
-    default ExecutionFailure assertTestsFailed() {
-        getDelegate().assertTestsFailed();
+    default ExecutionFailure assertTestsFailedWithProvenance() {
+        getDelegate().assertTestsFailedWithProvenance();
         return this;
     }
 

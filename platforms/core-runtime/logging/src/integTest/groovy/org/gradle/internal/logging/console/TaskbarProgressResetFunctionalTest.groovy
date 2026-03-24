@@ -20,7 +20,6 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.test.precondition.Requires
@@ -34,7 +33,6 @@ import spock.lang.Issue
  * @see <a href="https://github.com/gradle/gradle/issues/37022">Issue #37022</a>
  */
 @Issue("https://github.com/gradle/gradle/issues/37022")
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/5132")
 class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
     /** OSC 9;4 prefix — signals that taskbar progress is being reported. */
     static final String OSC_PROGRESS_PREFIX = "\u001B]9;4;"
@@ -63,14 +61,16 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         buildFile << """
             task block {
                 doFirst {
-                    Thread.sleep(10_000)
+                    ${server.callFromBuild("block")}
                 }
             }
         """
+        def block = server.expectAndBlock("block")
 
         when:
         def gradle = executer.withTasks("block").start()
 
+        block.waitForAllPendingCalls()
         // Wait until the progress bar has started emitting OSC 9;4 sequences.
         ConcurrentTestUtil.poll {
             assert gradle.standardOutput.contains(OSC_PROGRESS_PREFIX)
@@ -78,6 +78,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
 
         gradle.sendSignal(SIGINT)
         gradle.waitForFailure()
+        server.resetExpectations()
 
         then:
         gradle.standardOutput.contains(OSC_RESET)

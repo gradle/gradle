@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
@@ -66,8 +67,11 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         fails "updateDaemonJvm"
 
         then:
-        // TODO The description is different with CC on, and this should use the problem validation test API
+        if (!GradleContextualExecuter.isConfigCache()) {
+            failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
+            // TODO The description is different with CC on, and this should use the problem validation test API
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
+        }
         failureHasCause('Invalid task configuration')
         failureCauseContains('Toolchain download repositories have not been configured.')
         failure.assertHasResolution('Configure toolchain download repositories in your build settings.')
@@ -153,7 +157,7 @@ tasks.named("updateDaemonJvm") {
         fails "updateDaemonJvm", "--jvm-version=7"
 
         then:
-        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
+        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
         failureHasCause("Unsupported Java version '7' provided for the 'jvm-version' option. Gradle can only run with Java 8 and above.")
     }
 

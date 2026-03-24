@@ -529,7 +529,7 @@ Now when running `consumer` task, then `greeterB`, then `consumer` task remains 
 However, a more _complete and idiomatic_ approach realizes that:
 
 1. Tasks that produce single output files should make this clear from the type of their `@Output` properties.
-1. Tasks that only consume single input files should make this clear from the type of their `@Input` properties.
+2. Tasks that only consume single input files should make this clear from the type of their `@Input` properties.
 
 ++++
 <div style="text-align: right;">
