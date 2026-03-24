@@ -52,10 +52,15 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         reason = "sends SIGINT to a forked process works only on Unix and with a separate process")
     def "sends OSC 9;4;0 reset sequence when build receives SIGINT"() {
         given:
-        // Long sleep ensures the task is still running when SIGINT is sent.
+        // The task creates a marker file once it's running, then sleeps.
+        // We wait for the marker before sending SIGINT to avoid racing
+        // against JVM signal-handler setup on slow CI machines.
+        def readyFile = file("ready.marker")
         buildFile << """
             task block {
+                def marker = file("${readyFile.name}")
                 doFirst {
+                    marker.createNewFile()
                     Thread.sleep(600_000)
                 }
             }
@@ -64,9 +69,8 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         when:
         def gradle = executer.withTasks("block").start()
 
-        // Wait until the progress bar has started emitting OSC 9;4 sequences.
         ConcurrentTestUtil.poll {
-            assert gradle.standardOutput.contains(OSC_PROGRESS_PREFIX)
+            assert readyFile.exists()
         }
 
         gradle.sendSignal(SIGINT)
