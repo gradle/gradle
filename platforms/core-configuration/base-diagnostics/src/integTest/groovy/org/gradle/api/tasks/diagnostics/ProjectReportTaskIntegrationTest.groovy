@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.util.internal.TextUtil
+import spock.lang.Issue
 
 /**
  * Integration tests for the `:projects` task, which reports the project structure and project types.
@@ -521,5 +522,15 @@ For example, try running gradle :common:tasks
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :tasks
 """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37045")
+    def "reports projects when root project has no imperative statements"() {
+        buildFile << """
+            void foo() { }
+        """
+
+        expect:
+        succeeds "projects"
     }
 }

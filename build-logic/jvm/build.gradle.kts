@@ -11,5 +11,6 @@ dependencies {
     implementation(projects.dependencyModules)
 
     implementation(buildLibs.develocityPlugin)
+    implementation(buildLibs.gson)
     implementation(buildLibs.kgp)
 }

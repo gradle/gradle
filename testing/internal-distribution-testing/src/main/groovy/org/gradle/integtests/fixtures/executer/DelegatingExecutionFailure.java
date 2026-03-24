@@ -103,12 +103,6 @@ interface DelegatingExecutionFailure extends DelegatingExecutionResult, Executio
     }
 
     @Override
-    default ExecutionFailure assertHasDocumentationInResolutions(String pageWithAnchor) {
-        getDelegate().assertHasDocumentationInResolutions(pageWithAnchor);
-        return this;
-    }
-
-    @Override
     default ExecutionFailure assertHasNoCause(String description) {
         getDelegate().assertHasNoCause(description);
         return this;
@@ -121,8 +115,8 @@ interface DelegatingExecutionFailure extends DelegatingExecutionResult, Executio
     }
 
     @Override
-    default ExecutionFailure assertTestsFailed() {
-        getDelegate().assertTestsFailed();
+    default ExecutionFailure assertTestsFailedWithProvenance() {
+        getDelegate().assertTestsFailedWithProvenance();
         return this;
     }
 

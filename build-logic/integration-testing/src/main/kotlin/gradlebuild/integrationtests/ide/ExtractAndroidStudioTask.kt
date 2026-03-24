@@ -79,8 +79,12 @@ abstract class ExtractAndroidStudioTask @Inject constructor(
     fun extractDmg(androidStudioDistribution: File) {
         val volumeDir = "/Volumes/$VOLUME_NAME"
         val srcDir = "/Volumes/$VOLUME_NAME/Android Studio.app"
-        require(!File(srcDir).exists()) {
-            "The directory $srcDir already exists. Please unmount it via `hdiutil detach $volumeDir`."
+        // A previous build may have been interrupted before the finally block could detach the volume.
+        // Detach it automatically so the task can proceed without requiring manual intervention.
+        if (File(srcDir).exists()) {
+            execOps.exec {
+                commandLine("hdiutil", "detach", volumeDir)
+            }
         }
 
         try {

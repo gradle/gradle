@@ -230,6 +230,33 @@ class ProgressBarTest extends Specification {
         id = unicode ? "unicode" : "ascii"
     }
 
+    def "builds taskbar progress reset sequence when supported (#id)"() {
+        given:
+        def consoleMetaData = Stub(ConsoleMetaData) {
+            supportsTaskbarProgress() >> supported
+        }
+
+        expect:
+        ProgressBar.buildTaskbarProgressResetSequence(consoleMetaData) == resetSequence
+
+        where:
+        supported | resetSequence
+        true      | "\u001B]9;4;0\u0007"
+        false     | ""
+        id = supported ? "supported" : "unsupported"
+    }
+
+    def "builds osc 9;4 sequence for command (#command)"() {
+        expect:
+        ProgressBar.buildOsc94Sequence(command) == expected
+
+        where:
+        command | expected
+        "0"     | "\u001B]9;4;0\u0007"
+        "1;10"  | "\u001B]9;4;1;10\u0007"
+        "2;10"  | "\u001B]9;4;2;10\u0007"
+    }
+
     def "does not emit taskbar progress when not supported (#id)"() {
         given:
         init(unicode, 10, false)

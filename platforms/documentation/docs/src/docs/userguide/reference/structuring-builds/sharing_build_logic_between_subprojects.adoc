@@ -210,6 +210,7 @@ In a multi-project build, only one `buildSrc` directory is allowed, and it must 
 
 WARNING: Changes to code in `buildSrc` will invalidate the configuration phase and require re-execution of all tasks, potentially slowing down the build.
 
+[[sec:sharing_logic_via_composite_build]]
 === Using a Composite Build Named `build-logic`
 
 In addition to `buildSrc`, another powerful way to share build logic across subprojects is by using a dedicated composite build, typically named `build-logic`.

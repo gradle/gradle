@@ -24,24 +24,24 @@ public class TransportableActionExecutionSpec {
     private final byte[] serializedParameters;
     private final ClassLoaderStructure classLoaderStructure;
     private final File baseDir;
-    private final Set<String> additionalWhitelistedServicesClassNames;
+    private final Set<String> additionalAllowedServicesClassNames;
     private final File projectCacheDir;
 
-    public TransportableActionExecutionSpec(String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, File projectCacheDir, Set<String> additionalWhitelistedServicesClassNames) {
+    public TransportableActionExecutionSpec(String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, File projectCacheDir, Set<String> additionalAllowedServicesClassNames) {
         this.implementationClassName = implementationClassName;
         this.serializedParameters = serializedParameters;
         this.classLoaderStructure = classLoaderStructure;
         this.baseDir = baseDir;
         this.projectCacheDir = projectCacheDir;
-        this.additionalWhitelistedServicesClassNames = additionalWhitelistedServicesClassNames;
+        this.additionalAllowedServicesClassNames = additionalAllowedServicesClassNames;
     }
 
     public File getBaseDir() {
         return baseDir;
     }
 
-    public Set<String> getAdditionalWhitelistedServicesClassNames() {
-        return additionalWhitelistedServicesClassNames;
+    public Set<String> getAdditionalAllowedServicesClassNames() {
+        return additionalAllowedServicesClassNames;
     }
 
     public ClassLoaderStructure getClassLoaderStructure() {

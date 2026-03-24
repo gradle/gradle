@@ -49,7 +49,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         GradleDocumentationExtension extension = project.getExtensions().create("gradleDocumentation", GradleDocumentationExtension.class);
         applyConventions(project, tasks, objects, layout, extension);
 
-        extension.getQuickFeedback().convention(providers.provider(() -> project.hasProperty("quickDocs")));
+        extension.getQuickFeedback().convention(providers.gradleProperty("quickDocs").map(v -> true).orElse(false));
 
         project.apply(target -> target.plugin(GradleReleaseNotesPlugin.class));
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));

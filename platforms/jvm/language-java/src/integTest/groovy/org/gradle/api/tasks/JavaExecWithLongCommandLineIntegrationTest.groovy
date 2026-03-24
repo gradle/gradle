@@ -17,13 +17,17 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.util.LongCommandLineDetectionUtil
 import org.gradle.test.fixtures.Flaky
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.gradle.util.Matchers.containsText
 
-class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec {
+class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     def veryLongFileNames = getLongCommandLine()
 
     def setup() {
@@ -152,6 +156,70 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         method                    | taskName
         'JavaExec task'           | 'run'
         'ExecOperations.javaexec' | 'runWithExecOperations'
+    }
+
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    def "succeeds with long command line using Java 8 toolchain"() {
+        def jdk8 = AvailableJavaHomes.getJdk8()
+        buildFile << """
+            extraClasspath.from('${veryLongFileNames.join("','")}')
+
+            run {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
+            }
+
+            compileJava {
+                javaCompiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
+            }
+        """
+
+        // Artificially lower the length of the command-line we try to shorten
+        file("gradle.properties") << """
+            systemProp.org.gradle.internal.cmdline.max.length=1000
+        """
+
+        when:
+        withInstallations(jdk8).succeeds "run", "-i"
+
+        then:
+        executedAndNotSkipped(":run")
+        outputContains("Shortening Java classpath")
+    }
+
+    def "succeeds with long command line using Java 17 toolchain"() {
+        def jdk17 = AvailableJavaHomes.getJdk17()
+        buildFile << """
+            extraClasspath.from('${veryLongFileNames.join("','")}')
+
+            run {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(17)
+                }
+                args "--module", "does-not-exist"
+            }
+
+            compileJava {
+                javaCompiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(17)
+                }
+            }
+        """
+
+        // Artificially lower the length of the command-line we try to shorten
+        file("gradle.properties") << """
+            systemProp.org.gradle.internal.cmdline.max.length=1000
+        """
+
+        when:
+        withInstallations(jdk17).succeeds "run", "-i"
+
+        then:
+        executedAndNotSkipped(":run")
+        outputContains("Command line too long - creating argsfile(s)")
     }
 
     private void assertOutputContainsShorteningMessage() {

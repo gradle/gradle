@@ -1726,5 +1726,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         public boolean isRunning() {
             return delegate.isRunning();
         }
+
+        @Override
+        public GradleHandle sendSignal(int signal) {
+            return delegate.sendSignal(signal);
+        }
     }
 }

@@ -47,6 +47,7 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
         registration.add(TransformStepNodeDependencyResolver.class);
         registration.add(DependencyManagementManagedTypesFactory.class);
+        registration.add(DefaultProjectDependencyFactory.class);
     }
 
     @Provides

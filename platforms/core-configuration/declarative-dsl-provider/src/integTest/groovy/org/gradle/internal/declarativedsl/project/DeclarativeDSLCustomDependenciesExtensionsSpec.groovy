@@ -478,6 +478,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         file("producer/src/main/java/com/example/Producer.java") << defineExampleProducerJavaClass()
         file("producer/build.gradle.dcl") << defineDeclarativeDSLProducerBuildScript()
         file("build-logic/build.gradle") << defineRestrictedPluginBuild()
+        file("gradle/libs.versions.toml") << defineDependencyVersionCatalog()
         file("settings.gradle") << defineSettings() << """include("producer")"""
         file("build.gradle.dcl") << """
                 library {
@@ -489,6 +490,9 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             because("Testing file collection dependencies")
                         }
                         api(project(":producer")) {
+                            exclude(mapOf("group" to "commons-collections"))
+                        }
+                        implementation(catalog("libs.commonsLang3")) {
                             exclude(mapOf("group" to "commons-collections"))
                         }
                     }
@@ -518,14 +522,37 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         return """
             package com.example.restricted;
 
+            import org.gradle.api.Project;
+            import org.gradle.api.artifacts.ExternalModuleDependency;
+            import org.gradle.api.artifacts.VersionCatalogsExtension;
             import org.gradle.api.artifacts.dsl.DependencyCollector;
             import org.gradle.api.artifacts.dsl.GradleDependencies;
             import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
+            import javax.inject.Inject;
+            import org.gradle.declarative.dsl.model.annotations.Adding;import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
             public interface DependenciesExtension extends GradleDependencies, PlatformDependencyModifiers {
                 DependencyCollector getApi();
                 DependencyCollector getImplementation();
+
+            default ExternalModuleDependency catalog(String notation) {
+                String[] parts = notation.split("\\\\.");
+                if (parts.length != 2) {
+                    throw new IllegalArgumentException(notation + " must be a dot separated name");
+                }
+                return getTargetProject()
+                    .getExtensions()
+                    .getByType(VersionCatalogsExtension.class)
+                    .find(parts[0])
+                    .flatMap(catalog -> catalog.findLibrary(parts[1]))
+                    .orElseThrow(() -> new IllegalArgumentException("Could not find library with notation " + notation))
+                    .get();
             }
+
+        @Inject
+        @HiddenInDefinition
+        Project getTargetProject();
+    }
         """
     }
 
@@ -826,6 +853,13 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             }
         """
     }
+
+    private String defineDependencyVersionCatalog() {
+        return """[libraries]
+commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
+"""
+    }
+
 
     private String defineExampleJavaClass() {
         return """

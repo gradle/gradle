@@ -57,7 +57,7 @@ You enable this with the `--develocity-url` command line option:
  ./gradlew build --develocity-url=https://develocity.example.com
 ----
 
-Check the https://docs.gradle.com/develocity/gradle/current/gradle-plugin/[Develocity Gradle plugin documentation] for more details.
+Check the https://docs.gradle.com/develocity/gradle/current/gradle-plugin/#publish_no_modify[Develocity Gradle plugin documentation] for more details.
 
 [[sec:captured-information]]
 == Captured Information

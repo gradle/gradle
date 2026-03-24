@@ -90,7 +90,7 @@ My custom legacy configuration""")
         doesNotPromptForRerunToFindMoreConfigurations()
     }
 
-    def "if single resolvable configuration with no attributes or artifacts present, task does not report it"() {
+    def "if single resolvable configuration with no attributes or artifacts present, task reports it"() {
         given:
         buildFile << """
             configurations.create("custom") {
@@ -104,13 +104,46 @@ My custom legacy configuration""")
         succeeds ':resolvableConfigurations'
 
         then:
-        reportsNoProperConfigurations()
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
+Configuration custom (n)
+--------------------------------------------------
+My custom configuration""")
 
         and:
         doesNotHaveLegacyLegend()
         doesNotHaveIncubatingLegend()
-        doesNotHaveConfigurationsLackingAttributesLegend()
-        promptsForRerunToFindMoreConfigurations()
+        hasConfigurationsLackingAttributesLegend()
+        doesNotPromptForRerunToFindMoreConfigurations()
+    }
+
+    def "if resolvable configuration without attributes and legacy configuration present, task reports resolvable config and does not prompt for legacy"() {
+        given:
+        buildFile << """
+            configurations.create("custom") {
+                description = "My custom configuration"
+                assert canBeResolved
+                canBeConsumed = false
+            }
+            configurations.create("legacy") {
+                description = "My legacy configuration"
+                assert canBeResolved
+                assert canBeConsumed
+            }
+        """
+
+        when:
+        succeeds ':resolvableConfigurations'
+
+        then:
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
+Configuration custom (n)
+--------------------------------------------------
+My custom configuration""")
+
+        and:
+        doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
+        hasConfigurationsLackingAttributesLegend()
     }
 
     def "if single resolvable configuration present with attributes, task reports it and them"() {

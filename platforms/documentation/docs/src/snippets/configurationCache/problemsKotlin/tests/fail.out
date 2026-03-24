@@ -12,7 +12,7 @@ Configuration cache entry discarded with 1 problem.
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':someTask'.
+Execution failed for task ':someTask' (registered in build file 'build.gradle.kts').
 > Invocation of 'Task.project' by task ':someTask' at execution time is unsupported with the configuration cache.
 
 * Try:

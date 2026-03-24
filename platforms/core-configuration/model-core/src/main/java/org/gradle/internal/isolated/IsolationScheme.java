@@ -86,15 +86,15 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
     public ServiceLookup servicesForImplementation(
         @Nullable PARAMS params,
         ServiceLookup allServices,
-        Collection<? extends Class<?>> additionalWhiteListedServices
+        Collection<? extends Class<?>> additionalAllowedServices
     ) {
-        return new ServicesForIsolatedObject(interfaceType, noParamsType, params, allServices, additionalWhiteListedServices);
+        return new ServicesForIsolatedObject(interfaceType, noParamsType, params, allServices, additionalAllowedServices);
     }
 
     private static class ServicesForIsolatedObject implements ServiceLookup {
         private final Class<?> interfaceType;
         private final Class<?> noParamsType;
-        private final Collection<? extends Class<?>> additionalWhiteListedServices;
+        private final Collection<? extends Class<?>> additionalAllowedServices;
         private final ServiceLookup allServices;
         private final @Nullable Object params;
 
@@ -103,11 +103,11 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
             Class<?> noParamsType,
             @Nullable Object params,
             ServiceLookup allServices,
-            Collection<? extends Class<?>> additionalWhiteListedServices
+            Collection<? extends Class<?>> additionalAllowedServices
         ) {
             this.interfaceType = interfaceType;
             this.noParamsType = noParamsType;
-            this.additionalWhiteListedServices = additionalWhiteListedServices;
+            this.additionalAllowedServices = additionalAllowedServices;
             this.allServices = allServices;
             this.params = params;
         }
@@ -147,9 +147,9 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
                 if (serviceClass.isAssignableFrom(ManagedObjectRegistry.class)) {
                     return allServices.find(ManagedObjectRegistry.class);
                 }
-                for (Class<?> whiteListedService : additionalWhiteListedServices) {
-                    if (serviceClass.isAssignableFrom(whiteListedService)) {
-                        return allServices.find(whiteListedService);
+                for (Class<?> allowedService : additionalAllowedServices) {
+                    if (serviceClass.isAssignableFrom(allowedService)) {
+                        return allServices.find(allowedService);
                     }
                 }
             }

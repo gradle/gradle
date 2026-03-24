@@ -385,7 +385,7 @@ In this example, the `commons-collections` dependency will be excluded from the 
 Below is a simplified usage of the `commons-beanutils` library, where we only call `PropertyUtils.setSimpleProperty()` on a POJO (Plain Old Java Object):
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="src/main/java/Main.java"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/common",files="src/main/java/Main.java"]
 ====
 
 This specific usage doesn't require `commons-collections`, which we've verified with test coverage.

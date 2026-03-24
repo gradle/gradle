@@ -24,7 +24,6 @@ class FindBrokenInternalLinksTest extends Specification {
     @TempDir
     private File projectDir
     private File docsRoot
-    private File samplesRoot
     private File sampleDoc
     private File sampleSampleDoc
     private File releaseNotes
@@ -83,7 +82,6 @@ class FindBrokenInternalLinksTest extends Specification {
                 documentationRoot = project.layout.projectDirectory.dir('docsRoot')
                 javadocRoot = documentationRoot.dir('javadoc')
                 releaseNotesFile = project.layout.buildDirectory.file('working/release-notes/raw.html')
-                samplesRoot = project.layout.buildDirectory.dir('working/samples/docs');
             }
         """
     }
@@ -111,29 +109,6 @@ Nothing to write about
 
         then:
         assertFoundDeadSectionLinks(sampleDoc, "missing_section", "other_missing_section")
-    }
-
-    def "finds broken sample links"() {
-        given:
-        sampleDoc << """
-Nothing to write about
-        """
-
-        and:
-        releaseNotes << """
-Nothing to write about
-        """
-
-        and:
-        sampleSampleDoc << """
-This doesn't exist either link:{userManualPath}/no_sample.html.
-        """
-
-        when:
-        run('checkDeadInternalLinks').buildAndFail()
-
-        then:
-        assertFoundDeadLinks()
     }
 
     def "validates present section links"() {

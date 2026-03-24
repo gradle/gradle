@@ -22,6 +22,7 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -76,8 +77,11 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun project(notation: Map<String, *>): Dependency =
         delegate.project(notation)
 
-    override fun project(): Dependency =
+    override fun project(): ProjectDependency =
         delegate.project()
+
+    override fun project(projectPath: String): ProjectDependency =
+        delegate.project(projectPath)
 
     override fun gradleApi(): Dependency =
         delegate.gradleApi()

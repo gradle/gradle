@@ -92,17 +92,22 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeNonLegacyResults(ConfigurationReportModel data) {
         final List<ReportConfiguration> nonLegacyConfigs = data.getAllConfigs().stream()
             .filter(spec::isPurelyCorrectType)
-            .filter(c -> !c.getAttributes().isEmpty())
+            .filter(c -> !(spec.isFilterConfigurationsWithoutAttributes() && c.getAttributes().isEmpty()))
             .collect(Collectors.toList());
         if (nonLegacyConfigs.isEmpty()) {
             message("There are no purely " + spec.getReportedConfigurationDirection() + " " + spec.getReportedTypeAlias() + "s present in project '" + data.getProjectName() + "'.");
 
             final boolean hasLegacyConfigs = data.getAllConfigs().stream().anyMatch(ReportConfiguration::isLegacy);
-            final boolean hasNonLegacyWithoutAttrs = data.getAllConfigs().stream()
+            final boolean hasConfWithoutAttrsWereFiltered = spec.isFilterConfigurationsWithoutAttributes() && data.getAllConfigs().stream()
                 .filter(spec::isPurelyCorrectType)
                 .anyMatch(c -> c.getAttributes().isEmpty());
-            if (hasLegacyConfigs || hasNonLegacyWithoutAttrs) {
-                message("Re-run this report with the '--all' flag to include legacy " + spec.getReportedTypeAlias() + "s (legacy = consumable and resolvable), and " + spec.getReportedTypeAlias() + "s without attributes.");
+            if (hasLegacyConfigs || hasConfWithoutAttrsWereFiltered) {
+                String rerunMessage = "Re-run this report with the '--all' flag to include legacy " + spec.getReportedTypeAlias() + "s (legacy = consumable and resolvable)";
+                if (hasConfWithoutAttrsWereFiltered) {
+                    rerunMessage += ", and " + spec.getReportedTypeAlias() + "s without attributes";
+                }
+                rerunMessage += ".";
+                message(rerunMessage);
             }
         } else {
             writeResults(data, nonLegacyConfigs);

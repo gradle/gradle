@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
@@ -28,8 +27,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.time.Duration
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 @Requires(value = IntegTestPreconditions.NotNoDaemonExecutor, reason = "https://github.com/gradle/gradle-private/issues/3433")
 @IntegrationTestTimeout(60)
@@ -67,7 +64,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "broken"
-            failure.assertHasDescription("Execution failed for task ':broken'.")
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
             failure.assertHasCause("Timeout of task ':broken' must be positive, but was -0.001S")
             result.assertNotOutput("Hello")
         }
@@ -87,7 +84,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "block"
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescription("Execution failed for task ':block' (registered in build file 'build.gradle').")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -110,7 +107,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             fails "block", "foo", "--continue"
             result.assertTaskScheduled(":foo")
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescription("Execution failed for task ':block' (registered in build file 'build.gradle').")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -139,7 +136,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "block"
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescription("Execution failed for task ':block' (registered in build file 'build.gradle').")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -174,7 +171,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "test"
-            failure.assertHasDescription("Execution failed for task ':test'.")
+            failure.assertHasDescription("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -221,7 +218,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "block"
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescription("Execution failed for task ':block' (registered in build file 'build.gradle').")
             failure.assertHasCause("Timeout has been exceeded")
             if (isolationMode == 'process' && failure.output.contains("Caused by:")) {
                 assert failure.output.contains("Error occurred during initialization of VM")
@@ -323,7 +320,6 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "stack trace of task is printed if it is slow to stop"() {
         given:
         executer.withStackTraceChecksDisabled()
@@ -331,28 +327,22 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         slowStopLogStacktraceFrequencyMs = 100
 
         buildFile << """
-            @groovy.transform.CompileStatic
-            def checkpoint1() {
-                def startAt = System.nanoTime()
-                while (System.nanoTime() - startAt < 1_000_000_000) {}
-            }
-            @groovy.transform.CompileStatic
-            def checkpoint2() {
-                def startAt = System.nanoTime()
-                while (System.nanoTime() - startAt < 1_000_000_000) {}
-            }
-            @groovy.transform.CompileStatic
-            def checkpoint3() {
-                def startAt = System.nanoTime()
-                while (System.nanoTime() - startAt < 1_000_000_000) {}
+            abstract class BusyWaitTask extends DefaultTask {
+                @TaskAction
+                void run() {
+                    checkpoint("1")
+                    checkpoint("2")
+                    checkpoint("3")
+                }
+
+                private void checkpoint(String id) {
+                    long startAt = System.nanoTime()
+                    while (System.nanoTime() - startAt < 1_000_000_000) { }
+                    println "Checkpoint \$id finished"
+                }
             }
 
-            task block() {
-                doLast {
-                    checkpoint1()
-                    checkpoint2()
-                    checkpoint3()
-                }
+            tasks.register("block", BusyWaitTask) {
                 timeout = Duration.ofMillis($TIMEOUT)
             }
             """

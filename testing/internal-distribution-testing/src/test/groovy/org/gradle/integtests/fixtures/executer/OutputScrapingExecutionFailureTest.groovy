@@ -353,7 +353,7 @@ Some.Failure
         failure.assertHasLineNumber(4)
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'")
+        failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failure.assertHasCause("broken")
 
         and:
@@ -382,14 +382,14 @@ Some more output
 Build file 'build.gradle' line: 4
 
 * What went wrong:
-Execution failed for task ':broken'.
+Execution failed for task ':broken' (registered in build file 'build.gradle').
  \u001B[33m> \u001B[39mbroken
 
 * Try:
 Run with  \u001B[1m--info\u001B[m or  \u001B[1m--debug\u001B[m option to get more log output. Run with  \u001B[1m--scan\u001B[m to get full insights.
 
 * Exception is:
-org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':broken'.
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':broken' (registered in build file 'build.gradle').
         at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeActions(ExecuteActionsTaskExecuter.java:103)
         at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:73)
 Caused by: java.lang.RuntimeException: broken
@@ -415,14 +415,14 @@ Caused by: java.lang.RuntimeException: broken
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] Build file 'build.gradle' line: 4
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * What went wrong:
-2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] Execution failed for task ':broken'.
+2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] Execution failed for task ':broken' (registered in build file 'build.gradle').
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] \u001B[33m> \u001B[39mbroken
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * Try:
 2019-10-03T09:33:09.031+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]  Run with \u001B[1m--scan\u001B[m to get full insights.
 2019-10-03T09:33:09.032+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]
 2019-10-03T09:33:09.032+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * Exception is:
-2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':broken'.
+2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':broken' (registered in build file 'build.gradle').
 2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]   at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeActions(ExecuteActionsTaskExecuter.java:103)
 2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]   at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:73)
 2019-10-03T09:33:09.033+0200 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] Caused by: java.lang.RuntimeException: broken

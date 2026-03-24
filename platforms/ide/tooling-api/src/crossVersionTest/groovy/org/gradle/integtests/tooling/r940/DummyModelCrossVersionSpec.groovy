@@ -21,13 +21,9 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 import org.gradle.test.fixtures.dsl.GradleDsl
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
-import org.gradle.tooling.model.gradle.GradleBuild
 
 /**
  * This is weird functionality, but it's currently needed by IntelliJ's SYNC process.
@@ -151,26 +147,6 @@ class DummyModelCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecifi
             .run()
     }
 
-    // Marker interface for requesting the provider-side Dummy model
-    static interface DummyModel {}
-
-    // Build action that fetches GradleBuild to initialize, then queries DummyModel and returns its classloader
-    static class DummyModelAction implements BuildAction<String>, Serializable {
-        @Override
-        String execute(BuildController controller) {
-            // Fetch GradleBuild to force init script evaluation
-            controller.fetch(GradleBuild)
-
-            // Fetch DummyModel
-            def result = controller.fetch(DummyModel.class)
-            def dummyModel = result.model
-            assert dummyModel != null
-            Object unpacked = new ProtocolToModelAdapter().unpack(dummyModel)
-            ClassLoader modelBuildersClassLoader = unpacked.getClass().getClassLoader()
-            return modelBuildersClassLoader.toString()
-        }
-    }
-
     static def initScriptContent(GradleDsl dsl) {
         switch (dsl) {
             case GradleDsl.GROOVY:
@@ -186,7 +162,7 @@ class DummyModelCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecifi
                     
                     class DummyModelBuilder implements org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder {
                         boolean canBuild(String modelName) {
-                            return modelName == 'org.gradle.integtests.tooling.r940.DummyModelCrossVersionSpec\$DummyModel'
+                            return modelName == 'org.gradle.integtests.tooling.r940.DummyModel'
                         }
                         Object create(org.gradle.internal.build.BuildState target) {
                             return new DummyModel()
@@ -221,7 +197,7 @@ class DummyModelCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecifi
                     
                     class DummyModelBuilder : BuildScopeModelBuilder {
                         override fun canBuild(modelName: String): Boolean {
-                            return modelName == "org.gradle.integtests.tooling.r940.DummyModelCrossVersionSpec\\\$DummyModel"
+                            return modelName == "org.gradle.integtests.tooling.r940.DummyModel"
                         }
                     
                         override fun create(target: BuildState): Any {

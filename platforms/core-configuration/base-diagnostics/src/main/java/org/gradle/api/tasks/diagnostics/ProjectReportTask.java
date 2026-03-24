@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
@@ -126,7 +125,10 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     private static List<ProjectFeatureImplementation<?, ?>> getProjectTypesFor(Project project) {
         List<ProjectFeatureImplementation<?, ?>> results = new ArrayList<>(1);
-        results.addAll(ProjectFeatureSupportInternal.getContext((DefaultProject) project).childFeatures().keySet());
+        ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext featureDefinitionContext = ProjectFeatureSupportInternal.tryGetContext(project);
+        if (featureDefinitionContext != null) {
+            results.addAll(featureDefinitionContext.childFeatures().keySet());
+        }
         return results;
     }
 

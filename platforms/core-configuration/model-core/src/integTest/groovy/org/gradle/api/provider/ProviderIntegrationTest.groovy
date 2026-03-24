@@ -289,7 +289,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         fails 'run'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':run'.")
+        failure.assertHasDescription("Execution failed for task ':run' (registered in build file 'build.gradle').")
         failure.assertHasCause("""Cannot query the value of this provider because it has no value available.
 The value of this provider is derived from:
   - environment variable 'ABC'""")

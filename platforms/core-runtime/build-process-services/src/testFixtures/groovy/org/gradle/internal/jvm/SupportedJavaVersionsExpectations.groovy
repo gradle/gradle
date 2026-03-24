@@ -55,25 +55,4 @@ class SupportedJavaVersionsExpectations {
             "Your build is currently configured to use JVM ${majorVersion}."
     }
 
-    /**
-     * To be used when the Gradle client is bypassed, therefore not checking
-     * compatibility, and daemon classes may be loaded directly on an incompatible JVM.
-     */
-    static String getIncompatibleDaemonJvmVersionErrorMessage(String processType, int majorVersion) {
-        getIncompatibleProcessJvmVersionErrorMessage(
-            processType,
-            SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
-            majorVersion
-        )
-    }
-
-    private static String getIncompatibleProcessJvmVersionErrorMessage(
-        String processType,
-        int minVersion,
-        int currentVersion
-    ) {
-        "${processType} requires JVM ${minVersion} or later to run. " +
-            "You are currently using JVM ${currentVersion}."
-    }
-
 }

@@ -42,8 +42,6 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
 
-import java.util.regex.Pattern
-
 import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator
 
 class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
@@ -422,11 +420,8 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         succeeds 'build'
 
         then:
-        def progressOutputEvents = operations.all(Pattern.compile('.*'))
-            .collect { it.progress }
-            .flatten()
+        def progressOutputEvents = operations.progress(OutputEvent)
             .with { it as List<BuildOperationRecord.Progress> }
-            .findAll { OutputEvent.isAssignableFrom(it.detailsType) }
         // Ignore deprecations, these are checked by the testing infrastructure.
             .findAll { it.details.get("category") != LoggingDeprecatedFeatureHandler.class.name }
 

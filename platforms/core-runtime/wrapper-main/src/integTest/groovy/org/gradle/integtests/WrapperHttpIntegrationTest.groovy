@@ -42,7 +42,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     private static final String DEFAULT_TOKEN = "token"
 
     private String getDefaultBaseUrl() {
-        return getDefaultBaseUrl(false);
+        return getDefaultBaseUrl(false)
     }
 
     private String getDefaultBaseUrl(boolean uppercaseHost) {
@@ -103,6 +103,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         assertThat(result.output, containsString('hello'))
+        assertThat(result.output, containsString("Fetching distribution."))
         verifyDistributionDownloaded()
 
         when:
@@ -113,7 +114,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    def "recovers from failed download"() {
+    def "download succeeds even if there were previous failures"() {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         prepareWrapper(getDefaultBaseUrl()).run()
@@ -190,8 +191,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         given:
         server.withBearerAuthentication(DEFAULT_TOKEN)
         file("gradle.properties") << """
-    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
-"""
+            systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+        """.stripIndent()
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         prepareWrapper(getDefaultBaseUrl()).run()
         server.expectAndBlock(server.get("/$TEST_DISTRIBUTION_URL"))
@@ -221,6 +222,105 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         failure.assertHasErrorOutput("Downloading from http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL failed: timeout (5000ms)")
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/18124')
+    def "fails for default retries settings"() {
+        given:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        prepareWrapper(getDefaultBaseUrl()).run()
+
+        when:
+        wrapperExecuter.withStackTraceChecksDisabled()
+        def failure = wrapperExecuter.runWithFailure()
+
+        then:
+        assertThat(failure.output, containsString("Fetching distribution."))
+        failure.assertHasErrorOutput("Server returned HTTP response code: 500 for URL")
+        assertThat(failure.output, containsString("Attempt 1/1 failed. Reason: Server returned HTTP response code: 500"))
+        assert failure.output.readLines().findAll{ it.contains(
+            "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 1
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/18124')
+    def "succeeds on third attempt"() {
+        given:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+        prepareWrapper(getDefaultBaseUrl()).run()
+
+        and:
+        def retries=2
+        def retryTimeoutMs=0
+
+        file('gradle/wrapper/gradle-wrapper.properties') << """
+            retries=$retries
+            retryTimeoutMs=$retryTimeoutMs
+        """.stripIndent()
+
+        when:
+        wrapperExecuter.withStackTraceChecksDisabled()
+        def startTime = System.currentTimeMillis()
+        result = wrapperExecuter.run()
+        def elapsedTime = System.currentTimeMillis() - startTime
+
+
+        then:
+        def attempts = retries + 1
+
+        assertThat(result.output, containsString("Fetching distribution (retrying $retries times, with a timeout of $retryTimeoutMs ms)."))
+        assertThat(result.output, containsString("Attempt 1/$attempts failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(result.output, containsString("Attempt 2/$attempts failed. Reason: Server returned HTTP response code: 500"))
+        assert result.output.readLines().findAll{ it.contains(
+            "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 3
+
+        assert elapsedTime >= retries * retryTimeoutMs
+
+        verifyDistributionDownloaded()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/18124')
+    def "fails with retries and retry timeout (#retryTimeoutMs ms)"() {
+        given:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        prepareWrapper(getDefaultBaseUrl()).run()
+
+        and:
+        def retries=2
+
+        file('gradle/wrapper/gradle-wrapper.properties') << """
+            retries=$retries
+            retryTimeoutMs=$retryTimeoutMs
+        """.stripIndent()
+
+        when:
+        wrapperExecuter.withStackTraceChecksDisabled()
+        def startTime = System.currentTimeMillis()
+        def failure = wrapperExecuter.runWithFailure()
+        def elapsedTime = System.currentTimeMillis() - startTime
+
+        then:
+        def attempts = retries + 1
+
+        assertThat(failure.output, containsString("Fetching distribution (retrying $retries times, with a timeout of $retryTimeoutMs ms)."))
+        failure.assertHasErrorOutput("Server returned HTTP response code: 500 for URL")
+        assertThat(failure.output, containsString("Attempt 1/$attempts failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(failure.output, containsString("Attempt 2/$attempts failed. Reason: Server returned HTTP response code: 500"))
+        assertThat(failure.output, containsString("Attempt 3/$attempts failed. Reason: Server returned HTTP response code: 500"))
+
+        assert elapsedTime >= retries * retryTimeoutMs
+
+        assert failure.output.readLines().findAll{ it.contains(
+            "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 3
+
+        where:
+        retryTimeoutMs << [0, 500]
     }
 
     def "downloads wrapper via proxy"() {
@@ -283,8 +383,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         and:
         server.withBearerAuthentication(DEFAULT_TOKEN)
         file("gradle.properties") << """
-    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
-"""
+            systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+        """.stripIndent()
         and:
         prepareWrapper(getDefaultBaseUrl()).run()
 
