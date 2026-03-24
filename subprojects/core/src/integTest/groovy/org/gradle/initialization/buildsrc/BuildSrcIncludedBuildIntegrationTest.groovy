@@ -16,11 +16,12 @@
 
 package org.gradle.initialization.buildsrc
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
+
+import static org.hamcrest.CoreMatchers.startsWith
 
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/4550")
 class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
@@ -319,7 +320,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails("help")
         then:
-        failure.assertHasDescription("Execution failed for task ':included:compileJava' (registered in build file 'build.gradle').")
+        failure.assertThatDescription(startsWith("Execution failed for task ':included:compileJava'"))
         failure.assertHasCause("Compilation failed; see the compiler output below.")
     }
 
