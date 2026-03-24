@@ -23,8 +23,6 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCachePr
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.Workarounds
-import org.gradle.internal.extensions.core.getInternalFlag
-import org.gradle.internal.extensions.core.getStringOrNull
 import org.gradle.internal.extensions.stdlib.unsafeLazy
 import org.gradle.internal.initialization.layout.BuildTreeLocations
 import org.gradle.internal.service.scopes.Scope
@@ -37,7 +35,7 @@ import java.io.File
 class ConfigurationCacheStartParameter internal constructor(
     private val buildTreeLocations: BuildTreeLocations,
     private val startParameter: StartParameterInternal,
-    options: InternalOptions,
+    internalOptions: InternalOptions,
     private val modelParameters: BuildModelParameters,
 ) {
     /**
@@ -50,13 +48,13 @@ class ConfigurationCacheStartParameter internal constructor(
         const val REPORT_OUTPUT_DIR = "org.gradle.internal.configuration-cache.report-output-directory"
     }
 
-    val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.internal.configuration-cache.task-execution-access-pre-stable")
+    val taskExecutionAccessPreStable: Boolean = internalOptions.getBoolean("org.gradle.internal.configuration-cache.task-execution-access-pre-stable", false)
 
     /**
      * Should be provided if a link to the report is expected even if no errors were found.
      * Useful in testing.
      */
-    val alwaysLogReportLinkAsWarning: Boolean = options.getInternalFlag("org.gradle.internal.configuration-cache.report-link-as-warning", false)
+    val alwaysLogReportLinkAsWarning: Boolean = internalOptions.getBoolean("org.gradle.internal.configuration-cache.report-link-as-warning", false)
 
     /**
      * Custom output directory for the Configuration Cache report relative to the build tree root directory.
@@ -65,7 +63,7 @@ class ConfigurationCacheStartParameter internal constructor(
      * The default (when null) is to write the report under `<root build buildDir>/reports/configuration-cache`.
      */
     val customReportOutputDirectory: File? by lazy {
-        options.getStringOrNull(Options.REPORT_OUTPUT_DIR)?.let {
+        internalOptions.getStringOrNull(Options.REPORT_OUTPUT_DIR)?.let {
             buildTreeLocations.buildTreeRootDirectory.resolve(it)
         }
     }
@@ -76,7 +74,7 @@ class ConfigurationCacheStartParameter internal constructor(
      *
      * The default is `true`.
      */
-    val isDeduplicatingStrings: Boolean = options.getInternalFlag("org.gradle.internal.configuration-cache.deduplicate-strings", true)
+    val isDeduplicatingStrings: Boolean = internalOptions.getBoolean("org.gradle.internal.configuration-cache.deduplicate-strings", true)
 
     /**
      * Whether shareable objects in the configuration cache should be shared
@@ -84,7 +82,7 @@ class ConfigurationCacheStartParameter internal constructor(
      *
      * The default is `true`.
      */
-    val isSharingObjects: Boolean = options.getInternalFlag("org.gradle.internal.configuration-cache.share-objects", true)
+    val isSharingObjects: Boolean = internalOptions.getBoolean("org.gradle.internal.configuration-cache.share-objects", true)
 
     /**
      * See [org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheFineGrainedPropertyTracking].

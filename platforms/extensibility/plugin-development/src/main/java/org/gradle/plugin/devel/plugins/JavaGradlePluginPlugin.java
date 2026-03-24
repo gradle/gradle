@@ -49,7 +49,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigurationAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.jvm.JpmsConfiguration;
@@ -116,7 +116,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
      *
      * Experimental property used to test using an external Gradle API dependency.
      */
-    static final InternalFlag EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = new InternalFlag("org.gradle.unsafe.suppress-gradle-api");
+    static final InternalOption<Boolean> EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = InternalOptions.ofBoolean("org.gradle.unsafe.suppress-gradle-api", false);
 
     /**
      * The task group used for tasks created by the Java Gradle plugin development plugin.
@@ -174,7 +174,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private static void applyDependencies(Project project) {
         // TODO This should be provided via GradlePluginDevelopmentExtension.gradleApiVersion once it's not an experimental feature
         InternalOptions internalOptions = ((ProjectInternal) project).getServices().get(InternalOptions.class);
-        if (internalOptions.getOption(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY).get()) {
+        if (internalOptions.getBoolean(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY)) {
             return;
         }
         DependencyHandler dependencies = project.getDependencies();

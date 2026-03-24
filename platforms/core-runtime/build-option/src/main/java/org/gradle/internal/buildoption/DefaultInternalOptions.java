@@ -28,7 +28,7 @@ public class DefaultInternalOptions implements InternalOptions {
     }
 
     @Override
-    public <T extends @Nullable Object> Option.Value<T> getOption(InternalOption<T> option) {
+    public <T extends @Nullable Object> Option.Value<T> getOptionValue(InternalOption<T> option) {
         String value = properties.get(option.getPropertyName());
         if (value == null) {
             value = System.getProperty(option.getPropertyName());

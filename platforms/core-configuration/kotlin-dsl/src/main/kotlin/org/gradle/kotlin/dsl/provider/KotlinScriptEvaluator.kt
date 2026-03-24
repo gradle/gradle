@@ -29,7 +29,7 @@ import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.internal.buildoption.InternalFlag
+import org.gradle.internal.buildoption.InternalOption
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -399,7 +399,7 @@ class StandardKotlinScriptEvaluator(
         transformFactory: ClasspathElementTransformFactoryForLegacy,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
         propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
-        private val cachingDisabledByProperty: Boolean = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get()
+        private val cachingDisabledByProperty: Boolean = internalOptions.getBoolean(CACHING_DISABLED_PROPERTY)
 
     ) : BuildScriptCompilationAndInstrumentation(source, workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory, gradleCoreTypeRegistry, propertyUpgradeReportConfig) {
 
@@ -413,7 +413,7 @@ class StandardKotlinScriptEvaluator(
             const val SOURCE_HASH = "sourceHash"
             const val COMPILATION_CLASS_PATH = "compilationClassPath"
             const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
-            val CACHING_DISABLED_PROPERTY: InternalFlag = InternalFlag("org.gradle.internal.kotlin-script-caching-disabled")
+            val CACHING_DISABLED_PROPERTY: InternalOption<Boolean> = InternalOptions.ofBoolean("org.gradle.internal.kotlin-script-caching-disabled", false)
             val CACHING_DISABLED_REASON: CachingDisabledReason = CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of Kotlin script compilation disabled by property")
         }
 
