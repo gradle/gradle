@@ -26,6 +26,9 @@ class CheckProject(
             StatisticsBasedPerformanceTestBucketProvider(model, File("performance-test-durations.json"), File("performance-tests-ci.json"))
 
         params {
+            if (model.branch.isMaster || model.branch.isExperimental) {
+                param("env.GRADLE_OPTS", "-Dorg.gradle.unsafe.isolated-projects=%enableIsolatedProjects%")
+            }
             param("credentialsStorageType", "credentialsJSON")
             // Disallow Web UI changes to TeamCity settings
             param("teamcity.ui.settings.readOnly", "true")

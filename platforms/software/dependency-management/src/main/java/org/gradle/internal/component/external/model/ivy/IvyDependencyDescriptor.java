@@ -229,7 +229,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         return excludes;
     }
 
-    public List<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations) {
+    public ImmutableList<ExcludeMetadata> getConfigurationExcludes(Collection<String> configurations) {
         if (excludes.isEmpty()) {
             return ImmutableList.of();
         }

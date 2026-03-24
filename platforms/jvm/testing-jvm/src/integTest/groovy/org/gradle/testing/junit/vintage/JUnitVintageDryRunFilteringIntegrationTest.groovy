@@ -23,5 +23,5 @@ import org.gradle.testing.junit.junit4.AbstractJUnit4FilteringIntegrationTest
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageDryRunFilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationTest implements JUnitVintageMultiVersionTest, DryRunFilteringTest {
+class JUnitVintageDryRunFilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationTest implements JUnitVintageMultiVersionTest, DryRunFilteringTest, IgnoresJUnit6VintageDeprecationWarning {
 }

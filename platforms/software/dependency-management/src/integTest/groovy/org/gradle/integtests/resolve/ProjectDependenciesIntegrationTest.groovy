@@ -19,7 +19,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
@@ -56,48 +55,42 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         outputContains "Resolved at configuration time: [impl.jar, foo-1.0.jar]"
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses dependencies API")
-    def "configuring project dependencies by map is validated"() {
-        settingsFile << "include 'impl'"
-        buildFile << """
+    def "configuring project dependencies by map is validated for #description"() {
+        given:
+        settingsFile("include 'impl'")
+        buildFile("""
+            configurations {
+                def deps = dependencyScope('deps')
+                resolvable('conf') {
+                    extendsFrom(deps)
+                }
+            }
+
+            dependencies {
+                deps($declaration)
+            }
+        """)
+        buildFile("impl/build.gradle", """
             configurations.create('conf')
-            task extraKey {
-                doLast {
-                    dependencies.project(path: ":impl", configuration: ":conf", foo: "bar")
-                }
-            }
-            task missingPath {
-                doLast {
-                    dependencies.project(paths: ":impl", configuration: ":conf")
-                }
-            }
-            task missingConfiguration {
-                doLast {
-                    dependencies.project(path: ":impl")
-                }
-            }
-        """
-        file("impl/build.gradle") << """
-            configurations.create('conf')
-        """
+        """)
 
         when:
-        runAndFail("extraKey")
+        if (expectedFailure) {
+            runAndFail("dependencies")
+        } else {
+            succeeds("dependencies")
+        }
 
         then:
-        failureHasCause("Could not set unknown property 'foo' for ")
+        if (expectedFailure) {
+            failureHasCause(expectedFailure)
+        }
 
-        when:
-        run("missingConfiguration")
-
-        then:
-        noExceptionThrown()
-
-        when:
-        runAndFail("missingPath")
-
-        then:
-        failureHasCause("Required keys [path] are missing from map")
+       where:
+       description              || declaration                                                      || expectedFailure
+       "extraKey"               || 'project(path: ":impl", configuration: ":conf", foo: "bar")'     || "Could not set unknown property 'foo' for "
+       "missingConfiguration"   || 'project(path: ":impl")'                                         || null
+       "missingPath"            || 'project(paths: ":impl", configuration: ":conf")'                || "Required keys [path] are missing from map"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34692")
@@ -119,6 +112,43 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
 
         then:
         failure.assertHasCause("Project with path ':unknown' could not be found.")
+    }
+
+    def "can declare project dependency using project path string"() {
+        settingsFile << "include 'sub'"
+        file("sub/build.gradle") << """
+            apply plugin: 'java-library'
+        """
+        buildFile << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation project(':sub')
+            }
+        """
+
+        expect:
+        succeeds 'dependencies', '--configuration', 'compileClasspath'
+        outputContains 'project :sub'
+    }
+
+    def "can declare project dependency on root project using project path string"() {
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'sub'
+        """
+        file("sub/build.gradle") << """
+            apply plugin: 'java-library'
+            dependencies {
+                implementation project(':')
+            }
+        """
+        buildFile << """
+            apply plugin: 'java-library'
+        """
+
+        expect:
+        succeeds 'sub:dependencies', '--configuration', 'compileClasspath'
+        outputContains 'root project :'
     }
 
     def "can add constraint on root project"() {

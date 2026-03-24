@@ -20,10 +20,8 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOption
 import org.gradle.internal.buildoption.InternalOptions
-import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 
@@ -39,20 +37,20 @@ object BuildModelParametersProvider {
     val logger = Logging.getLogger(BuildModelParametersProvider::class.java)
 
     private
-    val configurationCacheParallelStore = InternalFlag("org.gradle.internal.configuration-cache.parallel-store", true)
+    val configurationCacheParallelStore = InternalOptions.ofBoolean("org.gradle.internal.configuration-cache.parallel-store", true)
 
     private
-    val configurationCacheParallelLoad = InternalFlag("org.gradle.internal.configuration-cache.parallel-load", true)
+    val configurationCacheParallelLoad = InternalOptions.ofBoolean("org.gradle.internal.configuration-cache.parallel-load", true)
 
     private
-    val invalidateCoupledProjects = InternalFlag("org.gradle.internal.invalidate-coupled-projects", true)
+    val invalidateCoupledProjects = InternalOptions.ofBoolean("org.gradle.internal.invalidate-coupled-projects", true)
 
     /**
      * If model dependencies between projects should be treated as project dependencies.
      * Model dependency is observed when a project requests a model from another project.
      */
     private
-    val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
+    val modelProjectDependencies = InternalOptions.ofBoolean("org.gradle.internal.model-project-dependencies", true)
 
     @JvmStatic
     val isolatedProjectsConfigureOnDemand =
@@ -68,7 +66,7 @@ object BuildModelParametersProvider {
 
     private
     val resilientModelBuilding =
-        InternalFlag("org.gradle.internal.resilient-model-building", false)
+        InternalOptions.ofBoolean("org.gradle.internal.resilient-model-building", false)
 
     /**
      * A public *system property* that allows removing the implication that
@@ -254,7 +252,7 @@ object BuildModelParametersProvider {
             "org.gradle.internal.isolated-projects.configure-on-demand.tasks" to isolatedProjectsConfigureOnDemand.propertyName,
         )
         for ((previous, current) in replacements) {
-            if (options.getOption(StringInternalOption.of(previous)).isExplicit) {
+            if (options.isExplicitlySet(previous)) {
                 logger.warn("Warning: option '$previous' has been replaced with '$current'")
             }
         }
@@ -281,5 +279,5 @@ object BuildModelParametersProvider {
     }
 
     private
-    operator fun <T : Any> InternalOptions.get(option: InternalOption<T>): T = getOption(option).get()
+    operator fun <T : Any> InternalOptions.get(option: InternalOption<T>): T = getValue(option)
 }

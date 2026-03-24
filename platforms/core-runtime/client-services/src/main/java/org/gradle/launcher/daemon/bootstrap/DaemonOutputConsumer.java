@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.bootstrap;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.process.internal.StreamsHandler;
+import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.InputStream;
 import java.io.PrintWriter;

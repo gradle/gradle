@@ -69,25 +69,17 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     private final PmdReports reports;
     private boolean consoleOutput;
     private FileCollection classpath;
-    private final Property<Integer> rulesMinimumPriority;
-    private final Property<Integer> maxFailures;
-    private final Property<Boolean> incrementalAnalysis;
-    private final Property<Integer> threads;
 
     public Pmd() {
         super();
         ObjectFactory objects = getObjectFactory();
         reports = objects.newInstance(PmdReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
-        this.rulesMinimumPriority = objects.property(Integer.class);
-        this.incrementalAnalysis = objects.property(Boolean.class);
-        this.maxFailures = objects.property(Integer.class);
-        this.threads = objects.property(Integer.class);
     }
 
     @TaskAction
     public void run() {
-        validate(rulesMinimumPriority.get());
-        validateThreads(threads.get());
+        validate(getRulesMinimumPriority().get());
+        validateThreads(getThreads().get());
 
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> configureForkOptions(spec.getForkOptions()));
         workQueue.submit(PmdAction.class, this::setupParameters);
@@ -319,9 +311,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * @since 6.4
      */
     @Input
-    public Property<Integer> getMaxFailures() {
-        return maxFailures;
-    }
+    public abstract Property<Integer> getMaxFailures();
 
     /**
      * Specifies the rule priority threshold.
@@ -330,9 +320,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * @since 6.8
      */
     @Input
-    public Property<Integer> getRulesMinimumPriority() {
-        return rulesMinimumPriority;
-    }
+    public abstract Property<Integer> getRulesMinimumPriority();
 
     /**
      * Whether or not to write PMD results to {@code System.out}.
@@ -392,9 +380,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * @since 5.6
      */
     @Internal
-    public Property<Boolean> getIncrementalAnalysis() {
-        return incrementalAnalysis;
-    }
+    public abstract Property<Boolean> getIncrementalAnalysis();
 
     /**
      * Path to the incremental cache file, if incremental analysis is used.
@@ -414,7 +400,5 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * @since 7.5
      */
     @Input
-    public Property<Integer> getThreads() {
-        return threads;
-    }
+    public abstract Property<Integer> getThreads();
 }

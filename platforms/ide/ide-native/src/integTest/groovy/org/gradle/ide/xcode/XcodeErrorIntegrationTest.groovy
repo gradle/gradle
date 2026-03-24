@@ -43,7 +43,7 @@ class XcodeErrorIntegrationTest extends AbstractXcodeIntegrationSpec {
             .withProject(rootXcodeProject)
             .withScheme("App")
             .fails()
-        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
+        failure.assertHasDescription("Execution failed for task ':compileDebugSwift' (registered by plugin class 'org.gradle.language.swift.plugins.SwiftBasePlugin').")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }

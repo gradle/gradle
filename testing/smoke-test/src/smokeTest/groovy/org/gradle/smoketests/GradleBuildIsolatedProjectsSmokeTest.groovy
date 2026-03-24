@@ -36,7 +36,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         ]
 
         when:
-        maxIsolatedProjectProblems = 1
+        maxIsolatedProjectProblems = 0
         isolatedProjectsRun(tasks)
 
         then:
@@ -44,12 +44,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
 
         // Prevents the power assert from dumping all the output if the check below fails.
         def report = fixture.htmlReport(result.output)
-
-        report.assertContents {
-            withUniqueProblems(
-                "Project ':docs' cannot dynamically look up a property in the parent project ':'",
-            )
-        }
+        report.assertHasNoProblems()
     }
 
     def "can schedule all Gradle build tasks with isolated projects enabled"() {

@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.StartParameter;
+import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
@@ -135,6 +136,11 @@ public class ToolchainBuildOptions {
         public JavaInstallationPathsOption() {
             super(GRADLE_PROPERTY);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     private abstract static class JavaInstallationEnvironmentPathsOption<T> extends StringBuildOption<T> {
@@ -142,6 +148,11 @@ public class ToolchainBuildOptions {
 
         public JavaInstallationEnvironmentPathsOption() {
             super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -151,6 +162,11 @@ public class ToolchainBuildOptions {
         public AutoDetectionOption() {
             super(GRADLE_PROPERTY);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     private abstract static class AutoDownloadOption<T> extends BooleanBuildOption<T> {
@@ -159,6 +175,11 @@ public class ToolchainBuildOptions {
         public AutoDownloadOption() {
             super(GRADLE_PROPERTY);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     private abstract static class IntellijJdkBuildOption<T> extends StringBuildOption<T> {
@@ -166,6 +187,11 @@ public class ToolchainBuildOptions {
 
         public IntellijJdkBuildOption() {
             super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 }

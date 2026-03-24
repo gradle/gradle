@@ -33,7 +33,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36854")
     def "visual studio"() {
         given:
         sample visualStudio
@@ -55,7 +55,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
     }
 
     @Requires(IntegTestPreconditions.HasMsBuild)
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36854")
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/4488")
     def "build generated visual studio solution"() {
         useMsbuildTool()

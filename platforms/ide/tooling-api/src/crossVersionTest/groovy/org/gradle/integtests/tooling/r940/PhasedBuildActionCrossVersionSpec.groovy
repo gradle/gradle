@@ -21,11 +21,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r48.CustomBuildFinishedModel
 import org.gradle.integtests.tooling.r48.CustomProjectsLoadedModel
-import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
@@ -33,10 +30,8 @@ import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.util.GradleVersion
 
-import java.util.function.Supplier
-
-import static org.gradle.integtests.tooling.r940.PhasedBuildActionCrossVersionSpec.CustomBuildFinishedAction.CallType
-import static org.gradle.integtests.tooling.r940.PhasedBuildActionCrossVersionSpec.CustomBuildFinishedAction.FAILURE_RESULT
+import static CustomBuildFinishedAction.CallType
+import static CustomBuildFinishedAction.FAILURE_RESULT
 import static org.junit.Assume.assumeTrue
 
 @TargetGradleVersion(">=9.4.0")
@@ -141,10 +136,14 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
-        e.cause.message.contains("Execution failed for task ':broken'.")
+        e.cause.message.contains("Execution failed for task ':broken'")
         failure.output.contains("Running CustomProjectsLoadedAction")
         failure.output.contains("Running CustomBuildFinishedAction")
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        if (targetVersion >= GradleVersion.version("9.5.0")) {
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':broken'.")
+        }
 
         where:
         method                        | callType
@@ -176,13 +175,17 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
-        e.cause.message.contains("Execution failed for task ':broken'.")
+        e.cause.message.contains("Execution failed for task ':broken'")
         failure.output.contains("Running CustomBuildFinishedAction")
         projectsLoadedHandler.getResult() == "loading"
         buildFinishedHandler.wasOnCompleteCalled
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        if (targetVersion >= GradleVersion.version("9.5.0")) {
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':broken'.")
+        }
 
         where:
         method                        | callType
@@ -214,8 +217,12 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
-        e.cause.message.contains("Execution failed for task ':broken'.")
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        e.cause.message.contains("Execution failed for task ':broken'")
+        if (targetVersion >= GradleVersion.version("9.5.0")) {
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':broken'.")
+        }
         failure.output.contains("Running CustomBuildFinishedAction")
         projectsLoadedHandler.getResult() == "loading"
         buildFinishedHandler.getResult() == expectedResult
@@ -288,92 +295,21 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
-        e.cause.message.contains("Execution failed for task ':broken'.")
+        e.cause.message.contains("Execution failed for task ':broken'")
         failure.output.contains("Running CustomBuildFinishedAction")
         failedTasks == [":broken"]
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        if (targetVersion >= GradleVersion.version("9.5.0")) {
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':broken'.")
+        }
 
         where:
         method                        | callType
         "BuildController.getModel()"  | CallType.GET_MODEL
         "BuildController.findModel()" | CallType.FIND_MODEL
         "BuildController.fetch()"     | CallType.FETCH
-    }
-
-    static class IntermediateResultHandlerCollector implements IntermediateResultHandler<String> {
-        boolean wasOnCompleteCalled = false
-        String result = null
-
-        @Override
-        void onComplete(String result) {
-            wasOnCompleteCalled = true
-            this.result = result
-        }
-    }
-
-    static class CustomProjectsLoadedAction implements BuildAction<String> {
-
-        @Override
-        String execute(BuildController controller) {
-            println("Running CustomProjectsLoadedAction")
-            return controller.getModel(CustomProjectsLoadedModel.class).getValue()
-        }
-    }
-
-    static class CustomBuildFinishedAction implements BuildAction<String> {
-
-        static enum CallType {
-            GET_MODEL,
-            FIND_MODEL,
-            FETCH
-        }
-
-        static final String FAILURE_RESULT = "<failure>"
-
-        final CallType callType
-
-        CustomBuildFinishedAction(CallType callType) {
-            this.callType = callType
-        }
-
-        @Override
-        String execute(BuildController controller) {
-            println("Running CustomBuildFinishedAction")
-            if (callType == CallType.GET_MODEL) {
-                return tryGet(() -> controller.getModel(CustomBuildFinishedModel.class))
-            } else if (callType == CallType.FIND_MODEL) {
-                return tryGet(() -> controller.findModel(CustomBuildFinishedModel.class))
-            } else if (callType == CallType.FETCH) {
-                def result = controller.fetch(CustomBuildFinishedModel.class)
-                if (result.model) {
-                    assert result.failures.isEmpty()
-                    return result.model.value
-                } else {
-                    assert !result.failures.isEmpty()
-                    return FAILURE_RESULT
-                }
-            } else {
-                throw new UnsupportedOperationException("Unknown callType: $callType")
-            }
-        }
-
-        private static String tryGet(Supplier<String> tryGet) {
-            try {
-                return tryGet.get()
-            } catch (Exception ignored) {
-                return FAILURE_RESULT
-            }
-        }
-    }
-
-    static class CustomFailingBuildFinishedAction implements BuildAction<String> {
-
-        @Override
-        String execute(BuildController controller) {
-            println("Running CustomFailingBuildFinishedAction")
-            throw new RuntimeException("Error from CustomFailingBuildFinishedAction")
-        }
     }
 }

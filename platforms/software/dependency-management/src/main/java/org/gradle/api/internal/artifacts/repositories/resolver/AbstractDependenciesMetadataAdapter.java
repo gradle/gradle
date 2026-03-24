@@ -32,7 +32,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Map;
 
 public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMetadata<T>, E extends T> extends ArrayList<T> implements DependenciesMetadata<T> {
@@ -107,7 +106,7 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
 
     private E adapt(T details) {
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(details.getModule(), DefaultImmutableVersionConstraint.of(details.getVersionConstraint()), details.getAttributes(), ImmutableSet.of());
-        GradleDependencyMetadata dependencyMetadata = new GradleDependencyMetadata(selector, Collections.emptyList(), isConstraint(), isEndorsingStrictVersions(details), details.getReason(), false, null);
+        GradleDependencyMetadata dependencyMetadata = new GradleDependencyMetadata(selector, ImmutableList.of(), isConstraint(), isEndorsingStrictVersions(details), details.getReason(), false, null);
         return instantiator.newInstance(adapterImplementationType(), attributesFactory, dependencyMetadata);
     }
 }

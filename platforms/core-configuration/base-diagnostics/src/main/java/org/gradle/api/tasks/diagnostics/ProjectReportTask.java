@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
@@ -28,9 +27,8 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
-import org.gradle.plugin.software.internal.ProjectFeatureImplementation;
-import org.gradle.plugin.software.internal.ProjectFeatureSupportInternal;
+import org.gradle.features.internal.binding.ProjectFeatureImplementation;
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.util.Path;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -67,9 +65,6 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     @Inject
     public abstract BuildStateRegistry getBuildStateRegistry();
-
-    @Inject
-    protected abstract ProjectFeatureDeclarations getProjectFeatureDeclarations();
 
     /**
      * Report model.
@@ -130,7 +125,10 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     private static List<ProjectFeatureImplementation<?, ?>> getProjectTypesFor(Project project) {
         List<ProjectFeatureImplementation<?, ?>> results = new ArrayList<>(1);
-        results.addAll(ProjectFeatureSupportInternal.getContext((DefaultProject) project).childrenDefinitions().keySet());
+        ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext featureDefinitionContext = ProjectFeatureSupportInternal.tryGetContext(project);
+        if (featureDefinitionContext != null) {
+            results.addAll(featureDefinitionContext.childFeatures().keySet());
+        }
         return results;
     }
 

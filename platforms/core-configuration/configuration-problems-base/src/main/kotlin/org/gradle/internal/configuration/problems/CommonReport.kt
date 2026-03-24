@@ -20,7 +20,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging.getLogger
-import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.impl.problems.HtmlReportWriter
 import org.gradle.internal.cc.impl.problems.JsonModelWriter
@@ -62,13 +61,8 @@ class CommonReport(
     private val distinctReports: Boolean = true // true if every build should have its separate report, false if the previous report should be overwritten
 ) : Closeable {
 
-    companion object {
-        private
-        val stacktraceHashes = InternalFlag("org.gradle.internal.configuration-cache.report.stacktrace-hashes", false)
-    }
-
     private
-    val isStacktraceHashes = internalOptions.getOption(stacktraceHashes).get()
+    val isStacktraceHashes = internalOptions.getBoolean("org.gradle.internal.configuration-cache.report.stacktrace-hashes", false)
 
     private
     val documentationRegistry = DocumentationRegistry()

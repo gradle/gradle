@@ -55,6 +55,14 @@ class TestProxyServer extends ExternalResource {
                 requestCountInternal.incrementAndGet()
                 return super.filterRequest(originalRequest, ctx)
             }
+
+            @Override
+            int getMaximumRequestBufferSizeInBytes() {
+                // Enable request buffering via HttpObjectAggregator so the proxy can handle
+                // HTTP/1.1 Expect: 100-Continue requests (used for PUT/POST through authenticated proxies).
+                // Without this, the proxy cannot relay the 100 Continue interim response properly.
+                return 10 * 1024 * 1024
+            }
         }
 
         def proxyAuthenticator = null

@@ -24,8 +24,6 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
 import org.gradle.tooling.model.dsl.GradleDslBaseScriptModel
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
-import java.io.File
-import java.io.Serializable
 
 
 @Deprecated("Will be removed in Gradle 10, use GradleDslBaseScriptModel instead")
@@ -52,11 +50,3 @@ object KotlinBuildScriptTemplateModelBuilder : BuildScopeModelBuilder {
 }
 
 
-@Deprecated("Will be removed in Gradle 10, use GradleDslBaseScriptModel instead")
-internal
-data class StandardKotlinBuildScriptTemplateModel(
-    private val classPath: List<File>
-) : KotlinBuildScriptTemplateModel, Serializable {
-
-    override fun getClassPath() = classPath
-}

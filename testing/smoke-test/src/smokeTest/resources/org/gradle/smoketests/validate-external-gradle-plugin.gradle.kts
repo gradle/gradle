@@ -97,7 +97,7 @@ fun findPluginJar(pluginClass: Class<*>) =
     }
 
 fun isExternal(pluginClass: Class<*>) =
-    !pluginClass.name.startsWith("org.gradle")
+    !pluginClass.name.startsWith("org.gradle") && !pluginClass.name.startsWith("Gradlebuild_")
 
 fun toFile(url: URL): File? =
     try {

@@ -22,13 +22,11 @@ The plugin also integrates with <<test_kit.adoc#test_kit,TestKit>>, a library th
 It automatically adds the `gradleTestKit()` dependency to the `testImplementation` configuration and generates a plugin classpath manifest file consumed by a `GradleRunner` instance if found.
 Please refer to <<test_kit.adoc#sub:test-kit-automatic-classpath-injection,Automatic classpath injection with the Plugin Development Plugin>> for more on its usage, configuration options and samples.
 
-
 [[sec:gradle_plugin_dev_usage]]
 == Usage
 
 To use the Java Gradle Plugin Development plugin, include the following in your build script:
 
-.Using the Java Gradle Plugin Development plugin
 ====
 include::sample[dir="snippets/java/javaGradlePlugin/kotlin",files="build.gradle.kts[tags=use-java-gradle-plugin-plugin]"]
 include::sample[dir="snippets/java/javaGradlePlugin/groovy",files="build.gradle[tags=use-java-gradle-plugin-plugin]"]
@@ -49,7 +47,6 @@ Any failed validations will result in a warning message.
 
 For each plugin you are developing, register it into the `gradlePlugin {}` script block:
 
-.Using the gradlePlugin {} block.
 ====
 include::sample[dir="snippets/java/javaGradlePlugin/kotlin",files="build.gradle.kts[tags=gradle-plugin-block]"]
 include::sample[dir="snippets/java/javaGradlePlugin/groovy",files="build.gradle[tags=gradle-plugin-block]"]
@@ -58,6 +55,8 @@ include::sample[dir="snippets/java/javaGradlePlugin/groovy",files="build.gradle[
 The `gradlePlugin {}` block defines the plugins being built by the project.
 The plugin `id` is set from the registration name, here `org.gradle.sample.simple-plugin`.
 Then, you define the `implementationClass` of the plugin, here `org.gradle.sample.SimplePlugin`.
+
+You can override the plugin `id` by explicitly setting the `id` property such as `id = "convention-plugin"`.
 
 From this data about the plugins being developed, Gradle can automatically:
 

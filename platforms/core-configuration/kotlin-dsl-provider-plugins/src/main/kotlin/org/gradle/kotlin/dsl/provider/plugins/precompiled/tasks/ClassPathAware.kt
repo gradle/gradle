@@ -24,6 +24,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.accessors.PluginTree
 import org.gradle.kotlin.dsl.accessors.pluginTreesFrom
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntryCache
 import org.gradle.kotlin.dsl.support.ImplicitImports
 
 
@@ -38,9 +39,10 @@ interface ClassPathAware {
 internal
 fun implicitImportsForPrecompiledScriptPlugins(
     implicitImports: ImplicitImports,
+    pluginEntryCache: PluginEntryCache,
     classPathFiles: FileCollection
 ): List<String> {
-    return implicitImports.list + "${sharedAccessorsPackageFor(pluginTreesFrom(classPathFiles))}.*"
+    return implicitImports.list + "${sharedAccessorsPackageFor(pluginTreesFrom(classPathFiles, pluginEntryCache))}.*"
 }
 
 

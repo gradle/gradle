@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
-import org.gradle.kotlin.dsl.support.zipTo
 import org.junit.Before
 import java.io.File
 import java.util.Properties
@@ -100,11 +99,11 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         withDefaultSettings()
     }
 
-    private
+    protected
     val testRepositories: String
         get() = testRepositoryPaths.joinLines {
             """
-                maven { url = file("$it") }
+                maven { url = uri(file("$it")) }
             """
         }
 

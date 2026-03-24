@@ -154,9 +154,9 @@ class InternalOptionsResolutionIntegrationTest extends AbstractIntegrationSpec {
         //noinspection UnnecessaryQualifiedReference
         buildScriptSnippet """
             def foo = gradle.services.get(org.gradle.internal.buildoption.InternalOptions.class)
-                .getOption(org.gradle.internal.buildoption.StringInternalOption.of("org.gradle.internal.foo"))
+                .getStringOrNull("org.gradle.internal.foo")
 
-            println("foo='\${foo.get()}'")
+            println("foo='\${foo}'")
         """
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Project;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
@@ -46,6 +47,7 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
         registration.add(TransformStepNodeDependencyResolver.class);
         registration.add(DependencyManagementManagedTypesFactory.class);
+        registration.add(DefaultProjectDependencyFactory.class);
     }
 
     @Provides
@@ -58,7 +60,8 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
         AttributesFactory attributesFactory,
         SimpleMapInterner stringInterner,
         CapabilityNotationParser capabilityNotationParser,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        Project project
     ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
@@ -77,7 +80,8 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
             capabilityNotationParser,
             objectFactory,
             projectDependencyFactory,
-            attributesFactory
+            attributesFactory,
+            project
         );
     }
 

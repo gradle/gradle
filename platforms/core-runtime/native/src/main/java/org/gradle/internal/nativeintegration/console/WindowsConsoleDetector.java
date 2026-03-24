@@ -28,7 +28,7 @@ public class WindowsConsoleDetector implements ConsoleDetector {
         // Use Jansi's detection mechanism
         try {
             new WindowsAnsiProcessor(new PrintStream(new ByteArrayOutputStream()), true);
-            boolean disableUnicodeSupportDetection = !NativePlatformConsoleDetector.isWindowsWithUnicodeCodePage();
+            boolean disableUnicodeSupportDetection = NativePlatformConsoleDetector.isWindowsWithNonUnicodeCodePage();
             return new UnicodeProxyConsoleMetaData(FallbackConsoleMetaData.ATTACHED) {
                 @Override
                 public boolean supportsUnicode() {
@@ -46,7 +46,7 @@ public class WindowsConsoleDetector implements ConsoleDetector {
 
     @Override
     @SuppressWarnings("SystemConsoleNull")
-    public boolean isConsoleInput() {
+    public boolean isInteractiveConsole() {
         return System.console() != null;
     }
 }

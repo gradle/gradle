@@ -26,7 +26,7 @@ The solution is to use a `groovy` script since it works on all Gradle Versions.
 
 # Adding new progress event
 
-* project `build-events`
+* project `daemon-messaging`
   * `org.gradle.internal.build.event.types` 
      * `public class Default*Event extends AbstractProgressEvent<Internal*Descriptor> implements Serializable, Internal*Event`
      * `public class Default*Descriptor implements Serializable, Internal*Descriptor`

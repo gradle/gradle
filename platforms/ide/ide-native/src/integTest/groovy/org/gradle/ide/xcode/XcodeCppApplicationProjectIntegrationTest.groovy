@@ -16,7 +16,6 @@
 
 package org.gradle.ide.xcode
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
@@ -45,7 +44,6 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
     }
 
     @Requires(value = [HasXCode, NotEmbeddedExecutor], reason = "Need a Gradle install to pass to xcodebuild")
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for unbuildable C++ application with library"() {
         useXcodebuildTool()
 
@@ -108,7 +106,6 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
     }
 
     @Requires(value = [HasXCode, NotEmbeddedExecutor], reason = "Need a Gradle install to pass to xcodebuild")
-    @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ application with unbuildable library"() {
         useXcodebuildTool()
 

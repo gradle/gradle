@@ -123,7 +123,7 @@ abstract class FindGradleSources : TransformAction<TransformParameters.None> {
     private fun InputStream.writeTo(output: File) {
         output.parentFile.mkdirs()
         use { input ->
-            output.outputStream().use { output ->
+            output.outputStream().buffered().use { output ->
                 input.copyTo(output)
             }
         }

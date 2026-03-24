@@ -23,7 +23,6 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
 import java.util.List;
-import java.util.Map;
 
 public abstract class BuildOptionSet<T> {
     /**
@@ -57,14 +56,20 @@ public abstract class BuildOptionSet<T> {
      * Returns a {@link PropertiesConverter} that can extract the options defined by this set.
      */
     public PropertiesConverter<T> propertiesConverter() {
-        return new PropertiesConverter<T>() {
-            @Override
-            public T convert(Map<String, String> properties, T target) throws CommandLineArgumentException {
-                for (BuildOption<? super T> option : getAllOptions()) {
-                    option.applyFromProperty(properties, target);
-                }
-                return target;
+        return (properties, target) -> {
+            for (BuildOption<? super T> option : getAllOptions()) {
+                option.applyFromProperty(properties, target);
             }
+            return target;
+        };
+    }
+
+    public PropertiesConverter<T> envVarConverter() {
+        return (envVars, target) -> {
+            for (BuildOption<? super T> option : getAllOptions()) {
+                option.applyFromEnvVar(envVars, target);
+            }
+            return target;
         };
     }
 }

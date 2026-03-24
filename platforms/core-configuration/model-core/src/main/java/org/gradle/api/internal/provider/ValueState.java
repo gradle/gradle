@@ -44,7 +44,7 @@ public abstract class ValueState<S> {
      * Creates a new non-finalized state.
      */
     public static <S> ValueState<S> newState(PropertyHost host) {
-        return new ValueState.NonFinalizedValue<>(host, Function.identity());
+        return new ValueState.NonFinalizedValue<>(host);
     }
 
     /**
@@ -54,7 +54,7 @@ public abstract class ValueState<S> {
      * sharing of mutable state between effective values and convention values
      */
     public static <S> ValueState<S> newState(PropertyHost host, Function<S, S> copier) {
-        return new ValueState.NonFinalizedValue<>(host, copier);
+        return new ValueState.NonFinalizedValueWithCopier<>(host, copier);
     }
 
     public abstract boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer);
@@ -174,25 +174,41 @@ public abstract class ValueState<S> {
 
     public abstract void warnOnUpgradedPropertyValueChanges();
 
+    /**
+     * We create one ValueState for every Property in the build. To lower the overall cost of
+     * each Property, this implementation uses bitset flags instead of separate booleans.
+     *
+     * This also splits out ValueStates with copiers into {@link NonFinalizedValueWithCopier}.
+     * This saves memory by making the class smaller and removing padding for alignment.
+     *
+     * NOTE: Care must be taken to not increase the size of this structure.
+     *
+     * In a build like Gradle's, we have greater than 1 million instances of ValueState.
+     * Adding a single reference can greatly effect the size of this structure and increase
+     * memory consumption in a hard to see way.
+     *
+     * ValueState currently uses 21 bytes plus 3 bytes of padding to maintain a 8-byte alignment (24 bytes overall).
+     * One reference is 4 bytes, which would force this structure to use 7 bytes of padding (32 bytes overall).
+     */
     private static class NonFinalizedValue<S> extends ValueState<S> {
+        private static final byte EXPLICIT_VALUE = 1;
+        private static final byte FINALIZE_ON_NEXT_GET = 1 << 1;
+        private static final byte DISALLOW_CHANGES = 1 << 2;
+        private static final byte DISALLOW_UNSAFE_READ = 1 << 3;
+        private static final byte IS_UPGRADED_PROPERTY_VALUE = 1 << 4;
+        private static final byte WARN_ON_UPGRADED_PROPERTY_CHANGES = 1 << 5;
+
         private final PropertyHost host;
-        private final Function<S, S> copier;
-        private boolean explicitValue;
-        private boolean finalizeOnNextGet;
-        private boolean disallowChanges;
-        private boolean disallowUnsafeRead;
-        private boolean isUpgradedPropertyValue;
-        private boolean warnOnUpgradedPropertyChanges;
+        private byte flags;
         private S convention;
 
-        public NonFinalizedValue(PropertyHost host, Function<S, S> copier) {
+        public NonFinalizedValue(PropertyHost host) {
             this.host = host;
-            this.copier = copier;
         }
 
         @Override
         public boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer) {
-            if (disallowUnsafeRead) {
+            if ((flags & DISALLOW_UNSAFE_READ) != 0) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
                     throw new IllegalStateException(cannotFinalizeValueOf(displayName, reason));
@@ -208,18 +224,18 @@ public abstract class ValueState<S> {
 
         @Override
         public boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
-            if (disallowUnsafeRead || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead) {
+            if ((flags & DISALLOW_UNSAFE_READ) != 0 || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
                     throw new IllegalStateException(cannotQueryValueOf(displayName, reason));
                 }
             }
-            return finalizeOnNextGet || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead;
+            return (flags & FINALIZE_ON_NEXT_GET) != 0 || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead;
         }
 
         @Override
         public ValueSupplier.ValueConsumer forUpstream(ValueSupplier.ValueConsumer consumer) {
-            if (disallowUnsafeRead) {
+            if ((flags & DISALLOW_UNSAFE_READ) != 0) {
                 return ValueSupplier.ValueConsumer.DisallowUnsafeRead;
             } else {
                 return consumer;
@@ -228,9 +244,9 @@ public abstract class ValueState<S> {
 
         @Override
         public void beforeMutate(Describable displayName) {
-            if (disallowChanges) {
+            if ((flags & DISALLOW_CHANGES) != 0) {
                 throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
-            } else if (warnOnUpgradedPropertyChanges) {
+            } else if ((flags & WARN_ON_UPGRADED_PROPERTY_CHANGES) != 0) {
                 String shownDisplayName = displayName.getDisplayName();
                 DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
                     // this should only happen in Gradle 10, when Provider API migration will come to the mainline,
@@ -244,33 +260,32 @@ public abstract class ValueState<S> {
 
         @Override
         public void disallowChanges() {
-            disallowChanges = true;
+            flags |= DISALLOW_CHANGES;
         }
 
         @Override
         public boolean isDisallowChanges() {
-            return disallowChanges;
+            return (flags & DISALLOW_CHANGES) != 0;
         }
 
         @Override
         public void finalizeOnNextGet() {
-            finalizeOnNextGet = true;
+            flags |= FINALIZE_ON_NEXT_GET;
         }
 
         @Override
         public void disallowUnsafeRead() {
-            disallowUnsafeRead = true;
-            finalizeOnNextGet = true;
+            flags |= DISALLOW_UNSAFE_READ | FINALIZE_ON_NEXT_GET;
         }
 
         @Override
         public boolean isFinalizing() {
-            return finalizeOnNextGet;
+            return (flags & FINALIZE_ON_NEXT_GET) != 0;
         }
 
         @Override
         public boolean isExplicit() {
-            return explicitValue;
+            return (flags & EXPLICIT_VALUE) != 0;
         }
 
         @Override
@@ -280,17 +295,17 @@ public abstract class ValueState<S> {
 
         @Override
         public S setToConvention() {
-            explicitValue = true;
+            flags |= EXPLICIT_VALUE;
             return shallowCopy(convention);
         }
 
-        private S shallowCopy(S toCopy) {
-            return copier.apply(toCopy);
+        protected S shallowCopy(S toCopy) {
+            return toCopy;
         }
 
         @Override
         public S setToConventionIfUnset(S value) {
-            if (!explicitValue) {
+            if ((flags & EXPLICIT_VALUE) == 0) {
                 return setToConvention();
             }
             return value;
@@ -298,28 +313,28 @@ public abstract class ValueState<S> {
 
         @Override
         public void markAsUpgradedPropertyValue() {
-            isUpgradedPropertyValue = true;
+            flags |= IS_UPGRADED_PROPERTY_VALUE;
         }
 
         @Override
         public boolean isUpgradedPropertyValue() {
-            return isUpgradedPropertyValue;
+            return (flags & IS_UPGRADED_PROPERTY_VALUE) != 0;
         }
 
         @Override
         public void warnOnUpgradedPropertyValueChanges() {
-            warnOnUpgradedPropertyChanges = true;
+            flags |= WARN_ON_UPGRADED_PROPERTY_CHANGES;
         }
 
         @Override
         public S explicitValue(S value) {
-            explicitValue = true;
+            flags |= EXPLICIT_VALUE;
             return value;
         }
 
         @Override
         public S explicitValue(S value, S defaultValue) {
-            if (!explicitValue) {
+            if ((flags & EXPLICIT_VALUE) == 0) {
                 return defaultValue;
             }
             return value;
@@ -327,7 +342,7 @@ public abstract class ValueState<S> {
 
         @Override
         public S implicitValue() {
-            explicitValue = false;
+            flags &= ~EXPLICIT_VALUE;
             return shallowCopy(convention);
         }
 
@@ -340,7 +355,7 @@ public abstract class ValueState<S> {
         @Override
         public S applyConvention(S value, S convention) {
             this.convention = convention;
-            if (!explicitValue) {
+            if ((flags & EXPLICIT_VALUE) == 0) {
                 return shallowCopy(convention);
             } else {
                 return value;
@@ -368,6 +383,20 @@ public abstract class ValueState<S> {
             formatter.append(reason);
             formatter.append(".");
             return formatter.toString();
+        }
+    }
+
+    private static class NonFinalizedValueWithCopier<S> extends NonFinalizedValue<S> {
+        private final Function<S, S> copier;
+
+        public NonFinalizedValueWithCopier(PropertyHost host, Function<S, S> copier) {
+            super(host);
+            this.copier = copier;
+        }
+
+        @Override
+        protected S shallowCopy(S toCopy) {
+            return copier.apply(toCopy);
         }
     }
 

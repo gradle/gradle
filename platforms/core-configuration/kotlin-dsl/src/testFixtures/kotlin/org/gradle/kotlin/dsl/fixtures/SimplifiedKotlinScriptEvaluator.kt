@@ -30,6 +30,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -46,6 +47,7 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.file.Path
 
 
 /**
@@ -55,12 +57,14 @@ import java.net.URLClassLoader
 fun eval(
     script: String,
     target: Any,
+    buildTreeRootDir: File,
     baseCacheDir: File,
     baseTempDir: File,
     scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
     scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) {
     SimplifiedKotlinScriptEvaluator(
+        buildTreeRootDir,
         baseCacheDir,
         baseTempDir,
         scriptCompilationClassPath,
@@ -96,6 +100,7 @@ fun simplifiedKotlinDefaultServiceRegistry(
  */
 private
 class SimplifiedKotlinScriptEvaluator(
+    private val buildTreeRootDirFile: File,
     private val baseCacheDir: File,
     private val baseTempDir: File,
     private val scriptCompilationClassPath: ClassPath,
@@ -104,7 +109,7 @@ class SimplifiedKotlinScriptEvaluator(
 ) : AutoCloseable {
 
     fun eval(script: String, target: Any, topLevelScript: Boolean = false) {
-        Interpreter(InterpreterHost()).eval(
+        Interpreter(InterpreterHost(), TestBuildOperationRunner()).eval(
             target,
             scriptSourceFor(script),
             Hashing.md5().hashString(script),
@@ -149,6 +154,9 @@ class SimplifiedKotlinScriptEvaluator(
 
     private
     inner class InterpreterHost : Interpreter.Host {
+
+        override val buildTreeRootDir: Path
+            get() = buildTreeRootDirFile.toPath()
 
         override fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry =
             serviceRegistry

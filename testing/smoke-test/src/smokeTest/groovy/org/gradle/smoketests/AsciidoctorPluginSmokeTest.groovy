@@ -17,13 +17,14 @@
 package org.gradle.smoketests
 
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
+    // CC will be supported in plugin 5.x+
+    @UnsupportedWithConfigurationCache(because = "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/564")
     def 'asciidoctor plugin #version'() {
         given:
         buildFile << """

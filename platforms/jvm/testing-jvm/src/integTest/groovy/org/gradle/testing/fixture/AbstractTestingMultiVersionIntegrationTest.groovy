@@ -74,7 +74,11 @@ abstract class AbstractTestingMultiVersionIntegrationTest extends MultiVersionIn
     }
 
     boolean supportsJavaVersion(int javaVersion) {
-        return buildScriptConfiguration.supportsJavaVersion(javaVersion)
+        return buildScriptConfiguration.supportsJavaVersion(javaVersion) && testFrameworkSupportsJavaVersion(javaVersion)
+    }
+
+    boolean testFrameworkSupportsJavaVersion(int javaVersion) {
+        return true
     }
 
     String getTestFrameworkImports() {

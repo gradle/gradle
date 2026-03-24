@@ -50,7 +50,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.plugin.internal.PluginScheme;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 
 import java.util.List;
 

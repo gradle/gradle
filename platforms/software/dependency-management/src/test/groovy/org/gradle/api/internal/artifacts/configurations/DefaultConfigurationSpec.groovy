@@ -640,18 +640,15 @@ class DefaultConfigurationSpec extends Specification {
 
         def masterParent1 = conf()
         def masterParent2 = conf()
-        master.extendsFrom provider(masterParent1)
-        master.extendsFrom provider(masterParent2)
+        master.extendsFrom provider(masterParent1), provider(masterParent2)
 
         def masterParent1Parent1 = conf()
         def masterParent1Parent2 = conf()
-        masterParent1.extendsFrom provider(masterParent1Parent1)
-        masterParent1.extendsFrom provider(masterParent1Parent2)
+        masterParent1.extendsFrom provider(masterParent1Parent1), provider(masterParent1Parent2)
 
         def masterParent2Parent1 = conf()
         def masterParent2Parent2 = conf()
-        masterParent2.extendsFrom provider(masterParent2Parent1)
-        masterParent2.extendsFrom provider(masterParent2Parent2)
+        masterParent2.extendsFrom provider(masterParent2Parent1), provider(masterParent2Parent2)
 
         def allArtifacts = master.allArtifacts
 

@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.ivy.IvyRepository
 
@@ -250,7 +250,6 @@ if (project.hasProperty('nocache')) {
         "when ivy descriptor changes" | "-Pnocache"
     }
 
-    @ToBeFixedForConfigurationCache(because = "does not check for missing artifact on second invocation")
     def "reports failure to resolve artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 
@@ -264,8 +263,11 @@ Searched in the following locations:
   - ${module.ivy.uri}""")
 
         when:
-        server.resetExpectations()
-        module.ivy.expectGetMissing()
+        if (!GradleContextualExecuter.isConfigCache()) {
+            // With CC the build caches resolution failure, so rerunning the task makes no new resolution attempt.
+            server.resetExpectations()
+            module.ivy.expectGetMissing()
+        }
 
         then:
         fails("verify")

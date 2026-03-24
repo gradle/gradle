@@ -105,7 +105,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "t"
-        failure.assertHasDescription("Execution failed for task ':buildSrc:compileGroovy'.")
+        failure.assertHasDescription("Execution failed for task ':buildSrc:compileGroovy' (registered by plugin class 'org.gradle.api.plugins.GroovyBasePlugin').")
     }
 
     def "use of buildSrc does not expose Gradle runtime dependencies to build script"() {

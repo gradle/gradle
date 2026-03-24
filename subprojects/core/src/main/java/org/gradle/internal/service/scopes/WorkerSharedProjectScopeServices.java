@@ -33,8 +33,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.DecompressionCoordinator;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.DefaultObjectFactoryFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.model.ObjectFactoryFactory;
 import org.gradle.api.internal.provider.DefaultPropertyFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -54,9 +55,7 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.process.ExecOperations;
-import org.gradle.process.internal.DefaultExecOperations;
-import org.gradle.process.internal.ExecFactory;
+import org.gradle.process.internal.services.ProcessWorkerSharedProjectScopeServices;
 
 import java.io.File;
 
@@ -73,6 +72,7 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     void configure(ServiceRegistration registration) {
         registration.add(PropertyFactory.class, DefaultPropertyFactory.class);
         registration.add(FilePropertyFactory.class, FileFactory.class, DefaultFilePropertyFactory.class);
+        registration.addProvider(new ProcessWorkerSharedProjectScopeServices());
     }
 
     @Provides
@@ -138,25 +138,32 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    protected ExecOperations createExecOperations(Instantiator instantiator, ExecFactory execFactory) {
-        return instantiator.newInstance(DefaultExecOperations.class, execFactory);
-    }
-
-    @Provides
-    ObjectFactory createObjectFactory(
-        InstantiatorFactory instantiatorFactory, ServiceRegistry services, PatternSetFactory patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
-        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator
+    protected ObjectFactoryFactory createObjectFactoryFactory(
+        InstantiatorFactory instantiatorFactory,
+        PatternSetFactory patternSetFactory,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        PropertyFactory propertyFactory,
+        FilePropertyFactory filePropertyFactory,
+        TaskDependencyFactory taskDependencyFactory,
+        FileCollectionFactory fileCollectionFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        NamedObjectInstantiator namedObjectInstantiator
     ) {
-        return new DefaultObjectFactory(
-            instantiatorFactory.decorate(services),
-            namedObjectInstantiator,
-            directoryFileTreeFactory,
+        return new DefaultObjectFactoryFactory(
+            instantiatorFactory,
             patternSetFactory,
+            directoryFileTreeFactory,
             propertyFactory,
             filePropertyFactory,
             taskDependencyFactory,
             fileCollectionFactory,
-            domainObjectCollectionFactory);
+            domainObjectCollectionFactory,
+            namedObjectInstantiator
+        );
+    }
+
+    @Provides
+    ObjectFactory createObjectFactory(ObjectFactoryFactory objectFactoryFactory, ServiceRegistry services) {
+        return objectFactoryFactory.createObjectFactory(services);
     }
 }

@@ -17,9 +17,13 @@
 package org.gradle.launcher.cli.internal;
 
 import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.OptionCategory;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.nativeintegration.console.ConsoleDetector;
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
@@ -76,7 +80,7 @@ public final class HelpRenderer {
         metaData.describeCommand(out, "[option...]", "[task...]");
         out.println();
         out.println();
-        parser.printUsage(out);
+        parser.printUsage(out, consoleWidth() - 1);
         out.println();
 
         out.flush();
@@ -92,9 +96,14 @@ public final class HelpRenderer {
         new StartParameterConverter().configure(parser);
         new BuildOptionBackedConverter<>(new DaemonBuildOptions()).configure(parser);
         // Built-in options: -h/--help/-?, -v/--version, -V/--show-version
-        parser.option("h", "?", "help").hasDescription("Shows this help message.");
-        parser.option("v", "version").hasDescription("Print version info and exit.");
-        parser.option("V", "show-version").hasDescription("Print version info and continue.");
+        parser.option("h", "?", "help").hasDescription("Shows this help message.").hasCategory(OptionCategory.HELP);
+        parser.option("v", "version").hasDescription("Prints version information and exits.").hasCategory(OptionCategory.HELP);
+        parser.option("V", "show-version").hasDescription("Prints version information and continues.").hasCategory(OptionCategory.HELP);
         return parser;
+    }
+
+    private static int consoleWidth() {
+        ConsoleMetaData console = NativeServices.getInstance().get(ConsoleDetector.class).getConsole();
+        return console != null ? console.getCols() : Integer.MAX_VALUE;
     }
 }

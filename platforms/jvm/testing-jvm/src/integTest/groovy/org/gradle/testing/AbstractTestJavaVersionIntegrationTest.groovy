@@ -16,8 +16,8 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.junit.Assume
 
@@ -30,9 +30,11 @@ import org.junit.Assume
  * Our test infrastructure supports additional versions of Java that the daemon does not.
  */
 abstract class AbstractTestJavaVersionIntegrationTest extends AbstractTestingMultiVersionIntegrationTest implements JavaToolchainFixture {
+    abstract List<Jvm> getSupportedJvms()
 
     def "can run test on java #jdk.javaVersionMajor"() {
         Assume.assumeTrue(supportsJavaVersion(jdk.javaVersionMajor))
+        println("Testing ${getTestFramework()} version ${version} with JDK ${jdk.javaVersionMajor}")
 
         given:
         file("src/test/java/SomeTest.java") << """
@@ -79,7 +81,6 @@ abstract class AbstractTestJavaVersionIntegrationTest extends AbstractTestingMul
         outputContains("Java Home: ${jdk.javaHome.absolutePath}")
 
         where:
-        jdk << AvailableJavaHomes.supportedWorkerJdks
+        jdk << getSupportedJvms()
     }
-
 }

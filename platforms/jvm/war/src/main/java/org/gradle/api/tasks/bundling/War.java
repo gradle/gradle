@@ -55,7 +55,6 @@ public abstract class War extends Jar {
     private File webXml;
     private FileCollection classpath;
     private final DefaultCopySpec webInf;
-    private final DirectoryProperty webAppDirectory;
 
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);
@@ -76,8 +75,6 @@ public abstract class War extends Jar {
         renameSpec.into("");
         renameSpec.from((Callable<File>) War.this::getWebXml);
         renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(Transformers.constant("web.xml")));
-
-        webAppDirectory = getObjectFactory().directoryProperty();
     }
 
     @Inject
@@ -195,7 +192,5 @@ public abstract class War extends Jar {
      * @since 7.1
      */
     @Internal
-    public DirectoryProperty getWebAppDirectory() {
-        return webAppDirectory;
-    }
+    public abstract DirectoryProperty getWebAppDirectory();
 }

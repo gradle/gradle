@@ -1,10 +1,15 @@
 {
   "performanceTests" : [ {
-    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslConfigurationPerformanceTest.configure",
+    "testId" : "org.gradle.performance.crossbuild.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
     "groups" : [ {
-      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
+      "testProject" : "largeJavaMultiProject",
       "coverage" : {
-        "per_commit" : [ "linux", "macOs", "windows" ]
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeMonolithicJavaProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
       }
     } ]
   }, {
@@ -434,19 +439,6 @@
       "testProject" : "withVerboseJUnit",
       "coverage" : {
         "per_day" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.crossbuild.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeMonolithicJavaProject",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
       }
     } ]
   }, {

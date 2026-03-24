@@ -108,7 +108,7 @@ class DefaultFunctionExtractor(
 ) : FunctionExtractor {
     override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): List<FunctionExtractionResult> =
         host.classMembers(kClass).declarativeMembers
-            .filter { it.kind == MemberKind.FUNCTION && host.isUnusedMember(kClass, it) }
+            .filter { it.kind == MemberKind.FUNCTION && !it.isJavaBeanGetter }
             .map { ExtractionResult.of(memberFunction(host, kClass, it, preIndex, configureLambdas), FunctionExtractionMetadata(listOf(it))) }
 
     override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): SchemaResult<DataTopLevelFunction> =
@@ -308,7 +308,7 @@ class DefaultFunctionExtractor(
                 val lastParamOrNull = function.parameters.lastOrNull()
                 check(function.returnType.classifier != Unit::class || lastParamOrNull == null || configureLambdas.getTypeConfiguredByLambda(lastParamOrNull.type.toKType()) == null) {
                     return host.schemaBuildingFailure(
-                        SchemaBuildingIssue.UnitAddingFunctionWithLambda
+                        SchemaBuildingIssue.UnitAddingFunctionWithLambda()
                     )
                 }
 

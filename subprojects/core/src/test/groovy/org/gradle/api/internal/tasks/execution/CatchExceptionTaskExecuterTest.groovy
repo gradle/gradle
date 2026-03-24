@@ -57,6 +57,8 @@ class CatchExceptionTaskExecuterTest extends Specification {
         1 * delegate.execute(task, state, context) >> {
             throw failure
         }
+        _ * task.getTaskIdentity()
+        _ * task.toString()
         0 * _
 
         state.outcome == TaskExecutionOutcome.EXECUTED

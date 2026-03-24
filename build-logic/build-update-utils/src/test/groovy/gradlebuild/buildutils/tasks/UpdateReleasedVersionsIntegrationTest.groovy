@@ -68,7 +68,7 @@ class UpdateReleasedVersionsIntegrationTest extends Specification {
         def expectedFileContent = releasedVersionsFile.text.replace('20200702230251+0000', newSnapshot.buildTime)
 
         when:
-        UpdateReleasedVersions.@Companion.updateReleasedVersionFile(releasedVersionsFile, newSnapshot) == ''
+        ReleasedVersionsHelperKt.updateReleasedVersionFile(releasedVersionsFile, newSnapshot) == ''
 
         then:
         releasedVersionsFile.text == expectedFileContent

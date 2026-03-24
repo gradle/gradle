@@ -19,7 +19,6 @@ The Project report plugin adds some tasks to your project which generate reports
 
 We plan to add much more to the existing reports and create additional ones in future releases of Gradle.
 
-
 [[sec:project_reports_usage]]
 == Usage
 
@@ -31,7 +30,6 @@ plugins {
     id 'project-report'
 }
 ----
-
 
 [[sec:project_reports_tasks]]
 == Tasks
@@ -54,7 +52,6 @@ Generates the project task report.
 _Depends on_: `dependencyReport`, `propertyReport`, `taskReport`, `htmlDependencyReport`
 +
 Generates all project reports.
-
 
 [[sec:project_reports_project_layout]]
 == Project layout

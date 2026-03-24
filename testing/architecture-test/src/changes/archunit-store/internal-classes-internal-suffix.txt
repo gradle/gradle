@@ -39,8 +39,6 @@ Class <org.gradle.internal.buildoption.InternalOptions> has simple name starting
 Class <org.gradle.internal.buildoption.StringInternalOption> does not have simple name ending with 'Internal' in (StringInternalOption.java:0)
 Class <org.gradle.internal.classpath.intercept.CallInterceptorRegistry$GroovyJvmCallInterceptorInternalTesting> does not have simple name ending with 'Internal' in (CallInterceptorRegistry.java:0)
 Class <org.gradle.internal.deprecation.DeprecationMessageBuilder$DeprecateInternalApi> does not have simple name ending with 'Internal' in (DeprecationMessageBuilder.java:0)
-Class <org.gradle.internal.extensions.core.InternalOptionsExtensionsKt> does not have simple name ending with 'Internal' in (InternalOptionsExtensions.kt:0)
-Class <org.gradle.internal.extensions.core.InternalOptionsExtensionsKt> has simple name starting with 'Internal' in (InternalOptionsExtensions.kt:0)
 Class <org.gradle.internal.extensions.core.TaskInternalExtensionsKt> does not have simple name ending with 'Internal' in (TaskInternalExtensions.kt:0)
 Class <org.gradle.internal.problems.failure.InternalStackTraceClassifier> does not have simple name ending with 'Internal' in (InternalStackTraceClassifier.java:0)
 Class <org.gradle.internal.problems.failure.InternalStackTraceClassifier> has simple name starting with 'Internal' in (InternalStackTraceClassifier.java:0)

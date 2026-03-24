@@ -16,14 +16,13 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-
-import java.util.List;
 
 public class DefaultProjectDependencyMetadata extends DelegatingDependencyMetadata implements ForcingDependencyMetadata {
     private final ProjectComponentSelector selector;
@@ -49,7 +48,7 @@ public class DefaultProjectDependencyMetadata extends DelegatingDependencyMetada
     }
 
     @Override
-    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts) {
         if (target.equals(selector) && delegate.getArtifacts().equals(artifacts)) {
             return this;
         }

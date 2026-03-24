@@ -50,7 +50,7 @@ import java.util.concurrent.Executors
 abstract class AbstractIdeSyncTest extends Specification {
 
     // https://youtrack.jetbrains.com/articles/IDEA-A-21/IDEA-Latest-Builds-And-Release-Notes
-    final static String IDEA_COMMUNITY_VERSION = "2025.2.4"
+    final static String IDEA_VERSION = "2025.3.2"
     // https://developer.android.com/studio/archive
     final static String ANDROID_STUDIO_VERSION = "2025.2.3.8"
 
@@ -98,7 +98,7 @@ abstract class AbstractIdeSyncTest extends Specification {
         String version,
         @Nullable IdeScenario scenario = null
     ) {
-        ideSync("ic-$version", scenario)
+        ideSync("iu-$version", scenario)
     }
 
     private void ideSync(String ide, IdeScenario scenario) {
@@ -167,7 +167,7 @@ abstract class AbstractIdeSyncTest extends Specification {
             .setWorkingDir(testDirectory)
             .setStandardOutput(System.out)
             .setErrorOutput(System.err)
-            .environment("JAVA_HOME", AvailableJavaHomes.jdk17.javaHome.absolutePath)
+            .environment("JAVA_HOME", AvailableJavaHomes.jdk21.javaHome.absolutePath)
 
         System.err.println("Running IDE sync with: ${builder.commandLine.join(' ')}")
         def handle = builder.build().start()

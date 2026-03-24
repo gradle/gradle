@@ -414,3 +414,8 @@ data class SupportedKParameter(
     val isVararg: Boolean,
     val isOptional: Boolean
 )
+
+val SupportedCallable.isJavaBeanGetter get() =
+    kind == MemberKind.FUNCTION &&
+        name.substringAfter("get", "").firstOrNull()?.isUpperCase() == true &&
+        parameters.isEmpty()

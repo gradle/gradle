@@ -29,7 +29,6 @@ import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
-import org.gradle.internal.declarativedsl.Workarounds
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
@@ -110,7 +109,7 @@ interface SchemaBuildingHost {
 
     fun <T> inIsolatedContext(action: () -> T): T
 
-    val context: List<SchemaBuildingContextElement>
+    fun context(): List<SchemaBuildingContextElement>
 }
 
 inline fun <R> SchemaBuildingHost.inContextOfModelClass(kClass: KClass<*>, doBuildSchema: () -> R): R =
@@ -123,22 +122,9 @@ inline fun <R> SchemaBuildingHost.withTag(tagContextElement: TagContextElement, 
     inContextOf(tagContextElement, doBuildSchema)
 
 sealed interface SchemaBuildingContextElement {
-    val userRepresentation: String
-
-    data class ModelClassContextElement(val kClass: KClass<*>) : SchemaBuildingContextElement {
-        override val userRepresentation: String
-            get() = "class '${kClass.qualifiedName}'"
-    }
-
-    data class ModelMemberContextElement(val kCallable: KCallable<*>) : SchemaBuildingContextElement {
-        override val userRepresentation: String
-            get() = "member '$kCallable'"
-    }
-
-    data class TagContextElement(val userVisibleTag: String) : SchemaBuildingContextElement {
-        override val userRepresentation: String
-            get() = userVisibleTag
-    }
+    data class ModelClassContextElement(val kClass: KClass<*>) : SchemaBuildingContextElement
+    data class ModelMemberContextElement(val kCallable: KCallable<*>) : SchemaBuildingContextElement
+    data class TagContextElement(val userVisibleTag: String) : SchemaBuildingContextElement
 }
 
 object SchemaBuildingTags {
@@ -184,8 +170,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
 
     private val currentContextStack = mutableListOf<SchemaBuildingContextElement>()
 
-    override val context: List<SchemaBuildingContextElement>
-        get() = currentContextStack
+    override fun context(): List<SchemaBuildingContextElement> = currentContextStack.toList()
 
     private val classMembersCache = mutableMapOf<KClass<*>, ClassMembersForSchema>()
     private val declarativeSupertypesCache = mutableMapOf<KClass<*>, Iterable<MaybeDeclarativeClassInHierarchy>>()
@@ -210,7 +195,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
     }
 
     override fun membersWithFailures(kClass: KClass<*>): Map<SupportedCallable, Iterable<SchemaResult.Failure>> =
-        failedMembers[kClass] ?: emptyMap()
+        failedMembers[kClass]?.toSortedMap(compareBy { it.toString() }) ?: emptyMap()
 
     override fun isUnusedMember(kClass: KClass<*>, member: SupportedCallable): Boolean =
         claimedMembers[kClass]?.contains(member) != true && failedMembers[kClass]?.contains(member) != true
@@ -317,9 +302,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
 
     private fun isAllowedTypeParameter(typeParameter: KTypeParameter): Boolean =
         currentContextStack.any { contextElement ->
-            contextElement is SchemaBuildingContextElement.ModelMemberContextElement && contextElement.kCallable.typeParameters.any {
-                Workarounds.typeParameterMatches(it, typeParameter)
-            }
+            contextElement is SchemaBuildingContextElement.ModelMemberContextElement && typeParameter in contextElement.kCallable.typeParameters
         }
 
     private fun instantiateGenericOpaqueType(kType: KType): SchemaResult<DataTypeRef> {
@@ -334,7 +317,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
             else {
                 inContextOf(SchemaBuildingTags.typeArgument(arg)) {
                     if (arg.variance != KVariance.INVARIANT) {
-                        return schemaBuildingFailure(SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(kClass, arg.variance!!))
+                        return schemaBuildingFailure(SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(arg.variance!!))
                     }
                     val argumentTypeRef = modelTypeRef(
                         arg.type ?: schemaBuildingError("Type argument has no proper type")
@@ -352,7 +335,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
                 kClass.typeParameters.map {
                     if (it.variance == KVariance.IN)
                         return schemaBuildingFailure(
-                            SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(kClass, it.variance)
+                            SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(it.variance)
                         )
                     DataTypeInternal.DefaultParameterizedTypeSignature.TypeParameter(it.name, it.variance == KVariance.OUT)
                 },
@@ -430,8 +413,10 @@ class DataSchemaBuilder(
 
         validateSchemaInvariants(host, schema)
 
-        val allFailures = collectSchemaBuildingFailures(host, preIndex, schema)
-        schemaBuildingFailureReporter.report(schema, allFailures)
+        schemaBuildingFailureReporter.report(
+            schema,
+            collectSchemaBuildingFailures(host, preIndex, schema).map { it.asReportableFailure() }
+        )
 
         return schema
     }
@@ -440,8 +425,8 @@ class DataSchemaBuilder(
         host: SchemaBuildingHost,
         preIndex: PreIndex,
         schema: DefaultAnalysisSchema,
-    ): List<SchemaResult.Failure> = buildList {
-        addAll(host.typeFailures.distinct())
+    ): List<SchemaResult.Failure> = buildSet {
+        addAll(host.typeFailures)
 
         addAll(checkDiscoveredTypeForIllegalHiddenTypeUsages(host, preIndex.allDiscoveredTypes))
 
@@ -462,7 +447,7 @@ class DataSchemaBuilder(
                     if (host.isUnusedMember(type, potentiallyDeclarative)) {
                         host.inContextOfModelClass(type) {
                             host.inContextOfModelMember(potentiallyDeclarative.kCallable) {
-                                add(host.schemaBuildingFailure(SchemaBuildingIssue.UnrecognizedMember))
+                                add(host.schemaBuildingFailure(SchemaBuildingIssue.UnrecognizedMember()))
                             }
                         }
                     }
@@ -473,7 +458,7 @@ class DataSchemaBuilder(
                 addAll(failures)
             }
         }
-    }
+    }.toList()
 
     private fun validateSchemaInvariants(host: SchemaBuildingHost, schema: AnalysisSchema) {
         checkAllTypesInScope(host, schema, collectReachableContainerTypes(schema))
@@ -617,12 +602,12 @@ class DataSchemaBuilder(
             fun visit(type: KClass<*>) {
                 if (add(type)) {
                     val discoveriesToVisitNext = typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type)
-                    allTypeDiscoveries.addAll(discoveriesToVisitNext.filterIsInstance<SchemaResult.Result<DiscoveredClass>>().map { it.result })
 
+                    allTypeDiscoveries.addAll(discoveriesToVisitNext.filterIsInstance<SchemaResult.Result<DiscoveredClass>>().map { it.result })
                     discoveriesToVisitNext.filterIsInstance<SchemaResult.Failure>().forEach(host::recordTypeFailure)
 
                     discoveriesToVisitNext.forEach {
-                        if (it is SchemaResult.Result  && !it.result.isHidden) {
+                        if (it is SchemaResult.Result && !it.result.isHidden) {
                             visit(it.result.kClass)
                         }
                     }
@@ -658,18 +643,17 @@ class DataSchemaBuilder(
         host: SchemaBuildingHost,
         allDiscoveries: Set<DiscoveredClass>
     ): List<SchemaResult.Failure> =
-        allDiscoveries.groupBy { it.kClass }.entries.flatMap { (kClass, discoveries) ->
+        allDiscoveries.groupBy { it.kClass }.entries.mapNotNull { (kClass, discoveries) ->
             if (!isIgnoredInVisibilityChecks(kClass) && discoveries.any { it.isHidden } && discoveries.any { !it.isHidden }) {
                 val hiddenBecause = discoveries.filter { it.isHidden }
-                    .flatMap { it.discoveryTags }
+                    .map { it.discoveryTag }
 
                 val illegalUsages = discoveries.filterNot { it.isHidden }
-                    .flatMap { it.discoveryTags }
+                    .map { it.discoveryTag }
                     .filter { it !is Supertype || it.ofType != kClass } // Filter out the self-appearance in the type hierarchy
 
-
-                listOf(host.schemaBuildingFailure(SchemaBuildingIssue.HiddenTypeUsedInDeclaration(kClass, hiddenBecause, illegalUsages)))
-            } else emptyList()
+                host.schemaBuildingFailure(SchemaBuildingIssue.HiddenTypeUsedInDeclaration(kClass, hiddenBecause, illegalUsages))
+            } else null
         }
 
     /**

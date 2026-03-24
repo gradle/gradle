@@ -16,28 +16,25 @@
 
 package org.gradle.integtests.tooling.r940
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.Failure
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.GradleVersion
 
 import java.util.regex.Pattern
 
-class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecification {
+class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
 
     TestFile initScriptFile
-    KotlinModelCollector modelCollector
+    GradleBuildModelCollector modelCollector
 
     def setup() {
-        modelCollector = new KotlinModelCollector()
+        modelCollector = new GradleBuildModelCollector()
         settingsFile.delete() // This is automatically created by `ToolingApiSpecification`
 
         initScriptFile = file("init.gradle")
@@ -99,14 +96,14 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecificatio
             plugins {
                 `kotlin-dsl`
             }
-            
+
             repositories {
                 gradlePluginPortal()
             }
         """
 
         file("buildSrc/src/main/kotlin/my-conventions.gradle.kts") << """
-             broken !!! 
+             broken !!!
         """
 
         when:
@@ -114,12 +111,20 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         def e = thrown(BuildException)
-        e.cause.message.contains("Execution failed for task ':buildSrc:compileKotlin'.")
+        e.cause.message.contains("Execution failed for task ':buildSrc:compileKotlin'")
         def model = modelCollector.model
-        assertFailures(model,
+
+        if (targetVersion >= GradleVersion.version("9.5.0")) {
+            assertFailures(model,
+                "Execution failed for task ':buildSrc:compileKotlin' \\(registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper'\\).",
+                "Execution failed for task ':buildSrc:compileKotlin' \\(registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper'\\).",
+            )
+        } else {
+            assertFailures(model,
                 "Execution failed for task ':buildSrc:compileKotlin'.",
                 "Execution failed for task ':buildSrc:compileKotlin'.",
-        )
+            )
+        }
         assertModel(model, true, [], ["buildSrc"])
     }
 
@@ -285,63 +290,23 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecificatio
     }
 
     GradleBuildModel model(ProjectConnection conn, boolean resilient) {
-        return GradleBuildAction.model(conn, initScriptFile, modelCollector, resilient)
+        return model(conn, initScriptFile, modelCollector, resilient)
     }
 
-    static class GradleBuildModel implements Serializable {
+    GradleBuildModel model(ProjectConnection conn, File initScript, IntermediateResultHandler<GradleBuildModel> modelHandler, boolean resilient) {
+        def model = null
 
-        final GradleBuild model
-        final Collection<String> failures
+        Iterable<String> arguments = ["--init-script=${initScript.absolutePath}"]
+        arguments += "-Dorg.gradle.internal.resilient-model-building=$resilient"
 
-        GradleBuildModel(GradleBuild model, Collection<Failure> failures) {
-            this.model = model
-            this.failures = failures.collect { it.getMessage() }
-        }
-    }
-
-    static class GradleBuildAction implements BuildAction<GradleBuildModel>, Serializable {
-
-        private final boolean resilient
-
-        GradleBuildAction(boolean resilient) {
-            this.resilient = resilient
-        }
-
-        @Override
-        GradleBuildModel execute(BuildController controller) {
-            if (resilient)  {
-                def result = controller.fetch(GradleBuild.class)
-                return new GradleBuildModel(result.model, result.failures)
-            } else {
-                def model = controller.getModel(GradleBuild.class)
-                return new GradleBuildModel(model, Collections.emptyList())
-            }
-        }
-
-        private static GradleBuildModel model(ProjectConnection conn, File initScript, IntermediateResultHandler<GradleBuildModel> modelHandler, boolean resilient) {
-            def model = null
-
-            Iterable<String> arguments = ["--init-script=${initScript.absolutePath}"]
-            arguments += "-Dorg.gradle.internal.resilient-model-building=$resilient"
-
-            conn.action()
-                    .buildFinished(new GradleBuildAction(resilient)) {
-                        modelHandler.onComplete(it)
-                        model = it
-                    }.build()
-                    .forTasks([])
-                    .withArguments(*arguments)
-                    .run()
-            return model
-        }
-    }
-
-    static class KotlinModelCollector implements IntermediateResultHandler<GradleBuildModel> {
-        GradleBuildModel model
-
-        @Override
-        void onComplete(GradleBuildModel result) {
-            this.model = result
-        }
+        conn.action()
+            .buildFinished(new GradleBuildAction(resilient)) {
+                modelHandler.onComplete(it)
+                model = it
+            }.build()
+            .forTasks([])
+            .withArguments(*arguments)
+            .run()
+        return model
     }
 }

@@ -45,7 +45,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 dependencies {
-                    classpath project(":")
+                    classpath project.project(":")
                 }
             }
 
@@ -89,7 +89,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         file("first/build.gradle") << """
             buildscript {
                 dependencies {
-                    classpath project(":other")
+                    classpath project.project(":other")
                 }
             }
         """
@@ -119,7 +119,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         file("first/build.gradle") << """
             buildscript {
                 dependencies {
-                    classpath project(":other")
+                    classpath project.project(":other")
                 }
             }
         """

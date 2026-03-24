@@ -122,7 +122,7 @@ Consumers can then apply your plugin by **ID** without publishing to a public re
 
 To validate a Plugin Portal publication (no upload):
 
-[listing]
+[source,bash]
 ----
 $ ./gradlew publishPlugins --validate-only
 ----

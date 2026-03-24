@@ -19,6 +19,7 @@ package gradlebuild.packaging
 import gradlebuild.basics.repoRoot
 import gradlebuild.packaging.tasks.GenerateClasspathModuleProperties
 import gradlebuild.packaging.tasks.GenerateEmptyModuleProperties
+import gradlebuild.packaging.tasks.GenerateLicenseFile
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 import java.io.File
@@ -41,8 +42,9 @@ object GradleDistributionSpecs {
         val gradleApiKotlinExtensionsJarModuleProperties by tasks.getting(GenerateEmptyModuleProperties::class)
         val agentsRuntimeClasspath by configurations.getting
         val generateAgentsRuntimeModuleProperties by tasks.getting(GenerateClasspathModuleProperties::class)
+        val generateLicenseFile by tasks.getting(GenerateLicenseFile::class)
 
-        from("${repoRoot()}/LICENSE")
+        from(generateLicenseFile.outputLicenseFile)
         from("src/toplevel")
 
         into("bin") {
@@ -108,8 +110,9 @@ object GradleDistributionSpecs {
      */
     fun Project.docsDistributionSpec() = copySpec {
         val docsPath by configurations.getting
+        val generateLicenseFile by tasks.getting(GenerateLicenseFile::class)
 
-        from("${repoRoot()}/LICENSE")
+        from(generateLicenseFile.outputLicenseFile)
         from("src/toplevel")
         into("docs") {
             from(docsPath)
@@ -143,6 +146,7 @@ object GradleDistributionSpecs {
             include("gradlew.bat")
             include("version.txt")
             include("released-versions.json")
+            include("LICENSE")
             exclude("**/.gradle/")
         }
     }

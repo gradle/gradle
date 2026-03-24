@@ -35,7 +35,7 @@ class ExceptionAttributionIntegrationTest extends AbstractIntegrationSpec {
             fails("broken")
             failure.assertHasFileName("Build file '$buildFile'")
             failure.assertHasLineNumber(4)
-            failure.assertHasFailure("Execution failed for task ':broken'.") {
+            failure.assertHasFailure("Execution failed for task ':broken' (registered in build file 'build.gradle').") {
                 failureHasCause("broken")
             }
         }
@@ -111,7 +111,7 @@ class ExceptionAttributionIntegrationTest extends AbstractIntegrationSpec {
             fails("broken")
             failure.assertHasFileName("Build file '$buildFile'")
             failure.assertHasLineNumber(9)
-            failure.assertHasFailure("Execution failed for task ':broken'.") {
+            failure.assertHasFailure("Execution failed for task ':broken' (registered in build file 'build.gradle').") {
                 failureHasCause("broken")
             }
         }

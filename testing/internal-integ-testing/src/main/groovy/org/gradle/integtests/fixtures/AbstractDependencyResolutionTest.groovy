@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
@@ -31,5 +32,27 @@ abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec 
 
     MavenFileRepository mavenRepo(String name = "repo") {
         return maven(name)
+    }
+
+    /**
+     * Asserts that the task that performs dependency resolution has failed.
+     * With Configuration Cache, the task is expected to fail at serialization time.
+     * In vintage mode, the task is expected to fail at execution time.
+     *
+     * @param taskSelector the qualified name of the task (including leading {@code :})
+     * @param description of where the task was registered, printed in error message
+     */
+    void assertResolutionTaskFailed(String taskSelector, String registeredIn = null) {
+        if (GradleContextualExecuter.configCache) {
+            failureDescriptionContains("Configuration cache state could not be cached:")
+            failureDescriptionContains(taskSelector)
+        } else {
+            def description = "Execution failed for task '${taskSelector}'"
+            if (registeredIn) {
+                description += " (registered in ${registeredIn})"
+            }
+            description += "."
+            failure.assertHasDescription(description)
+        }
     }
 }

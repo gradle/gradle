@@ -45,7 +45,7 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.classLoaderStructure == spec.classLoaderStructure
         decodedSpec.baseDir.canonicalPath == spec.baseDir.canonicalPath
         decodedSpec.projectCacheDir.canonicalPath == spec.projectCacheDir.canonicalPath
-        decodedSpec.additionalWhitelistedServicesClassNames == (["foo"] as Set)
+        decodedSpec.additionalAllowedServicesClassNames == (["foo"] as Set)
     }
 
     def "can serialize and deserialize a spec with a flat classloader structure"() {
@@ -66,7 +66,7 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.classLoaderStructure.spec == null
         decodedSpec.baseDir.canonicalPath == spec.baseDir.canonicalPath
         decodedSpec.projectCacheDir.canonicalPath == spec.projectCacheDir.canonicalPath
-        decodedSpec.additionalWhitelistedServicesClassNames == (["foo"] as Set)
+        decodedSpec.additionalAllowedServicesClassNames == (["foo"] as Set)
     }
 
     def filteringClassloaderSpec() {

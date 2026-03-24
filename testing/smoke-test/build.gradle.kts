@@ -31,6 +31,8 @@ addDependenciesAndConfigurations("smoke")
 
 val smokeTestImplementation: Configuration by configurations
 val smokeTestDistributionRuntimeOnly: Configuration by configurations
+val smokeTestBinDistribution: Configuration by configurations
+val smokeTestSrcDistribution: Configuration by configurations
 
 dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
@@ -40,6 +42,7 @@ dependencies {
     smokeTestImplementation(projects.testKit)
     smokeTestImplementation(projects.launcher)
     smokeTestImplementation(projects.persistentCache)
+    smokeTestImplementation(projects.internalIntegTesting)
     smokeTestImplementation(projects.internalTesting)
     smokeTestImplementation(projects.jvmServices)
     smokeTestImplementation(projects.buildOption)
@@ -56,9 +59,13 @@ dependencies {
     smokeTestImplementation(testFixtures(projects.core))
     smokeTestImplementation(testFixtures(projects.modelReflect))
     smokeTestImplementation(testFixtures(projects.pluginDevelopment))
+    smokeTestImplementation(testFixtures(projects.testingBase))
     smokeTestImplementation(testFixtures(projects.versionControl))
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
+    // These will make the bin and src distribution available through `IntegrationTestBuildContext`
+    smokeTestBinDistribution(projects.distributionsFull)
+    smokeTestSrcDistribution(projects.distributionsFull)
 }
 
 androidHomeWarmup {

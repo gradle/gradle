@@ -121,10 +121,6 @@ div.metadata td {
     color: darkred;
 }
 
-.code {
-    position: relative;
-}
-
 .clipboard-copy-btn {
     position: absolute;
     top: 8px;

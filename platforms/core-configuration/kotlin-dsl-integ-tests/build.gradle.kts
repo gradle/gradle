@@ -1,6 +1,7 @@
 plugins {
     id("gradlebuild.internal.kotlin")
     id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Kotlin DSL Integration Tests"
@@ -33,8 +34,10 @@ dependencies {
 
     crossVersionTestImplementation(projects.coreApi)
     crossVersionTestImplementation(projects.logging)
+    crossVersionTestImplementation(projects.internalIntegTesting)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
+
     crossVersionTestLocalRepository(projects.kotlinDslPlugins)
 }
 

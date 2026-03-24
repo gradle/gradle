@@ -35,6 +35,7 @@ public class TaskReportRenderer extends TextReportRenderer {
     private boolean hasContent;
     private boolean detail;
     private boolean showTypes;
+    private boolean showProvenance;
     private final BuildClientMetaData buildClientMetaData;
 
     public TaskReportRenderer(BuildClientMetaData buildClientMetaData) {
@@ -62,6 +63,10 @@ public class TaskReportRenderer extends TextReportRenderer {
 
     public void showTypes(boolean showTypes) {
         this.showTypes = showTypes;
+    }
+
+    public void showProvenance(boolean showProvenance) {
+        this.showProvenance = showProvenance;
     }
 
     /**
@@ -96,16 +101,20 @@ public class TaskReportRenderer extends TextReportRenderer {
 
     private void writeTask(TaskDetails task, String prefix) {
         getTextOutput().text(prefix);
-        maybeWriteTaskNameAndType(task);
+        maybeWriteTaskNameAndTypeAndProvenance(task);
         maybeWriteTaskDescription(task);
         getTextOutput().println();
     }
 
-    private void maybeWriteTaskNameAndType(TaskDetails task) {
+    private void maybeWriteTaskNameAndTypeAndProvenance(TaskDetails task) {
         getTextOutput().withStyle(Identifier).text(task.getPath());
         if (showTypes) {
             final StyledTextOutput typeOutput = getTextOutput().withStyle(Info);
             typeOutput.format(" (%s)", task.getTypeName());
+        }
+        if (showProvenance && null != task.getProvenance()) {
+            final StyledTextOutput provenanceOutput = getTextOutput().withStyle(Info);
+            provenanceOutput.format(" (%s)", task.getProvenance());
         }
     }
 

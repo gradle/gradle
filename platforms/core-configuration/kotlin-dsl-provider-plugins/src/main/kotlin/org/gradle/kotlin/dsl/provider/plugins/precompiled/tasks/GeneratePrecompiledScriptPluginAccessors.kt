@@ -25,12 +25,14 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.dependencies.DefaultFileCollectionDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ScriptClassPathResolver
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -52,6 +54,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.ProjectDescriptorInternal
+import org.gradle.internal.Describables
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
 import org.gradle.internal.classpath.ClassPath
@@ -61,7 +64,7 @@ import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.resource.TextFileResourceLoader
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
@@ -102,9 +105,6 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     val asyncIOScopeFactory: AsyncIOScopeFactory,
-
-    private
-    val textFileResourceLoader: TextFileResourceLoader
 
 ) : ClassPathSensitiveCodeGenerationTask() {
 
@@ -159,29 +159,23 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
         recreateTaskDirectories()
 
-        generateProjectScriptPluginsAccessors()
-
-        // In the future, accessors could also be generated here, but for now we just validate the plugins.
-        validateNonProjectScriptPluginsPlugins()
-    }
-
-    private fun generateProjectScriptPluginsAccessors() {
-        val projectScriptPlugins = selectProjectScriptPlugins()
-        if (projectScriptPlugins.isNotEmpty()) {
-            asyncIOScopeFactory.newScope().useToRun {
-                generateTypeSafeAccessorsFor(projectScriptPlugins)
-            }
+        asyncIOScopeFactory.newScope().useToRun {
+            generateProjectScriptPluginsAccessors()
+            generateSettingsScriptPluginsAccessors()
         }
     }
 
-    private fun validateNonProjectScriptPluginsPlugins() {
-        val nonProjectScriptPlugins = selectNonProjectScriptPlugins()
-        if (nonProjectScriptPlugins.isNotEmpty()) {
-            asyncIOScopeFactory.newScope().useToRun {
-                // Load and validate plugins of non-project script plugins without generating accessors
-                // We consume the sequence to force evaluation
-                scriptPluginPluginsFor(nonProjectScriptPlugins).forEach { _ -> }
-            }
+    private fun IO.generateProjectScriptPluginsAccessors() {
+        val projectScriptPlugins = selectProjectScriptPlugins()
+        if (projectScriptPlugins.isNotEmpty()) {
+            generateTypeSafeAccessorsForProject(projectScriptPlugins)
+        }
+    }
+
+    private fun IO.generateSettingsScriptPluginsAccessors() {
+        val settingsScriptPlugins = selectSettingsScriptPlugins()
+        if (settingsScriptPlugins.isNotEmpty()) {
+            generateTypeSafeAccessorsForSettings(settingsScriptPlugins)
         }
     }
 
@@ -193,18 +187,35 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun IO.generateTypeSafeAccessorsFor(projectScriptPlugins: List<PrecompiledScriptPlugin>) {
-        resolvePluginGraphOf(projectScriptPlugins)
+    fun IO.generateTypeSafeAccessorsForProject(projectScriptPlugins: List<PrecompiledScriptPlugin>) {
+        generateTypeSafeAccessorsFor(
+            ::projectSchemaImpliedByPluginGroups,
+            projectScriptPlugins
+        )
+    }
+
+    private fun IO.generateTypeSafeAccessorsForSettings(scriptPlugins: List<PrecompiledScriptPlugin>) {
+        generateTypeSafeAccessorsFor(
+            ::settingsSchemaImpliedByPluginGroups,
+            scriptPlugins
+        )
+    }
+
+    private fun IO.generateTypeSafeAccessorsFor(
+        schemaImpliedByPluginGroups: (Map<List<String>, List<PrecompiledScriptPlugin>>) -> Map<HashedProjectSchema, List<PrecompiledScriptPlugin>>,
+        plugins: List<PrecompiledScriptPlugin>
+    ) {
+        resolvePluginGraphOf(plugins)
             .groupBy(
                 { it.appliedPlugins },
                 { it.scriptPlugin }
             ).let {
-                projectSchemaImpliedByPluginGroups(it)
-            }.forEach { (projectSchema, scriptPlugins) ->
-                writeTypeSafeAccessorsFor(projectSchema)
+                schemaImpliedByPluginGroups(it)
+            }.forEach { (schema, scriptPlugins) ->
+                writeTypeSafeAccessorsFor(schema)
                 for (scriptPlugin in scriptPlugins) {
                     writeContentAddressableImplicitImportFor(
-                        projectSchema.packageName,
+                        schema.packageName,
                         scriptPlugin
                     )
                 }
@@ -334,9 +345,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun scriptSourceFor(plugin: PrecompiledScriptPlugin) =
         TextResourceScriptSource(
-            textFileResourceLoader.loadFile(
-                "Precompiled script plugin",
-                plugin.scriptFile
+            StringTextResource(
+                Describables.quoted("Precompiled script plugin", plugin.scriptFile.absolutePath).displayName,
+                plugin.scriptText
             )
         )
 
@@ -348,7 +359,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     fun selectProjectScriptPlugins() = plugins.get().filter { it.scriptType == KotlinScriptType.PROJECT }
 
     private
-    fun selectNonProjectScriptPlugins() = plugins.get().filter { it.scriptType != KotlinScriptType.PROJECT }
+    fun selectSettingsScriptPlugins() = plugins.get().filter { it.scriptType == KotlinScriptType.SETTINGS }
 
     private
     fun createPluginsClassLoader(): ClassLoader =
@@ -365,11 +376,26 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     fun projectSchemaImpliedByPluginGroups(
         pluginGroupsPerRequests: Map<List<String>, List<PrecompiledScriptPlugin>>
     ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
+        captureSchemaForPluginGroups(pluginGroupsPerRequests) { scriptPlugin, uniquePluginRequests ->
+            projectSchemaFor(pluginRequestsOf(scriptPlugin, uniquePluginRequests))
+        }
 
+    private
+    fun settingsSchemaImpliedByPluginGroups(
+        pluginGroupsPerRequests: Map<List<String>, List<PrecompiledScriptPlugin>>
+    ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
+        captureSchemaForPluginGroups(pluginGroupsPerRequests) { scriptPlugin, uniquePluginRequests ->
+            settingsSchemaFor(pluginRequestsOf(scriptPlugin, uniquePluginRequests))
+        }
+
+    private fun captureSchemaForPluginGroups(
+        pluginGroupsPerRequests: Map<List<String>, List<PrecompiledScriptPlugin>>,
+        produceSchema: (PrecompiledScriptPlugin, List<String>) -> Try<TypedProjectSchema>
+    ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
         pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             withCapturedOutputOnError(
                 {
-                    val schema = projectSchemaFor(pluginRequestsOf(scriptPlugins.first(), uniquePluginRequests)).get()
+                    val schema = produceSchema(scriptPlugins.first(), uniquePluginRequests).get()
                     val hashed = HashedProjectSchema(schema)
                     scriptPlugins.map { hashed to it }
                 },
@@ -391,7 +417,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     fun projectSchemaFor(plugins: PluginRequests): Try<TypedProjectSchema> {
         val projectDir = uniqueTempDirectory()
         val startParameter = projectSchemaBuildStartParameterFor(projectDir)
-        return createNestedBuildTree("$path:${projectDir.name}", startParameter, services).run { controller ->
+        return createNestedBuildTree("$path:${projectDir.name}", startParameter, services, ClassPath.EMPTY).run { controller ->
             controller.withEmptyBuild { settings ->
                 Try.ofFailable {
                     val gradle = settings.gradle
@@ -410,6 +436,29 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     gradle.defaultProject = rootProject
                     rootProject.projectEvaluationBroadcaster.beforeEvaluate(rootProject)
                     rootProject.run {
+                        applyPlugins(plugins)
+                        serviceOf<ProjectSchemaProvider>().schemaFor(this, classLoaderScope)!!
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Computes the [settings schema][TypedProjectSchema] implied by the given settings plugins by applying
+     * them to a synthetic project in the context of a nested build with the injected plugin classpath.
+     */
+    private
+    fun settingsSchemaFor(plugins: PluginRequests): Try<TypedProjectSchema> {
+        val projectDir = uniqueTempDirectory()
+        val startParameter = projectSchemaBuildStartParameterFor(projectDir)
+
+        val injectedPluginClasspath = DefaultClassPath.of(accessorsGenerationClassPathFiles)
+
+        return createNestedBuildTree("$path:${projectDir.name}", startParameter, services, injectedPluginClasspath).run { controller ->
+            controller.withEmptyBuild { settings ->
+                Try.ofFailable {
+                    settings.run {
                         applyPlugins(plugins)
                         serviceOf<ProjectSchemaProvider>().schemaFor(this, classLoaderScope)!!
                     }
@@ -487,10 +536,12 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     componentIdentifier,
                     fileCollectionFactory.fixed(it.file)
                 )
+
                 is ProjectComponentIdentifier -> DefaultFileCollectionDependency(
                     OpaqueComponentIdentifier(ClassPathNotation.LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY),
                     fileCollectionFactory.fixed(componentIdentifier.displayName, it.file)
                 )
+
                 else -> {
                     dependencyHandler.create(fileCollectionFactory.fixed(it.file))
                 }
@@ -597,6 +648,16 @@ fun ProjectInternal.applyPlugins(pluginRequests: PluginRequests) {
         buildscript,
         pluginManager,
         classLoaderScope
+    )
+}
+
+private
+fun SettingsInternal.applyPlugins(pluginRequests: PluginRequests) {
+    serviceOf<PluginRequestApplicator>().applyPlugins(
+        pluginRequests,
+        buildscript as ScriptHandlerInternal,
+        pluginManager,
+        classLoaderScope.createChild("accessors-classpath", null)
     )
 }
 

@@ -24,7 +24,7 @@ import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
 import org.gradle.kotlin.dsl.accessors.NestedModelEntry
 import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 
 typealias ContainerElementFactories = List<ContainerElementFactoryEntry<TypeOf<*>>>
 typealias NestedModels = List<NestedModelEntry<TypeOf<*>>>

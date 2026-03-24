@@ -31,7 +31,6 @@ Instead of applying it directly to your project, you should look into the `java-
 
 To use the Java plugin, include the following in your build script:
 
-.Using the Java plugin
 ====
 include::sample[dir="snippets/java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
 include::sample[dir="snippets/java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
@@ -93,7 +92,6 @@ Deletes files created by the specified task. For example, `cleanJar` will delete
 === SourceSet Tasks
 
 For each source set you add to the project, the Java plugin adds the following tasks:
-
 
 `compile__SourceSet__Java` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
 _Depends on_: All tasks which contribute to the source set's compilation classpath
@@ -164,7 +162,6 @@ include::javaProjectGenericLayout.adoc[]
 
 You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
 
-.Custom Java source layout
 ====
 include::sample[dir="snippets/java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
 include::sample[dir="snippets/java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
@@ -258,7 +255,6 @@ See the <<java_testing.adoc#sec:configuring_java_integration_tests,integration t
 
 Adding a JAR containing the classes of a source set:
 
-.Assembling a JAR for a source set
 ====
 include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
 include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
@@ -266,7 +262,6 @@ include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=
 
 Generating Javadoc for a source set:
 
-.Generating the Javadoc for a source set
 ====
 include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
 include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
@@ -274,7 +269,6 @@ include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=
 
 Adding a test suite to run the tests in a source set:
 
-.Running tests in a source set
 ====
 include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
 include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=test]"]
@@ -551,7 +545,7 @@ The format is one line per processor, with the fully qualified name of the proce
 
 === Example: Registering incremental annotation processors
 
-[listing]
+[source,java]
 .processor/src/main/resources/META-INF/gradle/incremental.annotation.processors
 ----
 include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/resources/META-INF/gradle/incremental.annotation.processors[tag=registering-incremental-annotation-processors]
@@ -605,7 +599,6 @@ include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/sr
     If your processor needs to make decisions based on a combination of otherwise unrelated elements, mark it as "aggregating" instead.
 * They must provide exactly one originating element for each file generated with the `Filer` API.
     If zero or many originating elements are provided, Gradle will recompile all source files.
-
 
 When a source file is recompiled, Gradle will recompile all files generated from it.
 When a source file is deleted, the files generated from it are deleted.
@@ -781,7 +774,6 @@ Some of the types of changes that do not affect the public API and are ignored:
 Since implementation details matter for annotation processors, they must be declared separately on the annotation processor path.
 Gradle ignores annotation processors on the compile classpath.
 
-.Declaring annotation processors
 ====
 include::sample[dir="snippets/java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
 include::sample[dir="snippets/java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
