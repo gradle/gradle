@@ -316,8 +316,10 @@ Caused by: org.gradle.api.GradleException: $FAILURE
     }
 
     def "report multiple failures and skip help link for NonGradleCauseException"() {
-        def failure1 = new LocationAwareException(new TaskExecutionException(Mock(TaskInternal), new TestNonGradleCauseException()), LOCATION, 42)
-        def failure2 = new LocationAwareException(new TaskExecutionException(Mock(TaskInternal), new TestCompilationFailureException()), LOCATION, 42)
+        def task1 = Mock(TaskInternal) { toString() >> "task ':testTask1'" }
+        def task2 = Mock(TaskInternal) { toString() >> "task ':testTask2'" }
+        def failure1 = new LocationAwareException(new TaskExecutionException(task1, new TestNonGradleCauseException()), LOCATION, 42)
+        def failure2 = new LocationAwareException(new TaskExecutionException(task2, new TestCompilationFailureException()), LOCATION, 42)
         def failure3 = new RuntimeException("<error>")
         Throwable exception = new MultipleBuildFailures([failure1, failure2, failure3])
 
@@ -332,7 +334,7 @@ Caused by: org.gradle.api.GradleException: $FAILURE
 $LOCATION line: 42
 
 * What went wrong:
-org.gradle.api.tasks.TaskExecutionException (no error message)
+Execution failed for task ':testTask1'.
 {info}> {normal}org.gradle.internal.buildevents.TestNonGradleCauseException (no error message)
 
 * Try:
@@ -345,7 +347,7 @@ $TRY_SCAN
 $LOCATION line: 42
 
 * What went wrong:
-org.gradle.api.tasks.TaskExecutionException (no error message)
+Execution failed for task ':testTask2'.
 {info}> {normal}org.gradle.internal.buildevents.TestCompilationFailureException (no error message)
 
 * Try:

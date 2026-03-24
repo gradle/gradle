@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskProvenanceUtil;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.TaskOptionsGenerator;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
@@ -155,7 +156,7 @@ class TaskDetails {
         Class<?> declaredTaskType = getDeclaredTaskType(task);
         String taskType = declaredTaskType.getName();
         String shortTypeName = declaredTaskType.getSimpleName();
-        return new TaskDetails(path, taskType, shortTypeName, task.getDescription(), task.getGroup(), projectDepth, options, ((TaskInternal) task).getProvenance().orElse(null));
+        return new TaskDetails(path, taskType, shortTypeName, task.getDescription(), task.getGroup(), projectDepth, options, TaskProvenanceUtil.getProvenance((TaskInternal) task).orElse(null));
     }
 
     private static Class<?> getDeclaredTaskType(Task original) {
