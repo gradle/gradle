@@ -463,10 +463,15 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
     @Requires([IntegTestPreconditions.NotEmbeddedExecutor])
     def "does not run out of memory when buffering output during user input with parallel execution"() {
         given:
-        withParallel()
-        interactiveExecution()
         def subprojectCount = 4
         def linesPerTask = 50_000
+
+        and:
+        withParallel()
+        executer.beforeExecute {
+            executer.withArgument("--max-workers=${subprojectCount + 2}")
+        }
+        interactiveExecution()
 
         and: "parallel task orchestration"
         server.start()
@@ -512,7 +517,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         }
 
         and: "wait until other tasks are done"
-        poll(30) {
+        poll(INTERACTIVE_WAIT_TIME_SECONDS) {
             (1..subprojectCount).each {
                 assert file("sub$it/done.txt").exists()
             }
