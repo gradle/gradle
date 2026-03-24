@@ -382,14 +382,18 @@ Unexpected paths: ${unexpectedPaths}""")
         if (Strings.isNullOrEmpty(frameworkTestPath)) {
             return htmlReportDirectory.toPath().resolve("index.html")
         }
+        // If shrinking is done, then it is up to the test to know that and provide the correct path.
+        // In the event that our tests may or may not shrink, we should consider adding a flag to ensure that tests which check
+        // explicitly for shrinking or not do not give incorrect results due to adjusted paths here.
+        def path = Path.path(frameworkTestPath)
         java.nio.file.Path nonLeafPath = htmlReportDirectory.toPath().resolve(
-            GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath), false)
+            GenericHtmlTestReportGenerator.getFilePath(false, path, false)
         )
         if (Files.exists(nonLeafPath)) {
             return nonLeafPath
         } else {
             return htmlReportDirectory.toPath().resolve(
-                GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath), true)
+                GenericHtmlTestReportGenerator.getFilePath(false, path, true)
             )
         }
     }

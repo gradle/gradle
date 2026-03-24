@@ -88,9 +88,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     }
 
     public static final class ForSummary extends PerRootTabRenderer {
+        private final boolean shrink;
 
-        public ForSummary(int rootIndex, int perRootInfoIndex) {
+        public ForSummary(boolean shrink, int rootIndex, int perRootInfoIndex) {
             super(rootIndex, perRootInfoIndex);
+            this.shrink = shrink;
         }
 
         @Override
@@ -131,7 +133,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             ImmutableList.Builder<Pair<String, ChildTableRenderer>> childTableRenderers = ImmutableList.builder();
             addResultTabIfNeeded("Failed", TestResult.ResultType.FAILURE, children, childTableRenderers);
             addResultTabIfNeeded("Skipped", TestResult.ResultType.SKIPPED, children, childTableRenderers);
-            childTableRenderers.add(Pair.of("All", new ChildTableRenderer(children)));
+            childTableRenderers.add(Pair.of("All", new ChildTableRenderer(shrink, children)));
             return childTableRenderers.build();
         }
 
@@ -149,7 +151,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 )
                 .collect(Collectors.toList());
             if (!matchedChildren.isEmpty()) {
-                childListRenderers.add(Pair.of(name, new ChildTableRenderer(matchedChildren)));
+                childListRenderers.add(Pair.of(name, new ChildTableRenderer(shrink, matchedChildren)));
             }
         }
 
@@ -285,9 +287,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         private static final class ChildTableRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
             private static final Comparator<ChildEntry> CHILD_PATH_COMPARATOR = Comparator.comparing(e -> e.model.getPath());
 
+            private final boolean shrink;
             private final List<ChildEntry> children;
 
-            public ChildTableRenderer(List<ChildEntry> children) {
+            public ChildTableRenderer(boolean shrink, List<ChildEntry> children) {
+                this.shrink = shrink;
                 this.children = children;
             }
 
@@ -338,6 +342,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     if (pair.model.hasUsefulDetails()) {
                         htmlWriter.startElement("a")
                             .attribute("href", GenericPageRenderer.getUrlTo(
+                                shrink,
                                 model.getPath(), false,
                                 pair.model.getPath(), pair.model.getChildren().isEmpty()
                             ))
