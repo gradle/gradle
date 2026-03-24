@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.dependencycollectors
 
 import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter

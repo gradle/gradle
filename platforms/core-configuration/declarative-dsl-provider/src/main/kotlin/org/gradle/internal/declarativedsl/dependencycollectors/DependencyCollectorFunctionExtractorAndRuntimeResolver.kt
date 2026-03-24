@@ -49,6 +49,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedCallable
 import org.gradle.internal.declarativedsl.schemaBuilder.isJavaBeanGetter
+import org.gradle.internal.declarativedsl.schemaBuilder.javaBeanName
 import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import org.gradle.internal.declarativedsl.schemaBuilder.orFailWith
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
@@ -126,11 +127,9 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver : FunctionExtractor
             val dependencyModifiers = members.filter { member ->
                 member.returnType.toKType().isSubtypeOf(typeOf<DependencyModifier>())
             }.map { member ->
+                val modifierName = member.javaBeanName
                 @Suppress("UNCHECKED_CAST")
                 val getModifier = member.kCallable as KCallable<DependencyModifier>
-                val modifierName = if (member.isJavaBeanGetter) {
-                    member.name.drop(3).replaceFirstChar { it.lowercase() }
-                } else member.name
                 Modifier(modifierName, getModifier)
             }
 
