@@ -62,7 +62,7 @@ To ensure consistent version alignment, a good approach is to use a version cata
 Version Catalog:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-platforms/kotlin",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-platforms/common",files="gradle/libs.versions.toml[]"]
 ====
 
 Platform:
