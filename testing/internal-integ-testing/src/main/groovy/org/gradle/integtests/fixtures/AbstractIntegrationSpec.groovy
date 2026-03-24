@@ -739,7 +739,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         if (!enableProblemsApiCheck) {
             throw new IllegalStateException('Problems API check is not enabled')
         }
-        return buildOperationsFixture.all().collectMany { operation ->
+        return buildOperationsFixture.getRecords().collectMany { operation ->
             operation.progress(DefaultProblemProgressDetails.class).collect {
                 def problemDetails = it.details.get("problem") as Map<String, Object>
                 return new ReceivedProblem(operation.id, problemDetails)
@@ -770,9 +770,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             throw new IllegalStateException('Problems API check is not enabled')
         }
 
-        return buildOperationsFixture.all().collectMany { operation ->
-            return operation.progress(DefaultProblemsSummaryProgressDetails.class).collect { it.details.get("problemIdCounts") }
-        }
+        return buildOperationsFixture.progress(DefaultProblemsSummaryProgressDetails).collect { it.details.get("problemIdCounts") }
     }
 
     static void printCollectedProblems(ReceivedProblem problem, int index) {

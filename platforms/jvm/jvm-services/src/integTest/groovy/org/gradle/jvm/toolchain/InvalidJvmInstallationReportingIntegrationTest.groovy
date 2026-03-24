@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -27,7 +28,8 @@ import java.util.regex.Pattern
 
 class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires([IntegTestPreconditions.NotNoDaemonExecutor, IntegTestPreconditions.NotConfigCached, IntegTestPreconditions.DifferentJdkAvailable])
+    @Requires([IntegTestPreconditions.NotNoDaemonExecutor, IntegTestPreconditions.DifferentJdkAvailable])
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36734")
     def "invalid JDK is cached only for current build if in daemon"() {
         // Require a different JDK to be able to find the logs of its probing for system properties
         def existingJdk = AvailableJavaHomes.differentJdk

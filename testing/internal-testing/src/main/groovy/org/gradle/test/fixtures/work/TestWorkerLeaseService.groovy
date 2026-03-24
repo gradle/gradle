@@ -22,8 +22,10 @@ import org.gradle.internal.work.Synchronizer
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.internal.work.WorkerThreadPool
 import org.gradle.util.Path
+import org.jspecify.annotations.NullMarked
 import org.jspecify.annotations.Nullable
 
+@NullMarked
 class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
     ResourceLock getProjectLock(Path buildIdentityPath, Path projectPath) {

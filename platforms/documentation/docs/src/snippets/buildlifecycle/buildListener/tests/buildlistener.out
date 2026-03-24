@@ -1,0 +1,19 @@
+[TaskExecutionGraphListener] Graph is ready. Tasks to execute:
+  :hello
+  :skippedTask
+  :upToDateTask
+  :runAll
+[TaskExecutionGraphListener] :skippedTask is in the graph (it will still be skipped via onlyIf)
+
+> Task :hello
+Hello from the :hello task!
+
+> Task :skippedTask SKIPPED
+
+> Task :upToDateTask
+upToDateTask: file written.
+
+> Task :runAll
+
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 2 executed

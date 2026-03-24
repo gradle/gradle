@@ -148,7 +148,7 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
 
         and:
         ConcurrentTestUtil.poll {
-            queue.workerCount <= maxWorkers
+            queue.helper.workerCount <= maxWorkers
         }
 
         where:
@@ -171,12 +171,12 @@ class DefaultConditionalExecutionQueueTest extends ConcurrentSpec {
             }
         }
         thread.blockUntil.allSubmitted
-        assert queue.workerCount <= MAX_WORKERS
+        assert queue.helper.workerCount <= MAX_WORKERS
         executions.each { it.await() }
 
         and:
         ConcurrentTestUtil.poll {
-            queue.workerCount <= MAX_WORKERS
+            queue.helper.workerCount <= MAX_WORKERS
         }
     }
 

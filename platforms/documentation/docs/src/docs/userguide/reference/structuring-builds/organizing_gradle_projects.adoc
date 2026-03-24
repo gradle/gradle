@@ -152,7 +152,7 @@ include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app
 .app/src/main/java/com/example/Hello.java
 [source, java]
 ----
-include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java/com/example/Hello.java[]
+include::{snippetsPath}/multiproject/basic-multiproject/common/app/src/main/java/com/example/Hello.java[]
 ----
 
 You can run the application by executing the `run` task from the <<application_plugin#application_plugin,Application plugin>> in the project root:
@@ -504,9 +504,6 @@ src/
 └── functionalTest/            // Functional tests
     └── java/
 ----
-
-To see how this works in practice, check out the
-link:../samples/sample_jvm_multi_project_with_additional_test_types.html[example project] which demonstrates how to define a custom `integrationTest` source set and task in a Java-based project.
 
 NOTE: Gradle allows you to define multiple source sets and test tasks, so you can fully isolate and control each type of test in your build.
 

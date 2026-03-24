@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -41,9 +42,9 @@ public class TaskIdentityFactory {
     /**
      * Create a task identity.
      */
-    public <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project) {
+    public <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project, UserCodeSource userCodeSource) {
         long id = idFactory.createId();
-        return new TaskIdentity<>(type, name, project.getProjectIdentity(), id);
+        return new TaskIdentity<>(type, name, project.getProjectIdentity(), id, userCodeSource);
     }
 
     /**
@@ -51,9 +52,8 @@ public class TaskIdentityFactory {
      * <p>
      * Should only be used when loading from the configuration cache to preserve task ids.
      */
-    public <T extends Task> TaskIdentity<T> recreate(String name, Class<T> type, ProjectInternal project, long uniqueId) {
+    public <T extends Task> TaskIdentity<T> recreate(String name, Class<T> type, ProjectInternal project, long uniqueId, UserCodeSource userCodeSource) {
         idFactory.idRecreated();
-        return new TaskIdentity<>(type, name, project.getProjectIdentity(), uniqueId);
+        return new TaskIdentity<>(type, name, project.getProjectIdentity(), uniqueId, userCodeSource);
     }
-
 }

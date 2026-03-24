@@ -109,7 +109,7 @@ Type-safe accessors are generated for each alias, normalized to dot notation:
 Version catalogs are conventionally declared using a `libs.versions.toml` file located in the `gradle` subdirectory of the root build:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/common",files="gradle/libs.versions.toml[]"]
 ====
 
 [[sec::toml-dependencies-format]]
@@ -149,10 +149,9 @@ Supported members of a version declaration are:
 Each library is mapped to a GAV coordinate: group, artifact, version.
 They can be declared as a simple string, in which case they are interpreted coordinates, or separate group and name:
 
-[source,toml]
-----
-include::{snippetsPath}/dependencyManagement/catalogs-toml/groovy/gradle/test-libs.versions.toml[]
-----
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-toml/common",files="gradle/test-libs.versions.toml[]"]
+====
 
 You can also define strict or preferred versions using `strictly` or `prefer`:
 

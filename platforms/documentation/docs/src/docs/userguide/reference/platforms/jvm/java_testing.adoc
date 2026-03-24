@@ -627,8 +627,6 @@ However, there are some things to consider depending on whether you need module 
 In this context, the terms _whitebox testing_ (module boundaries are deactivated or relaxed) and _blackbox testing_ (module boundaries are in place) are often used.
 Whitebox testing is used/needed for unit testing and blackbox testing fits functional or integration test requirements.
 
-Sample: link:../samples/sample_java_modules_multi_project_with_integration_tests.html[Java Modules multi-project with integration tests]
-
 === Whitebox unit test execution on the classpath
 
 The simplest setup to write unit tests for functions or classes in modules is to _not_ use module specifics during test execution.
@@ -653,8 +651,6 @@ Unit test compilation and development works fine in Eclipse.
 For integration tests, you have the option to define the test set itself as additional module.
 You do this similar to how you turn your main sources into a module:
 by adding a `module-info.java` file to the corresponding source set (e.g. `integrationTests/java/module-info.java`).
-
-You can find a full example that includes blackbox integration tests link:../samples/sample_java_modules_multi_project_with_integration_tests.html[here].
 
 NOTE: In Eclipse, compiling multiple modules in one project is currently not supported.
 Therefore the integration test (blackbox) setup described here only works in Eclipse if the tests are moved to a separate subproject.

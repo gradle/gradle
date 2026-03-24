@@ -99,20 +99,17 @@ public interface ExecutionFailure extends ExecutionResult {
 
     /**
      * Asserts that the reported failure has exactly the given resolutions (ie the bit after '* Try').
+     *
+     * For links to the Gradle documentation, use /current/ instead of the Gradle version.
      */
     ExecutionFailure assertHasResolutions(String... resolutions);
 
     /**
      * Asserts that the reported failure has the given resolution, and maybe more resolutions.
+     *
+     * For links to the Gradle documentation, use /current/ instead of the Gradle version.
      */
     ExecutionFailure assertHasResolution(String resolution);
-
-    /**
-     * Asserts that the reported failure has a documentation link in the resolution section.
-     *
-     * @param pageWithAnchor {@code <page>.html#<anchor>} part of the documentation link, assumed to be under https://docs.gradle.org/current/userguide/
-     */
-    ExecutionFailure assertHasDocumentationInResolutions(String pageWithAnchor);
 
     /**
      * Asserts that there is no exception that <em>contains</em> the given description.
@@ -122,10 +119,19 @@ public interface ExecutionFailure extends ExecutionResult {
     ExecutionFailure assertHasNoCause();
 
     default ExecutionFailure assertTestsFailed() {
-        assertHasDescription("Execution failed for task ':test'.");
         assertThatCause(startsWith("There were failing tests"));
         return this;
     }
+
+    default ExecutionFailure assertTestsFailedWithProvenance() {
+        return assertTestsFailedWithProvenance("created in build file 'build.gradle'");
+    }
+
+    default ExecutionFailure assertTestsFailedWithProvenance(String source) {
+        assertHasDescription(String.format("Execution failed for task ':test' (%s).", source));
+        return assertTestsFailed();
+    }
+
 
     /**
      * @param configurationPath, for example ':compile'

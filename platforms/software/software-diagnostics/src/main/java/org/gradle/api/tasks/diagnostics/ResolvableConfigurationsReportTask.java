@@ -54,7 +54,7 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
      */
     @Input
     @Optional
-    @Option(option = "all", description = "Shows all resolvable configurations, including legacy and deprecated configurations, and configurations without attributes")
+    @Option(option = "all", description = "Shows all resolvable configurations, including legacy and deprecated configurations")
     public abstract Property<Boolean> getShowAll();
 
     /**

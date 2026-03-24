@@ -172,4 +172,3 @@ model {
         executable("build/exe/main/main").exec().out == app.expectedOutput(toolChain)
     }
 }
-

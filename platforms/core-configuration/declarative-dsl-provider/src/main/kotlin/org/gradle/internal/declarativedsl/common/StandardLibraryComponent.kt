@@ -204,16 +204,20 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
             }
         })
 
-    /** Declared just for getting the List<T> type reflection */
-    private fun <T> listSignature(param: List<T>) = param
-
-    /** Declared just for getting the List<T> type reflection */
-    private fun <K, V> mapSignature(param: Map<K, V>) = param
 
     private val AUGMENTATION_FUNCTION_PACKAGE = ::builtinListAugmentation.javaMethod!!.declaringClass.`package`.name
     private val LIST_AUGMENTATION_FUNCTION_NAME = ::builtinListAugmentation.name
     private val MAP_AUGMENTATION_FUNCTION_NAME = ::builtinMapAugmentation.name
 }
+
+/** Declared just for getting the List<T> type reflection; Declared at the top level to workaround KT-85025. */
+@Suppress("UnusedPrivateMember") // used via reflection
+private fun <T> listSignature(param: List<T>) = param
+
+/** Declared just for getting the Map<K, V> type reflection; Declared at the top level to workaround KT-85025. */
+@Suppress("UnusedPrivateMember") // used via reflection
+private fun <K, V> mapSignature(param: Map<K, V>) = param
+
 
 fun builtinListAugmentation(lhs: Any, rhs: List<*>): Any =
     when (lhs) {

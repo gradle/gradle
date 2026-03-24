@@ -50,7 +50,7 @@ abstract class AbstractPerformanceTest extends Specification {
         this.dataReporter = gradleProfilerReporter.reportAlso(new DataReporter<PerformanceTestResult>() {
             @Override
             void report(PerformanceTestResult results) {
-                if (AbstractBuildExperimentRunner.isProfilingActive()) {
+                if (AbstractBuildExperimentRunner.isProfilingActive() && Boolean.parseBoolean(System.getProperty("org.gradle.performance.execution.generateDiffs", "true"))) {
                     def stacks = differentialStacksGenerator.generateDifferentialStacks(outputDirSelector.outputDirFor(results.testId))
                     flameGraphGenerator.generateDifferentialGraphs(stacks)
                 }

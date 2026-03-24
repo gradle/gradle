@@ -16,6 +16,7 @@
 
 package org.gradle.internal.code;
 
+import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.jspecify.annotations.Nullable;
 
@@ -23,6 +24,30 @@ import org.jspecify.annotations.Nullable;
  * Describes the source of code being applied.
  */
 public interface UserCodeSource {
+    UserCodeSource UNKNOWN = new UserCodeSource() {
+        @Override
+        public DisplayName getDisplayName() {
+            return Describables.of("Unknown");
+        }
+
+        @Override
+        public @Nullable String getPluginId() {
+            return null;
+        }
+    };
+
+    UserCodeSource BY_RULE = new UserCodeSource() {
+        @Override
+        public DisplayName getDisplayName() {
+            return Describables.of("by Rule");
+        }
+
+        @Override
+        public @Nullable String getPluginId() {
+            return null;
+        }
+    };
+
     /**
      * Returns the display name of the user code.
      */

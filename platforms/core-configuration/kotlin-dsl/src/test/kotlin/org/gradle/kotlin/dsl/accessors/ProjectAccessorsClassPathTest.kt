@@ -322,6 +322,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             on { create(any()) } doReturn dependency
             on { getConstraints() } doReturn constraints
             on { project(anyMap<String, Any?>()) } doReturn projectDependency
+            on { project(any<String>()) } doReturn projectDependency
         }
         val clean = mock<TaskProvider<Delete>>()
         val tasks = mock<TaskContainerInternal> {
@@ -450,7 +451,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
 
             // val m
             verify(project).dependencies
-            verify(dependencies).project(path = ":core")
+            verify(dependencies).project(":core")
             verify(project).dependencies
             verify(dependencies).add(eq("api"), same(projectDependency))
 
@@ -485,6 +486,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         eval(
             script = script,
             target = target,
+            buildTreeRootDir = root,
             baseCacheDir = kotlinDslEvalBaseCacheDir,
             baseTempDir = kotlinDslEvalBaseTempDir,
             scriptCompilationClassPath = DefaultClassPath.of(binDir) + classPath,

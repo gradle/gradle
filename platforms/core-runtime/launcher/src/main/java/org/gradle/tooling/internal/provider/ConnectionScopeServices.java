@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.loadercache.ModelClassLoaderFactory;
-import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
@@ -29,7 +28,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -41,8 +39,6 @@ import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClientExecuter;
 import org.gradle.launcher.daemon.client.NotifyDaemonClientExecuter;
-import org.gradle.launcher.exec.BuildExecutor;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
@@ -65,12 +61,12 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    DaemonStopClientExecuter createDaemonStopClientFactory(DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
+    DaemonStopClientExecuter createDaemonStopClientFactory(DaemonClientFactory daemonClientFactory) {
         return new DaemonStopClientExecuter(daemonClientFactory);
     }
 
     @Provides
-    NotifyDaemonClientExecuter createNotifyDaemonClientExecuter(DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
+    NotifyDaemonClientExecuter createNotifyDaemonClientExecuter(DaemonClientFactory daemonClientFactory) {
         return new NotifyDaemonClientExecuter(daemonClientFactory);
     }
 
@@ -100,13 +96,10 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ProviderConnection createProviderConnection(
-        BuildExecutor buildActionExecuter,
         DaemonClientFactory daemonClientFactory,
         BuildLayoutFactory buildLayoutFactory,
         ServiceRegistry serviceRegistry,
         FileCollectionFactory fileCollectionFactory,
-        GlobalUserInputReceiver userInput,
-        UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
         NotifyDaemonClientExecuter notifyDaemonClientExecuter,
         IsolatableSerializerRegistry isolatableSerializerRegistry
@@ -138,19 +131,12 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
             serviceRegistry,
             buildLayoutFactory,
             daemonClientFactory,
-            buildActionExecuter,
             payloadSerializer,
             fileCollectionFactory,
-            userInput,
-            userInputReader,
             shutdownCoordinator,
             notifyDaemonClientExecuter,
             isolatableSerializerRegistry
         );
     }
 
-    @Provides
-    ProtocolToModelAdapter createProtocolToModelAdapter() {
-        return new ProtocolToModelAdapter();
-    }
 }

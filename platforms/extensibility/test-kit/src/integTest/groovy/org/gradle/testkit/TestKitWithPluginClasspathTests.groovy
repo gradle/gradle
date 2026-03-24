@@ -230,6 +230,7 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
         testKitProjectDir.file("leaf-plugin-detected.txt").exists()
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/5116")
     def "withPlugin does not detect plugin applied transitively when tested plugin is used"() {
         given:
         succeeds(":plugin-leaf:publish", ":plugin-other:publish")

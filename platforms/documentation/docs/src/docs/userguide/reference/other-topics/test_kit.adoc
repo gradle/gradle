@@ -62,7 +62,7 @@ The following demonstrates the usage of the Gradle runner in a Java JUnit test:
 [source, java]
 .BuildLogicFunctionalTest.java
 ----
-include::{snippetsPath}/testKit/junitQuickstart/groovy/src/test/java/org/gradle/sample/BuildLogicFunctionalTest.java[tag=functional-test-junit]
+include::{snippetsPath}/testKit/junitQuickstart/common/src/test/java/org/gradle/sample/BuildLogicFunctionalTest.java[tag=functional-test-junit]
 ----
 
 Any test framework can be used.
@@ -134,7 +134,7 @@ The following example automatically injects the code under test classes into tes
 [source, groovy]
 .src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy
 ----
-include::{snippetsPath}/testKit/automaticClasspathInjectionQuickstart/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-classpath-setup-automatic]
+include::{snippetsPath}/testKit/automaticClasspathInjectionQuickstart/common/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-classpath-setup-automatic]
 ----
 
 If your project uses a custom test source set (for example, a dedicated functional test suite), you can reconfigure the plugin development extension to generate the plugin classpath metadata from that source set instead.
