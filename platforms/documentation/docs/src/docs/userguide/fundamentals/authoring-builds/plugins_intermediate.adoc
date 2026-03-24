@@ -529,7 +529,7 @@ When a project uses a version catalog, plugins can be referenced via aliases whe
 Let's take a look at a simple Version Catalog:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/kotlin/gradle",files="libs.versions.toml[]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/common/gradle",files="libs.versions.toml[]"]
 ====
 
 Then a plugin can be applied to any build script using the `alias` method:
