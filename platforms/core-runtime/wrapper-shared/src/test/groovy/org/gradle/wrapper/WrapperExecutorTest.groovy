@@ -41,7 +41,7 @@ class WrapperExecutorTest extends Specification {
         properties.distributionSha256Sum = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         properties.networkTimeout = '11000'
         properties.retries = '5'
-        properties.retryBackOffMs = '5000'
+        properties.retryBackOffMs = '1000'
         properties.validateDistributionUrl = 'true'
         propertiesFile.parentFile.mkdirs()
         propertiesFile.withOutputStream { properties.store(it, 'header') }
@@ -60,7 +60,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.distributionSha256Sum == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         wrapper.configuration.networkTimeout == 11000
         wrapper.configuration.retries == 5
-        wrapper.configuration.retryBackOffMs == 5000
+        wrapper.configuration.retryBackOffMs == 1000
         wrapper.configuration.validateDistributionUrl
     }
 
@@ -77,7 +77,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.distributionSha256Sum == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         wrapper.configuration.networkTimeout == 11000
         wrapper.configuration.retries == 5
-        wrapper.configuration.retryBackOffMs == 5000
+        wrapper.configuration.retryBackOffMs == 1000
         wrapper.configuration.validateDistributionUrl
     }
 

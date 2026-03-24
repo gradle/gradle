@@ -48,7 +48,7 @@ public class Install {
     public static final String SHA_256 = ".sha256";
 
     public static final int DEFAULT_NETWORK_RETRIES = 0;
-    public static final int DEFAULT_NETWORK_RETRY_BACK_OFF_MS = 0;
+    public static final int DEFAULT_NETWORK_RETRY_BACK_OFF_MS = 500;
 
     private static final int BROKEN_ZIP_RETRIES = 3;
 
@@ -164,9 +164,9 @@ public class Install {
 
     private void forceFetch(File localTargetFile, URI distributionUrl, int networkRetries, int networkRetryBackOffMs) throws Exception {
 
-        // retry parameter values smaller than the defaults will be handled as the defaults
-        networkRetries = Math.max(DEFAULT_NETWORK_RETRIES, networkRetries);
-        networkRetryBackOffMs = Math.max(DEFAULT_NETWORK_RETRY_BACK_OFF_MS, networkRetryBackOffMs);
+        // negative retry parameter values will be handled as the defaults
+        networkRetries = networkRetries >= 0 ? networkRetries : DEFAULT_NETWORK_RETRIES;
+        networkRetryBackOffMs = networkRetryBackOffMs >= 0 ? networkRetryBackOffMs : DEFAULT_NETWORK_RETRY_BACK_OFF_MS;
 
         logger.log(String.format("Fetching distribution%s.",
             networkRetries <= 0 ? "" : String.format(" (retrying %d times, with an initial back off of %d ms)", networkRetries, networkRetryBackOffMs)

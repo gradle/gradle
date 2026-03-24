@@ -171,10 +171,10 @@ class WrapperTest extends AbstractTaskTest {
 
     def "uses defined retry back off"() {
         given:
-        wrapper.setRetryBackOffMs(5000)
+        wrapper.setRetryBackOffMs(1000)
 
         expect:
-        5000 == wrapper.getRetryBackOffMs().get()
+        1000 == wrapper.getRetryBackOffMs().get()
     }
 
     def "uses defined validateDistributionUrl value"() {
