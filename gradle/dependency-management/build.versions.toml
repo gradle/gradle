@@ -18,7 +18,7 @@ commonsIo = { module = "commons-io:commons-io", version = "2.14.0" }
 commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
 dependencyAnalysisPlugin = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version = "3.4.0" }
 detektPlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version = "1.23.7" }
-develocityConventions = { module = "io.github.gradle.develocity-conventions-plugin:io.github.gradle.develocity-conventions-plugin.gradle.plugin", version = "0.12.1" }
+develocityConventions = { module = "io.github.gradle.develocity-conventions-plugin:io.github.gradle.develocity-conventions-plugin.gradle.plugin", version = "0.14.1" }
 develocityPlugin = { module = "com.gradle.develocity:com.gradle.develocity.gradle.plugin", version.ref = "develocity" }
 docbook = { module = "net.sf.docbook:docbook-xsl", version = "1.75.2" }
 dokkaPlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.0.0" }

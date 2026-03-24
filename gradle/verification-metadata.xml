@@ -99,6 +99,7 @@
          <trusted-key id="19BEAB2D799C020F17C69126B16698A4ADF4D638" group="org.checkerframework"/>
          <trusted-key id="1A55F091AD28C07F831FA44D7905DE25C78AD456" group="com.google.protobuf"/>
          <trusted-key id="1BD97A6A154E7810EE0BC832E2F38302C8075E3D">
+            <trusting group="io.github.gradle" name="gradle-org-conventions-plugin"/>
             <trusting group="net.rubygrapefruit"/>
             <trusting group="org.gradle"/>
             <trusting group="org.gradle.exemplar"/>
@@ -363,10 +364,10 @@
          </trusted-key>
          <trusted-key id="F046369B06B761AC86D9849F71B329993BFFCFDD" group="org.openjdk.jmc"/>
          <trusted-key id="F254B35617DC255D9344BCFA873A8E86B4372146">
+            <trusting group="org.eclipse.jetty"/>
+            <trusting group="org.eclipse.jetty.websocket"/>
             <trusting group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
             <trusting group="^org[.]codehaus($|([.].*))" regex="true"/>
-            <trusting group="org.eclipse.jetty" />
-            <trusting group="org.eclipse.jetty.websocket" />
          </trusted-key>
          <trusted-key id="F3184BCD55F4D016E30D4C9BF42E87F9665015C9" group="org.jsoup" name="jsoup"/>
          <trusted-key id="F3A90E6B10E809F851AB4FC54CC08E7F47C3EC76" group="com.zaxxer" name="HikariCP"/>
@@ -802,11 +803,6 @@
       <component group="io.github.eisop" name="dataflow-errorprone" version="3.41.0-eisop1">
          <artifact name="dataflow-errorprone-3.41.0-eisop1.jar">
             <pgp value="7186BBF993566D8C2F4F7ED7D945E643368FEF62"/>
-         </artifact>
-      </component>
-      <component group="io.github.gradle" name="develocity-conventions-plugin" version="0.12.1">
-         <artifact name="develocity-conventions-plugin-0.12.1.jar">
-            <sha256 value="f9c53f4dad78c9041b36324402260a8f13264140f96c02ffbb4bafc4157be95f" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.microutils" name="kotlin-logging-jvm" version="2.1.23">
