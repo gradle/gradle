@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -56,6 +57,7 @@ import org.gradle.launcher.cli.internal.VersionInfoRenderer;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
+import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -381,15 +383,24 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
             try {
-                Action<ExecutionListener> exceptionReportingAction =
-                    new ExceptionReportingAction(reporter, loggingManager,
-                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
-                            new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
-                                new DebugLoggerWarningAction(loggingConfiguration, action))));
-                exceptionReportingAction.execute(executionListener);
+                new ExceptionReportingAction(reporter, loggingManager,
+                    new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
+                        new StartupLoggingAction(
+                            Logging.getLogger(WithLogging.class),
+                            buildLayout.getGradleUserHomeDir(),
+                            welcomeMessageConfiguration,
+                            loggingConfiguration,
+                            GradleVersion.current(),
+                            () -> WithLogging.class.getClassLoader().getResourceAsStream("release-features.txt"),
+                            action
+                        )
+                    )
+                ).execute(executionListener);
             } finally {
                 loggingManager.stop();
             }
         }
+
     }
+
 }
