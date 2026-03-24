@@ -169,10 +169,11 @@ public class Install {
         networkRetryBackOffMs = Math.max(DEFAULT_NETWORK_RETRY_BACK_OFF_MS, networkRetryBackOffMs);
 
         logger.log(String.format("Fetching distribution%s.",
-            networkRetries <= 0 ? "" : String.format(" (retrying %d times, with a back off of %d ms)", networkRetries, networkRetryBackOffMs)
+            networkRetries <= 0 ? "" : String.format(" (retrying %d times, with an initial back off of %d ms)", networkRetries, networkRetryBackOffMs)
         ));
 
         int attempts = networkRetries + 1;
+        long currentBackOffMs = networkRetryBackOffMs;
         Exception lastException = null;
         for (int attempt = 1; attempt <= attempts; attempt++) {
             try {
@@ -196,7 +197,8 @@ public class Install {
                     ioException.getMessage()));
 
                 if (attempt < attempts) {
-                    Thread.sleep(networkRetryBackOffMs);
+                    Thread.sleep(currentBackOffMs);
+                    currentBackOffMs *= 2;
                 }
             }
         }

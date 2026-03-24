@@ -271,13 +271,13 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         then:
         def attempts = retries + 1
 
-        assertThat(result.output, containsString("Fetching distribution (retrying $retries times, with a back off of $retryBackOffMs ms)."))
+        assertThat(result.output, containsString("Fetching distribution (retrying $retries times, with an initial back off of $retryBackOffMs ms)."))
         assertThat(result.output, containsString("Attempt 1/$attempts failed. Reason: Server returned HTTP response code: 500"))
         assertThat(result.output, containsString("Attempt 2/$attempts failed. Reason: Server returned HTTP response code: 500"))
         assert result.output.readLines().findAll{ it.contains(
             "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 3
 
-        assert elapsedTime >= retries * retryBackOffMs
+        assert elapsedTime >= retryBackOffMs * ((1 << retries) - 1) // duration * (1 + 2 + ... + 2^(n-1)) = duration * (2^n - 1)
 
         verifyDistributionDownloaded()
     }
@@ -308,13 +308,13 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         then:
         def attempts = retries + 1
 
-        assertThat(failure.output, containsString("Fetching distribution (retrying $retries times, with a back off of $retryBackOffMs ms)."))
+        assertThat(failure.output, containsString("Fetching distribution (retrying $retries times, with an initial back off of $retryBackOffMs ms)."))
         failure.assertHasErrorOutput("Server returned HTTP response code: 500 for URL")
         assertThat(failure.output, containsString("Attempt 1/$attempts failed. Reason: Server returned HTTP response code: 500"))
         assertThat(failure.output, containsString("Attempt 2/$attempts failed. Reason: Server returned HTTP response code: 500"))
         assertThat(failure.output, containsString("Attempt 3/$attempts failed. Reason: Server returned HTTP response code: 500"))
 
-        assert elapsedTime >= retries * retryBackOffMs
+        assert elapsedTime >= retryBackOffMs * ((1 << retries) - 1) // duration * (1 + 2 + ... + 2^(n-1)) = duration * (2^n - 1)
 
         assert failure.output.readLines().findAll{ it.contains(
             "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 3
