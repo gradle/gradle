@@ -63,7 +63,7 @@ To enable retries, add the following properties to `gradle-wrapper.properties`:
 
 ```properties
 retries=3 # Sets the maximum number of retry attempts
-retryTimeoutMs=5000 # Sets the delay between retries
+retryBackOffMs=5000 # Sets the delay between retries
 ```
 
 #### Type-safe accessors for precompiled Kotlin Settings plugins
