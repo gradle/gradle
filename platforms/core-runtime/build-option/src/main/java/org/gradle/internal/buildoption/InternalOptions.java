@@ -42,6 +42,16 @@ public interface InternalOptions {
      * Resolves non-null value for the given option.
      */
     default <T> T getValue(InternalOption<T> option) {
+        T value = getOptionValue(option).get();
+        // The compiler ensures `InternalOption<@Nullable Type>` can't be passed, but the IDE can't see it and complains
+        assert value != null : "Option '" + option.getPropertyName() + "' is expected to have a non-null value, but was null";
+        return value;
+    }
+
+    /**
+     * Resolves nullable-value for the given option.
+     */
+    default <T extends @Nullable Object> T getValueOrNull(InternalOption<T> option) {
         return getOptionValue(option).get();
     }
 

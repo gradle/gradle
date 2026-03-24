@@ -186,7 +186,7 @@ public class BuildOperationTrace implements Stoppable {
 
     @Nullable
     private static Path resolveBasePath(InternalOptions internalOptions, File userActionRootDir) {
-        String basePath = internalOptions.getOptionValue(TRACE_OPTION).get();
+        String basePath = internalOptions.getValueOrNull(TRACE_OPTION);
         if (basePath == null || basePath.equals("false")) {
             return null;
         }
@@ -197,7 +197,7 @@ public class BuildOperationTrace implements Stoppable {
 
     @Nullable
     private static Set<String> getFilter(InternalOptions internalOptions) {
-        String filterProperty = internalOptions.getOptionValue(FILTER_OPTION).get();
+        String filterProperty = internalOptions.getValueOrNull(FILTER_OPTION);
         if (filterProperty == null) {
             return null;
         }

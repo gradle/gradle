@@ -197,6 +197,39 @@ class DefaultInternalOptionsTest extends Specification {
 
     //endregion
 
+    //region getValueOrNull
+
+    def "getValueOrNull resolves value for #optionType option"() {
+        sysProps["org.gradle.internal.prop1"] = sysProp
+
+        expect:
+        options.getValueOrNull(option) == result
+
+        where:
+        optionType | sysProp | option                                                        | result
+        "boolean"  | "true"  | InternalOptions.ofBoolean("org.gradle.internal.prop1", false) | true
+        "int"      | "42"    | InternalOptions.ofInt("org.gradle.internal.prop1", 0)         | 42
+        "string"   | "hello" | InternalOptions.ofString("org.gradle.internal.prop1", "def")  | "hello"
+    }
+
+    def "getValueOrNull returns default for #optionType option when property is not set"() {
+        expect:
+        options.getValueOrNull(option) == result
+
+        where:
+        optionType | option                                                       | result
+        "boolean"  | InternalOptions.ofBoolean("org.gradle.internal.prop1", true) | true
+        "int"      | InternalOptions.ofInt("org.gradle.internal.prop1", 99)       | 99
+        "string"   | InternalOptions.ofString("org.gradle.internal.prop1", "def") | "def"
+    }
+
+    def "getValueOrNull returns null for nullable string option when property is not set"() {
+        expect:
+        options.getValueOrNull(InternalOptions.ofStringOrNull("org.gradle.internal.prop1")) == null
+    }
+
+    //endregion
+
     //region isExplicitlySet
 
     def "isExplicitlySet returns true for explicitly set property"() {
