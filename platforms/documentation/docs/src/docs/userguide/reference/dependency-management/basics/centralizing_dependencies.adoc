@@ -62,7 +62,7 @@ First, create a `libs.versions.toml` file in the `gradle` directory of your proj
 This file will define the versions of your dependencies and plugins:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/kotlin",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/common",files="gradle/libs.versions.toml[]"]
 ====
 
 Then, you can use the version catalog in you build file:
