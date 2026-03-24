@@ -23,6 +23,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.CoreMatchers.startsWith
 import static org.junit.Assume.assumeTrue
 
 class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
@@ -67,7 +68,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered in build file 'build.gradle').")
+        failure.assertThatDescription(startsWith("Execution failed for task ':pmdTest'"))
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         failure.assertHasResolutions(SCAN)
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))

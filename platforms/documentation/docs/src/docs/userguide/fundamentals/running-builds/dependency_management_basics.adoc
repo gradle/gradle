@@ -126,7 +126,7 @@ The version catalog typically contains four sections:
 Here's an example:
 
 ====
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/common",files="gradle/libs.versions.toml[]"]
 ====
 
 Place this file in the `gradle/` directory of your project as `libs.versions.toml`.
