@@ -63,7 +63,7 @@ val legacy = tasks.register<LegacyTask>("legacy") {
 
 tasks.register<ConsumerTask>("consumeLegacy") {
     // CORRECT: Use map for eager (non-Provider) properties
-    inputFile.set(legacy.map { File(it.destinationDir, "output.txt") })
+    inputFile.fileProvider(legacy.map { File(it.destinationDir, "output.txt") })
     inputContent.set(legacy.map { File(it.destinationDir, "output.txt").readText() })
 }
 // end::eager-property[]

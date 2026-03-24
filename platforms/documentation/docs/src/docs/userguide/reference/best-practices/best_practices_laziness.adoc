@@ -34,6 +34,9 @@ When wiring task outputs to inputs:
 4. **Never call `.get()` to read file content in callbacks** — the file doesn't exist yet at configuration time
 5. **Use directly annotated output properties** — avoid deriving properties through `.map {}`
 
+NOTE: For dependency tracking to work, task output properties must be properly annotated with `@OutputFile`, `@OutputDirectory`, or similar annotations.
+Without these annotations, Gradle cannot track task dependencies.
+
 === Use `flatMap` to Extract Lazy Provider Properties and `map` to Transform Values
 
 When wiring task outputs to inputs, use `flatMap` to extract a Provider property from a task, then chain `map` to transform the value.
@@ -119,7 +122,6 @@ The preferred approach is to use directly annotated abstract properties instead 
 include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=direct-annotation]"]
 include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=direct-annotation]"]
 ====
-
 
 === References
 

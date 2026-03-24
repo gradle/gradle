@@ -282,6 +282,7 @@ include::best_practices_tasks.adoc[leveloffset=+2]
 include::best_practices_performance.adoc[leveloffset=+2]
 include::best_practices_security.adoc[leveloffset=+2]
 include::best_practices_testing.adoc[leveloffset=+2]
+include::best_practices_laziness.adoc[leveloffset=+2]
 
 == STRUCTURING BUILDS
 
