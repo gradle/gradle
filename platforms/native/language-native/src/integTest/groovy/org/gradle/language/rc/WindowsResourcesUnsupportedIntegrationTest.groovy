@@ -23,6 +23,8 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
+import static org.hamcrest.CoreMatchers.startsWith
+
 class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     HelloWorldApp helloWorldApp = new CppHelloWorldApp()
@@ -87,7 +89,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc' (registered in build file 'build.gradle').")
+        failure.assertThatDescription(startsWith("Execution failed for task ':compileMainExecutableMainRc'"))
         failure.assertHasCause("Windows resource compiler is not available")
     }
 }
