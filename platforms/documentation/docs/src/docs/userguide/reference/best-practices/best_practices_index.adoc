@@ -85,6 +85,8 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_security.adoc#validate_wrapper_checksum,Validate the Gradle Wrapper on every Upgrade>> | Security | 9.3.0
 
 | <<best_practices_testing.adoc#test_custom_types_with_testkit,Test your custom Task and Plugins with TestKit>> | Testing | 9.4.0
+
+| <<best_practices_laziness.adoc#map_versus_flatmap,Be Careful with `map` vs. `flatMap` when Wiring Properties>> | Laziness | 9.5.0
 |===
 
 ++++
