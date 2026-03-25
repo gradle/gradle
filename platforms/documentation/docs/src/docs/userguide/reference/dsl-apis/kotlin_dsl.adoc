@@ -29,7 +29,7 @@ TIP: If you are interested in migrating an existing Gradle build to the Kotlin D
 [[kotdsl:prerequisites]]
 == Prerequisites
 
-* The embedded Kotlin compiler works on Linux, macOS, Windows, Cygwin, FreeBSD, and Solaris on x86-64 architectures.
+* The embedded Kotlin compiler is supported on various platforms and architectures. Refer to the link:https://kotlinlang.org/docs/native-target-support.html[Kotlin/Native target support documentation] for details on currently supported targets.
 * Familiarity with Kotlin syntax and basic language features is recommended.
 Refer to the link:{kotlin-reference}[Kotlin documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans] to learn the basics.
 * Using the <<plugins_intermediate.adoc#sec:plugins_block,`plugins {}`>> block to declare Gradle plugins is highly recommended as it significantly improves the editing experience.
@@ -628,7 +628,7 @@ By default, the code will target Java 8.
 You can change that by defining a Java toolchain to be used by the project:
 
 ====
-include::sample[dir="snippets/java/jvm-multi-project-with-toolchains/kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
 ====
 
 [[sec:kotlin]]
