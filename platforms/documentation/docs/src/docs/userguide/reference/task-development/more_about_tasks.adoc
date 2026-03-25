@@ -228,6 +228,24 @@ Actions include, but are not limited to, compiling code, zipping files, and publ
 `NO-SOURCE`:: *Task did not need to execute its actions.*
 * Task has inputs and outputs, but <<incremental_build.adoc#skip-when-empty,no sources>> (i.e., inputs were not found).
 
+[[sec:task_provenance]]
+== Task provenance
+
+Gradle tracks where each task is registered, whether by a build script, settings script, or plugin.
+This provenance information appears in several places:
+
+When a task fails, the error message includes its provenance to help you locate the source of the problem:
+
+[source,text]
+----
+Execution failed for task ':app:compileJava' (registered by plugin 'org.gradle.api.plugins.JavaPlugin').
+----
+
+NOTE: Provenance is omitted from failure messages for verification failures (e.g., test failures), since those are expected outcomes rather than configuration issues.
+
+The `help --task` and `tasks` commands also include provenance in their output.
+You can use `tasks --provenance` to see where each task was registered.
+
 [[sec:task_groups]]
 == Task group and description
 
