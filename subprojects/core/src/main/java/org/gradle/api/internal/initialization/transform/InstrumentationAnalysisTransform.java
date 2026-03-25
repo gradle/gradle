@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization.transform;
 
-import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
@@ -42,14 +41,14 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.ANALYSIS_OUTPUT_DIR;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCY_ANALYSIS_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.TYPE_HIERARCHY_ANALYSIS_FILE_NAME;
@@ -107,8 +106,8 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
         }
 
         try {
-            Map<String, Set<String>> superTypes = new TreeMap<>();
-            Set<String> dependencies = new TreeSet<>();
+            Map<String, Set<String>> superTypes = new HashMap<>();
+            Set<String> dependencies = new HashSet<>();
             analyzeArtifact(artifact, superTypes, dependencies);
             writeOutput(artifact, outputs, superTypes, dependencies);
         } catch (IOException | FileException ignored) {
@@ -137,7 +136,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     private static Set<String> collectSuperTypes(ClassReader reader) {
         return Stream.concat(Stream.of(reader.getSuperName()), Stream.of(reader.getInterfaces()))
             .filter(InstrumentationAnalysisTransform::isTypeAccepted)
-            .collect(toImmutableSortedSet(Ordering.natural()));
+            .collect(Collectors.toSet());
     }
 
     private static void collectArtifactClassDependencies(String className, ClassReader reader, Set<String> collector) {
@@ -176,7 +175,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     }
 
     private static Map<String, Set<String>> toMapWithKeys(Set<String> keys) {
-        TreeMap<String, Set<String>> map = new TreeMap<>();
+        HashMap<String, Set<String>> map = new HashMap<>(keys.size());
         keys.forEach(key -> map.put(key, Collections.emptySet()));
         return map;
     }
