@@ -60,6 +60,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
 
     override fun registerBuildSessionServices(registration: ServiceRegistration) {
         registration.run {
+            // These services ensure cleanup of stale CC entries, which must be scheduled regardless of whether CC is used in the current invocation
             add(ConfigurationCacheRepository::class.java)
             add(ConfigurationCacheEntryCollector::class.java)
         }
