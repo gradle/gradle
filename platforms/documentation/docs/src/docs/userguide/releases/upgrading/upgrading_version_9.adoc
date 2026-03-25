@@ -88,14 +88,14 @@ The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/Jet
 
 ==== Dependency lockfiles are generated with a platform-independent line ending
 
-Dependency lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
+In the context of <<dependency_locking#locking-versions, Dependency Locking>>, lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
 Existing lockfiles using Windows line endings (CRLF, `\r\n`) can still be read, but newly generated lockfiles will always use LF.
 
 When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed, this is expected and only happens once.
 
 ==== Dependency verification armored key rings now render non-ASCII characters correctly
 
-In the context of <<dependency_verification#verifying-dependencies, dependency verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
+In the context of <<dependency_verification#verifying-dependencies, Dependency Verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
 
 When running a <<dependency_verification#sec:local-keyring,dependency verification key export>> with Gradle 9.5.0 or above, if your keyring already contained keys with non-ASCII metadata, the exported armored keyring will be updated to render those characters correctly.
 This is expected to happen only once.
