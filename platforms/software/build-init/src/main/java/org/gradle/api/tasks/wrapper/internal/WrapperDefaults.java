@@ -35,5 +35,5 @@ public class WrapperDefaults {
     public static final boolean VALIDATE_DISTRIBUTION_URL = true;
 
     public static final int RETRIES = Install.DEFAULT_NETWORK_RETRIES;
-    public static final int RETRY_TIMEOUT_MS = Install.DEFAULT_NETWORK_RETRY_TIMEOUT_MS;
+    public static final int RETRY_BACK_OFF_MS = Install.DEFAULT_NETWORK_RETRY_BACK_OFF_MS;
 }

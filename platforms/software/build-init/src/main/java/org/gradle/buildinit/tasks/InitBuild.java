@@ -418,7 +418,7 @@ public abstract class InitBuild extends DefaultTask {
             true,
             WrapperDefaults.NETWORK_TIMEOUT,
             WrapperDefaults.RETRIES,
-            WrapperDefaults.RETRY_TIMEOUT_MS
+            WrapperDefaults.RETRY_BACK_OFF_MS
         );
     }
 

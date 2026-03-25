@@ -27,7 +27,7 @@ public class WrapperConfiguration {
     private int networkTimeout = Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS;
     private boolean validateDistributionUrl = true;
     private int retries = Install.DEFAULT_NETWORK_RETRIES;
-    private int retryTimeoutMs = Install.DEFAULT_NETWORK_RETRY_TIMEOUT_MS;
+    private int retryBackOffMs = Install.DEFAULT_NETWORK_RETRY_BACK_OFF_MS;
 
     public URI getDistribution() {
         return distribution;
@@ -61,12 +61,12 @@ public class WrapperConfiguration {
         return retries;
     }
 
-    public void setRetryTimeoutMs(int retryTimeoutMs) {
-        this.retryTimeoutMs = retryTimeoutMs;
+    public void setRetryBackOffMs(int retryBackOffMs) {
+        this.retryBackOffMs = retryBackOffMs;
     }
 
-    public int getRetryTimeoutMs() {
-        return retryTimeoutMs;
+    public int getRetryBackOffMs() {
+        return retryBackOffMs;
     }
 
     public String getDistributionSha256Sum() {
