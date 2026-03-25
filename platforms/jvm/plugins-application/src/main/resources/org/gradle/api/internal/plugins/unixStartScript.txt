@@ -90,7 +90,7 @@
 #       (Template Engines) for details.
 #
 #       (An example invocation of this template is from
-#       https://github.com/gradle/gradle/blob/HEAD/subprojects/build-init/src/main/java/org/gradle/api/tasks/wrapper/Wrapper.java
+#       https://github.com/gradle/gradle/blob/HEAD/platforms/software/build-init/src/main/java/org/gradle/api/tasks/wrapper/Wrapper.java
 #       within the Gradle project, which builds "gradlew".)
 # */ %>
 #       You can find Gradle at https://github.com/gradle/gradle/.
