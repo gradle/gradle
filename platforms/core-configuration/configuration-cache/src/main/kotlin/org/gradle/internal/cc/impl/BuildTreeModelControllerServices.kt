@@ -17,9 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
-import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.Environment
-import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
@@ -58,9 +56,9 @@ import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLo
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
-import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import kotlin.jvm.java
 
 
 internal
@@ -72,7 +70,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         modelParameters: BuildModelParameters,
         requirements: BuildActionModelRequirements,
     ) {
-        registration.addProvider(SharedBuildTreeScopedServices())
+        registration.add(ToolingModelParameterCarrier.Factory::class.java, DefaultToolingModelParameterCarrierFactory::class.java)
         registration.add(JavaSerializationEncodingLookup::class.java)
 
         // This was originally only for the configuration cache, but now used for configuration cache and problems reporting
@@ -114,7 +112,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
                     ConfigurationCacheClassLoaderScopesFingerprintController::class.java
                 )
             }
-            registration.addProvider(ConfigurationCacheBuildTreeProvider())
+            registration.add(BuildTreeWorkGraphPreparer::class.java, ConfigurationCacheAwareBuildTreeWorkGraphPreparer::class.java)
             registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
             registration.add(DefaultDeferredRootBuildGradle::class.java)
             registration.add(ConfigurationCacheInputsListener::class.java, InstrumentedInputAccessListener::class.java)
@@ -124,50 +122,14 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             registration.add(BuildTreeLifecycleControllerFactory::class.java, BarrierAwareBuildTreeLifecycleControllerFactory::class.java)
             registration.add(VintageConfigurationTimeActionRunner::class.java)
             registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
-            registration.addProvider(VintageBuildTreeProvider())
+            registration.add(BuildTreeWorkGraphPreparer::class.java, DefaultBuildTreeWorkGraphPreparer::class.java)
             registration.add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)
             registration.add(ConfigurationCacheInputsListener::class.java, PromoInputsListener::class.java)
         }
         if (modelParameters.isCachingModelBuilding) {
-            registration.addProvider(ConfigurationCacheModelProvider())
+            registration.add(LocalComponentCache::class.java, ConfigurationCacheAwareLocalComponentCache::class.java)
         } else {
-            registration.addProvider(VintageModelProvider())
-        }
-    }
-
-    private
-    class SharedBuildTreeScopedServices : ServiceRegistrationProvider {
-        @Provides
-        fun createToolingModelParameterCarrierFactory(valueSnapshotter: ValueSnapshotter): ToolingModelParameterCarrier.Factory {
-            return DefaultToolingModelParameterCarrierFactory(valueSnapshotter)
-        }
-    }
-
-    private
-    class ConfigurationCacheModelProvider : ServiceRegistrationProvider {
-        @Provides
-        fun createLocalComponentCache(cache: BuildTreeConfigurationCache): LocalComponentCache = ConfigurationCacheAwareLocalComponentCache(cache)
-    }
-
-    private
-    class VintageModelProvider : ServiceRegistrationProvider {
-        @Provides
-        fun createLocalComponentCache(): LocalComponentCache = LocalComponentCache.NO_CACHE
-    }
-
-    private
-    class ConfigurationCacheBuildTreeProvider : ServiceRegistrationProvider {
-        @Provides
-        fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector, cache: BuildTreeConfigurationCache): BuildTreeWorkGraphPreparer {
-            return ConfigurationCacheAwareBuildTreeWorkGraphPreparer(DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector), cache)
-        }
-    }
-
-    private
-    class VintageBuildTreeProvider : ServiceRegistrationProvider {
-        @Provides
-        fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector): BuildTreeWorkGraphPreparer {
-            return DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
+            registration.add(LocalComponentCache::class.java, LocalComponentCache.NO_CACHE)
         }
     }
 }
