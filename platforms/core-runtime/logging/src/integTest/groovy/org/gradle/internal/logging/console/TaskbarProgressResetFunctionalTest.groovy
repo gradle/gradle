@@ -19,11 +19,9 @@ package org.gradle.internal.logging.console
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.test.precondition.Requires
-import org.junit.Rule
 import spock.lang.Issue
 
 /**
@@ -41,14 +39,11 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
     static final String OSC_RESET = OSC_PROGRESS_PREFIX + "0\u0007"
     public static final int SIGINT = 2
 
-    @Rule
-    BlockingHttpServer server = new BlockingHttpServer()
-
     def setup() {
-        server.start()
         // ConEmuPID triggers supportsTaskbarProgress() == true in the client JVM.
         // ConsoleOutput.Rich enables the progress bar so OSC 9;4 sequences are emitted.
         executer
+            .requireIsolatedDaemons()
             .withEnvironmentVars(ConEmuPID: "dummy")
             .withConsole(ConsoleOutput.Rich)
     }
@@ -57,56 +52,47 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         reason = "sends SIGINT to a forked process works only on Unix and with a separate process")
     def "sends OSC 9;4;0 reset sequence when build receives SIGINT"() {
         given:
-        // Long sleep ensures the task is still running when SIGINT is sent.
+        // The task creates a marker file once it's running, then sleeps.
+        // We wait for the marker before sending SIGINT to avoid racing
+        // against JVM signal-handler setup on slow CI machines.
+        def readyFile = file("ready.marker")
         buildFile << """
             task block {
+                def marker = file("${readyFile.name}")
                 doFirst {
-                    ${server.callFromBuild("block")}
+                    marker.createNewFile()
+                    Thread.sleep(600_000)
                 }
             }
         """
-        def block = server.expectAndBlock("block")
 
         when:
         def gradle = executer.withTasks("block").start()
 
-        block.waitForAllPendingCalls()
-        // Wait until the progress bar has started emitting OSC 9;4 sequences.
         ConcurrentTestUtil.poll {
-            assert gradle.standardOutput.contains(OSC_PROGRESS_PREFIX)
+            assert readyFile.exists()
         }
 
         gradle.sendSignal(SIGINT)
         gradle.waitForFailure()
-        server.resetExpectations()
 
         then:
         gradle.standardOutput.contains(OSC_RESET)
     }
 
+    @SuppressWarnings("IntegrationTestFixtures") // outputContains() strips ANSI escape characters; we need raw output to verify the OSC sequence
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor,
+        reason = "OSC taskbar progress sequences are only emitted by the forked client JVM")
     def "sends OSC 9;4;0 reset sequence after a successful build"() {
         given:
         buildFile << """
-            task block {
-                doFirst {
-                    ${server.callFromBuild("block")}
-                }
-            }
+            task ok { }
         """
-        def block = server.expectAndBlock("block")
 
         when:
-        def gradle = executer.withTasks("block").start()
-
-        block.waitForAllPendingCalls()
-        ConcurrentTestUtil.poll {
-            assert gradle.standardOutput.contains(OSC_PROGRESS_PREFIX)
-        }
-
-        block.releaseAll()
-        gradle.waitForFinish()
+        result = succeeds("ok")
 
         then:
-        gradle.standardOutput.contains(OSC_RESET)
+        result.output.contains(OSC_RESET)
     }
 }

@@ -48,7 +48,7 @@ public class Install {
     public static final String SHA_256 = ".sha256";
 
     public static final int DEFAULT_NETWORK_RETRIES = 0;
-    public static final int DEFAULT_NETWORK_RETRY_TIMEOUT_MS = 0;
+    public static final int DEFAULT_NETWORK_RETRY_BACK_OFF_MS = 500;
 
     private static final int BROKEN_ZIP_RETRIES = 3;
 
@@ -104,7 +104,7 @@ public class Install {
             try {
                 boolean needsDownload = !localZipFile.isFile() || failed;
                 if (needsDownload) {
-                    forceFetch(localZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeoutMs());
+                    forceFetch(localZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryBackOffMs());
                 }
 
                 deleteLocalTopLevelDirs(distDir);
@@ -132,7 +132,7 @@ public class Install {
             URI distributionUrl = distribution.resolve(distribution.getPath() + SHA_256);
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + SHA_256);
 
-            forceFetch(tmpZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeoutMs());
+            forceFetch(tmpZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryBackOffMs());
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(tmpZipFile.toPath()), StandardCharsets.UTF_8))) {
                 return reader.readLine();
@@ -162,17 +162,18 @@ public class Install {
         }
     }
 
-    private void forceFetch(File localTargetFile, URI distributionUrl, int networkRetries, int networkRetryTimeoutMs) throws Exception {
+    private void forceFetch(File localTargetFile, URI distributionUrl, int networkRetries, int networkRetryBackOffMs) throws Exception {
 
-        // retry parameter values smaller than the defaults will be handled as the defaults
-        networkRetries = Math.max(DEFAULT_NETWORK_RETRIES, networkRetries);
-        networkRetryTimeoutMs = Math.max(DEFAULT_NETWORK_RETRY_TIMEOUT_MS, networkRetryTimeoutMs);
+        // negative retry parameter values will be handled as the defaults
+        networkRetries = networkRetries >= 0 ? networkRetries : DEFAULT_NETWORK_RETRIES;
+        networkRetryBackOffMs = networkRetryBackOffMs >= 0 ? networkRetryBackOffMs : DEFAULT_NETWORK_RETRY_BACK_OFF_MS;
 
         logger.log(String.format("Fetching distribution%s.",
-            networkRetries <= 0 ? "" : String.format(" (retrying %d times, with a timeout of %d ms)", networkRetries, networkRetryTimeoutMs)
+            networkRetries <= 0 ? "" : String.format(" (retrying %d times, with an initial back off of %d ms)", networkRetries, networkRetryBackOffMs)
         ));
 
         int attempts = networkRetries + 1;
+        long currentBackOffMs = networkRetryBackOffMs;
         Exception lastException = null;
         for (int attempt = 1; attempt <= attempts; attempt++) {
             try {
@@ -196,7 +197,8 @@ public class Install {
                     ioException.getMessage()));
 
                 if (attempt < attempts) {
-                    Thread.sleep(networkRetryTimeoutMs);
+                    Thread.sleep(currentBackOffMs);
+                    currentBackOffMs *= 2;
                 }
             }
         }

@@ -136,7 +136,7 @@ public abstract class Wrapper extends DefaultTask {
             getValidateDistributionUrl().get(),
             getNetworkTimeout().getOrNull(),
             getRetries().getOrNull(),
-            getRetryTimeoutMs().getOrNull()
+            getRetryBackOffMs().getOrNull()
         );
     }
 
@@ -514,19 +514,20 @@ public abstract class Wrapper extends DefaultTask {
     public abstract Property<Integer> getRetries();
 
     /**
-     * The timeout in milliseconds to wait between download retries.
+     * The initial back off in milliseconds to wait between download retries.
      *
-     * After a failed download attempt, the wrapper will wait for this amount of time before attempting the next retry.
+     * After a failed download attempt, the wrapper will wait for this amount of time before attempting the next retry,
+     * doubling the delay on each subsequent failure.
      *
-     * @return The retry timeout property in milliseconds.
+     * @return The initial retry back off property in milliseconds.
      *
      * @since 9.5.0
      */
     @Input
     @Incubating
     @Optional
-    @Option(option = "retry-timeout-ms", description = "The timeout in milliseconds between retries.")
-    public abstract Property<Integer> getRetryTimeoutMs();
+    @Option(option = "retry-back-off-ms", description = "The initial back off in milliseconds between retries (doubles on each failure).")
+    public abstract Property<Integer> getRetryBackOffMs();
 
     /**
      * Indicates if this task will validate the distribution url that has been configured.
