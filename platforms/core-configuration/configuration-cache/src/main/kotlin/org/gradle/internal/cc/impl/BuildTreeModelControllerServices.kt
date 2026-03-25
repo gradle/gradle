@@ -58,7 +58,6 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
-import kotlin.jvm.java
 
 
 internal
@@ -70,6 +69,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         modelParameters: BuildModelParameters,
         requirements: BuildActionModelRequirements,
     ) {
+        // region ALL MODES
         registration.add(ToolingModelParameterCarrier.Factory::class.java, DefaultToolingModelParameterCarrierFactory::class.java)
         registration.add(JavaSerializationEncodingLookup::class.java)
 
@@ -77,6 +77,8 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         registration.add(ProblemFactory::class.java, DefaultProblemFactory::class.java)
 
         registration.add(ConfigurationCacheProblemsListener::class.java, DefaultConfigurationCacheProblemsListener::class.java)
+        // endregion
+
         // Set up CC problem reporting pipeline and promo, based on the build configuration
         when {
             // Collect and report problems. Don't suggest enabling CC if it is on, even if implicitly (e.g. enabled by isolated projects).
@@ -88,44 +90,55 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             else -> registration.add(ProblemsListener::class.java, IgnoringProblemsListener)
         }
 
-        if (modelParameters.isConfigurationCache) {
+        if (modelParameters.isVintage) {
+            // region ALL MODES
+            registration.add(Environment::class.java, DefaultEnvironment::class.java)
+            registration.add(BuildTreeWorkGraphPreparer::class.java, DefaultBuildTreeWorkGraphPreparer::class.java)
+            registration.add(BuildTreeLifecycleControllerFactory::class.java, BarrierAwareBuildTreeLifecycleControllerFactory::class.java)
+            registration.add(InjectedClasspathInstrumentationStrategy::class.java, VintageInjectedClasspathInstrumentationStrategy::class.java)
+            registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
+            registration.add(ConfigurationCacheInputsListener::class.java, PromoInputsListener::class.java)
+            registration.add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)
+            // endregion
+
+            // region VT-only
+            registration.add(VintageConfigurationTimeActionRunner::class.java)
+            // endregion
+        } else if (modelParameters.isConfigurationCache) {
+            // region ALL MODES
             registration.add(Environment::class.java, ConfigurationCacheEnvironment::class.java)
+            registration.add(BuildTreeWorkGraphPreparer::class.java, ConfigurationCacheAwareBuildTreeWorkGraphPreparer::class.java)
             registration.add(BuildTreeLifecycleControllerFactory::class.java, ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
+            registration.add(InjectedClasspathInstrumentationStrategy::class.java, ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
+            registration.add(ProjectScopedScriptResolution::class.java, ConfigurationCacheFingerprintController::class.java, ConfigurationCacheFingerprintController::class.java)
+            registration.add(ConfigurationCacheInputsListener::class.java, InstrumentedInputAccessListener::class.java)
+            registration.add(
+                BuildTreeModelSideEffectExecutor::class.java,
+                ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java,
+                ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java
+            )
+            // endregion
+
+            // region CC and IP
             registration.add(ConfigurationCacheStartParameter::class.java)
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
-            registration.add(InjectedClasspathInstrumentationStrategy::class.java, ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
-            registration.add(ConfigurationCacheFingerprintController::class.java)
+            registration.add(DefaultDeferredRootBuildGradle::class.java)
             registration.add(
                 ConfigurationCacheInputFileChecker.Host::class.java,
                 DefaultConfigurationCacheInputFileCheckerHost::class.java
             )
+
             if (modelParameters.isIsolatedProjects) {
-                registration.add(
-                    ClassLoaderScopesFingerprintController::class.java,
-                    IsolatedProjectsClassLoaderScopesFingerprintController::class.java
-                )
+                registration.add(ClassLoaderScopesFingerprintController::class.java, IsolatedProjectsClassLoaderScopesFingerprintController::class.java)
             } else {
-                registration.add(
-                    ClassLoaderScopesFingerprintController::class.java,
-                    ConfigurationCacheClassLoaderScopesFingerprintController::class.java
-                )
+                registration.add(ClassLoaderScopesFingerprintController::class.java, ConfigurationCacheClassLoaderScopesFingerprintController::class.java)
             }
-            registration.add(BuildTreeWorkGraphPreparer::class.java, ConfigurationCacheAwareBuildTreeWorkGraphPreparer::class.java)
-            registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
-            registration.add(DefaultDeferredRootBuildGradle::class.java)
-            registration.add(ConfigurationCacheInputsListener::class.java, InstrumentedInputAccessListener::class.java)
-        } else {
-            registration.add(Environment::class.java, DefaultEnvironment::class.java)
-            registration.add(InjectedClasspathInstrumentationStrategy::class.java, VintageInjectedClasspathInstrumentationStrategy::class.java)
-            registration.add(BuildTreeLifecycleControllerFactory::class.java, BarrierAwareBuildTreeLifecycleControllerFactory::class.java)
-            registration.add(VintageConfigurationTimeActionRunner::class.java)
-            registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
-            registration.add(BuildTreeWorkGraphPreparer::class.java, DefaultBuildTreeWorkGraphPreparer::class.java)
-            registration.add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)
-            registration.add(ConfigurationCacheInputsListener::class.java, PromoInputsListener::class.java)
-        }
+            // endregion
+
+        } else error("no other modes are supported")
+
         if (modelParameters.isCachingModelBuilding) {
             registration.add(LocalComponentCache::class.java, ConfigurationCacheAwareLocalComponentCache::class.java)
         } else {
