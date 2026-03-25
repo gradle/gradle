@@ -80,6 +80,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
             dependencies {
                 implementation 'org.gradle:gradle-tooling-api:${distribution.version.baseVersion.version}'
+                implementation 'org.slf4j:slf4j-simple:2.0.17'
             }
         """
 

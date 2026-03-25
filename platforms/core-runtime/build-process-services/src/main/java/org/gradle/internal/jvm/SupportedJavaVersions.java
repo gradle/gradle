@@ -30,6 +30,21 @@ public class SupportedJavaVersions {
     public static final int MINIMUM_CLIENT_JAVA_VERSION = 8;
 
     /**
+     * The minimum JVM version that will be required to run the Gradle wrapper or a
+     * Gradle daemon client in the next major Gradle version.
+     * <p>
+     * If this is the same version as {@link #MINIMUM_CLIENT_JAVA_VERSION}, then the
+     * next major version will not require a newer minimum Java version for clients.
+     * When you update this version, be sure to add an entry to the upgrade guide.
+     * <p>
+     * Currently, the tooling API maintains a 5-version backwards compatibility window,
+     * meaning a tooling API client today must support communicating with a Gradle daemon
+     * from 5 major versions back. We should maintain that the minimum version for TAPI X
+     * is at least the maximum daemon version for Gradle X-5.
+     */
+    public static final int FUTURE_MINIMUM_CLIENT_JAVA_VERSION = 11;
+
+    /**
      * The minimum JVM version that is required to run a Gradle worker process.
      * <p>
      * The Worker API, JVM tests, and JVM compiler daemons all run within a Gradle worker process.

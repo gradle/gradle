@@ -17,10 +17,24 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.internal.jvm.SupportedJavaVersions
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 
 class ToolingApiClientMinJdkCompatibilityTest extends ToolingApiClientJdkCompatibilityTest {
     JavaVersion getClientJdkVersion() {
         return JavaVersion.toVersion(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION)
     }
+
+    def setup() {
+        executer.beforeExecute {
+            executer.expectDeprecationWarning(new ExpectedDeprecationWarning(1) {
+                @Override
+                protected boolean matchesNextLines(String nextLines) {
+                    return nextLines.endsWith(SupportedJavaVersionsExpectations.getExpectedClientDeprecationWarning("Tooling API"))
+                }
+            })
+        }
+    }
+
 }

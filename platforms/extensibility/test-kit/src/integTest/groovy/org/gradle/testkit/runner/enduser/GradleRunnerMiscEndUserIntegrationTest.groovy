@@ -17,11 +17,15 @@
 package org.gradle.testkit.runner.enduser
 
 import groovy.io.FileType
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.internal.GFileUtils
+import org.gradle.util.internal.TextUtil
 import org.intellij.lang.annotations.Language
 
 /**
@@ -158,7 +162,39 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
         succeeds 'test'
     }
 
-    static String successfulSpockTest(String className) {
+    @NoDebug
+    @Requires(value = IntegTestPreconditions.DeprecatedClientJavaHomeAvailable)
+    def "emits deprecation when running test kit on deprecated client jvm version"() {
+
+        buildFile << """
+            ${gradleTestKitDependency()}
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersionMajor})
+                }
+            }
+            test {
+                testLogging {
+                    showStandardStreams = true
+                }
+            }
+        """
+
+        file("src/test/groovy/Test.groovy") << successfulSpockTest('Test', Jvm.current().javaHome.absolutePath)
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("    " + SupportedJavaVersionsExpectations.getExpectedClientDeprecationWarning("Tooling API"))
+        succeeds(
+            'test',
+            "-Dorg.gradle.java.installations.auto-detect=false",
+            "-Dorg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath
+        )
+
+        where:
+        jdk << AvailableJavaHomes.deprecatedClientJdks
+    }
+
+    static String successfulSpockTest(String className, String javaHomePath = null) {
         @Language("groovy")
         def spockTest = """
             import org.gradle.testkit.runner.GradleRunner
@@ -190,9 +226,10 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                     '''
 
                     when:
+                    List<String> javaHomeArgs = (${javaHomePath != null}) ? ["-Dorg.gradle.java.home=${TextUtil.escapeString(javaHomePath)}"] : []
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir)
-                        .withArguments('helloWorld')
+                        .withArguments(['helloWorld'] + javaHomeArgs)
                         .withDebug($embedded)
                         .build()
 

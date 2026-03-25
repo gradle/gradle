@@ -19,12 +19,14 @@ package org.gradle.launcher.cli;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
@@ -91,6 +93,7 @@ public class StartupLoggingAction implements Action<ExecutionListener> {
         maybeLogDebugWarning(loggingConfiguration);
         try {
             maybePrintWelcomeMessage();
+            maybePrintJvmVersionDeprecation();
             action.execute(executionListener);
         } finally {
             // Add the debug warning again to the bottom.
@@ -179,6 +182,24 @@ public class StartupLoggingAction implements Action<ExecutionListener> {
         } catch (IOException e) {
             // Do not fail the build, as this feature is non-critical.
             return null;
+        }
+    }
+
+    private void maybePrintJvmVersionDeprecation() {
+        int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
+        if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION) {
+            int currentMajorGradleVersion = GradleVersion.current().getMajorVersion();
+
+            // We do not use a DeprecationLogger here since it is not initialized in the client.
+            logger.warn("Executing the Gradle CLI Client on JVM versions {} and lower has been deprecated. " +
+                    "This will fail with an error in Gradle {}. " +
+                    "Use JVM {} or greater to execute the Gradle CLI Client. " +
+                    "Consult the upgrading guide for further information: {}",
+                SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION - 1,
+                currentMajorGradleVersion + 1,
+                SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION,
+                new DocumentationRegistry().getDocumentationFor("upgrading_version_" + currentMajorGradleVersion, "minimum_client_jvm_version")
+            );
         }
     }
 
