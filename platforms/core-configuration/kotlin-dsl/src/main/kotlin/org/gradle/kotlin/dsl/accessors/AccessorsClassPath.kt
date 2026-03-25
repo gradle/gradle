@@ -28,6 +28,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.Identity
@@ -38,6 +39,8 @@ import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier
 import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.OutputVisitor.OutputFileValueSupplier
 import org.gradle.internal.execution.WorkOutput
+import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -51,6 +54,7 @@ import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
+import org.gradle.kotlin.dsl.provider.KotlinDslInternalOptions
 import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.runBlocking
@@ -88,7 +92,11 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val asyncIO: AsyncIOScopeFactory,
+    internalOptions: InternalOptions,
 ) {
+
+    private val cachingDisabled: Boolean =
+        internalOptions.getBoolean(KotlinDslInternalOptions.CACHING_DISABLED_PROPERTY)
 
     fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
         val classLoaderScope = classLoaderScopeOf(scriptTarget)
@@ -105,6 +113,7 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
             workspaceProvider,
             asyncIO,
             isDclEnabledForScriptTarget(scriptTarget),
+            cachingDisabled,
         )
         return executionEngine.createRequest(work)
             .execute()
@@ -142,7 +151,8 @@ class GenerateProjectAccessors(
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val asyncIO: AsyncIOScopeFactory,
-    private val isDclEnabled: Boolean
+    private val isDclEnabled: Boolean,
+    private val cachingDisabled: Boolean,
 ) : ImmutableUnitOfWork {
 
     companion object {
@@ -155,6 +165,13 @@ class GenerateProjectAccessors(
 
     override fun getBuildOperationWorkType(): Optional<String> {
         return Optional.of("GENERATE_PROJECT_ACCESSORS")
+    }
+
+    override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
+        if (cachingDisabled) {
+            return Optional.of(KotlinDslInternalOptions.CACHING_DISABLED_REASON)
+        }
+        return super.shouldDisableCaching(detectedOverlappingOutputs)
     }
 
     override fun execute(executionContext: ExecutionContext): WorkOutput {

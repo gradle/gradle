@@ -103,8 +103,9 @@ class GeneratePluginSpecBuilderAccessors(
     fileCollectionFactory: FileCollectionFactory,
     inputFingerprinter: InputFingerprinter,
     workspaceProvider: KotlinDslWorkspaceProvider,
+    cachingDisabled: Boolean,
 ) : AbstractStage1BlockAccessorsUnitOfWork(
-    rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider
+    rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider, cachingDisabled
 ) {
 
     override fun getDisplayName(): String = "Kotlin DSL plugin specs accessors for classpath '$classLoaderHash'"
