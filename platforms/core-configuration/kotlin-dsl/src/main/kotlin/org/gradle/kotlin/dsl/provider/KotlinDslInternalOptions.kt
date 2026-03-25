@@ -25,5 +25,5 @@ internal object KotlinDslInternalOptions {
     val CACHING_DISABLED_PROPERTY: InternalOption<Boolean> =
         InternalOptions.ofBoolean("org.gradle.internal.kotlin-script-caching-disabled", false)
     val CACHING_DISABLED_REASON: CachingDisabledReason =
-        CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of Kotlin script compilation disabled by property")
+        CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of Kotlin script compilation and Kotlin DSL accessors generation disabled by property")
 }
