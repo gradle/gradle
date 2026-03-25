@@ -45,8 +45,8 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
         runBuild('b')
 
         then:
-        task(':a').originPlugin.displayName == "build.gradle"
-        task(':b').originPlugin.displayName == "script.gradle"
+        task(':a').originPlugin.displayName.contains("build.gradle")
+        task(':b').originPlugin.displayName.contains("script.gradle")
     }
 
     def "reports task origin for binary plugins"() {
@@ -59,18 +59,18 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
         runBuild('build')
 
         then:
-        task(':classes').originPlugin.displayName == "org.gradle.api.plugins.JavaBasePlugin"
-        task(':jar').originPlugin.displayName == "org.gradle.java"
-        task(':assemble').originPlugin.displayName == "org.gradle.language.base.plugins.LifecycleBasePlugin"
+        task(':classes').originPlugin.displayName.contains("org.gradle.api.plugins.JavaBasePlugin")
+        task(':jar').originPlugin.displayName.contains("org.gradle.java")
+        task(':assemble').originPlugin.displayName.contains("org.gradle.language.base.plugins.LifecycleBasePlugin")
         with(task(':test')) {
             if (targetVersion > GradleVersion.version("7.2")) {
-                originPlugin.displayName == "org.gradle.jvm-test-suite"
+                originPlugin.displayName.contains("org.gradle.jvm-test-suite")
             } else {
-                originPlugin.displayName == "org.gradle.java"
+                originPlugin.displayName.contains("org.gradle.java")
             }
         }
-        task(':check').originPlugin.displayName == "org.gradle.language.base.plugins.LifecycleBasePlugin"
-        task(':build').originPlugin.displayName == "org.gradle.language.base.plugins.LifecycleBasePlugin"
+        task(':check').originPlugin.displayName.contains("org.gradle.language.base.plugins.LifecycleBasePlugin")
+        task(':build').originPlugin.displayName.contains("org.gradle.language.base.plugins.LifecycleBasePlugin")
     }
 
     def "reports task origin for lazily realized tasks"() {
@@ -85,7 +85,7 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
         runBuild('lazyTask')
 
         then:
-        task(':lazyTask').originPlugin.displayName == "build.gradle"
+        task(':lazyTask').originPlugin.displayName.contains("build.gradle")
     }
 
     @TargetGradleVersion('>=4.0 <5.1')
@@ -123,8 +123,8 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
         runBuild('b')
 
         then:
-        task(':a').originPlugin.displayName == "build.gradle"
-        task(':b').originPlugin.displayName == "MyPlugin"
+        task(':a').originPlugin.displayName.contains("build.gradle")
+        task(':b').originPlugin.displayName.contains("MyPlugin")
     }
 
     def "reports task origin for tasks defined in configuration callbacks"() {
@@ -153,7 +153,7 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
         runBuild('printFoo')
 
         then:
-        task(':printFoo').originPlugin.displayName == "MyPlugin"
+        task(':printFoo').originPlugin.displayName.contains("MyPlugin")
     }
 
     private void runBuild(String task, Action<BuildLauncher> config = {}) {

@@ -24,7 +24,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.TaskInstantiationException
-import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.instantiation.DeserializationInstantiator
 import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.internal.instantiation.InstantiationScheme
@@ -39,7 +38,6 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
     ITaskFactory taskFactory
 
     ProjectIdentity projectId = ProjectIdentity.forRootProject(Path.ROOT, "root")
-    def userCodeContext = UserCodeSource.UNKNOWN
 
     def setup() {
         taskFactory = new TaskFactory().createChild(project, instantiationScheme)
@@ -50,7 +48,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void injectsProjectAndNameIntoTask() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(DefaultTask, 'task', projectId, 12, userCodeContext))
+        Task task = taskFactory.create(new TaskIdentity(DefaultTask, 'task', projectId, 12, null))
 
         then:
         task.project == project
@@ -59,7 +57,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskOfTypeWithNoArgsConstructor() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12, userCodeContext))
+        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12, null))
 
         then:
         task instanceof TestDefaultTask
@@ -67,7 +65,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskWhereSuperTypeOfDefaultImplementationRequested() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(type, 'task', projectId, 12, userCodeContext))
+        Task task = taskFactory.create(new TaskIdentity(type, 'task', projectId, 12, null))
 
         then:
         task instanceof DefaultTask
@@ -78,7 +76,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForDeserialization() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12, userCodeContext), (Object[]) null)
+        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12, null), (Object[]) null)
 
         then:
         1 * deserializeInstantiator.newInstance(TestDefaultTask, AbstractTask) >> { new TestDefaultTask() }
@@ -87,7 +85,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForTypeWhichDoesNotImplementTask() {
         when:
-        taskFactory.create(new TaskIdentity(NotATask, 'task', projectId, 12, userCodeContext))
+        taskFactory.create(new TaskIdentity(NotATask, 'task', projectId, 12, null))
 
         then:
         InvalidUserDataException e = thrown()
@@ -96,7 +94,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForUnsupportedType() {
         when:
-        taskFactory.create(new TaskIdentity(taskType, 'task', projectId, 12, userCodeContext))
+        taskFactory.create(new TaskIdentity(taskType, 'task', projectId, 12, null))
 
         then:
         InvalidUserDataException e = thrown()
@@ -108,7 +106,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForTypeDirectlyExtendingAbstractTask() {
         when:
-        taskFactory.create(new TaskIdentity(ExtendsAbstractTask, 'task', projectId, 12, userCodeContext))
+        taskFactory.create(new TaskIdentity(ExtendsAbstractTask, 'task', projectId, 12, null))
 
         then:
         InvalidUserDataException e = thrown()
@@ -119,7 +117,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         def failure = new RuntimeException()
 
         when:
-        taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12, userCodeContext))
+        taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12, null))
 
         then:
         TaskInstantiationException e = thrown()

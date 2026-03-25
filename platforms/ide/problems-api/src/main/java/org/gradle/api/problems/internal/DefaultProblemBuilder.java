@@ -155,7 +155,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (source == null) {
             return null;
         }
-        String pluginId = source.getPluginId();
+        if (!(source instanceof UserCodeSource.Binary)) {
+            return null;
+        }
+        String pluginId = ((UserCodeSource.Binary) source).getPluginId();
         if (pluginId == null) {
             return null;
         }

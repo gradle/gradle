@@ -16,37 +16,15 @@
 
 package org.gradle.internal.code;
 
-import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.jspecify.annotations.Nullable;
+
+import java.net.URI;
 
 /**
  * Describes the source of code being applied.
  */
 public interface UserCodeSource {
-    UserCodeSource UNKNOWN = new UserCodeSource() {
-        @Override
-        public DisplayName getDisplayName() {
-            return Describables.of("Unknown");
-        }
-
-        @Override
-        public @Nullable String getPluginId() {
-            return null;
-        }
-    };
-
-    UserCodeSource BY_RULE = new UserCodeSource() {
-        @Override
-        public DisplayName getDisplayName() {
-            return Describables.of("by Rule");
-        }
-
-        @Override
-        public @Nullable String getPluginId() {
-            return null;
-        }
-    };
 
     /**
      * Returns the display name of the user code.
@@ -54,8 +32,66 @@ public interface UserCodeSource {
     DisplayName getDisplayName();
 
     /**
-     * The ID of the plugin applying user code, if available.
+     * User code that is applied as a binary plugin.
      */
-    @Nullable
-    String getPluginId();
+    class Binary implements UserCodeSource {
+
+        private final DisplayName displayName;
+        private final String className;
+        private final @Nullable String pluginId;
+
+        public Binary(DisplayName displayName, String className, @Nullable String pluginId) {
+            this.displayName = displayName;
+            this.className = className;
+            this.pluginId = pluginId;
+        }
+
+        @Override
+        public DisplayName getDisplayName() {
+            return displayName;
+        }
+
+        /**
+         * The ID of the binary plugin applying user code, if available.
+         */
+        public @Nullable String getPluginId() {
+            return pluginId;
+        }
+
+        /**
+         * Get the fully qualified name of the class applying user code.
+         */
+        public String getClassName() {
+            return className;
+        }
+
+    }
+
+    /**
+     * User code that is applied as a script plugin.
+     */
+    class Script implements UserCodeSource {
+
+        private final DisplayName displayName;
+        private final @Nullable URI uri;
+
+        public Script(DisplayName displayName, @Nullable URI uri) {
+            this.displayName = displayName;
+            this.uri = uri;
+        }
+
+        @Override
+        public DisplayName getDisplayName() {
+            return displayName;
+        }
+
+        /**
+         * Get the URI of the script plugin applying user code, if available.
+         */
+        public @Nullable URI getUri() {
+            return uri;
+        }
+
+    }
+
 }
