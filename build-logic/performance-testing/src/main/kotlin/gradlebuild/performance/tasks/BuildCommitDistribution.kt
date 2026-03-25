@@ -154,11 +154,9 @@ abstract class BuildCommitDistribution @Inject internal constructor(
                 val closestReleasedVersion = determineClosestReleasedVersion(GradleVersion.version(expectedWrapperVersion))
                 val repository = if (closestReleasedVersion.isSnapshot) "distributions-snapshots" else "distributions"
                 val wrapperPropertiesFile = checkoutDir.resolve("gradle/wrapper/gradle-wrapper.properties")
-                val wrapperProperties = Properties().apply {
-                    load(wrapperPropertiesFile.inputStream())
-                    this["distributionUrl"] = "https://services.gradle.org/$repository/gradle-${closestReleasedVersion.version}-bin.zip"
-                }
-                wrapperProperties.store(wrapperPropertiesFile.outputStream(), "Modified by `BuildCommitDistribution` task")
+                val wrapperProperties = wrapperPropertiesFile.readAsProperties()
+                wrapperProperties["distributionUrl"] = "https://services.gradle.org/$repository/gradle-${closestReleasedVersion.version}-bin.zip"
+                wrapperPropertiesFile.writeProperties(wrapperProperties, "Modified by `BuildCommitDistribution` task")
                 println("First attempt to build commit distribution failed: \n\n$outputString\n\nTrying again with ${closestReleasedVersion.version}")
 
                 val output2 = ByteArrayOutputStream()
@@ -221,4 +219,10 @@ abstract class BuildCommitDistribution @Inject internal constructor(
 
         return buildCommands.toTypedArray()
     }
+
+    private
+    fun File.readAsProperties(): Properties = Properties().apply { inputStream().use { load(it) } }
+
+    private
+    fun File.writeProperties(properties: Properties, comment: String? = null): Unit = outputStream().use { properties.store(it, comment) }
 }
