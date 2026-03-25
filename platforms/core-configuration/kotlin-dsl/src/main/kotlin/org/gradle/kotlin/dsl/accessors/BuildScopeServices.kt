@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -37,14 +38,16 @@ object BuildScopeServices : ServiceRegistrationProvider {
         executionEngine: ExecutionEngine,
         inputFingerprinter: InputFingerprinter,
         workspaceProvider: KotlinDslWorkspaceProvider,
-        buildState: BuildState
+        buildState: BuildState,
+        internalOptions: InternalOptions,
     ) = Stage1BlocksAccessorClassPathGenerator(
         classLoaderHierarchyHasher,
         fileCollectionFactory,
         executionEngine,
         inputFingerprinter,
         workspaceProvider,
-        buildState
+        buildState,
+        internalOptions,
     )
 
     @Provides
@@ -54,13 +57,15 @@ object BuildScopeServices : ServiceRegistrationProvider {
         executionEngine: ExecutionEngine,
         inputFingerprinter: InputFingerprinter,
         workspaceProvider: KotlinDslWorkspaceProvider,
-        asyncIO: AsyncIOScopeFactory
+        asyncIO: AsyncIOScopeFactory,
+        internalOptions: InternalOptions,
     ) = ProjectAccessorsClassPathGenerator(
         fileCollectionFactory,
         projectSchemaProvider,
         executionEngine,
         inputFingerprinter,
         workspaceProvider,
-        asyncIO
+        asyncIO,
+        internalOptions,
     )
 }

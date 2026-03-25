@@ -283,10 +283,10 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
     fun `writes no build cache entries when script caching disabled`() {
-        val result = expectBuildCacheEntriesWritten(3, true)
-        result.assertOutputContains("Stored cache entry for Kotlin DSL version catalog plugin accessors")
-        result.assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
-        result.assertOutputContains("Stored cache entry for Kotlin DSL accessors")
+        val result = expectBuildCacheEntriesWritten(0, true)
+        result.assertNotOutput("Stored cache entry for Kotlin DSL version catalog plugin accessors")
+        result.assertNotOutput("Stored cache entry for Kotlin DSL plugin specs accessors")
+        result.assertNotOutput("Stored cache entry for Kotlin DSL accessors")
         result.assertNotOutput("Stored cache entry for Kotlin DSL script compilation")
     }
 
