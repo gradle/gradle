@@ -107,10 +107,6 @@ The existing `StartScriptGeneratorIntegrationTest` creates and executes a start 
 
 **File**: `platforms/jvm/plugins-application/src/integTest/groovy/org/gradle/integtests/StartScriptGeneratorIntegrationTest.groovy`
 
-#### 6e: Integration test — wrapper script contains correct permalink (new, if feasible)
-
-Consider adding an integration test that generates a wrapper script and verifies the embedded URL contains a commit hash (not `HEAD`). This would exercise the `WrapperGenerator` → `DefaultGradleVersion.getScriptTemplateGitRevision()` path. However, since this depends on the build receipt being populated correctly (which only happens in a real Gradle distribution build), this may only be practically testable in CI as part of the full distribution build.
-
 **Run tests with**:
 ```
 ./gradlew :plugins-application:test --tests '*UnixStartScriptGeneratorTest*' --tests '*ApplicationPluginTest*'
