@@ -90,7 +90,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         """
 
         when:
-        result = executer.withTasks("ok").run()
+        result = succeeds("ok")
 
         then:
         result.output.contains(OSC_RESET)
