@@ -25,7 +25,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
 @CacheableTask
-class JvmProjectGeneratorTask extends AbstractProjectGeneratorTask {
+abstract class JvmProjectGeneratorTask extends AbstractProjectGeneratorTask {
 
     @Internal
     boolean groovyProject
@@ -54,7 +54,7 @@ class JvmProjectGeneratorTask extends AbstractProjectGeneratorTask {
     def generateRootProject() {
         super.generateRootProject()
         generateProjectDependenciesDescriptor()
-        project.copy {
+        fsOps.copy {
             into(getDestDir())
             into('lib/test') {
                 from testDependencies

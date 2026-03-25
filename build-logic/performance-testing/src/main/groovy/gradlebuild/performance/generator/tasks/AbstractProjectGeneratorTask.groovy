@@ -16,12 +16,17 @@
 
 package gradlebuild.performance.generator.tasks
 
+import gradlebuild.performance.generator.DependencyGraph
+import gradlebuild.performance.generator.MavenJarCreator
+import gradlebuild.performance.generator.MavenRepository
 import gradlebuild.performance.generator.RepositoryBuilder
 import gradlebuild.performance.generator.TestProject
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.GradleException
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.FileTree
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -31,6 +36,8 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
+
+import javax.inject.Inject
 
 /**
  * Original tangled mess of a project generator.
@@ -62,7 +69,7 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
     int maxWorkers = 8
 
     @Nested
-    final gradlebuild.performance.generator.DependencyGraph dependencyGraph = new gradlebuild.performance.generator.DependencyGraph()
+    final DependencyGraph dependencyGraph = new DependencyGraph()
 
     @Input
     List<String> additionalProjectFiles = []
@@ -77,19 +84,7 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
     @Input
     Map<String, Object> templateArgs = [:]
 
-    @Internal
-    final SimpleTemplateEngine engine = new SimpleTemplateEngine()
-    @Internal
-    final gradlebuild.performance.generator.MavenJarCreator mavenJarCreator = new gradlebuild.performance.generator.MavenJarCreator()
-
-    @Internal
-    final List<TestProject> projects = []
-    @Internal
-    final Map<File, Template> templates = [:]
-
-    AbstractProjectGeneratorTask() {
-        super()
-    }
+    private transient GenerationState state
 
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -98,7 +93,7 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
         if (buildSrcTemplate) {
             allTemplates += buildSrcTemplate
         }
-        def templateDirectories = project.fileTree([:])
+        def templateDirectories = objectFactory.fileTree()
         allTemplates.each { templateDirectories.from(resolveTemplate(it)) }
         return templateDirectories
     }
@@ -119,6 +114,8 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
 
     @TaskAction
     void generate() {
+        state = new GenerationState()
+
         println "Generating test project ${destDir.name}"
         println "  projects: ${projectCount}"
         println "  source files: ${sourceFiles}"
@@ -132,15 +129,16 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
         // For Subclasses
         initialize()
 
+        def projects = state.projects
         while (projects.size() < projectCount) {
             def project = projects.empty ? new TestProject("root", this) : new TestProject("project${projects.size()}", this, projects.size())
-            projects << project
+            projects.add(project)
         }
 
-        ant.delete(dir: destDir)
+        fsOps.delete { delete(destDir) }
         destDir.mkdirs()
 
-        gradlebuild.performance.generator.MavenRepository repo = generateDependencyRepository()
+        MavenRepository repo = generateDependencyRepository()
         generateRootProject()
         subprojects.each { subproject ->
             if (repo) {
@@ -154,14 +152,14 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
     }
 
     void generateScriptPlugins() {
-        if(numberOfScriptPlugins > 0) {
+        if (numberOfScriptPlugins > 0) {
             def nesting = 5
-            def groupedScriptIds = ((1..numberOfScriptPlugins).groupBy { it % (int)(numberOfScriptPlugins / nesting) }.values)
+            def groupedScriptIds = ((1..numberOfScriptPlugins).groupBy { it % (int) (numberOfScriptPlugins / nesting) }.values)
             def gradleFolder = new File(destDir, "gradle")
             gradleFolder.mkdirs()
             (1..numberOfScriptPlugins).forEach { scriptPluginId ->
                 def nestedScriptId = groupedScriptIds.find { it.contains(scriptPluginId) }?.find { it > scriptPluginId }
-                def  maybeApplyNestedScript = (nestedScriptId != null) ? "apply from: \'../gradle/script-plugin${nestedScriptId}.gradle'" : ""
+                def maybeApplyNestedScript = (nestedScriptId != null) ? "apply from: \'../gradle/script-plugin${nestedScriptId}.gradle'" : ""
                 new File(gradleFolder, "script-plugin${scriptPluginId}.gradle").text = maybeApplyNestedScript
             }
         }
@@ -177,47 +175,47 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
     }
 
     @Internal
-    protected List getSubprojectNames() {
-        return getSubprojects().collect { it.name }
-    }
-
-    @Internal
     protected TestProject getRootProject() {
-        return projects[0]
+        return state.projects[0]
     }
 
-    gradlebuild.performance.generator.MavenRepository generateDependencyRepository() {
-        gradlebuild.performance.generator.MavenRepository repo = new RepositoryBuilder(getDestDir())
+    MavenRepository generateDependencyRepository() {
+        MavenRepository repo = new RepositoryBuilder(getDestDir())
             .withArtifacts(dependencyGraph.size)
             .withDepth(dependencyGraph.depth)
             .withSnapshotVersions(dependencyGraph.useSnapshotVersions)
-            .withMavenJarCreator(mavenJarCreator)
+            .withMavenJarCreator(state.mavenJarCreator)
             .create()
         return repo
     }
 
+    protected boolean hasSubprojects() {
+        return projectCount > 1
+    }
+
     @Internal
     protected List<TestProject> getSubprojects() {
+        def projects = state.projects
         return projects.size() < 2 ? [] : projects.subList(1, projects.size())
     }
 
     def generateRootProject() {
         generateProject(rootProject,
-            subprojects: subprojectNames,
+            subprojects: getSubprojects().collect { it.name },
             projectDir: destDir,
             files: rootProjectFiles,
             templates: effectiveRootProjectTemplates,
             daemonMemory: daemonMemory,
             parallel: true,
             maxWorkers: maxWorkers,
-            includeSource: subprojectNames.empty)
+            includeSource: !hasSubprojects())
 
-        project.copy {
+        fsOps.copy {
             from resolveTemplate("init.gradle")
             into(getDestDir())
         }
         if (buildSrcTemplate) {
-            project.copy {
+            fsOps.copy {
                 from resolveTemplate(buildSrcTemplate)
                 into(getDestDir())
             }
@@ -226,12 +224,12 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
 
     @Internal
     List<String> getEffectiveRootProjectTemplates() {
-        subprojectNames.empty ? subProjectTemplates : rootProjectTemplates
+        hasSubprojects() ? rootProjectTemplates : subProjectTemplates
     }
 
     @Input
     List<String> getRootProjectFiles() {
-        subprojectNames.empty ? ['settings.gradle', 'gradle.properties'] : ['settings.gradle', 'gradle.properties', 'checkstyle.xml']
+        hasSubprojects() ? ['settings.gradle', 'gradle.properties', 'checkstyle.xml'] : ['settings.gradle', 'gradle.properties']
     }
 
     def generateSubProject(TestProject testProject) {
@@ -256,12 +254,12 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
         files.addAll(additionalProjectFiles)
 
         args += [
-            projectName     : testProject.name,
+            projectName: testProject.name,
             subprojectNumber: testProject.subprojectNumber,
-            propertyCount   : (testProject.linesOfCodePerSourceFile.intdiv(7)),
-            repository      : testProject.repository,
-            dependencies    : testProject.dependencies,
-            testProject     : testProject
+            propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
+            repository: testProject.repository,
+            dependencies: testProject.dependencies,
+            testProject: testProject
         ]
 
         args += templateArgs
@@ -319,14 +317,14 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
     }
 
     def getTemplate(File srcTemplate) {
-        def template = templates[srcTemplate]
+        def template = state.templates[srcTemplate]
         if (!template) {
             try {
-                template = engine.createTemplate(srcTemplate)
+                template = state.engine.createTemplate(srcTemplate)
             } catch (Exception e) {
                 throw new GradleException("Could not create template from source file '$srcTemplate'", e)
             }
-            templates[srcTemplate] = template
+            state.templates[srcTemplate] = template
         }
         return template
     }
@@ -340,4 +338,21 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
     }
 
     abstract void generateProjectSource(File projectDir, TestProject testProject, Map args)
+
+    @Inject
+    protected abstract FileSystemOperations getFsOps()
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory()
+
+    /**
+     * Mutable state that only exists during task action execution.
+     * Kept out of the task fields to avoid configuration cache serialization issues.
+     */
+    protected static class GenerationState {
+        final SimpleTemplateEngine engine = new SimpleTemplateEngine()
+        final MavenJarCreator mavenJarCreator = new MavenJarCreator()
+        final List<TestProject> projects = []
+        final Map<File, Template> templates = [:]
+    }
 }
