@@ -63,7 +63,7 @@ To enable retries, add the following properties to `gradle-wrapper.properties`:
 
 ```properties
 retries=3 # Sets the maximum number of retry attempts
-retryTimeoutMs=5000 # Sets the delay between retries
+retryBackOffMs=1000 # Sets the initial delay between retries (doubles on each failure)
 ```
 
 #### Type-safe accessors for precompiled Kotlin Settings plugins
@@ -107,13 +107,6 @@ main.setFoo("bar")                // individual elements can still be modified
 myCollection.add(MyType("other")) // this will fail
 myCollection.remove(main)         // this will fail
 ```
-
-#### GitHub permalinks in Gradle Wrapper and application start scripts
-
-Gradle Wrapper scripts and application start scripts now include links to the GitHub source templates they were generated from.
-
-Previously, these links always pointed to the latest template versions rather than the version used to generate the script.
-In this release, scripts link to the exact template version they were generated from.
 
 #### Explicit bind address for client-daemon and cross-daemon communication
 

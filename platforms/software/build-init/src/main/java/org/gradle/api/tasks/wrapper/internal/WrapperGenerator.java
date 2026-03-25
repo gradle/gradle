@@ -71,9 +71,9 @@ public class WrapperGenerator {
         boolean validateDistributionUrl,
         @Nullable Integer networkTimeout,
         @Nullable Integer retries,
-        @Nullable Integer retryTimeoutMs
+        @Nullable Integer retryBackOffMs
     ) {
-        writeProperties(wrapperPropertiesOutputFile, distributionUrl, distributionSha256Sum, distributionBase, distributionPath, archiveBase, archivePath, networkTimeout, validateDistributionUrl, retries, retryTimeoutMs);
+        writeProperties(wrapperPropertiesOutputFile, distributionUrl, distributionSha256Sum, distributionBase, distributionPath, archiveBase, archivePath, networkTimeout, validateDistributionUrl, retries, retryBackOffMs);
         writeWrapperJar(wrapperJarOutputFile);
         writeScripts(jarFileRelativePath, unixScript, batchScript);
     }
@@ -89,7 +89,7 @@ public class WrapperGenerator {
         @Nullable Integer networkTimeout,
         boolean validateDistributionUrl,
         @Nullable Integer retries,
-        @Nullable Integer retryTimeoutMs
+        @Nullable Integer retryBackOffMs
     ) {
         Properties wrapperProperties = new Properties();
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, distributionUrl);
@@ -107,8 +107,8 @@ public class WrapperGenerator {
         if (retries != null) {
             wrapperProperties.put(WrapperExecutor.RETRIES_PROPERTY, String.valueOf(retries));
         }
-        if (retryTimeoutMs != null) {
-            wrapperProperties.put(WrapperExecutor.RETRY_TIMEOUT_PROPERTY, String.valueOf(retryTimeoutMs));
+        if (retryBackOffMs != null) {
+            wrapperProperties.put(WrapperExecutor.RETRY_BACK_OFF_PROPERTY, String.valueOf(retryBackOffMs));
         }
         GFileUtils.parentMkdirs(propertiesFileDestination);
         try {
@@ -133,7 +133,7 @@ public class WrapperGenerator {
     private static void writeScripts(String jarFileRelativePath, File unixScript, File batchScript) {
         StartScriptGenerator generator = new StartScriptGenerator();
         generator.setApplicationName("Gradle");
-        generator.setGitRef(DefaultGradleVersion.current().getGitRevision());
+        generator.setGitRef(DefaultGradleVersion.current().getScriptTemplateGitRevision());
         generator.setEntryPoint(new ExecutableJar(jarFileRelativePath));
         generator.setClasspath(Collections.emptyList());
         generator.setOptsEnvironmentVar("GRADLE_OPTS");

@@ -34,7 +34,7 @@ public class WrapperExecutor {
     public static final String NETWORK_TIMEOUT_PROPERTY = "networkTimeout";
     public static final String VALIDATE_DISTRIBUTION_URL = "validateDistributionUrl";
     public static final String RETRIES_PROPERTY = "retries";
-    public static final String RETRY_TIMEOUT_PROPERTY = "retryTimeoutMs";
+    public static final String RETRY_BACK_OFF_PROPERTY = "retryBackOffMs";
 
     private final Properties properties;
     private final File propertiesFile;
@@ -70,7 +70,7 @@ public class WrapperExecutor {
                 config.setNetworkTimeout(getProperty(NETWORK_TIMEOUT_PROPERTY, config.getNetworkTimeout()));
                 config.setValidateDistributionUrl(getProperty(VALIDATE_DISTRIBUTION_URL, config.getValidateDistributionUrl()));
                 config.setRetries(getProperty(RETRIES_PROPERTY, config.getRetries()));
-                config.setRetryTimeoutMs(getProperty(RETRY_TIMEOUT_PROPERTY, config.getRetryTimeoutMs()));
+                config.setRetryBackOffMs(getProperty(RETRY_BACK_OFF_PROPERTY, config.getRetryBackOffMs()));
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
             }
