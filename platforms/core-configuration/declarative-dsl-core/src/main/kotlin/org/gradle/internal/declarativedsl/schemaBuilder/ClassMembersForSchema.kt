@@ -419,3 +419,11 @@ val SupportedCallable.isJavaBeanGetter get() =
     kind == MemberKind.FUNCTION &&
         name.substringAfter("get", "").firstOrNull()?.isUpperCase() == true &&
         parameters.isEmpty()
+
+val SupportedCallable.javaBeanName get() = if (isJavaBeanGetter) {
+    name.drop(3).replaceFirstChar { it.lowercase() }
+} else name
+
+val SupportedCallable.javaBeanSetterFunctionName get() = if (isJavaBeanGetter) {
+    "set" + javaBeanName.replaceFirstChar { it.uppercase() }
+} else name

@@ -22,7 +22,6 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode
-import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KType
@@ -86,12 +85,11 @@ class DefaultPropertyExtractor(
         return getters.mapNotNull { (name, getter) ->
             checkNotNull(getter)
             host.inContextOfModelMember(getter.kCallable) {
-                val nameAfterGet = name.substringAfter("get")
-                val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
+                val propertyName = getter.javaBeanName
                 if (!propertyNamePredicate(propertyName)) {
                     return@inContextOfModelMember null
                 }
-                val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull()?.type == getter.returnType }
+                val setter = functionsByName[getter.javaBeanSetterFunctionName]?.find { fn -> fn.parameters.singleOrNull()?.type == getter.returnType }
 
                 val canWrite = setter != null
 
