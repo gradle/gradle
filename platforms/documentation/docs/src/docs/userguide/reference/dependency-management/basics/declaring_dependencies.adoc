@@ -112,7 +112,7 @@ image::declaring-dependencies-2.png[]
 The Java app contains the following Java class:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/kotlin/app/src/main/java/org/example",files="InitializeCollection.java[]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/common/app/src/main/java/org/example",files="InitializeCollection.java[]"]
 ====
 
 To add the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] library to your Gradle project as a dependency, you must add the following line to your build file:
