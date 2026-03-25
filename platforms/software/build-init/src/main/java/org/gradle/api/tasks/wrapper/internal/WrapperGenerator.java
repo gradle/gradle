@@ -133,7 +133,7 @@ public class WrapperGenerator {
     private static void writeScripts(String jarFileRelativePath, File unixScript, File batchScript) {
         StartScriptGenerator generator = new StartScriptGenerator();
         generator.setApplicationName("Gradle");
-        generator.setGitRef(DefaultGradleVersion.current().getGitRevision());
+        generator.setGitRef(DefaultGradleVersion.current().getScriptTemplateGitRevision());
         generator.setEntryPoint(new ExecutableJar(jarFileRelativePath));
         generator.setClasspath(Collections.emptyList());
         generator.setOptsEnvironmentVar("GRADLE_OPTS");

@@ -108,13 +108,6 @@ myCollection.add(MyType("other")) // this will fail
 myCollection.remove(main)         // this will fail
 ```
 
-#### GitHub permalinks in Gradle Wrapper and application start scripts
-
-Gradle Wrapper scripts and application start scripts now include links to the GitHub source templates they were generated from.
-
-Previously, these links always pointed to the latest template versions rather than the version used to generate the script.
-In this release, scripts link to the exact template version they were generated from.
-
 #### Explicit bind address for client-daemon and cross-daemon communication
 
 Gradle now supports the `GRADLE_DAEMON_BIND_ADDRESS` environment variable to explicitly specify the network address used for client-daemon and cross-daemon communication.
