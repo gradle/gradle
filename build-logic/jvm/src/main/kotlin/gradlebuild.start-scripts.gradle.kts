@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.scriptTemplateCommitIdViaFileSystemQuery
 import gradlebuild.startscript.tasks.GradleStartScriptGenerator
 import gradlebuild.configureAsRuntimeJarClasspath
 
@@ -29,6 +30,7 @@ val resolveAgentsClasspath = configurations.resolvable("resolveAgentsClasspath")
 
 val startScripts = tasks.register<GradleStartScriptGenerator>("startScripts") {
     startScriptsDir = layout.buildDirectory.dir("startScripts")
+    scriptTemplateGitRef.convention(project.scriptTemplateCommitIdViaFileSystemQuery().orElse("HEAD"))
     launcherJar.from(tasks.jar)
     agentJars.from(resolveAgentsClasspath)
     // The trick below is to use the templates from the current code instead of the wrapper. It does not cover the case where the generation logic is updated though.
