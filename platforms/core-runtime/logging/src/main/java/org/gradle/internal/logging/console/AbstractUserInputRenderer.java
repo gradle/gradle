@@ -173,6 +173,10 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
             } finally {
                 cleanupOverflow();
             }
+        } else {
+            // Reset overflow failure flag even when no file was created,
+            // so the next pause/resume cycle can attempt disk overflow again.
+            overflowFailed = false;
         }
     }
 

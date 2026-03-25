@@ -186,6 +186,7 @@ class UserInputConsoleRendererTest extends Specification {
         1 * buildProgressArea.setVisible(false)
         1 * console.flush()
         renderer.bufferedEventCount == totalEvents
+        hasOverflowFile()
 
         when:
         def replayed = []
@@ -222,13 +223,18 @@ class UserInputConsoleRendererTest extends Specification {
         (1..totalEvents).each {
             renderer.onOutput(new LogEvent(System.currentTimeMillis(), "cat", LogLevel.LIFECYCLE, "msg $it", null))
         }
-        renderer.onOutput(new UserInputResumeEvent(123))
 
         then:
         1 * console.getBuildProgressArea() >> buildProgressArea
+        hasOverflowFile()
+
+        when:
+        renderer.onOutput(new UserInputResumeEvent(123))
+
+        then:
         1 * console.buildOutputArea >> textArea
         1 * console.getBuildProgressArea() >> buildProgressArea
-        tmpDir.listFiles().length == 0
+        !hasOverflowFile()
     }
 
     def "handles multiple pause/resume cycles with overflow"() {
@@ -242,14 +248,19 @@ class UserInputConsoleRendererTest extends Specification {
         (1..totalEvents).each {
             renderer.onOutput(new LogEvent(System.currentTimeMillis(), "cat", LogLevel.LIFECYCLE, "cycle1 msg $it", null))
         }
-        renderer.onOutput(new UserInputResumeEvent(1))
 
         then:
         1 * console.getBuildProgressArea() >> buildProgressArea
+        hasOverflowFile()
+
+        when:
+        renderer.onOutput(new UserInputResumeEvent(1))
+
+        then:
         1 * console.buildOutputArea >> textArea
         1 * console.getBuildProgressArea() >> buildProgressArea
         replayed.size() == totalEvents
-        tmpDir.listFiles().length == 0
+        !hasOverflowFile()
 
         when: 'second pause/resume cycle also overflows to disk'
         replayed.clear()
@@ -257,14 +268,19 @@ class UserInputConsoleRendererTest extends Specification {
         (1..totalEvents).each {
             renderer.onOutput(new LogEvent(System.currentTimeMillis(), "cat", LogLevel.LIFECYCLE, "cycle2 msg $it", null))
         }
-        renderer.onOutput(new UserInputResumeEvent(2))
 
         then:
         1 * console.getBuildProgressArea() >> buildProgressArea
+        hasOverflowFile()
+
+        when:
+        renderer.onOutput(new UserInputResumeEvent(2))
+
+        then:
         1 * console.buildOutputArea >> textArea
         1 * console.getBuildProgressArea() >> buildProgressArea
         replayed.size() == totalEvents
-        tmpDir.listFiles().length == 0
+        !hasOverflowFile()
     }
 
     def "disk failure recovery across pause/resume cycles"() {
@@ -287,10 +303,15 @@ class UserInputConsoleRendererTest extends Specification {
         (1..totalEvents).each {
             testRenderer.onOutput(new LogEvent(System.currentTimeMillis(), "cat", LogLevel.LIFECYCLE, "msg $it", null))
         }
+
+        then: 'no overflow file because creation failed'
+        1 * console.getBuildProgressArea() >> buildProgressArea
+        !hasOverflowFile()
+
+        when:
         testRenderer.onOutput(new UserInputResumeEvent(1))
 
         then:
-        1 * console.getBuildProgressArea() >> buildProgressArea
         1 * console.buildOutputArea >> textArea
         1 * console.getBuildProgressArea() >> buildProgressArea
         totalEvents * listener.onOutput(_ as LogEvent)
@@ -300,13 +321,19 @@ class UserInputConsoleRendererTest extends Specification {
         (1..totalEvents).each {
             testRenderer.onOutput(new LogEvent(System.currentTimeMillis(), "cat", LogLevel.LIFECYCLE, "msg $it", null))
         }
+
+        then: 'overflow file exists because creation succeeded this time'
+        1 * console.getBuildProgressArea() >> buildProgressArea
+        hasOverflowFile()
+
+        when:
         testRenderer.onOutput(new UserInputResumeEvent(2))
 
         then:
-        1 * console.getBuildProgressArea() >> buildProgressArea
         1 * console.buildOutputArea >> textArea
         1 * console.getBuildProgressArea() >> buildProgressArea
         totalEvents * listener.onOutput(_ as LogEvent)
+        !hasOverflowFile()
     }
 
     def "falls back to in-memory buffer when disk overflow fails"() {
@@ -329,6 +356,10 @@ class UserInputConsoleRendererTest extends Specification {
         1 * console.buildOutputArea >> textArea
         1 * console.getBuildProgressArea() >> buildProgressArea
         totalEvents * listener.onOutput(_ as LogEvent)
+    }
+
+    private boolean hasOverflowFile() {
+        tmpDir.listFiles().collect { it.name.startsWith("user-input-overflow-") && it.name.endsWith(".bin") }.size() == 1
     }
 
     private static class TestOutputEvent extends OutputEvent {
