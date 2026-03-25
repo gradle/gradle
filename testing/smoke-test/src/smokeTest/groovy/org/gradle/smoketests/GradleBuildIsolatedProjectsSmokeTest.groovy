@@ -22,6 +22,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
 
     def "can run Gradle build tasks with isolated projects enabled"() {
         given:
+        def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
         def tasks = [
             "build",
             "sanityCheck",
