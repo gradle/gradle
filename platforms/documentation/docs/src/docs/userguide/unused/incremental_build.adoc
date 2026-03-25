@@ -90,13 +90,13 @@ When you’re writing a custom task class, it’s easy to register properties as
 [source,java]
 .buildSrc/src/main/java/org/example/ProcessTemplates.java
 ----
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/groovy/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/common/buildSrc/src/main/java/org/example/ProcessTemplates.java[tag=custom-task-class]
 ----
 
 [source,java]
 .buildSrc/src/main/java/org/example/TemplateData.java
 ----
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/groovy/buildSrc/src/main/java/org/example/TemplateData.java[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/common/buildSrc/src/main/java/org/example/TemplateData.java[]
 ----
 
 [source,bash]
