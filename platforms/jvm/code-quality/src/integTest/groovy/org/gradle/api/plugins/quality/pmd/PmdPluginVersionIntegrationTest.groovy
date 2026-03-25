@@ -23,7 +23,6 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
-import static org.hamcrest.CoreMatchers.startsWith
 import static org.junit.Assume.assumeTrue
 
 class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
@@ -68,7 +67,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertThatDescription(startsWith("Execution failed for task ':pmdTest'"))
+        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         failure.assertHasResolutions(SCAN)
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
@@ -116,7 +115,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
@@ -240,7 +239,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("pmdMain")
-        failure.assertHasDescription("Execution failed for task ':pmdMain' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':pmdMain' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
@@ -261,7 +260,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("pmdMain")
-        failure.assertHasDescription("Execution failed for task ':pmdMain' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':pmdMain' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
@@ -278,7 +277,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("pmdMain")
-        failure.assertHasDescription("Execution failed for task ':pmdMain' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':pmdMain' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
@@ -295,7 +294,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
         output.contains "\tUsing multiple unary operators may be a bug"
@@ -326,7 +325,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
