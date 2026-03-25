@@ -37,9 +37,11 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.CrossProjectModelAccess
+import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
@@ -69,6 +71,7 @@ import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
 import java.io.File
@@ -78,14 +81,18 @@ import java.util.concurrent.Callable
 
 internal
 class ProblemReportingCrossProjectModelAccess(
-    private val delegate: CrossProjectModelAccess,
     private val problems: ProblemsListener,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting,
     private val buildModelParameters: BuildModelParameters,
-    private val instantiator: Instantiator
+    private val instantiator: Instantiator,
+    projectRegistry: ProjectRegistry,
+    gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
 ) : CrossProjectModelAccess {
+
+    private val delegate = DefaultCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
+
     override fun findProject(referrer: ProjectInternal, path: Path): ProjectInternal? {
         return delegate.findProject(referrer, path)?.let {
             it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it), instantiator)

@@ -17,20 +17,30 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.configuration.ProjectsPreparer
 import org.gradle.execution.EntryTaskSelector
 import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.initialization.SettingsPreparer
+import org.gradle.initialization.TaskExecutionPreparer
+import org.gradle.initialization.VintageBuildModelController
 import org.gradle.internal.build.BuildModelController
+import org.gradle.internal.model.StateTransitionControllerFactory
 
 
 class ConfigurationCacheAwareBuildModelController(
-    private val model: GradleInternal,
-    private val delegate: BuildModelController,
-    private val configurationCache: BuildTreeConfigurationCache
+    private val gradle: GradleInternal,
+    projectsPreparer: ProjectsPreparer,
+    settingsPreparer: SettingsPreparer,
+    taskExecutionPreparer: TaskExecutionPreparer,
+    stateTransitionControllerFactory: StateTransitionControllerFactory,
+    private val configurationCache: BuildTreeConfigurationCache,
 ) : BuildModelController {
+
+    private val delegate = VintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
 
     override fun getLoadedSettings(): SettingsInternal {
         return if (maybeLoadFromCache()) {
-            model.settings
+            gradle.settings
         } else {
             delegate.loadedSettings
         }
