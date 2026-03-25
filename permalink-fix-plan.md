@@ -83,29 +83,40 @@ Update the three places that set `gitRef`:
 
 ### Step 6: Update tests
 
-Update existing tests to verify the new behavior. The tests from PR #35693 should continue to work with the updated commit reference.
+#### 6a: Unit test — template meta-comment URLs use `HEAD` (new)
 
-## Alternative approaches considered
+In `UnixStartScriptGeneratorTest.groovy`, add a test that verifies the two URLs inside the meta-comment block (`UnixStartScriptGenerator.java` and `Wrapper.java`) always use `HEAD`, regardless of the `gitRef` value. Generate a script with a specific gitRef and assert that those two URLs contain `/blob/HEAD/` while the template's own URL contains the specific commit hash.
 
-### Alternative A: Compute at script-generation time (not build time)
+**File**: `platforms/jvm/plugins-application/src/test/groovy/org/gradle/api/internal/plugins/UnixStartScriptGeneratorTest.groovy`
 
-Have the script generation task run `git log` itself. **Rejected** because:
-- Script generation runs both in Gradle's own build and in user projects (via `CreateStartScripts`)
-- User projects don't have Gradle's git repo available
-- The value needs to be baked into the Gradle distribution
+#### 6b: Unit test — permalink uses gitRef (existing, update if needed)
 
-### Alternative B: Use a hardcoded/manual commit hash
+The existing test `"uses github permalinks in embedded documentation when gitRef specified"` already verifies that when a gitRef is provided, the generated script contains `/blob/<commit>/` instead of `/blob/HEAD/`. After Step 0, this test should still pass since the only `${gitRef}` URL remaining in generated output is the template link. Verify it still passes; adjust assertions if needed.
 
-Manually update a constant whenever the template changes. **Rejected** because:
-- Error-prone: easy to forget updating after a template change
-- Adds maintenance burden
+**File**: `platforms/jvm/plugins-application/src/test/groovy/org/gradle/api/internal/plugins/UnixStartScriptGeneratorTest.groovy`
 
-### Alternative C: Use `${gitRef}` for all three URLs
+#### 6c: Unit test — ApplicationPlugin wires gitRef correctly (existing, update)
 
-Use the same `${gitRef}` for all three URLs in the template. **Rejected** because:
-- The generator and Wrapper.java URLs are in a meta-comment block stripped during template processing — they're only for template readers
-- Using `HEAD` for those two is simpler and always shows the latest version, which is more useful for someone reading the template source
-- Reduces the number of places where `${gitRef}` substitution matters
+The existing test `"adds startScripts task to project"` in `ApplicationPluginTest.groovy` asserts `task.gitRef.get() == DefaultGradleVersion.current().getGitRevision()`. After our change, this should assert against the new `getScriptTemplateGitRevision()` method instead.
+
+**File**: `platforms/jvm/plugins-application/src/test/groovy/org/gradle/api/plugins/ApplicationPluginTest.groovy`
+
+#### 6d: Integration test — generated script contains permalink (existing, verify)
+
+The existing `StartScriptGeneratorIntegrationTest` creates and executes a start script with a hardcoded gitRef. This test doesn't exercise the build receipt flow, but confirms that the gitRef substitution works end-to-end in the template. Verify it still passes after the template change in Step 0.
+
+**File**: `platforms/jvm/plugins-application/src/integTest/groovy/org/gradle/integtests/StartScriptGeneratorIntegrationTest.groovy`
+
+#### 6e: Integration test — wrapper script contains correct permalink (new, if feasible)
+
+Consider adding an integration test that generates a wrapper script and verifies the embedded URL contains a commit hash (not `HEAD`). This would exercise the `WrapperGenerator` → `DefaultGradleVersion.getScriptTemplateGitRevision()` path. However, since this depends on the build receipt being populated correctly (which only happens in a real Gradle distribution build), this may only be practically testable in CI as part of the full distribution build.
+
+**Run tests with**:
+```
+./gradlew :plugins-application:test --tests '*UnixStartScriptGeneratorTest*' --tests '*ApplicationPluginTest*'
+./gradlew :plugins-application:forkingIntegTest --tests '*StartScriptGeneratorIntegrationTest*'
+./gradlew :plugins-application:configCacheIntegTest --tests '*StartScriptGeneratorIntegrationTest*'
+```
 
 ## Edge cases
 
