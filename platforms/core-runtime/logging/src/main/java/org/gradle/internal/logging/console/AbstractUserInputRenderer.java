@@ -40,9 +40,8 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Objects;
 
 public abstract class AbstractUserInputRenderer implements OutputEventListener {
@@ -55,7 +54,7 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
     private final GlobalUserInputReceiver userInput;
     private final TemporaryFileProvider temporaryFileProvider;
     private final Serializer<OutputEvent> outputEventSerializer;
-    private final List<OutputEvent> eventQueue = new ArrayList<>(MEMORY_QUEUE_LIMIT);
+    private final Deque<OutputEvent> eventQueue = new ArrayDeque<>(MEMORY_QUEUE_LIMIT);
 
     private @Nullable File overflowFile;
     private @Nullable KryoBackedEncoder overflowEncoder;
@@ -164,11 +163,8 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
     }
 
     private void replayEvents() {
-        ListIterator<OutputEvent> iterator = eventQueue.listIterator();
-
-        while (iterator.hasNext()) {
-            delegate.onOutput(iterator.next());
-            iterator.remove();
+        while (!eventQueue.isEmpty()) {
+            delegate.onOutput(eventQueue.pop());
         }
 
         if (overflowFile != null) {
@@ -222,7 +218,7 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         overflowFailed = false;
     }
 
-    List<OutputEvent> getEventQueue() {
+    Deque<OutputEvent> getEventQueue() {
         return eventQueue;
     }
 
