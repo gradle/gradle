@@ -17,7 +17,7 @@ Only the first URL (the template itself) appears in generated start/wrapper scri
 
 ## Current flow
 
-1. **Build time**: `BuildEnvironmentService` runs `git rev-parse HEAD` and stores it in `BuildEnvironmentExtension.gitCommitId`
+1. **Build time**: `BuildEnvironmentService` runs `git rev-parse HEAD` and stores it in `BuildEnvironmentExtension.gitCommitId`. Note: `BuildEnvironmentService` is build-logic source code compiled fresh each build by the Gradle version the wrapper downloads. Adding a new `git log` call uses the same `ProviderFactory.exec` API already in use, so no wrapper version upgrade is required.
 2. **Build receipt**: `BuildReceipt` task writes `commitId` into `build-receipt.properties`
 3. **Runtime**: `DefaultGradleVersion.current().getGitRevision()` reads `commitId` from the build receipt
 4. **Script generation**: Both `ApplicationPlugin` and `WrapperGenerator` call `DefaultGradleVersion.current().getGitRevision()` and pass it as `gitRef`
