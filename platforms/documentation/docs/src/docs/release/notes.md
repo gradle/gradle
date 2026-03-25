@@ -280,6 +280,14 @@ This allows IDEs and other tools to provide a more consistent user experience wh
 
 For example, in IntelliJ IDEA, users can run `--help` and `--version` via the `Execute Gradle task` toolbar action.
 
+## Documentation and training
+
+### Documentation
+
+#### User Manual
+
+The samples page has been removed. Code examples can now be found on their corresponding documentation pages, with links to the repository for full project files. For reference, you can still view the [original samples page](https://docs.gradle.org/9.4.1/samples/index.html) from Gradle 9.4.1.
+
 ## Fixed issues
 
 <!--
