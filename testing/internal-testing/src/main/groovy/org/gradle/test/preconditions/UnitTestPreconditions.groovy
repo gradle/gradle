@@ -451,13 +451,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class NotEC2Agent implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws UnknownHostException {
-            return !InetAddress.getLocalHost().getHostName().startsWith("ip-")
-        }
-    }
-
     static final class StableGroovy implements TestPrecondition {
         @Override
         boolean isSatisfied() {
