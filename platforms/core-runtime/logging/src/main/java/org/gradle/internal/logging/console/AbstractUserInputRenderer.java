@@ -16,28 +16,58 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.internal.logging.events.EndOutputEvent;
+import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.ReadStdInEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
+import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.events.UserInputValidationProblemEvent;
+import org.gradle.internal.logging.serializer.OutputEventSerializer;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Objects;
 
 public abstract class AbstractUserInputRenderer implements OutputEventListener {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractUserInputRenderer.class);
+    private static final long MAX_OVERFLOW_FILE_SIZE = 1_024L * 1_024L * 1_024L; // 1GB
+
+    static final int MEMORY_QUEUE_LIMIT = 2_500;
+
     protected final OutputEventListener delegate;
     private final GlobalUserInputReceiver userInput;
-    private final List<OutputEvent> eventQueue = new ArrayList<OutputEvent>();
-    private boolean paused;
+    private final TemporaryFileProvider temporaryFileProvider;
+    private final Serializer<OutputEvent> outputEventSerializer;
+    private final Deque<OutputEvent> eventQueue = new ArrayDeque<>(MEMORY_QUEUE_LIMIT);
 
-    public AbstractUserInputRenderer(OutputEventListener delegate, GlobalUserInputReceiver userInput) {
+    private @Nullable File overflowFile;
+    private @Nullable KryoBackedEncoder overflowEncoder;
+    private int overflowEventCount;
+    private boolean paused;
+    private boolean overflowFailed;
+
+    public AbstractUserInputRenderer(OutputEventListener delegate, GlobalUserInputReceiver userInput, TemporaryFileProvider temporaryFileProvider) {
         this.delegate = delegate;
         this.userInput = userInput;
+        this.temporaryFileProvider = temporaryFileProvider;
+        this.outputEventSerializer = OutputEventSerializer.create();
     }
 
     @Override
@@ -60,11 +90,53 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         }
 
         if (paused) {
-            eventQueue.add(event);
+            if (event instanceof UpdateNowEvent
+                || event instanceof FlushOutputEvent
+                || event instanceof EndOutputEvent) {
+                return;
+            }
+            bufferEvent(event);
             return;
         }
 
         delegate.onOutput(event);
+    }
+
+    private void bufferEvent(OutputEvent event) {
+        if (eventQueue.size() < MEMORY_QUEUE_LIMIT) {
+            eventQueue.add(event);
+        } else {
+            writeToOverflow(event);
+        }
+    }
+
+    private void writeToOverflow(OutputEvent event) {
+        if (overflowFailed) {
+            eventQueue.add(event);
+            return;
+        }
+        if (overflowFile != null && overflowFile.length() >= MAX_OVERFLOW_FILE_SIZE) {
+            cleanupOverflow();
+            throw new IllegalStateException("User input overflow file exceeded " + MAX_OVERFLOW_FILE_SIZE + " bytes, aborting to prevent filling up the disk");
+        }
+        try {
+            if (overflowEncoder == null) {
+                overflowFile = temporaryFileProvider.createTemporaryFile("user-input-overflow-", ".bin");
+                overflowFile.deleteOnExit();
+                overflowEncoder = new KryoBackedEncoder(Files.newOutputStream(overflowFile.toPath()));
+            }
+            outputEventSerializer.write(overflowEncoder, event);
+            overflowEventCount++;
+        } catch (Exception e) {
+            LOGGER.warn("Failed to write overflow event to disk, falling back to in-memory buffer", e);
+            overflowFailed = true;
+            closeOverflowEncoder();
+            eventQueue.add(event);
+        }
+    }
+
+    int getBufferedEventCount() {
+        return eventQueue.size() + overflowEventCount;
     }
 
     private void handleValidationProblemEvent(UserInputValidationProblemEvent event) {
@@ -96,15 +168,66 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
     }
 
     private void replayEvents() {
-        ListIterator<OutputEvent> iterator = eventQueue.listIterator();
+        while (!eventQueue.isEmpty()) {
+            delegate.onOutput(eventQueue.pop());
+        }
 
-        while (iterator.hasNext()) {
-            delegate.onOutput(iterator.next());
-            iterator.remove();
+        if (overflowFile != null) {
+            try {
+                replayOverflowFromDisk();
+            } finally {
+                cleanupOverflow();
+            }
+        } else {
+            // Reset overflow failure flag even when no file was created,
+            // so the next pause/resume cycle can attempt disk overflow again.
+            overflowFailed = false;
         }
     }
 
-    List<OutputEvent> getEventQueue() {
+    private void replayOverflowFromDisk() {
+        try {
+            closeOverflowEncoder();
+            int replayedCount = 0;
+            try (FileInputStream fis = new FileInputStream(Objects.requireNonNull(overflowFile));
+                 KryoBackedDecoder decoder = new KryoBackedDecoder(fis)) {
+                while (true) {
+                    OutputEvent event = outputEventSerializer.read(decoder);
+                    delegate.onOutput(event);
+                    replayedCount++;
+                }
+            } catch (EOFException e) {
+                if (replayedCount != overflowEventCount) {
+                    LOGGER.warn("Overflow file may be corrupt: expected {} events but replayed {}", overflowEventCount, replayedCount);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Failed to replay overflow events from disk", e);
+        }
+    }
+
+    private void closeOverflowEncoder() {
+        if (overflowEncoder != null) {
+            try {
+                overflowEncoder.close();
+            } catch (Exception e) {
+                LOGGER.warn("Failed to close overflow encoder", e);
+            }
+            overflowEncoder = null;
+        }
+    }
+
+    private void cleanupOverflow() {
+        closeOverflowEncoder();
+        if (overflowFile != null) {
+            overflowFile.delete();
+            overflowFile = null;
+        }
+        overflowEventCount = 0;
+        overflowFailed = false;
+    }
+
+    Deque<OutputEvent> getEventQueue() {
         return eventQueue;
     }
 
