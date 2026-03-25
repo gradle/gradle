@@ -25,6 +25,10 @@ import java.util.Map;
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildModelParameters {
 
+    default boolean isVintage() {
+        return !isConfigurationCache();
+    }
+
     /**
      * Whether project-scoped work should use project-lock or build-lock to synchronize,
      * allowing work from different projects to run in parallel when set to true.
