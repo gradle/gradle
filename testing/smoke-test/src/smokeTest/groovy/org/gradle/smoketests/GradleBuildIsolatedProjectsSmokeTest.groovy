@@ -21,8 +21,8 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProbl
 class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedProjectsSmokeTest {
 
     def "can run Gradle build tasks with isolated projects enabled"() {
-        def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
         given:
+        def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
         def tasks = [
             "build",
             "sanityCheck",
