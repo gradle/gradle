@@ -286,7 +286,7 @@ For example, in IntelliJ IDEA, users can run `--help` and `--version` via the `E
 
 #### User Manual
 
-The samples page has been removed. Code examples can now be found on their corresponding documentation pages, with links to the repository for full project files. For reference, you can still view the [original samples page](https://docs.gradle.org/9.4.1/samples/index.html) from Gradle 9.4.1.
+The samples page has been removed. Code examples can now be found on their corresponding documentation pages, with links to the repository for full project files. For reference, you can still view the [original samples page](9.4.1/samples/index.html) from Gradle 9.4.1.
 
 ## Fixed issues
 
