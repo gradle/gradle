@@ -30,6 +30,7 @@ with(layout.rootDirectory) {
         val buildEnvironmentExtension = extensions.create("buildEnvironment", BuildEnvironmentExtension::class)
         buildEnvironmentExtension.gitCommitId = service.flatMap { it.gitCommitId }
         buildEnvironmentExtension.gitBranch = service.flatMap { it.gitBranch }
+        buildEnvironmentExtension.scriptTemplateCommitId = service.flatMap { it.scriptTemplateCommitId }
         buildEnvironmentExtension.repoRoot = this@with
         buildEnvironmentExtension.rootProjectBuildDir = service.flatMap { it.parameters.rootProjectBuildDir }
     }

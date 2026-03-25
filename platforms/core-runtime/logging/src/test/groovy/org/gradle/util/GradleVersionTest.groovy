@@ -60,6 +60,32 @@ class GradleVersionTest extends Specification {
         version.buildTimestamp == null || version.buildTimestamp.endsWith("UTC")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/30101")
+    def "script template commit id matches last commit that modified the template"() {
+        given:
+        def scriptTemplateRevision = DefaultGradleVersion.current().scriptTemplateGitRevision
+
+        when: // obtain the root dir of the Git repository
+        def repoRoot = ["git", "rev-parse", "--show-toplevel"].execute()
+        repoRoot.waitFor()
+
+        then: // fail if unsuccessful
+        repoRoot.exitValue() == 0
+
+        when: // obtain the last commit hash of the template file
+        def rootDir = new File(repoRoot.text.trim())
+        def templatePath = "platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt"
+        def process = ["git", "log", "-1", "--format=%H", "--", templatePath].execute([], rootDir)
+        process.waitFor()
+
+        then: // fail if unsuccessful
+        process.exitValue() == 0
+
+        and: // check the commit hash
+        def expectedCommitId = process.text.trim()
+        scriptTemplateRevision == expectedCommitId
+    }
+
     def equalsAndHashCode() {
         expect:
         Matchers.strictlyEquals(GradleVersion.version('0.9'), GradleVersion.version('0.9'))

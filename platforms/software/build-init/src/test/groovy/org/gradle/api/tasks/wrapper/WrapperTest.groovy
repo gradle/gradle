@@ -88,7 +88,7 @@ class WrapperTest extends AbstractTaskTest {
         !wrapper.getNetworkTimeout().isPresent()
         wrapper.getValidateDistributionUrl()
         !wrapper.getRetries().isPresent()
-        !wrapper.getRetryTimeoutMs().isPresent()
+        !wrapper.getRetryBackOffMs().isPresent()
     }
 
     def "determines Windows script path from unix script path with #inName"() {
@@ -169,12 +169,12 @@ class WrapperTest extends AbstractTaskTest {
         5 == wrapper.getRetries().get()
     }
 
-    def "uses defined retry timeout"() {
+    def "uses defined retry back off"() {
         given:
-        wrapper.setRetryTimeoutMs(5000)
+        wrapper.setRetryBackOffMs(1000)
 
         expect:
-        5000 == wrapper.getRetryTimeoutMs().get()
+        1000 == wrapper.getRetryBackOffMs().get()
     }
 
     def "uses defined validateDistributionUrl value"() {
@@ -235,7 +235,7 @@ class WrapperTest extends AbstractTaskTest {
         TaskPropertyTestUtils.getProperties(wrapper).keySet() == WrapUtil.toSet(
             "distributionBase", "distributionPath", "distributionUrl", "distributionSha256Sum",
             "distributionType", "archiveBase", "archivePath", "gradleVersion", "networkTimeout",
-            "validateDistributionUrl", "retries", "retryTimeoutMs")
+            "validateDistributionUrl", "retries", "retryBackOffMs")
     }
 
     def "execute with extant wrapper jar parent directory and extant wrapper jar"() {
