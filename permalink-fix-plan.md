@@ -29,12 +29,6 @@ Only the first URL (the template itself) appears in generated start/wrapper scri
 
 Add a new property to the build receipt (or alongside it) that stores the git commit that last modified the template file. This is computed once during the Gradle build and embedded in the distribution.
 
-### Step 0: Simplify `${gitRef}` usage in the template
-
-In `unixStartScript.txt`, replace `${gitRef}` with `HEAD` in the two URLs inside the `<% /* ... */ %>` meta-comment block (lines 66 and 93). Only the first URL (line 60, the link to the template itself) should keep `${gitRef}`, since that's the only one that ends up in generated scripts.
-
-**File**: `platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt`
-
 ### Step 1: Add a git query for the template file's last-modified commit
 
 In `BuildEnvironmentService` (or a new build-logic utility), compute:
@@ -82,18 +76,6 @@ Update the three places that set `gitRef`:
 - `build-logic/jvm/src/main/kotlin/gradlebuild/startscript/tasks/GradleStartScriptGenerator.kt`
 
 ### Step 6: Update tests
-
-#### 6a: Unit test — template meta-comment URLs use `HEAD` (new)
-
-In `UnixStartScriptGeneratorTest.groovy`, add a test that verifies the two URLs inside the meta-comment block (`UnixStartScriptGenerator.java` and `Wrapper.java`) always use `HEAD`, regardless of the `gitRef` value. Generate a script with a specific gitRef and assert that those two URLs contain `/blob/HEAD/` while the template's own URL contains the specific commit hash.
-
-**File**: `platforms/jvm/plugins-application/src/test/groovy/org/gradle/api/internal/plugins/UnixStartScriptGeneratorTest.groovy`
-
-#### 6b: Unit test — permalink uses gitRef (existing, update if needed)
-
-The existing test `"uses github permalinks in embedded documentation when gitRef specified"` already verifies that when a gitRef is provided, the generated script contains `/blob/<commit>/` instead of `/blob/HEAD/`. After Step 0, this test should still pass since the only `${gitRef}` URL remaining in generated output is the template link. Verify it still passes; adjust assertions if needed.
-
-**File**: `platforms/jvm/plugins-application/src/test/groovy/org/gradle/api/internal/plugins/UnixStartScriptGeneratorTest.groovy`
 
 #### 6c: Unit test — ApplicationPlugin wires gitRef correctly (existing, update)
 
