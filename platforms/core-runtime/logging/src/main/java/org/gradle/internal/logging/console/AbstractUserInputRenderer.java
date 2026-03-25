@@ -47,6 +47,7 @@ import java.util.Objects;
 public abstract class AbstractUserInputRenderer implements OutputEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractUserInputRenderer.class);
+    private static final long MAX_OVERFLOW_FILE_SIZE = 1_024L * 1_024L * 1_024L; // 1GB
 
     static final int MEMORY_QUEUE_LIMIT = 2_500;
 
@@ -113,6 +114,10 @@ public abstract class AbstractUserInputRenderer implements OutputEventListener {
         if (overflowFailed) {
             eventQueue.add(event);
             return;
+        }
+        if (overflowFile != null && overflowFile.length() >= MAX_OVERFLOW_FILE_SIZE) {
+            cleanupOverflow();
+            throw new IllegalStateException("User input overflow file exceeded " + MAX_OVERFLOW_FILE_SIZE + " bytes, aborting to prevent filling up the disk");
         }
         try {
             if (overflowEncoder == null) {
