@@ -29,25 +29,6 @@ Only the first URL (the template itself) appears in generated start/wrapper scri
 
 Add a new property to the build receipt (or alongside it) that stores the git commit that last modified the template file. This is computed once during the Gradle build and embedded in the distribution.
 
-### Step 4: Read from DefaultGradleVersion
-
-Add a method like `getScriptTemplateGitRevision()` to `DefaultGradleVersion` that reads the new field from the build receipt.
-
-**File**: `platforms/core-runtime/base-services/src/main/java/org/gradle/util/internal/DefaultGradleVersion.java`
-
-### Step 5: Use the new commit ID in script generation
-
-Update the three places that set `gitRef`:
-
-1. **ApplicationPlugin.java** (line 194): Change to use `getScriptTemplateGitRevision()`
-2. **WrapperGenerator.java** (line 136): Change to use `getScriptTemplateGitRevision()`
-3. **GradleStartScriptGenerator.kt** (line 81): Change to use `scriptTemplateGitRevision`
-
-**Files**:
-- `platforms/jvm/plugins-application/src/main/java/org/gradle/api/plugins/ApplicationPlugin.java`
-- `platforms/software/build-init/src/main/java/org/gradle/api/tasks/wrapper/internal/WrapperGenerator.java`
-- `build-logic/jvm/src/main/kotlin/gradlebuild/startscript/tasks/GradleStartScriptGenerator.kt`
-
 ### Step 6: Update tests
 
 #### 6c: Unit test — ApplicationPlugin wires gitRef correctly (existing, update)
