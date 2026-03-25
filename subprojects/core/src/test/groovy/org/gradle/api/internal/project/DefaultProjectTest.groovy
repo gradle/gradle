@@ -593,7 +593,7 @@ class DefaultProjectTest extends Specification {
         project.project(Project.PATH_SEPARATOR + "unknownchild")
         then:
         def e = thrown(UnknownProjectException)
-        e.message == "Project with path ':unknownchild' could not be found in displayname."
+        e.message == "Project with path ':unknownchild' could not be found in root project 'root'."
     }
 
     def getProjectWithUnknownRelativePath() {
@@ -601,7 +601,7 @@ class DefaultProjectTest extends Specification {
         project.project("unknownchild")
         then:
         def e = thrown(UnknownProjectException)
-        e.message == "Project with path 'unknownchild' could not be found in displayname."
+        e.message == "Project with path 'unknownchild' could not be found in root project 'root'."
     }
 
     def getProjectWithEmptyPath() {
@@ -895,7 +895,7 @@ def scriptMethod(Closure closure) {
         project.name = "someNewName"
         then:
         def e = thrown(GroovyRuntimeException)
-        e.message == "Cannot set the value of read-only property 'name' for displayname of type ${Project.name}."
+        e.message == "Cannot set the value of read-only property 'name' for root project 'root' of type ${Project.name}."
     }
 
     def convertsAbsolutePathToAbsolutePath() {

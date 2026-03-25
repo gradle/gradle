@@ -128,7 +128,7 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
 
         expect:
         succeeds 'dependencies', '--configuration', 'compileClasspath'
-        outputContains 'project :sub'
+        outputContains "project ':sub'"
     }
 
     def "can declare project dependency on root project using project path string"() {
@@ -148,7 +148,7 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
 
         expect:
         succeeds 'sub:dependencies', '--configuration', 'compileClasspath'
-        outputContains 'root project :'
+        outputContains "root project 'root'"
     }
 
     def "can add constraint on root project"() {

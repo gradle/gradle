@@ -376,11 +376,11 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     configuration 'runtimeElements'
                     project(":shared", "test:shared:") {
                         artifact(classifier: 'one-preferred')
-                        byConflictResolution("Explicit selection of project :shared variant onePrefRuntimeElements")
+                        byConflictResolution("Explicit selection of project ':shared' variant onePrefRuntimeElements")
                     }
                     project(":shared", "test:shared:") {
                         artifact(classifier: 'two-preferred')
-                        byConflictResolution("Explicit selection of project :shared variant twoPrefRuntimeElements")
+                        byConflictResolution("Explicit selection of project ':shared' variant twoPrefRuntimeElements")
                     }
                 }
                 project(":shared", "test:shared:") {
@@ -984,7 +984,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             root(":", ":test:") {
                 project(":producer", "test:producer:") {
                     variant('one-preferred', ['org.gradle.usage': 'foo'])
-                    byConflictResolution("Explicit selection of project :producer variant one-preferred")
+                    byConflictResolution("Explicit selection of project ':producer' variant one-preferred")
                     noArtifacts()
                 }
                 project(":producer", "test:producer:") {

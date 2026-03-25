@@ -158,7 +158,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         fails("resolve")
 
         then:
-        failure.assertHasCause("Unable to find a variant of 'project :other' with the requested capabilities: ['org:capability', feature 'foo']")
+        failure.assertHasCause("Unable to find a variant of 'project ':other'' with the requested capabilities: ['org:capability', feature 'foo']")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26377")
@@ -305,7 +305,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         fails("resolve")
 
         then:
-        failure.assertHasCause("No matching variant of project :other $description was found")
+        failure.assertHasCause("No matching variant of project ':other' $description was found")
         failure.assertHasErrorOutput("Incompatible because this component declares attribute 'org.gradle.category' with value 'foo' and the consumer needed attribute 'org.gradle.category' with value 'bar'")
 
         where:

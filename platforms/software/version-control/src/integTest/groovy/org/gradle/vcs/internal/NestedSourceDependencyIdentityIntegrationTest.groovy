@@ -174,7 +174,7 @@ Required by:
                 assert selectors.size() == 3
                 assert selectors[0].displayName == 'org.test:buildB:1.2'
                 assert selectors[1].displayName == 'org.test:${dependencyName}:1.2'
-                assert selectors[2].displayName == 'project :${buildName}:a'
+                assert selectors[2].displayName == 'project \\':${buildName}:a\\''
                 assert selectors[2].buildPath == ':${buildName}'
                 assert selectors[2].projectPath == ':a'
             }

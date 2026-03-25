@@ -152,43 +152,43 @@ class DefaultProjectSpec extends Specification {
         def nestedChild2 = project("child2", nestedChild1, nestedBuild)
 
         expect:
-        rootProject.toString() == rootProject.owner.displayName.toString()
-        rootProject.displayName == rootProject.owner.displayName.toString()
+        rootProject.toString() == "root project 'root'"
+        rootProject.displayName == "root project 'root'"
         rootProject.path == ":"
         rootProject.buildTreePath == ':'
         rootProject.identityPath == Path.ROOT
         rootProject.projectIdentity == rootProject.owner.identity
 
-        child1.toString() == child1.owner.displayName.toString()
-        child1.displayName == child1.owner.displayName.toString()
+        child1.toString() == "project ':child1'"
+        child1.displayName == "project ':child1'"
         child1.path == ":child1"
         child1.buildTreePath == ":child1"
         child1.identityPath == Path.path(":child1")
         child1.projectIdentity == child1.owner.identity
 
-        child2.toString() == child2.owner.displayName.toString()
-        child2.displayName == child2.owner.displayName.toString()
+        child2.toString() == "project ':child1:child2'"
+        child2.displayName == "project ':child1:child2'"
         child2.path == ":child1:child2"
         child2.buildTreePath == ":child1:child2"
         child2.identityPath == Path.path(":child1:child2")
         child2.projectIdentity == child2.owner.identity
 
-        nestedRootProject.toString() == nestedRootProject.owner.displayName.toString()
-        nestedRootProject.displayName == nestedRootProject.owner.displayName.toString()
+        nestedRootProject.toString() == "project ':nested'"
+        nestedRootProject.displayName == "project ':nested'"
         nestedRootProject.path == ":"
         nestedRootProject.buildTreePath == ":nested"
         nestedRootProject.identityPath == Path.path(":nested")
         nestedRootProject.projectIdentity == nestedRootProject.owner.identity
 
-        nestedChild1.toString() == nestedChild1.owner.displayName.toString()
-        nestedChild1.displayName == nestedChild1.owner.displayName.toString()
+        nestedChild1.toString() == "project ':nested:child1'"
+        nestedChild1.displayName == "project ':nested:child1'"
         nestedChild1.path == ":child1"
         nestedChild1.buildTreePath == ":nested:child1"
         nestedChild1.identityPath == Path.path(":nested:child1")
         nestedChild1.projectIdentity == nestedChild1.owner.identity
 
-        nestedChild2.toString() == nestedChild2.owner.displayName.toString()
-        nestedChild2.displayName == nestedChild2.owner.displayName.toString()
+        nestedChild2.toString() == "project ':nested:child1:child2'"
+        nestedChild2.displayName == "project ':nested:child1:child2'"
         nestedChild2.path == ":child1:child2"
         nestedChild2.buildTreePath == ":nested:child1:child2"
         nestedChild2.identityPath == Path.path(":nested:child1:child2")

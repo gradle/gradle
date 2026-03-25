@@ -1465,14 +1465,14 @@ org:leaf:[1.5,2.0] FAILED
 
         then:
         outputContains """
-project :A FAILED
+project ':A' FAILED
    Failures:
-      - Could not resolve project :A.
-          - Unable to find a matching variant of project :A:
+      - Could not resolve project ':A'.
+          - Unable to find a matching variant of project ':A':
               - No variants exist.
           - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
 
-project :A FAILED
+project ':A' FAILED
 \\--- conf
 """
 
@@ -1481,15 +1481,15 @@ project :A FAILED
 
         then:
         outputContains """
-project :C FAILED
+project ':C' FAILED
    Failures:
-      - Could not resolve project :C.
-          - Unable to find a matching variant of project :C:
+      - Could not resolve project ':C'.
+          - Unable to find a matching variant of project ':C':
               - No variants exist.
           - Creating consumable variants is explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/declaring_dependencies.html#sec:resolvable-consumable-configs.
 
-project :C FAILED
-\\--- project :B
+project ':C' FAILED
+\\--- project ':B'
      \\--- conf
 """
 
@@ -1572,7 +1572,7 @@ org:leaf2:1.0
 
         then:
         outputContains """
-root project :
+root project 'root'
   Variant runtimeClasspath:
     | Attribute Name                 | Provided     | Requested    |
     |--------------------------------|--------------|--------------|
@@ -1592,9 +1592,9 @@ root project :
     | org.gradle.usage               | java-runtime | java-runtime |
     | org.gradle.jvm.environment     |              | standard-jvm |
 
-root project :
-\\--- project :impl
-     \\--- root project : (*)
+root project 'root'
+\\--- project ':impl'
+     \\--- root project 'root' (*)
 """
     }
 
@@ -1650,7 +1650,7 @@ org:leaf2:1.0
 
 org:leaf2:1.0
 \\--- org:leaf1:1.0
-     \\--- project :impl
+     \\--- project ':impl'
           \\--- runtimeClasspath
 """
     }
@@ -1693,7 +1693,7 @@ org:leaf2:1.0
 
         then:
         outputContains """
-project :impl
+project ':impl'
   Variant apiElements:
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
@@ -1704,7 +1704,7 @@ project :impl
     | org.gradle.usage               | java-api | java-api     |
     | org.gradle.jvm.environment     |          | standard-jvm |
 
-project :impl
+project ':impl'
 \\--- compileClasspath
 """
     }
@@ -1762,7 +1762,7 @@ org:leaf4:1.0
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
 
 org:leaf4:1.0
-\\--- project :impl
+\\--- project ':impl'
      \\--- compileClasspath
 """
     }
@@ -1872,7 +1872,7 @@ org:leaf2:1.0
 
         then:
         outputContains """
-project :api
+project ':api'
   Variant apiElements:
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
@@ -1883,8 +1883,8 @@ project :api
     | org.gradle.usage               | java-api | java-api     |
     | org.gradle.jvm.environment     |          | standard-jvm |
 
-project :api
-\\--- project :impl
+project ':api'
+\\--- project ':impl'
      \\--- compileClasspath
 """
 
@@ -1893,7 +1893,7 @@ project :api
 
         then:
         outputContains """
-project :some:deeply:nested
+project ':some:deeply:nested'
   Variant apiElements:
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
@@ -1904,7 +1904,7 @@ project :some:deeply:nested
     | org.gradle.usage               | java-api | java-api     |
     | org.gradle.jvm.environment     |          | standard-jvm |
 
-project :some:deeply:nested
+project ':some:deeply:nested'
 \\--- compileClasspath
 """
 
@@ -1913,7 +1913,7 @@ project :some:deeply:nested
 
         then:
         outputContains """
-project :some:deeply:nested
+project ':some:deeply:nested'
   Variant apiElements:
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
@@ -1924,7 +1924,7 @@ project :some:deeply:nested
     | org.gradle.usage               | java-api | java-api     |
     | org.gradle.jvm.environment     |          | standard-jvm |
 
-project :some:deeply:nested
+project ':some:deeply:nested'
 \\--- compileClasspath
 """
     }
@@ -1982,11 +1982,11 @@ org:leaf3:1.0
 
 org:leaf3:1.0
 \\--- org:leaf2:1.0
-     +--- project :api
-     |    \\--- project :impl
+     +--- project ':api'
+     |    \\--- project ':impl'
      |         \\--- compileClasspath
      \\--- org:leaf1:1.0
-          \\--- project :impl (*)
+          \\--- project ':impl' (*)
 
 """
     }
@@ -2607,8 +2607,8 @@ org:bar: FAILED
    Failures:
       - Could not resolve org:bar:{reject all versions}.
           - Module 'org:bar' has been rejected:
-               Dependency path: 'root project :' (compileClasspath) --> 'org:bar:[1.0,)' because of the following reason: rejected versions 1.2, 1.1, 1.0
-               Constraint path: 'root project :' (compileClasspath) --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
+               Dependency path: 'root project 'insight-test'' (compileClasspath) --> 'org:bar:[1.0,)' because of the following reason: rejected versions 1.2, 1.1, 1.0
+               Constraint path: 'root project 'insight-test'' (compileClasspath) --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
 
 org:bar:{reject all versions} FAILED
 \\--- compileClasspath
@@ -2626,8 +2626,8 @@ org:foo: (by constraint) FAILED
    Failures:
       - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.
           - Cannot find a version of 'org:foo' that satisfies the version constraints:
-               Dependency path: 'root project :' (compileClasspath) --> 'org:foo:[1.0,)' because of the following reason: rejected versions 1.2, 1.1, 1.0
-               Constraint path: 'root project :' (compileClasspath) --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
+               Dependency path: 'root project 'insight-test'' (compileClasspath) --> 'org:foo:[1.0,)' because of the following reason: rejected versions 1.2, 1.1, 1.0
+               Constraint path: 'root project 'insight-test'' (compileClasspath) --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
 
 org:foo:{reject 1.0 & 1.1 & 1.2} FAILED
 \\--- compileClasspath

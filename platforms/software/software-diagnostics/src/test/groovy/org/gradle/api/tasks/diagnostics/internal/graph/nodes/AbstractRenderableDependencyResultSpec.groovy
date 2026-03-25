@@ -40,7 +40,7 @@ class AbstractRenderableDependencyResultSpec extends Specification {
         dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('com.mockito', 'mockito'), '2.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
         dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('com.mockito.other', 'mockito-core'), '3.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito.other:mockito-core:3.0'
         dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('com.mockito.other', 'mockito-core'), '1.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito.other:mockito-core:1.0'
-        dep(requested, newProjectId(':a')).name == 'org.mockito:mockito-core:1.0 -> project :a'
+        dep(requested, newProjectId(':a')).name == "org.mockito:mockito-core:1.0 -> project ':a'"
     }
 
     def "renders name for ProjectComponentSelector"() {
@@ -48,9 +48,9 @@ class AbstractRenderableDependencyResultSpec extends Specification {
         def requested = TestComponentIdentifiers.newSelector(':a')
 
         expect:
-        dep(requested, newProjectId(':a')).name == 'project :a'
-        dep(requested, newProjectId(':b')).name == 'project :a -> project :b'
-        dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org.somegroup', 'module'), '1.0')).name == 'project :a -> org.somegroup:module:1.0'
+        dep(requested, newProjectId(':a')).name == "project ':a'"
+        dep(requested, newProjectId(':b')).name == "project ':a' -> project ':b'"
+        dep(requested, DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org.somegroup', 'module'), '1.0')).name == "project ':a' -> org.somegroup:module:1.0"
     }
 
     private AbstractRenderableDependencyResult dep(ComponentSelector requested, ComponentIdentifier selected) {

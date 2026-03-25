@@ -70,8 +70,8 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         then:
         outputContains("""
 runtimeClasspath - Runtime classpath of source set 'main'.
-\\--- org.test:${dependencyName}:1.0 -> project :${buildName}
-     \\--- project :${buildName}:b1
+\\--- org.test:${dependencyName}:1.0 -> project ':${buildName}'
+     \\--- project ':${buildName}:b1'
 """)
 
         where:
@@ -168,7 +168,7 @@ Required by:
 
                 selectors = buildRootProject.dependencies.requested
                 assert selectors.size() == 1
-                assert selectors[0].displayName == 'project :${buildName}:b1'
+                assert selectors[0].displayName == 'project \\':${buildName}:b1\\''
                 assert selectors[0].buildPath == ':${buildName}'
                 assert selectors[0].projectPath == ':b1'
             }

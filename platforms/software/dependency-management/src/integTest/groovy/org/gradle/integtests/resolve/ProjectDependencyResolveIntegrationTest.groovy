@@ -400,7 +400,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
 
         and:
         failure.assertHasCause("Could not resolve all dependencies for configuration ':b:compile'.")
-        failure.assertHasCause("Could not find b.jar (project :a).")
+        failure.assertHasCause("Could not find b.jar (project ':a').")
     }
 
     def "non-transitive project dependency includes only the artifacts of the target configuration"() {

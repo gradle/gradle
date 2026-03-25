@@ -159,7 +159,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         fails ":checkDeps"
 
         then:
-        failure.assertThatCause(Matchers.startsWith("No matching variant of project :platform was found."))
+        failure.assertThatCause(Matchers.startsWith("No matching variant of project ':platform' was found."))
     }
 
     def "can enforce a local platform dependency"() {

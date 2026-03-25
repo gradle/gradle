@@ -325,7 +325,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
         expect:
         fails("show")
-        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
@@ -395,7 +395,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
         expect:
         fails("show")
-        failure.assertHasCause("""No variants of project :a match the consumer attributes:
+        failure.assertHasCause("""No variants of project ':a' match the consumer attributes:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'free' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'
   - Configuration ':a:compile' variant paid declares attribute 'usage' with value 'compile':
@@ -601,7 +601,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             failure.assertHasCause("Could not find test-1.0.jar (org:test:1.0).")
             failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
             failure.assertHasCause("broken 2")
-            failure.assertHasCause("The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:")
+            failure.assertHasCause("The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project ':a':")
         } else {
             failure.assertHasDescription("Could not determine the dependencies of task ':show'.")
         }

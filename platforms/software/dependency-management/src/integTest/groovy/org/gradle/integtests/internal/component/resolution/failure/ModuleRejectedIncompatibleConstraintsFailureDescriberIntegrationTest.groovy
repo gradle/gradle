@@ -77,8 +77,8 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.1.0 - directly in 'project :a' (apiElements)
-4.2.0 - directly in 'project :b' (apiElements) (1 other path to this version)""")
+4.1.0 - directly in 'project ':a'' (apiElements)
+4.2.0 - directly in 'project ':b'' (apiElements) (1 other path to this version)""")
 
         and: "Helpful resolutions are provided"
         failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
@@ -148,8 +148,8 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.1.0 - directly in 'project :a' (apiElements)
-4.2.0 - transitively via 'project :b' (apiElements) (1 other path to this version)""")
+4.1.0 - directly in 'project ':a'' (apiElements)
+4.2.0 - transitively via 'project ':b'' (apiElements) (1 other path to this version)""")
 
         and: "Helpful resolutions are provided"
         failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
@@ -219,10 +219,10 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.5 - directly in 'project :c' (apiElements)
-4.5.8 - transitively via 'project :b' (apiElements)
-4.5.10 - transitively via 'project :b' (apiElements)
-4.5.11 - directly in 'project :a' (apiElements)""")
+4.5 - directly in 'project ':c'' (apiElements)
+4.5.8 - transitively via 'project ':b'' (apiElements)
+4.5.10 - transitively via 'project ':b'' (apiElements)
+4.5.11 - directly in 'project ':a'' (apiElements)""")
 
         and: "Helpful resolutions are provided"
         failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")
@@ -280,8 +280,8 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberIntegrationTest exten
         failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not resolve org.apache.httpcomponents:httpclient.")
         failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
-4.5.1 - directly in 'project :a' (apiElements) (1 other path to this version)
-4.5.2 - directly in 'project :c' (apiElements)""")
+4.5.1 - directly in 'project ':a'' (apiElements) (1 other path to this version)
+4.5.2 - directly in 'project ':c'' (apiElements)""")
 
         and: "Helpful resolutions are provided"
         failure.assertHasResolution("Run with :dependencyInsight --configuration compileClasspath --dependency org.apache.httpcomponents:httpclient to get more insight on how to solve the conflict.")

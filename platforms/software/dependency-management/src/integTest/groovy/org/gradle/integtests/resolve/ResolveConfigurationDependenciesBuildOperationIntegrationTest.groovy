@@ -584,7 +584,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
         """
 
-        settingsFile << "include 'child'"
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'child'
+        """
 
         file("child/build.gradle") << """
             plugins {
@@ -611,8 +614,8 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def repoId = repoId('maven1', op.details)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 4
-        resolvedComponents.'root project :'.repoId == null
-        resolvedComponents.'project :child'.repoId == null
+        resolvedComponents."root project 'test'".repoId == null
+        resolvedComponents."project ':child'".repoId == null
         resolvedComponents.'org.foo:direct1:1.0'.repoId == repoId
         resolvedComponents.'org.foo:transitive1:1.0'.repoId == repoId
     }

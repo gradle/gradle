@@ -75,8 +75,8 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         assertTaskExecuted(":buildB", ":jar")
         assertTaskExecuted(":buildC", ":jar")
 
-        outputContains("Transformed artifact: buildB-1.0.jar.xform (project :buildB)")
-        outputContains("Transformed artifact: buildC-1.0.jar.xform (project :buildC)")
+        outputContains("Transformed artifact: buildB-1.0.jar.xform (project ':buildB')")
+        outputContains("Transformed artifact: buildC-1.0.jar.xform (project ':buildC')")
         output.count("Transforming") == 2
     }
 

@@ -675,7 +675,7 @@ class ResolveTestFixture {
                 def projectName = moduleVersion.split(':')[1]
                 return node("project:$projectIdentityPath", "root project '$projectName'", moduleVersion)
             } else {
-                return node("project:$projectIdentityPath", "project $projectIdentityPath", moduleVersion)
+                return node("project:$projectIdentityPath", "project '$projectIdentityPath'", moduleVersion)
             }
         }
 

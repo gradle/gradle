@@ -170,7 +170,7 @@ Instead, a resolvable ('canBeResolved=true') dependency configuration that exten
         fails 'a:check'
 
         then:
-        failure.assertHasCause "A dependency was declared on configuration 'internal' of 'project :b' but no variant with that configuration name exists."
+        failure.assertHasCause "A dependency was declared on configuration 'internal' of 'project ':b'' but no variant with that configuration name exists."
 
         where:
         role                    | code
@@ -208,7 +208,7 @@ Instead, a resolvable ('canBeResolved=true') dependency configuration that exten
         fails 'a:check'
 
         then:
-        failure.assertHasCause """Unable to find a matching variant of project :b:
+        failure.assertHasCause """Unable to find a matching variant of project ':b':
   - No variants exist."""
 
         where:
