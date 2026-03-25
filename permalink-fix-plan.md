@@ -29,33 +29,6 @@ Only the first URL (the template itself) appears in generated start/wrapper scri
 
 Add a new property to the build receipt (or alongside it) that stores the git commit that last modified the template file. This is computed once during the Gradle build and embedded in the distribution.
 
-### Step 1: Add a git query for the template file's last-modified commit
-
-In `BuildEnvironmentService` (or a new build-logic utility), compute:
-```
-git log -1 --format=%H -- platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
-```
-
-This returns the SHA of the last commit that modified the template file.
-
-**Location**: `build-logic-settings/build-environment/src/main/kotlin/gradlebuild/basics/BuildEnvironmentService.kt`
-
-Add a new property like `scriptTemplateCommitId` alongside the existing `gitCommitId`.
-
-### Step 2: Propagate through BuildEnvironmentExtension
-
-Add `scriptTemplateCommitId` to `BuildEnvironmentExtension` and wire it up in `gradlebuild.build-environment.settings.gradle.kts`.
-
-**Files**:
-- `build-logic-settings/build-environment/src/main/kotlin/gradlebuild/basics/BuildEnvironmentExtension.kt`
-- `build-logic-settings/build-environment/src/main/kotlin/gradlebuild.build-environment.settings.gradle.kts`
-
-### Step 3: Store in the build receipt
-
-Add a new field (e.g., `scriptTemplateCommitId`) to the `BuildReceipt` task output.
-
-**File**: `build-logic-commons/module-identity/src/main/kotlin/gradlebuild/identity/tasks/BuildReceipt.kt`
-
 ### Step 4: Read from DefaultGradleVersion
 
 Add a method like `getScriptTemplateGitRevision()` to `DefaultGradleVersion` that reads the new field from the build receipt.
