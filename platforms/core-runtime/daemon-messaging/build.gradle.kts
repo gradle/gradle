@@ -21,7 +21,6 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.buildOption)
-    implementation(projects.enterpriseLogging)
     implementation(projects.fileWatching)
     implementation(projects.stdlibJavaExtensions)
 

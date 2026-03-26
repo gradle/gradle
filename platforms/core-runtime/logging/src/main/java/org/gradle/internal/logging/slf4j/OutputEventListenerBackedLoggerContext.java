@@ -16,11 +16,13 @@
 
 package org.gradle.internal.logging.slf4j;
 
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.console.DefaultUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 import org.gradle.internal.time.Clock;
+import org.gradle.wrapper.GradleUserHomeLookup;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
@@ -86,7 +88,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     public void reset() {
         setLevel(DEFAULT_LOG_LEVEL);
         DefaultUserInputReceiver userInputReceiver = new DefaultUserInputReceiver();
-        OutputEventRenderer renderer = new OutputEventRenderer(clock, userInputReceiver);
+        OutputEventRenderer renderer = new OutputEventRenderer(clock, userInputReceiver, new GradleUserHomeTemporaryFileProvider(GradleUserHomeLookup::gradleUserHome));
         userInputReceiver.attachConsole(renderer);
         renderer.attachSystemOutAndErr();
         setOutputEventListener(renderer);

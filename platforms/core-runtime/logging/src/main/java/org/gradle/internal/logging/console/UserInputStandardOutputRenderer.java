@@ -16,12 +16,13 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
 
 public class UserInputStandardOutputRenderer extends AbstractUserInputRenderer {
-    public UserInputStandardOutputRenderer(OutputEventListener delegate, GlobalUserInputReceiver userInput) {
-        super(delegate, userInput);
+    public UserInputStandardOutputRenderer(OutputEventListener delegate, GlobalUserInputReceiver userInput, TemporaryFileProvider temporaryFileProvider) {
+        super(delegate, userInput, temporaryFileProvider);
     }
 
     @Override

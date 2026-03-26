@@ -12,6 +12,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.time)
     api(projects.baseServices)
+    api(projects.fileTemp)
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.cli)
@@ -30,6 +31,7 @@ dependencies {
     implementation(projects.io)
     implementation(projects.messaging)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.wrapperShared)
 
     implementation(libs.commonsLang)
     implementation(libs.errorProneAnnotations)
