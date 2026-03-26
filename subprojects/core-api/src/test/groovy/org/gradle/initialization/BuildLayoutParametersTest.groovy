@@ -19,11 +19,8 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.internal.FileUtils.canonicalize
@@ -33,8 +30,6 @@ class BuildLayoutParametersTest extends Specification {
     @Rule SetSystemProperties props = new SetSystemProperties()
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
-    @Requires(UnitTestPreconditions.NotEC2Agent)
-    @Issue('https://github.com/gradle/gradle-private/issues/2876')
     def "has reasonable defaults"() {
         expect:
         def params = new BuildLayoutParameters()

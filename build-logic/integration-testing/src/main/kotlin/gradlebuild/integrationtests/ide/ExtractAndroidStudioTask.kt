@@ -93,8 +93,15 @@ abstract class ExtractAndroidStudioTask @Inject constructor(
             }
 
             outputDir.get().asFile.mkdirs()
-            execOps.exec {
+            val unpackResult = execOps.exec {
                 commandLine("cp", "-r", "$volumeDir/Android Studio.app/Contents", outputDir.get().asFile.absolutePath)
+                isIgnoreExitValue = true
+            }
+            if (unpackResult.exitValue != 0) {
+                execOps.exec {
+                    commandLine("ls", "-lF", volumeDir)
+                }
+                unpackResult.assertNormalExitValue()
             }
         } finally {
             execOps.exec {

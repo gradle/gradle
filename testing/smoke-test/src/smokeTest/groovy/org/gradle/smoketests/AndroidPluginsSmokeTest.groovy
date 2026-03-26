@@ -346,7 +346,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             'com.android.application': TestedVersions.androidGradle,
             'com.android.library': TestedVersions.androidGradle,
             'com.android.test': TestedVersions.androidGradle,
-            'com.android.reporting': TestedVersions.androidGradleBefore9,
+            'com.android.reporting': TestedVersions.androidGradle,
             'com.android.dynamic-feature': TestedVersions.androidGradle,
         ]
     }
