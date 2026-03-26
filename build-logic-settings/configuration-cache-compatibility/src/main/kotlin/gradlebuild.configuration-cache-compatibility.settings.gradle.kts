@@ -64,11 +64,7 @@ run {
         task.name == "samplesMultiPage" -> true
         task.typeSimpleName() in listOf(
             "JavaExecProjectGeneratorTask",
-            "NativeProjectGeneratorTask",
-            "MonolithicNativeProjectGeneratorTask",
             "NativeProjectWithDepsGeneratorTask",
-            "CppMultiProjectGeneratorTask",
-            "BuildBuilderGenerator",
             "PerformanceTest",
             "DetermineBaselines",
         ) -> true
