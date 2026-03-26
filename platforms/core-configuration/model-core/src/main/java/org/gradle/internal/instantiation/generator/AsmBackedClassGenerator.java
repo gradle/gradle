@@ -228,11 +228,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     @Override
-    protected boolean isDecorate() {
-        return decorate;
-    }
-
-    @Override
     protected int getFactoryId() {
         return factoryId;
     }

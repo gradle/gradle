@@ -21,6 +21,7 @@ import com.google.common.io.ByteStreams;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
@@ -32,18 +33,50 @@ import java.util.stream.Collectors;
  * Computes a hash of a class's entire type hierarchy bytecode combined with
  * additional configuration strings. This is used to produce cache keys for
  * generated decorated classes, where the output depends on the full hierarchy.
+ *
+ * <p>Per-class bytecode hashes are cached using {@link ClassValue}, which
+ * associates data with Class objects using weak references — entries are
+ * automatically removed when the Class (and its classloader) is GC'd,
+ * preventing memory leaks in long-lived daemons.</p>
  */
 public class ClassHierarchyHasher {
 
     /**
+     * Per-class bytecode hash, cached for the lifetime of the Class object.
+     * Uses ClassValue which is GC-friendly: when a classloader is collected,
+     * the associated Class objects and their ClassValue entries are too.
+     */
+    private static final ClassValue<HashCode> PER_CLASS_HASH = new ClassValue<HashCode>() {
+        @Override
+        protected HashCode computeValue(Class<?> clazz) {
+            return computeClassHash(clazz);
+        }
+    };
+
+    /**
+     * Convenience overload that builds config strings from typical generator parameters.
+     */
+    public static String computeHash(
+        Class<?> type,
+        String suffix,
+        boolean decorate,
+        Set<? extends Class<?>> enabledAnnotations,
+        Set<? extends Class<?>> disabledAnnotations
+    ) {
+        List<String> configStrings = new ArrayList<>();
+        configStrings.add(suffix);
+        configStrings.add(Boolean.toString(decorate));
+        configStrings.addAll(enabledAnnotations.stream().map(Class::getName).sorted().collect(Collectors.toList()));
+        configStrings.add("---");
+        configStrings.addAll(disabledAnnotations.stream().map(Class::getName).sorted().collect(Collectors.toList()));
+        return computeHash(type, configStrings);
+    }
+
+    /**
      * Compute a hash incorporating the bytecode of every class/interface in the
      * hierarchy of {@code type}, plus arbitrary configuration strings.
-     *
-     * @param type the root class to hash
-     * @param configStrings additional strings to include in the hash (e.g. suffix, annotation names)
-     * @return a hex string hash suitable for use as a cache key
      */
-    public static String computeHash(Class<?> type, List<String> configStrings) {
+    static String computeHash(Class<?> type, List<String> configStrings) {
         Hasher hasher = Hashing.newHasher();
 
         // Hash configuration strings first
@@ -51,11 +84,10 @@ public class ClassHierarchyHasher {
             hasher.putString(config);
         }
 
-        // Walk the class hierarchy in BFS order and hash each class's bytecode
+        // Walk the class hierarchy in BFS order and fold in each class's cached hash
         Set<String> seen = new HashSet<>();
         Deque<Class<?>> queue = new ArrayDeque<>();
 
-        // Add the type itself and its superclass chain
         queue.add(type);
         Class<?> superclass = type.getSuperclass();
         while (superclass != null) {
@@ -68,50 +100,28 @@ public class ClassHierarchyHasher {
             if (!seen.add(current.getName())) {
                 continue;
             }
-            hashClassBytecode(current, hasher);
+            hasher.putHash(PER_CLASS_HASH.get(current));
             Collections.addAll(queue, current.getInterfaces());
         }
 
         return hasher.hash().toString();
     }
 
-    /**
-     * Convenience overload that builds config strings from typical generator parameters.
-     */
-    public static String computeHash(
-        Class<?> type,
-        String suffix,
-        boolean decorate,
-        Set<? extends Class<?>> enabledAnnotations,
-        Set<? extends Class<?>> disabledAnnotations
-    ) {
-        List<String> configStrings = new java.util.ArrayList<>();
-        configStrings.add(suffix);
-        configStrings.add(Boolean.toString(decorate));
-        configStrings.addAll(enabledAnnotations.stream().map(Class::getName).sorted().collect(Collectors.toList()));
-        configStrings.add("---"); // separator
-        configStrings.addAll(disabledAnnotations.stream().map(Class::getName).sorted().collect(Collectors.toList()));
-        return computeHash(type, configStrings);
-    }
-
-    private static void hashClassBytecode(Class<?> clazz, Hasher hasher) {
+    private static HashCode computeClassHash(Class<?> clazz) {
         ClassLoader classLoader = clazz.getClassLoader();
         if (classLoader == null) {
             // Bootstrap class — hash the name (stable for same JVM version)
-            hasher.putString(clazz.getName());
-            return;
+            return Hashing.hashString(clazz.getName());
         }
         String resourceName = clazz.getName().replace('.', '/') + ".class";
         try (InputStream is = classLoader.getResourceAsStream(resourceName)) {
             if (is != null) {
                 byte[] bytes = ByteStreams.toByteArray(is);
-                hasher.putBytes(bytes);
-            } else {
-                // Fallback: hash the name if bytecode is not accessible
-                hasher.putString(clazz.getName());
+                return Hashing.hashBytes(bytes);
             }
         } catch (IOException e) {
-            hasher.putString(clazz.getName());
+            // Fallback to name-based hash if bytecode is not readable
         }
+        return Hashing.hashString(clazz.getName());
     }
 }

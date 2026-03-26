@@ -50,7 +50,6 @@ import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.hash.ClassHierarchyHasher;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -160,8 +159,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected abstract String getSuffix();
 
-    protected abstract boolean isDecorate();
-
     protected abstract int getFactoryId();
 
     private static <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
@@ -176,15 +173,42 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private GeneratedClassImpl generateUnderLock(Class<?> type) {
-        // Try loading from disk cache first
-        String cacheKey = ClassHierarchyHasher.computeHash(type, getSuffix(), isDecorate(), enabledAnnotations, disabledAnnotations);
-        GeneratedClassBytecodeCache.CachedClassData cached = bytecodeCache.load(cacheKey);
-        if (cached != null) {
-            return loadFromCache(type, cached);
+        if (isGradleCoreClass(type)) {
+            String cacheKey = type.getName() + "|" + getSuffix();
+            GeneratedClassBytecodeCache.CachedClassData cached = bytecodeCache.load(cacheKey);
+            if (cached != null) {
+                return loadFromCache(type, cached);
+            }
+            return generateAndCache(type, cacheKey);
         }
+        return generateAndCache(type, null);
+    }
 
-        // Cache miss — generate the class
-        return generateAndCache(type, cacheKey);
+    /**
+     * The classloader that loaded Gradle core infrastructure. Types loaded by
+     * this classloader (or its parents) have bytecode pinned by the Gradle version.
+     */
+    private static final ClassLoader GRADLE_CORE_CLASSLOADER = AbstractClassGenerator.class.getClassLoader();
+
+    /**
+     * Returns true if the type is from the Gradle distribution (bytecode stable per version).
+     * Checks if the type's classloader is the Gradle core classloader or one of its ancestors.
+     * Types loaded by child classloaders (build scripts, plugins) are NOT stable.
+     */
+    private static boolean isGradleCoreClass(Class<?> type) {
+        ClassLoader typeLoader = type.getClassLoader();
+        if (typeLoader == null) {
+            return true; // Bootstrap classloader
+        }
+        // Check if typeLoader is the Gradle core classloader or one of its ancestors
+        ClassLoader cl = GRADLE_CORE_CLASSLOADER;
+        while (cl != null) {
+            if (cl == typeLoader) {
+                return true;
+            }
+            cl = cl.getParent();
+        }
+        return false;
     }
 
     private GeneratedClassImpl loadFromCache(Class<?> type, GeneratedClassBytecodeCache.CachedClassData cached) {
@@ -285,8 +309,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         Class<?> outerType = computeOuterType(type);
 
-        // Store to disk cache if bytecode was actually generated
-        if (generationResult.bytecode != null) {
+        // Store to disk cache if bytecode was generated and a cache key was provided
+        if (cacheKey != null && generationResult.bytecode != null) {
             List<String> injectedServiceNames = injectionHandler.getInjectedServices().stream()
                 .map(Class::getName)
                 .collect(Collectors.toList());
