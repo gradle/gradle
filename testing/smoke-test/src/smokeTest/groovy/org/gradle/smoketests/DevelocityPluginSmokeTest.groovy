@@ -488,7 +488,7 @@ public class MyFlakyTest {
             ImportJUnitXmlReports.register(tasks, testTask, JUnitXmlDialect.ANDROID_CONNECTED)
         """
 
-        writeAndroidJUnitXmlResults()
+        file("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml").text = sampleAndroidJUnitXmlResults()
 
         then:
         def result = build(":fakeTest")
@@ -517,7 +517,7 @@ public class MyFlakyTest {
             ImportJUnitXmlReports.register(tasks, tasks.named('fakeTest'), JUnitXmlDialect.ANDROID_CONNECTED)
         """
 
-        writeAndroidJUnitXmlResults()
+        file("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml").text = sampleAndroidJUnitXmlResults()
 
         then:
         def result = build(":fakeTest")
@@ -527,8 +527,8 @@ public class MyFlakyTest {
         version << SUPPORTED.findAll { VersionNumber.parse(it) >= FIRST_VERSION_WITHOUT_CROSS_PROJECT_IMPORT_JUNIT_XML_REPORTS }
     }
 
-    private void writeAndroidJUnitXmlResults() {
-        file("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml").text = """<?xml version='1.0' encoding='UTF-8' ?>
+    private static String sampleAndroidJUnitXmlResults() {
+        """<?xml version='1.0' encoding='UTF-8' ?>
 <testsuite name="com.example.ClassName" tests="1" failures="1" errors="0" skipped="0" time="1.419" timestamp="2021-08-26T09:42:57" hostname="localhost">
   <properties>
     <property name="device" value="Pixel_5_API_30(AVD) - 11" />
