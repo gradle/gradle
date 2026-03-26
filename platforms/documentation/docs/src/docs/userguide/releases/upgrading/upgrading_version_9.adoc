@@ -58,21 +58,6 @@ plugins {
 
 If you have precompiled settings plugins that are declared but not currently applied, check their `plugins {}` blocks and remove or fix any plugin requests that cannot be resolved from the compiling build's dependencies.
 
-==== Calling `.values()` on environment variables or system properties now tracked by Configuration Cache
-
-Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` now records all environment variables or system properties as Configuration Cache inputs.
-This is consistent with how <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, `.forEach()` calls are already tracked>>.
-
-As a result, if your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, any change to any environment variable or system property will invalidate the Configuration Cache entry, not just the ones your build actually uses.
-If you experience unexpected cache invalidations after upgrading, check whether your build or any plugins call `.values()` on these maps, and consider switching to targeted property lookups instead.
-
-==== Dependency lockfiles are generated with a platform-independent line ending
-
-Dependency lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
-Existing lockfiles using Windows line endings (CRLF, `\r\n`) can still be read, but newly generated lockfiles will always use LF.
-
-When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed, this is expected and only happens once.
-
 ==== The Windows start script has been reworked to improve usability
 
 The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
@@ -89,9 +74,31 @@ The new script includes the following changes:
 Upgrading the wrapper to the new script may cause a one-time error if done from before Gradle 8.14 due to `cmd.exe` re-reading the script after it changes.
 To avoid this, first upgrade to Gradle 8.14 or 9.0.0, then upgrade to 9.5.0.
 
+==== Calling `.values()` on environment variables or system properties now tracked by Configuration Cache
+
+Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` now records all environment variables or system properties as Configuration Cache inputs.
+This is consistent with how <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, `.forEach()` calls are already tracked>>.
+
+As a result, if your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, any change to any environment variable or system property will invalidate the Configuration Cache entry, not just the ones your build actually uses.
+If you experience unexpected cache invalidations after upgrading, check whether your build or any plugins call `.values()` on these maps, and consider switching to targeted property lookups instead.
+
 ==== Upgrade to Kotlin 2.3.20
 
 The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20[Kotlin 2.3.20].
+
+==== Dependency lockfiles are generated with a platform-independent line ending
+
+In the context of <<dependency_locking#locking-versions, Dependency Locking>>, lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
+Existing lockfiles using Windows line endings (CRLF, `\r\n`) can still be read, but newly generated lockfiles will always use LF.
+
+When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed, this is expected and only happens once.
+
+==== Dependency verification armored key rings now render non-ASCII characters correctly
+
+In the context of <<dependency_verification#verifying-dependencies, Dependency Verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
+
+When running a <<dependency_verification#sec:local-keyring,dependency verification key export>> with Gradle 9.5.0 or above, if your keyring already contained keys with non-ASCII metadata, the exported armored keyring will be updated to render those characters correctly.
+This is expected to happen only once.
 
 === Deprecations
 
