@@ -81,13 +81,41 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-strictly]"]
 ====
 
-== Transitivity of constraints
+== Transitivity and precedence of constraints
 
 Dependency constraints are transitive.
 
 If `library A` depends on `library B`, and `library B` declares a constraint on `module C`, that constraint will affect the version of `module C` that `library A` depends on.
 
 For example, if `library A` depends on `module C version 2`, but `library B` declares a constraint on `module C version 3`, `library A` will resolve `module C version 3`.
+
+[[sec:strictly-constraint-precedence]]
+=== Behavior of `strictly` constraints at different dependency graph depths
+
+When multiple `strictly` version constraints are declared for the same dependency at different points in the dependency graph, Gradle always selects the constraint that is *closest to the root* of the graph.
+Constraints declared deeper in the graph, such as in transitive dependencies or subprojects, cannot override a parent project's `strictly` constraint.
+
+In other words, a `strictly` constraint declared directly in your project's dependency declarations takes precedence over any `strictly` constraints declared by the components you depend on.
+
+In this example, the root project declares a `strictly` constraint on version 4.4, while a subproject declares a `strictly` constraint on version 4.5:
+
+Because the root project sits higher in the dependency graph, its constraint (4.4) takes precedence, and the subproject's constraint is ignored.
+
+Root project build file:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/kotlin",files="build.gradle.kts[tags=strictly-precedence-root]"]
+include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/groovy",files="build.gradle[tags=strictly-precedence-root]"]
+====
+
+Subproject (`moduleA`) build file:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/kotlin/moduleA",files="build.gradle.kts[tags=strictly-precedence-module]"]
+include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/groovy/moduleA",files="build.gradle[tags=strictly-precedence-module]"]
+====
+
+This behavior ensures that projects maintain control over the versions of their direct dependencies and can override any constraints introduced by transitive dependencies.
 
 == Publishing constraints
 
