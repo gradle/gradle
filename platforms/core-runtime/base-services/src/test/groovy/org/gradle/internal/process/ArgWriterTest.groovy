@@ -19,6 +19,7 @@ package org.gradle.internal.process
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
@@ -98,12 +99,16 @@ class ArgWriterTest extends Specification {
         argsFile.text == toPlatformLineSeparators('a\\b\n"a "\\" bc"\n')
     }
 
-    def "generates args file using system encoding"() {
-        def shortened = ArgWriter.unixStyle().generateArgsFile(["a", "\u0302", "a b c"], argsFile)
+    @Issue("https://github.com/gradle/gradle/issues/30304")
+    def "generates args file using native encoding"() {
+        // Include a path with é (U+00E9), which encodes to 0xE9 in Windows-1252 but 0xC3 0xA9 in UTF-8.
+        // On Windows with JDK 18+, NATIVE_CHARSET is Windows-1252 while Charset.defaultCharset() is UTF-8,
+        // so these byte sequences differ — catching the bug described in gradle/gradle#30304.
+        // The backslash is escaped by unixStyle() and the space triggers quoting.
+        ArgWriter.unixStyle().generateArgsFile(["a", "\u0302", "a b c", 'Lé Gradle'], argsFile)
 
         expect:
-        shortened == ["@${argsFile.absolutePath}"] as List<String>
-        argsFile.text == toPlatformLineSeparators('a\n\u0302\n"a b c"\n')
+        argsFile.bytes == toPlatformLineSeparators('a\n\u0302\n"a b c"\n"Lé Gradle"\n').getBytes(ArgWriter.NATIVE_CHARSET)
     }
 
     def "does not generate args file for empty args"() {

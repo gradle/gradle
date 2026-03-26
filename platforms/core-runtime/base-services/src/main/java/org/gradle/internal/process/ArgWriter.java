@@ -16,6 +16,8 @@
 
 package org.gradle.internal.process;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -27,6 +29,29 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class ArgWriter {
+
+    /**
+     * The charset the OS uses when reading any file. Many native launchers (JVM, GCC, MSVC)
+     * use native OS file I/O to read arg files, so they use this charset to parse arg files.
+     * This differs from {@link Charset#defaultCharset()}, which changed to UTF-8 in JDK 18
+     * (JEP 400) while the native encoding remains OS-determined. We check {@code native.encoding}
+     * (Java 17+) then {@code sun.jnu.encoding} (older JDKs), falling back to the default charset
+     * if neither is available.
+     */
+    @VisibleForTesting
+    static final Charset NATIVE_CHARSET = resolveNativeCharset();
+
+    private static Charset resolveNativeCharset() {
+        String name = System.getProperty("native.encoding");
+        if (name != null && Charset.isSupported(name)) {
+            return Charset.forName(name);
+        }
+        name = System.getProperty("sun.jnu.encoding");
+        if (name != null && Charset.isSupported(name)) {
+            return Charset.forName(name);
+        }
+        return Charset.defaultCharset();
+    }
 
     private static final Pattern WHITESPACE = Pattern.compile("\\s");
     private static final Pattern WHITESPACE_OR_HASH = Pattern.compile("\\s|#");
@@ -45,7 +70,7 @@ public class ArgWriter {
      * Double quotes around args containing whitespace, backslash chars are escaped using double backslash, platform line separators.
      */
     public static ArgWriter unixStyle() {
-        return new ArgWriter(true, WHITESPACE, Charset.defaultCharset());
+        return new ArgWriter(true, WHITESPACE, NATIVE_CHARSET);
     }
 
     /**
@@ -54,15 +79,14 @@ public class ArgWriter {
      * See <a href='https://docs.oracle.com/javase/9/tools/java.htm#JSWOR-GUID-4856361B-8BFD-4964-AE84-121F5F6CF111'>java Command-Line Argument Files</a>.
      */
     public static ArgWriter javaStyle() {
-        // TODO(https://github.com/gradle/gradle/issues/29303)
-        return new ArgWriter(true, WHITESPACE_OR_HASH, Charset.defaultCharset());
+        return new ArgWriter(true, WHITESPACE_OR_HASH, NATIVE_CHARSET);
     }
 
     /**
      * Double quotes around args containing whitespace, platform line separators.
      */
     public static ArgWriter windowsStyle() {
-        return new ArgWriter(false, WHITESPACE, Charset.defaultCharset());
+        return new ArgWriter(false, WHITESPACE, NATIVE_CHARSET);
     }
 
     /**
