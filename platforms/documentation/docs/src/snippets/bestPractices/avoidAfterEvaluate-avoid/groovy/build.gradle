@@ -1,0 +1,12 @@
+// tag::avoid-this[]
+plugins {
+    id 'java-library'
+    id 'app-info-plugin'
+}
+
+afterEvaluate {
+    appInfo { // <1>
+        appName.set('my-app')
+    }
+}
+// end::avoid-this[]

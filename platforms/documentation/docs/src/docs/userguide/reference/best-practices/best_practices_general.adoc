@@ -808,3 +808,161 @@ This structure uses an extension type to hold values, allowing properties to be 
 === Tags
 
 <<tags_reference.adoc#tag:properties,`#properties`>>
+
+[[avoid_after_evaluate]]
+== Avoid `afterEvaluate`
+
+Do not use link:{javadocPath}/org/gradle/api/Project.html#afterEvaluate(org.gradle.api.Action)[`project.afterEvaluate {}`] to configure tasks, wire properties, or react to plugin application.
+Use <<properties_providers.adoc#properties_and_providers,lazy properties>> and link:{javadocPath}/org/gradle/api/plugins/PluginManager.html#withPlugin(java.lang.String,org.gradle.api.Action)[`pluginManager.withPlugin()`] instead.
+
+=== Explanation
+
+`afterEvaluate` registers a callback that runs after Gradle finishes evaluating and configuring a project.
+It was historically used to "delay" reading a value until configuration was complete — for example, reading an extension property that users set at the bottom of their build script, or checking whether another plugin was applied.
+
+This pattern is outdated, and problematic for several reasons:
+
+* *Ordering is fragile.*
+Multiple `afterEvaluate` callbacks execute in registration order.
+If two plugins or scripts both use `afterEvaluate`, one may see stale or incomplete configuration depending on which was registered first.
+This creates subtle bugs that are extremely difficult to diagnose.
+* *It defeats task configuration avoidance.*
+Tasks registered or configured inside `afterEvaluate` are touched eagerly during configuration, even if they will never execute.
+This may cause unnecessary work and slow down the configuration phase of the build.
+* *It is incompatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>>.*
+`afterEvaluate` callbacks capture mutable project state that cannot be serialized reliably.
+
+Gradle's lazy `Property` and `Provider` types solve the same underlying problem — deferring value resolution — without any of these drawbacks.
+A `Property<T>` can be wired at configuration time but its value is resolved only when needed, typically during task execution.
+This makes configuration order-independent and fully compatible with the configuration cache.
+
+Similarly, `pluginManager.withPlugin()` reacts to plugin application safely and immediately, regardless of when the plugin is actually applied — no callback ordering to worry about.
+
+==== When `afterEvaluate` may still be appropriate
+
+There are narrow use cases where `afterEvaluate` remains the only available hook:
+
+* *Fail-fast validation* — verifying that required project configuration has been set and failing the build early with a clear error message.
+* *Logging or reporting* — printing diagnostic information about the project's final configuration state.
+
+Even in these cases, exercise caution: your `afterEvaluate` must be the last (or only) one registered to see the final configuration state.
+If another plugin registers an `afterEvaluate` after yours, your callback may see incomplete configuration.
+
+If you find yourself reaching for `afterEvaluate` because Gradle's lazy APIs do not cover your use case, consider link:https://github.com/gradle/gradle/issues[filing a bug].
+`afterEvaluate` should be a last resort, not a first choice.
+
+=== Example
+
+Given the following project layout:
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── build.gradle.kts
+├── buildSrc/
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/
+│       └── AppInfoPlugin.kt
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── build.gradle
+├── buildSrc/
+│   ├── build.gradle
+│   └── src/main/groovy/
+│       └── AppInfoPlugin.groovy
+└── settings.gradle
+----
+=====
+====
+
+==== Don't Do This
+
+The plugin uses `afterEvaluate` to delay reading the extension value and to check whether `java-library` was applied:
+
+====
+include::sample[dir="snippets/bestPractices/avoidAfterEvaluate-avoid/kotlin",files="buildSrc/src/main/kotlin/AppInfoPlugin.kt[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidAfterEvaluate-avoid/groovy",files="buildSrc/src/main/groovy/AppInfoPlugin.groovy[tags=avoid-this]"]
+====
+
+<1> The plugin's `afterEvaluate` runs before any `afterEvaluate` registered later in the build script — ordering depends on registration order.
+<2> `getOrElse` reads the property's current value immediately. If the value is set in a later `afterEvaluate`, this will never see it.
+<3> Registering a task inside `afterEvaluate` defeats <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>>.
+<4> Checking plugin presence inside `afterEvaluate` assumes all plugins have been applied before this callback runs.
+
+The build script applies the plugin and sets the extension value in its own `afterEvaluate`:
+
+====
+include::sample[dir="snippets/bestPractices/avoidAfterEvaluate-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidAfterEvaluate-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> This `afterEvaluate` runs after the plugin's — by the time it sets the name, the plugin has already captured the default value.
+
+Running `printAppInfo` outputs `unnamed` — *not* `my-app` as the user intended:
+
+[source,text]
+----
+include::{snippetsPath}/bestPractices/avoidAfterEvaluate-avoid/tests/avoidAfterEvaluate.bad.out[]
+----
+
+The plugin's `afterEvaluate` callback was registered first (during `Plugin.apply()`) and ran first, reading the property before the build script's `afterEvaluate` had a chance to set it.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidAfterEvaluate-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidAfterEvaluate-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+The proper way to write this plugin uses lazy `Property` types and `pluginManager.withPlugin()`:
+
+====
+include::sample[dir="snippets/bestPractices/avoidAfterEvaluate-do/kotlin",files="buildSrc/src/main/kotlin/AppInfoPlugin.kt[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidAfterEvaluate-do/groovy",files="buildSrc/src/main/groovy/AppInfoPlugin.groovy[tags=do-this]"]
+====
+
+<1> `convention()` provides a default value that is used only if no explicit value is set via `set()`.
+<2> The value is resolved at execution time via `get()` — configuration order does not matter.
+<3> `pluginManager.withPlugin()` fires when the plugin is applied, regardless of order. If the plugin is never applied, the callback is never invoked.
+
+The build script is nearly identical — the change is in the plugin, not the consumer:
+
+====
+include::sample[dir="snippets/bestPractices/avoidAfterEvaluate-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidAfterEvaluate-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> The value is set during normal configuration. Because the plugin wires the `Property` lazily, it is only read at execution time.
+
+Running `printAppInfo` now correctly outputs `my-app`:
+
+[source,text]
+----
+$ gradlew printAppInfo
+include::{snippetsPath}/bestPractices/avoidAfterEvaluate-do/tests/avoidAfterEvaluate.good.out[]
+----
+
+=== References
+
+- <<properties_providers.adoc#properties_and_providers,Properties and Providers>>
+- <<lazy_configuration.adoc#lazy_configuration,Lazy Configuration>>
+- <<task_configuration_avoidance.adoc#task_configuration_avoidance,Task Configuration Avoidance>>
+- <<best_practices_general.adoc#dont_assume_plugin_order,Don't Assume your Plugin is Applied after Another>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:task-configuration-avoidance,`#task-configuration-avoidance`>>, <<tags_reference.adoc#tag:plugins,`#plugins`>>, <<tags_reference.adoc#tag:structuring-builds,`#structuring-builds`>>
