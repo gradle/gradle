@@ -5,7 +5,7 @@ awsS3 = "1.12.780!!"
 bouncycastle = "1.81!!"
 commonsCodec = "1.18.0!!"
 commonsCompress = "1.26.1!!"
-commonsHttpclient = "4.5.14!!"
+commonsHttpclient = "5.6!!"
 commonsIo = "2.15.1!!"
 commonsLang = "3.20.0!!"
 configurationCacheReport = "1.32!!"
@@ -17,7 +17,7 @@ googleOauthClient = "1.34.1!!" # our Google API Client version requires 1.34.1
 gradleFileEvents = "0.2.8!!"
 gson = "2.13.1!!"
 guava = "33.4.6-jre"
-httpcore = "4.4.14!!"
+httpcore = "5.4!!"
 inject = "1!!"
 ivy = "2.5.3!!"
 jansi = "2.4.2!!" # If JANSI is updated run on a Windows terminal CMD.EXE to make sure the ansi control characters are not messing up the output
@@ -65,7 +65,7 @@ bouncycastlePgp = { group = "org.bouncycastle", name = "bcpg-jdk18on", version.r
 bouncycastleProvider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
 commonsCodec = { group = "commons-codec", name = "commons-codec", version.ref = "commonsCodec" }
 commonsCompress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commonsCompress" }
-commonsHttpclient = { group = "org.apache.httpcomponents", name = "httpclient", version.ref = "commonsHttpclient" }
+commonsHttpclient = { group = "org.apache.httpcomponents.client5", name = "httpclient5", version.ref = "commonsHttpclient" }
 commonsIo = { group = "commons-io", name = "commons-io", version.ref = "commonsIo" }
 commonsLang = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commonsLang" }
 configurationCacheReport = { group = "org.gradle.buildtool.internal", name = "configuration-cache-report", version.ref = "configurationCacheReport" }
@@ -90,7 +90,7 @@ groovyTemplates = { group = "org.apache.groovy", name = "groovy-templates", vers
 groovyXml = { group = "org.apache.groovy", name = "groovy-xml", version.ref = "groovy" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
-httpcore = { group = "org.apache.httpcomponents", name = "httpcore", version.ref = "httpcore" }
+httpcore = { group = "org.apache.httpcomponents.core5", name = "httpcore5", version.ref = "httpcore" }
 inject = { group = "javax.inject", name = "javax.inject", version.ref = "inject" }
 ivy = { group = "org.apache.ivy", name = "ivy", version.ref = "ivy" }
 jacksonAnnotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }

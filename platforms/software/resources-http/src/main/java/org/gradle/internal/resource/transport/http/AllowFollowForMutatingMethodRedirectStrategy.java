@@ -16,16 +16,11 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
 
+/**
+ * In HC5, DefaultRedirectStrategy already allows redirects for all HTTP methods,
+ * so this class is now equivalent to DefaultRedirectStrategy.
+ */
 public class AllowFollowForMutatingMethodRedirectStrategy extends DefaultRedirectStrategy {
-
-    public AllowFollowForMutatingMethodRedirectStrategy() {
-    }
-
-    @Override
-    protected boolean isRedirectable(String method) {
-        return true;
-    }
-
 }

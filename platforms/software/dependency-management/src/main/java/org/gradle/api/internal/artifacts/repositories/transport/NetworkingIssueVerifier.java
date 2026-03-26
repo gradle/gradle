@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.http.ConnectionClosedException;
-import org.apache.http.HttpStatus;
-import org.apache.http.NoHttpResponseException;
+import org.apache.hc.core5.http.ConnectionClosedException;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.NoHttpResponseException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 

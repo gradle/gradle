@@ -17,12 +17,12 @@ package org.gradle.internal.resource.transport.http.ntlm;
 
 import java.io.IOException;
 
-import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.impl.auth.NTLMEngine;
-import org.apache.http.impl.auth.NTLMEngineException;
-import org.apache.http.impl.auth.NTLMScheme;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.NTLMEngine;
+import org.apache.hc.client5.http.impl.auth.NTLMEngineException;
+import org.apache.hc.client5.http.impl.auth.NTLMScheme;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 import jcifs.ntlmssp.NtlmFlags;
 import jcifs.ntlmssp.Type1Message;
@@ -31,7 +31,7 @@ import jcifs.ntlmssp.Type3Message;
 import jcifs.util.Base64;
 
 // Copied from http://hc.apache.org/httpcomponents-client-ga/ntlm.html
-public class NTLMSchemeFactory implements AuthSchemeProvider {
+public class NTLMSchemeFactory implements AuthSchemeFactory {
 
     @Override
     public AuthScheme create(HttpContext context) {
@@ -54,7 +54,7 @@ public class NTLMSchemeFactory implements AuthSchemeProvider {
         }
 
         @Override
-        public String generateType3Msg(final String username, final String password, final String domain, final String workstation, final String challenge) throws NTLMEngineException {
+        public String generateType3Msg(final String username, final char[] password, final String domain, final String workstation, final String challenge) throws NTLMEngineException {
             Type2Message type2Message;
             try {
                 type2Message = new Type2Message(Base64.decode(challenge));
@@ -63,7 +63,7 @@ public class NTLMSchemeFactory implements AuthSchemeProvider {
             }
             final int type2Flags = type2Message.getFlags();
             final int type3Flags = type2Flags & (0xffffffff ^ (NtlmFlags.NTLMSSP_TARGET_TYPE_DOMAIN | NtlmFlags.NTLMSSP_TARGET_TYPE_SERVER));
-            final Type3Message type3Message = new Type3Message(type2Message, password, domain, username, workstation, type3Flags);
+            final Type3Message type3Message = new Type3Message(type2Message, new String(password), domain, username, workstation, type3Flags);
             return Base64.encode(type3Message.toByteArray());
         }
     }

@@ -20,7 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
-import org.apache.http.ssl.SSLInitializationException;
+import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.gradle.internal.SystemProperties;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;

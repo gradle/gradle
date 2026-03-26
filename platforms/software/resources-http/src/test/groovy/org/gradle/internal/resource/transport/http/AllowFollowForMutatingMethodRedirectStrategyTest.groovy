@@ -16,13 +16,11 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.HttpRequest
-import org.apache.http.ProtocolVersion
-import org.apache.http.RequestLine
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.message.BasicHeader
-import org.apache.http.message.BasicStatusLine
-import org.apache.http.protocol.HttpContext
+import org.apache.hc.core5.http.HttpRequest
+import org.apache.hc.core5.http.HttpResponse
+import org.apache.hc.core5.http.message.BasicHeader
+import org.apache.hc.core5.http.message.BasicHttpResponse
+import org.apache.hc.core5.http.protocol.HttpContext
 import spock.lang.Specification
 
 class AllowFollowForMutatingMethodRedirectStrategyTest extends Specification {
@@ -31,38 +29,24 @@ class AllowFollowForMutatingMethodRedirectStrategyTest extends Specification {
     private static final List<String> MUTATING_HTTP_METHODS = ["POST", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH"]
     private static final List<String> HTTP_METHODS = NON_MUTATING_HTTP_METHODS + MUTATING_HTTP_METHODS
 
-    private static final List<Integer> NON_METHOD_PRESERVING_REDIRECTS = [301, 302, 303]
-    private static final List<Integer> METHOD_PRESERVING_REDIRECTS = [307, 308]
-    private static final List<Integer> REDIRECTS = NON_METHOD_PRESERVING_REDIRECTS + METHOD_PRESERVING_REDIRECTS
+    private static final List<Integer> REDIRECTS = [301, 302, 303, 307, 308]
 
     def strategy = new AllowFollowForMutatingMethodRedirectStrategy()
-
-    def "should consider all requests redirectable"() {
-        expect:
-        strategy.isRedirectable(method)
-
-        where:
-        method << HTTP_METHODS
-    }
 
     def "should redirect for http method [#httpMethod,#redirect]"(String httpMethod, int redirect) {
         setup:
         HttpRequest request = Mock()
-        CloseableHttpResponse response = Mock()
+        HttpResponse response = new BasicHttpResponse(redirect)
+        response.setHeader(new BasicHeader('location', 'http://redirectTo'))
         HttpContext context = Mock()
-        response.getFirstHeader("location") >> new BasicHeader('location', 'http://redirectTo')
-        response.getStatusLine() >> new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), redirect, "ignored")
-        request.getRequestLine() >> Mock(RequestLine) {
-            getMethod() >> httpMethod
-            getUri() >> "http://original.com"
-        }
+        request.getMethod() >> httpMethod
+        request.getUri() >> new URI("http://original.com")
+        request.getScheme() >> "http"
+        request.getAuthority() >> null
+        request.getPath() >> "/"
 
-        when:
-        def redirectRequest = strategy.getRedirect(request, response, context)
-
-        then:
-        def expectedMethod = redirect in METHOD_PRESERVING_REDIRECTS ? httpMethod : httpMethod == "HEAD" ? "HEAD" : "GET"
-        redirectRequest.method.toUpperCase() == expectedMethod
+        expect:
+        strategy.isRedirected(request, response, context)
 
         where:
         [httpMethod, redirect] << [HTTP_METHODS, REDIRECTS].combinations()

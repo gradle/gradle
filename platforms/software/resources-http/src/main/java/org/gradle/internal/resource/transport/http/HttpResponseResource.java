@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.HttpHeaders;
-import org.apache.http.client.utils.DateUtils;
+import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;

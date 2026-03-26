@@ -17,8 +17,8 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.ReadableContent;
 
@@ -30,11 +30,8 @@ public class RepeatableInputStreamEntity extends AbstractHttpEntity {
     private final ReadableContent source;
 
     public RepeatableInputStreamEntity(ReadableContent source, ContentType contentType) {
-        super();
+        super(contentType, null);
         this.source = source;
-        if (contentType != null) {
-            setContentType(contentType.toString());
-        }
     }
 
     @Override
@@ -65,5 +62,9 @@ public class RepeatableInputStreamEntity extends AbstractHttpEntity {
     @Override
     public boolean isStreaming() {
         return true;
+    }
+
+    @Override
+    public void close() {
     }
 }

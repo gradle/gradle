@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.Header;
-import org.apache.http.auth.Credentials;
-import org.apache.http.message.BasicHeader;
+import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.message.BasicHeader;
 
 import java.security.Principal;
 
@@ -40,7 +40,7 @@ public class HttpClientHttpHeaderCredentials implements Credentials {
     }
 
     @Override
-    public String getPassword() {
+    public char[] getPassword() {
         return null;
     }
 }

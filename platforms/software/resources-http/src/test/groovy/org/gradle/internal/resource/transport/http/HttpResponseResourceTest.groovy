@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.HttpHeaders
+import org.apache.hc.core5.http.HttpHeaders
 import spock.lang.Specification
 
 class HttpResponseResourceTest extends Specification {

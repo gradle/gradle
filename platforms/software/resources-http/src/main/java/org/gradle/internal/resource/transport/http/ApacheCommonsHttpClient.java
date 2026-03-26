@@ -19,18 +19,20 @@ package org.gradle.internal.resource.transport.http;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpHead;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.protocol.RedirectLocations;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.ReadableContent;
@@ -55,7 +57,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 
 import static java.lang.String.join;
-import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIONS;
+import static org.apache.hc.client5.http.protocol.HttpClientContext.REDIRECT_LOCATIONS;
 
 /**
  * Implementation of {@link HttpClient} backed by Apache Commons HttpClient.
@@ -109,14 +111,14 @@ public class ApacheCommonsHttpClient implements HttpClient {
 
     @Override
     public HttpClient.Response performHead(URI uri, ImmutableMap<String, String> headers) {
-        HttpRequestBase request = new HttpHead(uri);
+        HttpUriRequestBase request = new HttpHead(uri);
         addHeaders(request, headers);
         return processResponse(performRequest(request));
     }
 
     @Override
     public HttpClient.Response performGet(URI uri, ImmutableMap<String, String> headers) {
-        HttpRequestBase request = new HttpGet(uri);
+        HttpUriRequestBase request = new HttpGet(uri);
         addHeaders(request, headers);
         return processResponse(performRequest(request));
     }
@@ -140,7 +142,7 @@ public class ApacheCommonsHttpClient implements HttpClient {
     public Response performRawPut(URI uri, ImmutableMap<String, String> headers, WritableContent resource) throws IOException {
         HttpPut httpPut = new HttpPut(uri);
         addHeaders(httpPut, headers);
-        httpPut.setEntity(new AbstractHttpEntity() {
+        httpPut.setEntity(new AbstractHttpEntity((ContentType) null, null) {
             @Override
             public boolean isRepeatable() {
                 return true;
@@ -165,22 +167,26 @@ public class ApacheCommonsHttpClient implements HttpClient {
             public boolean isStreaming() {
                 return false;
             }
+
+            @Override
+            public void close() {
+            }
         });
 
         return performRawRequest(httpPut);
     }
 
-    private Response performRequest(HttpRequestBase request) {
+    private Response performRequest(HttpUriRequestBase request) {
         try {
             return performRawRequest(request);
         } catch (FailureFromRedirectLocation e) {
             throw createHttpRequestException(request.getMethod(), e.getCause(), e.getLastRedirectLocation());
         } catch (IOException e) {
-            throw createHttpRequestException(request.getMethod(), wrapWithExplanation(e), request.getURI());
+            throw createHttpRequestException(request.getMethod(), wrapWithExplanation(e), getRequestUri(request));
         }
     }
 
-    private static void addHeaders(HttpRequestBase request, ImmutableMap<String, String> headers) {
+    private static void addHeaders(HttpUriRequestBase request, ImmutableMap<String, String> headers) {
         for (Map.Entry<String, String> entry : headers.entrySet()) {
             request.addHeader(entry.getKey(), entry.getValue());
         }
@@ -227,7 +233,7 @@ public class ApacheCommonsHttpClient implements HttpClient {
         return "may";
     }
 
-    private HttpClient.Response performRawRequest(HttpRequestBase request) throws IOException {
+    private HttpClient.Response performRawRequest(HttpUriRequestBase request) throws IOException {
         if (sharedContext == null) {
             // There's no authentication involved, requests can be done concurrently
             return performHttpRequest(request, new BasicHttpContext());
@@ -248,10 +254,10 @@ public class ApacheCommonsHttpClient implements HttpClient {
         return context;
     }
 
-    private HttpClient.Response performHttpRequest(HttpRequestBase request, HttpContext httpContext) throws IOException {
+    private HttpClient.Response performHttpRequest(HttpUriRequestBase request, HttpContext httpContext) throws IOException {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(REDIRECT_LOCATIONS);
-        LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), stripUserCredentials(request.getURI()));
+        LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), stripUserCredentials(getRequestUri(request)));
 
         try {
             CloseableHttpResponse response = getClient().execute(request, httpContext);
@@ -266,10 +272,10 @@ public class ApacheCommonsHttpClient implements HttpClient {
         }
     }
 
-    private HttpClient.Response toHttpClientResponse(HttpRequestBase request, HttpContext httpContext, CloseableHttpResponse response) {
+    private HttpClient.Response toHttpClientResponse(HttpUriRequestBase request, HttpContext httpContext, CloseableHttpResponse response) {
         validateRedirectChain(httpContext);
         URI lastRedirectLocation = getLastRedirectLocation(httpContext);
-        URI effectiveUri = lastRedirectLocation == null ? request.getURI() : lastRedirectLocation;
+        URI effectiveUri = lastRedirectLocation == null ? getRequestUri(request) : lastRedirectLocation;
         return new ApacheHttpResponse(request.getMethod(), effectiveUri, response);
     }
 
@@ -282,9 +288,12 @@ public class ApacheCommonsHttpClient implements HttpClient {
     }
 
     private static List<URI> getRedirectLocations(HttpContext httpContext) {
-        @SuppressWarnings("unchecked")
-        List<URI> redirects = (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
-        return redirects == null ? Collections.emptyList() : redirects;
+        HttpClientContext clientContext = HttpClientContext.cast(httpContext);
+        RedirectLocations redirectLocations = clientContext.getRedirectLocations();
+        if (redirectLocations == null) {
+            return Collections.emptyList();
+        }
+        return redirectLocations.getAll();
     }
 
     private static @Nullable URI getLastRedirectLocation(HttpContext httpContext) {
@@ -342,6 +351,14 @@ public class ApacheCommonsHttpClient implements HttpClient {
         }
         try {
             return new URIBuilder(uri).setUserInfo(null).build();
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e, true);
+        }
+    }
+
+    private static URI getRequestUri(HttpUriRequestBase request) {
+        try {
+            return request.getUri();
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e, true);
         }

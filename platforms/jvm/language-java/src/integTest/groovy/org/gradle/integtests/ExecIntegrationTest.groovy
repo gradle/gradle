@@ -17,11 +17,11 @@
 
 package org.gradle.integtests
 
-import org.apache.http.HttpResponse
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.hc.client5.http.classic.methods.HttpGet
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder
+import org.apache.hc.core5.http.HttpResponse
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -469,7 +469,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         long port = waitForHttpServerPort()
-        callGet("http://127.0.0.1:$port/test").statusLine.statusCode == 200
+        callGet("http://127.0.0.1:$port/test").code == 200
 
         when:
         client.kill()

@@ -19,7 +19,7 @@ package org.gradle.internal.resource.transport.http;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
