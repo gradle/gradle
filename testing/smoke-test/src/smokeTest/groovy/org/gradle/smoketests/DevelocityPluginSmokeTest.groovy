@@ -175,6 +175,7 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
     private static final VersionNumber FIRST_VERSION_SUPPORTING_SAFE_MODE = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_UNDER_DEVELOCITY_BRAND = VersionNumber.parse("3.17")
     private static final VersionNumber FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS = VersionNumber.parse("3.17")
+    private static final VersionNumber FIRST_VERSION_WITHOUT_CROSS_PROJECT_IMPORT_JUNIT_XML_REPORTS = VersionNumber.parse("4.4")
 
     def "coverage at least up to auto-applied version"() {
         expect:
@@ -465,12 +466,12 @@ public class MyFlakyTest {
         ciScriptVersion = ci.gitRef
     }
 
-    def "can use ImportJUnitXmlReports"() {
+    def "can use ImportJUnitXmlReports across projects"() {
         when:
         usePluginVersion version
 
         and:
-        settingsFile < < """
+        settingsFile << """
             include('sub')
         """
         buildFile << """
@@ -504,7 +505,46 @@ public class MyFlakyTest {
         result.task(":sub:fakeTestImportJUnitXmlReports").outcome == TaskOutcome.SUCCESS
 
         where:
-        version << SUPPORTED.findAll { VersionNumber.parse(it) >= FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS }
+        version << SUPPORTED.findAll {
+            def v = VersionNumber.parse(it)
+            v >= FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS && v < FIRST_VERSION_WITHOUT_CROSS_PROJECT_IMPORT_JUNIT_XML_REPORTS
+        }
+    }
+
+    def "can use ImportJUnitXmlReports in same project"() {
+        when:
+        usePluginVersion version
+
+        and:
+        buildFile << """
+            import com.gradle.develocity.agent.gradle.test.ImportJUnitXmlReports
+            import com.gradle.develocity.agent.gradle.test.JUnitXmlDialect
+
+            tasks.register('fakeTest', Copy) {
+                from("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml")
+                into(layout.buildDirectory.dir("result"))
+            }
+            ImportJUnitXmlReports.register(tasks, tasks.named('fakeTest'), JUnitXmlDialect.ANDROID_CONNECTED)
+        """
+
+        file("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml").text = """<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="com.example.ClassName" tests="1" failures="1" errors="0" skipped="0" time="1.419" timestamp="2021-08-26T09:42:57" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_5_API_30(AVD) - 11" />
+    <property name="flavor" value="" />
+    <property name="project" value="app" />
+  </properties>
+  <testcase name="tooDeepStackTrace" classname="com.example.ClassName" time="0.286">
+    <failure>foo</failure>
+  </testcase>
+</testsuite>"""
+
+        then:
+        def result = build(":fakeTest")
+        result.task(":fakeTestImportJUnitXmlReports").outcome == TaskOutcome.SUCCESS
+
+        where:
+        version << SUPPORTED.findAll { VersionNumber.parse(it) >= FIRST_VERSION_WITHOUT_CROSS_PROJECT_IMPORT_JUNIT_XML_REPORTS }
     }
 
     private static boolean supportsSafeMode(VersionNumber pluginVersion) {
