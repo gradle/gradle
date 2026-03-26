@@ -16,6 +16,7 @@
 
 package org.gradle.internal.process
 
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -23,94 +24,94 @@ import spock.lang.Specification
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class ArgWriterTest extends Specification {
+
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    final StringWriter writer = new StringWriter()
-    final PrintWriter printWriter = new PrintWriter(writer, true)
-    final ArgWriter argWriter = ArgWriter.unixStyle(printWriter)
+    TestFile argsFile
+
+    def setup() {
+        argsFile = tmpDir.file("args/file")
+    }
 
     def "writes single argument to line"() {
         when:
-        argWriter.args("-nologo")
+        ArgWriter.unixStyle().generateArgsFile(["-nologo"], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators("-nologo\n")
+        argsFile.text == toPlatformLineSeparators("-nologo\n")
     }
 
-    def "writes multiple arguments to line"() {
+    def "writes multiple arguments to multiple lines"() {
         when:
-        argWriter.args("-I", "some/dir")
+        ArgWriter.unixStyle().generateArgsFile(["-I", "some/dir"], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators("-I some/dir\n")
+        argsFile.text == toPlatformLineSeparators("-I\nsome/dir\n")
     }
 
     def "quotes argument with whitespace"() {
         when:
-        argWriter.args("ab c", "d e f")
+        ArgWriter.unixStyle().generateArgsFile(["ab c", "d e f"], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('"ab c" "d e f"\n')
+        argsFile.text == toPlatformLineSeparators('"ab c"\n"d e f"\n')
     }
 
     def "javaStyle quotes argument with hash"() {
-        def argWriter = ArgWriter.javaStyle(printWriter)
-
         when:
-        argWriter.args("ab#c", "d#e#f")
+        ArgWriter.javaStyle().generateArgsFile(["ab#c", "d#e#f"], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('"ab#c" "d#e#f"\n')
+        argsFile.text == toPlatformLineSeparators('"ab#c"\n"d#e#f"\n')
     }
 
     def "quotes empty argument"() {
         when:
-        argWriter.args("a", "", "", "b")
+        ArgWriter.unixStyle().generateArgsFile(["a", "", "", "b"], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('a "" "" b\n')
+        argsFile.text == toPlatformLineSeparators('a\n""\n""\nb\n')
     }
 
     def "escapes double quotes in argument"() {
         when:
-        argWriter.args('"abc"', 'a" bc')
+        ArgWriter.unixStyle().generateArgsFile(['"abc"', 'a" bc'], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('\\"abc\\" "a\\" bc"\n')
+        argsFile.text == toPlatformLineSeparators('\\"abc\\"\n"a\\" bc"\n')
     }
 
     def "escapes backslash in argument"() {
         when:
-        argWriter.args('a\\b', 'a \\ bc')
+        ArgWriter.unixStyle().generateArgsFile(['a\\b', 'a \\ bc'], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('a\\\\b "a \\\\ bc"\n')
+        argsFile.text == toPlatformLineSeparators('a\\\\b\n"a \\\\ bc"\n')
     }
 
     def "does not escape characters in windows style"() {
-        def argWriter = ArgWriter.windowsStyle(printWriter)
+        def argWriter = ArgWriter.windowsStyle()
 
         when:
-        argWriter.args('a\\b', 'a "\\" bc')
+        argWriter.generateArgsFile(['a\\b', 'a "\\" bc'], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('a\\b "a "\\" bc"\n')
+        argsFile.text == toPlatformLineSeparators('a\\b\n"a "\\" bc"\n')
     }
 
     def "generates args file using system encoding"() {
-        def argsFile = tmpDir.file("options.txt")
-        def generator = ArgWriter.argsFileGenerator(argsFile, ArgWriter.unixStyleFactory())
+        def shortened = ArgWriter.unixStyle().generateArgsFile(["a", "\u0302", "a b c"], argsFile)
 
         expect:
-        generator.apply(["a", "\u0302", "a b c"]) == ["@${argsFile.absolutePath}"] as List<String>
+        shortened == ["@${argsFile.absolutePath}"] as List<String>
         argsFile.text == toPlatformLineSeparators('a\n\u0302\n"a b c"\n')
     }
 
     def "does not generate args file for empty args"() {
-        def argsFile = tmpDir.file("options.txt")
-        def generator = ArgWriter.argsFileGenerator(argsFile, ArgWriter.unixStyleFactory())
+        def shortened = ArgWriter.unixStyle().generateArgsFile([], argsFile)
 
         expect:
-        generator.apply([]) == []
+        shortened == []
         !argsFile.file
     }
+
 }
