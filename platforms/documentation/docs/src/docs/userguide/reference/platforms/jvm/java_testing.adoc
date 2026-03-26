@@ -943,11 +943,11 @@ These files are idiomatically located in the `src/test/definitions` directory.
 The test definition files in this example are very simple and look like this:
 
 ====
-include::sample[dir="snippets/testing/non-class-based-testing/kotlin/lib/src/test/definitions",files="ExampleTests.xml[]"]
+include::sample[dir="snippets/testing/non-class-based-testing/common/lib/src/test/definitions",files="ExampleTests.xml[]"]
 ====
 
 ====
-include::sample[dir="snippets/testing/non-class-based-testing/kotlin/lib/src/test/definitions/sub",files="MoreTests.xml[]"]
+include::sample[dir="snippets/testing/non-class-based-testing/common/lib/src/test/definitions/sub",files="MoreTests.xml[]"]
 ====
 
 The custom engine in this example logs messages when discovering and executing tests.
