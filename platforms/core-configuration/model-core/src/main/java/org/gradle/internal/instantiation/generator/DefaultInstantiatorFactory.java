@@ -52,13 +52,15 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final DefaultInstantiationScheme decoratingLenientScheme;
     private final ManagedFactory managedFactory;
 
-    public DefaultInstantiatorFactory(ClassCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, PropertyRoleAnnotationHandler roleAnnotationHandler) {
+    public DefaultInstantiatorFactory(ClassCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, PropertyRoleAnnotationHandler roleAnnotationHandler, GeneratedClassBytecodeCache bytecodeCache) {
         this.cacheFactory = cacheFactory;
         this.annotationHandlers = injectHandlers;
         this.roleHandler = roleAnnotationHandler;
         this.defaultServices = defaultServiceRegistry();
         ClassGenerator injectOnlyGenerator = AsmBackedClassGenerator.injectOnly(injectHandlers, roleAnnotationHandler, ImmutableSet.of(), cacheFactory, MANAGED_FACTORY_ID);
         ClassGenerator decoratedGenerator = AsmBackedClassGenerator.decorateAndInject(injectHandlers, roleAnnotationHandler, ImmutableSet.of(), cacheFactory, MANAGED_FACTORY_ID);
+        setBytecodeCache(injectOnlyGenerator, bytecodeCache);
+        setBytecodeCache(decoratedGenerator, bytecodeCache);
         ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnlyGenerator, cacheFactory.newClassCache());
         ConstructorSelector decoratedJsr330Selector = new Jsr330ConstructorSelector(decoratedGenerator, cacheFactory.newClassCache());
         ConstructorSelector injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnlyGenerator);
@@ -69,6 +71,12 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         this.decoratingScheme = new DefaultInstantiationScheme(decoratedJsr330Selector, decoratedGenerator, defaultServices, injectionAnnotations, cacheFactory);
         this.decoratingLenientScheme = new DefaultInstantiationScheme(decoratedLenientSelector, decoratedGenerator, defaultServices, injectionAnnotations, cacheFactory);
         this.managedFactory = new ManagedTypeFactory(injectOnlyScheme.deserializationInstantiator());
+    }
+
+    private static void setBytecodeCache(ClassGenerator generator, GeneratedClassBytecodeCache cache) {
+        if (generator instanceof AbstractClassGenerator) {
+            ((AbstractClassGenerator) generator).setBytecodeCache(cache);
+        }
     }
 
     private ServiceRegistry defaultServiceRegistry() {

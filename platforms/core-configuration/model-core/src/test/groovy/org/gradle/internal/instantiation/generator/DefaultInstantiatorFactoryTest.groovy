@@ -28,7 +28,7 @@ import java.lang.annotation.RetentionPolicy
 
 
 class DefaultInstantiatorFactoryTest extends Specification {
-    def instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), [handler(Annotation1), handler(Annotation2)], Stub(PropertyRoleAnnotationHandler))
+    def instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), [handler(Annotation1), handler(Annotation2)], Stub(PropertyRoleAnnotationHandler), GeneratedClassBytecodeCache.NONE)
 
     def "creates scheme with requested annotations"() {
         expect:

@@ -63,6 +63,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.instantiation.generator.GeneratedClassBytecodeCache
 import org.gradle.internal.instantiation.managed.DefaultManagedObjectRegistry
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -119,7 +120,7 @@ class TestUtil {
 
     static InstantiatorFactory createInstantiatorFactory(Supplier<List<InjectAnnotationHandler>> injectHandlers) {
         NativeServicesTestFixture.initialize()
-        return new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), injectHandlers.get(), new OutputPropertyRoleAnnotationHandler([]))
+        return new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), injectHandlers.get(), new OutputPropertyRoleAnnotationHandler([]), GeneratedClassBytecodeCache.NONE)
     }
 
     static ManagedFactoryRegistry managedFactoryRegistry() {

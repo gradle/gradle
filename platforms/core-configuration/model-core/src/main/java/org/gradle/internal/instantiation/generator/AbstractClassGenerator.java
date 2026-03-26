@@ -48,7 +48,9 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.hash.ClassHierarchyHasher;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -115,6 +117,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private final ImmutableSet<Class<? extends Annotation>> enabledAnnotations;
     private final ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation;
     private final PropertyRoleAnnotationHandler roleHandler;
+    private volatile GeneratedClassBytecodeCache bytecodeCache = GeneratedClassBytecodeCache.NONE;
 
     protected AbstractClassGenerator(
         Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
@@ -151,6 +154,16 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return roleHandler;
     }
 
+    void setBytecodeCache(GeneratedClassBytecodeCache bytecodeCache) {
+        this.bytecodeCache = bytecodeCache;
+    }
+
+    protected abstract String getSuffix();
+
+    protected abstract boolean isDecorate();
+
+    protected abstract int getFactoryId();
+
     private static <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
         return new TypeToken<Provider<T>>() {
         }.where(new TypeParameter<T>() {
@@ -163,6 +176,36 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private GeneratedClassImpl generateUnderLock(Class<?> type) {
+        // Try loading from disk cache first
+        String cacheKey = ClassHierarchyHasher.computeHash(type, getSuffix(), isDecorate(), enabledAnnotations, disabledAnnotations);
+        GeneratedClassBytecodeCache.CachedClassData cached = bytecodeCache.load(cacheKey);
+        if (cached != null) {
+            return loadFromCache(type, cached);
+        }
+
+        // Cache miss — generate the class
+        return generateAndCache(type, cacheKey);
+    }
+
+    private GeneratedClassImpl loadFromCache(Class<?> type, GeneratedClassBytecodeCache.CachedClassData cached) {
+        Class<?> generatedClass = ClassLoaderUtils.defineDecorator(
+            type, type.getClassLoader(), cached.getGeneratedClassName(), cached.getBytecode()
+        );
+
+        if (cached.isManaged()) {
+            attachFactoryIdToGeneratedClass(generatedClass, cached.getFactoryId());
+        }
+
+        List<Class<?>> injectedServices = resolveClasses(cached.getInjectedServiceClassNames(), type.getClassLoader());
+
+        @SuppressWarnings("unchecked")
+        List<Class<? extends Annotation>> annotations = (List<Class<? extends Annotation>>) (List<?>) resolveClasses(cached.getAnnotationClassNames(), type.getClassLoader());
+
+        Class<?> outerType = computeOuterType(type);
+        return new GeneratedClassImpl(generatedClass, outerType, injectedServices, ImmutableList.copyOf(annotations));
+    }
+
+    private GeneratedClassImpl generateAndCache(Class<?> type, String cacheKey) {
         List<CustomInjectAnnotationPropertyHandler> customAnnotationPropertyHandlers = new ArrayList<>(enabledAnnotations.size());
 
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
@@ -195,7 +238,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         validators.add(new InjectionAnnotationValidator(enabledAnnotations, allowedTypesForAnnotation));
         validators.add(new BooleanPropertyDeprecatingValidator());
 
-        Class<?> generatedClass;
+        GenerationResult generationResult;
         try {
             ClassInspectionVisitor inspectionVisitor = start(type);
 
@@ -222,7 +265,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
 
-            generatedClass = generationVisitor.generate();
+            generationResult = generationVisitor.generate();
         } catch (ClassGenerationException e) {
             throw e;
         } catch (Throwable e) {
@@ -240,16 +283,70 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
         }
 
-        // This is expensive to calculate, so cache the result
-        Class<?> enclosingClass = type.getEnclosingClass();
-        Class<?> outerType;
-        if (enclosingClass != null && !Modifier.isStatic(type.getModifiers())) {
-            outerType = enclosingClass;
-        } else {
-            outerType = null;
+        Class<?> outerType = computeOuterType(type);
+
+        // Store to disk cache if bytecode was actually generated
+        if (generationResult.bytecode != null) {
+            List<String> injectedServiceNames = injectionHandler.getInjectedServices().stream()
+                .map(Class::getName)
+                .collect(Collectors.toList());
+            ImmutableList<Class<? extends Annotation>> builtAnnotations = annotationsTriggeringServiceInjection.build();
+            List<String> annotationNames = builtAnnotations.stream()
+                .map(Class::getName)
+                .collect(Collectors.toList());
+            boolean managed = hasField(generationResult.generatedClass, "_gr_fid_");
+            bytecodeCache.store(cacheKey, new GeneratedClassBytecodeCache.CachedClassData(
+                generationResult.bytecode,
+                generationResult.generatedClass.getName(),
+                injectedServiceNames,
+                annotationNames,
+                managed,
+                getFactoryId()
+            ));
         }
 
-        return new GeneratedClassImpl(generatedClass, outerType, injectionHandler.getInjectedServices(), annotationsTriggeringServiceInjection.build());
+        return new GeneratedClassImpl(generationResult.generatedClass, outerType, injectionHandler.getInjectedServices(), annotationsTriggeringServiceInjection.build());
+    }
+
+    private static void attachFactoryIdToGeneratedClass(Class<?> generatedClass, int factoryId) {
+        try {
+            Field factoryField = generatedClass.getDeclaredField("_gr_fid_");
+            factoryField.setAccessible(true);
+            factoryField.set(null, factoryId);
+        } catch (Exception e) {
+            // Field may not exist for non-managed types
+        }
+    }
+
+    @Nullable
+    private static Class<?> computeOuterType(Class<?> type) {
+        Class<?> enclosingClass = type.getEnclosingClass();
+        if (enclosingClass != null && !Modifier.isStatic(type.getModifiers())) {
+            return enclosingClass;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("ReturnValueIgnored")
+    private static boolean hasField(Class<?> clazz, String fieldName) {
+        try {
+            clazz.getDeclaredField(fieldName);
+            return true;
+        } catch (NoSuchFieldException e) {
+            return false;
+        }
+    }
+
+    private static List<Class<?>> resolveClasses(List<String> classNames, ClassLoader classLoader) {
+        List<Class<?>> result = new ArrayList<>(classNames.size());
+        for (String name : classNames) {
+            try {
+                result.add(Class.forName(name, false, classLoader));
+            } catch (ClassNotFoundException e) {
+                throw new ClassGenerationException("Could not load cached class: " + name, e);
+            }
+        }
+        return result;
     }
 
     protected abstract ClassInspectionVisitor start(Class<?> type);
@@ -1548,7 +1645,17 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void addNameProperty();
 
-        Class<?> generate() throws Exception;
+        GenerationResult generate() throws Exception;
+    }
+
+    protected static class GenerationResult {
+        final byte @Nullable [] bytecode;
+        final Class<?> generatedClass;
+
+        GenerationResult(byte @Nullable [] bytecode, Class<?> generatedClass) {
+            this.bytecode = bytecode;
+            this.generatedClass = generatedClass;
+        }
     }
 
     /**

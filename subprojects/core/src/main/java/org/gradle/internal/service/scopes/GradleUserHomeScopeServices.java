@@ -53,6 +53,14 @@ import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.execution.plan.ToPlannedTaskConverter;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
+import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
+import org.gradle.internal.instantiation.DecoratedClassBytecodeWorkspaceProvider;
+import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.WorkspaceBackedClassBytecodeCache;
+import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.generator.GeneratedClassBytecodeCache;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
@@ -123,6 +131,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         registration.add(ClasspathElementTransformFactoryForLegacy.class);
         registration.add(CachedClasspathTransformer.class, DefaultCachedClasspathTransformer.class);
         registration.add(GroovyDslWorkspaceProvider.class);
+        registration.add(DecoratedClassBytecodeWorkspaceProvider.class);
         for (GradleModuleServices services : globalServices.getAll(GradleModuleServices.class)) {
             services.registerGradleUserHomeServices(registration);
         }
@@ -161,6 +170,17 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     @Provides
     CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new CrossBuildInMemoryCachingScriptClassCache(cacheFactory);
+    }
+
+    @Provides
+    InstantiatorFactory createInstantiatorFactory(
+        CrossBuildInMemoryCacheFactory cacheFactory,
+        List<InjectAnnotationHandler> injectHandlers,
+        List<AbstractOutputPropertyAnnotationHandler> outputHandlers,
+        DecoratedClassBytecodeWorkspaceProvider workspaceProvider
+    ) {
+        GeneratedClassBytecodeCache cache = new WorkspaceBackedClassBytecodeCache(workspaceProvider.getWorkspace());
+        return new DefaultInstantiatorFactory(cacheFactory, injectHandlers, new OutputPropertyRoleAnnotationHandler(outputHandlers), cache);
     }
 
     @Provides

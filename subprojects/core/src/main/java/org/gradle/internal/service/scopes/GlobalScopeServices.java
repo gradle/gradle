@@ -77,6 +77,7 @@ import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.generator.GeneratedClassBytecodeCache;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -240,7 +241,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     @Provides
     InstantiatorFactory createInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, List<AbstractOutputPropertyAnnotationHandler> outputHandlers) {
-        return new DefaultInstantiatorFactory(cacheFactory, injectHandlers, new OutputPropertyRoleAnnotationHandler(outputHandlers));
+        return new DefaultInstantiatorFactory(cacheFactory, injectHandlers, new OutputPropertyRoleAnnotationHandler(outputHandlers), GeneratedClassBytecodeCache.NONE);
     }
 
     @Provides

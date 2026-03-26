@@ -28,6 +28,7 @@ import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.generator.GeneratedClassBytecodeCache;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
@@ -74,7 +75,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
         try {
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new BasicClassCacheFactory(), Collections.emptyList(), new BasicPropertyRoleAnnotationHandler());
+                instantiatorFactory = new DefaultInstantiatorFactory(new BasicClassCacheFactory(), Collections.emptyList(), new BasicPropertyRoleAnnotationHandler(), GeneratedClassBytecodeCache.NONE);
             }
             ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
                 .displayName("worker action services")
