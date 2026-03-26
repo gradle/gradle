@@ -12,15 +12,13 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release improves [diagnostics and reporting](#diagnostics-and-reporting-improvements) with task provenance in failure messages, task reports, and the `help` task, plus clearer logging when the client JVM is incompatible with daemon requirements.
+This release improves [diagnostics and reporting](#diagnostics-and-reporting-improvements) with task provenance in errors and reports, plus clearer logging when the client JVM is incompatible with daemon requirements for `--no-daemon`.
 
 [Plugin authors](#core-plugin-and-plugin-authoring-enhancements) gain type-safe Kotlin accessors for precompiled Settings convention plugins and automatic retry support for Wrapper downloads.
 
-[Build authoring](#build-authoring-improvements) is enhanced with the ability to lock Domain Object Collections using `disallowChanges()` and a new `GRADLE_DAEMON_BIND_ADDRESS` environment variable for environments where network auto-detection fails.
+[Build authoring](#build-authoring-improvements) is enhanced with the ability to lock Domain Object Collections and a new environment variable to specify the network address used for client-daemon communication.
 
-Other [improvements](#general-improvements) include a new `--into` option for `gradle init`, easier Develocity integration via `--develocity-url`, and grouped `--help` output for easier CLI discovery.
-
-Finally, the [Tooling API](#tooling-and-ide-integration) now exposes help and version information.
+Other [improvements](#general-improvements) include additional `gradle init` option, easier Develocity integration, and grouped `--help` output. Finally, the [Tooling API](#tooling-and-ide-integration) now exposes help and version information.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [mataha](https://github.com/mataha),
@@ -114,7 +112,7 @@ Actual: DefaultDaemonContext[javaHome=.../jdk-17.0.13+11/..., javaVersion=17, ja
 
 Previously, Gradle only stated that a single-use daemon would be used without explaining why.
 
-This makes it easier to diagnose unexpected daemon forking when using `--no-daemon` or investigating JVM compatibility issues.
+This makes it easier to diagnose unexpected daemon forking when using [--no-daemon](userguide/gradle_daemon.html#sec:disabling_the_daemon) or investigating JVM compatibility issues.
 
 ### Core plugin and plugin authoring enhancements
 
@@ -182,6 +180,25 @@ extensions.configure<com.gradle.develocity.agent.gradle.DevelocityConfiguration>
 
 See the [Gradle Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:accessor_applicability) to learn more.
 
+#### Init Task supports specifying the project directory
+
+The gradle init task now accepts an --into option to specify the target directory for the new project.
+The directory is created automatically if it doesn't exist:
+
+```bash
+gradle init --type java-application --into my-new-project
+```
+
+Previously, initializing a project in a new directory required creating it manually and either changing into it or using the global `--project-dir` flag:
+
+```bash
+mkdir my-new-project
+cd my-new-project
+gradle init
+```
+
+See [Build Init Plugin](userguide/build_init_plugin.html) to learn more.
+
 ### Build authoring improvements
 
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
@@ -227,25 +244,6 @@ See [Gradle Environment Variables](userguide/build_environment.html#sec:gradle_e
 ### General improvements
 
 Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
-
-#### Init Task supports specifying the project directory
-
-The gradle init task now accepts an --into option to specify the target directory for the new project.
-The directory is created automatically if it doesn't exist:
-
-```bash
-gradle init --type java-application --into my-new-project
-```
-
-Previously, initializing a project in a new directory required creating it manually and either changing into it or using the global `--project-dir` flag:
-
-```bash
-mkdir my-new-project
-cd my-new-project
-gradle init
-```
-
-See [Build Init Plugin](userguide/build_init_plugin.html) to learn more.
 
 #### Easier Develocity integration
 
