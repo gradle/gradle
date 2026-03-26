@@ -17,12 +17,13 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 
 // This tests current behaviour, not desired behaviour
 class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
-    @UnsupportedWithConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
+    @ToBeFixedForConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
     @Issue("https://github.com/gradle/gradle/issues/37219")
     def "task can query FileCollection containing the output of transform of project artifacts without declaring this access"() {
         setupBuildWithProjectArtifactTransforms()
@@ -79,7 +80,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
         """
     }
 
-    @UnsupportedWithConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
+    @ToBeFixedForConfigurationCache(because = "under CC, transform nodes for project artifacts are not serialized when the transform is not declared as a dependency of the task, causing 'project not found' errors during cache replay")
     def "task can query FileCollection containing the output of chained transform of project artifacts without declaring this access"() {
         setupBuildWithChainedProjectArtifactTransforms()
         taskQueriesFilesWithoutDeclaringInput()
