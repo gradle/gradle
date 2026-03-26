@@ -25,8 +25,18 @@ import org.gradle.test.precondition.TestPrecondition
 import org.jetbrains.kotlin.config.JvmTarget
 import org.testcontainers.DockerClientFactory
 
+import org.jspecify.annotations.NullMarked;
+
 @CompileStatic
 class UnitTestPreconditions {
+
+    @NullMarked
+    static final class NotCI implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return !System.getenv().containsKey("CI")
+        }
+    }
 
     static final class Symlinks implements TestPrecondition {
         @Override
