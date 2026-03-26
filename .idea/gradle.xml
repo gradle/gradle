@@ -174,7 +174,6 @@
             <option value="$PROJECT_DIR$/platforms/core-runtime/collections" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/concurrent" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/daemon-logging" />
-            <option value="$PROJECT_DIR$/platforms/core-runtime/daemon-main" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/daemon-messaging" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/daemon-protocol" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/daemon-server" />
@@ -312,7 +311,6 @@
             <option value="$PROJECT_DIR$/platforms/software/testing-base" />
             <option value="$PROJECT_DIR$/platforms/software/testing-base-infrastructure" />
             <option value="$PROJECT_DIR$/platforms/software/version-control" />
-            <option value="$PROJECT_DIR$/subprojects/build-events" />
             <option value="$PROJECT_DIR$/subprojects/composite-builds" />
             <option value="$PROJECT_DIR$/subprojects/core" />
             <option value="$PROJECT_DIR$/subprojects/core-api" />

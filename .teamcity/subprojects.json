@@ -385,13 +385,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "daemon-main",
-    "path": "platforms/core-runtime/daemon-main",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "daemon-messaging",
     "path": "platforms/core-runtime/daemon-messaging",
     "unitTests": true,

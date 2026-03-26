@@ -78,6 +78,7 @@ dependencies {
     }
 
     // The wrapper expects the launcher Jar to have classpath entries that contain the main class and its runtime classpath
+    // See `BootstrapMainStarter`
     manifestClasspath(projects.gradleCliMain)
 
     testImplementation(projects.internalIntegTesting)

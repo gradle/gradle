@@ -37,13 +37,12 @@ val resolveManifestClasspath = configurations.resolvable("resolveManifestClasspa
 }
 
 tasks.jar.configure {
-    val classpath = resolveManifestClasspath.flatMap { configuration ->
-        configuration.elements.map { classpathDependency ->
-            classpathDependency.joinToString(" ") { it.asFile.name }
-        }
+    val runtimeFiles = configurations.runtimeClasspath.flatMap { it.elements }
+    val manifestFiles = resolveManifestClasspath.flatMap { it.elements }
+    val classpath = manifestFiles.zip(runtimeFiles) { manifest, runtime ->
+        manifest.ifEmpty { runtime }.joinToString(" ") { it.asFile.name }
     }
     dependsOn(classpath)
-    manifest.attributes("Class-Path-Source" to "manifestClasspath")
     manifest.attributes("Class-Path" to classpath)
     if (app.mainClassName.isPresent) {
         manifest.attributes("Main-Class" to app.mainClassName)

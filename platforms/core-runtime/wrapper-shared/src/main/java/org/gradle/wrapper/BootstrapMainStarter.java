@@ -28,6 +28,8 @@ public class BootstrapMainStarter {
         if (gradleJar == null) {
             throw new RuntimeException(String.format("Could not locate the Gradle launcher JAR in Gradle distribution '%s'.", gradleHome));
         }
+        // The URLClassloader will also include the jars listed in the launcher jar's
+        // Class-Path manifest attributes as candidates for loading classes.
         URLClassLoader contextClassLoader = new URLClassLoader(new URL[]{gradleJar.toURI().toURL()}, ClassLoader.getSystemClassLoader().getParent());
         Thread.currentThread().setContextClassLoader(contextClassLoader);
         Class<?> mainClass = contextClassLoader.loadClass("org.gradle.launcher.GradleMain");
