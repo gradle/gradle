@@ -93,7 +93,8 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
                     def tag = action == storing
                         ? "Calculating task graph as no (cached configuration|configuration cache) is available"
                         : "Reusing configuration cache"
-                    File buildLog = new File(invocationSettings.projectDir, "profile.log")
+                    File workingDir = invocationSettings.projectDir.parentFile
+                    File buildLog = new File(workingDir, "profile.log")
 
                     def found = Files.lines(buildLog.toPath()).withCloseable { lines ->
                         def pattern = Pattern.compile(tag)
