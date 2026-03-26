@@ -25,7 +25,6 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Function
@@ -47,7 +46,6 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
     def "executes buildSrc configuration action after projects are loaded"() {
         def action = Mock(Action)
         def listener = new BuildSrcBuildListenerFactory(action, new DefaultScriptClassPathResolver(
-            TestUtil.objectInstantiator(),
             Stub(AgentStatus),
             Stub(Gradle),
             Stub(PropertyUpgradeReportConfig)

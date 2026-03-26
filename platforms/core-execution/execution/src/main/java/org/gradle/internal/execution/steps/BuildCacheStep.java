@@ -25,7 +25,6 @@ import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.Execution;
-import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
@@ -42,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Optional;
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.FROM_CACHE;
@@ -118,11 +118,8 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
     }
 
     private Optional<BuildCacheLoadResult> tryLoadingFromCache(BuildCacheKey cacheKey, CacheableWork cacheableWork) {
-        if (cacheableWork.shouldInvalidateOutputsBeforeLoad()) {
-            ImmutableList.Builder<String> roots = ImmutableList.builder();
-            cacheableWork.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
-            fileSystemAccess.invalidate(roots.build());
-        }
+        Collection<String> cacheableLocations = cacheableWork.work.getCachedOutputLocationsForInvalidation(cacheableWork.workspace);
+        fileSystemAccess.invalidate(cacheableLocations);
         return buildCache.load(cacheKey, cacheableWork);
     }
 
@@ -226,12 +223,6 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
                     visitor.visitOutputTree(propertyName, type, value.getValue());
                 }
             });
-        }
-
-        // TODO Make this much more explicit
-        public boolean shouldInvalidateOutputsBeforeLoad() {
-            // We don't need to invalidate outputs for immutable work as it's executed in a unique temporary workspace
-            return work instanceof MutableUnitOfWork;
         }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -238,7 +237,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
 """
     }
 
-    private void node(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
+    private void node(String module, ComponentSelectionReasonInternal reason = ComponentSelectionReasons.requested()) {
         def resultId = id(module)
         def componentId = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("x", module), "1")
         def moduleVersionId = DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId("x", module), "1")
@@ -256,12 +255,20 @@ class ResolutionResultGraphBuilderSpec extends Specification {
 
     private ResolvedGraphDependency dep(String requested, Exception failure = null, String selected = requested) {
         def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("x", requested), DefaultImmutableVersionConstraint.of("1"))
-        failure = failure == null ? null : new ModuleVersionResolveException(selector, failure)
-        return Stub(ResolvedGraphDependency) {
-            getRequested() >> selector
-            getSelected() >> id(selected)
-            getSelectedVariant() >> id(selected)
-            getFailure() >> failure
+        if (failure == null) {
+            return Stub(ResolvedGraphDependency) {
+                getRequested() >> selector
+                getTargetComponentId() >> id(selected)
+                getTargetVariantId() >> id(selected)
+                getFailure() >> null
+                getReason() >> null
+            }
+        } else {
+            return Stub(ResolvedGraphDependency) {
+                getRequested() >> selector
+                getFailure() >> new ModuleVersionResolveException(selector, failure)
+                getReason() >> ComponentSelectionReasons.of(ComponentSelectionReasons.REQUESTED)
+            }
         }
     }
 

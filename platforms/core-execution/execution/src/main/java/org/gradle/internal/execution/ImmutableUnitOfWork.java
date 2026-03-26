@@ -18,6 +18,10 @@ package org.gradle.internal.execution;
 
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * A unit of work that will only be executed atomically and its outputs be reused indefinitely from an immutable workspace.
  */
@@ -35,4 +39,16 @@ public interface ImmutableUnitOfWork extends UnitOfWork {
     @Override
     @Deprecated
     default void visitMutableInputs(InputVisitor visitor) {}
+
+    @Override
+    default List<String> getAllOutputLocationsForInvalidation(File workspace) {
+        // For immutable work we can just invalidate the entire workspace
+        return Collections.singletonList(workspace.getAbsolutePath());
+    }
+
+    @Override
+    default List<String> getCachedOutputLocationsForInvalidation(File workspace) {
+        // For immutable work we can just invalidate the entire workspace
+        return Collections.singletonList(workspace.getAbsolutePath());
+    }
 }

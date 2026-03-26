@@ -209,8 +209,12 @@ include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main
 include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=task]"]
 ====
 
+[source,bash]
 ----
-$ gradle -q hello
+$ ./gradlew -q hello
+----
+[source,text]
+----
 include::{snippetsPath}/plugins/greeting/tests/greeting.out[]
 ----
 
@@ -244,6 +248,9 @@ include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/g
 ====
 
 The plugin version in this case is defined in the dependency declaration.
+
+The `version "..."` and `apply false` syntax are not supported in precompiled script plugins. The version for the plugin is determined by the version declared in the plugin's build file.
+If a plugin needs to be on the classpath but not applied, it can be left out of the `plugins {}` block and only added as a dependency in the plugin's build file.
 
 [[project_pre_compiled_plugins]]
 == Example of a precompiled script plugin in the `Project` scope

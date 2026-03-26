@@ -16,6 +16,8 @@
 
 package org.gradle.api.file;
 
+import org.gradle.declarative.dsl.model.annotations.ValueFactories;
+
 import java.io.File;
 
 /**
@@ -31,5 +33,6 @@ public interface RegularFile extends FileSystemLocation {
      * Returns the location of this file, as an absolute {@link File}.
      */
     @Override
+    @ValueFactories
     File getAsFile();
 }

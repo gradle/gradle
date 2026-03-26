@@ -33,12 +33,19 @@ public class WrapperExecutor {
     public static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
     public static final String NETWORK_TIMEOUT_PROPERTY = "networkTimeout";
     public static final String VALIDATE_DISTRIBUTION_URL = "validateDistributionUrl";
+    public static final String RETRIES_PROPERTY = "retries";
+    public static final String RETRY_TIMEOUT_PROPERTY = "retryTimeoutMs";
+
     private final Properties properties;
     private final File propertiesFile;
     private final WrapperConfiguration config = new WrapperConfiguration();
 
+    public static File wrapperPropertiesForProjectDirectory(File projectDir) {
+        return new File(projectDir, "gradle/wrapper/gradle-wrapper.properties");
+    }
+
     public static WrapperExecutor forProjectDirectory(File projectDir) {
-        return new WrapperExecutor(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties());
+        return new WrapperExecutor(wrapperPropertiesForProjectDirectory(projectDir), new Properties());
     }
 
     public static WrapperExecutor forWrapperPropertiesFile(File propertiesFile) {
@@ -62,6 +69,8 @@ public class WrapperExecutor {
                 config.setZipPath(getProperty(ZIP_STORE_PATH_PROPERTY, config.getZipPath()));
                 config.setNetworkTimeout(getProperty(NETWORK_TIMEOUT_PROPERTY, config.getNetworkTimeout()));
                 config.setValidateDistributionUrl(getProperty(VALIDATE_DISTRIBUTION_URL, config.getValidateDistributionUrl()));
+                config.setRetries(getProperty(RETRIES_PROPERTY, config.getRetries()));
+                config.setRetryTimeoutMs(getProperty(RETRY_TIMEOUT_PROPERTY, config.getRetryTimeoutMs()));
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Could not load wrapper properties from '%s'.", propertiesFile), e);
             }

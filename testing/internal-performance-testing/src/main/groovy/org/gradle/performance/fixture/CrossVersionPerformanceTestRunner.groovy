@@ -33,11 +33,13 @@ import org.gradle.performance.util.Git
 import org.gradle.profiler.BuildAction
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.buildops.BuildOperationMeasurement
+import org.gradle.profiler.buildops.BuildOperationMeasurementKind
 import org.gradle.profiler.gradle.GradleInvoker
 import org.gradle.profiler.gradle.GradleInvokerBuildAction
 import org.gradle.profiler.gradle.ToolingApiGradleClient
 import org.gradle.profiler.studio.AndroidStudioSyncAction
-import org.gradle.profiler.studio.tools.StudioFinder
+import org.gradle.profiler.studio.tools.AndroidStudioFinder
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
@@ -86,7 +88,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     String minimumBaseVersion
     boolean measureGarbageCollection = true
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
-    private final List<String> measuredBuildOperations = []
+    private final List<BuildOperationMeasurement> measuredBuildOperations = []
     private BuildAction buildAction
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
@@ -101,8 +103,29 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         buildMutators.add(buildMutator)
     }
 
-    List<String> getMeasuredBuildOperations() {
-        return measuredBuildOperations
+    /**
+     * Requests a build operation to be measured by a given metric.
+     * <p>
+     * The {@code buildOperationType} is a FQCN of a class that has a direct nested {@code .Details} class,
+     * instance of which is attached to the operation descriptor ({@link org.gradle.internal.operations.BuildOperationDescriptor.Builder#details}).
+     * <p>
+     * Examples: {@code ConfigureBuildBuildOperationType}, {@code RunRootBuildWorkBuildOperationType}
+     * <p>
+     * Gradle Profiler will use an init script to wire the measurements.
+     * For instance, for {@code SomeOperation}, the build operations considered for this measurement
+     * will be filtered by an equivalent of the following:
+     * <pre>
+     * Class.forName("SomeOperation$Details")
+     *     .isAssignableFrom(buildOperationDescriptor.getDetails())
+     * </pre>
+     *
+     * @param buildOperationType FQCN of the type, whose {@code .Details} instances will be attached to the operation
+     * @param kind
+     *
+     * @see org.gradle.internal.operations.BuildOperationType
+     */
+    void measureBuildOperation(String operationType, BuildOperationMeasurementKind kind) {
+        measuredBuildOperations << new BuildOperationMeasurement(operationType, kind)
     }
 
     CrossVersionPerformanceResults run() {
@@ -198,7 +221,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .invocationCount(runs)
             .buildMutators(buildMutators)
             .crossVersion(true)
-            .measuredBuildOperations(measuredBuildOperations)
+            .buildOperationMeasurements(measuredBuildOperations)
             .measureGarbageCollection(measureGarbageCollection)
             .invocation {
                 workingDirectory(workingDir)
@@ -246,7 +269,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     def setupAndroidStudioSync() {
         useAndroidStudio = true
         buildAction = new AndroidStudioSyncAction()
-        studioInstallDir = StudioFinder.findStudioHome()
+        studioInstallDir = AndroidStudioFinder.findStudioHome()
         studioJvmArgs = System.getProperty("studioJvmArgs") != null
             ? System.getProperty("studioJvmArgs").split(",").collect()
             : []

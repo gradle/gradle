@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.java;
 
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.features.binding.BuildModel;
 import org.gradle.api.tasks.Nested;
 
 public interface GroovyLibraryModel extends HasJarFile, HasGroovyClasses, BuildModel {

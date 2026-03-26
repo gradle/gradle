@@ -210,7 +210,8 @@ class PrecompiledScriptPluginTest : TestWithTempFiles() {
     }
 
     private
-    fun scriptPlugin(fileName: String, text: String = "") = PrecompiledScriptPlugin(newFile(fileName, text))
+    fun scriptPlugin(fileName: String, text: String = ""): PrecompiledScriptPlugin =
+        PrecompiledScriptPluginFactory().create(newFile(fileName, text))
 
     private
     fun firstNonBlankLineOf(expectedFile: File) =

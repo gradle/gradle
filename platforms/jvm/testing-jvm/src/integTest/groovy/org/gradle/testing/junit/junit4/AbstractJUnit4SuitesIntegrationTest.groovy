@@ -27,6 +27,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 
 abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIntegrationTest {
     abstract boolean supportsSuiteOutput()
+
     abstract String getTestFrameworkJUnit3Dependencies()
 
     @Override
@@ -175,7 +176,7 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         result.testPath(':org.gradle.ASuite:org.gradle.OtherTest:ok').onlyRoot().assertStderr(equalTo(""))
     }
 
-    def "supports Junit3 suites"() {
+    def "supports JUnit3 suites"() {
         given:
         file('src/test/java/org/gradle/SomeSuite.java') << """
             package org.gradle;
@@ -257,6 +258,77 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
             result.testPath("org.gradle.SomeSuite:org.gradle.SomeTest2").onlyRoot().assertStdout(containsString("stdout in TestSetup#teardown"))
             result.testPath("org.gradle.SomeSuite:org.gradle.SomeTest2").onlyRoot().assertStderr(containsString("stderr in TestSetup#teardown"))
         }
+    }
+
+    def "supports JUnit3 suites run by JUnit 4 suites"() {
+        given:
+        file('src/test/java/org/gradle/JUnit3Test.java') << """
+            package org.gradle;
+
+            import junit.framework.TestCase;
+            import junit.framework.TestSuite;
+            import org.junit.runner.RunWith;
+            import org.junit.runners.AllTests;
+
+            @RunWith(AllTests.class)
+            public class JUnit3Test extends TestCase {
+
+                public JUnit3Test(String name) {
+                    super(name);
+                }
+
+                public static TestSuite suite()
+                {
+                    var suite = new TestSuite("JUnit 3 style test suite");
+                    suite.addTest(new JUnit3Test("JUnit 3 style test") {
+                        @Override
+                        protected void runTest() {
+                            testSomeLibraryMethodReturnsTrue();
+                        }
+                    });
+                    return suite;
+                }
+
+                public void testSomeLibraryMethodReturnsTrue() {
+                    System.out.println("In JUnit 3 style test");
+                }
+            }
+        """.stripIndent()
+        file('src/test/java/org/gradle/JUnit4Suite.java') << """
+            package org.gradle;
+
+            import org.junit.runner.RunWith;
+            import org.junit.runners.Suite;
+
+            @RunWith(Suite.class)
+            @Suite.SuiteClasses(JUnit3Test.class)
+            public class JUnit4Suite {
+            }
+        """.stripIndent()
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test {
+                ${configureTestFramework}
+                include '**/*Suite.class'
+                exclude '**/*Test.class'
+            }
+        """.stripIndent()
+
+        when:
+        executer.withTasks('test').run()
+
+        then:
+        GenericTestExecutionResult result = resultsFor()
+        result.assertTestPathsExecuted(
+            ':org.gradle.JUnit4Suite:JUnit 3 style test suite:JUnit 3 style test'
+        )
+        result.testPath(':org.gradle.JUnit4Suite:JUnit 3 style test suite:JUnit 3 style test').onlyRoot()
+            .assertDisplayName(equalTo("JUnit 3 style test"))
+            .assertStdout(containsString("In JUnit 3 style test"))
     }
 
     def "can run multiple parameterized tests via suite only"() {

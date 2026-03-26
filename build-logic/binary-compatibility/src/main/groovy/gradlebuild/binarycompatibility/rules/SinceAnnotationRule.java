@@ -86,6 +86,6 @@ public class SinceAnnotationRule extends AbstractGradleViolationRule {
      * Kotlin file-facade classes can't have kdoc comments.
      */
     private boolean isKotlinFileFacadeClass(JApiCompatibility member) {
-        return member instanceof JApiClass && KotlinMetadataQueries.INSTANCE.isKotlinFileFacadeClass(((JApiClass) member).getNewClass().get());
+        return member instanceof JApiClass && ((JApiClass) member).getNewClass().isPresent() && KotlinMetadataQueries.INSTANCE.isKotlinFileFacadeClass(((JApiClass) member).getNewClass().get());
     }
 }

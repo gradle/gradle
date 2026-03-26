@@ -16,10 +16,9 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.Named;
 import org.gradle.api.provider.Property;
 
-public interface AntlrConfiguration extends Named, HasAntlrGrammars {
+public interface AntlrConfiguration extends HasAntlrGrammars {
     Property<Boolean> getTrace();
     Property<Boolean> getTraceLexer();
     Property<Boolean> getTraceParser();

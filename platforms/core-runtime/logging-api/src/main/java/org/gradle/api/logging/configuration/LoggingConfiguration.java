@@ -16,6 +16,7 @@
 
 package org.gradle.api.logging.configuration;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 
@@ -42,21 +43,56 @@ public interface LoggingConfiguration {
     ConsoleOutput getConsoleOutput();
 
     /**
+     * Returns the type of characters that should be written to the console.
+     * Defaults to {@link ConsoleUnicodeSupport#Auto}
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    ConsoleUnicodeSupport getConsoleUnicodeSupport();
+
+    /**
      * Specifies the style of logging output that should be written to the console.
      */
     void setConsoleOutput(ConsoleOutput consoleOutput);
 
     /**
+     * Specifies the use of Unicode characters in the console output.
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    void setConsoleUnicodeSupport(ConsoleUnicodeSupport unicodeSupport);
+
+    /**
      * Specifies which type of warnings should be written to the console.
+     *
      * @since 4.5
      */
     WarningMode getWarningMode();
 
     /**
      * Specifies which type of warnings should be written to the console.
+     *
      * @since 4.5
      */
     void setWarningMode(WarningMode warningMode);
+
+    /**
+     * Can the build do interactive prompting on the console.
+     *
+     * @since 9.6.0
+     */
+    @Incubating
+    boolean isNonInteractive();
+
+    /**
+     * Sets if the build can do interactive prompting on the console.
+     *
+     * @since 9.6.0
+     */
+    @Incubating
+    void setNonInteractive(boolean nonInteractive);
 
     /**
      * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.

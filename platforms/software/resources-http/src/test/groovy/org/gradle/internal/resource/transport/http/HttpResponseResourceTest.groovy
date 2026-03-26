@@ -16,28 +16,18 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.Header
-import org.apache.http.HttpEntity
 import org.apache.http.HttpHeaders
-import org.apache.http.StatusLine
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.message.BasicHeader
+import spock.lang.Specification
 
-class HttpResponseResourceTest extends AbstractHttpClientTest {
+class HttpResponseResourceTest extends Specification {
 
     def sourceUrl = new URI("http://gradle.org")
     def method = "GET"
-    def response = mockResponse()
-
-    private mockResponse() {
-        def response = Mock(CloseableHttpResponse)
-        response.getStatusLine() >> Mock(StatusLine)
-        response
-    }
+    def response = Mock(HttpClient.Response)
 
     def "extracts etag"() {
         given:
-        addHeader(HttpHeaders.ETAG, "abc")
+        response.getHeader(HttpHeaders.ETAG) >> "abc"
 
         expect:
         resource().metaData.etag == "abc"
@@ -49,13 +39,13 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
     }
 
     def "is not openable more than once"() {
-        setup:
-        1 * response.entity >> Mock(HttpEntity)
         when:
         def resource = this.resource()
         resource.openStream()
+
         and:
         resource.openStream()
+
         then:
         def ex = thrown(IOException);
         ex.message == "Unable to open Stream as it was opened before."
@@ -63,7 +53,7 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
 
     def "provides access to arbitrary headers"() {
         given:
-        addHeader(name, value)
+        response.getHeader(name) >> value
 
         expect:
         resource().getHeaderValue(name) == value
@@ -79,29 +69,15 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
     }
 
     def "close closes the response"() {
-        given:
-        def mockedHttpResponse = mockedHttpResponse(response)
-
         when:
         resource().close()
 
         then:
-        interaction {
-            assertIsClosedCorrectly(mockedHttpResponse)
-        }
+        1 * response.close()
     }
 
     HttpResponseResource resource() {
-        new HttpResponseResource(method, sourceUrl, new HttpClientResponse("GET", sourceUrl, response))
+        new HttpResponseResource(method, sourceUrl, response)
     }
 
-    void addHeader(String name, String value) {
-        interaction {
-            1 * response.getFirstHeader(name) >> header(name, value)
-        }
-    }
-
-    Header header(String name, String value) {
-        new BasicHeader(name, value)
-    }
 }

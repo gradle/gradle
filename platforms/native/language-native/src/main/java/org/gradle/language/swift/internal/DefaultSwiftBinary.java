@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
@@ -93,31 +94,34 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         @SuppressWarnings("deprecation")
         Configuration ipc = rbConfigurations.resolvableDependencyScopeLocked(names.withPrefix("swiftCompile"), conf -> {
             conf.extendsFrom(getImplementationDependencies());
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            AttributeContainer attrs = conf.getAttributes();
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.SWIFT_API));
+            attrs.attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+            attrs.attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+            attrs.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+            attrs.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
         });
         importPathConfiguration = ipc;
 
         @SuppressWarnings("deprecation")
         Configuration nativeLink = rbConfigurations.resolvableDependencyScopeLocked(names.withPrefix("nativeLink"), conf -> {
             conf.extendsFrom(getImplementationDependencies());
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
-            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            AttributeContainer attrs = conf.getAttributes();
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.NATIVE_LINK));
+            attrs.attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+            attrs.attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+            attrs.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+            attrs.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
         });
 
         Configuration nativeRuntime = rbConfigurations.resolvableLocked(names.withPrefix("nativeRuntime"), conf -> {
             conf.extendsFrom(getImplementationDependencies());
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME));
-            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            AttributeContainer attrs = conf.getAttributes();
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.NATIVE_RUNTIME));
+            attrs.attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+            attrs.attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+            attrs.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+            attrs.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
         });
 
         compileModules = new FileCollectionAdapter(new ModulePath(importPathConfiguration), taskDependencyFactory);

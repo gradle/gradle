@@ -21,20 +21,20 @@ import org.gradle.configuration.GradleLauncherMetaData;
 public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
-    private final boolean interactive;
+    private final boolean interactiveConsole;
 
-    public DefaultBuildRequestMetaData(BuildClientMetaData clientMetaData, long startTime, boolean interactive) {
+    public DefaultBuildRequestMetaData(BuildClientMetaData clientMetaData, long startTime, boolean interactiveConsole) {
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
-        this.interactive = interactive;
+        this.interactiveConsole = interactiveConsole;
     }
 
     public DefaultBuildRequestMetaData(long startTime) {
         this(startTime, false);
     }
 
-    public DefaultBuildRequestMetaData(long startTime, boolean interactive) {
-        this(new DefaultBuildClientMetaData(new GradleLauncherMetaData()), startTime, interactive);
+    public DefaultBuildRequestMetaData(long startTime, boolean interactiveConsole) {
+        this(new DefaultBuildClientMetaData(new GradleLauncherMetaData()), startTime, interactiveConsole);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     }
 
     @Override
-    public boolean isInteractive() {
-        return interactive;
+    public boolean isInteractiveConsole() {
+        return interactiveConsole;
     }
 }

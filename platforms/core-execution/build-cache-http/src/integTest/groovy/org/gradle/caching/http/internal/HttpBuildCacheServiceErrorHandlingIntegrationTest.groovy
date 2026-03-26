@@ -79,7 +79,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         String errorPattern = /(Connect to 127\.0\.0\.1:\d+ \[\/127\.0\.0\.1\] failed: Connection refused|127\.0\.0\.1:\d+ failed to respond|Connection reset)/
 
         when:
-        executer.withStackTraceChecksDisabled()
         withBuildCache().run "customTask"
 
         then:
@@ -101,7 +100,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         String errorPattern = /(Broken pipe|Connection reset|Software caused connection abort: socket write error|An established connection was aborted by the software in your host machine|127.0.0.1:.+ failed to respond)/
 
         when:
-        executer.withStackTraceChecksDisabled()
         withBuildCache().run "customTask"
 
         then:

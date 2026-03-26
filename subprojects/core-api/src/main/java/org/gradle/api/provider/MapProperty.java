@@ -19,7 +19,7 @@ package org.gradle.api.provider;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ManagedType;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHiddenMembers;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -44,7 +44,7 @@ import java.util.Set;
  */
 @ManagedType
 @SupportsKotlinAssignmentOverloading
-@HiddenInDefinition
+@DeclarativeWithHiddenMembers
 public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableValue, SupportsConvention {
 
     /**

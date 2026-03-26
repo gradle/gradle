@@ -96,7 +96,7 @@ public class PredicatesFile {
         if (!found) {
             String message = String.format(
                 "Requested requirements [%s] were not in the list of accepted combinations. " +
-                    "Add it to 'subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv' to be accepted. " +
+                    "Add it to 'testing/internal-testing/src/main/resources/valid-precondition-combinations.csv' to be accepted. " +
                     "See the documentation of this class to learn more about this feature.",
                 String.join(", ", predicateClassNames)
             );

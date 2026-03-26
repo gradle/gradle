@@ -194,7 +194,7 @@ sealed interface ObjectOrigin {
         val accessor: ConfigureAccessor.Custom,
         override val originElement: LanguageTreeElement
     ) : ObjectOrigin, HasReceiver {
-        override fun toString(): String = "$receiver${'.'}${accessor.customAccessorIdentifier}"
+        override fun toString(): String = "$receiver${'.'}${accessor.accessorIdentifier}"
         val accessedType: DataTypeRef
             get() = accessor.objectType
     }

@@ -25,13 +25,15 @@ plugins {
     id("gradlebuild.private-javadoc")
 }
 
+val testLibs = project.versionCatalogs.named("testLibs")
+
 dependencies {
     api(platform("gradlebuild:build-platform"))
     implementation("gradlebuild:gradle-plugin")
 
-    testImplementation("org.junit.vintage:junit-vintage-engine")
+    testImplementation(testLibs.findLibrary("junit5Vintage").get())
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
 }
 
 tasks.withType<KotlinCompile>().configureEach {

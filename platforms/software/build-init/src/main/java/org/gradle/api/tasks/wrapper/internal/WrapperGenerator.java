@@ -26,6 +26,7 @@ import org.gradle.api.tasks.wrapper.Wrapper.PathBase;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.DefaultGradleVersion;
 import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.wrapper.WrapperExecutor;
@@ -68,9 +69,11 @@ public class WrapperGenerator {
         File unixScript, File batchScript,
         @Nullable String distributionUrl,
         boolean validateDistributionUrl,
-        @Nullable Integer networkTimeout
+        @Nullable Integer networkTimeout,
+        @Nullable Integer retries,
+        @Nullable Integer retryTimeoutMs
     ) {
-        writeProperties(wrapperPropertiesOutputFile, distributionUrl, distributionSha256Sum, distributionBase, distributionPath, archiveBase, archivePath, networkTimeout, validateDistributionUrl);
+        writeProperties(wrapperPropertiesOutputFile, distributionUrl, distributionSha256Sum, distributionBase, distributionPath, archiveBase, archivePath, networkTimeout, validateDistributionUrl, retries, retryTimeoutMs);
         writeWrapperJar(wrapperJarOutputFile);
         writeScripts(jarFileRelativePath, unixScript, batchScript);
     }
@@ -84,7 +87,9 @@ public class WrapperGenerator {
         PathBase archiveBase,
         String archivePath,
         @Nullable Integer networkTimeout,
-        boolean validateDistributionUrl
+        boolean validateDistributionUrl,
+        @Nullable Integer retries,
+        @Nullable Integer retryTimeoutMs
     ) {
         Properties wrapperProperties = new Properties();
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, distributionUrl);
@@ -99,7 +104,12 @@ public class WrapperGenerator {
             wrapperProperties.put(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, String.valueOf(networkTimeout));
         }
         wrapperProperties.put(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, String.valueOf(validateDistributionUrl));
-
+        if (retries != null) {
+            wrapperProperties.put(WrapperExecutor.RETRIES_PROPERTY, String.valueOf(retries));
+        }
+        if (retryTimeoutMs != null) {
+            wrapperProperties.put(WrapperExecutor.RETRY_TIMEOUT_PROPERTY, String.valueOf(retryTimeoutMs));
+        }
         GFileUtils.parentMkdirs(propertiesFileDestination);
         try {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
@@ -123,10 +133,10 @@ public class WrapperGenerator {
     private static void writeScripts(String jarFileRelativePath, File unixScript, File batchScript) {
         StartScriptGenerator generator = new StartScriptGenerator();
         generator.setApplicationName("Gradle");
+        generator.setGitRef(DefaultGradleVersion.current().getGitRevision());
         generator.setEntryPoint(new ExecutableJar(jarFileRelativePath));
         generator.setClasspath(Collections.emptyList());
         generator.setOptsEnvironmentVar("GRADLE_OPTS");
-        generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");
         generator.setAppNameSystemProperty("org.gradle.appname");
         generator.setScriptRelPath(unixScript.getName());
         generator.setDefaultJvmOpts(ImmutableList.of("-Xmx64m", "-Xms64m"));

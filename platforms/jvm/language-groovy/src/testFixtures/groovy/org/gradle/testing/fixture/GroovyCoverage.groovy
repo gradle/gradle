@@ -68,13 +68,20 @@ class GroovyCoverage {
      * Computes the Java version that corresponds to the Java bytecode version actually produced by the Groovy compiler.
      */
     static JavaVersion getEffectiveTarget(VersionNumber groovyVersion, JavaVersion target) {
-        if (groovyVersion.major >= 4) {
-            return target
-        } else if (groovyVersion.major == 3) {
-            // If Groovy 3 does not support the requested target version, it silently falls back to an internal default
-            return JavaVersion.VERSION_17.isCompatibleWith(target) ? target : JavaVersion.VERSION_1_8
+        // If Groovy does not support the requested target version, it silently falls back to an internal default
+        if (!supportsTargetingJavaVersion(groovyVersion, target)) {
+            return JavaVersion.VERSION_1_8
         }
-        throw new IllegalArgumentException("Computing effective target for Groovy version $groovyVersion is not supported")
+        return target
+    }
+
+    private static boolean supportsTargetingJavaVersion(VersionNumber groovyVersion, JavaVersion javaVersion) {
+        return switch (groovyVersion.major) {
+            case 5 -> javaVersion <= JavaVersion.VERSION_26
+            case 4 -> javaVersion <= JavaVersion.VERSION_25
+            case 3 -> javaVersion <= JavaVersion.VERSION_17
+            default -> throw new IllegalArgumentException("Computing effective target for Groovy version $groovyVersion is not supported")
+        }
     }
 
     private static Set<String> allVersions() {

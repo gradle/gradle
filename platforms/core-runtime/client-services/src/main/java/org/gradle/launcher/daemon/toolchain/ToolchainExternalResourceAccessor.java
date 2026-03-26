@@ -22,7 +22,7 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
-import org.gradle.internal.resource.transport.http.HttpClientHelper;
+import org.gradle.internal.resource.transport.http.HttpClient;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.Nullable;
@@ -35,8 +35,8 @@ public class ToolchainExternalResourceAccessor extends HttpResourceAccessor {
     private final DownloadProgressListener downloadProgressListener;
     private final Clock clock;
 
-    public ToolchainExternalResourceAccessor(HttpClientHelper httpClientHelper, Clock clock, DownloadProgressListener downloadProgressListener) {
-        super(httpClientHelper);
+    public ToolchainExternalResourceAccessor(HttpClient client, Clock clock, DownloadProgressListener downloadProgressListener) {
+        super(client);
         this.clock = clock;
         this.downloadProgressListener = downloadProgressListener;
     }

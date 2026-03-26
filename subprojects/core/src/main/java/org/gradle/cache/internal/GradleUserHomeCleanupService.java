@@ -32,6 +32,8 @@ import org.gradle.internal.versionedcache.UsedGradleVersions;
 
 import java.io.File;
 
+import static org.gradle.launcher.daemon.logging.DaemonLogConstants.DAEMON_LOG_DIR;
+
 @ServiceScope(Scope.UserHome.class)
 public class GradleUserHomeCleanupService implements Stoppable {
     private final Deleter deleter;
@@ -69,8 +71,11 @@ public class GradleUserHomeCleanupService implements Stoppable {
                 cacheConfigurations.getCleanupFrequency().get()
             )
         );
+        // with this VersionSpecificCacheCleanupAction manages the cleanup frequency timing
         if (wasCleanedUp) {
-            execute(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
+            File gradleUserHomeDirectory = userHomeDirProvider.getGradleUserHomeDirectory();
+            execute(new WrapperDistributionCleanupAction(gradleUserHomeDirectory, usedGradleVersions));
+            execute(new DaemonLogCleanupAction(new File(gradleUserHomeDirectory, DAEMON_LOG_DIR), deleter, cacheConfigurations.getDaemonLogs().getEntryRetentionTimestampSupplier()));
         }
         alreadyCleaned = true;
     }
@@ -83,9 +88,9 @@ public class GradleUserHomeCleanupService implements Stoppable {
     }
 
     private boolean execute(MonitoredCleanupAction action) {
-        return buildOperationRunner.call(new CallableBuildOperation<Boolean>() {
+        return Boolean.TRUE.equals(buildOperationRunner.call(new CallableBuildOperation<Boolean>() {
             @Override
-            public Boolean call(BuildOperationContext context) throws Exception {
+            public Boolean call(BuildOperationContext context) {
                 return action.execute(new DefaultCleanupProgressMonitor(context));
             }
 
@@ -93,6 +98,6 @@ public class GradleUserHomeCleanupService implements Stoppable {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName(action.getDisplayName());
             }
-        });
+        }));
     }
 }

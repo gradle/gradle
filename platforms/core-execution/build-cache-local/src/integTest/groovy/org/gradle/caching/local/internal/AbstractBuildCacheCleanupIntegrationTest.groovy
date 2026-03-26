@@ -21,13 +21,14 @@ import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 
 abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
     private final static int DEFAULT_RETENTION_PERIOD_DAYS = 7
@@ -68,7 +69,6 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         requireOwnGradleUserHomeDir("Modifying cache settings in Gradle user home")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Cache is cleaned twice on load after store")
     def "cleans up entries when #cleanupTrigger"() {
         long lastCleanupCheck = initializeHome()
 
@@ -95,7 +95,8 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         then:
         existsBuildCacheEntry("0" * hashStringLength)
         !existsBuildCacheEntry("1" * hashStringLength)
-        assertCacheWasCleanedUpSince(lastCleanupCheck)
+        // With CC, cache is cleared twice, see https://github.com/gradle/gradle/issues/36688
+        assertCacheWasCleanedUpSince(lastCleanupCheck, !alwaysCleanup || GradleContextualExecuter.notConfigCache)
 
         where:
         cleanupTrigger              | alwaysCleanup
@@ -282,8 +283,14 @@ abstract class AbstractBuildCacheCleanupIntegrationTest extends AbstractIntegrat
         withEnabledBuildCache().fails("cacheable")
     }
 
-    void assertCacheWasCleanedUpSince(long lastCleanupCheck) {
-        def buildOp = operations.only("Clean up ${getBuildCacheName()} ($cacheDir)")
+    void assertCacheWasCleanedUpSince(long lastCleanupCheck, boolean exactlyOnce = true) {
+        def buildOperations = operations.matchingRegex(Pattern.quote("Clean up ${getBuildCacheName()} ($cacheDir)"))
+        if (exactlyOnce) {
+            assert buildOperations.size() == 1
+        } else {
+            assert buildOperations.size() > 1
+        }
+        def buildOp = buildOperations.last()
         buildOp.details.cacheLocation == cacheDir
         assert gcFile().lastModified() > lastCleanupCheck
     }

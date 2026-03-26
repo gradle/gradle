@@ -35,6 +35,8 @@ import org.gradle.util.DebugUtil
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.RedirectStdOutAndErr
 
+import java.nio.file.Paths
+
 class ToolingApiClassLoaderProvider {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
     private static final GradleDistribution CURRENT_GRADLE = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE)
@@ -42,33 +44,52 @@ class ToolingApiClassLoaderProvider {
     static ClassLoader getToolingApiClassLoader(ToolingApiDistribution toolingApi, Class<?> target) {
         def testClassPath = [ToolingApiSpecification, target]
             .collect { ClasspathUtil.getClasspathForClass(it) }
+            .collect {it.toURI().toURL() }
 
+        testClassPath.addAll(addTestClasspathFromSystemProperty("org.gradle.integtest.crossVersion.testClasspath"))
         testClassPath.addAll(collectAdditionalClasspath(toolingApi, target))
 
         getTestClassLoader(toolingApi, testClassPath)
     }
 
-    private static List<File> collectAdditionalClasspath(ToolingApiDistribution toolingApi, Class<?> target) {
+    private static List<URL> addTestClasspathFromSystemProperty(String systemProperty) {
+        String testClasspathProperty = System.getProperty(systemProperty)
+        if (testClasspathProperty == null || testClasspathProperty.isBlank()) {
+            throw new IllegalStateException("$systemProperty system property not set")
+        }
+
+        def parts = testClasspathProperty.split(":")
+        def testClassPath = new ArrayList(parts.size())
+
+        parts.eachWithIndex { String entry, int i ->
+            try {
+                testClassPath.add(Paths.get(parts[i]).toAbsolutePath().toUri().toURL())
+            } catch (Exception e) {
+                throw new RuntimeException("Invalid classpath entry in $systemProperty[" + i + "]: " + parts[i], e)
+            }
+        }
+
+        testClassPath
+    }
+
+    private static List<URL> collectAdditionalClasspath(ToolingApiDistribution toolingApi, Class<?> target) {
+        // TODO: with https://github.com/gradle/gradle/issues/37033 evaluate if this functionality can be removed
         target.annotations.findAll { it instanceof ToolingApiAdditionalClasspath }.collectMany { annotation ->
             (annotation as ToolingApiAdditionalClasspath).value()
                 .getDeclaredConstructor()
                 .newInstance()
                 .additionalClasspathFor(toolingApi, CURRENT_GRADLE)
         }
+        .collect { it.toURI().toURL() }
     }
 
-    private static ClassLoader getTestClassLoader(ToolingApiDistribution toolingApi, List<File> testClasspath) {
+    private static ClassLoader getTestClassLoader(ToolingApiDistribution toolingApi, List<URL> testClasspath) {
         synchronized (ToolingApiClassLoaderProvider) {
-            def classLoader = TEST_CLASS_LOADERS.get(toolingApi.version.version)
-            if (!classLoader) {
-                classLoader = createTestClassLoader(toolingApi, testClasspath)
-                TEST_CLASS_LOADERS.put(toolingApi.version.version, classLoader)
-            }
-            return classLoader
+            return TEST_CLASS_LOADERS.computeIfAbsent(toolingApi.version.version, v -> createTestClassLoader(toolingApi, testClasspath))
         }
     }
 
-    private static ClassLoader createTestClassLoader(ToolingApiDistribution toolingApi, List<File> testClassPath) {
+    private static ClassLoader createTestClassLoader(ToolingApiDistribution toolingApi, List<URL> testClassPath) {
         def classLoaderFactory = new DefaultClassLoaderFactory()
 
         def sharedSpec = new FilteringClassLoader.Spec()
@@ -108,6 +129,6 @@ class ToolingApiClassLoaderProvider {
 
         def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
 
-        return new VisitableURLClassLoader("tapi-test", parentClassLoader, testClassPath.collect { it.toURI().toURL() })
+        return new VisitableURLClassLoader("tapi-test", parentClassLoader, testClassPath)
     }
 }

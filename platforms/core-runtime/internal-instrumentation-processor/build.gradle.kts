@@ -15,14 +15,14 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.internal.java")
 }
 
 dependencies {
     api(projects.internalInstrumentationApi)
 
     api(libs.asm)
-    api(libs.javaPoet)
+    api(buildLibs.javaPoet)
     api(libs.jspecify)
 
     implementation(libs.asmTree)
@@ -35,7 +35,7 @@ dependencies {
 
     testCompileOnly(libs.jetbrainsAnnotations)
 
-    testImplementation(libs.compileTesting)
+    testImplementation(testLibs.compileTesting)
     testImplementation(projects.core)
     testImplementation(testFixtures(projects.core))
     // TODO remove this

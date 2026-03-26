@@ -16,13 +16,12 @@
 
 package gradlebuild.docs;
 
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 
 public abstract class ReleaseNotes {
     /**
-     * The source markdown file for the release notes.
+     * The source Markdown file for the release notes.
      */
     public abstract RegularFileProperty getMarkdownFile();
 
@@ -37,7 +36,7 @@ public abstract class ReleaseNotes {
     public abstract RegularFileProperty getReleaseNotesCssFile();
 
     /**
-     * The Javascript embedded in the release notes
+     * The JavaScript embedded in the release notes
      */
     public abstract RegularFileProperty getReleaseNotesJsFile();
 
@@ -45,11 +44,6 @@ public abstract class ReleaseNotes {
      * The location of the release notes assets
      */
     public abstract DirectoryProperty getReleaseNotesAssets();
-
-    /**
-     * The Jquery file to include in the release notes.
-     */
-    public abstract ConfigurableFileCollection getJquery();
 
     // TODO: Need staging root property too
 

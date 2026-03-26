@@ -21,20 +21,19 @@ import org.gradle.internal.file.locking.ExclusiveFileAccessManager;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -47,7 +46,12 @@ import static org.gradle.wrapper.Download.safeUri;
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
     public static final String SHA_256 = ".sha256";
-    public static final int RETRIES = 3;
+
+    public static final int DEFAULT_NETWORK_RETRIES = 0;
+    public static final int DEFAULT_NETWORK_RETRY_TIMEOUT_MS = 0;
+
+    private static final int BROKEN_ZIP_RETRIES = 3;
+
     private final Logger logger;
     private final IDownload download;
     private final PathAssembler pathAssembler;
@@ -66,44 +70,41 @@ public class Install {
         final File distDir = localDistribution.getDistributionDir();
         final File localZipFile = localDistribution.getZipFile();
 
-        return exclusiveFileAccessManager.access(localZipFile, new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
-                if (distDir.isDirectory() && markerFile.isFile()) {
-                    InstallCheck installCheck = verifyDistributionRoot(distDir, distDir.getAbsolutePath());
-                    if (installCheck.isVerified()) {
-                        return installCheck.gradleHome;
-                    }
-                    // Distribution is invalid. Try to reinstall.
-                    System.err.println(installCheck.failureMessage);
-                    markerFile.delete();
-                }
-
-                fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
-
-                InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
+        return exclusiveFileAccessManager.access(localZipFile, () -> {
+            final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
+            if (distDir.isDirectory() && markerFile.isFile()) {
+                InstallCheck installCheck = verifyDistributionRoot(distDir, distDir.getAbsolutePath());
                 if (installCheck.isVerified()) {
-                    setExecutablePermissions(installCheck.gradleHome);
-                    markerFile.createNewFile();
-                    localZipFile.delete();
                     return installCheck.gradleHome;
                 }
-                // Distribution couldn't be installed.
-                throw new RuntimeException(installCheck.failureMessage);
+                // Distribution is invalid. Try to reinstall.
+                System.err.println(installCheck.failureMessage);
+                markerFile.delete();
             }
+
+            fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
+
+            InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
+            if (installCheck.isVerified()) {
+                setExecutablePermissions(installCheck.gradleHome);
+                markerFile.createNewFile();
+                localZipFile.delete();
+                return installCheck.gradleHome;
+            }
+            // Distribution couldn't be installed.
+            throw new RuntimeException(installCheck.failureMessage);
         });
     }
 
     private void fetchDistribution(File localZipFile, URI distributionUrl, File distDir, WrapperConfiguration configuration) throws Exception {
         String distributionSha256Sum = configuration.getDistributionSha256Sum();
         boolean failed = false;
-        int retries = RETRIES;
+        int retries = BROKEN_ZIP_RETRIES;
         do {
             try {
                 boolean needsDownload = !localZipFile.isFile() || failed;
                 if (needsDownload) {
-                    forceFetch(localZipFile, distributionUrl);
+                    forceFetch(localZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeoutMs());
                 }
 
                 deleteLocalTopLevelDirs(distDir);
@@ -113,7 +114,7 @@ public class Install {
                 unzipLocal(localZipFile, distDir);
                 failed = false;
             } catch (ZipException e) {
-                if (retries >= RETRIES && distributionSha256Sum == null) {
+                if (retries >= BROKEN_ZIP_RETRIES && distributionSha256Sum == null) {
                     distributionSha256Sum = fetchDistributionSha256Sum(configuration, localZipFile);
                 }
                 failed = true;
@@ -125,20 +126,16 @@ public class Install {
         } while (failed);
     }
 
-
     private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
         URI distribution = configuration.getDistribution();
         try {
             URI distributionUrl = distribution.resolve(distribution.getPath() + SHA_256);
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + SHA_256);
 
-            forceFetch(tmpZipFile, distributionUrl);
+            forceFetch(tmpZipFile, distributionUrl, configuration.getRetries(), configuration.getRetryTimeoutMs());
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(tmpZipFile), "UTF-8"));
-            try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(tmpZipFile.toPath()), StandardCharsets.UTF_8))) {
                 return reader.readLine();
-            } finally {
-                reader.close();
             }
         } catch (Exception e) {
             logger.log("Could not fetch hash for " + safeUri(distribution) + ".");
@@ -165,22 +162,51 @@ public class Install {
         }
     }
 
-    private void forceFetch(File localTargetFile, URI distributionUrl) throws Exception {
-        File tempDownloadFile = new File(localTargetFile.getParentFile(), localTargetFile.getName() + ".part");
-        tempDownloadFile.delete();
+    private void forceFetch(File localTargetFile, URI distributionUrl, int networkRetries, int networkRetryTimeoutMs) throws Exception {
 
-        logger.log("Downloading " + safeUri(distributionUrl));
-        download.download(distributionUrl, tempDownloadFile);
-        if(localTargetFile.exists()) {
-            localTargetFile.delete();
+        // retry parameter values smaller than the defaults will be handled as the defaults
+        networkRetries = Math.max(DEFAULT_NETWORK_RETRIES, networkRetries);
+        networkRetryTimeoutMs = Math.max(DEFAULT_NETWORK_RETRY_TIMEOUT_MS, networkRetryTimeoutMs);
+
+        logger.log(String.format("Fetching distribution%s.",
+            networkRetries <= 0 ? "" : String.format(" (retrying %d times, with a timeout of %d ms)", networkRetries, networkRetryTimeoutMs)
+        ));
+
+        int attempts = networkRetries + 1;
+        Exception lastException = null;
+        for (int attempt = 1; attempt <= attempts; attempt++) {
+            try {
+                File tempDownloadFile = new File(localTargetFile.getParentFile(), localTargetFile.getName() + ".part");
+                tempDownloadFile.delete();
+
+                logger.log("Downloading " + safeUri(distributionUrl));
+                download.download(distributionUrl, tempDownloadFile);
+                if (localTargetFile.exists()) {
+                    localTargetFile.delete();
+                }
+                tempDownloadFile.renameTo(localTargetFile);
+
+                return;
+            } catch (IOException ioException) {
+                lastException = ioException;
+
+                logger.log(String.format("Attempt %d/%d failed. Reason: %s",
+                    attempt,
+                    attempts,
+                    ioException.getMessage()));
+
+                if (attempt < attempts) {
+                    Thread.sleep(networkRetryTimeoutMs);
+                }
+            }
         }
-        tempDownloadFile.renameTo(localTargetFile);
+
+        throw lastException;
     }
 
     static String calculateSha256Sum(File file) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
-        InputStream fis = new FileInputStream(file);
-        try {
+        try (InputStream fis = Files.newInputStream(file.toPath())) {
             int n = 0;
             byte[] buffer = new byte[4096];
             while (n != -1) {
@@ -189,14 +215,12 @@ public class Install {
                     md.update(buffer, 0, n);
                 }
             }
-        } finally {
-            fis.close();
         }
 
         byte[] byteData = md.digest();
         StringBuilder hexString = new StringBuilder();
-        for (int i = 0; i < byteData.length; i++) {
-            String hex = Integer.toHexString(0xff & byteData[i]);
+        for (byte byteDatum : byteData) {
+            String hex = Integer.toHexString(0xff & byteDatum);
             if (hex.length() == 1) {
                 hexString.append('0');
             }
@@ -257,7 +281,7 @@ public class Install {
             return emptyList();
         }
 
-        List<File> dirs = new ArrayList<File>();
+        List<File> dirs = new ArrayList<>();
         for (File file : files) {
             if (file.isDirectory()) {
                 dirs.add(file);
@@ -276,7 +300,7 @@ public class Install {
             ProcessBuilder pb = new ProcessBuilder("chmod", "755", gradleCommand.getCanonicalPath());
             Process p = pb.start();
             if (p.waitFor() != 0) {
-                BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
+                BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8));
                 Formatter stdout = new Formatter();
                 String line;
                 while ((line = is.readLine()) != null) {
@@ -304,8 +328,8 @@ public class Install {
         if (dir.isDirectory()) {
             String[] children = dir.list();
             if (children != null) {
-                for (int i = 0; i < children.length; i++) {
-                    boolean success = deleteDir(new File(dir, children[i]));
+                for (String child : children) {
+                    boolean success = deleteDir(new File(dir, child));
                     if (!success) {
                         return false;
                     }
@@ -318,8 +342,7 @@ public class Install {
     }
 
     private void unzip(File zip, File dest) throws IOException {
-        ZipFile zipFile = new ZipFile(zip);
-        try {
+        try (ZipFile zipFile = new ZipFile(zip)) {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
             while (entries.hasMoreElements()) {
@@ -331,15 +354,10 @@ public class Install {
                     continue;
                 }
 
-                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(destFile));
-                try {
+                try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(destFile.toPath()))) {
                     copyInputStream(zipFile.getInputStream(entry), outputStream);
-                } finally {
-                    outputStream.close();
                 }
             }
-        } finally {
-            zipFile.close();
         }
     }
 

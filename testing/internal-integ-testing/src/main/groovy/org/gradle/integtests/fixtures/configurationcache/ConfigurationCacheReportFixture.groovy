@@ -21,6 +21,7 @@ import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.Matcher
 
 import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.Matchers.greaterThanOrEqualTo
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
@@ -191,16 +192,21 @@ abstract class ConfigurationCacheReportFixture {
 
         private static String formatTrace(Map<String, Object> trace) {
             def kind = trace['kind']
-            switch (kind) {
-                case "Task": return trace['path']
-                case "Bean": return trace['type']
-                case "Field": return trace['name']
-                case "InputProperty": return trace['name']
-                case "OutputProperty": return trace['name']
-                    // Build file 'build.gradle'
-                case "BuildLogic": return trace['location'].toString().capitalize()
-                case "BuildLogicClass": return trace['type']
-                default: return "Gradle runtime"
+            // See org.gradle.internal.configuration.problems.DecoratedReportProblemJsonSource.writePropertyTrace
+            // TODO(mlopatkin): We're converting these back and forth, can we have a single source of truth for the JSON format?
+            return switch (kind) {
+                case "Field", "PropertyUsage", "InputProperty", "OutputProperty" -> trace['name']
+
+                case "VirtualProperty" -> trace['name']
+                case "SystemProperty" -> trace['name']
+                case "Task" -> trace['path']
+                case "Bean" -> trace['type']
+                case "Project" -> "Project '${trace['path']}'"
+                case "BuildLogic" -> trace['location'].toString().capitalize() // Build file 'build.gradle'
+                case "BuildLogicClass" -> trace['type']
+                case "Gradle" -> "Gradle runtime"
+                case "Unknown" -> "Unknown"
+                default -> throw new IllegalArgumentException("Unexpected trace kind '$kind'")
             }
         }
 
@@ -215,11 +221,19 @@ abstract class ConfigurationCacheReportFixture {
                 spec.inputs instanceof ItemSpec.ExpectingSome):
                 "The spec suggests the report shouldn't be generated but it was"
 
-            assertThat(
-                "HTML report JS model has wrong number of total problem(s)",
-                jsModel.totalProblemCount,
-                equalTo(totalProblemCount)
-            )
+            if (spec.enforceTotalProblemCount) {
+                assertThat(
+                    "HTML report JS model has wrong number of total problem(s)",
+                    jsModel.totalProblemCount,
+                    equalTo(totalProblemCount)
+                )
+            } else {
+                assertThat(
+                    "HTML report JS model does not have the minimum number of total problem(s)",
+                    jsModel.totalProblemCount,
+                    greaterThanOrEqualTo(uniqueProblemCount)
+                )
+            }
             assertThat(
                 "HTML report JS model has wrong number of problem(s) with stacktrace",
                 numberOfProblemsWithStacktrace(),
@@ -227,23 +241,41 @@ abstract class ConfigurationCacheReportFixture {
             )
 
             if (spec.checkReportProblems) {
-                def problemMessages = problemMessages()
+                def problems = problemsFromModel()
                 for (int i in spec.uniqueProblems.indices) {
                     // note that matchers for problem messages in report don't contain location prefixes
-                    assert spec.uniqueProblems[i].matches(problemMessages[i]): "Expected problem at #$i to be ${spec.uniqueProblems[i]}, but was: ${problemMessages[i]}"
+                    def actualProblem = problems[i]
+                    def actualMessage = formatStructuredMessage(actualProblem["problem"])
+                    def expectedProblem = spec.uniqueProblems[i]
+
+                    assert expectedProblem.problemText.matches(actualMessage): "Expected problem message at #$i to be ${expectedProblem.problemText}, but was: ${actualMessage}"
+
+                    if (expectedProblem.traceSpec) {
+                        def trace = actualProblem['trace'] as List
+                        assertLocationMatches(i, trace, expectedProblem.traceSpec)
+                    }
                 }
             }
         }
 
+        private void assertLocationMatches(int index, List<Object> trace, TraceSpec location) {
+            def traceList = trace.collect { formatTrace(it) }.reverse(true)
+
+            assert location.locationMatchers.size() <= traceList.size():
+                "Expected at most ${traceList.size()} location matchers for problem #${index} but got ${location.locationMatchers.size()}. Trace: ${traceList}"
+
+            for (int i = 0; i < location.locationMatchers.size(); i++) {
+                assert location.locationMatchers[i].matches(traceList[i]):
+                    "Expected trace for problem #${index} at position $i to match ${location.locationMatchers[i]}, but was: ${traceList[i]}. Full trace: ${traceList}"
+            }
+        }
+
         /**
-         * Makes a best effort to collect problem messages from the JS model.
+         * Collects all "diagnostics" that are actual problems.
          */
-        private List<String> problemMessages() {
+        private List<Object> problemsFromModel() {
             return (jsModel.diagnostics as List<Object>)
                 .findAll { it['problem'] != null }
-                .collect {
-                    formatStructuredMessage(it['problem'])
-                }
         }
 
         private int numberOfProblemsWithStacktrace() {

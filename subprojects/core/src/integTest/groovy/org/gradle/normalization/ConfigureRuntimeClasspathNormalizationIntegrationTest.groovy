@@ -360,7 +360,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         IntegTestPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with different JDK")
     def "property ordering is consistent"() {
-        def differentJdk = AvailableJavaHomes.differentJdk
+        def differentJdk = AvailableJavaHomes.differentVersion
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
         (1..100).each { index ->
             buildFile << """

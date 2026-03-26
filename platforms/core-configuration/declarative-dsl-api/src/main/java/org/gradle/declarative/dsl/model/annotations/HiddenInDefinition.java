@@ -21,6 +21,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * When applied to a member, excludes the member from declarative definition.
+ * If the excluded member is overridden in a subtype, it becomes visible in that subtype unless annotated there, too.
+ * <p>
+ * When applied to a type, makes the type a hidden type. Hidden types do not contribute declarative members to subtypes and cannot appear in signatures of
+ * declarative members. The supertypes of a hidden type become hidden types themselves and can no longer be used in declarative member signatures or as
+ * supertypes of other visible types, either, unless annotated as {@link VisibleInDefinition}.
+ */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface HiddenInDefinition {}

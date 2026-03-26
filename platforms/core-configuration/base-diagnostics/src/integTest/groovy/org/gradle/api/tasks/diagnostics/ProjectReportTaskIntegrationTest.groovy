@@ -15,16 +15,17 @@
  */
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.ProjectTypeBinding
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
+import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
+import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.util.internal.TextUtil
+import spock.lang.Issue
 
 /**
  * Integration tests for the `:projects` task, which reports the project structure and project types.
@@ -339,7 +340,6 @@ Root project 'my-root-project'
 
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
-            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
             import ${ RegistersProjectFeatures.class.name};
 
             @${RegistersProjectFeatures.class.simpleName}({ LibraryPlugin.class, ApplicationPlugin.class, UtilityPlugin.class })
@@ -522,5 +522,15 @@ For example, try running gradle :common:tasks
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :tasks
 """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37045")
+    def "reports projects when root project has no imperative statements"() {
+        buildFile << """
+            void foo() { }
+        """
+
+        expect:
+        succeeds "projects"
     }
 }

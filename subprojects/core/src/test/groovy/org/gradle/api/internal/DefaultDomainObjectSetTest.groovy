@@ -30,16 +30,6 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
     boolean elementRemovalAllowed = true
     boolean supportsBuildOperations = true
 
-    def "findAll() filters elements and retains iteration order"() {
-        set.add("a")
-        set.add("b")
-        set.add("c")
-        set.add("d")
-
-        expect:
-        set.findAll { it != "c" } == ["a", "b", "d"] as LinkedHashSet
-    }
-
     def "Set semantics preserved if backing collection is a filtered composite set"() {
         def c1 = new DefaultDomainObjectSet<String>(String, callbackActionDecorator)
         def c2 = new DefaultDomainObjectSet<String>(String, callbackActionDecorator)
@@ -57,7 +47,6 @@ class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<Char
 
         then:
         set.size() == 4
-        set.findAll { it != "c" } == ["a", "b", "d"] as LinkedHashSet
         set.iterator().collect { it } == ["a", "b", "c", "d"]
     }
 

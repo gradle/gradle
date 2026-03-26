@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
@@ -24,7 +23,6 @@ import spock.lang.Issue
 class ExtendingConfigurationsIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Issue("GRADLE-2873")
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "may replace configuration extension targets"() {
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()
@@ -41,24 +39,20 @@ class ExtendingConfigurationsIntegrationTest extends AbstractDependencyResolutio
                 barConf 'org:bar:1.0'
             }
 
-            task check {
-                doLast {
-                    configurations.conf.extendsFrom(configurations.fooConf)
-                    assert configurations.conf.allDependencies*.name == ['foo']
+            configurations.conf.extendsFrom(configurations.fooConf)
+            assert configurations.conf.allDependencies*.name == ['foo']
 
-                    //purposefully again:
-                    configurations.conf.extendsFrom(configurations.fooConf)
-                    assert configurations.conf.allDependencies*.name == ['foo']
+            //purposefully again:
+            configurations.conf.extendsFrom(configurations.fooConf)
+            assert configurations.conf.allDependencies*.name == ['foo']
 
-                    //replace:
-                    configurations.conf.extendsFrom = [configurations.barConf] as Set
-                    assert configurations.conf.allDependencies*.name == ['bar']
-                }
-            }
+            //replace:
+            configurations.conf.extendsFrom = [configurations.barConf] as Set
+            assert configurations.conf.allDependencies*.name == ['bar']
         """
 
         when:
-        run "check"
+        run "help"
 
         then:
         noExceptionThrown()
@@ -244,11 +238,219 @@ task checkResolveParentThenChild {
         succeeds 'resolvableConfigurations', '--all'
         outputContains("""
 --------------------------------------------------
-Configuration conf2
+Configuration conf2 (n)
 --------------------------------------------------
 
 Extended Configurations
     - conf1
 """)
+    }
+
+    def "can extend from a configuration provider"() {
+        given:
+        buildFile """
+            def conf1 = configurations.resolvable('conf1')
+
+            configurations {
+                resolvable('conf2') {
+                    extendsFrom conf1
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolvableConfigurations', '--all'
+        outputContains("""
+--------------------------------------------------
+Configuration conf2 (n)
+--------------------------------------------------
+
+Extended Configurations
+    - conf1
+""")
+    }
+
+    def "can extend from multiple configuration providers"() {
+        given:
+        buildFile """
+            def conf1 = configurations.resolvable('conf1')
+            def conf2 = configurations.resolvable('conf2')
+
+            configurations {
+                resolvable('conf3') {
+                    extendsFrom conf1, conf2
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolvableConfigurations', '--all'
+        outputContains("""
+--------------------------------------------------
+Configuration conf3 (n)
+--------------------------------------------------
+
+Extended Configurations
+    - conf1
+    - conf2
+""")
+    }
+
+    def "extending from provided configuration does not impact iteration order"() {
+        mavenRepo.module("org", "foo").publish()
+        mavenRepo.module("org", "bar").publish()
+        mavenRepo.module("org", "baz").publish()
+
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                resolvable('child')
+
+                def one = dependencyScope('one')
+                child.extendsFrom one
+
+                two
+                child.extendsFrom two
+
+                def zzz = dependencyScope('zzz')
+                child.extendsFrom zzz
+            }
+            dependencies {
+                one "org:foo:1.0"
+                two "org:bar:1.0"
+                zzz "org:baz:1.0"
+            }
+
+            task checkResolveChild {
+                def files = configurations.child
+                doFirst {
+                    println files*.name
+                }
+            }
+        """
+
+        when:
+        succeeds "checkResolveChild"
+
+        then:
+        outputContains("[foo-1.0.jar, bar-1.0.jar, baz-1.0.jar]")
+    }
+
+    def "simply extending from a provided configuration does not realize it"() {
+        mavenRepo.module("org", "foo").publish()
+        mavenRepo.module("org", "bar").publish()
+        mavenRepo.module("org", "baz").publish()
+
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                resolvable('child')
+
+                def one = dependencyScope('one') {
+                    println "Realizing one"
+                    dependencies.add(project.dependencies.create("org:foo:1.0"))
+                }
+                child.extendsFrom one
+
+                two
+                child.extendsFrom two
+
+                def zzz = dependencyScope('zzz') {
+                    println "Realizing zzz"
+                    dependencies.add(project.dependencies.create("org:baz:1.0"))
+                }
+                child.extendsFrom zzz
+            }
+            dependencies {
+                two "org:bar:1.0"
+            }
+
+            task checkResolveTwo {
+                def files = configurations.two
+                doFirst {
+                    println files*.name
+                }
+            }
+
+            task checkResolveChild {
+                def files = configurations.child
+                doFirst {
+                    println files*.name
+                }
+            }
+        """
+
+        when:
+        succeeds "checkResolveTwo"
+
+        then:
+        outputContains("[bar-1.0.jar]")
+        outputDoesNotContain("Realizing one")
+        outputDoesNotContain("Realizing zzz")
+
+        when:
+        succeeds "checkResolveChild"
+
+        then:
+        outputContains("[foo-1.0.jar, bar-1.0.jar, baz-1.0.jar]")
+        outputContains("Realizing one")
+        outputContains("Realizing zzz")
+    }
+
+    def "resetting extended configurations does not realize provided configurations that are no longer included"() {
+        mavenRepo.module("org", "foo").publish()
+        mavenRepo.module("org", "bar").publish()
+        mavenRepo.module("org", "baz").publish()
+
+        buildKotlinFile()
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                resolvable('child')
+
+                def one = dependencyScope('one') {
+                    println "Realizing one"
+                    dependencies.add(project.dependencies.create("org:foo:1.0"))
+                }
+                child.extendsFrom one
+
+                two
+                child.extendsFrom two
+
+                def zzz = dependencyScope('zzz') {
+                    println "Realizing zzz"
+                    dependencies.add(project.dependencies.create("org:baz:1.0"))
+                }
+                child.extendsFrom zzz
+
+                // Now reset the extended configurations to exclude 'zzz'
+                child.extendsFrom = [two]
+                child.extendsFrom one
+            }
+            dependencies {
+                two "org:bar:1.0"
+            }
+
+            task checkResolveChild {
+                def files = configurations.child
+                doFirst {
+                    println files*.name
+                }
+            }
+        """
+
+        when:
+        succeeds "checkResolveChild"
+
+        then:
+        outputContains("[foo-1.0.jar, bar-1.0.jar]")
+        outputContains("Realizing one")
+        outputDoesNotContain("Realizing zzz")
     }
 }

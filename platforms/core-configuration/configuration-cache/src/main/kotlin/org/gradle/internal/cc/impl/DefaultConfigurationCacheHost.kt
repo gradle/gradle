@@ -25,6 +25,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.problems.Problems
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
@@ -96,13 +97,15 @@ class DefaultConfigurationCacheHost internal constructor(
         override fun registerProject(projectPath: Path, dir: File, buildDir: File) {
             val name = projectPath.name
             require(name != null)
+
             // Adds the descriptor to the registry as a side effect
             DefaultProjectDescriptor(
                 getProjectDescriptor(projectPath.parent),
                 name,
                 dir,
                 projectDescriptorRegistry,
-                fileResolver
+                fileResolver,
+                service<Problems>().reporter
             )
             buildDirs[projectPath] = buildDir
         }

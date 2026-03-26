@@ -26,6 +26,7 @@ import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.classpath.DefaultClasspathBuilder
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -57,7 +58,8 @@ class RuntimeShadedJarCreatorTest extends Specification {
     def setup() {
         relocatedJarCreator = new RuntimeShadedJarCreator(
             progressLoggerFactory,
-            new ImplementationDependencyRelocator(RuntimeShadedJarType.API),
+            new TestBuildOperationExecutor(),
+            new ImplementationDependencyRelocator(RuntimeShadedJarCreatorTest.class.getResource(RuntimeShadedJarType.API.getIdentifier() + "-relocated.txt")),
             new ClasspathWalker(TestFiles.fileSystem()),
             new DefaultClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
         )

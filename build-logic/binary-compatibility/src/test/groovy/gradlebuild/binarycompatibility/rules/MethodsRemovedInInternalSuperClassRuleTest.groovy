@@ -17,7 +17,7 @@
 package gradlebuild.binarycompatibility.rules
 
 import japicmp.model.JApiCompatibilityChange
-import japicmp.util.Optional
+import japicmp.model.JApiCompatibilityChangeType
 import javassist.CtClass
 import me.champeau.gradle.japicmp.report.Violation
 
@@ -67,7 +67,7 @@ class MethodsRemovedInInternalSuperClassRuleTest extends AbstractContextAwareRul
         classes['OldSub'].superclass = classes['OldBase']
         classes['NewSub'].superclass = classes['NewBase']
 
-        apiClass.compatibilityChanges >> [JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS]
+        apiClass.compatibilityChanges >> [new JApiCompatibilityChange(JApiCompatibilityChangeType.METHOD_REMOVED_IN_SUPERCLASS)]
     }
 
     def "method removal can be reported if current class is first public class"() {

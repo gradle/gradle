@@ -16,12 +16,9 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.commons.io.IOUtils
-import org.apache.commons.lang.math.RandomUtils
-import org.apache.http.StatusLine
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.internal.resource.ExternalResource
+import com.google.common.collect.ImmutableMap
+import org.apache.http.HttpHeaders
+import org.apache.http.HttpStatus
 import org.gradle.internal.resource.ExternalResourceName
 import spock.lang.Specification
 
@@ -31,80 +28,99 @@ class HttpResourceAccessorTest extends Specification {
 
     def "should call close() on CloseableHttpResource when getMetaData is called"() {
         def response = mockHttpResponse()
-        def http = Mock(HttpClientHelper) {
-            performHead(uri.toString(), _) >> new HttpClientResponse("GET", uri, response)
+        def client = Mock(HttpClient) {
+            performHead(_, _) >> response
         }
 
         when:
-        new HttpResourceAccessor(http).getMetaData(name, false)
+        new HttpResourceAccessor(client).getMetaData(name, false)
 
         then:
         1 * response.close()
     }
 
-    def "when cache position is valid, then perform range request"() {
-        SslContextFactory sslContextFactory = new DefaultSslContextFactory()
-        HttpSettings settings = DefaultHttpSettings.builder()
-            .withAuthenticationSettings([])
-            .withSslContextFactory(sslContextFactory)
-            .withRedirectVerifier({})
-            .build()
-        HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
-        def tempFile = File.createTempFile("spring-core", ".pom", File.createTempDir("http-resource-accessor"))
-        def url = "https://repo1.maven.org/maven2/org/springframework/spring-core/6.1.12/spring-core-6.1.12.pom" // 2026 bytes
-        def resource = new ExternalResourceName(url.toURI())
-        def accessor = new HttpResourceAccessor(client)
-        accessor.setChunkSize(100) // 100 bytes
+    def "request with revalidate adds Cache-Control header"() {
+        def client = Mock(HttpClient)
+        def headResponse = mockHttpResponse()
+        def getResponse = mockHttpResponse()
 
         when:
-        accessor.<Void> withContent(resource, true, tempFile, (ExternalResource.ContentAction) (content) -> {
-            println "cache saved into " + tempFile.getAbsolutePath()
-            return null;
-        })
+        new HttpResourceAccessor(client).getMetaData(name, true)
 
         then:
-        assert client.performGet(url, true).content.bytes.length == tempFile.bytes.length
+        1 * client.performHead(uri, ImmutableMap.of(HttpHeaders.CACHE_CONTROL, "max-age=0")) >> headResponse
+        1 * headResponse.close()
+
+        when:
+        def resource = new HttpResourceAccessor(client).openResource(name, true, null)
+        resource.close()
+
+        then:
+        1 * client.performGet(uri, ImmutableMap.of(HttpHeaders.CACHE_CONTROL, "max-age=0")) >> getResponse
+        1 * getResponse.close()
     }
 
-    private CloseableHttpResponse mockHttpResponse() {
-        def response = Mock(CloseableHttpResponse)
-        def statusLine = Mock(StatusLine)
-        statusLine.getStatusCode() >> 200
-        response.getStatusLine() >> statusLine
-        response
-    }
-
-    def "when copy from unstable input stream then partial content is saved"() {
+    def "when cache position is valid, then perform range request and append content"() {
         given:
-        def tempFile = File.createTempFile("unstable-input-stream", ".bin", File.createTempDir("http-resource-accessor"))
-        def expectedRound = 2
-        def chunkSize = 100
+        def tempFile = File.createTempFile("http-resource-accessor", ".bin")
+        tempFile.bytes = "abc".bytes
+        def response = Mock(HttpClient.Response) {
+            getStatusCode() >> HttpStatus.SC_PARTIAL_CONTENT
+            getContent() >> new ByteArrayInputStream("def".bytes)
+        }
+        def client = Mock(HttpClient) {
+            performRawGet(uri, ImmutableMap.of(
+                HttpHeaders.CACHE_CONTROL, "max-age=0",
+                HttpHeaders.RANGE, "bytes=3-"
+            )) >> response
+        }
+        def accessor = new HttpResourceAccessor(client)
+        accessor.setChunkSize(2)
 
-        def unstableInputStream = new InputStream() {
-            private int round = 0
+        when:
+        def resource = accessor.openResource(name, true, tempFile)
+        def bytes = resource.openStream().bytes
+        resource.close()
 
-            @Override
-            int read() throws IOException {
-                return RandomUtils.nextInt(256)
-            }
+        then:
+        bytes == "abcdef".bytes
+        tempFile.bytes == "abcdef".bytes
+        1 * response.close()
 
-            @Override
-            int read(byte[] b) throws IOException {
-                if (round >= expectedRound) {
-                    throw new IOException("Oops")
-                }
-                round++
-                return super.read(b)
-            }
+        cleanup:
+        tempFile?.delete()
+    }
+
+    def "when server ignores the range request, then the remote response is returned"() {
+        given:
+        def tempFile = File.createTempFile("http-resource-accessor", ".bin")
+        tempFile.bytes = "abc".bytes
+        def response = Mock(HttpClient.Response) {
+            getStatusCode() >> HttpStatus.SC_OK
+            getContent() >> new ByteArrayInputStream("xyz".bytes)
+        }
+        def client = Mock(HttpClient) {
+            performRawGet(uri, ImmutableMap.of(HttpHeaders.RANGE, "bytes=3-")) >> response
         }
 
         when:
-        try {
-            IOUtils.copy(unstableInputStream, new FileOutputStream(tempFile), chunkSize)
-        } catch (IOException ignore) {
-        }
+        def resource = new HttpResourceAccessor(client).openResource(name, false, tempFile)
+        def bytes = resource.openStream().bytes
+        resource.close()
 
         then:
-        assert tempFile.length() == expectedRound * chunkSize
+        bytes == "xyz".bytes
+        tempFile.bytes == "abc".bytes
+        1 * response.close()
+
+        cleanup:
+        tempFile?.delete()
     }
+
+    private HttpClient.Response mockHttpResponse() {
+        Mock(HttpClient.Response) {
+            getStatusCode() >> 200
+        }
+    }
+
 }

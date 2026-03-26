@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -26,17 +27,17 @@ import java.io.File;
  */
 public class DefaultMetadataFileSource implements MetadataFileSource {
     private final ModuleComponentArtifactIdentifier artifactId;
-    private final File artifactFile;
+    private final @Nullable File artifactFile;
     private final HashCode sha1;
 
-    public DefaultMetadataFileSource(ModuleComponentArtifactIdentifier artifactId, File artifactFile, HashCode sha1) {
+    public DefaultMetadataFileSource(ModuleComponentArtifactIdentifier artifactId, @Nullable File artifactFile, HashCode sha1) {
         this.artifactId = artifactId;
         this.artifactFile = artifactFile;
         this.sha1 = sha1;
     }
 
     @Override
-    public File getArtifactFile() {
+    public @Nullable File getArtifactFile() {
         return artifactFile;
     }
 

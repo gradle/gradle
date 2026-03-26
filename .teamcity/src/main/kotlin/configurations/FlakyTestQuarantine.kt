@@ -71,7 +71,7 @@ class FlakyTestQuarantine(
     stage: Stage,
     testCoverage: TestCoverage,
 ) : OsAwareBaseGradleBuildType(os = testCoverage.os, stage = stage, init = {
-        val os = testCoverage.os
+        val os = os
         val arch = testCoverage.arch
         id("${model.projectId}_FlakyQuarantine_${testCoverage.asId(model)}")
         name = "Flaky Test Quarantine - ${testCoverage.asName()}"

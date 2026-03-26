@@ -31,12 +31,11 @@ import org.gradle.kotlin.dsl.fixtures.bytecode.publicMethod
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
-import org.gradle.kotlin.dsl.support.zipTo
+import org.gradle.kotlin.dsl.fixtures.zipTo
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil.replaceLineSeparatorsOf
-import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -52,6 +51,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import spock.lang.Issue
 import java.io.File
 
 
@@ -233,15 +233,15 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             buildFailureOutput("assemble"),
             containsMultiLineString(
                 """
-                Invalid plugin request [id: 'a.plugin', version: '1.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'a.plugin' is an implementation dependency of root project 'invalid-plugin'.
+                Invalid plugin request [id: 'a.plugin', version: '1.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request. Make sure the module containing the requested plugin 'a.plugin' is an implementation dependency of root project 'invalid-plugin'.
                 """
             )
         )
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/17246")
+    @Issue("https://github.com/gradle/gradle/issues/17246")
     @Test
-    fun `fails the build with help message for plugin spec with version in settings plugin`() {
+    fun `fails the build with help message for a usage of an invalid plugin spec with version in settings plugin`() {
 
         withDefaultSettings().appendText(
             """
@@ -260,17 +260,134 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             """
         )
 
-        build("assemble")
+        executer.expectDocumentedDeprecationWarning(
+            "Using 'version' in precompiled settings script plugins has been deprecated. This will fail with an error in Gradle 10. " +
+                "The version of the plugin is determined by the dependency in the precompiled script plugin's build file. " +
+                "Remove 'version' from the plugin request for 'a.plugin' in 'src/main/kotlin/invalid-plugin.settings.gradle.kts'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_version_in_precompiled_settings_script_plugins"
+        )
+        buildAndFail("assemble").assertHasErrorOutput(
+            "Plugin [id: 'a.plugin'] was not found in any of the following sources:"
+        )
+    }
 
-        // TODO Should fail:
-        //    assertThat(
-        //        buildFailureOutput("assemble"),
-        //        containsMultiLineString(
-        //            """
-        //            Invalid plugin request [id: 'a.plugin', version: '1.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'a.plugin' is an implementation dependency of root project 'invalid-plugin'.
-        //            """
-        //        )
-        //    )
+    @Issue("https://github.com/gradle/gradle/issues/17246")
+    @Test
+    fun `raises a deprecation warning with help message for a valid plugin spec with version in settings plugin`() {
+
+        withFolders {
+            "settings-plugin" {
+                withDefaultSettingsIn(relativePath)
+                withKotlinDslPlugin()
+
+                withFile("src/main/kotlin/valid.plugin.settings.gradle.kts").appendText("println(\"applying valid.plugin\")")
+            }
+        }
+
+        withDefaultSettings().appendText(
+            """
+            rootProject.name = "valid-plugin-with-version"
+
+            includeBuild("settings-plugin")
+            """
+        )
+
+        withFile("build.gradle.kts").appendText("""
+            ${scriptWithKotlinDslPlugin()}
+
+            dependencies {
+                implementation(project(":settings-plugin"))
+            }
+        """.trimIndent())
+
+        withPrecompiledKotlinScript(
+            "valid-plugin-with-version.settings.gradle.kts",
+            """
+            plugins {
+                id("valid.plugin") version "1.0"
+            }
+            """
+        )
+
+        executer.expectDocumentedDeprecationWarning(
+            "Using 'version' in precompiled settings script plugins has been deprecated. This will fail with an error in Gradle 10. " +
+                "The version of the plugin is determined by the dependency in the precompiled script plugin's build file. " +
+                "Remove 'version' from the plugin request for 'valid.plugin' in 'src/main/kotlin/valid-plugin-with-version.settings.gradle.kts'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_version_in_precompiled_settings_script_plugins"
+        )
+
+        build("assemble").assertNotOutput("applying valid.plugin")
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/14437")
+    @Test
+    fun `raises a deprecation warning with help message for plugin spec with apply false`() {
+
+        withDefaultSettings().appendText(
+            """
+            rootProject.name = "invalid-plugin"
+            """
+        )
+
+        withKotlinDslPlugin()
+
+        withPrecompiledKotlinScript(
+            "a.plugin.gradle.kts",
+            ""
+        )
+
+        withPrecompiledKotlinScript(
+            "invalid-plugin.gradle.kts",
+            """
+            plugins {
+                id("a.plugin") apply false
+            }
+            """
+        )
+
+        executer.expectDocumentedDeprecationWarning(
+            "'apply false' in precompiled script plugins has been deprecated. This will fail with an error in Gradle 10. " +
+                "'apply false' does not do anything as the plugin will already be added to the classpath when added as a dependency to the precompiled script plugin's build file. " +
+                "Remove 'apply false' from the plugin request for 'a.plugin' in 'src/main/kotlin/invalid-plugin.gradle.kts'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_apply_false_in_precompiled_script_plugins"
+        )
+        build("assemble")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17246")
+    @Test
+    fun `raises a deprecation warning with help message for plugin spec with apply false in settings plugin`() {
+
+        withDefaultSettings().appendText(
+            """
+            rootProject.name = "invalid-plugin"
+            """
+        )
+
+        withKotlinDslPlugin()
+
+        withPrecompiledKotlinScript(
+            "a.plugin.settings.gradle.kts",
+            ""
+        )
+
+        withPrecompiledKotlinScript(
+            "invalid-plugin.settings.gradle.kts",
+            """
+            plugins {
+                id("a.plugin") apply false
+            }
+            """
+        )
+
+        executer.expectDocumentedDeprecationWarning(
+            "'apply false' in precompiled script plugins has been deprecated. This will fail with an error in Gradle 10. " +
+                "'apply false' does not do anything as the plugin will already be added to the classpath when added as a dependency to the precompiled script plugin's build file. " +
+                "Remove 'apply false' from the plugin request for 'a.plugin' in 'src/main/kotlin/invalid-plugin.settings.gradle.kts'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_apply_false_in_precompiled_script_plugins"
+        )
+        build("assemble")
     }
 
     @Test

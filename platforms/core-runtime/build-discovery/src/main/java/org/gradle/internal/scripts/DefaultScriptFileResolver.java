@@ -16,7 +16,7 @@
 package org.gradle.internal.scripts;
 
 import org.jspecify.annotations.Nullable;
-
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,30 +29,37 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     private static final String[] EXTENSIONS = ScriptFileUtil.getValidExtensions();
 
     @Nullable
-    private final ScriptFileResolvedListener scriptFileResolvedListener;
+    private final ScriptFileResolverListeners listeners;
 
-    public DefaultScriptFileResolver(@Nullable ScriptFileResolvedListener scriptFileResolvedListener) {
-        this.scriptFileResolvedListener = scriptFileResolvedListener;
+    @Inject
+    public DefaultScriptFileResolver(@Nullable ScriptFileResolverListeners listeners) {
+        this.listeners = listeners;
     }
 
     public DefaultScriptFileResolver() {
-        this.scriptFileResolvedListener = null;
+        this(null);
     }
 
     @Override
-    public @Nullable File resolveScriptFile(File dir, String basename) {
+    public ScriptResolutionResult resolveScriptFile(File dir, String basename) {
+        File selectedCandidate = null;
+        List<File> ignoredCandidates = new ArrayList<>();
+
         for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
-            if (isCandidateFile(candidate)) {
-                return candidate;
+            if (selectedCandidate == null) {
+                notifyListener(candidate);
+                if (candidate.isFile()) {
+                    selectedCandidate = candidate;
+                }
+            } else {
+                if (candidate.isFile()) {
+                    ignoredCandidates.add(candidate);
+                }
             }
         }
-        return null;
-    }
 
-    private boolean isCandidateFile(File candidate) {
-        notifyListener(candidate);
-        return candidate.isFile();
+        return new ScriptResolutionResult(dir, basename, selectedCandidate, ignoredCandidates);
     }
 
     @Override
@@ -73,8 +80,8 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
 
 
     private void notifyListener(File scriptFile) {
-        if (scriptFileResolvedListener != null) {
-            scriptFileResolvedListener.onScriptFileResolved(scriptFile);
+        if (listeners != null) {
+            listeners.onScriptFileResolved(scriptFile);
         }
     }
 

@@ -16,15 +16,12 @@
 
 package org.gradle.caching.http.internal;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.protocol.HTTP;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
@@ -32,13 +29,11 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.resource.transport.http.HttpClientHelper;
-import org.gradle.internal.resource.transport.http.HttpClientResponse;
+import org.gradle.internal.resource.transport.http.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -63,37 +58,57 @@ public class HttpBuildCacheService implements BuildCacheService {
     );
 
     private final URI root;
-    private final HttpClientHelper httpClientHelper;
-    private final HttpBuildCacheRequestCustomizer requestCustomizer;
-    private final boolean useExpectContinue;
+    private final HttpClient client;
 
-    public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url, HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
-        this.requestCustomizer = requestCustomizer;
-        this.useExpectContinue = useExpectContinue;
+    private final ImmutableMap<String, String> defaultLoadHeaders;
+    private final ImmutableMap<String, String> defaultStoreHeaders;
+
+    public HttpBuildCacheService(HttpClient client, URI url, HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
         this.root = withTrailingSlash(url);
-        this.httpClientHelper = httpClientHelper;
+        this.client = client;
+
+        this.defaultLoadHeaders = getDefaultLoadHeaders(requestCustomizer);
+        this.defaultStoreHeaders = getDefaultStoreHeaders(requestCustomizer, useExpectContinue);
+    }
+
+    /**
+     * Compute the headers to use when loading from the build cache.
+     */
+    private static ImmutableMap<String, String> getDefaultLoadHeaders(HttpBuildCacheRequestCustomizer requestCustomizer) {
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        builder.put(HttpHeaders.ACCEPT, BUILD_CACHE_CONTENT_TYPE + ", */*");
+        requestCustomizer.visitHeaders(builder::put);
+        return builder.build();
+    }
+
+    /**
+     * Compute the headers to use when storing to the build cache.
+     */
+    private static ImmutableMap<String, String> getDefaultStoreHeaders(HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        if (useExpectContinue) {
+            builder.put(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
+        }
+        builder.put(HttpHeaders.CONTENT_TYPE, BUILD_CACHE_CONTENT_TYPE);
+        requestCustomizer.visitHeaders(builder::put);
+        return builder.build();
     }
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         final URI uri = root.resolve("./" + key.getHashCode());
-        HttpGet httpGet = new HttpGet(uri);
-        httpGet.addHeader(HttpHeaders.ACCEPT, BUILD_CACHE_CONTENT_TYPE + ", */*");
-        requestCustomizer.customize(httpGet);
-
-        try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpGet)) {
-            StatusLine statusLine = response.getStatusLine();
+        try (HttpClient.Response response = client.performRawGet(uri, defaultLoadHeaders)) {
+            int statusCode = response.getStatusCode();
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Response for GET {}: {}", safeUri(uri), statusLine);
+                LOGGER.debug("Response for GET {}: {}", safeUri(uri), statusCode);
             }
-            int statusCode = statusLine.getStatusCode();
             if (isHttpSuccess(statusCode)) {
                 reader.readFrom(response.getContent());
                 return true;
-            } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
+            } else if (response.isMissing()) {
                 return false;
             } else {
-                String defaultMessage = String.format("Loading entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
+                String defaultMessage = String.format("Loading entry from '%s' response status %d: %s", safeUri(uri), statusCode, response.getStatusReason());
                 return throwHttpStatusCodeException(statusCode, defaultMessage);
             }
         } catch (IOException e) {
@@ -104,47 +119,25 @@ public class HttpBuildCacheService implements BuildCacheService {
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         final URI uri = root.resolve(key.getHashCode());
-        HttpPut httpPut = new HttpPut(uri);
-        if (useExpectContinue) {
-            httpPut.setHeader(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
-        }
-        httpPut.addHeader(HttpHeaders.CONTENT_TYPE, BUILD_CACHE_CONTENT_TYPE);
-        requestCustomizer.customize(httpPut);
-
-        httpPut.setEntity(new AbstractHttpEntity() {
+        HttpClient.WritableContent putResource = new HttpClient.WritableContent() {
             @Override
-            public boolean isRepeatable() {
-                return true;
+            public void writeTo(OutputStream outputStream) throws IOException {
+                writer.writeTo(outputStream);
             }
 
             @Override
-            public long getContentLength() {
+            public long getSize() {
                 return writer.getSize();
             }
+        };
 
-            @Override
-            public InputStream getContent() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void writeTo(OutputStream outstream) throws IOException {
-                writer.writeTo(outstream);
-            }
-
-            @Override
-            public boolean isStreaming() {
-                return false;
-            }
-        });
-        try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpPut)) {
-            StatusLine statusLine = response.getStatusLine();
+        try (HttpClient.Response response = client.performRawPut(uri, defaultStoreHeaders, putResource)) {
+            int statusCode = response.getStatusCode();
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Response for PUT {}: {}", safeUri(uri), statusLine);
+                LOGGER.debug("Response for PUT {}: {}", safeUri(uri), statusCode);
             }
-            int statusCode = statusLine.getStatusCode();
             if (!isHttpSuccess(statusCode)) {
-                String defaultMessage = String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
+                String defaultMessage = String.format("Storing entry at '%s' response status %d: %s", safeUri(uri), statusCode, response.getStatusReason());
                 throwHttpStatusCodeException(statusCode, defaultMessage);
             }
         } catch (ClientProtocolException e) {
@@ -162,10 +155,6 @@ public class HttpBuildCacheService implements BuildCacheService {
         throw new BuildCacheException(e.getMessage(), e);
     }
 
-    private boolean isHttpSuccess(int statusCode) {
-        return statusCode >= 200 && statusCode < 300;
-    }
-
     private boolean throwHttpStatusCodeException(int statusCode, String message) {
         if (FATAL_HTTP_ERROR_CODES.contains(statusCode)) {
             throw UncheckedException.throwAsUncheckedException(new IOException(message), true);
@@ -174,9 +163,13 @@ public class HttpBuildCacheService implements BuildCacheService {
         }
     }
 
+    private boolean isHttpSuccess(int statusCode) {
+        return statusCode >= 200 && statusCode < 300;
+    }
+
     @Override
     public void close() throws IOException {
-        httpClientHelper.close();
+        client.close();
     }
 
     /**

@@ -721,6 +721,52 @@ Required by:
         }
     }
 
+    def "can substitute using version catalog"() {
+        mavenRepo.module("org", "a", "1.0").publish()
+        mavenRepo.module("org", "b").dependsOn("org", "a", "2.0").publish()
+        mavenRepo.module("org", "a", "2.0").dependsOn("org", "c", "1.0").publish()
+        mavenRepo.module("org", "c").publish()
+        //a1
+        //b->a2->c
+
+        file("gradle/libs.versions.toml") << """
+            [libraries]
+            orgb = "org:b:1.0"
+        """
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org:a:1.0', 'foo:bar:baz'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                if (it.requested.group == 'foo') {
+                    it.useTarget $accessSyntax
+                }
+            }
+        """
+
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:a:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                    module("org:c:1.0")
+                }
+                edge("foo:bar:baz", "org:b:1.0") {
+                    selectedByRule()
+                    module("org:a:2.0")
+                }
+            }
+        }
+
+        where:
+        accessSyntax << ["libs.orgb", "libs.orgb.get()"]
+    }
+
     def "provides decent feedback when target module incorrectly specified"() {
         buildFile << """
             $common
@@ -741,6 +787,37 @@ Required by:
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not resolve org:a:1.0.")
         failure.assertHasCause("Invalid format: 'foobar'")
+    }
+
+    def "provides decent feedback when target module specified using deprecated ModuleVersionSelector"() {
+        mavenRepo.module("org", "b", "1.0").publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                conf 'org:a:1.0'
+            }
+
+            configurations.conf.resolutionStrategy.eachDependency {
+                it.useTarget dependencies.constraints.create("org:b:1.0")
+            }
+        """
+        executer.expectDocumentedDeprecationWarning(
+            "Converting an instance of ModuleVersionSelector to ModuleComponentSelector has been deprecated. This will fail with an error in Gradle 10. Don't create or use ModuleVersionSelector instances and pass one of the other supported notations instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_moduleversionselector_to_modulecomponentselector"
+        )
+
+        when:
+        succeeds("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:b:1.0") {
+                    selectedByRule()
+                }
+            }
+        }
     }
 
     def "substituted module version participates in conflict resolution"() {

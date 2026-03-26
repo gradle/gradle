@@ -48,6 +48,8 @@ import org.gradle.api.tasks.testing.TestResult.ResultType;
 import org.gradle.api.tasks.testing.source.FilePosition;
 import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
@@ -69,13 +71,13 @@ import org.junit.platform.launcher.TestPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -84,6 +86,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
@@ -116,10 +119,14 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private static final boolean HAS_GET_UNIQUE_ID_OBJECT_METHOD = Arrays.stream(TestIdentifier.class.getMethods())
         .anyMatch(method -> method.getName().equals("getUniqueIdObject"));
 
-    private static UniqueId.Segment getLastUniqueIdSegment(TestIdentifier testIdentifier) {
-        UniqueId uniqueIdObject = HAS_GET_UNIQUE_ID_OBJECT_METHOD
+    private static UniqueId getUniqueIdObject(TestIdentifier testIdentifier) {
+        return HAS_GET_UNIQUE_ID_OBJECT_METHOD
             ? testIdentifier.getUniqueIdObject()
             : UniqueId.parse(testIdentifier.getUniqueId());
+    }
+
+    private static UniqueId.Segment getLastUniqueIdSegment(TestIdentifier testIdentifier) {
+        UniqueId uniqueIdObject = getUniqueIdObject(testIdentifier);
         List<UniqueId.Segment> segments = uniqueIdObject.getSegments();
         // No need to check, guaranteed to have at least one segment
         return segments.get(segments.size() - 1);
@@ -137,19 +144,31 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private final ConcurrentMap<String, TestDescriptorInternal> descriptorsByUniqueId = new ConcurrentHashMap<>();
+    private final Set<Throwable> fatalExceptions = ConcurrentHashMap.newKeySet();
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
-    private final File baseDefinitionsDir;
+    private final Collection<Path> testDefinitionDirs;
 
     @Nullable
     private TestPlan currentTestPlan;
 
-    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, File baseDefinitionsDir) {
+    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, Collection<Path> testDefinitionDirs) {
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
-        this.baseDefinitionsDir = baseDefinitionsDir;
+        this.testDefinitionDirs = testDefinitionDirs;
+    }
+
+    public void throwAnyFatalExceptions() {
+        if (fatalExceptions.isEmpty()) {
+            return;
+        }
+        if (fatalExceptions.size() == 1) {
+            throw UncheckedException.throwAsUncheckedException(fatalExceptions.iterator().next());
+        } else {
+            throw new DefaultMultiCauseException("Multiple fatal exceptions were encountered during test execution", fatalExceptions);
+        }
     }
 
     @Override
@@ -274,19 +293,39 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private TestStartEvent startEvent(TestIdentifier testIdentifier) {
-        Object idOfClosestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
-        return startEvent(idOfClosestStartedAncestor);
+        TestDescriptorInternal closestStartedAncestor = getClosestStartedAncestor(testIdentifier).orElse(null);
+        if (closestStartedAncestor == null) {
+            return startEvent((Object) null);
+        }
+        if (!closestStartedAncestor.isComposite()) {
+            List<String> allEngines = getUniqueIdObject(testIdentifier).getSegments().stream()
+                .filter(s -> s.getType().equals("engine"))
+                .map(UniqueId.Segment::getValue)
+                .collect(Collectors.toList());
+            String closestEngine = allEngines.isEmpty() ? "<unknown>" : allEngines.get(allEngines.size() - 1);
+            fatalExceptions.add(new IllegalStateException(
+                "Closest started ancestor '" + closestStartedAncestor + "' is not a container." +
+                    " This likely means the JUnit Platform TestEngine '" + closestEngine + "' tried to start a test under a non-container parent."
+            ));
+            // Start it under the root instead to try and avoid causing further issues down the line
+            return startEvent((Object) null);
+        }
+        return startEvent(closestStartedAncestor.getId());
     }
 
     @Nullable
     private Object getIdOfClosestStartedAncestor(TestIdentifier testIdentifier) {
+        return getClosestStartedAncestor(testIdentifier)
+            .map(TestDescriptorInternal::getId)
+            .orElse(null);
+    }
+
+    private Optional<TestDescriptorInternal> getClosestStartedAncestor(TestIdentifier testIdentifier) {
         return getAncestors(testIdentifier).stream()
             .map(TestIdentifier::getUniqueId)
             .filter(descriptorsByUniqueId::containsKey)
             .findFirst()
-            .map(descriptorsByUniqueId::get)
-            .map(TestDescriptorInternal::getId)
-            .orElse(null);
+            .map(descriptorsByUniqueId::get);
     }
 
     private TestStartEvent startEvent(@Nullable Object parentId) {
@@ -309,30 +348,30 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         MutableBoolean wasCreated = new MutableBoolean(false);
         descriptorsByUniqueId.computeIfAbsent(node.getUniqueId(), uniqueId -> {
             wasCreated.set(true);
-            boolean isTestClassId = isTestClassIdentifier(node);
-            if (isTestClassId) {
-                return createTestContainerDescriptor(node);
-            }
 
-            if (node.getType().isContainer()) {
-                String displayName = node.getDisplayName();
-                Optional<TestDescriptorInternal> parentId = node.getParentId().map(descriptorsByUniqueId::get);
-                if (parentId.isPresent()) {
-                    Object candidateId = parentId.get().getId();
-                    if (candidateId instanceof CompositeIdGenerator.CompositeId) {
-                        return createNestedTestSuite(node, displayName, (CompositeIdGenerator.CompositeId) candidateId);
-                    }
-                }
-            }
             // Check for isContainer first
             // Some nodes may be CONTAINER_AND_TEST, and we need to treat them as containers
             if (node.getType().isContainer()) {
+                boolean isTestClassId = isTestClassIdentifier(node);
+                if (!isTestClassId) {
+                    // If this isn't obviously a test class, try to create a nested test suite node.
+                    String displayName = node.getDisplayName();
+                    Optional<TestDescriptorInternal> parentId = node.getParentId().map(descriptorsByUniqueId::get);
+                    if (parentId.isPresent()) {
+                        Object candidateId = parentId.get().getId();
+                        if (candidateId instanceof CompositeIdGenerator.CompositeId) {
+                            return createNestedTestSuite(node, displayName, (CompositeIdGenerator.CompositeId) candidateId);
+                        }
+                    }
+                }
                 return createTestContainerDescriptor(node);
-            } else if (node.getType().isTest()) {
-                return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
-            } else {
-                throw new IllegalStateException("Unknown TestIdentifier type: " + node.getType());
             }
+
+            if (node.getType().isTest()) {
+                return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
+            }
+
+            throw new IllegalStateException("Unknown TestIdentifier type: " + node.getType());
         });
         return wasCreated.get();
     }
@@ -528,14 +567,17 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
 
         try {
-            Path rootDirPath = baseDefinitionsDir.toPath().toRealPath();
-            Path testDefPath = ((FileSource) source).getFile().toPath().toRealPath();
-            String relativePath = TextUtil.normaliseFileSeparators(rootDirPath.relativize(testDefPath).toString());
-            return Optional.of(relativePath);
+            Path path = ((FileSource) source).getFile().toPath().toRealPath();
+            for (Path testDefinitionDir : testDefinitionDirs) {
+                if (path.startsWith(testDefinitionDir)) {
+                    String relativePath = TextUtil.normaliseFileSeparators(testDefinitionDir.relativize(path).toString());
+                    return Optional.of(relativePath);
+                }
+            }
         } catch (IOException e) {
             LOGGER.warn("Could not compute relative path to source file for test identifier {}", node, e);
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     private static boolean hasClassSource(TestIdentifier testIdentifier) {

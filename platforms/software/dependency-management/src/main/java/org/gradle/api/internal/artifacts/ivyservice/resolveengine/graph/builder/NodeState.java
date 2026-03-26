@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -28,6 +27,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.SubstitutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -66,7 +66,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -241,6 +240,7 @@ public class NodeState implements DependencyGraphNode {
         return getDisplayName();
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("'%s' (%s)", component.getComponentId().getDisplayName(), metadata.getDisplayName());
     }
@@ -532,8 +532,7 @@ public class NodeState implements DependencyGraphNode {
     private EdgeState createEdge(DependencyMetadata dependency) {
         Try<SubstitutionResult> trySubstitution = resolveState.getDependencySubstitutionApplicator().applySubstitutions(
             dependency.getSelector(),
-            // TODO: Ideally DependencyMetadata would already provide an ImmutableList of artifacts
-            ImmutableList.copyOf(dependency.getArtifacts())
+            dependency.getArtifacts()
         );
 
         if (!trySubstitution.isSuccessful()) {
@@ -653,10 +652,19 @@ public class NodeState implements DependencyGraphNode {
         if (excludeSpec == moduleExclusions.nothing()) {
             return false;
         }
-        ModuleIdentifier targetModuleId = edgeState.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter());
+
+        ComponentSelectorConverter componentSelectorConverter = resolveState.getComponentSelectorConverter();
+        ModuleIdentifier targetModuleId = edgeState.getDependencyState().getModuleIdentifier(componentSelectorConverter);
+
         if (excludeSpec.excludes(targetModuleId)) {
             LOGGER.debug("{} is excluded from {} by {}.", targetModuleId, this, excludeSpec);
             return true;
+        }
+
+        // If we were substituted, apply the exclusion to the original selector as well.
+        ComponentSelector requestedSelector = edgeState.getDependencyState().getRequested();
+        if (requestedSelector != edgeState.getDependencyState().getDependency().getSelector()) {
+            return excludeSpec.excludes(componentSelectorConverter.getModuleVersionId(requestedSelector).getModule());
         }
 
         return false;
@@ -783,7 +791,7 @@ public class NodeState implements DependencyGraphNode {
                 incomingEdges.stream()
                     .map(EdgeState::getTransitiveExclusions)
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toSet())
+                    .collect(PersistentSet.toPersistentSet())
             );
         }
         if (incomingEdges.size() == 1) {
@@ -826,8 +834,8 @@ public class NodeState implements DependencyGraphNode {
     private ExcludeSpec computeModuleExclusionsManyEdges(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions, int incomingEdgeCount) {
         ExcludeSpec nothing = moduleExclusions.nothing();
         ExcludeSpec edgeExclusions = null;
-        Set<ExcludeSpec> excludedByBoth = null;
-        Set<ExcludeSpec> excludedByEither = null;
+        PersistentSet<ExcludeSpec> excludedByBoth = PersistentSet.of();
+        PersistentSet<ExcludeSpec> excludedByEither = PersistentSet.of();
         for (EdgeState dependencyEdge : incomingEdges) {
             if (dependencyEdge.isTransitive()) {
                 if (edgeExclusions != nothing) {
@@ -836,18 +844,15 @@ public class NodeState implements DependencyGraphNode {
                     if (edgeExclusions == null || exclusions == nothing) {
                         edgeExclusions = exclusions;
                     } else if (edgeExclusions != exclusions) {
-                        if (excludedByBoth == null) {
-                            excludedByBoth = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
-                        }
-                        excludedByBoth.add(exclusions);
+                        excludedByBoth = excludedByBoth.plus(exclusions);
                     }
                     if (edgeExclusions == nothing) {
                         // if exclusions == nothing, then the intersection will be "nothing"
-                        excludedByBoth = null;
+                        excludedByBoth = PersistentSet.of();
                     }
                 }
             } else if (dependencyEdge.isConstraint()) {
-                excludedByEither = collectEdgeConstraint(nodeExclusions, excludedByEither, dependencyEdge, nothing, incomingEdgeCount);
+                excludedByEither = collectEdgeConstraint(nodeExclusions, excludedByEither, dependencyEdge, nothing);
             }
         }
         edgeExclusions = intersectEdgeExclusions(edgeExclusions, excludedByBoth);
@@ -878,40 +883,36 @@ public class NodeState implements DependencyGraphNode {
         return result;
     }
 
-    @Nullable
-    private static Set<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, @Nullable Set<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing, int incomingEdgeCount) {
+    private static PersistentSet<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, PersistentSet<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing) {
         // Constraint: only consider explicit exclusions declared for this constraint
         ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
         if (constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
-            if (excludedByEither == null) {
-                excludedByEither = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
-            }
-            excludedByEither.add(constraintExclusions);
+            return excludedByEither.plus(constraintExclusions);
         }
         return excludedByEither;
     }
 
     @Nullable
-    private ExcludeSpec joinNodeExclusions(@Nullable ExcludeSpec nodeExclusions, @Nullable Set<ExcludeSpec> excludedByEither) {
-        if (excludedByEither != null) {
-            if (nodeExclusions != null) {
-                excludedByEither.add(nodeExclusions);
-                nodeExclusions = moduleExclusions.excludeAny(excludedByEither);
-            }
+    private ExcludeSpec joinNodeExclusions(@Nullable ExcludeSpec nodeExclusions, PersistentSet<ExcludeSpec> excludedByEither) {
+        if (excludedByEither.isNotEmpty() && nodeExclusions != null) {
+            return moduleExclusions.excludeAny(
+                excludedByEither.plus(nodeExclusions)
+            );
         }
         return nodeExclusions;
     }
 
     @Nullable
-    private ExcludeSpec intersectEdgeExclusions(@Nullable ExcludeSpec edgeExclusions, @Nullable Set<ExcludeSpec> excludedByBoth) {
+    private ExcludeSpec intersectEdgeExclusions(@Nullable ExcludeSpec edgeExclusions, PersistentSet<ExcludeSpec> excludedByBoth) {
         if (edgeExclusions == moduleExclusions.nothing()) {
             return edgeExclusions;
         }
-        if (excludedByBoth != null) {
-            if (edgeExclusions != null) {
-                excludedByBoth.add(edgeExclusions);
-            }
-            edgeExclusions = moduleExclusions.excludeAll(excludedByBoth);
+        if (excludedByBoth.isNotEmpty()) {
+            return moduleExclusions.excludeAll(
+                edgeExclusions != null
+                    ? excludedByBoth.plus(edgeExclusions)
+                    : excludedByBoth
+            );
         }
         return edgeExclusions;
     }
@@ -1296,7 +1297,7 @@ public class NodeState implements DependencyGraphNode {
         try {
             for (EdgeState outgoingEdge : outgoingEdges) {
                 //noinspection ConstantConditions
-                return outgoingEdge.getSelectedNode();
+                return outgoingEdge.getFirstTargetNode();
             }
             return null;
         } finally {
@@ -1365,7 +1366,7 @@ public class NodeState implements DependencyGraphNode {
         }
 
         @Override
-        public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+        public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts) {
             return makeNonTransitive(dependencyMetadata.withTargetAndArtifacts(target, artifacts));
         }
 

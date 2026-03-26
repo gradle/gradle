@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.configuration;
 
+import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -72,6 +73,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
+        }
+
+        @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
                 settings.setIdleTimeout(Integer.parseInt(value));
@@ -86,6 +92,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
         public HealthCheckOption() {
             super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
 
         @Override
@@ -106,6 +117,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         }
 
         @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
+        }
+
+        @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             settings.setBaseDir(new File(value));
         }
@@ -116,6 +132,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
         public JvmArgsOption() {
             super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
         }
 
         @Override
@@ -143,6 +164,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
                 origin.handleInvalidValue(value, "Java home supplied seems to be invalid");
             }
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
+        }
     }
 
     public static class DebugOption extends BooleanBuildOption<DaemonParameters> {
@@ -156,6 +182,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setDebug(value);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
+        }
     }
 
     public static class DebugHostOption extends StringBuildOption<DaemonParameters> {
@@ -168,6 +199,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             settings.setDebugHost(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -193,6 +229,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
                 settings.setDebugPort(port);
             }
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
+        }
     }
 
     public static class DebugSuspendOption extends BooleanBuildOption<DaemonParameters> {
@@ -206,6 +247,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setDebugSuspend(value);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
+        }
     }
 
     public static class DebugServerOption extends BooleanBuildOption<DaemonParameters> {
@@ -218,6 +264,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setDebugServer(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
         }
     }
 
@@ -235,6 +286,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setApplyInstrumentationAgent(value);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
+        }
     }
 
     @NullMarked
@@ -247,18 +303,28 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             settings.setNativeServicesMode(NativeServicesMode.fromString(value));
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DIAGNOSTICS;
+        }
     }
 
     public static class DaemonOption extends BooleanBuildOption<DaemonParameters> {
         public static final String GRADLE_PROPERTY = "org.gradle.daemon";
 
         public DaemonOption() {
-            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("daemon", "Uses the Gradle daemon to run the build. Starts the daemon if not running.", "Do not use the Gradle daemon to run the build. Useful occasionally if you have configured Gradle to always run with the daemon by default."));
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("daemon", "Uses the Gradle daemon to run the build. Starts the daemon if it is not running.", "Runs the build without the Gradle daemon. Useful occasionally if you have configured Gradle to always run with the daemon by default."));
         }
 
         @Override
         public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setEnabled(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
         }
     }
 
@@ -271,6 +337,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setForeground(true);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
+        }
     }
 
     public static class StopOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
@@ -282,16 +353,26 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setStop(true);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
+        }
     }
 
     public static class StatusOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
         public StatusOption() {
-            super(null, CommandLineOptionConfiguration.create("status", "Shows status of running and recently stopped Gradle daemon(s)."));
+            super(null, CommandLineOptionConfiguration.create("status", "Shows the status of running and recently stopped Gradle daemons."));
         }
 
         @Override
         public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setStatus(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
         }
     }
 
@@ -299,7 +380,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         public static final String GRADLE_PROPERTY = "org.gradle.priority";
 
         public PriorityOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("priority", "Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are 'normal' (default) or 'low'"));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create("priority", "Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Supported values are 'normal' (default) or 'low'."));
         }
 
         @Override
@@ -309,6 +390,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.PERFORMANCE;
         }
     }
 }

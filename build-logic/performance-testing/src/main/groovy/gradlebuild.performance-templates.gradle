@@ -357,9 +357,7 @@ performanceTest.registerTestProject("bigCppMulti", CppMultiProjectGeneratorTask)
 
 // Build-builder projects
 tasks.register("buildBuilder", RemoteProject) {
-    remoteUri = 'https://github.com/gradle/build-builder.git'
-    // From master branch
-    ref = '76349287aac653e500a4c2581707cae98fe85e79'
+    setRemoteUriAndRefFromGradleProperty("buildBuilderProjectRef")
 }
 
 tasks.register("installBuildBuilder", GradleBuild) {
@@ -410,21 +408,15 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 
 // === Android ===
 performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
-    remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    // From android-84 branch
-    ref = "99e95eb1aa1d9c190ed1162f2b7915e765650f49"
+    setRemoteUriAndRefFromGradleProperty("largeAndroidBuildProjectRef")
 }
 
 performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
-    remoteUri = 'https://github.com/gradle/perf-android-large-2.git'
-    // Pinned from android-73-kotlin-16 branch
-    ref = "16d64faa6055a281874329ff95fbcdd6861b7248"
+    setRemoteUriAndRefFromGradleProperty("largeAndroidBuild2ProjectRef")
 }
 
 performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
-    remoteUri = 'https://github.com/android/nowinandroid.git'
-    // Pinned from main branch
-    ref = "25d80b459815e34d5da4c7618fec7280fd48d9f9" // latest of March 28th, 2025
+    setRemoteUriAndRefFromGradleProperty("nowInAndroidBuildProjectRef")
     doLast {
         setMaxWorkers(outputDirectory, 8)
     }
@@ -465,23 +457,17 @@ private void setParallel(File projectDirectory, boolean parallel) {
 }
 
 performanceTest.registerTestProject("excludeRuleMergingBuild", RemoteProject) {
-    remoteUri = 'https://github.com/gradle/performance-comparisons.git'
-    // From master branch
-    ref = "b0eb05ab058e55e3aad5935d499c9079284c2592"
+    setRemoteUriAndRefFromGradleProperty("excludeRuleMergingBuildProjectRef")
     subdirectory = 'exclude-merging'
 }
 
 performanceTest.registerTestProject("springBootApp", RemoteProject) {
-    remoteUri = 'https://github.com/gradle/performance-comparisons.git'
-    // From master branch
-    ref = "4f5fcfbd5a9f03aae0386e12f0ceddfae8100d5a"
+    setRemoteUriAndRefFromGradleProperty("springBootAppProjectRef")
     subdirectory = 'parallel-downloads'
 }
 
 performanceTest.registerTestProject("largeNativeBuild", RemoteProject) {
-    remoteUri = 'https://github.com/gradle/perf-native-large'
-    // From master branch
-    ref = "08a06b5f4943a5a892a178baddc27e1884e7c03c"
+    setRemoteUriAndRefFromGradleProperty("largeNativeBuildProjectRef")
     finalizedBy 'largeNativeBuildPrebuilt'
 }
 

@@ -21,6 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
@@ -34,7 +35,6 @@ import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
@@ -116,13 +116,11 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     public static final Set<String> UNPUBLISHABLE_VARIANT_ARTIFACTS = JavaConfigurationVariantMapping.UNPUBLISHABLE_VARIANT_ARTIFACTS;
 
     private final boolean javaClasspathPackaging;
-    private final ObjectFactory objectFactory;
     private final PropertyFactory propertyFactory;
     private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public JavaBasePlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices, PropertyFactory propertyFactory) {
-        this.objectFactory = objectFactory;
+    public JavaBasePlugin(JvmPluginServices jvmPluginServices, PropertyFactory propertyFactory) {
         this.propertyFactory = propertyFactory;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
         this.jvmPluginServices = jvmPluginServices;
@@ -151,8 +149,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         configureJavaExecTasks(project);
     }
 
-    private DefaultJavaPluginExtension addExtensions(final Project project) {
-        DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
+    private static DefaultJavaPluginExtension addExtensions(final Project project) {
+        DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
         return (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec);
     }
@@ -169,12 +167,14 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             TaskProvider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
             createClassesTask(sourceSet, project);
 
-            configureLibraryElements(compileTask, sourceSet, configurations, objectFactory);
+            configureLibraryElements(compileTask, sourceSet, configurations);
             configureTargetPlatform(compileTask, sourceSet, configurations);
         });
     }
 
-    private void configureLibraryElements(TaskProvider<JavaCompile> compileJava, SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
+    private void configureLibraryElements(TaskProvider<JavaCompile> compileJava, SourceSet sourceSet, ConfigurationContainer configurations) {
+        Configuration compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        AttributeContainer compileClasspathAttributes = compileClasspath.getAttributes();
         Provider<LibraryElements> libraryElements = compileJava.flatMap(x -> x.getModularity().getInferModulePath())
             .map(inferModulePath -> {
                 if (javaClasspathPackaging) {
@@ -189,10 +189,9 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
                     return LibraryElements.CLASSES;
                 }
             })
-            .map(value -> objectFactory.named(LibraryElements.class, value));
+            .map(value -> compileClasspathAttributes.named(LibraryElements.class, value));
 
-        Configuration compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
-        compileClasspath.getAttributes().attributeProvider(
+        compileClasspathAttributes.attributeProvider(
             LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
             libraryElements
         );

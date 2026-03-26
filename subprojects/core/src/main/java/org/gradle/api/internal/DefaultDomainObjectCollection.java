@@ -35,6 +35,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.AbstractCollection;
@@ -58,6 +59,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
      * Actions to notify when this container is mutated.
      */
     private ImmutableActionSet<String> beforeContainerChange = ImmutableActionSet.empty();
+
+    private boolean changesDisallowed = false;
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionCallbackActionDecorator callbackActionDecorator) {
         this(type, store, new DefaultCollectionEventRegister<T>(type, callbackActionDecorator));
@@ -429,11 +432,17 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     @Override
+    @Deprecated
     public Collection<T> findAll(Closure cl) {
         return findAll(cl, new ArrayList<T>());
     }
 
+    @Deprecated
     protected <S extends Collection<? super T>> S findAll(Closure cl, S matches) {
+        DeprecationLogger.deprecateMethod(DomainObjectCollection.class, "findAll(Closure)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "findAll_removal")
+            .nagUser();
         if (store.constantTimeIsEmpty()) {
             return matches;
         }
@@ -474,6 +483,24 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void beforeCollectionChanges(Action<String> action) {
         beforeContainerChange = beforeContainerChange.add(action);
+    }
+
+    @Override
+    public void disallowChanges() {
+        assertEagerContext("disallowChanges()");
+        if (changesDisallowed) {
+            return;
+        }
+        changesDisallowed = true;
+        // This should be an anonymous type for configuration cache safety
+        beforeContainerChange = beforeContainerChange.add(new Action<String>() {
+            @Override
+            public void execute(String methodName) {
+                throw new IllegalStateException(
+                    String.format("Cannot call %s on %s as changes to this collection are disallowed.",
+                        methodName, DefaultDomainObjectCollection.this.getDisplayName()));
+            }
+        });
     }
 
     protected class IteratorImpl implements Iterator<T> {

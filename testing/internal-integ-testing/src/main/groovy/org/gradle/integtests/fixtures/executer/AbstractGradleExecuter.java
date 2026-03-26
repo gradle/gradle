@@ -75,6 +75,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -182,6 +183,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
     private boolean jdkWarningChecksOn = false;
+    private final List<String> ignoredLines = new ArrayList<>();
 
     private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<>();
     private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
@@ -197,7 +199,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
-    protected boolean interactive;
+    protected boolean interactiveSession;
 
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace;
@@ -274,7 +276,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DebugUtil.DAEMON_DEBUG_PORT);
         debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP), LAUNCHER_DEBUG_PORT);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
-        interactive = false;
+        interactiveSession = false;
         checkDeprecations = true;
         filterJavaVersionDeprecation = true;
         durationMeasurement = null;
@@ -298,6 +300,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public TestDirectoryProvider getTestDirectoryProvider() {
         return testDirectoryProvider;
+    }
+
+    @Override
+    public IntegrationTestBuildContext getBuildContext() {
+        return buildContext;
     }
 
     @Override
@@ -433,7 +440,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         executer
             .withProfiler(profiler)
-            .withForceInteractive(interactive);
+            .withForceInteractiveSession(interactiveSession);
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
@@ -590,18 +597,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
-
-        // Note: it's possible we shouldn't calculate _any_ implicit JVM args when requested to use only the specified ones, but to preserve behavior I only excluded the new flag here
-        if (useOnlyRequestedJvmOpts) {
-            return;
-        }
-
-        JavaVersion javaVersion = getJavaVersionFromJavaHome();
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
-            // Remove known warning that occurs in the launcher. This can be fixed by refactoring the bin/gradle start script to pass the flag or by adding the flag to the launcher JAR
-            // and refactoring the start script to use that JAR instead of a main class.
-            gradleInvocation.implicitLauncherJvmArgs.add("--enable-native-access=ALL-UNNAMED");
-        }
     }
 
     protected static String joinAndQuoteJvmArgs(List<String> buildJvmArgs) {
@@ -1233,8 +1228,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, Boolean.toString(eagerClassLoaderCreationChecksOn));
 
-        if (interactive) {
-            properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
+        if (interactiveSession) {
+            properties.put(TestOverrideConsoleDetector.INTERACTIVE_CONSOLE_TOGGLE, "true");
         }
 
         properties.put(WelcomeMessageAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
@@ -1382,6 +1377,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return new ResultAssertion(
             expectedDeprecationWarnings,
             maybeExpectedDeprecationWarnings,
+            ignoredLines,
             !stackTraceChecksOn,
             shouldCheckDeprecations,
             jdkWarningChecksOn
@@ -1409,6 +1405,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
         return expectExternalDeprecatedMessage(normalizeDocumentationLink(warning));
+    }
+
+    @Override
+    public GradleExecuter ignoreLines(List<String> lines) {
+        this.ignoredLines.addAll(lines);
+        return this;
+    }
+
+    public List<String> getIgnoredLines() {
+        return Collections.unmodifiableList(ignoredLines);
     }
 
     private String normalizeDocumentationLink(String warning) {
@@ -1508,8 +1514,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withForceInteractive(boolean flag) {
-        interactive = flag;
+    public GradleExecuter withForceInteractiveSession(boolean flag) {
+        interactiveSession = flag;
         return this;
     }
 
@@ -1719,6 +1725,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         @Override
         public boolean isRunning() {
             return delegate.isRunning();
+        }
+
+        @Override
+        public GradleHandle sendSignal(int signal) {
+            return delegate.sendSignal(signal);
         }
     }
 }

@@ -55,6 +55,16 @@ include::sample[dir="snippets/java/fixtures/groovy/lib",files="build.gradle[tag=
 
 Gradle supports *three types of plugins*, each applied at a different phase of the build lifecycle.
 Init, settings, and project plugins.
+
+++++
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/vS_EhDjAF_U?si=mTBBu8t1PnAfUTnV&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+++++
+
 The most common and popular plugins are project plugins.
 
 image::plugin-intro-advanced-1.png[]

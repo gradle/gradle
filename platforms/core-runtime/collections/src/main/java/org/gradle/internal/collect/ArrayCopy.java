@@ -45,8 +45,7 @@ final class ArrayCopy {
     }
 
     static Object[] replaceAt(int index, Object[] array, Object newElement) {
-        Object[] newArray = new Object[array.length];
-        System.arraycopy(array, 0, newArray, 0, array.length);
+        Object[] newArray = array.clone();
         newArray[index] = newElement;
         return newArray;
     }
@@ -77,7 +76,7 @@ final class ArrayCopy {
         assert index >= leftIndexToOverwrite;
         assert payload == 0 || payload == 1;
         if (payload == 0) {
-            Object[] newArray = Arrays.copyOf(array, array.length);
+            Object[] newArray = array.clone();
             System.arraycopy(array, leftIndexToOverwrite + 1, newArray, leftIndexToOverwrite, index - leftIndexToOverwrite);
             newArray[index] = newElement;
             return newArray;
@@ -127,7 +126,7 @@ final class ArrayCopy {
 
     static Object[] insertAtPushingRight(int index, Object[] array, Object newElement, int rightIndexToOverwrite) {
         assert index <= rightIndexToOverwrite;
-        Object[] newArray = Arrays.copyOf(array, array.length);
+        Object[] newArray = array.clone();
         int len = rightIndexToOverwrite - index;
         System.arraycopy(array, index, newArray, index + 1, len);
         newArray[index] = newElement;

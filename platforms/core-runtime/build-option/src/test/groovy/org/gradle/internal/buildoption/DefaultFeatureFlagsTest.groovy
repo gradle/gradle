@@ -16,16 +16,13 @@
 
 package org.gradle.internal.buildoption
 
-import org.gradle.internal.event.ListenerManager
+
 import spock.lang.Specification
 
 class DefaultFeatureFlagsTest extends Specification {
-    def sysProperties = [:]
+    Map<String, String> sysProperties = [:]
     def featureFlagListener = Mock(FeatureFlagListener)
-    def listenerManager = Stub(ListenerManager) {
-        getBroadcaster(FeatureFlagListener) >> featureFlagListener
-    }
-    def flags = new DefaultFeatureFlags(listenerManager, sysProperties)
+    def flags = new DefaultFeatureFlags(featureFlagListener, sysProperties)
 
     def "flag is disabled by default"() {
         def flag = Stub(FeatureFlag)

@@ -25,10 +25,9 @@ import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.plugins.BindsProjectFeature;
-import org.gradle.api.internal.plugins.BindsProjectType;
-import org.gradle.api.internal.plugins.software.RegistersProjectFeatures;
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
+import org.gradle.features.annotations.BindsProjectFeature;
+import org.gradle.features.annotations.BindsProjectType;
+import org.gradle.features.annotations.RegistersProjectFeatures;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -70,7 +69,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultWorkExecutionTracker;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.execution.WorkInputListeners;
@@ -170,7 +168,6 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 CacheableTransform.class,
                 DisableCachingByDefault.class,
                 UntrackedTask.class,
-                RegistersSoftwareTypes.class,
                 RegistersProjectFeatures.class,
                 BindsProjectType.class,
                 BindsProjectFeature.class
@@ -370,8 +367,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    WorkInputListeners createWorkInputListeners(ListenerManager listenerManager) {
-        return new DefaultWorkInputListeners(listenerManager);
+    WorkInputListeners createWorkInputListeners() {
+        return new DefaultWorkInputListeners();
     }
 
     public interface AnnotationHandlerRegistration {

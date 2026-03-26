@@ -17,13 +17,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 
 @FluidDependenciesResolveTest
 class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can query files for filtered first level dependencies"() {
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()
@@ -52,13 +50,21 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
             }
 
             task verify {
-                doLast {
-                    println "file-dependencies: " + configurations.compile.incoming.artifactView { componentFilter { !(it instanceof ModuleComponentIdentifier) && !(it instanceof ProjectComponentIdentifier) } }.files.collect { it.name }
-                    println "external-dependencies: " + configurations.compile.incoming.artifactView { componentFilter { it instanceof ModuleComponentIdentifier } }.files.collect { it.name }
-                    println "child1-dependencies: " + configurations.compile.incoming.artifactView { componentFilter { it instanceof ProjectComponentIdentifier && it.projectPath == ':child1' } }.files.collect { it.name }
+                def fileDeps = configurations.compile.incoming.artifactView { componentFilter { !(it instanceof ModuleComponentIdentifier) && !(it instanceof ProjectComponentIdentifier) } }.files
+                def externalDeps = configurations.compile.incoming.artifactView { componentFilter { it instanceof ModuleComponentIdentifier } }.files
+                def child1Deps = configurations.compile.incoming.artifactView { componentFilter { it instanceof ProjectComponentIdentifier && it.projectPath == ':child1' } }.files
 
-                    assert configurations.compile.incoming.files.files == configurations.compile.files
-                    assert configurations.compile.incoming.artifactView {}.files.files == configurations.compile.files
+                def basic = configurations.compile
+                def artifactView = configurations.compile.incoming.artifactView {}.files
+                def basicIncoming = configurations.compile.incoming.files
+
+                doLast {
+                    println "file-dependencies: " + fileDeps.files.collect { it.name }
+                    println "external-dependencies: " + externalDeps.files.collect { it.name }
+                    println "child1-dependencies: " + child1Deps.files.collect { it.name }
+
+                    assert basicIncoming.files == basic.files
+                    assert artifactView.files == basic.files
                 }
             }
         """
@@ -96,7 +102,6 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
         outputContains("child1-dependencies: [child1.jar]")
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can query files for filtered first level dependencies when there is a cycle in the dependency graph"() {
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()
@@ -123,12 +128,19 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
             }
 
             task verify {
-                doLast {
-                    println "external-dependencies: " + configurations.compile.incoming.artifactView { componentFilter { it instanceof ModuleComponentIdentifier } }.files.collect { it.name }
-                    println "child1-dependencies: " + configurations.compile.incoming.artifactView { componentFilter { it instanceof ProjectComponentIdentifier && it.projectPath == ':child1' } }.files.collect { it.name }
+                def externalDeps = configurations.compile.incoming.artifactView { componentFilter { it instanceof ModuleComponentIdentifier } }.files
+                def child1Deps = configurations.compile.incoming.artifactView { componentFilter { it instanceof ProjectComponentIdentifier && it.projectPath == ':child1' } }.files
 
-                    assert configurations.compile.incoming.files.files == configurations.compile.files
-                    assert configurations.compile.incoming.artifactView {}.files.files == configurations.compile.files
+                def basic = configurations.compile
+                def artifactView = configurations.compile.incoming.artifactView {}.files
+                def basicIncoming = configurations.compile.incoming.files
+
+                doLast {
+                    println "external-dependencies: " + externalDeps.collect { it.name }
+                    println "child1-dependencies: " + child1Deps.collect { it.name }
+
+                    assert basicIncoming.files == basic.files
+                    assert artifactView.files == basic.files
                 }
             }
         """

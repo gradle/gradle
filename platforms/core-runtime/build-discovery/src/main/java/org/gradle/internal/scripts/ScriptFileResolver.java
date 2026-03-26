@@ -18,7 +18,6 @@ package org.gradle.internal.scripts;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.scripts.ScriptingLanguage;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
@@ -38,8 +37,7 @@ public interface ScriptFileResolver {
      * @param basename the base name of the script file, i.e. its file name excluding the extension
      * @return the resolved script file present on disk, or {@literal null} if none were found
      */
-    @Nullable
-    File resolveScriptFile(File dir, String basename);
+    ScriptResolutionResult resolveScriptFile(File dir, String basename);
 
     /**
      * Searches for script files in the given directory, that is, any file with a known

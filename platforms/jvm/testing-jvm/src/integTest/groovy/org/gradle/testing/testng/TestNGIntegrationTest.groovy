@@ -311,7 +311,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
         def result = fails 'test'
 
         then:
-        result.assertTestsFailed()
+        result.assertTestsFailedWithProvenance()
     }
 
     def "tries to execute unparseable test classes"() {
@@ -323,7 +323,8 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
 
         then:
         failure.assertHasCause("Test process encountered an unexpected problem.")
-        failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
+        failure.assertHasCause("Could not execute test class 'com.example.Foo'")
+        failure.assertHasCause("Could not load test class 'com.example.Foo'.")
 
         testResults.testPathPreNormalized(':').onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)

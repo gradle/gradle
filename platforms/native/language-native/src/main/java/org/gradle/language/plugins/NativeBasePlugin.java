@@ -41,7 +41,6 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.transform.UnzipTransform;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
@@ -147,9 +146,8 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
 
         // Add incoming artifact transforms
         final DependencyHandler dependencyHandler = project.getDependencies();
-        final ObjectFactory objects = project.getObjects();
 
-        addHeaderZipTransform(dependencyHandler, objects);
+        addHeaderZipTransform(dependencyHandler);
 
         // Add outgoing configurations and publications
         final RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
@@ -432,12 +430,14 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void addHeaderZipTransform(DependencyHandler dependencyHandler, ObjectFactory objects) {
+    private void addHeaderZipTransform(DependencyHandler dependencyHandler) {
         dependencyHandler.registerTransform(UnzipTransform.class, variantTransform -> {
-            variantTransform.getFrom().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ZIP_TYPE);
-            variantTransform.getFrom().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
-            variantTransform.getTo().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, DIRECTORY_TYPE);
-            variantTransform.getTo().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
+            AttributeContainer from =  variantTransform.getFrom();
+            from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ZIP_TYPE);
+            from.attribute(Usage.USAGE_ATTRIBUTE, from.named(Usage.class, Usage.C_PLUS_PLUS_API));
+            AttributeContainer to = variantTransform.getTo();
+            to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, DIRECTORY_TYPE);
+            to.attribute(Usage.USAGE_ATTRIBUTE, to.named(Usage.class, Usage.C_PLUS_PLUS_API));
         });
     }
 

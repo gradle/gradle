@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -48,14 +47,14 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
     private final Serializer<ComponentIdentifier> componentIdSerializer;
     private final Serializer<ComponentSelector> componentSelectorSerializer;
     private final Serializer<ResolvedVariantResult> resolvedVariantResultSerializer;
-    private final Serializer<ComponentSelectionReason> componentSelectionReasonSerializer;
+    private final Serializer<ComponentSelectionReasonInternal> componentSelectionReasonSerializer;
 
     public ResolvedComponentResultSerializer(
         Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer,
         Serializer<ComponentIdentifier> componentIdSerializer,
         Serializer<ComponentSelector> componentSelectorSerializer,
         Serializer<ResolvedVariantResult> resolvedVariantResultSerializer,
-        Serializer<ComponentSelectionReason> componentSelectionReasonSerializer
+        Serializer<ComponentSelectionReasonInternal> componentSelectionReasonSerializer
     ) {
         this.moduleVersionIdSerializer = moduleVersionIdSerializer;
         this.componentIdSerializer = componentIdSerializer;
@@ -89,7 +88,7 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
         encoder.writeSmallInt(id);
         moduleVersionIdSerializer.write(encoder, component.getModuleVersion());
         componentIdSerializer.write(encoder, component.getId());
-        componentSelectionReasonSerializer.write(encoder, component.getSelectionReason());
+        componentSelectionReasonSerializer.write(encoder, ((ResolvedComponentResultInternal) component).getSelectionReason());
         List<ResolvedVariantResult> allVariants = ((ResolvedComponentResultInternal) component).getAvailableVariants();
         Set<ResolvedVariantResult> resolvedVariants = new HashSet<>(component.getVariants());
         encoder.writeSmallInt(allVariants.size());

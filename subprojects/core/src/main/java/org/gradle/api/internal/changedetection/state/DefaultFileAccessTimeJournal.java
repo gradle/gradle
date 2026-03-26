@@ -24,6 +24,7 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
@@ -32,9 +33,14 @@ import java.util.Properties;
 import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
 import static org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER;
 
+// Changes to file system layout or file format are allowed, but should be communicated to the DV team
+// See: https://github.com/gradle/gradle-private/issues/5037
+@UsedByScanPlugin("artifact-cache")
 public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stoppable {
 
+    @UsedByScanPlugin("artifact-cache")
     public static final String CACHE_KEY = "journal-1";
+    @UsedByScanPlugin("artifact-cache")
     public static final String FILE_ACCESS_CACHE_NAME = "file-access";
     public static final String FILE_ACCESS_PROPERTIES_FILE_NAME = FILE_ACCESS_CACHE_NAME + ".properties";
     public static final String INCEPTION_TIMESTAMP_KEY = "inceptionTimestamp";

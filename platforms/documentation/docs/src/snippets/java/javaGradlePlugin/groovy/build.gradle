@@ -7,9 +7,14 @@ plugins {
 // tag::gradle-plugin-block[]
 gradlePlugin {
     plugins {
-        simplePlugin {
-            id = 'org.gradle.sample.simple-plugin'
+        register('org.gradle.sample.simple-plugin') {
+            // id is automatically inferred as "org.gradle.sample.simple-plugin"
             implementationClass = 'org.gradle.sample.SimplePlugin'
+        }
+        register('org.gradle.sample.convention-plugin') {
+            // id is overwritten to "convention-plugin"
+            id = 'convention-plugin'
+            implementationClass = 'org.gradle.sample.ConventionPlugin'
         }
     }
 }

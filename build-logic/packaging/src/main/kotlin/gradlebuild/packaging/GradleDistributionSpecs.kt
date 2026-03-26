@@ -17,6 +17,9 @@
 package gradlebuild.packaging
 
 import gradlebuild.basics.repoRoot
+import gradlebuild.packaging.tasks.GenerateClasspathModuleProperties
+import gradlebuild.packaging.tasks.GenerateEmptyModuleProperties
+import gradlebuild.packaging.tasks.GenerateLicenseFile
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 import java.io.File
@@ -30,12 +33,18 @@ object GradleDistributionSpecs {
     fun Project.binDistributionSpec() = copySpec {
         val gradleScriptPath by configurations.getting
         val coreRuntimeClasspath by configurations.getting
+        val generateCoreRuntimeModuleProperties by tasks.getting(GenerateClasspathModuleProperties::class)
         val runtimeClasspath by configurations.getting
+        val generateRuntimeModuleProperties by tasks.getting(GenerateClasspathModuleProperties::class)
         val runtimeApiInfoJar by tasks.getting
+        val runtimeApiInfoJarModuleProperties by tasks.getting(GenerateEmptyModuleProperties::class)
         val gradleApiKotlinExtensionsJar by tasks.getting
+        val gradleApiKotlinExtensionsJarModuleProperties by tasks.getting(GenerateEmptyModuleProperties::class)
         val agentsRuntimeClasspath by configurations.getting
+        val generateAgentsRuntimeModuleProperties by tasks.getting(GenerateClasspathModuleProperties::class)
+        val generateLicenseFile by tasks.getting(GenerateLicenseFile::class)
 
-        from("${repoRoot()}/LICENSE")
+        from(generateLicenseFile.outputLicenseFile)
         from("src/toplevel")
 
         into("bin") {
@@ -43,15 +52,30 @@ object GradleDistributionSpecs {
             filePermissions { unix("0755") }
         }
 
+        val coreRuntimeProperties = generateCoreRuntimeModuleProperties.outputDir.asFileTree.elements
+        val runtimeProperties = generateRuntimeModuleProperties.outputDir.asFileTree.elements
+
         into("lib") {
             from(runtimeApiInfoJar)
+            from(runtimeApiInfoJarModuleProperties)
+
             from(gradleApiKotlinExtensionsJar)
+            from(gradleApiKotlinExtensionsJarModuleProperties)
             from(coreRuntimeClasspath)
+            from(coreRuntimeProperties)
             into("plugins") {
                 from(runtimeClasspath - coreRuntimeClasspath)
+                from(runtimeProperties.zip(coreRuntimeProperties) { runtime, coreRuntime ->
+                    coreRuntime.mapTo(mutableSetOf<String>()) { it.asFile.name }.let { coreRuntimeNames ->
+                        runtime.mapNotNull {
+                            it.asFile.takeIf { !coreRuntimeNames.contains(it.name) }
+                        }
+                    }
+                })
             }
             into("agents") {
                 from(agentsRuntimeClasspath)
+                from(generateAgentsRuntimeModuleProperties.outputDir)
             }
         }
     }
@@ -86,8 +110,9 @@ object GradleDistributionSpecs {
      */
     fun Project.docsDistributionSpec() = copySpec {
         val docsPath by configurations.getting
+        val generateLicenseFile by tasks.getting(GenerateLicenseFile::class)
 
-        from("${repoRoot()}/LICENSE")
+        from(generateLicenseFile.outputLicenseFile)
         from("src/toplevel")
         into("docs") {
             from(docsPath)
@@ -121,6 +146,7 @@ object GradleDistributionSpecs {
             include("gradlew.bat")
             include("version.txt")
             include("released-versions.json")
+            include("LICENSE")
             exclude("**/.gradle/")
         }
     }

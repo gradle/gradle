@@ -127,7 +127,7 @@ class AbstractCacheCleanupTest extends Specification {
             }
 
             @Override
-            protected void handleDeletion(File file) {
+            protected void doAfterDeletion(File file) {
                 deletedFiles.add(file)
             }
         }

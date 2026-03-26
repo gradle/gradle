@@ -64,11 +64,11 @@ class PerformanceTestBuildTypeTest {
 
         assertEquals(
             listOf(
-                "EC2_BUILD_CUSTOMIZATIONS",
                 "KILL_ALL_GRADLE_PROCESSES",
                 "GRADLE_RUNNER",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME",
+                "CLEANUP_PERFORMANCE_TEST_SPLITS",
             ),
             performanceTest.steps.items.map(BuildStep::name),
         )
@@ -79,6 +79,7 @@ class PerformanceTestBuildTypeTest {
                 "%linux.java17.openjdk.64bit%",
                 "%linux.java21.openjdk.64bit%",
                 "%linux.java25.openjdk.64bit%",
+                "%linux.java26.openjdk.64bit%",
             )
         val expectedInstallationPaths = linuxPaths.joinToString(",")
         val expectedRunnerParams =
@@ -146,6 +147,7 @@ class PerformanceTestBuildTypeTest {
                 "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME",
+                "CLEANUP_PERFORMANCE_TEST_SPLITS",
             ),
             performanceTest.steps.items.map(BuildStep::name),
         )
@@ -156,6 +158,7 @@ class PerformanceTestBuildTypeTest {
                 "%windows.java17.openjdk.64bit%",
                 "%windows.java21.openjdk.64bit%",
                 "%windows.java25.openjdk.64bit%",
+                "%windows.java26.openjdk.64bit%",
             )
         val expectedInstallationPaths = windowsPaths.joinToString(",")
         val expectedRunnerParams =

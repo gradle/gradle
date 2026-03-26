@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeSource
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 
 import static org.gradle.util.internal.WrapUtil.toList
@@ -201,6 +202,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         }
     }
 
+    @ExpectDeprecation("The DomainObjectCollection.findAll(Closure) method has been deprecated.")
     def findAllRetainsIterationOrder() {
         container.add("a")
         container.add("b")
@@ -212,6 +214,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         collection == ["a", "c"]
     }
 
+    @ExpectDeprecation("The DomainObjectCollection.findAll(Closure) method has been deprecated.")
     def findAllDoesNotReturnALiveCollection() {
         container.add("a")
         container.add("b")
@@ -594,6 +597,164 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
 
         then:
         result == [value]
+    }
+
+    def "add throws after disallowChanges"() {
+        given:
+        container.disallowChanges()
+
+        when:
+        container.add(a)
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "addAll throws after disallowChanges"() {
+        given:
+        container.disallowChanges()
+
+        when:
+        container.addAll([a, b])
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "addLater throws after disallowChanges"() {
+        given:
+        container.disallowChanges()
+
+        when:
+        container.addLater(TestUtil.providerFactory().provider { a })
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "addAllLater throws after disallowChanges"() {
+        given:
+        container.disallowChanges()
+
+        when:
+        container.addAllLater(TestUtil.providerFactory().provider { [a, b] as List<CharSequence> })
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "remove throws after disallowChanges"() {
+        given:
+        container.add(a)
+        container.disallowChanges()
+
+        when:
+        container.remove(a)
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "removeAll throws after disallowChanges"() {
+        given:
+        container.add(a)
+        container.disallowChanges()
+
+        when:
+        container.removeAll([a])
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "retainAll throws after disallowChanges"() {
+        given:
+        container.add(a)
+        container.add(b)
+        container.disallowChanges()
+
+        when:
+        container.retainAll([a])
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "clear throws after disallowChanges"() {
+        given:
+        container.add(a)
+        container.disallowChanges()
+
+        when:
+        container.clear()
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "iterator remove throws after disallowChanges"() {
+        given:
+        container.add(a)
+        container.disallowChanges()
+
+        when:
+        def iterator = container.iterator()
+        iterator.next()
+        iterator.remove()
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "disallowChanges does not realize pending elements"() {
+        given:
+        boolean providerWasCalled = false
+        def provider = TestUtil.providerFactory().provider {
+            providerWasCalled = true
+            a
+        }
+        container.addLater(provider)
+
+        when:
+        container.disallowChanges()
+
+        then:
+        !providerWasCalled
+        container.size() == 1
+    }
+
+    def "pending elements can be iterated after disallowChanges"() {
+        given:
+        container.addLater(TestUtil.providerFactory().provider { a })
+        container.disallowChanges()
+
+        when:
+        def result = container.toList()
+
+        then:
+        result == [a]
+    }
+
+    def "calling disallowChanges is idempotent"() {
+        when:
+        container.disallowChanges()
+        container.disallowChanges()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "disallowChanges throws when called inside configureEach"() {
+        given:
+        container.add(a)
+
+        when:
+        container.configureEach {
+            container.disallowChanges()
+        }
+
+        then:
+        thrown(IllegalStateException)
     }
 
     interface Subtype extends CharSequence {}

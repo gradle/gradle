@@ -41,36 +41,4 @@ public class DefaultGroovyJavaJointCompileSpecFactory extends AbstractJavaCompil
         return new DefaultGroovyJavaJointCompileSpec();
     }
 
-    private static class DefaultCommandLineGroovyJavaJointCompileSpec extends DefaultGroovyJavaJointCompileSpec implements CommandLineJavaCompileSpec {
-        private final File executable;
-
-        private DefaultCommandLineGroovyJavaJointCompileSpec(File executable) {
-            this.executable = executable;
-        }
-
-        @Override
-        public File getExecutable() {
-            return executable;
-        }
-    }
-
-    private static class DefaultForkingGroovyJavaJointCompileSpec extends DefaultGroovyJavaJointCompileSpec implements ForkingJavaCompileSpec {
-        private final File javaHome;
-        private final int javaLanguageVersion;
-
-        private DefaultForkingGroovyJavaJointCompileSpec(File javaHome, int javaLanguageVersion) {
-            this.javaHome = javaHome;
-            this.javaLanguageVersion = javaLanguageVersion;
-        }
-
-        @Override
-        public File getJavaHome() {
-            return javaHome;
-        }
-
-        @Override
-        public int getJavaLanguageVersion() {
-            return javaLanguageVersion;
-        }
-    }
 }

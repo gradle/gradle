@@ -17,15 +17,11 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.internal.exceptions.LocationAwareException
-
 import org.gradle.kotlin.dsl.resolver.EditorMessages
-import org.gradle.kotlin.dsl.tooling.models.EditorPosition
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
-
 import java.io.BufferedInputStream
 import java.io.File
-import java.io.Serializable
 
 
 internal
@@ -153,33 +149,6 @@ fun wholeFileWarning(message: String) =
 private
 fun lineWarning(message: String, line: Int) =
     DefaultEditorReport(EditorReportSeverity.WARNING, message, DefaultEditorPosition(line))
-
-
-private
-data class DefaultEditorReport(
-    private val severity: EditorReportSeverity,
-    private val message: String,
-    private val position: EditorPosition? = null
-) : EditorReport, Serializable {
-
-    override fun getSeverity() = severity
-
-    override fun getMessage() = message
-
-    override fun getPosition() = position
-}
-
-
-internal
-data class DefaultEditorPosition(
-    private val line: Int,
-    private val column: Int = 0
-) : EditorPosition, Serializable {
-
-    override fun getLine() = line
-
-    override fun getColumn() = column
-}
 
 
 internal

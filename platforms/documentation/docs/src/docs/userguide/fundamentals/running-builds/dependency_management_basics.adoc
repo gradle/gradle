@@ -69,17 +69,19 @@ Kotlin Multiplatform (KMP) creates **source set–scoped** configs such as `comm
 You can inspect the dependency tree using the `dependencies` task.
 For example, to view the dependencies of the `:app` project:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:dependencies
 ----
 
 Gradle will output the dependency tree, grouped by configuration:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:dependencies
-
+----
+[source,text]
+----
 > Task :app:dependencies
 
 ------------------------------------------------------------
@@ -124,7 +126,7 @@ The version catalog typically contains four sections:
 Here's an example:
 
 ====
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/dependencyManagement/introductionDependencies/common",files="gradle/libs.versions.toml[]"]
 ====
 
 Place this file in the `gradle/` directory of your project as `libs.versions.toml`.

@@ -214,14 +214,16 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
             plugins {
                 a { id = "a.plugin" }
                 b { id = "b.plugin" }
+                create("c.plugin")
             }
         }
 
         then:
         def publications = project.services.get(ProjectPublicationRegistry).getPublicationsForProject(PluginPublication, project.identityPath)
-        publications.size() == 2
+        publications.size() == 3
         publications[0].pluginId == DefaultPluginId.of("a.plugin")
         publications[1].pluginId == DefaultPluginId.of("b.plugin")
+        publications[2].pluginId == DefaultPluginId.of("c.plugin")
     }
 
     def "sets Gradle plugin API version attribute on classpath of all source sets"() {

@@ -24,16 +24,16 @@ import java.util.Set;
 public class SimpleActionExecutionSpec<T extends WorkParameters> {
     private final Class<? extends WorkAction<T>> implementationClass;
     private final T params;
-    private final Set<Class<?>> additionalWhitelistedServices;
+    private final Set<Class<?>> additionalAllowedServices;
 
-    public SimpleActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, T params, Set<Class<?>> additionalWhitelistedServices) {
+    public SimpleActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, T params, Set<Class<?>> additionalAllowedServices) {
         this.implementationClass = implementationClass;
         this.params = params;
-        this.additionalWhitelistedServices = additionalWhitelistedServices;
+        this.additionalAllowedServices = additionalAllowedServices;
     }
 
-    public Set<Class<?>> getAdditionalWhitelistedServices() {
-        return additionalWhitelistedServices;
+    public Set<Class<?>> getAdditionalAllowedServices() {
+        return additionalAllowedServices;
     }
 
     public Class<? extends WorkAction<T>> getImplementationClass() {

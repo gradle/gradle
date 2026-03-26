@@ -18,7 +18,6 @@
 Gradle uses a convention-over-configuration approach to building JVM-based projects that borrows several conventions from Apache Maven. In particular, it uses the same default directory structure for source files and resources, and it works with Maven-compatible repositories.
 
 We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>.
-If you don't have much experience with building JVM-based projects with Gradle, take a look at the link:../samples/index.html#java[Java samples] for step-by-step instructions on how to build various types of basic Java projects.
 
 [NOTE]
 ====
@@ -27,13 +26,10 @@ However the described features are shared by all JVM plugins.
 Specifics of the different plugins are available in their dedicated documentation.
 ====
 
-TIP: There are a number of hands-on samples that you can explore for link:../samples/index.html#java[Java], link:../samples/index.html#groovy[Groovy], link:../samples/index.html#scala[Scala] and link:../samples/index.html#kotlin[Kotlin].
-
 == Introduction
 
 The simplest build script for a Java project applies the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and optionally sets the project version and selects the <<toolchains.adoc#toolchains,Java toolchain>> to use:
 
-.Applying the Java Library Plugin
 ====
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=apply-java-plugin]"]
 include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=apply-java-plugin]"]
@@ -124,7 +120,6 @@ When creating a source set, if one of these automatically created configurations
 
 The build below demonstrates this behavior.
 
-.Configurations created prior to their associated source sets
 ====
 include::sample[dir="snippets/java/sourceSets-badConfNames/kotlin",files="build.gradle.kts[tags=create-configurations]"]
 include::sample[dir="snippets/java/sourceSets-badConfNames/groovy",files="build.gradle[tags=create-configurations]"]
@@ -141,7 +136,6 @@ Following two simple best practices will avoid this problem:
 Remember that any time you reference a configuration within the `configurations` container - with or without supplying an initialization action - Gradle will create the configuration.
 Sometimes when using the Groovy DSL this creation is not obvious, as in the example below, where `myCustomConfiguration` is created prior to the call to `extendsFrom`.
 
-.Custom Configuration creation in Groovy
 ====
 include::sample[dir="snippets/java/customConfs-creation/groovy",files="build.gradle[tags=create-configurations]"]
 ====
@@ -161,7 +155,6 @@ Specifying the dependencies for your Java project requires just three pieces of 
 
 The first two are specified in a `dependencies {}` block and the third in a `repositories {}` block. For example, to tell Gradle that your project requires version 3.6.7 of http://hibernate.org/[Hibernate] Core to compile and run your production code, and that you want to download the library from the Maven Central repository, you can use the following fragment:
 
-.Declaring dependencies
 ====
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-dependency-mgmt]"]
 include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-dependency-mgmt]"]
@@ -206,7 +199,6 @@ We have only scratched the surface here, so we recommend that you read the dedic
 
 You'll discover that Gradle has a rich API for working with dependencies — one that takes time to master, but is straightforward to use for common scenarios.
 
-
 [[sec:compile]]
 == Compiling your code
 
@@ -227,7 +219,6 @@ Imagine you have a legacy project that uses an _src_ directory for the productio
 
 Each source set defines where its source code resides, along with the resources and the output directory for the class files. You can override the convention values by using the following syntax:
 
-.Declaring custom source directories
 ====
 include::sample[dir="snippets/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-src-dirs]"]
 include::sample[dir="snippets/java/customDirs/groovy",files="build.gradle[tags=custom-src-dirs]"]
@@ -235,7 +226,6 @@ include::sample[dir="snippets/java/customDirs/groovy",files="build.gradle[tags=c
 
 Now Gradle will only search directly in _src_ and _test_ for the respective source code. What if you don't want to override the convention, but simply want to _add_ an extra source directory, perhaps one that contains some third-party source code you want to keep separate? The syntax is similar:
 
-.Declaring custom source directories additively
 ====
 include::sample[dir="snippets/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-extra-src-dir]"]
 include::sample[dir="snippets/java/customDirs/groovy",files="build.gradle[tags=custom-extra-src-dir]"]
@@ -251,7 +241,6 @@ Most of the compiler options are accessible through the corresponding task, such
 
 For example, if you want to use a separate JVM process for the compiler and prevent compilation failures from failing the build, you can use this configuration:
 
-.Setting Java compiler options
 ====
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-compiler-options]"]
 include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-compiler-options]"]
@@ -298,7 +287,6 @@ It is possible to specify an earlier release version while compiling with a more
 Gradle supports using the release flag from Java 10.
 It can be configured on the compilation task as follows.
 
-.Setting Java release flag
 ====
 include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-release-flag]"]
 include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-release-flag]"]
@@ -344,7 +332,6 @@ To use Java 6 or Java 7, the following tasks need to be configured:
 
 With the usage of Java toolchains, this can be done as follows:
 
-.Configuring Java 7 build
 ====
 include::sample[dir="snippets/java/crossCompilation/kotlin",files="build.gradle.kts[tags=java-cross-compilation]"]
 include::sample[dir="snippets/java/crossCompilation/groovy",files="build.gradle[tags=java-cross-compilation]"]
@@ -453,7 +440,6 @@ As there is a lot to cover when it comes to testing, the topic has its <<java_te
  * How to make use of specific JUnit and TestNG features
 
 You can also learn more about configuring tests in the DSL reference for link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test].
-
 
 [[sec:java_packaging]]
 == Packaging and publishing
@@ -573,7 +559,7 @@ Gradle manages this distinction via the <<java_library_plugin.adoc#java_library_
 If the types from a dependency appear in public fields or methods of your library's public classes, then that dependency is exposed via your library's public API and should therefore be added to the _api_ configuration.
 Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
-If you're unsure of the difference between an API and implementation dependency, the <<java_library_plugin.adoc#sec:java_library_recognizing_dependencies,Java Library Plugin chapter>> has a detailed explanation. In addition, you can explore a basic, practical link:../samples/sample_building_java_libraries.html[sample of building a Java library].
+If you're unsure of the difference between an API and implementation dependency, the <<java_library_plugin.adoc#sec:java_library_recognizing_dependencies,Java Library Plugin chapter>> has a detailed explanation.
 
 [[sec:building_java_applications]]
 == Building Java applications
@@ -586,8 +572,6 @@ See the plugin's chapter for more details, but here's a quick summary of what yo
  * `assemble` creates ZIP and TAR distributions of the application containing everything needed to run it
  * A `run` task that starts the application from the build (for easy testing)
  * Shell and Windows Batch scripts to start the application
-
-You can see a basic example of building a Java application in the corresponding link:../samples/sample_building_java_applications.html[sample].
 
 [[sec:building_java_webapps]]
 == Building Java web applications

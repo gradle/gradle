@@ -16,7 +16,9 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import kotlin.reflect.KClass
 
 
@@ -25,12 +27,11 @@ import kotlin.reflect.KClass
  * If [keyClass] is null, discovers [discoverClasses] when the schema's top-level receiver type is inspected.
  */
 internal
-class FixedTypeDiscovery(private val keyClass: KClass<*>?, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
-    private val result by lazy { discoverClasses.distinct().map { TypeDiscovery.DiscoveredClass(it, isHidden = false) } }
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
+class FixedTypeDiscovery(private val keyClass: KClass<*>?, private val discoverClasses: List<TypeDiscovery.DiscoveredClass>) : TypeDiscovery {
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> =
         when (kClass) {
-            keyClass -> result
-            typeDiscoveryServices.host.topLevelReceiverClass -> if (keyClass == null) result else emptyList()
+            keyClass -> discoverClasses.map(::schemaResult)
+            typeDiscoveryServices.host.topLevelReceiverClass -> if (keyClass == null) discoverClasses.map(::schemaResult) else emptyList()
             else -> emptyList()
         }
 }

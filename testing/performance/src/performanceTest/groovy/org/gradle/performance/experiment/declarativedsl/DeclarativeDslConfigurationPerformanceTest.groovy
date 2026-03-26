@@ -19,12 +19,14 @@ package org.gradle.performance.experiment.declarativedsl
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
+@Ignore("Temporarily disabled until we can create a new baseline")
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, MAC_OS, WINDOWS], testProjects = ["largeEmptyMultiProjectDeclarativeDsl"])
 )
@@ -32,7 +34,7 @@ class DeclarativeDslConfigurationPerformanceTest extends AbstractCrossVersionPer
     def "configure"() {
         given:
         runner.tasksToRun = ['help']
-        runner.minimumBaseVersion = '9.4'
+        runner.minimumBaseVersion = '9.5'
 
         when:
         def result = runner.run()

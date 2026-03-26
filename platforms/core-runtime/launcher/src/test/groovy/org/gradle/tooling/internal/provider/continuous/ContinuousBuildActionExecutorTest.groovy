@@ -69,7 +69,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
     def globalListenerManager = new DefaultListenerManager(Scope.Global)
     def userHomeListenerManager = globalListenerManager.createChild(Scope.UserHome)
-    def inputListeners = new DefaultWorkInputListeners(globalListenerManager)
+    def inputListeners = new DefaultWorkInputListeners()
     def changeListeners = new DefaultFileChangeListeners(userHomeListenerManager)
     List<Deployment> deployments = []
     def continuousExecutionGate = new DefaultContinuousExecutionGate()
@@ -372,7 +372,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private void buildIsInteractive() {
-        requestMetadata.interactive >> true
+        requestMetadata.interactiveConsole >> true
     }
 
     private void continuousBuildEnabled() {

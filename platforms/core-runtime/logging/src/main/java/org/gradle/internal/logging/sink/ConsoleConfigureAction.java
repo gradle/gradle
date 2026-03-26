@@ -18,12 +18,15 @@ package org.gradle.internal.logging.sink;
 
 import org.fusesource.jansi.AnsiPrintStream;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
+import org.gradle.internal.logging.console.ProgressBar;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.nativeintegration.console.UnicodeProxyConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.IOException;
@@ -31,6 +34,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 
 public class ConsoleConfigureAction {
@@ -38,8 +42,8 @@ public class ConsoleConfigureAction {
     private ConsoleConfigureAction() {
     }
 
-    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
-        execute(renderer, consoleOutput, getConsoleMetaData(), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
+    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleUnicodeSupport consoleUnicodeSupport) {
+        execute(renderer, consoleOutput, getConsoleMetaData(consoleUnicodeSupport), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
     }
 
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata, OutputStream stdout, OutputStream stderr) {
@@ -54,15 +58,47 @@ public class ConsoleConfigureAction {
         } else if (consoleOutput == ConsoleOutput.Colored) {
             configureColoredConsole(renderer, consoleMetadata, stdout, stderr);
         }
+
+        registerTaskbarReset(consoleMetadata, stdout);
     }
 
-    private static ConsoleMetaData getConsoleMetaData() {
+    private static void registerTaskbarReset(ConsoleMetaData consoleMetadata, OutputStream stdout) {
+        String reset = ProgressBar.buildTaskbarProgressResetSequence(consoleMetadata);
+        if (!reset.isEmpty()) {
+            try {
+                byte[] resetBytes = reset.getBytes(StandardCharsets.UTF_8);
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    try {
+                        stdout.write(resetBytes);
+                        stdout.flush();
+                    } catch (IOException ignored) {
+                        //ignore
+                    }
+                }, "taskbar-progress-reset"));
+            } catch (SecurityException | IllegalStateException ignored) {
+                // Unable to register shutdown hook; proceed without it
+            }
+        }
+    }
+
+    public static ConsoleMetaData createProxyingConsoleMetaData(ConsoleMetaData metaData, ConsoleUnicodeSupport consoleUnicodeSupport) {
+        switch (consoleUnicodeSupport) {
+            case Auto:
+                return metaData;
+            case Disable:
+                return new UnicodeProxyConsoleMetaData.FixedUnicodeSupport(metaData, false);
+            case Enable:
+            default:
+                return new UnicodeProxyConsoleMetaData.FixedUnicodeSupport(metaData, true);
+        }
+    }
+
+    private static ConsoleMetaData getConsoleMetaData(ConsoleUnicodeSupport consoleUnicodeSupport) {
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
         ConsoleMetaData metaData = consoleDetector.getConsole();
-        if (metaData != null) {
-            return metaData;
-        }
-        return FallbackConsoleMetaData.NOT_ATTACHED;
+        return createProxyingConsoleMetaData(
+            metaData != null ? metaData : FallbackConsoleMetaData.NOT_ATTACHED,
+            consoleUnicodeSupport);
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
@@ -126,7 +162,13 @@ public class ConsoleConfigureAction {
 
     private static Console consoleFor(OutputStream stream, Supplier<OutputStream> jansiFallback, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
         boolean force = !consoleMetaData.isWrapStreams();
-        OutputStreamWriter writer = new OutputStreamWriter(force ? stream : jansiFallback.get(), Charset.defaultCharset());
+
+        // Use UTF-8 when terminal supports Unicode, otherwise use default charset
+        Charset charset = consoleMetaData.supportsUnicode()
+            ? StandardCharsets.UTF_8
+            : Charset.defaultCharset();
+
+        OutputStreamWriter writer = new OutputStreamWriter(force ? stream : jansiFallback.get(), charset);
         return new AnsiConsole(writer, writer, colourMap, consoleMetaData, force);
     }
 

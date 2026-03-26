@@ -177,7 +177,9 @@ class FunctionCallResolverImpl(
 
         val overloads: List<FunctionResolutionAndBinding> = lookupStrategy.lookup(context, lazyReceiverResolution, functionCall, ArgumentData.BoundArguments(lazyArgResolutions), typeSubstitution)
 
-        val resultOriginOrNull = invokeIfSingleOverload(overloads, functionCall, lazyArgResolutions, typeSubstitution)
+        val disambiguatedOverloads = disambiguateByMostSpecificParameterType(context, overloads, typeSubstitution)
+
+        val resultOriginOrNull = invokeIfSingleOverload(disambiguatedOverloads, functionCall, lazyArgResolutions, typeSubstitution)
 
         resultOriginOrNull?.let {
             TypedOrigin(it, applyTypeSubstitution(resolveRef(resultOriginOrNull.function.returnValueType), typeSubstitution))
@@ -195,6 +197,48 @@ class FunctionCallResolverImpl(
         ?.associate { (param, arg) ->
             arg to if (param is VarargParameter) getElementTypeFromVarargType(param).ref else param.type
         } ?: emptyMap()
+
+    private fun disambiguateByMostSpecificParameterType(
+        typeRefContext: TypeRefContext,
+        overloads: List<FunctionResolutionAndBinding>,
+        typeSubstitution: Map<TypeVariableUsage, DataType>
+    ): List<FunctionResolutionAndBinding> {
+        if (overloads.size <= 1)
+            return overloads
+
+        if (typeSubstitution.isNotEmpty()) {
+            // TODO: when overload resolution is supported for generic functions, take each type substitution into account; for now, defensively throw
+            error("Overload disambiguation for generic signatures is not supported yet, there can only be a single candidate with type substitution")
+        }
+
+        fun FunctionResolutionAndBinding.isStrictlyMoreSpecificThan(other: FunctionResolutionAndBinding): Boolean {
+            return binding.binding.all { (parameter, argument) ->
+                val paramType = typeRefContext.resolveRef(parameter.type)
+                val otherParamType = other.binding.binding.entries.find { it.value == argument }?.key?.type?.let(typeRefContext::resolveRef)
+                    ?: return false
+                typeRefContext.checkIsAssignable(paramType, otherParamType, typeSubstitution)
+            }
+        }
+
+        /**
+         * The set of overloads that are currently the most concrete ones, but are not more concrete than each other.
+         */
+        val mostSpecificSet = mutableSetOf<FunctionResolutionAndBinding>()
+
+        for (overload in overloads) {
+            if (mostSpecificSet.any { it.isStrictlyMoreSpecificThan(overload) }) {
+                // This overload is dominated by another one, so it's not a candidate for the most concrete overload.
+                continue
+            }
+
+            // Remove any current most-specific candidate that is dominated by this one
+            mostSpecificSet.removeIf { overload.isStrictlyMoreSpecificThan(it) }
+
+            mostSpecificSet += overload
+        }
+
+        return mostSpecificSet.toList()
+    }
 
     private
     fun AnalysisContext.invokeIfSingleOverload(

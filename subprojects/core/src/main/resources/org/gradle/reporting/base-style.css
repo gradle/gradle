@@ -149,9 +149,10 @@ div.tab td.numeric, div.tab th.numeric {
 }
 
 span.code {
-    display: inline-block;
+    display: block;
     margin-top: 0;
     margin-bottom: 1em;
+    position: relative;
 }
 
 span.code pre {
@@ -162,6 +163,7 @@ span.code pre {
     border: solid 1px #d0d0d0;
     min-width: 700px;
     width: auto;
+    overflow: auto;
 }
 
 span.wrapped pre {

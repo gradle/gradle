@@ -76,8 +76,12 @@ include::sample[dir="snippets/ant/useAntTask/kotlin",files="build.gradle.kts"]
 include::sample[dir="snippets/ant/useAntTask/groovy",files="build.gradle"]
 ====
 
+[source,bash]
 ----
-$ gradle hello
+$ ./gradlew hello
+----
+[source,text]
+----
 include::{snippetsPath}/ant/useAntTask/tests/useAntTask.out[]
 ----
 
@@ -91,8 +95,12 @@ include::sample[dir="snippets/ant/taskWithNestedText/kotlin",files="build.gradle
 include::sample[dir="snippets/ant/taskWithNestedText/groovy",files="build.gradle"]
 ====
 
+[source,bash]
 ----
-$ gradle hello
+$ ./gradlew hello
+----
+[source,text]
+----
 include::{snippetsPath}/ant/taskWithNestedText/tests/taskWithNestedText.out[]
 ----
 
@@ -154,11 +162,15 @@ include::sample[dir="snippets/ant/hello/groovy",files="build.gradle"]
 ====
 
 ====
-include::sample[dir="snippets/ant/hello/groovy",files="build.xml"]
+include::sample[dir="snippets/ant/hello/common",files="build.xml"]
 ====
 
+[source,bash]
 ----
-$ gradle hello
+$ ./gradlew hello
+----
+[source,text]
+----
 include::{snippetsPath}/ant/hello/tests/antHello.out[]
 ----
 
@@ -169,8 +181,12 @@ include::sample[dir="snippets/ant/dependsOnAntTarget/kotlin",files="build.gradle
 include::sample[dir="snippets/ant/dependsOnAntTarget/groovy",files="build.gradle"]
 ====
 
+[source,bash]
 ----
-$ gradle intro
+$ ./gradlew intro
+----
+[source,text]
+----
 include::{snippetsPath}/ant/dependsOnAntTarget/tests/dependsOnAntTarget.out[]
 ----
 
@@ -181,8 +197,12 @@ include::sample[dir="snippets/ant/addBehaviourToAntTarget/kotlin",files="build.g
 include::sample[dir="snippets/ant/addBehaviourToAntTarget/groovy",files="build.gradle"]
 ====
 
+[source,bash]
 ----
-$ gradle hello
+$ ./gradlew hello
+----
+[source,text]
+----
 include::{snippetsPath}/ant/addBehaviourToAntTarget/tests/addBehaviourToAntTarget.out[]
 ----
 
@@ -194,11 +214,15 @@ include::sample[dir="snippets/ant/dependsOnTask/groovy",files="build.gradle"]
 ====
 
 ====
-include::sample[dir="snippets/ant/dependsOnTask/groovy",files="build.xml"]
+include::sample[dir="snippets/ant/dependsOnTask/common",files="build.xml"]
 ====
 
+[source,bash]
 ----
-$ gradle hello
+$ ./gradlew hello
+----
+[source,text]
+----
 include::{snippetsPath}/ant/dependsOnTask/tests/dependsOnTask.out[]
 ----
 
@@ -211,11 +235,15 @@ include::sample[dir="snippets/ant/renameTask/groovy",files="build.gradle"]
 ====
 
 ====
-include::sample[dir="snippets/ant/renameTask/groovy",files="build.xml"]
+include::sample[dir="snippets/ant/renameTask/common",files="build.xml"]
 ====
 
+[source,bash]
 ----
-$ gradle a-hello
+$ ./gradlew a-hello
+----
+[source,text]
+----
 include::{snippetsPath}/ant/renameTask/tests/renameAntDelegate.out[]
 ----
 
@@ -242,7 +270,7 @@ You can get the property directly from the `AntBuilder` instance.
 The Ant properties are also available as a Map:
 
 ====
-include::sample[dir="snippets/ant/properties/groovy",files="build.xml[tags=getproperty]"]
+include::sample[dir="snippets/ant/properties/common",files="build.xml[tags=getproperty]"]
 ====
 
 ====
@@ -258,13 +286,13 @@ include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=se
 ====
 
 ====
-include::sample[dir="snippets/ant/properties/groovy",files="build.xml[tags=setreference]"]
+include::sample[dir="snippets/ant/properties/common",files="build.xml[tags=setreference]"]
 ====
 
 There are several ways to get an Ant reference:
 
 ====
-include::sample[dir="snippets/ant/properties/groovy",files="build.xml[tags=getreference]"]
+include::sample[dir="snippets/ant/properties/common",files="build.xml[tags=getreference]"]
 ====
 
 ====
@@ -321,8 +349,12 @@ include::sample[dir="snippets/ant/antLogging/kotlin",files="build.gradle.kts"]
 include::sample[dir="snippets/ant/antLogging/groovy",files="build.gradle"]
 ====
 
+[source,bash]
 ----
-$ gradle hello
+$ ./gradlew hello
+----
+[source,text]
+----
 include::{snippetsPath}/ant/antLogging/tests/antLogging.out[]
 ----
 

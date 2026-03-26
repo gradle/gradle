@@ -165,10 +165,8 @@ val Field.isStatic
 
 private
 val abstractTaskRelevantFields = listOf(
-    "actions",
     "enabled",
     "timeout",
-    "onlyIfSpec",
     "logger",
 )
 

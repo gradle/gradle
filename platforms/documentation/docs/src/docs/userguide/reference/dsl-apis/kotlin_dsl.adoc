@@ -628,7 +628,7 @@ By default, the code will target Java 8.
 You can change that by defining a Java toolchain to be used by the project:
 
 ====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
+include::sample[dir="snippets/java/jvm-multi-project-with-toolchains/kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
 ====
 
 [[sec:kotlin]]

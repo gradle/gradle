@@ -131,7 +131,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
             return whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
                     () -> delegate.estimateMetadataFetchingCost(moduleComponentIdentifier),
-                    () -> MetadataFetchingCost.FAST);
+                    () -> MetadataFetchingCost.CHEAP);
         }
 
         private void whenModulePresent(ModuleIdentifier id, @Nullable ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {

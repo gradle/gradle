@@ -21,8 +21,8 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProbl
 class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedProjectsSmokeTest {
 
     def "can run Gradle build tasks with isolated projects enabled"() {
-        def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
         given:
+        def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
         def tasks = [
             "build",
             "sanityCheck",
@@ -36,7 +36,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         ]
 
         when:
-        maxIsolatedProjectProblems = 1
+        maxIsolatedProjectProblems = 0
         isolatedProjectsRun(tasks)
 
         then:
@@ -44,13 +44,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
 
         // Prevents the power assert from dumping all the output if the check below fails.
         def report = fixture.htmlReport(result.output)
-
-        report.assertContents {
-            totalProblemsCount = 1
-            withUniqueProblems(
-                "Project ':docs' cannot dynamically look up a property in the parent project ':'",
-            )
-        }
+        report.assertHasNoProblems()
     }
 
     def "can schedule all Gradle build tasks with isolated projects enabled"() {
@@ -91,8 +85,8 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
                 "Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'",
                 "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'",
             )
-            // TODO-RC if this ends up making this test too brittle, we should use a looser/range-based expectation
-            totalProblemsCount = 87354
+            // checking total problem count is too brittle, as that number changes whenever projects are added or removed
+            enforceTotalProblemCount = false
         }
         result.assertNoConfigurationCache()
     }

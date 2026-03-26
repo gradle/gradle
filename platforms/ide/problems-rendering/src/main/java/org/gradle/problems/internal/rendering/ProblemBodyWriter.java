@@ -62,6 +62,12 @@ class ProblemBodyWriter implements PartialProblemWriter {
             }
         }
 
+        // print documentation
+        if (options.isRenderSolutions() && problem.getDefinition().getDocumentationLink() != null) {
+            output.printf("%n");
+            indent(output, "Documentation: " + problem.getDefinition().getDocumentationLink().getUrl(), 4);
+        }
+
         // print locations
         List<FileLocation> fileLocations = problem.getOriginLocations().stream().filter(FileLocation.class::isInstance).map(FileLocation.class::cast).collect(Collectors.toList());
         for (FileLocation location : fileLocations) {

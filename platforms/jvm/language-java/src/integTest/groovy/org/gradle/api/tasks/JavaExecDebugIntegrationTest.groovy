@@ -268,7 +268,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.withType(Test) {
-                onOutput { descriptor, event ->
+                addTestOutputListener { descriptor, event ->
                     logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
                 }
 

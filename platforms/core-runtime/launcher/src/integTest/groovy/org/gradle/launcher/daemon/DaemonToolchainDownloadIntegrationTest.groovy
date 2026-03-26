@@ -16,14 +16,13 @@
 
 package org.gradle.launcher.daemon
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JdkRepository
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -33,6 +32,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 
 @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/5022")
 class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     def "toolchain selection that requires downloading fails when it is disabled"() {
@@ -48,7 +48,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
-                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                "Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection.",
                 STACKTRACE_MESSAGE, INFO_DEBUG, SCAN, GET_HELP
             )
     }
@@ -83,8 +83,8 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         then:
         failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'https://example.com/v=^10'")
             .assertHasResolutions(
-                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
-                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
+                "Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection.",
+                "Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories.",
                 STACKTRACE_MESSAGE, INFO_DEBUG, SCAN, GET_HELP
             )
     }

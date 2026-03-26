@@ -34,7 +34,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Cast;
@@ -108,20 +107,15 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     private final ConfigurationContainer configurationContainer;
     private final DependencyConstraintFactoryInternal dependencyConstraintFactory;
     private final DynamicAddDependencyMethods dynamicMethods;
-    private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
-    private final Category enforcedPlatform;
 
     public DefaultDependencyConstraintHandler(ConfigurationContainer configurationContainer,
                                               DependencyConstraintFactoryInternal dependencyConstraintFactory,
-                                              ObjectFactory objects,
                                               PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
         this.dependencyConstraintFactory = dependencyConstraintFactory;
         this.dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DependencyConstraintAdder());
-        this.objects = objects;
         this.platformSupport = platformSupport;
-        enforcedPlatform = toCategory(Category.ENFORCED_PLATFORM);
     }
 
     @Override
@@ -168,7 +162,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     public DependencyConstraint enforcedPlatform(Object notation) {
         DependencyConstraintInternal platformDependency = (DependencyConstraintInternal) create(notation);
         platformDependency.setForce(true);
-        platformSupport.addPlatformAttribute(platformDependency, enforcedPlatform);
+        platformSupport.addPlatformAttribute(platformDependency, Category.ENFORCED_PLATFORM);
         return platformDependency;
     }
 
@@ -223,10 +217,6 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     @Override
     public MethodAccess getAdditionalMethods() {
         return dynamicMethods;
-    }
-
-    private Category toCategory(String category) {
-        return objects.named(Category.class, category);
     }
 
     private class DependencyConstraintAdder implements DynamicAddDependencyMethods.DependencyAdder<DependencyConstraint> {

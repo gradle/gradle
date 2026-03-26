@@ -90,6 +90,7 @@ trait TestEnginesFixture {
         RESOURCE_AND_CLASS_BASED("resource-and-class-engine"),
         FAILS_DISCOVERY_RESOURCE_BASED("fails-discovery-rbt-engine"),
         FAILS_EXECUTION_RESOURCE_BASED("fails-execution-rbt-engine"),
+        USES_ONLY_TEST_RESOURCE_BASED_DYNAMIC("uses-only-test-dynamic-rbt-engine"),
         MATCHES_NOTHING_ENGINE("matches-nothing-engine")
 
         private final String name

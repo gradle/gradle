@@ -1,8 +1,8 @@
 # ADR-0008 - Use NullAway for null checking
 
-## Date
+## Status
 
-2025-08-06
+- ACCEPTED on 2025-08-06
 
 ## Context
 
@@ -51,10 +51,6 @@ Prefer either:
 Do not remove `null` checks on public API boundaries, even if the annotations (or rather lack of them) suggest this.
 Not all client code is compiled with NullAway.
 Do not make a parameter `@Nullable` just to check and throw a `NullPointerException` when it is `null`. 
-
-## Status
-
-ACCEPTED
 
 ## Consequences
 

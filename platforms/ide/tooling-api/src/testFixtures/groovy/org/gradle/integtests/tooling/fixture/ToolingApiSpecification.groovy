@@ -78,7 +78,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @ToolingApiTest
 @CleanupTestDirectory
 @ToolingApiVersion('>=8.0')
-@TargetGradleVersion('>=4.0')
+// TODO: Gradle 10: remove comments, see https://github.com/gradle/gradle-private/issues/5096 for more information, TL;DR: StackTraceElement can't be serialized across Java 8 & Java 9+
+@TargetGradleVersion('>=5.0') // technically this should be 4.0, and we could get this with reasonable effort to be 4.3 but that would require an unsupported JVM (9), sticking to supported JVMs means Gradle 5 is as low as we can get
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification implements CommonTestFilesFixture, LanguageSpecificTestFileFixture, KotlinDslTestProjectInitiation, ProjectDirectoryCreator {
     /**
@@ -110,6 +111,7 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
 
     private List<String> expectedDeprecations = []
     private boolean stackTraceChecksOn = true
+    private boolean checkJdkWarnings = true
 
     private ExecutionResult result
     private ExecutionFailure failure
@@ -120,9 +122,10 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
     }
 
     // reflectively invoked by ToolingApiExecution
-    void setTargetDist(GradleDistribution targetDist) {
-        targetGradleDistribution = targetDist
-        toolingApi.setDist(targetGradleDistribution)
+    void setTargetDistAndToolingApiVersion(GradleDistribution targetDist, GradleVersion toolingApiVersion) {
+        this.targetGradleDistribution = targetDist
+        this.toolingApi.setDist(targetGradleDistribution)
+        this.toolingApi.setToolingApiVersion(toolingApiVersion)
     }
 
     GradleDistribution getTargetDist() {
@@ -133,6 +136,7 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
     }
 
     def setup() {
+        AvailableJavaHomes.getAvailableJdk { it -> true } // Load info into the test worker about available JDKs before it is discarded below
         // These properties are set on CI. Reset them to allow tests to configure toolchains explicitly.
         System.setProperty("org.gradle.java.installations.auto-download", "false")
         System.setProperty("org.gradle.java.installations.auto-detect", "false")
@@ -490,6 +494,7 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
         stderr.reset()
         expectedDeprecations.clear()
         stackTraceChecksOn = true
+        checkJdkWarnings = true
     }
 
     def shouldCheckForDeprecationWarnings() {
@@ -532,9 +537,10 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
         new ResultAssertion(
                 expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
             maybeExpectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
+            Collections.emptyList(),
             !stackTraceChecksOn,
             shouldCheckForDeprecationWarnings(),
-            true
+            checkJdkWarnings
         ).execute(result)
     }
 
@@ -548,6 +554,10 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
 
     boolean withStackTraceChecksDisabled() {
         stackTraceChecksOn = false
+    }
+
+    boolean withJdkWarningsCheckDisabled() {
+        checkJdkWarnings = false
     }
 
     void expectDocumentedDeprecationWarning(String message) {

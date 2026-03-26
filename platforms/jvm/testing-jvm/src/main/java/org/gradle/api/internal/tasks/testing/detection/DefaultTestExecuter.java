@@ -18,10 +18,9 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
-import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -43,6 +42,7 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.util.internal.IncubationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -101,13 +101,22 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                 new RunPreviousFailedFirstTestDefinitionProcessor<>(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
                     new MaxNParallelTestDefinitionProcessor<>(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
-        final FileTree testClassFiles = testExecutionSpec.isScanForTestClasses() ? testExecutionSpec.getCandidateClassFiles() : FileCollectionFactory.emptyTree();
+        final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
         final Set<File> testDefinitionDirs = testExecutionSpec.getCandidateTestDefinitionDirs();
 
         if (testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
             testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
+        }
+
+        /*
+         * We're possibly running non-class-based tests and there is a filter present.
+         *
+         * @see org.gradle.api.internal.tasks.testing.filter.FileTestSelectionMatcher
+         */
+        if (!testDefinitionDirs.isEmpty() && testFilter.hasPatterns()) {
+            IncubationLogger.incubatingFeatureUsed("Filtering non-class-based tests");
         }
 
         TestDetector detector = new DefaultTestScanner(testClassFiles, testDefinitionDirs, testFramework.getDetector(), processor);

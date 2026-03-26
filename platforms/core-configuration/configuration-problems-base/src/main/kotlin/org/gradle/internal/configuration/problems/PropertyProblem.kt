@@ -286,6 +286,24 @@ sealed class PropertyTrace {
         }
     }
 
+    /**
+     * A virtual property not backed by a concrete field.
+     * Useful to give human-readable names to pieces of state that do not have concise/understandable representations as beans.
+     */
+    data class VirtualProperty(
+        val name: String,
+        val owner: PropertyTrace
+    ): PropertyTrace() {
+        override val containingUserCodeMessage: StructuredMessage
+            get() = owner.containingUserCodeMessage
+        override fun toString(): String = asString()
+        override fun describe(builder: StructuredMessage.Builder) {
+            with(builder) {
+                text("$name of ")
+            }
+        }
+    }
+
     abstract override fun equals(other: Any?): Boolean
 
     abstract override fun hashCode(): Int
@@ -331,14 +349,26 @@ sealed class PropertyTrace {
             }
         }
 
+    /**
+     * A hash that includes the entire property trace chain into account.
+     *
+     * This is a best effort to achieve deep/full property trace uniqueness.
+     */
+    val fullHash: Int get() = sequence.fold(17) { acc, trace -> 31 * acc + trace.hashCode() }
+
     private
     val tail: PropertyTrace?
         get() = when (this) {
             is Bean -> trace
             is Property -> trace
+            is VirtualProperty -> owner
             is SystemProperty -> trace
             is Project -> trace
-            else -> null
+            is Task -> null
+            is BuildLogic -> null
+            is BuildLogicClass -> null
+            Gradle -> null
+            Unknown -> null
         }
 }
 

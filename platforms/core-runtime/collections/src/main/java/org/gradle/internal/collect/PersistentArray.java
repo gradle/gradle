@@ -79,6 +79,14 @@ public interface PersistentArray<T> extends Iterable<T> {
     /// @throws IndexOutOfBoundsException when the given index is not between 0 and [size][#size()] - 1 or this is the [empty array][#of].
     T get(int index);
 
+    /// Returns a new array with the element at the given index replaced with the given value.
+    ///
+    /// *~O(1)*
+    ///
+    /// @throws IndexOutOfBoundsException when the given index is not between 0 and [size][#size()] - 1 or this is the [empty array][#of].
+    @CheckReturnValue
+    PersistentArray<T> set(int index, T value);
+
     /// Returns the last element [appended][#plus] to the array,
     /// unless this is the [empty array][#of], in which case it returns `null`.
     ///

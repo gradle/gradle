@@ -68,11 +68,6 @@ public @interface ToBeFixedForConfigurationCache {
         UNROLLED_FAILS_IN_SUBCLASS,
 
         /**
-         * Use this reason on tests that fail <code>:verifyTestFilesCleanup</code> with configuration cache.
-         */
-        FAILS_TO_CLEANUP,
-
-        /**
          * Use this reason on tests that intermittently fail with configuration cache.
          */
         FLAKY,

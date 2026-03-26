@@ -22,6 +22,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.problems.ProblemReporter
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.internal.build.BuildState
@@ -728,10 +729,11 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     }
 
     BuildState build(String... projects) {
+        def problemsReporter = Stub(ProblemReporter)
         def descriptors = new DefaultProjectDescriptorRegistry()
-        def root = new DefaultProjectDescriptor(null, "root", null, descriptors, null)
+        def root = new DefaultProjectDescriptor(null, "root", null, descriptors, null, problemsReporter)
         projects.each {
-            new DefaultProjectDescriptor(root, it, null, descriptors, null)
+            new DefaultProjectDescriptor(root, it, null, descriptors, null, problemsReporter)
         }
 
         def settings = Stub(SettingsInternal)

@@ -18,7 +18,7 @@ import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.buildVersionQualifier
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
-import gradlebuild.basics.tasks.ClasspathManifest
+import gradlebuild.basics.repoRoot
 import gradlebuild.basics.tasks.PackageListGenerator
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeElements
@@ -35,7 +35,13 @@ import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
+import gradlebuild.packaging.tasks.GenerateClasspathModuleProperties
+import gradlebuild.packaging.tasks.GenerateEmptyModuleProperties
+import gradlebuild.packaging.support.PomLicenseUtils
+import gradlebuild.packaging.tasks.GenerateLicenseFile
 import gradlebuild.packaging.tasks.PluginsManifest
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.jar.Attributes
@@ -141,11 +147,6 @@ val apiMapping by tasks.registering(GenerateApiMapping::class) {
 val pluginsManifest by pluginsManifestTask(runtimeClasspath, coreRuntimeClasspath, GradleModuleApiAttribute.API)
 val implementationPluginsManifest by pluginsManifestTask(runtimeClasspath, coreRuntimeClasspath, GradleModuleApiAttribute.IMPLEMENTATION)
 
-// At runtime, Gradle expects each Gradle jar to have a classpath manifest
-val emptyClasspathManifest by tasks.registering(ClasspathManifest::class) {
-    this.manifestFile = generatedPropertiesFileFor("$runtimeApiJarName-classpath")
-}
-
 // At runtime, Gradle expects to have instrumentation metadata
 val instrumentedSuperTypesMergeTask = tasks.named(INSTRUMENTED_SUPER_TYPES_MERGE_TASK)
 val upgradedPropertiesMergeTask = tasks.named(UPGRADED_PROPERTIES_MERGE_TASK)
@@ -172,7 +173,6 @@ val runtimeApiInfoJar by tasks.registering(Jar::class) {
     from(defaultImports)
     from(pluginsManifest)
     from(implementationPluginsManifest)
-    from(emptyClasspathManifest)
     from(instrumentedSuperTypesMergeTask)
     from(upgradedPropertiesMergeTask)
 }
@@ -181,13 +181,14 @@ val kotlinDslSharedRuntime = configurations.dependencyScope("kotlinDslSharedRunt
 val kotlinDslSharedRuntimeClasspath = configurations.resolvable("kotlinDslSharedRuntimeClasspath") {
     extendsFrom(kotlinDslSharedRuntime.get())
 }
+val libs = project.versionCatalogs.named("libs")
 dependencies {
     kotlinDslSharedRuntime(platform("gradlebuild:build-platform"))
     kotlinDslSharedRuntime("org.gradle:kotlin-dsl-shared-runtime")
     kotlinDslSharedRuntime(kotlin("stdlib", embeddedKotlinVersion))
-    kotlinDslSharedRuntime("org.ow2.asm:asm-tree")
-    kotlinDslSharedRuntime("com.google.code.findbugs:jsr305")
-    kotlinDslSharedRuntime("org.jspecify:jspecify")
+    kotlinDslSharedRuntime(libs.findLibrary("asmTree").get())
+    kotlinDslSharedRuntime(libs.findLibrary("jsr305").get())
+    kotlinDslSharedRuntime(libs.findLibrary("jspecify").get())
 }
 val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGradleApi::class) {
     sharedRuntimeClasspath.from(kotlinDslSharedRuntimeClasspath)
@@ -206,6 +207,47 @@ plugins.withType(KotlinBaseApiPlugin::class) {
     )
 }
 
+tasks.register<GenerateClasspathModuleProperties>("generateCoreRuntimeModuleProperties") {
+    configureFrom(coreRuntimeClasspath)
+    outputDir = layout.buildDirectory.dir("classpathProperties/$name")
+}
+
+tasks.register<GenerateClasspathModuleProperties>("generateRuntimeModuleProperties") {
+    configureFrom(runtimeClasspath)
+    outputDir = layout.buildDirectory.dir("classpathProperties/$name")
+}
+
+tasks.register<GenerateClasspathModuleProperties>("generateAgentsRuntimeModuleProperties") {
+    configureFrom(agentsRuntimeClasspath)
+    outputDir = layout.buildDirectory.dir("classpathProperties/$name")
+}
+
+// Generate the component license section for the distribution LICENSE file.
+// The output is used by GradleDistributionSpecs instead of the static root LICENSE.
+val generateLicenseFile by tasks.registering(GenerateLicenseFile::class) {
+    baseLicenseFile = repoRoot().file("LICENSE")
+
+    // Lazily resolve all POM files needed for license extraction, including parent POMs.
+    // The provider is evaluated at configuration-cache fingerprinting time (part of the
+    // configuration phase), where project.configurations access is permitted.
+    pomFiles.from(provider {
+        collectExternalPomFiles(listOf(runtimeClasspath, agentsRuntimeClasspath))
+    })
+
+    // Use the module properties output to get the authoritative list of components
+    // that are actually present in the distribution (external ones have alias.group set)
+    modulePropertiesFiles.from(
+        tasks.named("generateRuntimeModuleProperties", GenerateClasspathModuleProperties::class)
+            .map { it.outputDir.asFileTree }
+    )
+    modulePropertiesFiles.from(
+        tasks.named("generateAgentsRuntimeModuleProperties", GenerateClasspathModuleProperties::class)
+            .map { it.outputDir.asFileTree }
+    )
+
+    outputLicenseFile = layout.buildDirectory.file("generated-license/LICENSE")
+}
+
 val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtensions", KotlinCompile::class) {
     configureKotlinCompilerForGradleBuild()
     multiPlatformEnabled = false
@@ -213,10 +255,6 @@ val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtens
     source(gradleApiKotlinExtensions)
     libraries.from(runtimeClasspath)
     destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")
-}
-
-val gradleApiKotlinExtensionsClasspathManifest by tasks.registering(ClasspathManifest::class) {
-    manifestFile = generatedPropertiesFileFor("gradle-kotlin-dsl-extensions-classpath")
 }
 
 val gradleApiKotlinExtensionsJar by tasks.registering(Jar::class) {
@@ -230,8 +268,19 @@ val gradleApiKotlinExtensionsJar by tasks.registering(Jar::class) {
     archiveBaseName = "gradle-kotlin-dsl-extensions"
     from(gradleApiKotlinExtensions)
     from(compileGradleApiKotlinExtensions.flatMap { it.destinationDirectory })
-    from(gradleApiKotlinExtensionsClasspathManifest)
 }
+
+fun generateModulePropertiesFor(moduleJar: TaskProvider<Jar>, moduleName: String): TaskProvider<GenerateEmptyModuleProperties> {
+    return tasks.register<GenerateEmptyModuleProperties>(moduleJar.name + "ModuleProperties") {
+        artifactFileName = moduleJar.flatMap { it.archiveFileName }
+        outputFile = moduleJar.flatMap { it.archiveBaseName }.flatMap { generatedPropertiesFileFor(moduleName) }
+    }
+}
+
+// At runtime, the module registry expects each module jar to have corresponding module properties file next to it.
+// We generate synthetic properties files with no dependencies to allow these jars to be loaded from the distribution
+generateModulePropertiesFor(runtimeApiInfoJar, runtimeApiJarName)
+generateModulePropertiesFor(gradleApiKotlinExtensionsJar, "gradle-kotlin-dsl-extensions")
 
 // A standard Java runtime variant for embedded integration testing
 consumableVariant("runtime", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(runtimeApiInfoJar, gradleApiKotlinExtensionsJar)) {
@@ -421,3 +470,53 @@ fun consumablePlatformVariant(name: String, extends: List<Configuration>) =
         isCanBeConsumed = true
         extends.forEach { extendsFrom(it) }
     }
+
+/**
+ * Resolves POM files for all external Maven components reachable from the given configurations,
+ * walking up the parent POM chain for any component whose direct POM has no [<licenses>] element.
+ *
+ * This function is invoked inside a lazy [provider] used as a task input, so it runs during the
+ * configuration-cache fingerprinting phase (part of the configuration phase). At that point all
+ * project dependencies are declared and [project.configurations] access is permitted.
+ *
+ * All resolutions hit the Gradle module cache — no network traffic is expected because Gradle
+ * already downloaded these POMs during normal dependency resolution.
+ */
+fun collectExternalPomFiles(configs: List<Configuration>): List<File> {
+    val toResolve = ArrayDeque<Triple<String, String, String>>()
+    val resolved = mutableSetOf<String>()
+    val pomFiles = mutableListOf<File>()
+
+    // Seed with all external (Maven) components from each configuration
+    for (config in configs) {
+        config.incoming.resolutionResult.allComponents
+            .filter { it.id is ModuleComponentIdentifier }
+            .mapNotNull { it.moduleVersion }
+            .forEach { mv -> toResolve.add(Triple(mv.group, mv.name, mv.version)) }
+    }
+
+    // BFS: resolve each POM and, if it has no <licenses>, also enqueue its <parent>
+    while (toResolve.isNotEmpty()) {
+        val (g, a, v) = toResolve.removeFirst()
+        val key = "$g:$a:$v"
+        if (resolved.add(key)) {
+            val pomFile = runCatching {
+                project.configurations
+                    .detachedConfiguration(project.dependencies.create("$g:$a:$v@pom"))
+                    .apply { isTransitive = false }
+                    .singleFile
+            }.getOrNull()
+            if (pomFile != null) {
+                pomFiles.add(pomFile)
+                // Only follow the parent chain if the direct POM has no license — keeps the
+                // number of resolved POMs small for components with inline license declarations.
+                val parsed = PomLicenseUtils.parsePom(pomFile)
+                if (parsed != null && parsed.licenseName == null) {
+                    parsed.parent?.let { p -> toResolve.add(Triple(p.groupId, p.artifactId, p.version)) }
+                }
+            }
+        }
+    }
+
+    return pomFiles
+}

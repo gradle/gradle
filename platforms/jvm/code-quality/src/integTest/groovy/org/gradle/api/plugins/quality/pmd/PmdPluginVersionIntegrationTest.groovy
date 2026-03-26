@@ -23,6 +23,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.CoreMatchers.startsWith
 import static org.junit.Assume.assumeTrue
 
 class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
@@ -67,7 +68,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertThatDescription(startsWith("Execution failed for task ':pmdTest'"))
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         failure.assertHasResolutions(SCAN)
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
@@ -115,7 +116,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered in build file 'build.gradle').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
@@ -173,6 +174,12 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
                 reports {
                     xml.required = false
                     html.outputLocation = file("htmlReport.html")
+                    csv.required = true
+                    csv.outputLocation = file("csvReport.csv")
+                    codeClimate.required = true
+                    codeClimate.outputLocation = file("codeClimateReport.json")
+                    sarif.required = true
+                    sarif.outputLocation = file("sarifReport.json")
                 }
             }
         """
@@ -181,6 +188,42 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         succeeds("check")
         !file("build/reports/pmd/main.xml").exists()
         file("htmlReport.html").exists()
+        file("csvReport.csv").exists()
+        file("codeClimateReport.json").exists()
+        file("sarifReport.json").exists()
+    }
+
+    def "default file locations for reports are sensible"() {
+        goodCode()
+        buildFile << """
+            pmdMain {
+                reports {
+                    xml.required = true
+                    html.required = true
+                    csv.required = true
+                    codeClimate.required = true
+                    sarif.required = true
+                }
+            }
+        """
+
+        expect:
+        succeeds("check")
+        file("build/reports/pmd/main.xml").exists()
+        file("build/reports/pmd/main.html").exists()
+        file("build/reports/pmd/main.csv").exists()
+        file("build/reports/pmd/main.codeclimate.json").exists()
+        file("build/reports/pmd/main.sarif.json").exists()
+    }
+
+    def "only xml and html reports are required by default"() {
+        goodCode()
+
+        expect:
+        succeeds("check")
+        file("build/reports/pmd/").assertHasDescendants(
+            "main.xml", "main.html", "test.xml", "test.html"
+        )
     }
 
     def "use custom rule set files"() {
@@ -197,7 +240,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("pmdMain")
-        failure.assertHasDescription("Execution failed for task ':pmdMain'.")
+        failure.assertHasDescription("Execution failed for task ':pmdMain' (registered in build file 'build.gradle').")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
@@ -218,7 +261,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("pmdMain")
-        failure.assertHasDescription("Execution failed for task ':pmdMain'.")
+        failure.assertHasDescription("Execution failed for task ':pmdMain' (registered in build file 'build.gradle').")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
@@ -235,7 +278,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("pmdMain")
-        failure.assertHasDescription("Execution failed for task ':pmdMain'.")
+        failure.assertHasDescription("Execution failed for task ':pmdMain' (registered in build file 'build.gradle').")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
@@ -252,7 +295,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered in build file 'build.gradle').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
         output.contains "\tUsing multiple unary operators may be a bug"
@@ -283,7 +326,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertHasDescription("Execution failed for task ':pmdTest' (registered in build file 'build.gradle').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))

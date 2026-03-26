@@ -87,7 +87,7 @@ Dependency constraints are transitive.
 
 If `library A` depends on `library B`, and `library B` declares a constraint on `module C`, that constraint will affect the version of `module C` that `library A` depends on.
 
-For example, if `library A` depends on `module C version 2`, but `library B` declares a constraint on `module C version 3`, `library A` will resolve `version 3 of module C`.
+For example, if `library A` depends on `module C version 2`, but `library B` declares a constraint on `module C version 3`, `library A` will resolve `module C version 3`.
 
 == Publishing constraints
 

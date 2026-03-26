@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -213,7 +212,6 @@ class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22279")
-    @ToBeFixedForConfigurationCache(because = "task uses Artifact Query API")
     def "can resolve POM as an artifact after it was resolved via ARQ"() {
         given:
         def original = mavenHttpRepo.module('groupA', 'artifactA', '1.0').publishPom()
@@ -237,12 +235,12 @@ class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             }
 
             task retrieve {
+                // populates cache for POM artifact in memory
+                def result = dependencies.createArtifactResolutionQuery()
+                                            .forModule("groupA", "artifactA", "1.0")
+                                            .withArtifacts(MavenModule, MavenPomArtifact)
+                                            .execute()
                 doLast {
-                    // populates cache for POM artifact in memory
-                    def result = dependencies.createArtifactResolutionQuery()
-                                                .forModule("groupA", "artifactA", "1.0")
-                                                .withArtifacts(MavenModule, MavenPomArtifact)
-                                                .execute()
                     for (component in result.resolvedComponents) {
                         component.getArtifacts(MavenPomArtifact).each { println "POM for " + component }
                     }

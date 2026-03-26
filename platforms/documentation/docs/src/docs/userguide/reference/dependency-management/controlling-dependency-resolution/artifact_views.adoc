@@ -38,7 +38,7 @@ However, in some cases, it may be desirable to select artifacts from a variant _
 
 Consider the example component structure below, describing a typical local Java library with sources and javadoc:
 
-[source]
+[source,text]
 ----
 variant 'apiElements'
     artifact set 'jar'
@@ -73,6 +73,7 @@ Then, traditional artifact selection will be performed on the `sourcesElements` 
 
 As a result, the sources jar is resolved for each node:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-sources.out[]
 ----
@@ -102,6 +103,7 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-artifact
 
 We can see that the task succeeds with the failing artifact omitted:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution-lenient/tests/resolve-lenient.out[]
 ----
@@ -130,6 +132,7 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-artifact
 
 Notice how we resolve project dependencies and module dependencies separately:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution-componentFilter/tests/resolve-component-filter.out[]
 ----
@@ -153,6 +156,7 @@ Gradle performs artifact selection using the graph resolution attributes specifi
 
 The task output shows that the artifacts have been transformed:
 
+[source,text]
 ----
 include::{snippetsPath}/dependencyManagement/artifactTransforms-unzip/tests/artifactTransformUnzip.out[]
 ----

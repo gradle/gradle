@@ -25,7 +25,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
-import org.gradle.internal.declarativedsl.common.dependencyCollectors
+import org.gradle.internal.declarativedsl.dependencycollectors.dependencyCollectors
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
@@ -33,8 +33,8 @@ import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiv
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefineModelDefaults
 import org.gradle.internal.declarativedsl.evaluator.defaults.DEFAULTS_BLOCK_NAME
-import org.gradle.internal.declarativedsl.software.projectFeaturesComponent
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.internal.declarativedsl.features.projectFeaturesComponent
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 
 
 internal

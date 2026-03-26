@@ -117,11 +117,6 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
                 if (matcher.matchesTest(className.get(), methodName)) {
                     return true;
                 }
-
-                // If the current descriptor is a class, and it matches an exclude pattern, we can skip checking its parents
-                if (matcher.mayExcludeClass(className.get())) {
-                    return false;
-                }
             }
 
             // If the descriptor is a MethodSource, capture the method name to use when checking against parent class names

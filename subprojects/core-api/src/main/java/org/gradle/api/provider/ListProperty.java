@@ -17,7 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.model.ManagedType;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHiddenMembers;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -39,7 +39,7 @@ import java.util.List;
  * @see org.gradle.api.model.ObjectFactory#listProperty(Class) Create an instance of this manually.
  */
 @ManagedType
-@HiddenInDefinition
+@DeclarativeWithHiddenMembers
 public interface ListProperty<T> extends Provider<List<T>>, HasMultipleValues<T> {
     /**
      * {@inheritDoc}

@@ -20,6 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class JavaBasePluginJavaExecIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     def setup() {
@@ -39,6 +41,7 @@ class JavaBasePluginJavaExecIntegrationTest extends AbstractIntegrationSpec impl
         executer.withToolchainDetectionEnabled()
     }
 
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "javaexec defaults to java toolchain when java-base plugin is applied"() {
         def differentVersionMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
         assert differentVersionMetadata.languageVersion != JavaVersion.current()
@@ -79,6 +82,7 @@ class JavaBasePluginJavaExecIntegrationTest extends AbstractIntegrationSpec impl
         javaVersion != JavaVersion.current()
     }
 
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "can configure javaexec to use explicit java toolchain when java-base plugin is applied"() {
         def differentVersionMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
         assert differentVersionMetadata.languageVersion != JavaVersion.current()

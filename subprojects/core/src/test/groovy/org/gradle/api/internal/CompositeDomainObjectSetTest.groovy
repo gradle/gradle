@@ -16,6 +16,7 @@
 package org.gradle.api.internal
 
 import org.gradle.api.DomainObjectCollection
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class CompositeDomainObjectSetTest extends Specification {
@@ -26,6 +27,10 @@ class CompositeDomainObjectSetTest extends Specification {
         def collection = new DefaultDomainObjectSet(type, CollectionCallbackActionDecorator.NOOP)
         entries.each { collection.add(it) }
         collection
+    }
+
+    private collectionProvider(Object... entries) {
+        return TestUtil.providerFactory().provider { collection(entries) }
     }
 
     protected composite(DomainObjectCollection... collections) {
@@ -45,6 +50,26 @@ class CompositeDomainObjectSetTest extends Specification {
     def "composite containing two collections"() {
         expect:
         composite(collection("a", "b"), collection("c", "d")).toList() == ["a", "b", "c", "d"]
+    }
+
+    def "can create composite from collection providers"() {
+        when:
+        def composite = composite()
+        composite.addCollectionProvider(collectionProvider("a", "b"))
+        composite.addCollectionProvider(collectionProvider("c", "d"))
+
+        then:
+        composite.toList() == ["a", "b", "c", "d"]
+    }
+
+    def "can mix collection providers and collections in composite"() {
+        when:
+        def composite = composite()
+        composite.addCollectionProvider(collectionProvider("a", "b"))
+        composite.addCollection(collection("c", "d"))
+
+        then:
+        composite.toList() == ["a", "b", "c", "d"]
     }
 
     def "combined collection contains additions and removals"() {
@@ -67,6 +92,19 @@ class CompositeDomainObjectSetTest extends Specification {
     def "all action called for all existing items"() {
         given:
         def composite = composite(collection("a", "b"), collection("c", "d"))
+
+        when:
+        def calledFor = []
+        composite.all { calledFor << it }
+
+        then:
+        calledFor == ["a", "b", "c", "d"]
+    }
+
+    def "all action called for all items in provided collections"() {
+        given:
+        def composite = composite(collection("a", "b"))
+        composite.addCollectionProvider(collectionProvider("c", "d"))
 
         when:
         def calledFor = []
@@ -116,6 +154,28 @@ class CompositeDomainObjectSetTest extends Specification {
 
         then:
         calledFor == ["c", "d"]
+    }
+
+    def "added callback called when items realized in provided component of composite"() {
+        given:
+        def component1 = collectionProvider("a")
+        def component2 = collectionProvider("b")
+        def composite = composite()
+        composite.addCollectionProvider(component1)
+        composite.addCollectionProvider(component2)
+
+        when:
+        def calledFor = []
+        composite.whenObjectAdded { calledFor << it }
+
+        then:
+        calledFor == []
+
+        when:
+        composite.iterator()
+
+        then:
+        calledFor == ["a", "b"]
     }
 
     def "all callback called when component added to composite"() {
@@ -355,11 +415,12 @@ class CompositeDomainObjectSetTest extends Specification {
         calledFor == ["c", "d"]
     }
 
-    def "all notifications are only fired once for each in composite"() {
+    def "all notifications are only fired once for each provided item in composite"() {
         given:
         def component1 = collection("a")
-        def component2 = collection("a", "b")
-        def composite = composite(component1, component2)
+        def component2 = collectionProvider("a", "b")
+        def composite = composite(component1)
+        composite.addCollectionProvider(component2)
         def calledFor = []
 
         when:
@@ -372,13 +433,13 @@ class CompositeDomainObjectSetTest extends Specification {
 
         when:
         component1 << "a" << "c"
-        component2 << "a" << "d"
+        composite.iterator()
 
         then:
-        calledFor == ["a", "b", "c", "d"]
+        calledFor == ["a", "b", "c"]
     }
 
-    def "remove notifications are only fired for new in composite"() {
+    def "remove notifications are only fired for removed in composite"() {
         given:
         def component1 = collection("a", "b")
         def component2 = collection("a", "b", "c")
@@ -397,6 +458,26 @@ class CompositeDomainObjectSetTest extends Specification {
         calledFor == ["c"]
     }
 
+    def "remove notifications are only fired for removed in composite with providers"() {
+        given:
+        def component1 = collectionProvider("a", "b")
+        def component2 = collection("a", "b", "c")
+        def composite = composite()
+        composite.addCollectionProvider(component1)
+        composite.addCollection(component2)
+        def calledFor = []
+
+        when:
+        composite.whenObjectRemoved { calledFor << it }
+
+        and:
+        component2.remove("b")
+        component2.remove("c")
+
+        then:
+        calledFor == ["c"]
+    }
+
     def "composite is immutable"() {
         when:
         composite(collection("a")).add("b")
@@ -407,7 +488,9 @@ class CompositeDomainObjectSetTest extends Specification {
 
     def "behaves when the same collection added"() {
         def same = collection("a", "b")
+        def sameProvider = collectionProvider("a", "b")
         def composite = composite(same, same, same)
+        composite.addCollectionProvider(sameProvider)
 
         expect:
         composite.toList() == ['a', 'b']
@@ -428,5 +511,46 @@ class CompositeDomainObjectSetTest extends Specification {
 
         then:
         composite.toList() == []
+    }
+
+    def "removing collection provider fires whenObjectRemoved in provided collections when realized"() {
+        def collection = collection("a", "b")
+        def collectionProvider = collectionProvider("c", "d")
+        def composite = composite()
+        def removed = []
+        def added = []
+        composite.whenObjectAdded { added << it }
+        composite.whenObjectRemoved { removed << it }
+        composite.addCollection(collection)
+        composite.addCollectionProvider(collectionProvider)
+
+        when:
+        composite.iterator()
+        composite.removeCollectionProvider(collectionProvider)
+
+        then:
+        composite.toList() == ["a", "b"]
+        added == ["a", "b", "c", "d"]
+        removed == ["c", "d"]
+    }
+
+    def "removing collection provider does not fire whenObjectRemoved in provided collections when not realized"() {
+        def collection = collection("a", "b")
+        def collectionProvider = collectionProvider("c", "d")
+        def composite = composite()
+        def removed = []
+        def added = []
+        composite.whenObjectAdded { added << it }
+        composite.whenObjectRemoved { removed << it }
+        composite.addCollection(collection)
+        composite.addCollectionProvider(collectionProvider)
+
+        when:
+        composite.removeCollectionProvider(collectionProvider)
+
+        then:
+        composite.toList() == ["a", "b"]
+        added == ["a", "b"]
+        removed == []
     }
 }

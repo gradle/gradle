@@ -16,70 +16,79 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.util.Trie;
 import org.gradle.model.internal.asm.AsmConstants;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.commons.Remapper;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 class ImplementationDependencyRelocator extends Remapper {
 
-    private final Pattern classPattern = Pattern.compile("(\\[*)?L(.+)");
     private final Trie prefixes;
 
-    private static Trie readPrefixes(RuntimeShadedJarType type) {
+    private static Trie readPrefixes(URL resource) {
         final Trie.Builder builder = new Trie.Builder();
-        IoActions.withResource(ImplementationDependencyRelocator.class.getResourceAsStream(type.getIdentifier() + "-relocated.txt"), new ErroringAction<InputStream>() {
-            @Override
-            protected void doExecute(InputStream thing) throws Exception {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(thing, Charset.forName("UTF-8")));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    if (line.length() > 0) {
-                        builder.addWord(line);
-                    }
+        try (InputStream is = resource.openStream()) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.length() > 0) {
+                    builder.addWord(line);
                 }
             }
-        });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         return builder.build();
     }
 
-    public ImplementationDependencyRelocator(RuntimeShadedJarType type) {
+    public ImplementationDependencyRelocator(URL resource) {
         super(AsmConstants.ASM_LEVEL);
-        prefixes = readPrefixes(type);
+        prefixes = readPrefixes(resource);
     }
 
     @Override
     public String map(String name) {
-        String value = name;
-
-        String prefix = "";
-
-        Matcher m = classPattern.matcher(name);
-        if (m.matches()) {
-            prefix = m.group(1) + "L";
-            name = m.group(2);
-        }
-
-        String relocated = maybeRelocateResource(name);
+        int classNameStart = classNameStart(name);
+        String actualName = classNameStart < 0 ? name : name.substring(classNameStart);
+        String relocated = maybeRelocateResource(actualName);
         if (relocated == null) {
-            return value;
-        } else {
-            return prefix.concat(relocated);
+            return name;
         }
+        if (classNameStart < 0) {
+            return relocated;
+        }
+        return name.substring(0, classNameStart).concat(relocated);
     }
 
-    public String maybeRelocateResource(String resource) {
+    /**
+     * Returns the index of the class name within a JVM type descriptor of the form {@code [*Lsome/class},
+     * or {@code -1} if {@code name} is already a plain class name with no descriptor prefix.
+     */
+    private static int classNameStart(String name) {
+        int len = name.length();
+        int i = 0;
+        while (i < len && name.charAt(i) == '[') {
+            i++;
+        }
+        // Must be followed by 'L' and at least one more character to be a descriptor.
+        if (i < len && name.charAt(i) == 'L' && i + 1 < len) {
+            return i + 1;
+        }
+        return -1;
+    }
+
+    public @Nullable String maybeRelocateResource(String resource) {
         if (prefixes.find(resource)) {
             return "org/gradle/internal/impldep/" + resource;
         }

@@ -29,13 +29,14 @@ import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.daemon.toolchain.ToolchainDownloadUrlProvider;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.internal.GUtil;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.launcher.daemon.logging.DaemonLogConstants.DAEMON_LOG_DIR;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
@@ -45,15 +46,15 @@ public class DaemonParameters {
 
     private final ToolchainConfiguration toolchainConfiguration;
     private final File gradleUserHomeDir;
+    private final JvmOptions jvmOptions;
+    private final Map<String, String> envVariables;
 
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
-    private final JvmOptions jvmOptions;
     private boolean applyInstrumentationAgent = true;
     private NativeServicesMode nativeServicesMode = NativeServicesMode.ENABLED;
-    private Map<String, String> envVariables;
     private boolean enabled = true;
     private boolean foreground;
     private boolean stop;
@@ -63,22 +64,18 @@ public class DaemonParameters {
     private ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
 
     public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory) {
-        this(gradleUserHomeDir, fileCollectionFactory, Collections.emptyMap());
+        this(gradleUserHomeDir, fileCollectionFactory, Collections.emptyMap(), new HashMap<>(System.getenv()));
     }
 
-    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
-        this(gradleUserHomeDir, fileCollectionFactory, extraSystemProperties, null);
-    }
-
-    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties, @Nullable Map<String, String> environmentVariables) {
+    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties, Map<String, String> environmentVariables) {
         this.jvmOptions = new JvmOptions(fileCollectionFactory);
         if (!extraSystemProperties.isEmpty()) {
             jvmOptions.systemProperties(extraSystemProperties);
         }
         jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
         this.gradleUserHomeDir = gradleUserHomeDir;
-        this.baseDir = new File(gradleUserHomeDir, "daemon");
-        this.envVariables = environmentVariables == null ? new HashMap<>(System.getenv()) : environmentVariables;
+        this.baseDir = new File(gradleUserHomeDir, DAEMON_LOG_DIR);
+        this.envVariables = environmentVariables;
         toolchainConfiguration = new DefaultToolchainConfiguration(this.envVariables);
     }
 
@@ -130,7 +127,7 @@ public class DaemonParameters {
         this.requestedJvmCriteria = requestedJvmCriteria;
     }
 
-    public void setRequestedJvmCriteriaFromMap(@Nullable Map<String, String> daemonJvmProperties) {
+    public void setRequestedJvmCriteriaFromMap(Map<String, String> daemonJvmProperties) {
         DaemonJvmPropertiesAccessor daemonJvmAccessor = new DaemonJvmPropertiesAccessor(daemonJvmProperties);
         JavaLanguageVersion requestedVersion = daemonJvmAccessor.getVersion();
         if (requestedVersion != null) {
@@ -141,13 +138,13 @@ public class DaemonParameters {
     }
 
     public Map<String, String> getSystemProperties() {
-        Map<String, String> systemProperties = new HashMap<String, String>();
+        Map<String, String> systemProperties = new HashMap<>();
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         return systemProperties;
     }
 
     public Map<String, String> getEffectiveSystemProperties() {
-        Map<String, String> systemProperties = new HashMap<String, String>();
+        Map<String, String> systemProperties = new HashMap<>();
         GUtil.addToMap(systemProperties, System.getProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getImmutableSystemProperties());
@@ -155,7 +152,7 @@ public class DaemonParameters {
     }
 
     public Map<String, String> getMutableAndImmutableSystemProperties() {
-        Map<String, String> systemProperties = new HashMap<String, String>();
+        Map<String, String> systemProperties = new HashMap<>();
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getImmutableSystemProperties());
         return systemProperties;

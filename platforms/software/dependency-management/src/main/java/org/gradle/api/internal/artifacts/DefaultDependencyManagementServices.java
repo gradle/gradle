@@ -451,7 +451,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             Instantiator instantiator,
             ConfigurationContainerInternal configurationContainer,
             DependencyFactoryInternal dependencyFactory,
-            ProjectFinder projectFinder,
             DependencyConstraintHandler dependencyConstraintHandler,
             ComponentMetadataHandler componentMetadataHandler,
             ComponentModuleMetadataHandler componentModuleMetadataHandler,
@@ -465,7 +464,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyHandler.class,
                 configurationContainer,
                 dependencyFactory,
-                projectFinder,
                 dependencyConstraintHandler,
                 componentMetadataHandler,
                 componentModuleMetadataHandler,
@@ -487,12 +485,29 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        DependencyLockingProvider createDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, GlobalDependencyResolutionRules globalDependencyResolutionRules, ListenerManager listenerManager, PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory) {
+        DependencyLockingProvider createDependencyLockingProvider(
+            FileResolver fileResolver,
+            StartParameter startParameter,
+            DomainObjectContext context,
+            GlobalDependencyResolutionRules globalDependencyResolutionRules,
+            ListenerManager listenerManager,
+            PropertyFactory propertyFactory,
+            FilePropertyFactory filePropertyFactory,
+            FileResourceListener fileResourceListener
+        ) {
             if (domainObjectContext.isPluginContext()) {
                 return NoOpDependencyLockingProvider.getInstance();
             }
 
-            DefaultDependencyLockingProvider dependencyLockingProvider = new DefaultDependencyLockingProvider(fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules(), propertyFactory, filePropertyFactory, listenerManager.getBroadcaster(FileResourceListener.class));
+            DefaultDependencyLockingProvider dependencyLockingProvider = new DefaultDependencyLockingProvider(
+                fileResolver,
+                startParameter,
+                context,
+                globalDependencyResolutionRules.getDependencySubstitutionRules(),
+                propertyFactory,
+                filePropertyFactory,
+                fileResourceListener
+            );
             if (startParameter.isWriteDependencyLocks()) {
                 listenerManager.addListener(new BuildModelLifecycleListener() {
                     @Override
@@ -507,8 +522,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyConstraintFactoryInternal dependencyConstraintFactory, ObjectFactory objects, PlatformSupport platformSupport) {
-            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyConstraintFactory, objects, platformSupport);
+        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyConstraintFactoryInternal dependencyConstraintFactory, PlatformSupport platformSupport) {
+            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyConstraintFactory, platformSupport);
         }
 
         @Provides({ComponentMetadataHandler.class, ComponentMetadataHandlerInternal.class})
@@ -598,7 +613,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                       TaskDependencyFactory taskDependencyFactory,
                                                                       InternalProblems problems,
                                                                       AttributeDesugaring attributeDesugaring,
-                                                                      ResolveExceptionMapper exceptionMapper) {
+                                                                      ResolveExceptionMapper exceptionMapper,
+                                                                      ProviderFactory providerFactory) {
             return new DefaultConfigurationServicesBundle(
                 buildOperationRunner,
                 projectStateRegistry,
@@ -611,7 +627,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 collectionCallbackActionDecorator,
                 problems,
                 attributeDesugaring,
-                exceptionMapper
+                exceptionMapper,
+                providerFactory
             );
         }
 

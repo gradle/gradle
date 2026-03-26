@@ -164,22 +164,10 @@ public class FileUtils {
         if (filePath.toLowerCase(Locale.ROOT).endsWith(extension)) {
             return filePath;
         }
-        return removeExtension(filePath) + extension;
-    }
-
-    /**
-     * Removes the extension (if any) from the file path.  If the file path has no extension, then it returns the same string.
-     *
-     * @return the file path without an extension
-     */
-    public static String removeExtension(String filePath) {
-        int fileNameStart = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
-        int extensionPos = filePath.lastIndexOf('.');
-
-        if (extensionPos > fileNameStart) {
-            return filePath.substring(0, extensionPos);
-        }
-        return filePath;
+        int lastFileSeparator = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
+        int lastDot = filePath.lastIndexOf('.');
+        String base = lastDot > lastFileSeparator ? filePath.substring(0, lastDot) : filePath;
+        return base + extension;
     }
 
     /**

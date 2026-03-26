@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.gcs.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsRepository
@@ -43,7 +43,6 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractMavenPublishIntegTest
         executer.withArgument("-D${GCS_DISABLE_AUTH_PROPERTY}=true")
     }
 
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "should fail with an authentication error"() {
         setup:
         settingsFile << "rootProject.name = '${projectName}'"
@@ -76,7 +75,7 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractMavenPublishIntegTest
         then:
         fails 'publish'
 
-        failure.assertHasDescription("Execution failed for task ':publishPubPublicationToMavenRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishPubPublicationToMavenRepository' (registered by plugin 'org.gradle.maven-publish').")
         failure.assertHasCause("Failed to publish publication 'pub' to repository 'maven'")
         failure.assertHasCause("Could not write to resource '${module.artifact.uri}'.")
         failure.assertHasCause("403 Forbidden")

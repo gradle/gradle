@@ -85,7 +85,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
                             testTask.configure {
                                 ignoreFailures = true
                                 systemProperty('category', 'super')
-                                testFramework {
+                                options {
                                     includeCategories 'org.gradle.testing.SuperClassTests'
                                 }
                             }
@@ -98,7 +98,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
                             testTask.configure {
                                 ignoreFailures = true
                                 systemProperty('category', 'sub')
-                                testFramework {
+                                options {
                                     includeCategories 'org.gradle.testing.SubClassTests'
                                 }
                             }

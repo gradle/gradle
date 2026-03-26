@@ -42,12 +42,18 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
             gradle.projectsLoaded {
                 it.rootProject {
                     ext.testContainer = ${makeContainer()}
-                    ext.toBeRealized = testContainer.register('toBeRealized')
-                    ext.unrealized = testContainer.register('unrealized')
-                    ext.realized = testContainer.register('realized')
-                    realized.get()
+                    ${registerExistingLazyElements()}
                 }
             }
+        """
+    }
+
+    String registerExistingLazyElements() {
+        return """
+            ext.toBeRealized = testContainer.register('toBeRealized')
+            ext.unrealized = testContainer.register('unrealized')
+            ext.realized = testContainer.register('realized')
+            realized.get()
         """
     }
 
@@ -56,7 +62,6 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
             "${containerType}#getByName(String)":    "testContainer.getByName('unrealized')",
             "${containerType}#named(String)":        "testContainer.named('unrealized')",
             "${containerType}#named(String, Class)": "testContainer.named('unrealized', testContainer.type)",
-            "${containerType}#findAll(Closure)":     "testContainer.findAll { it.name == 'unrealized' }",
             "${containerType}#findByName(String)":   "testContainer.findByName('unrealized')",
             "${containerType}#TaskProvider.get()":   "unrealized.get()",
             "${containerType}#iterator()":           "for (def element : testContainer) { println element.name }",

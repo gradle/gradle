@@ -29,14 +29,13 @@ import org.gradle.api.internal.classpath.EffectiveClassPath
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
+import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.management.VersionCatalogBuilderInternal
-import org.gradle.internal.service.scopes.Scope
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
@@ -59,7 +58,8 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
     final CapabilityNotationParser capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
-            new DefaultListenerManager(Scope.Build),
+            Stub(ValueSourceProviderFactory.ValueListener),
+            Stub(ValueSourceProviderFactory.ComputationListener),
             TestUtil.instantiatorFactory(),
             new TestIsolatableFactory(),
             Stub(GradleProperties),

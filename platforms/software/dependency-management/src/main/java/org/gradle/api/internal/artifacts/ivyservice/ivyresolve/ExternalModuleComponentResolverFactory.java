@@ -49,7 +49,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -81,7 +80,7 @@ public class ExternalModuleComponentResolverFactory {
     private final BuildCommencedTimeProvider timeProvider;
     private final VersionComparator versionComparator;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final RepositoryDisabler repositoryBlacklister;
+    private final RepositoryDisabler repositoryDisabler;
     private final VersionParser versionParser;
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final CalculatedValueFactory calculatedValueFactory;
@@ -97,12 +96,12 @@ public class ExternalModuleComponentResolverFactory {
         ModuleRepositoryCacheProvider cacheProvider,
         StartParameterResolutionOverride startParameterResolutionOverride,
         DependencyVerificationOverride dependencyVerificationOverride,
+        ChangingValueDependencyResolutionListener listener,
         BuildCommencedTimeProvider timeProvider,
         VersionComparator versionComparator,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        RepositoryDisabler repositoryBlacklister,
+        RepositoryDisabler repositoryDisabler,
         VersionParser versionParser,
-        ListenerManager listenerManager,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
         CalculatedValueFactory calculatedValueFactory,
         AttributesFactory attributesFactory,
@@ -114,10 +113,10 @@ public class ExternalModuleComponentResolverFactory {
         this.timeProvider = timeProvider;
         this.versionComparator = versionComparator;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.repositoryBlacklister = repositoryBlacklister;
+        this.repositoryDisabler = repositoryDisabler;
         this.versionParser = versionParser;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
-        this.listener = listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class);
+        this.listener = listener;
         this.moduleResolveStateFactory = moduleResolveStateFactory;
         this.calculatedValueFactory = calculatedValueFactory;
         this.attributesFactory = attributesFactory;
@@ -165,7 +164,7 @@ public class ExternalModuleComponentResolverFactory {
                 moduleComponentRepository = new IvyDynamicResolveModuleComponentRepository(moduleComponentRepository, moduleResolveStateFactory);
             }
 
-            moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
+            moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryDisabler);
             moduleComponentRepository = filterRepository(repository, moduleComponentRepository);
             moduleComponentRepository = maybeApplyDependencyVerification(moduleComponentRepository, dependencyVerificationEnabled);
 

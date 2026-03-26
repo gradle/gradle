@@ -218,33 +218,33 @@ class GradleDistributionInstallTest {
     fun createMinimalDistribution() {
         projectRoot.mkdir()
         File(projectRoot, "build.gradle.kts").writeText("""
-        plugins {
-            id("gradlebuild.install")
-        }
+            plugins {
+                id("gradlebuild.install")
+            }
 
-        val gradleScriptPath by configurations.creating
-        val coreRuntimeClasspath by configurations.creating
-        val runtimeClasspath by configurations.creating
-        val agentsRuntimeClasspath by configurations.creating
+            val spec = copySpec {
+                into("bin") {
+                    from(file("gradlew.bat"))
+                }
+                into("lib") {
+                    from(file("gradle.jar"))
+                }
+            }
 
-        tasks.register("runtimeApiInfoJar", Jar::class){
-            archiveVersion.set("8.2")
-            archiveBaseName.set("gradle-runtime-api")
-            destinationDirectory.set(layout.buildDirectory.dir("jars"))
-        }
-
-        tasks.register("gradleApiKotlinExtensionsJar", Jar::class){
-            archiveVersion.set("8.2")
-            archiveBaseName.set("gradle-kotlin-dsl-extensions")
-            destinationDirectory.set(layout.buildDirectory.dir("jars"))
-        }
-
-        dependencies {
-            gradleScriptPath(files("gradlew.bat"))
-        }
+            // The install plugin assumes these tasks exists, and that after executing
+            // the the distribution is located in their destination directory
+            tasks.register<Sync>("binInstallation") {
+                with(spec)
+                into(layout.buildDirectory.dir("bin"))
+            }
+            tasks.register<Sync>("allInstallation") {
+                with(spec)
+                into(layout.buildDirectory.dir("all"))
+            }
         """)
         File(projectRoot, "version.txt").writeText("8.2")
         File(projectRoot, "gradlew.bat").writeText(marker)
+        File(projectRoot, "gradle.jar").createNewFile()
     }
 
     private

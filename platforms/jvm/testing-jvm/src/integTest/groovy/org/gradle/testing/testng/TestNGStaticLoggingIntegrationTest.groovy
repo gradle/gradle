@@ -30,7 +30,7 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
                 reports.junitXml.outputPerTestCase = true
-                onOutput { test, event -> print "\$test -> \$event.message" }
+                addTestOutputListener { test, event -> print "\$test -> \$event.message" }
             }
         """
     }

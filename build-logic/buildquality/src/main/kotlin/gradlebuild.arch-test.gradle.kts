@@ -47,16 +47,14 @@ notForAccessorGeneration {
 testing {
     suites {
         create("archTest", JvmTestSuite::class) {
-            useJUnitJupiter()
-
             project.jvmCompile {
                 addCompilationFrom(sources)
             }
 
             dependencies {
-                implementation(project.dependencies.create(project))
+                implementation(project())
                 notForAccessorGeneration {
-                    implementation(project.dependencies.platform(project(":distributions-dependencies")))
+                    implementation(platform(project(":distributions-dependencies")))
                     implementation(project(":internal-architecture-testing"))
                 }
             }
@@ -64,9 +62,16 @@ testing {
             targets {
                 all {
                     testTask.configure {
+                        useJUnitPlatform {
+                            includeEngines("archunit")
+                        }
                         testClassesDirs += sharedArchTestClasses.filter { it.isDirectory }
                         classpath += sourceSets["main"].output.classesDirs
-                        systemProperty("package.cycle.exclude.patterns", packageCyclesExtension.excludePatterns.get().joinToString(","))
+                        val excludePatterns = packageCyclesExtension.excludePatterns
+                        doFirst {
+                            // workaround for https://github.com/gradle/gradle/issues/12247
+                            systemProperty("package.cycle.exclude.patterns", excludePatterns.get().joinToString(","))
+                        }
                         extensions.findByType<DevelocityTestConfiguration>()?.apply {
                             // PTS doesn't work well with architecture tests which scan all classes
                             predictiveTestSelection.enabled = false

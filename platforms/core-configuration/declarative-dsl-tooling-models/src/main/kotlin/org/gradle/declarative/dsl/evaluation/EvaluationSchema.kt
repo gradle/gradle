@@ -22,6 +22,7 @@ import java.io.Serializable
 
 interface EvaluationSchema : Serializable {
     val analysisSchema: AnalysisSchema
+    val analysisSchemaBuildingFailures: List<SchemaBuildingFailure>
     val operationGenerationId: OperationGenerationId
     val analysisStatementFilter: AnalysisStatementFilter
 }

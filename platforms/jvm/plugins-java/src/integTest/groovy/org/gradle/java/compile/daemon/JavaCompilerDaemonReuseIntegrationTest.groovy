@@ -154,7 +154,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         assertRunningCompilerDaemonIs(firstCompilerIdentity)
 
         and:
-        def compilerOperations = buildOperations.all(ExecuteWorkItemBuildOperationType)
+        def compilerOperations = buildOperations.typed(ExecuteWorkItemBuildOperationType)
         def taskOperations =
             compilerOperations.collectEntries {
                 def op = buildOperations.parentsOf(it).reverse().find {

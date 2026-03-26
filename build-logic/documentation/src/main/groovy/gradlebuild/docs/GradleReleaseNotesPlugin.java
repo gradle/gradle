@@ -19,11 +19,11 @@ package gradlebuild.docs;
 import gradlebuild.buildutils.tasks.AbstractCheckOrUpdateContributorsInReleaseNotes;
 import gradlebuild.buildutils.tasks.CheckContributorsInReleaseNotes;
 import gradlebuild.buildutils.tasks.UpdateContributorsInReleaseNotes;
+import gradlebuild.buildutils.tasks.UpdateFixedIssuesInReleaseNotes;
 import gradlebuild.identity.extension.GradleModuleExtension;
 import gradlebuild.identity.extension.ModuleIdentity;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
@@ -71,7 +71,6 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             task.getBaseCssFile().convention(extension.getReleaseNotes().getBaseCssFile());
             task.getReleaseNotesCssFile().convention(extension.getReleaseNotes().getReleaseNotesCssFile());
             task.getReleaseNotesJavascriptFile().convention(extension.getReleaseNotes().getReleaseNotesJsFile());
-            task.getJquery().from(extension.getReleaseNotes().getJquery());
 
             ModuleIdentity moduleIdentity = project.getExtensions().getByType(GradleModuleExtension.class).getIdentity();
 
@@ -96,8 +95,12 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             task.getMilestone().convention(project.getProviders().fileContents(project.getIsolated().getRootProject().getProjectDirectory().file("version.txt")).getAsText().map(String::trim));
         });
 
-        Configuration jquery = project.getConfigurations().create("jquery", conf -> {
-            conf.setDescription("JQuery dependencies embedded by release notes.");
+        tasks.register("updateFixedIssuesInReleaseNotes", UpdateFixedIssuesInReleaseNotes.class, task -> {
+            task.setGroup("release notes");
+            task.setDescription("Update the list of fixed issues in the release notes for a patch release.");
+            task.getGithubToken().set(project.getProviders().environmentVariable("GITHUB_TOKEN"));
+            task.getReleaseNotes().set(extension.getReleaseNotes().getMarkdownFile());
+            task.getMilestone().convention(project.getProviders().fileContents(project.getIsolated().getRootProject().getProjectDirectory().file("version.txt")).getAsText().map(String::trim));
         });
 
         extension.releaseNotes(releaseNotes -> {
@@ -106,7 +109,6 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             releaseNotes.getBaseCssFile().convention(extension.getSourceRoot().file("css/base.css"));
             releaseNotes.getReleaseNotesCssFile().convention(extension.getSourceRoot().file("css/release-notes.css"));
             releaseNotes.getReleaseNotesJsFile().convention(extension.getSourceRoot().file("release/content/releaseIssues.js"));
-            releaseNotes.getJquery().from(jquery);
             releaseNotes.getReleaseNotesAssets().convention(extension.getSourceRoot().dir("release/release-notes-assets"));
         });
     }

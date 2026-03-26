@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.collect.PersistentSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,6 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class LoggingExcludeFactory extends DelegatingExcludeFactory {
@@ -62,12 +62,12 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec anyOf(Set<ExcludeSpec> specs) {
+    public ExcludeSpec anyOf(PersistentSet<ExcludeSpec> specs) {
         return log("anyOf", () -> super.anyOf(specs), specs);
     }
 
     @Override
-    public ExcludeSpec allOf(Set<ExcludeSpec> specs) {
+    public ExcludeSpec allOf(PersistentSet<ExcludeSpec> specs) {
         return log("allOf", () -> super.allOf(specs), specs);
     }
 

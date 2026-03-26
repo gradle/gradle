@@ -19,18 +19,21 @@ package org.gradle.performance.results;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CompositeResultsStore implements ResultsStore {
+    private final CrossVersionResultsStore crossVersionResultsStore;
+    private final CrossBuildResultsStore crossBuildResultsStore;
     private final List<ResultsStore> stores;
     private Map<PerformanceExperiment, ResultsStore> tests;
 
-    public CompositeResultsStore(ResultsStore... stores) {
-        this.stores = Arrays.asList(stores);
+    public CompositeResultsStore(CrossVersionResultsStore crossVersionResultsStore, CrossBuildResultsStore crossBuildResultsStore) {
+        this.crossVersionResultsStore = crossVersionResultsStore;
+        this.crossBuildResultsStore = crossBuildResultsStore;
+        this.stores = List.of(crossVersionResultsStore, crossBuildResultsStore);
     }
 
     @Override
@@ -51,12 +54,17 @@ public class CompositeResultsStore implements ResultsStore {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Math::max, LinkedHashMap::new));
     }
 
+    // Currently, we only have two test classes in cross build database:
+    // - org.gradle.performance.crossbuild.TaskAvoidancePerformanceTest
+    // - org.gradle.performance.buildscan.BuildScanPluginPerformanceTest
+    // All subsequent cross build performance tests should be in these packages.
+    private boolean isCrossBuildPerformanceTest(PerformanceExperiment experiment) {
+        String testClassName = experiment.getScenario().getClassName();
+        return testClassName.contains("org.gradle.performance.crossbuild") || testClassName.contains("org.gradle.performance.buildscan");
+    }
+
     private ResultsStore getStoreForTest(PerformanceExperiment experiment) {
-        buildTests();
-        if (!tests.containsKey(experiment)) {
-            throw new IllegalArgumentException(String.format("Unknown test '%s'.", experiment));
-        }
-        return tests.get(experiment);
+        return isCrossBuildPerformanceTest(experiment) ? crossBuildResultsStore : crossVersionResultsStore;
     }
 
     private void buildTests() {

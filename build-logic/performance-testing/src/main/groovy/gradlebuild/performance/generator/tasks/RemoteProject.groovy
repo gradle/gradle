@@ -70,6 +70,27 @@ abstract class RemoteProject extends DefaultTask {
     abstract Property<String> getSubdirectory()
 
     /**
+     * Convenience method to set both remoteUri and ref from a gradle property.
+     *
+     * The property value should be in the format: <repository-url>#<commit-sha>
+     * Example: "https://github.com/user/repo.git#abc123def456"
+     *
+     * @param propertyName The name of the gradle property containing both URI and ref separated by '#'
+     */
+    void setRemoteUriAndRefFromGradleProperty(String propertyName) {
+        def provider = project.providers.gradleProperty(propertyName)
+        def parsed = provider.map { String value ->
+            String[] parts = value.split("#", 2)
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("$propertyName must be in format: <repository-url>#<commit-sha>, got: $value")
+            }
+            return parts
+        }
+        remoteUri.set(parsed.map { parts -> parts[0] })
+        ref.set(parsed.map { parts -> parts[1] })
+    }
+
+    /**
      * Directory where the project template should be copied.
      */
     @OutputDirectory

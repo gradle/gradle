@@ -19,8 +19,8 @@ package org.gradle.integtests.fixtures.versions
 import org.gradle.api.JavaVersion
 import org.gradle.internal.Factory
 import org.gradle.util.internal.VersionNumber
-
-import static org.junit.Assume.assumeTrue
+import org.junit.Assume
+import org.junit.jupiter.api.Assumptions
 
 /**
  * Kotlin Gradle Plugin Versions.
@@ -29,13 +29,7 @@ import static org.junit.Assume.assumeTrue
  */
 class KotlinGradlePluginVersions {
 
-    static final List<String> LANGUAGE_VERSIONS = [
-        "1.4",
-        "1.5",
-        "1.6",
-        "1.7",
-        "1.8",
-        "1.9",
+    private static final List<String> LANGUAGE_VERSIONS = [
         "2.0",
         "2.1",
         "2.2",
@@ -115,6 +109,7 @@ class KotlinGradlePluginVersions {
     static final VersionNumber KOTLIN_2_1_21 = VersionNumber.parse('2.1.21')
     static final VersionNumber KOTLIN_2_2_0 = VersionNumber.parse('2.2.0')
     static final VersionNumber KOTLIN_2_3_0 = VersionNumber.parse('2.3.0')
+    static final VersionNumber KOTLIN_2_3_20 = VersionNumber.parse('2.3.20')
 
     static void assumeCurrentJavaVersionIsSupportedBy(String kotlinVersion) {
         assumeCurrentJavaVersionIsSupportedBy(VersionNumber.parse(kotlinVersion))
@@ -123,10 +118,24 @@ class KotlinGradlePluginVersions {
     static void assumeCurrentJavaVersionIsSupportedBy(VersionNumber kotlinVersionNumber) {
         JavaVersion current = JavaVersion.current()
         JavaVersion mini = getMinimumJavaVersionFor(kotlinVersionNumber)
-        assumeTrue("KGP $kotlinVersionNumber minimum supported Java version is $mini, current is $current", current >= mini)
+        Assumptions.assumeTrue(current >= mini, "KGP $kotlinVersionNumber minimum supported Java version is $mini, current is $current")
         JavaVersion maxi = getMaximumJavaVersionFor(kotlinVersionNumber)
         if (maxi != null) {
-            assumeTrue("KGP $kotlinVersionNumber maximum supported Java version is $maxi, current is $current", current <= maxi)
+            Assumptions.assumeTrue(current <= maxi, "KGP $kotlinVersionNumber maximum supported Java version is $maxi, current is $current")
+        }
+    }
+
+    /**
+     * Legacy counterpart of {@link #assumeCurrentJavaVersionIsSupportedBy(VersionNumber)} which must
+     * be used for tests which still run on JUnit 4.
+     */
+    static void assumeCurrentJavaVersionIsSupportedByJunit4(VersionNumber kotlinVersionNumber) {
+        JavaVersion current = JavaVersion.current()
+        JavaVersion mini = getMinimumJavaVersionFor(kotlinVersionNumber)
+        Assume.assumeTrue("KGP $kotlinVersionNumber minimum supported Java version is $mini, current is $current", current >= mini)
+        JavaVersion maxi = getMaximumJavaVersionFor(kotlinVersionNumber)
+        if (maxi != null) {
+            Assume.assumeTrue("KGP $kotlinVersionNumber maximum supported Java version is $maxi, current is $current", current <= maxi)
         }
     }
 

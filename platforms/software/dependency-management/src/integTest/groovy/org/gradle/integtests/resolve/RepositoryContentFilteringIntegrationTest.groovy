@@ -17,9 +17,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
@@ -303,7 +303,6 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         ]
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "two configurations can use the same repositories with filtering and do not interfere with each other"() {
         def mod = mavenHttpRepo.module('org', 'foo', '1.0').publish()
 
@@ -321,10 +320,12 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 conf "org:foo:1.0"
                 conf2 "org:foo:1.0"
             }
-            tasks.register("verify") {
-                doFirst {
-                    $check1
-                    $check2
+            task verify {
+                def check1Provider = providers.provider { $check1 }
+                def check2Provider = providers.provider { $check2 }
+                doLast {
+                    assert check1Provider.get()
+                    assert check2Provider.get()
                 }
             }
         """
@@ -467,9 +468,15 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         ]
     }
 
-    def "can declare that a repository doesn't contain snapshots"() {
-        // doesn't really make sense to look for "SNAPSHOT" in an Ivy repository, but this is for the test
-        def modIvy = ivyHttpRepo.module('org', 'foo', '1.0-SNAPSHOT').publish()
+    def "can declare that a repository doesn't contain snapshots (unique = #unique)"() {
+        def snapshotInMaven = mavenHttpRepo.module('org', 'foo', '1.0-SNAPSHOT')
+        if (!unique) {
+            snapshotInMaven.withNonUniqueSnapshots()
+        }
+        snapshotInMaven.publish()
+        // doesn't really make sense to look for "SNAPSHOT" in an Ivy repository, but we use it capture resolution
+        // skipping the maven repository
+        def snapshotInIvy = ivyHttpRepo.module('org', 'foo', '1.0-SNAPSHOT').publish()
 
         given:
         repositories {
@@ -483,8 +490,9 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         """
 
         when:
-        modIvy.ivy.expectGet()
-        modIvy.artifact.expectGet()
+        // Only the ivy repository is queried because the maven one is marked as releases only
+        snapshotInIvy.ivy.expectGet()
+        snapshotInIvy.artifact.expectGet()
 
         run 'checkDeps'
 
@@ -492,6 +500,42 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:foo:1.0-SNAPSHOT')
+            }
+        }
+
+        where:
+        unique << [true, false]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31888")
+    def "can declare that a repository doesn't contain snapshots and unique snapshot versions are excluded"() {
+        def snapshotInMaven = mavenHttpRepo.module('org', 'foo', '1.0-SNAPSHOT').publish()
+        // doesn't really make sense to look for it in an Ivy repository, but we use it capture resolution
+        // skipping the maven repository
+        def snapshotInIvy = ivyHttpRepo.module('org', 'foo', snapshotInMaven.publishArtifactVersion).publish()
+
+        given:
+        repositories {
+            maven("""mavenContent { releasesOnly() }""")
+            ivy()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:foo:${snapshotInMaven.publishArtifactVersion}"
+            }
+        """
+
+        when:
+        // Only the ivy repository is queried because the maven one is marked as releases only
+        snapshotInIvy.ivy.expectGet()
+        snapshotInIvy.artifact.expectGet()
+
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org:foo:${snapshotInMaven.publishArtifactVersion}")
             }
         }
     }
@@ -701,13 +745,12 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
     static String checkConfIsUnresolved() {
         """def confIncoming = configurations.conf.incoming.resolutionResult.allDependencies
-                    assert confIncoming.every { it instanceof UnresolvedDependencyResult }"""
+                    confIncoming.every { it instanceof UnresolvedDependencyResult }"""
     }
 
     static String checkConf2IsResolved() {
         """def conf2Incoming = configurations.conf2.incoming.resolutionResult.allDependencies
-                    assert conf2Incoming.every { it instanceof ResolvedDependencyResult }
-                    assert configurations.conf2.files.name == ['foo-1.0.jar']"""
+                    conf2Incoming.every { it instanceof ResolvedDependencyResult } && configurations.conf2.files.name == ['foo-1.0.jar']"""
     }
 
     void repositories(@DelegatesTo(value = RepositorySpec, strategy = Closure.DELEGATE_FIRST) Closure<Void> spec) {

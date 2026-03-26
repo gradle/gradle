@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -52,7 +53,7 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
         this(configuration, dependencyDescriptor, reason, endorsing, dependencyDescriptor.getConfigurationArtifacts(configuration));
     }
 
-    private IvyDependencyMetadata(ConfigurationMetadata configuration, IvyDependencyDescriptor dependencyDescriptor, @Nullable String reason, boolean endorsing, List<IvyArtifactName> artifacts) {
+    private IvyDependencyMetadata(ConfigurationMetadata configuration, IvyDependencyDescriptor dependencyDescriptor, @Nullable String reason, boolean endorsing, ImmutableList<IvyArtifactName> artifacts) {
         super(reason, endorsing, artifacts);
         this.configuration = configuration;
         this.dependencyDescriptor = dependencyDescriptor;
@@ -84,7 +85,7 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
     }
 
     @Override
-    public List<ExcludeMetadata> getExcludes() {
+    public ImmutableList<ExcludeMetadata> getExcludes() {
         return getDependencyDescriptor().getConfigurationExcludes(configuration.getHierarchy());
     }
 
@@ -105,12 +106,12 @@ public class IvyDependencyMetadata extends ExternalModuleDependencyMetadata {
     }
 
     @Override
-    protected ModuleDependencyMetadata withArtifacts(List<IvyArtifactName> newArtifacts) {
+    protected ModuleDependencyMetadata withArtifacts(ImmutableList<IvyArtifactName> newArtifacts) {
         return new IvyDependencyMetadata(configuration, dependencyDescriptor, getReason(), isEndorsingStrictVersions(), newArtifacts);
     }
 
     @Override
-    protected ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, List<IvyArtifactName> newArtifacts) {
+    protected ModuleDependencyMetadata withRequestedAndArtifacts(ModuleComponentSelector newSelector, ImmutableList<IvyArtifactName> newArtifacts) {
         IvyDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
         return new IvyDependencyMetadata(configuration, newDelegate, getReason(), isEndorsingStrictVersions(), newArtifacts);
     }

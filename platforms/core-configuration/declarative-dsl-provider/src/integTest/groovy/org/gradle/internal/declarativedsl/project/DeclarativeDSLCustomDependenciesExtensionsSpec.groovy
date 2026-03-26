@@ -19,16 +19,18 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.ProjectTypeBinding
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
+import org.gradle.features.registration.ConfigurationRegistrar
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.precondition.Requires
@@ -137,8 +139,10 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                         builder.bindProjectType("library",  LibraryExtension.class, (context, definition, model) -> {
+                            Services services = context.getObjectFactory().newInstance(Services.class);
+
                             // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration conf = context.getProject().getConfigurations().dependencyScope("conf").get();
+                            DependencyScopeConfiguration conf = services.getConfigurationRegistrar().dependencyScope("conf").get();
 
                             // Add the dependency scopes to the model
                             model.setApi(conf);
@@ -147,6 +151,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             model.getApi().fromDependencyCollector(definition.getSub().getConf());
                         })
                         .withUnsafeDefinition();
+                    }
+
+                    interface Services {
+                        @javax.inject.Inject
+                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
                     }
                 }
 
@@ -208,9 +217,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                         builder.bindProjectType("library",  LibraryExtension.class, (context, definition, model) -> {
+                            Services services = context.getObjectFactory().newInstance(Services.class);
+
                             // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration myConf = context.getProject().getConfigurations().dependencyScope("myConf").get();
-                            DependencyScopeConfiguration myOtherConf = context.getProject().getConfigurations().dependencyScope("myOtherConf").get();
+                            DependencyScopeConfiguration myConf = services.getConfigurationRegistrar().dependencyScope("myConf").get();
+                            DependencyScopeConfiguration myOtherConf = services.getConfigurationRegistrar().dependencyScope("myOtherConf").get();
 
                             // Add the dependency scopes to the model
                             model.setApi(myConf);
@@ -221,6 +232,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             model.getImplementation().fromDependencyCollector(definition.getDependencies().getSomethingElse());
                         })
                         .withUnsafeDefinition();
+                    }
+
+                    interface Services {
+                        @javax.inject.Inject
+                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
                     }
                 }
 
@@ -375,6 +391,126 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         outputContains("commons-lang3-3.8.1.jar")
     }
 
+    def "can configure a platform using DependencyCollector in declarative DSL from a platform project with a custom DependencyModifier"() {
+        given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
+        file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtensionWithCustomPlatformModifier()
+        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTasks()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild()
+
+        and: "a project that defines a platform"
+        file("platform/build.gradle") << """
+            plugins {
+                id 'java-platform'
+            }
+
+            dependencies {
+                constraints {
+                    api("org.apache.commons:commons-lang3:3.8.1")
+                }
+            }
+        """
+
+        and: "a lib project that uses the platform"
+        file("lib/build.gradle.dcl") << """
+            library {
+                dependencies {
+                    implementation(customPlatform(project(":platform")))
+                    implementation("org.apache.commons:commons-lang3")
+                }
+            }
+        """
+
+        and: "a root project including both of these projects"
+        file("settings.gradle") << defineSettings() + 'include("lib", "platform")'
+
+        expect:
+        succeeds(":lib:resolveImplementation")
+        outputContains("commons-lang3-3.8.1.jar")
+    }
+
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    def "can configure a platform using DependencyCollector in declarative DSL from a platform project with a custom DependencyModifier in Kotlin"() {
+        given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
+        file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << defineDependenciesExtensionWithCustomPlatformModifierKotlin()
+        file("build-logic/src/main/kotlin/com/example/restricted/LibraryExtension.kt") << defineLibraryExtensionKotlin()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTasks()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild(true)
+
+        and: "a project that defines a platform"
+        file("platform/build.gradle") << """
+            plugins {
+                id 'java-platform'
+            }
+
+            dependencies {
+                constraints {
+                    api("org.apache.commons:commons-lang3:3.8.1")
+                }
+            }
+        """
+
+        and: "a lib project that uses the platform"
+        file("lib/build.gradle.dcl") << """
+            library {
+                dependencies {
+                    implementation(customPlatform(project(":platform")))
+                    implementation("org.apache.commons:commons-lang3")
+                }
+            }
+        """
+
+        and: "a root project including both of these projects"
+        file("settings.gradle") << defineSettings() + 'include("lib", "platform")'
+
+        expect:
+        succeeds(":lib:resolveImplementation")
+        outputContains("commons-lang3-3.8.1.jar")
+    }
+
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    def "can add a testFixture dependency in declarative DSL in Kotlin"() {
+        given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
+        file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << defineDependenciesExtensionWithTestFixturesModifierKotlin()
+        file("build-logic/src/main/kotlin/com/example/restricted/LibraryExtension.kt") << defineLibraryExtensionKotlin()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTasks()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild(true)
+
+        and: "a project that has testFixtures"
+        file("platform/build.gradle") << """
+            plugins {
+                id 'java-library'
+                id 'java-test-fixtures'
+            }
+
+            dependencies {
+                testFixturesApi("org.apache.commons:commons-lang3:3.8.1")
+            }
+        """
+
+        and: "a lib project that uses the platform"
+        file("lib/build.gradle.dcl") << """
+            library {
+                dependencies {
+                    implementation(testFixtures(project(":platform")))
+                }
+            }
+        """
+
+        and: "a root project including both of these projects"
+        file("settings.gradle") << defineSettings() + 'include("lib", "platform")'
+
+        expect:
+        succeeds(":lib:resolveImplementation")
+        outputContains("commons-lang3-3.8.1.jar")
+    }
+
     def "can configure a platform using DependencyCollector in declarative DSL by converting a BOM"() {
         given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
         file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtensionWithPlatformModifiers()
@@ -430,6 +566,64 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         invalidType << ["layout", "1", "true", "null"]
     }
 
+    def "can configure a built-in dependency using DependencyCollector in declarative DSL"() {
+        given:
+        file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtensionWithPlatformModifiers()
+        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTasks()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild()
+        file("build.gradle.dcl") << """
+                library {
+                    dependencies {
+                        implementation(localGroovy())
+                    }
+                }
+            """
+        file("settings.gradle") << defineSettings()
+
+        expect:
+        succeeds(":resolveImplementation")
+        outputContains("groovy-")
+    }
+
+    def "can define dependencies with configuration closure in declarative DSL"() {
+        given:
+        file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtensionWithPlatformModifiers()
+        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/ResolveTask.java") << defineResolveTask()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPluginWithResolveTasks()
+        file("producer/src/main/java/com/example/Producer.java") << defineExampleProducerJavaClass()
+        file("producer/build.gradle.dcl") << defineDeclarativeDSLProducerBuildScript()
+        file("build-logic/build.gradle") << defineRestrictedPluginBuild()
+        file("gradle/libs.versions.toml") << defineDependencyVersionCatalog()
+        file("settings.gradle") << defineSettings() << """include("producer")"""
+        file("build.gradle.dcl") << """
+                library {
+                    dependencies {
+                        implementation("commons-beanutils:commons-beanutils:1.9.4") {
+                            exclude(mapOf("group" to "commons-collections"))
+                        }
+                        implementation(gradleTestKit()) {
+                            because("Testing file collection dependencies")
+                        }
+                        api(project(":producer")) {
+                            exclude(mapOf("group" to "commons-collections"))
+                        }
+                        implementation(catalog("libs.commonsLang3")) {
+                            exclude(mapOf("group" to "commons-collections"))
+                        }
+                    }
+                }
+            """
+
+        expect:
+        succeeds(":resolveImplementation")
+        outputDoesNotContain("commons-collections")
+    }
+
     private String defineDependenciesExtension(boolean extendDependencies = true) {
         return """
             package com.example.restricted;
@@ -448,13 +642,112 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         return """
             package com.example.restricted;
 
+            import org.gradle.api.Project;
+            import org.gradle.api.artifacts.ExternalModuleDependency;
+            import org.gradle.api.artifacts.VersionCatalogsExtension;
             import org.gradle.api.artifacts.dsl.DependencyCollector;
-            import org.gradle.api.artifacts.dsl.Dependencies;
+            import org.gradle.api.artifacts.dsl.GradleDependencies;
             import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
+            import javax.inject.Inject;
+            import org.gradle.declarative.dsl.model.annotations.Adding;import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
-            public interface DependenciesExtension extends Dependencies, PlatformDependencyModifiers {
+            public interface DependenciesExtension extends GradleDependencies, PlatformDependencyModifiers {
                 DependencyCollector getApi();
                 DependencyCollector getImplementation();
+
+            default ExternalModuleDependency catalog(String notation) {
+                String[] parts = notation.split("\\\\.");
+                if (parts.length != 2) {
+                    throw new IllegalArgumentException(notation + " must be a dot separated name");
+                }
+                return getTargetProject()
+                    .getExtensions()
+                    .getByType(VersionCatalogsExtension.class)
+                    .find(parts[0])
+                    .flatMap(catalog -> catalog.findLibrary(parts[1]))
+                    .orElseThrow(() -> new IllegalArgumentException("Could not find library with notation " + notation))
+                    .get();
+            }
+
+        @Inject
+        @HiddenInDefinition
+        Project getTargetProject();
+    }
+        """
+    }
+
+    private String defineDependenciesExtensionWithCustomPlatformModifier() {
+        return """
+            package com.example.restricted;
+
+            import org.gradle.api.artifacts.ModuleDependency;
+            import org.gradle.api.artifacts.dsl.DependencyCollector;
+            import org.gradle.api.artifacts.dsl.DependencyModifier;
+            import org.gradle.api.artifacts.dsl.GradleDependencies;
+            import org.gradle.api.attributes.Category;
+            import org.gradle.api.tasks.Nested;
+
+            public interface DependenciesExtension extends GradleDependencies {
+                DependencyCollector getApi();
+                DependencyCollector getImplementation();
+                
+                @Nested
+                CustomPlatformDependencyModifier getCustomPlatform();
+                
+                abstract class CustomPlatformDependencyModifier extends DependencyModifier {
+                    @Override
+                    protected void modifyImplementation(ModuleDependency dependency) {
+                        dependency.endorseStrictVersions();
+                        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, attributeContainer.named(Category.class, Category.REGULAR_PLATFORM)));
+                    }
+                }
+            }
+        """
+    }
+
+    private String defineDependenciesExtensionWithCustomPlatformModifierKotlin() {
+        //language=kotlin
+        return """
+            package com.example.restricted
+
+            import org.gradle.api.artifacts.ModuleDependency
+            import org.gradle.api.artifacts.dsl.DependencyCollector
+            import org.gradle.api.artifacts.dsl.DependencyModifier
+            import org.gradle.api.artifacts.dsl.GradleDependencies
+            import org.gradle.api.attributes.Category
+            import org.gradle.api.tasks.Nested
+
+            interface DependenciesExtension : GradleDependencies {
+                val api: DependencyCollector
+                val implementation: DependencyCollector
+                
+                @get:Nested
+                val customPlatform: CustomPlatformDependencyModifier
+                
+                abstract class CustomPlatformDependencyModifier : DependencyModifier() {
+                    override fun modifyImplementation(dependency: ModuleDependency) {
+                        dependency.endorseStrictVersions()
+                        dependency.attributes { attributeContainer ->
+                            attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, attributeContainer.named(Category::class.java, Category.REGULAR_PLATFORM))
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    private String defineDependenciesExtensionWithTestFixturesModifierKotlin() {
+        //language=kotlin
+        return """
+            package com.example.restricted
+
+            import org.gradle.api.artifacts.dsl.DependencyCollector
+            import org.gradle.api.artifacts.dsl.GradleDependencies
+            import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers
+
+            interface DependenciesExtension : GradleDependencies, TestFixturesDependencyModifiers {
+                val api: DependencyCollector
+                val implementation: DependencyCollector
             }
         """
     }
@@ -551,9 +844,9 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
-            import ${RegistersSoftwareTypes.class.name};
+            import ${RegistersProjectFeatures.class.name};
 
-            @RegistersSoftwareTypes({ RestrictedPlugin.class })
+            @${RegistersProjectFeatures.class.simpleName}({ RestrictedPlugin.class })
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) {
@@ -571,8 +864,8 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.model.ObjectFactory
             import org.gradle.declarative.dsl.model.annotations.Restricted
             import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
-            import org.gradle.api.internal.plugins.Definition
-            import org.gradle.api.internal.plugins.BuildModel
+            import org.gradle.features.binding.Definition
+            import org.gradle.features.binding.BuildModel
 
             import javax.inject.Inject
 
@@ -615,9 +908,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                         builder.bindProjectType("library",  LibraryExtension.class, (context, definition, model) -> {
+                            Services services = context.getObjectFactory().newInstance(Services.class);
+
                             // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration api = context.getProject().getConfigurations().dependencyScope("api").get();
-                            DependencyScopeConfiguration implementation = context.getProject().getConfigurations().dependencyScope("implementation").get();
+                            DependencyScopeConfiguration api = services.getConfigurationRegistrar().dependencyScope("api").get();
+                            DependencyScopeConfiguration implementation = services.getConfigurationRegistrar().dependencyScope("implementation").get();
 
                             // Add the dependency scopes to the model
                             model.setApi(api);
@@ -628,21 +923,29 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             model.getImplementation().fromDependencyCollector(definition.getDependencies().getImplementation());
 
                             // and create and wire a configuration that can resolve that one
-                            NamedDomainObjectProvider<ResolvableConfiguration> resolveApi = context.getProject().getConfigurations().resolvable("resolveApi");
+                            NamedDomainObjectProvider<ResolvableConfiguration> resolveApi = services.getConfigurationRegistrar().resolvable("resolveApi");
                             resolveApi.get().extendsFrom(api);
 
-                            context.getProject().getTasks().register("resolveApi", ResolveTask.class, task -> {
+                            services.getTaskRegistrar().register("resolveApi", ResolveTask.class, task -> {
                                 task.getResolvedFiles().from(resolveApi);
                             });
 
-                            NamedDomainObjectProvider<ResolvableConfiguration> resolveImplementation = context.getProject().getConfigurations().resolvable("resolveImplementation");
+                            NamedDomainObjectProvider<ResolvableConfiguration> resolveImplementation = services.getConfigurationRegistrar().resolvable("resolveImplementation");
                             resolveImplementation.get().extendsFrom(implementation);
 
-                            context.getProject().getTasks().register("resolveImplementation", ResolveTask.class, task -> {
+                            services.getTaskRegistrar().register("resolveImplementation", ResolveTask.class, task -> {
                                 task.getResolvedFiles().from(resolveImplementation);
                             });
                         })
                         .withUnsafeDefinition();
+                    }
+
+                    interface Services {
+                        @javax.inject.Inject
+                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
+
+                        @javax.inject.Inject
+                        ${TaskRegistrar.class.name} getTaskRegistrar();
                     }
                 }
 
@@ -669,9 +972,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 class Binding : ${ProjectTypeBinding.class.simpleName} {
                     override fun bind(builder: ${ProjectTypeBindingBuilder.class.simpleName}) {
                         builder.bindProjectType("library",  LibraryExtension::class.java) { context, definition, model ->
+                            val services = context.objectFactory.newInstance(Services::class.java)
+
                             // no plugin application, must create configurations manually
-                            val api: DependencyScopeConfiguration = context.getProject().getConfigurations().dependencyScope("api").get()
-                            val implementation: DependencyScopeConfiguration = context.getProject().getConfigurations().dependencyScope("implementation").get()
+                            val api: DependencyScopeConfiguration = services.configurationRegistrar.dependencyScope("api").get()
+                            val implementation: DependencyScopeConfiguration = services.configurationRegistrar.dependencyScope("implementation").get()
 
                             // Add the dependency scopes to the model
                             model.api = api
@@ -682,6 +987,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             model.implementation!!.fromDependencyCollector(definition.dependencies.implementation)
                         }
                         .withUnsafeDefinition()
+                    }
+
+                    interface Services {
+                        @get:javax.inject.Inject
+                        val configurationRegistrar: ${ConfigurationRegistrar.class.name}
                     }
                 }
 
@@ -739,6 +1049,13 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             }
         """
     }
+
+    private String defineDependencyVersionCatalog() {
+        return """[libraries]
+commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
+"""
+    }
+
 
     private String defineExampleJavaClass() {
         return """

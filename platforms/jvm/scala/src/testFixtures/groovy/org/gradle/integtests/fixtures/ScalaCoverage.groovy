@@ -80,6 +80,10 @@ class ScalaCoverage {
     }
 
     private static Set<String> scala3VersionsSupportedByJdk(JavaVersion javaVersion) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
+            // No Scala 3 version supports Java 26 yet
+            return []
+        }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
             return VersionCoverage.versionsAtLeast(SCALA_3, "3.7.1")
         }

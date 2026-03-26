@@ -66,6 +66,27 @@ class PersistentArrayTest extends Specification {
         size << [0, 1, 32, 33, 32 * 32 + 1, 32 * 32 * 32 * 32 + 1]
     }
 
+    def 'set'() {
+        given:
+        def list = (0..<size).collect()
+        def original = PersistentArray.copyOf(list)
+
+        when:
+        def result = original
+        size.times {
+            result = result.set(it, it + 1)
+        }
+
+        then:
+        result.toList() == list.collect { it + 1 }
+
+        and:
+        original.toList() == list
+
+        where:
+        size << [1, 32, 33, 32 * 32 + 1, 32 * 32 * 32 + 1]
+    }
+
     def 'contains'() {
         given:
         def list = size > 0 ? (1..size).collect() : []

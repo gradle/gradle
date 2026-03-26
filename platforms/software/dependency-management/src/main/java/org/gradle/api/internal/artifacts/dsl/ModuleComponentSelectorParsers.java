@@ -18,13 +18,17 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -54,13 +58,15 @@ public class ModuleComponentSelectorParsers {
             .fromCharSequence(new StringConverter())
             .converter(new MapConverter())
             .converter(new ProviderConverter(dslContext))
-            .converter(new ProviderConvertibleConverter(dslContext));
+            .converter(new ProviderConvertibleConverter(dslContext))
+            .converter(new ExternalDependencyConverter())
+            .converter(new ModuleVersionSelectorConverter());
     }
 
     static class MapConverter extends MapNotationConverter<ModuleComponentSelector> {
         @Override
         public void describe(DiagnosticsVisitor visitor) {
-            visitor.candidate("Maps").example("[group: 'org.gradle', name:'gradle-core', version: '1.0']");
+            visitor.candidate("Maps").example("[group: 'org.gradle', name: 'gradle-core', version: '1.0']");
         }
 
         protected ModuleComponentSelector parseMap(@MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
@@ -134,14 +140,14 @@ public class ModuleComponentSelectorParsers {
             Class<?> providerTargetClass = getProviderTargetClass(notation);
             if (!MinimalExternalModuleDependency.class.isAssignableFrom(providerTargetClass)) {
                 String notationAsString = notation.getOrNull() == null ? null : notation.get().toString();
-                throw new InvalidUserDataException("Cannot convert a version catalog entry '" + notationAsString + "' to an object of type ModuleVersionSelector. " +
+                throw new InvalidUserDataException("Cannot convert a version catalog entry '" + notationAsString + "' to an object of type ModuleComponentSelector. " +
                     "Only dependency accessors are supported but not plugin, bundle or version accessors for '" + caller + "'.");
             }
             MinimalExternalModuleDependency dependency = (MinimalExternalModuleDependency) notation.get();
             if (isNotRequiredVersionOnly(dependency.getVersionConstraint())) {
-                throw new InvalidUserDataException("Cannot convert a version catalog entry: '" + notation.get() + "' to an object of type ModuleVersionSelector. Rich versions are not supported for '" + caller + "'.");
+                throw new InvalidUserDataException("Cannot convert a version catalog entry: '" + notation.get() + "' to an object of type ModuleComponentSelector. Rich versions are not supported for '" + caller + "'.");
             } else if (dependency.getVersionConstraint().getRequiredVersion().isEmpty()) {
-                throw new InvalidUserDataException("Cannot convert a version catalog entry: '" + notation.get() + "' to an object of type ModuleVersionSelector. Version cannot be empty for '" + caller + "'.");
+                throw new InvalidUserDataException("Cannot convert a version catalog entry: '" + notation.get() + "' to an object of type ModuleComponentSelector. Version cannot be empty for '" + caller + "'.");
             } else {
                 return DefaultModuleComponentSelector.newSelector(dependency.getModule(), dependency.getVersionConstraint().getRequiredVersion());
             }
@@ -161,5 +167,44 @@ public class ModuleComponentSelectorParsers {
                 || constraint.getBranch() != null;
         }
 
+    }
+
+    static class ExternalDependencyConverter extends TypedNotationConverter<ExternalDependency, ModuleComponentSelector> {
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("ExternalDependency instances.");
+        }
+
+        public ExternalDependencyConverter() {
+            super(new TypeInfo<>(ExternalDependency.class));
+        }
+
+        @Override
+        protected ModuleComponentSelector parseType(ExternalDependency notation) {
+            return DefaultModuleComponentSelector.newSelector(notation.getModule(), notation.getVersionConstraint());
+        }
+    }
+
+    static class ModuleVersionSelectorConverter extends TypedNotationConverter<ModuleVersionSelector, ModuleComponentSelector> {
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("ModuleVersionSelector instances. (deprecated)");
+        }
+
+        public ModuleVersionSelectorConverter() {
+            super(new TypeInfo<>(ModuleVersionSelector.class));
+        }
+
+        @Override
+        protected ModuleComponentSelector parseType(ModuleVersionSelector notation) {
+            DeprecationLogger.deprecateAction("Converting an instance of ModuleVersionSelector to ModuleComponentSelector")
+                .withAdvice("Don't create or use ModuleVersionSelector instances and pass one of the other supported notations instead.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "deprecate_moduleversionselector_to_modulecomponentselector")
+                .nagUser();
+            return DefaultModuleComponentSelector.newSelector(
+                notation.getModule(), DefaultImmutableVersionConstraint.of(notation.getVersion())
+            );
+        }
     }
 }

@@ -53,6 +53,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -281,11 +282,24 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private void completeNode(TestNode node, TestCompleteEvent event) {
+        for (Iterator<TestNode> descendingIter = executingStack.descendingIterator(); descendingIter.hasNext();) {
+            TestNode current = descendingIter.next();
+            if (node.equals(current)) {
+                descendingIter.remove();
+                break;
+            }
+            // Complete any children that were not completed yet
+            if (node.equals(current.parent)) {
+                completeNode(current, new TestCompleteEvent(clock.getCurrentTime()));
+                // Re-initialize the iterator as the stack has changed
+                // This is expensive, but these cases should be rare, usually all children will have been completed already
+                descendingIter = executingStack.descendingIterator();
+            }
+        }
+        // The node is more likely to be at the end because we finish parents before children
+        getExecutingStackForCurrentThread().removeLastOccurrence(node);
         resultProcessor.completed(node.descriptor.getId(), event);
         executing.remove(node);
-        // The node is more likely to be at the end because we shouldn't finish parents before children
-        executingStack.removeLastOccurrence(node);
-        getExecutingStackForCurrentThread().removeLastOccurrence(node);
     }
 
     // Note: This is JUnit 4.13+ only, so it may not be called

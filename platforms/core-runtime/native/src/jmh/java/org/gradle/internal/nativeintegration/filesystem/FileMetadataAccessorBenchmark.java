@@ -45,7 +45,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 import java.util.UUID;
 
-@SuppressWarnings("Since15")
 @Threads(2)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)

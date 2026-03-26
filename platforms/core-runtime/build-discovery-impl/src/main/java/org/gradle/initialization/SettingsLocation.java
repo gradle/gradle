@@ -15,19 +15,20 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.scripts.ScriptResolutionResult;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.Optional;
 
 public class SettingsLocation {
     private final File settingsDir;
-
     @Nullable
-    private final File settingsFile;
+    private final ScriptResolutionResult settingsFileResolution;
 
-    public SettingsLocation(File settingsDir, @Nullable File settingsFile) {
+    public SettingsLocation(File settingsDir, @Nullable ScriptResolutionResult settingsFileResolution) {
         this.settingsDir = settingsDir;
-        this.settingsFile = settingsFile;
+        this.settingsFileResolution = settingsFileResolution;
     }
 
     /**
@@ -38,11 +39,21 @@ public class SettingsLocation {
     }
 
     /**
+     * Returns the resolution result for the settings file.
+     */
+    @Nullable
+    public ScriptResolutionResult getSettingsFileResolution() {
+        return settingsFileResolution;
+    }
+
+    /**
      * Returns the settings file. May be null, which mean "no settings file" rather than "use default settings file location".
      */
     @Nullable
     public File getSettingsFile() {
-        return settingsFile;
+        return Optional
+            .ofNullable(settingsFileResolution)
+            .map(ScriptResolutionResult::getSelectedCandidate)
+            .orElse(null);
     }
 }
-

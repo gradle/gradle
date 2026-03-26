@@ -28,11 +28,11 @@ import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.integrationtests.tasks.GenerateAutoTestedSamplesTestTask
 import gradlebuild.integrationtests.tasks.IntegrationTest
-import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.testing.services.BuildBucketProvider
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
@@ -52,7 +52,6 @@ import org.gradle.process.CommandLineArgumentProvider
 
 fun Project.addDependenciesAndConfigurations(prefix: String) {
     configurations {
-        getByName("${prefix}TestImplementation") { extendsFrom(configurations["testImplementation"]) }
         val platformImplementation = findByName("platformImplementation")
 
         val distributionRuntimeOnly = bucket("${prefix}TestDistributionRuntimeOnly", "Declare the distribution that is required to run tests")
@@ -88,12 +87,13 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
 
     // do not attempt to find projects when the plugin is applied just to generate accessors
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "enterprise-plugin-performance" && project.name != "test" /* remove once wrapper is updated */) {
+        val testLibs = project.the<VersionCatalogsExtension>().named("testLibs")
         dependencies {
             "${prefix}TestImplementation"(project)
-            "${prefix}TestImplementation"(project.the<ExternalModulesExtension>().junitJupiter)
-            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junitPlatform)
-            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
-            "${prefix}TestImplementation"(project(":internal-integ-testing"))
+            "${prefix}TestImplementation"(testLibs.findLibrary("junitJupiter").get())
+            "${prefix}TestRuntimeOnly"(testLibs.findLibrary("junitPlatform").get())
+            "${prefix}TestRuntimeOnly"(testLibs.findLibrary("junit5Vintage").get())
+            "${prefix}TestImplementation"(project(":internal-distribution-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
             // Add the agent JAR to the test runtime classpath so the InProcessGradleExecuter can find the module and spawn daemons.
             // This doesn't apply the agent to the test process.
@@ -232,10 +232,7 @@ fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
 
 
 internal
-fun Project.configureIde(testType: TestType) {
-    val prefix = testType.prefix
-    val sourceSet = the<SourceSetContainer>().getByName("${prefix}Test")
-
+fun Project.configureIde(sourceSet: SourceSet) {
     // We apply lazy as we don't want to depend on the order
     plugins.withType<IdeaPlugin> {
         with(model) {

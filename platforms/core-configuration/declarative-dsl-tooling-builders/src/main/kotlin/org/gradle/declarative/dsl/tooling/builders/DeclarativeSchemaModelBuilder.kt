@@ -27,7 +27,7 @@ import org.gradle.internal.declarativedsl.interpreter.GradleProcessInterpretatio
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.Serializable
 
@@ -62,7 +62,11 @@ class DeclarativeSchemaModelBuilder(
     fun InterpretationSequence.analysisOnly(): InterpretationSequence = DefaultInterpretationSequence(
         steps.map { step ->
             val evaluationSchema = step.evaluationSchemaForStep
-            val analysisOnlySchema = DefaultEvaluationSchema(evaluationSchema.analysisSchema, evaluationSchema.analysisStatementFilter)
+            val analysisOnlySchema = DefaultEvaluationSchema(
+                evaluationSchema.analysisSchema,
+                evaluationSchema.analysisSchemaBuildingFailures,
+                evaluationSchema.analysisStatementFilter
+            )
             SimpleInterpretationSequenceStep(step.stepIdentifier, step.features) { analysisOnlySchema }
         }
     )

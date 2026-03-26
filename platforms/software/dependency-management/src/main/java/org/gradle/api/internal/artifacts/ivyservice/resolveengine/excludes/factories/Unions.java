@@ -23,9 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
-
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.gradle.internal.collect.PersistentSet;
 
 class Unions {
     private final ExcludeFactory factory;
@@ -75,7 +73,7 @@ class Unions {
         }
         if (right instanceof ModuleIdSetExclude) {
             ModuleIdSetExclude ids = (ModuleIdSetExclude) right;
-            Set<ModuleIdentifier> items = ids.getModuleIds().stream().filter(id -> !id.getName().equals(leftModule)).collect(Collectors.toSet());
+            PersistentSet<ModuleIdentifier> items = ids.getModuleIds().filter(id -> !id.getName().equals(leftModule));
             if (items.size() == 1) {
                 return factory.anyOf(left, factory.moduleId(items.iterator().next()));
             }
@@ -99,7 +97,7 @@ class Unions {
         }
         if (right instanceof ModuleIdSetExclude) {
             ModuleIdSetExclude ids = (ModuleIdSetExclude) right;
-            Set<ModuleIdentifier> items = ids.getModuleIds().stream().filter(id -> !id.getGroup().equals(leftGroup)).collect(Collectors.toSet());
+            PersistentSet<ModuleIdentifier> items = ids.getModuleIds().filter(id -> !id.getGroup().equals(leftGroup));
             if (items.size() == 1) {
                 return factory.anyOf(left, factory.moduleId(items.iterator().next()));
             }
@@ -114,7 +112,7 @@ class Unions {
     }
 
     private ExcludeSpec tryModuleSetUnion(ModuleSetExclude left, ExcludeSpec right) {
-        Set<String> leftModules = left.getModules();
+        PersistentSet<String> leftModules = left.getModules();
         if (right instanceof ModuleIdExclude) {
             ModuleIdExclude mie = (ModuleIdExclude) right;
             if (leftModules.contains(mie.getModuleId().getName())) {
@@ -123,7 +121,7 @@ class Unions {
         }
         if (right instanceof ModuleIdSetExclude) {
             ModuleIdSetExclude ids = (ModuleIdSetExclude) right;
-            Set<ModuleIdentifier> items = ids.getModuleIds().stream().filter(id -> !leftModules.contains(id.getName())).collect(Collectors.toSet());
+            PersistentSet<ModuleIdentifier> items = ids.getModuleIds().filter(id -> !leftModules.contains(id.getName()));
             if (items.size() == 1) {
                 return factory.anyOf(left, factory.moduleId(items.iterator().next()));
             }
@@ -138,7 +136,7 @@ class Unions {
     }
 
     private ExcludeSpec tryGroupSetUnion(GroupSetExclude left, ExcludeSpec right) {
-        Set<String> leftGroups = left.getGroups();
+        PersistentSet<String> leftGroups = left.getGroups();
         if (right instanceof ModuleIdExclude) {
             ModuleIdExclude mie = (ModuleIdExclude) right;
             if (leftGroups.contains(mie.getModuleId().getGroup())) {
@@ -147,7 +145,7 @@ class Unions {
         }
         if (right instanceof ModuleIdSetExclude) {
             ModuleIdSetExclude ids = (ModuleIdSetExclude) right;
-            Set<ModuleIdentifier> items = ids.getModuleIds().stream().filter(id -> !leftGroups.contains(id.getGroup())).collect(Collectors.toSet());
+            PersistentSet<ModuleIdentifier> items = ids.getModuleIds().filter(id -> !leftGroups.contains(id.getGroup()));
             if (items.size() == 1) {
                 return factory.anyOf(left, factory.moduleId(items.iterator().next()));
             }

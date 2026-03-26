@@ -38,7 +38,7 @@ object StartReleaseCycleTest : BasePromotionBuildType(cleanCheckout = false) {
             }
         }
 
-        val enableTriggers = VersionedSettingsBranch.fromDslContext().enableVcsTriggers
+        val enableTriggers = VersionedSettingsBranch.fromDslContext().isMainBranch
         triggers {
             vcs {
                 branchFilter = "+:master"

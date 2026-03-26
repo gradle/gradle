@@ -50,14 +50,16 @@ The key components of the Dataflow API are:
 
 Let's create the `FlowAction` that will send a Slack message at the end of the build.
 
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 Create a new file named `SlackBuildFlowAction.kt` in `plugin/src/main/kotlin/org/example/` and add the following code:
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 Create a new file named `SlackBuildFlowAction.groovy` in `plugin/src/main/groovy/org/example/` and add the following code:
-----
+=====
+====
 
 ====
 include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackBuildFlowAction.kt[]"]

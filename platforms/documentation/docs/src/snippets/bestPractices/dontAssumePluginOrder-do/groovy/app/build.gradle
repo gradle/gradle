@@ -1,0 +1,24 @@
+// tag::avoid-this[]
+plugins {
+    id 'myplugin'
+}
+// end::avoid-this[]
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation(platform('org.junit:junit-bom:5.10.0'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+}
+
+// tag::do-this[]
+project.pluginManager.withPlugin('java') {
+    project.extensions.configure(org.gradle.api.plugins.JavaPluginExtension) {
+        it.toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    }
+}
+// end::do-this[]

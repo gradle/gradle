@@ -176,6 +176,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
+    @Deprecated
     public Set<T> findAll(Closure spec) {
         return delegate.findAll(spec);
     }
@@ -188,6 +189,11 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     @Override
     public void beforeCollectionChanges(Action<String> action) {
         ((DomainObjectCollectionInternal<?>) delegate).beforeCollectionChanges(action);
+    }
+
+    @Override
+    public void disallowChanges() {
+        ((DomainObjectCollectionInternal<T>) delegate).disallowChanges();
     }
 
     @Internal
