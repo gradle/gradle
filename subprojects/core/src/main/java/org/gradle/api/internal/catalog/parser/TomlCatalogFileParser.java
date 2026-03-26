@@ -309,14 +309,50 @@ public class TomlCatalogFileParser {
         }
     }
 
-    private static void expectedKeys(TomlTable table, Set<String> allowedKeys, String context) {
+    private void expectedKeys(TomlTable table, Set<String> allowedKeys, String context, @Nullable String alias) {
         Set<String> actualKeys = table.keySet();
         if (!allowedKeys.containsAll(actualKeys)) {
             Set<String> difference = Sets.difference(actualKeys, allowedKeys);
+            if (alias != null && looksLikeDottedKeyAliases(table, allowedKeys, difference)) {
+                throwDottedKeyError(alias, difference);
+            }
             throw new InvalidUserDataException("On " + context + " expected to find any of " + quotedOxfordListOf(allowedKeys, "or")
                 + " but found unexpected key" + getPluralEnding(difference) + " " + quotedOxfordListOf(difference, "and")
                 + ".");
         }
+    }
+
+    private static boolean looksLikeDottedKeyAliases(TomlTable table, Set<String> allowedKeys, Set<String> unexpectedKeys) {
+        if (unexpectedKeys.size() == 1 && table.size() == 1) {
+            String key = unexpectedKeys.iterator().next();
+            if (!allowedKeys.contains(key) && table.get(key) instanceof String) {
+                return true;
+            }
+        }
+        return unexpectedKeys.stream().anyMatch(key -> {
+            Object value = table.get(key);
+            if (value instanceof TomlTable) {
+                Set<String> subKeys = ((TomlTable) value).keySet();
+                return !Sets.intersection(subKeys, allowedKeys).isEmpty();
+            }
+            return false;
+        });
+    }
+
+    private void throwDottedKeyError(String alias, Set<String> dottedKeys) {
+        List<String> dottedNames = dottedKeys.stream()
+            .sorted()
+            .map(key -> alias + "." + key)
+            .collect(toList());
+        boolean plural = dottedNames.size() > 1;
+        String label = getProblemInVersionCatalog(versionCatalogBuilder) + ", "
+            + (plural ? "entries " : "entry ")
+            + quotedOxfordListOf(dottedNames, "and")
+            + (plural ? " are not valid aliases" : " is not a valid alias") + ".";
+        throw throwVersionCatalogProblemException(builder ->
+            configureVersionCatalogError(builder, label, TOML_SYNTAX_ERROR)
+                .details("Dots (.) in TOML keys create nested entries and cannot be used in alias names")
+                .solution("Use '-' or '_' separators instead of '.' or a nested entry, e.g. '" + alias + "-" + dottedKeys.iterator().next() + "'"));
     }
 
     private void parseLibrary(String alias, TomlTable librariesTable, VersionCatalogBuilder versionCatalogBuilder, StrictVersionParser strictVersionParser) {
@@ -341,7 +377,7 @@ public class TomlCatalogFileParser {
             return;
         }
         if (gav instanceof TomlTable) {
-            expectedKeys((TomlTable) gav, LIBRARY_COORDINATES, "library declaration '" + alias + "'");
+            expectedKeys((TomlTable) gav, LIBRARY_COORDINATES, "library declaration '" + alias + "'", alias);
         }
         String group = expectString(alias, librariesTable, "group");
         String name = expectString(alias, librariesTable, "name");
@@ -373,7 +409,7 @@ public class TomlCatalogFileParser {
             strictly = richVersion.strictly;
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
-            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'");
+            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'", null);
             versionRef = notEmpty(versionTable.getString("ref"), "version reference", alias);
             require = notEmpty(versionTable.getString("require"), "required version", alias);
             prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
@@ -420,7 +456,7 @@ public class TomlCatalogFileParser {
             }
         }
         if (coordinates instanceof TomlTable) {
-            expectedKeys((TomlTable) coordinates, PLUGIN_COORDINATES, "plugin declaration '" + alias + "'");
+            expectedKeys((TomlTable) coordinates, PLUGIN_COORDINATES, "plugin declaration '" + alias + "'", alias);
         }
         String id = expectString(alias, librariesTable, "id");
         Object version = librariesTable.get(alias + ".version");
@@ -438,7 +474,7 @@ public class TomlCatalogFileParser {
             strictly = richVersion.strictly;
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
-            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'");
+            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'", null);
             versionRef = notEmpty(versionTable.getString("ref"), "version reference", alias);
             require = notEmpty(versionTable.getString("require"), "required version", alias);
             prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
@@ -482,6 +518,7 @@ public class TomlCatalogFileParser {
             strictly = richVersion.strictly;
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
+            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'", alias);
             require = notEmpty(versionTable.getString("require"), "required version", alias);
             prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
             strictly = notEmpty(versionTable.getString("strictly"), "strict version", alias);
