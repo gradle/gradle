@@ -62,6 +62,7 @@ class AbstractCrossVersionPerformanceTest extends AbstractPerformanceTest {
         performanceTestIdProvider.testSpec = runner
     }
 
+    @Override
     CrossVersionPerformanceTestRunner getRunner() {
         runner
     }

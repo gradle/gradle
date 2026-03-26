@@ -43,14 +43,14 @@ class AbstractCrossBuildPerformanceTest extends AbstractPerformanceTest {
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
-    CrossBuildPerformanceTestRunner runner
+    private CrossBuildPerformanceTestRunner runner
 
     def setup() {
         Assume.assumeFalse(Boolean.getBoolean(CROSS_VERSION_ONLY_PROPERTY_NAME))
         runner = new CrossBuildPerformanceTestRunner(
-                new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
-                RESULTS_STORE.reportAlso(dataReporter),
-                buildContext
+            new GradleBuildExperimentRunner(gradleProfilerReporter, outputDirSelector),
+            RESULTS_STORE.reportAlso(dataReporter),
+            buildContext
         ) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
@@ -71,6 +71,11 @@ class AbstractCrossBuildPerformanceTest extends AbstractPerformanceTest {
             }
         }
         performanceTestIdProvider.setTestSpec(runner)
+    }
+
+    @Override
+    CrossBuildPerformanceTestRunner getRunner() {
+        runner
     }
 
     protected void defaultSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
