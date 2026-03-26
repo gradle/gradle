@@ -598,6 +598,38 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         source << ['command-line', 'gradle.properties']
     }
 
+    @ToBeImplemented
+    def "invalidates cache when new command-line project property is added after accessing all properties via #accessExpr"() {
+        buildFile """
+            def allProps = ${accessExpr}
+            println("props: \${allProps.keySet().sort()}")
+
+            tasks.register("some")
+        """
+
+        when:
+        configurationCacheRun "some", "-PexistingProp=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "props:"
+
+        when: "a new command-line property is added"
+        configurationCacheRun "some", "-PexistingProp=one", "-PnewProp=new"
+
+        then: "cache should be invalidated because the set of properties changed"
+        // getProperties() only tracks individual property values, not the set of properties.
+        // Adding a new property is not detected, causing a false cache hit.
+        configurationCache.assertStateLoaded()
+        // Must be:
+//        configurationCache.assertStateStored()
+
+        where:
+        accessExpr << [
+            "project.ext.properties",
+        ]
+    }
+
     def "reuses cache when start parameter project property used at execution time changes"() {
         given:
         buildFile """
