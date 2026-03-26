@@ -19,8 +19,6 @@ package org.gradle.internal.cc.impl
 import groovy.lang.MissingPropertyException
 import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.configuration.internal.DynamicCallContextTracker
-import org.gradle.internal.Factory
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 
@@ -51,9 +49,11 @@ class TrackingDynamicLookupRoutine(
             receiver.hasProperty(propertyName)
         }
 
+    @Suppress("DEPRECATION")
+    @Deprecated("Will be removed in Gradle 10.0")
     override fun getProperties(receiver: DynamicObject): Map<String, *>? =
         withDynamicCall(receiver) {
-            DeprecationLogger.whileDisabled(Factory<Map<String, *>> { receiver.properties })
+            receiver.properties
         }
 
     @Suppress("SpreadOperator")

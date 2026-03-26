@@ -185,6 +185,7 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
             return extensionsStorage.hasExtension(name);
         }
 
+        @Deprecated
         @Override
         public Map<String, @Nullable Object> getProperties() {
             Map<String, Object> properties = new HashMap<String, Object>();

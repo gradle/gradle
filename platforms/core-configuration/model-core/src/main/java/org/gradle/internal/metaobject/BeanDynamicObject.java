@@ -210,6 +210,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         return delegate.setPropertyWithoutInstrumentation(name, value);
     }
 
+    @Deprecated
     @Override
     public Map<String, ? extends @Nullable Object> getProperties() {
         return delegate.getProperties();
@@ -508,6 +509,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return DynamicInvokeResult.notFound();
         }
 
+        @Deprecated
         @SuppressWarnings("MixedMutabilityReturnType")
         // This might be too invasive to fix properly because it is in the dynamic code.
         public Map<String, ? extends @Nullable Object> getProperties() {

@@ -84,6 +84,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
         return DynamicInvokeResult.notFound();
     }
 
+    @Deprecated
     @Override
     public Map<String, @Nullable Object> getProperties() {
         Map<String, Object> properties = new HashMap<String, Object>();

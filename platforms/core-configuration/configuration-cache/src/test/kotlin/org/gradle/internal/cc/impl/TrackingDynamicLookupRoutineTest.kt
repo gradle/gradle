@@ -46,7 +46,7 @@ class TrackingDynamicLookupRoutineTest {
         shouldTrackContext { findProperty(receiver, "test") }
         shouldTrackContext { setProperty(receiver, "test", "test") }
         shouldTrackContext { hasProperty(receiver, "test") }
-        shouldTrackContext { getProperties(receiver) }
+        shouldTrackContext { @Suppress("DEPRECATION") getProperties(receiver) }
         shouldTrackContext { invokeMethod(receiver, "test", arrayOf("test")) }
     }
 }

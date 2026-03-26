@@ -106,6 +106,22 @@ This is a result of the link:https://github.com/gradle/gradle/pull/36510[Windows
 If you are using a custom start script template that references the exit environment variable, update your template to remove this dependency.
 There is no replacement API, the exit environment variable concept has been removed entirely.
 
+[[deprecated_project_get_properties]]
+==== Deprecation of `Project.getProperties()`
+
+link:{javadocPath}/org/gradle/api/Project.html#getProperties()[`Project.getProperties()`] has been deprecated and will be removed in Gradle 10.0.0.
+
+This method returns a merged view of all properties including inherited parent project properties, which conflicts with the project isolation model.
+
+To access a specific property, use `project.findProperty("name")` or `providers.gradleProperty("name")` instead.
+
+[[deprecated_script_get_properties]]
+==== Deprecation of calling `getProperties()` on a script
+
+Calling `getProperties()` (or accessing the `properties` property) on a build script, settings script, or init script has been deprecated and will be removed in Gradle 10.0.0.
+
+To access specific properties, use `ext` properties or `providers.gradleProperty("name")` instead.
+
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
 
