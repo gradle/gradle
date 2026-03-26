@@ -54,7 +54,7 @@ class HttpHeaderAuthSchemeTest extends Specification {
         thrown(AuthenticationException)
     }
 
-    def "test authenticate"() {
+    def "test authenticate adds custom header to request"() {
         given:
         HttpHeaderAuthScheme headerAuthScheme = new HttpHeaderAuthScheme()
         def credentials = new HttpClientHttpHeaderCredentials("TestHttpHeaderName", "TestHttpHeaderValue")
@@ -62,12 +62,14 @@ class HttpHeaderAuthSchemeTest extends Specification {
         def credentialsProvider = Mock(CredentialsProvider) {
             getCredentials(_ as AuthScope, _) >> credentials
         }
+        def request = Mock(org.apache.hc.core5.http.HttpRequest)
 
         when:
         headerAuthScheme.isResponseReady(host, credentialsProvider, null)
-        def authResponse = headerAuthScheme.generateAuthResponse(host, null, null)
+        def authResponse = headerAuthScheme.generateAuthResponse(host, request, null)
 
         then:
-        authResponse == "TestHttpHeaderValue"
+        1 * request.addHeader({ it.name == "TestHttpHeaderName" && it.value == "TestHttpHeaderValue" })
+        authResponse == null
     }
 }

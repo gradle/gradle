@@ -80,6 +80,10 @@ public class HttpHeaderAuthScheme implements AuthScheme {
         if (credentials == null) {
             throw new AuthenticationException("No header credentials available");
         }
-        return credentials.getHeader().getValue();
+        // Add the custom header directly to the request rather than returning a value,
+        // because HC5's auth framework would place the return value under the standard
+        // "Authorization" header, which is wrong for custom header authentication.
+        request.addHeader(credentials.getHeader());
+        return null;
     }
 }

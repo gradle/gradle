@@ -16,20 +16,25 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
-import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.classic.ExecChain;
+import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpPut;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
+import org.apache.hc.client5.http.impl.ChainElement;
+import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
@@ -41,14 +46,13 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.gradle.api.JavaVersion;
@@ -70,12 +74,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
+import java.io.IOException;
 import java.net.ProxySelector;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Supplier;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
@@ -131,12 +135,20 @@ public class HttpClientConfigurer {
         SystemDefaultCredentialsProvider credentialsProvider = new SystemDefaultCredentialsProvider();
         configureConnectionManager(builder, httpSettings.getSslContextFactory(), httpSettings.getHostnameVerifier());
         configureAuthSchemeRegistry(builder);
+        configureAuthenticationStrategy(builder);
         configureCredentials(builder, credentialsProvider, httpSettings.getAuthenticationSettings());
         configureProxy(builder, credentialsProvider, httpSettings);
         configureUserAgent(builder);
         configureRequestConfig(builder);
         configureRedirectStrategy(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
+        // Disable HC5's automatic content compression handling.
+        // HC5's ContentCompressionExec wraps response entities in DecompressingEntity, but
+        // ResponseEntityProxy.eofDetected()/streamClosed() close the underlying ChunkedInputStream.
+        // If DecompressingEntity.getContent() is called after this (creating a new EofSensorInputStream
+        // wrapping the now-closed ChunkedInputStream), it fails with StreamClosedException.
+        // Gradle handles response content directly without needing transparent decompression.
+        builder.disableContentCompression();
     }
 
     private void configureConnectionManager(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
@@ -167,22 +179,50 @@ public class HttpClientConfigurer {
         );
     }
 
+    /**
+     * HC5's {@code DefaultAuthenticationStrategy} no longer includes NTLM or SPNEGO/Kerberos
+     * in its default scheme priority list (they were removed as deprecated). Override the
+     * strategy to restore support for these schemes.
+     */
+    private void configureAuthenticationStrategy(HttpClientBuilder builder) {
+        DefaultAuthenticationStrategy strategy = new DefaultAuthenticationStrategy() {
+            @Override
+            protected java.util.List<String> getSchemePriority() {
+                return Arrays.asList(
+                    StandardAuthScheme.SPNEGO,
+                    StandardAuthScheme.KERBEROS,
+                    StandardAuthScheme.NTLM,
+                    StandardAuthScheme.DIGEST,
+                    StandardAuthScheme.BASIC
+                );
+            }
+        };
+        builder.setTargetAuthenticationStrategy(strategy);
+        builder.setProxyAuthenticationStrategy(strategy);
+    }
+
     private void configureCredentials(HttpClientBuilder builder, CredentialsStore credentialsProvider, Collection<Authentication> authentications) {
         if (authentications.size() > 0) {
             useCredentials(credentialsProvider, authentications);
 
-            // Use preemptive authorisation if no other authorisation has been established
-            builder.addRequestInterceptorFirst(new PreemptiveAuth(getAuthScheme(authentications), isPreemptiveEnabled(authentications)));
+            // Use preemptive authorisation if no other authorisation has been established.
+            // This must be an exec chain handler (not a request interceptor) because HC5's
+            // ProtocolExec loads auth from the AuthCache BEFORE running request interceptors.
+            builder.addExecInterceptorBefore(
+                ChainElement.PROTOCOL.name(),
+                "PREEMPTIVE_AUTH",
+                new PreemptiveAuth(getAuthSchemeSupplier(authentications), isPreemptiveEnabled(authentications))
+            );
         }
     }
 
-    private AuthScheme getAuthScheme(final Collection<Authentication> authentications) {
+    private Supplier<AuthScheme> getAuthSchemeSupplier(final Collection<Authentication> authentications) {
         if (authentications.size() == 1) {
             if (authentications.iterator().next() instanceof HttpHeaderAuthentication) {
-                return new HttpHeaderAuthScheme();
+                return HttpHeaderAuthScheme::new;
             }
         }
-        return new BasicScheme();
+        return BasicScheme::new;
     }
 
     private void configureProxy(HttpClientBuilder builder, CredentialsStore credentialsProvider, HttpSettings httpSettings) {
@@ -313,36 +353,50 @@ public class HttpClientConfigurer {
         }
     }
 
-    static class PreemptiveAuth implements HttpRequestInterceptor {
-        private final AuthScheme authScheme;
+    /**
+     * Generates preemptive auth headers before {@code ProtocolExec} runs.
+     *
+     * <p>In HC5, {@code ProtocolExec} handles authentication <em>before</em> running
+     * request interceptors, so a request interceptor approach (as used in HC4) would
+     * be too late. Instead, this exec chain handler directly generates the auth header
+     * and adds it to the request. {@code ProtocolExec} will then skip its own auth
+     * handling for the request since the {@code Authorization} header is already present.</p>
+     */
+    static class PreemptiveAuth implements ExecChainHandler {
+        private final Supplier<AuthScheme> authSchemeSupplier;
         private final boolean alwaysSendAuth;
 
-        PreemptiveAuth(AuthScheme authScheme, boolean alwaysSendAuth) {
-            this.authScheme = authScheme;
+        PreemptiveAuth(Supplier<AuthScheme> authSchemeSupplier, boolean alwaysSendAuth) {
+            this.authSchemeSupplier = authSchemeSupplier;
             this.alwaysSendAuth = alwaysSendAuth;
         }
 
         @Override
-        public void process(final HttpRequest request, final EntityDetails entity, final HttpContext context) throws HttpException {
-            HttpClientContext clientContext = HttpClientContext.cast(context);
+        public ClassicHttpResponse execute(ClassicHttpRequest request, ExecChain.Scope scope, ExecChain chain) throws IOException, HttpException {
+            HttpClientContext context = scope.clientContext;
+            HttpHost target = scope.route.getTargetHost();
 
-            try {
-                URI uri = request.getUri();
-                HttpHost targetHost = new HttpHost(uri.getScheme(), uri.getHost(), uri.getPort());
-                AuthExchange authExchange = clientContext.getAuthExchange(targetHost);
-
-                if (authExchange.getState() != AuthExchange.State.UNCHALLENGED) {
-                    return;
+            String requestMethod = request.getMethod();
+            if (alwaysSendAuth || requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
+                CredentialsProvider credentialsProvider = context.getCredentialsProvider();
+                if (credentialsProvider != null) {
+                    AuthScheme scheme = authSchemeSupplier.get();
+                    try {
+                        if (scheme.isResponseReady(target, credentialsProvider, context)) {
+                            String authResponse = scheme.generateAuthResponse(target, request, context);
+                            if (authResponse != null) {
+                                request.addHeader(HttpHeaders.AUTHORIZATION, authResponse);
+                            }
+                            // For HttpHeaderAuthScheme, the custom header is added directly
+                            // to the request in generateAuthResponse(), which returns null.
+                        }
+                    } catch (AuthenticationException e) {
+                        LOGGER.debug("Preemptive auth failed", e);
+                    }
                 }
-
-                // If no authExchange has been established and this is a PUT or POST request, add preemptive authorisation
-                String requestMethod = request.getMethod();
-                if (alwaysSendAuth || requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
-                    authExchange.select(authScheme);
-                }
-            } catch (URISyntaxException e) {
-                // Cannot determine target host, skip preemptive auth
             }
+
+            return chain.proceed(request, scope);
         }
     }
 
