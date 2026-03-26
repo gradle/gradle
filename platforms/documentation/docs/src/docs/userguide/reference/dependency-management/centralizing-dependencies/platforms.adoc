@@ -99,14 +99,72 @@ In this example, the Spring Boot BOM provides the versions for `gson` and `dom4j
 [[sec:enforced-platform]]
 === Enforced Platform
 
-The `enforcedPlatform` keyword can be used to override any versions found in the dependency graph, but should be used with caution as it is effectively transitive and exports forced versions to all consumers of your project:
+When you import a BOM using `platform`, the versions it defines act as recommendations, they can be upgraded by other dependencies in the graph.
+To prevent upgrades and lock all versions from a BOM, use `enforcedPlatform`:
 
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
 ====
 
-When using `enforcedPlatform`, exercise caution if your software component is intended for consumption by others.
-This declaration is transitive and affects the dependency graph of your consumers.
-If they disagree with any enforced versions, they'll need to use `exclude`.
-Instead, if your reusable component strongly favors specific third-party dependency versions, consider using a <<dependency_versions.adoc#sec:strict-version,rich version>> declaration with `strictly`.
+Under the hood, `enforcedPlatform` converts every version constraint from the BOM into a <<dependency_versions.adoc#sec:strict-version,`strictly`>> declaration.
+This means no dependency in the graph can upgrade past the versions defined in the BOM.
+
+[[sec:enforced-platform-vs-strictly]]
+==== `enforcedPlatform` vs. `strictly` on individual dependencies
+
+Use `enforcedPlatform` to pin *all* versions from a BOM as a group.
+Use `strictly` on individual dependencies when you only need to control one or two specific modules.
+
+Mixing both approaches on the same dependency group can lead to version misalignment.
+For example, if you import a BOM with `platform` and then add a `strictly` constraint on a single module from that group, the constrained module may resolve to a different version than its siblings:
+
+[source,kotlin]
+----
+dependencies {
+    // BOM recommends log4j-api:2.16.0 and log4j-core:2.16.0
+    implementation(platform("org.apache.logging.log4j:log4j-bom:2.16.0"))
+
+    // This overrides only log4j-core, leaving log4j-api at the BOM version
+    implementation("org.apache.logging.log4j:log4j-core") {
+        version {
+            strictly("[2.17, 3[")
+            prefer("2.17.0")
+        }
+    }
+}
+// Result: log4j-core resolves to 2.17.0, but log4j-api stays at 2.16.0
+----
+
+To keep the entire group aligned, either upgrade the BOM version itself, or use `enforcedPlatform` with the newer BOM:
+
+[source,kotlin]
+----
+dependencies {
+    // Pins all Log4j modules to 2.17.0
+    implementation(enforcedPlatform("org.apache.logging.log4j:log4j-bom:2.17.0"))
+}
+----
+
+[[sec:enforced-platform-caution]]
+WARNING: `enforcedPlatform` should generally only be used in applications, not in libraries or other components consumed by others.
+
+Because `enforcedPlatform` converts all BOM constraints to `strictly`, these strict versions propagate transitively to every consumer of your project.
+Consumers who need a different version will be forced to use `exclude` to work around the conflict.
+
+If you are publishing a library that depends on specific third-party versions, prefer using <<dependency_versions.adoc#sec:rich-version-constraints,rich version declarations>> with `strictly` and a range on only the dependencies that require it:
+
+[source,kotlin]
+----
+dependencies {
+    // Library-friendly: constrains only the module you need, with a flexible range
+    implementation("org.apache.logging.log4j:log4j-core") {
+        version {
+            strictly("[2.17, 3[")
+            prefer("2.17.1")
+        }
+    }
+}
+----
+
+This gives consumers the flexibility to choose any compatible version within the range.
