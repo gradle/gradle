@@ -509,6 +509,7 @@ The elements in `samples.publishedSamples` container are installed into a local 
 [Exemplar](https://github.com/gradle/exemplar) discovers, executes, and verifies the output of each snippet by looking for `*.sample.conf` files inside the snippet's `tests/` directory.
 
 Under the hood, a custom JUnit Platform test engine ([`SamplesTestEngine`](https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docsTest/java/org/gradle/docs/samples/SamplesTestEngine.java)) handles discovery and execution. For each snippet, it assembles the `groovy/`, `kotlin/`, and `common/` subdirectories into a temporary working directory, then runs the Gradle commands declared in the `.sample.conf` file using Gradle's standard integration test infrastructure. The actual output is then compared against the corresponding `.out` file (if provided) — if they don't match, the test fails.
+While a `.out` file is technically optional, it is **highly** recommended that every `.sample.conf` file be accompanied by a `.out` file.
 
 Use the specific test commands below when testing a snippet locally during development.
 
@@ -625,8 +626,13 @@ Before renaming or restructuring a snippet, search the codebase for any referenc
 @UsesSample("java/application")
 ```
 
+Or search for `new Sample`. For example:
+
 ```java
 @Rule Sample sample = new Sample(temporaryFolder, 'java/application')
+    
+@Rule
+Sample sampleProvider = new Sample(testDirectoryProvider, sampleName)
 ```
 
 If you find any, coordinate with the engineering team before making changes.

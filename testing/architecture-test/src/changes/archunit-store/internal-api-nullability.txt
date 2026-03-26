@@ -3534,7 +3534,6 @@ Class <org.gradle.test.preconditions.UnitTestPreconditions$NoMandatoryFileLockOn
 Class <org.gradle.test.preconditions.UnitTestPreconditions$NoSymlinks> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$NonDeprecatedDaemonJdkVersion> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$NotAlpine> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
-Class <org.gradle.test.preconditions.UnitTestPreconditions$NotEC2Agent> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$NotInGradleceptionBuild> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$NotLinux> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$NotMacOs> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
