@@ -1,4 +1,5 @@
 import gradlebuild.basics.buildCommitId
+import gradlebuild.basics.scriptTemplateCommitIdViaFileSystemQuery
 import gradlebuild.identity.tasks.BuildReceipt
 
 plugins {
@@ -83,6 +84,7 @@ val createBuildReceipt by tasks.registering(BuildReceipt::class) {
     this.promotionBuild = gradleModule.identity.promotionBuild
     this.buildTimestampFrom(gradleModule.identity.buildTimestamp)
     this.commitId = project.buildCommitId
+    this.scriptTemplateCommitId = project.scriptTemplateCommitIdViaFileSystemQuery()
     this.receiptFolder = project.layout.buildDirectory.dir("generated-resources/build-receipt")
 }
 
