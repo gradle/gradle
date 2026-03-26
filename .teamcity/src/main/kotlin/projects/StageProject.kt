@@ -76,7 +76,26 @@ class StageProject(
             stage.specificBuilds.map {
                 it.create(model, stage, FlakyTestStrategy.EXCLUDE)
             }
-        specificBuildTypes.forEach(this::buildType)
+
+        val smokeBuildTypesForSubProject =
+            if (stage.stageName == StageName.PULL_REQUEST_FEEDBACK) {
+                stage.specificBuilds.zip(specificBuildTypes).filter { (spec, _) ->
+                    spec in SpecificBuild.pullRequestFeedbackSmokeBuilds
+                }.map { it.second }
+            } else {
+                emptyList()
+            }
+        if (smokeBuildTypesForSubProject.isNotEmpty()) {
+            subProject(SmokeTestProject(model, stage, smokeBuildTypesForSubProject))
+        }
+
+        specificBuildTypes.zip(stage.specificBuilds).forEach { (buildType, spec) ->
+            val inSmokeSubProject =
+                stage.stageName == StageName.PULL_REQUEST_FEEDBACK && spec in SpecificBuild.pullRequestFeedbackSmokeBuilds
+            if (!inSmokeSubProject) {
+                buildType(buildType)
+            }
+        }
 
         performanceTests =
             stage.performanceTests.map { createPerformanceTests(model, performanceTestBucketProvider, stage, it) } +
