@@ -254,11 +254,11 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         def retries=2
-        def retryTimeoutMs=0
+        def retryBackOffMs=0
 
         file('gradle/wrapper/gradle-wrapper.properties') << """
             retries=$retries
-            retryTimeoutMs=$retryTimeoutMs
+            retryBackOffMs=$retryBackOffMs
         """.stripIndent()
 
         when:
@@ -271,19 +271,19 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         then:
         def attempts = retries + 1
 
-        assertThat(result.output, containsString("Fetching distribution (retrying $retries times, with a timeout of $retryTimeoutMs ms)."))
+        assertThat(result.output, containsString("Fetching distribution (retrying $retries times, with an initial back off of $retryBackOffMs ms)."))
         assertThat(result.output, containsString("Attempt 1/$attempts failed. Reason: Server returned HTTP response code: 500"))
         assertThat(result.output, containsString("Attempt 2/$attempts failed. Reason: Server returned HTTP response code: 500"))
         assert result.output.readLines().findAll{ it.contains(
             "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 3
 
-        assert elapsedTime >= retries * retryTimeoutMs
+        assert elapsedTime >= retryBackOffMs * ((1 << retries) - 1) // duration * (1 + 2 + ... + 2^(n-1)) = duration * (2^n - 1)
 
         verifyDistributionDownloaded()
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18124')
-    def "fails with retries and retry timeout (#retryTimeoutMs ms)"() {
+    def "fails with retries and retry back off (#retryBackOffMs ms)"() {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
@@ -296,7 +296,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         file('gradle/wrapper/gradle-wrapper.properties') << """
             retries=$retries
-            retryTimeoutMs=$retryTimeoutMs
+            retryBackOffMs=$retryBackOffMs
         """.stripIndent()
 
         when:
@@ -308,19 +308,19 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         then:
         def attempts = retries + 1
 
-        assertThat(failure.output, containsString("Fetching distribution (retrying $retries times, with a timeout of $retryTimeoutMs ms)."))
+        assertThat(failure.output, containsString("Fetching distribution (retrying $retries times, with an initial back off of $retryBackOffMs ms)."))
         failure.assertHasErrorOutput("Server returned HTTP response code: 500 for URL")
         assertThat(failure.output, containsString("Attempt 1/$attempts failed. Reason: Server returned HTTP response code: 500"))
         assertThat(failure.output, containsString("Attempt 2/$attempts failed. Reason: Server returned HTTP response code: 500"))
         assertThat(failure.output, containsString("Attempt 3/$attempts failed. Reason: Server returned HTTP response code: 500"))
 
-        assert elapsedTime >= retries * retryTimeoutMs
+        assert elapsedTime >= retryBackOffMs * ((1 << retries) - 1) // duration * (1 + 2 + ... + 2^(n-1)) = duration * (2^n - 1)
 
         assert failure.output.readLines().findAll{ it.contains(
             "Downloading http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL") }.size() == 3
 
         where:
-        retryTimeoutMs << [0, 500]
+        retryBackOffMs << [0, 500]
     }
 
     def "downloads wrapper via proxy"() {

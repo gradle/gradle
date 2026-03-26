@@ -35,7 +35,7 @@ import java.util.jar.Manifest
 import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
-    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("f307680272dffdb8e636f1169adfbf693513005c80aa06e8d381f20390a06e6a")
+    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7")
 
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
@@ -180,12 +180,12 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("retries=5")
     }
 
-    def "generated wrapper scripts for given retry timeout from command-line"() {
+    def "generated wrapper scripts for given retry back off from command-line"() {
         when:
-        run "wrapper", "--retry-timeout-ms", "5000"
+        run "wrapper", "--retry-back-off-ms", "1000"
 
         then:
-        file("gradle/wrapper/gradle-wrapper.properties").text.contains("retryTimeoutMs=5000")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("retryBackOffMs=1000")
     }
 
     def "wrapper JAR does not contain version in manifest"() {

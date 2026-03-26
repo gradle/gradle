@@ -191,7 +191,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
             startScripts.getConventionMapping().map("applicationName", pluginExtension::getApplicationName);
 
-            startScripts.getGitRef().set(DefaultGradleVersion.current().getGitRevision());
+            startScripts.getGitRef().set(DefaultGradleVersion.current().getScriptTemplateGitRevision());
 
             startScripts.getConventionMapping().map("outputDir", () -> new File(project.getBuildDir(), "scripts"));
 

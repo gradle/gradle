@@ -14,7 +14,7 @@
 
 [[gradle_wrapper]]
 = Gradle Wrapper
-:keywords: wrapper, distributionUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url, retries, retry-timeout-ms
+:keywords: wrapper, distributionUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url, retries, retry-back-off-ms
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
 
@@ -137,8 +137,8 @@ Enables the validation of the configured distribution URL. Enabled by default.
 `--retries`::
 The number of retries to attempt when downloading the Gradle distribution. The default value is `0`, meaning retrying is disabled, downloading will be attempted a single time. Negative values will be ignored and the default will be used.
 
-`--retry-timeout-ms`::
-The timeout in milliseconds to wait between download retries (if enabled, see `--retries`). The default value is `0`, meaning that there won't be any delay between two successive download attempts. Negative values will be ignored and the default will be used.
+`--retry-back-off-ms`::
+The initial back off in milliseconds to wait between download retries (if enabled, see `--retries`). The delay doubles after each consecutive failure. The default value is `500` milliseconds, meaning we will wait half a second after the first failed download attempt, 1 second after the second attempt and so on. Negative values will be ignored and the default will be used.
 
 If the distribution URL is configured with `--gradle-version` or `--gradle-distribution-url`, the URL is validated by sending a HEAD request in the case of the `https` scheme or by checking the existence of the file in the case of the `file` scheme.
 
@@ -397,12 +397,12 @@ It is strongly recommended to include the hostname in the property to prevent th
 The Gradle Wrapper can be configured to automatically retry downloading the Gradle distribution.
 This is useful in environments with unstable network connections.
 
-You can configure the number of retries and the timeout between attempts in the `gradle-wrapper.properties` file:
+You can configure the number of retries and the back off between attempts in the `gradle-wrapper.properties` file:
 
 [source,properties]
 ----
 retries=3
-retryTimeoutMs=5000
+retryBackOffMs=1000 # initial delay; doubles on each subsequent failure
 ----
 
 [[sec:verification]]
