@@ -26,6 +26,7 @@ import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Pair;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.work.DisableCachingByDefault;
@@ -73,9 +74,10 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
         return computePropertyReportModel(project);
     }
 
+    @SuppressWarnings("deprecation")
     private PropertyReportTask.PropertyReportModel computePropertyReportModel(Project project) {
         PropertyReportModel model = new PropertyReportModel();
-        Map<String, ?> projectProperties = project.getProperties();
+        Map<String, ?> projectProperties = DeprecationLogger.whileDisabled(project::getProperties);
         if (getProperty().isPresent()) {
             String propertyName = getProperty().get();
             if ("properties".equals(propertyName)) {
