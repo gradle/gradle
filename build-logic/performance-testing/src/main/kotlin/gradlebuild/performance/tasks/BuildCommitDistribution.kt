@@ -191,14 +191,14 @@ abstract class BuildCommitDistribution @Inject internal constructor(
         val mirrorInitScript = temporaryDir.resolve("mirroring-init-script.gradle")
         BuildCommitDistribution::class.java.getResource("/mirroring-init-script.gradle")?.let { mirrorInitScript.writeText(it.readText()) }
 
-        val gradleModeCompatibility = checkoutDir.resolve("gradle.properties")
-            .readAsProperties()["buildCommitDistribution.gradleModeCompatibility"]?.toString()
+        // null, "CC" or "IP"
+        val gradleModeCompatibility = resolveGradleModeCompatibility(checkoutDir)
 
         return listOfNotNull(
             "./gradlew" + (if (OperatingSystem.current().isWindows) ".bat" else ""),
             if (gradleModeCompatibility == null) "--no-configuration-cache" else null,
             // TODO:isolated https://github.com/gradle/gradle/issues/36771
-            "-Dorg.gradle.unsafe.isolated-projects=false",
+            if (gradleModeCompatibility == "IP") null else "-Dorg.gradle.unsafe.isolated-projects=false",
             "--init-script",
             mirrorInitScript.absolutePath,
             PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY.let { name -> System.getProperty(name)?.let { "-D$name=$it" } },
@@ -212,6 +212,14 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             "-PbuildCommitDistribution=true",
             "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
         )
+    }
+
+    private fun resolveGradleModeCompatibility(checkoutDir: File): String? {
+        val property = "buildCommitDistribution.gradleModeCompatibility"
+        val value = checkoutDir.resolve("gradle.properties").readAsProperties()[property]?.toString()
+        val expectedValues = listOf(null, "CC", "IP")
+        check(value in expectedValues) { "Unknown value for $property: '$value'. Expected one of: $expectedValues" }
+        return value
     }
 
     private
