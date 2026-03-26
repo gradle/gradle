@@ -157,15 +157,19 @@ This is especially useful in environments like native builds, where not all conf
 
 == Understanding the locking mechanism during dependency resolution
 
-When using dependency locking, Gradle enforces the locked versions as if they were declared with `strictly()`.
+When dependency locking is active and a lock state exists, Gradle adds locked versions as <<dependency_versions.adoc#sec:strict-version,`strictly`>> dependency constraints during resolution.
+These constraints apply to both direct and transitive dependencies, but they interact differently with each:
 
-This means:
+* For **transitive dependencies**, the lock's `strictly` constraint pins the resolved version.
+If a transitive dependency would normally resolve to a version different from the locked one, the `strictly` constraint overrides it, just as a hand-written `strictly` declaration would.
+* For **direct dependencies**, your declared version acts as a `require` constraint.
+The lock's `strictly` constraint must be compatible with it:
+** If you declare version `1.0.0` (interpreted as `require 1.0.0`) and the lock state contains `1.2.0`, the lock's `strictly 1.2.0` satisfies the `require` (since `1.2.0` >= `1.0.0`), and Gradle resolves to `1.2.0`.
+** If you declare version `1.2.0` (interpreted as `require 1.2.0`) and the lock state contains `1.0.0`, the lock's `strictly 1.0.0` conflicts with your `require 1.2.0` — the declared version is higher than what the lock allows — and Gradle **fails resolution**. To resolve this, update the lock state with `--write-locks`.
 
-- If the declared version is **lower** than the locked version (e.g., declared `1.0.0`, locked `1.2.0`), Gradle will silently upgrade to the locked version.
-- If the declared version is **higher** than the locked version (e.g., declared `1.2.0`, locked `1.0.0`), Gradle will **fail resolution**, because the lockfile enforces `1.0.0` strictly.
+In both cases, the mechanism is standard <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> conflict resolution between `require` and `strictly` — the lock file simply injects the `strictly` constraint automatically.
 
-This can be surprising if you assume the declared version takes precedence.
-To resolve this, update the lockfile with `--write-locks`.
+TIP: This is why updating a direct dependency version without also running `--write-locks` can cause a build failure: your new `require` may be higher than the existing lock's `strictly`.
 
 [[sec:lock-state]]
 == Understanding lock state location and format
