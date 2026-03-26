@@ -32,6 +32,9 @@ import org.gradle.process.CommandLineArgumentProvider
 // Find all references here https://developer.android.com/studio/archive
 // Update verification-metadata.xml
 const val DEFAULT_ANDROID_STUDIO_VERSION = "2025.3.2.6"
+
+//TODO: this is a temporary fix to support new naming scheme of Android Studio distributions
+const val NAME_FILE_PART = "panda2"
 const val UNPACK_ANDROID_STUDIO_TASK_NAME = "unpackAndroidStudio"
 const val ANDROID_STUDIO_INSTALL_PATH = "android-studio"
 
@@ -63,7 +66,7 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
                     // Url of Android Studio archive
                     url = uri("https://repo.grdev.net/artifactory/android-studio/${if (androidStudioFileName.endsWith("dmg")) "install" else "ide-zips"}")
                     patternLayout {
-                        artifact("[revision]/[artifact]-[revision]-[ext]")
+                        artifact("[revision]/[artifact]-$NAME_FILE_PART-[ext]")
                     }
                     metadataSources { artifact() }
                     content {
