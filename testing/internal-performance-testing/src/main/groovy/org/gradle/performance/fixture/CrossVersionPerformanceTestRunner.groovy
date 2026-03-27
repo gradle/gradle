@@ -92,7 +92,12 @@ class CrossVersionPerformanceTestRunner implements PerformanceTestRunner<CrossVe
 
     private BuildAction buildAction
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
+    CrossVersionPerformanceTestRunner(
+        BuildExperimentRunner experimentRunner,
+        DataReporter<CrossVersionPerformanceResults> reporter,
+        ReleasedVersionDistributions releases,
+        IntegrationTestBuildContext buildContext
+    ) {
         this.reporter = reporter
         this.experimentRunner = experimentRunner
         this.releases = releases
