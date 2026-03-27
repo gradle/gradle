@@ -8,10 +8,13 @@ repositories {
 
 // tag::get-recommendations[]
 dependencies {
-    // get recommended versions from the platform project
-    api platform(project(':platform'))
-    // no version required
-    api 'commons-httpclient:commons-httpclient'
+    // A local platform
+    api platform(project(':platform')) // get recommended versions from the platform project
+    api 'commons-httpclient:commons-httpclient' // no version required
+
+    // A published platform
+    implementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 // end::get-recommendations[]
 

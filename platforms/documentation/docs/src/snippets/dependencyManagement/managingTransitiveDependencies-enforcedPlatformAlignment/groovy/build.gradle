@@ -1,0 +1,14 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::enforced-platform-alignment[]
+dependencies {
+    // Pins all Log4j modules to 2.17.0
+    implementation enforcedPlatform('org.apache.logging.log4j:log4j-bom:2.17.0')
+}
+// end::enforced-platform-alignment[]
