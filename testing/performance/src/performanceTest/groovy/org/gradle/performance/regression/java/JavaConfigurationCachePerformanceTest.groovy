@@ -23,6 +23,7 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
+import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
 import java.util.regex.Pattern
@@ -33,10 +34,10 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.junit.Assert.assertTrue
 
 class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerformanceTest {
-    private File stateDirectory
+
+    private static String CC_STATE_DIR = ".gradle/configuration-cache"
 
     def setup() {
-        stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
         runner.minimumBaseVersion = "6.6"
     }
 
@@ -55,7 +56,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
 
         and:
         runner.useDaemon = daemon == hot
-        runner.addBuildMutator { configurationCacheInvocationListenerFor(it, action, stateDirectory) }
+        runner.addBuildMutator { configurationCacheInvocationListenerFor(it, action) }
         runner.warmUpRuns = daemon == hot ? 20 : 1
         runner.runs = daemon == hot ? 60 : 25
 
@@ -78,12 +79,12 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
     static String hot = "hot"
     static String cold = "cold"
 
-    static BuildMutator configurationCacheInvocationListenerFor(InvocationSettings invocationSettings, String action, File stateDirectory) {
+    static BuildMutator configurationCacheInvocationListenerFor(InvocationSettings invocationSettings, String action) {
         return new BuildMutator() {
             @Override
             void beforeBuild(BuildContext context) {
                 if (action == storing) {
-                    stateDirectory.deleteDir()
+                    new TestFile(invocationSettings.projectDir).file(CC_STATE_DIR).deleteDir()
                 }
             }
 
