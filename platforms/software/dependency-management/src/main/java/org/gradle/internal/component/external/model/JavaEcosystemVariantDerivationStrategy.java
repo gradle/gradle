@@ -56,6 +56,7 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
                 libraryRuntimeScope(runtimeConfiguration, attributes),
                 libraryWithSourcesVariant(runtimeConfiguration, attributes, metadata),
                 libraryWithJavadocVariant(runtimeConfiguration, attributes, metadata),
+                libraryWithPomVariant(runtimeConfiguration, attributes, metadata),
                 platformWithUsageAttribute(compileConfiguration, attributes, Usage.JAVA_API, false, shadowedPlatformCapability),
                 platformWithUsageAttribute(runtimeConfiguration, attributes, Usage.JAVA_RUNTIME, false, shadowedPlatformCapability),
                 platformWithUsageAttribute(compileConfiguration, attributes, Usage.JAVA_API, true, shadowedEnforcedPlatformCapability),
@@ -88,6 +89,18 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
             .withName("javadoc")
             .withAttributes(mavenAttributesFactory.javadocVariant(originAttributes))
             .withArtifacts(ImmutableList.of(metadata.optionalArtifact("jar", "jar", "javadoc")))
+            .withoutConstraints()
+            .build();
+    }
+
+    /**
+     * Synthesizes a "pom" variant to expose the POM metadata file as a consumable artifact.
+     */
+    private DefaultConfigurationMetadata libraryWithPomVariant(DefaultConfigurationMetadata runtimeConfiguration, ImmutableAttributes originAttributes, ModuleComponentResolveMetadata metadata) {
+        return runtimeConfiguration.mutate()
+            .withName("pom")
+            .withAttributes(mavenAttributesFactory.pomVariant(originAttributes))
+            .withArtifacts(ImmutableList.of(metadata.optionalArtifact("pom", "pom", null)))
             .withoutConstraints()
             .build();
     }
