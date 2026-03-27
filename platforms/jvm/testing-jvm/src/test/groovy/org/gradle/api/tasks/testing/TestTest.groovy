@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing
 
 import org.apache.commons.io.FileUtils
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
@@ -40,6 +41,8 @@ import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.jvm.toolchain.internal.JavaToolchain
 import org.gradle.jvm.toolchain.internal.JavaToolchainInput
@@ -48,6 +51,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.TestUtil
+import org.junit.Rule
 
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
 import static org.gradle.util.internal.WrapUtil.toSet
@@ -66,9 +70,12 @@ class TestTest extends AbstractConventionTaskTest {
     def testFrameworkMock = Mock(TestFramework)
 
 
-
     private FileCollection classpathMock = TestFiles.fixed(new File("classpath"))
     private Test test
+    private TestOutputEventListener outputEventListener = new TestOutputEventListener()
+
+    @Rule
+    ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
         classesDir = temporaryFolder.createDir("classes")
@@ -96,6 +103,81 @@ class TestTest extends AbstractConventionTaskTest {
         test.getExcludes().isEmpty()
         !test.getIgnoreFailures()
         !test.getFailFast()
+    }
+
+    def "expectedTestCount property is optional by default"() {
+        expect:
+        !test.expectedTestCount.isPresent()
+    }
+
+    def "failOnUnexpectedTestCount property defaults to false"() {
+        expect:
+        test.failOnUnexpectedTestCount.getOrElse(false) == false
+    }
+
+    def "can set and get expectedTestCount"() {
+        when:
+        test.expectedTestCount.set(5L)
+
+        then:
+        test.expectedTestCount.isPresent()
+        test.expectedTestCount.get() == 5L
+    }
+
+    def "can set and get failOnUnexpectedTestCount"() {
+        when:
+        test.failOnUnexpectedTestCount.set(true)
+
+        then:
+        test.failOnUnexpectedTestCount.get() == true
+    }
+
+    def "test executes successfully when expectedTestCount matches actual count"() {
+        given:
+        configureTask()
+        test.expectedTestCount.set(1L)
+
+        when:
+        test.executeTests()
+
+        then:
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
+            oneSuccessfulTest(processor)
+        }
+    }
+
+    def "test emits warning when expectedTestCount does not match actual count and failOnUnexpectedTestCount is false"() {
+        given:
+        configureTask()
+        test.expectedTestCount.set(5L)
+        test.failOnUnexpectedTestCount.set(false)
+
+        when:
+        test.executeTests()
+
+        then:
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
+            oneSuccessfulTest(processor)
+        }
+        def output = outputEventListener.toString()
+        output.contains("Task :testTask expected 5 test(s) but executed 1 test(s).")
+    }
+
+    def "test throws exception when expectedTestCount does not match actual count and failOnUnexpectedTestCount is true"() {
+        given:
+        configureTask()
+        test.expectedTestCount.set(5L)
+        test.failOnUnexpectedTestCount.set(true)
+
+        when:
+        test.executeTests()
+
+        then:
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
+            oneSuccessfulTest(processor)
+        }
+        def e = thrown(GradleException)
+        e.message == "Task :testTask expected 5 test(s) but executed 1 test(s)."
     }
 
     def "test execute()"() {
