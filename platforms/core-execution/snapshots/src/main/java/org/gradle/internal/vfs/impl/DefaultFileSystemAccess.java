@@ -38,12 +38,15 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -59,6 +62,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     private final Interner<String> stringInterner;
     private final WriteListener writeListener;
     private final DirectorySnapshotterStatistics.Collector statisticsCollector;
+    @Nullable
+    private final ExecutorService snapshotterExecutor;
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
@@ -73,12 +78,26 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         DirectorySnapshotterStatistics.Collector statisticsCollector,
         String... defaultExcludes
     ) {
+        this(hasher, stringInterner, stat, virtualFileSystem, writeListener, statisticsCollector, null, defaultExcludes);
+    }
+
+    public DefaultFileSystemAccess(
+        FileHasher hasher,
+        Interner<String> stringInterner,
+        FileMetadataAccessor stat,
+        VirtualFileSystem virtualFileSystem,
+        WriteListener writeListener,
+        DirectorySnapshotterStatistics.Collector statisticsCollector,
+        @Nullable ExecutorService snapshotterExecutor,
+        String... defaultExcludes
+    ) {
         this.stringInterner = stringInterner;
         this.stat = stat;
         this.writeListener = writeListener;
         this.statisticsCollector = statisticsCollector;
+        this.snapshotterExecutor = snapshotterExecutor;
         this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
-        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes, statisticsCollector);
+        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes, statisticsCollector, snapshotterExecutor);
         this.hasher = hasher;
         this.virtualFileSystem = virtualFileSystem;
     }
@@ -238,7 +257,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         if (!defaultExcludes.equals(newDefaultExcludes)) {
             LOGGER.debug("Default excludes changes from {} to {}", defaultExcludes, newDefaultExcludes);
             defaultExcludes = newDefaultExcludes;
-            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes, statisticsCollector);
+            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes, statisticsCollector, snapshotterExecutor);
             virtualFileSystem.invalidateAll();
         }
     }

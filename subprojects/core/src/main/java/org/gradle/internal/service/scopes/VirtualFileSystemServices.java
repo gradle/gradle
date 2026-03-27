@@ -47,6 +47,7 @@ import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.classloader.ClasspathHasher;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
@@ -243,7 +244,8 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             StringInterner stringInterner,
             FileSystemAccess.WriteListener writeListener,
             DirectorySnapshotterStatistics.Collector statisticsCollector,
-            ListenerManager listenerManager
+            ListenerManager listenerManager,
+            ExecutorFactory executorFactory
         ) {
             DefaultFileSystemAccess defaultFileSystemAccess = new DefaultFileSystemAccess(
                 hasher,
@@ -252,6 +254,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 virtualFileSystem,
                 writeListener,
                 statisticsCollector,
+                executorFactory.create("Directory snapshotter"),
                 DirectoryScanner.getDefaultExcludes()
             );
             listenerManager.addListener(defaultFileSystemAccess);
@@ -348,7 +351,8 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
             StringInterner stringInterner,
             VirtualFileSystem root,
             FileSystemAccess.WriteListener writeListener,
-            DirectorySnapshotterStatistics.Collector statisticsCollector
+            DirectorySnapshotterStatistics.Collector statisticsCollector,
+            ExecutorFactory executorFactory
         ) {
             DefaultFileSystemAccess buildSessionsScopedVirtualFileSystem = new DefaultFileSystemAccess(
                 hasher,
@@ -357,6 +361,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 root,
                 writeListener,
                 statisticsCollector,
+                executorFactory.create("Directory snapshotter"),
                 DirectoryScanner.getDefaultExcludes()
             );
 
