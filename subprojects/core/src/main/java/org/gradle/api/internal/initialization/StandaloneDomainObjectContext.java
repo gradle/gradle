@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
@@ -176,6 +177,11 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
     @Override
     public void applyToMutableState(Consumer<? super Object> action) {
         action.accept(MODEL);
+    }
+
+    @Override
+    public @Nullable ResourceLock getAccessLock() {
+        return null;
     }
 
     @Override

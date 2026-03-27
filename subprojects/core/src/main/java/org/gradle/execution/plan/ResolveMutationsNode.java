@@ -73,8 +73,8 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
 
     @Nullable
     @Override
-    public ResourceLock getProjectToLock() {
-        return node.getProjectToLock();
+    public ResourceLock getAccessLock() {
+        return node.getAccessLock();
     }
 
     @Nullable
