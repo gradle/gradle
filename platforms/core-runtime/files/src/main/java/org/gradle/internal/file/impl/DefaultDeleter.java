@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,7 +69,7 @@ public class DefaultDeleter implements Deleter {
 
     @Override
     public boolean deleteRecursively(File root, boolean followSymlinks) throws IOException {
-        if (root.exists()) {
+        if (Files.exists(root.toPath(), LinkOption.NOFOLLOW_LINKS)) {
             return deleteRecursively(root, followSymlinks
                 ? Handling.FOLLOW_SYMLINKED_DIRECTORIES
                 : Handling.DO_NOT_FOLLOW_SYMLINKS);
