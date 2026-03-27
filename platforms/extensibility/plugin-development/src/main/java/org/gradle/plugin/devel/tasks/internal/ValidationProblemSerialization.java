@@ -36,6 +36,7 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.OffsetInFileLocation;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
@@ -63,6 +64,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,15 +73,40 @@ import java.util.stream.Stream;
 
 @NullMarked
 public class ValidationProblemSerialization {
-    private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
-    public static List<? extends InternalProblem> parseMessageList(String lines) {
-        Gson gson = GSON_BUILDER.create();
-        Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
-        return gson.<List<DefaultProblem>>fromJson(lines, type);
+    public static class SerializationResult {
+        private final List<DefaultProblem> warnings;
+        private final List<DefaultProblem> errors;
+
+        public SerializationResult(List<DefaultProblem> warnings, List<DefaultProblem> errors) {
+            this.warnings = warnings;
+            this.errors = errors;
+        }
+
+        public List<DefaultProblem> getWarnings() {
+            return warnings;
+        }
+
+        public List<DefaultProblem> getErrors() {
+            return errors;
+        }
     }
 
-    public static GsonBuilder createGsonBuilder() {
+    private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
+
+    public static SerializationResult deserialize(String lines) {
+        Gson gson = GSON_BUILDER.create();
+        Type type = new TypeToken<List<List<DefaultProblem>>>() {}.getType();
+        List<List<DefaultProblem>> lists = gson.fromJson(lines, type);
+        return new SerializationResult(lists.get(0), lists.get(1));
+    }
+
+    public static String serialize(List<Problem> warnings, List<Problem> errors) {
+        Gson gson = createGsonBuilder().create();
+        return gson.toJson(Arrays.asList(warnings, errors));
+    }
+
+    private static GsonBuilder createGsonBuilder() {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapterFactory(new ProblemReportAdapterFactory());
         gsonBuilder.registerTypeAdapter(ProblemId.class, new ProblemIdInstanceCreator());
@@ -92,9 +119,17 @@ public class ValidationProblemSerialization {
     }
 
 
-    public static Stream<String> toPlainMessage(List<? extends InternalProblem> problems) {
+    public static Stream<String> toPlainWarning(List<? extends InternalProblem> problems) {
+        return toPlainMessage(problems, "Warning");
+    }
+
+    public static Stream<String> toPlainError(List<? extends InternalProblem> problems) {
+        return toPlainMessage(problems, "Error");
+    }
+
+    private static Stream<String> toPlainMessage(List<? extends InternalProblem> problems, String prefix) {
         return problems.stream()
-            .map(problem -> problem.getDefinition().getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
+            .map(problem -> prefix + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
 
     /**
@@ -677,8 +712,7 @@ public class ValidationProblemSerialization {
                         propertyName,
                         methodName,
                         parentPropertyName,
-                        typeName
-                    );
+                        typeName);
                 case GENERAL_DATA:
                     return new DefaultGeneralData(generalData);
                 case PROPERTY_TRACE_DATA:

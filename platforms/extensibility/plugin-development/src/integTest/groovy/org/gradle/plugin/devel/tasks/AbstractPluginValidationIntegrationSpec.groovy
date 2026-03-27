@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.model.ReplacedBy
-import org.gradle.api.problems.Severity
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
@@ -961,13 +960,13 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     static class DocumentedProblem {
         final String message
-        final Severity severity
+        final String severity
         final String id
         final String section
         final boolean defaultDocLink
         final ValidationMessageDisplayConfiguration config
 
-        DocumentedProblem(ValidationMessageDisplayConfiguration config, Severity severity, String id = "incremental_build", String section = "") {
+        DocumentedProblem(ValidationMessageDisplayConfiguration config, String severity, String id = "incremental_build", String section = "") {
             this.config = config
             this.message = config.render()
             this.severity = severity
@@ -976,7 +975,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             this.defaultDocLink = (id == "incremental_build") && (section == "")
         }
 
-        DocumentedProblem(String message, Severity severity, String id = "incremental_build", String section = "") {
+        DocumentedProblem(String message, String severity, String id = "incremental_build", String section = "") {
             this.config = null
             this.message = message
             this.severity = severity

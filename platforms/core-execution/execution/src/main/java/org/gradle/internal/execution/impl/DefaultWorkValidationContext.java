@@ -35,7 +35,8 @@ import java.util.function.Supplier;
 
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
-    private final ImmutableList.Builder<InternalProblem> problems = ImmutableList.builder();
+    private final ImmutableList.Builder<InternalProblem> errors = ImmutableList.builder();
+    private final ImmutableList.Builder<InternalProblem> warnings = ImmutableList.builder();
     private final TypeOriginInspector typeOriginInspector;
     private final InternalProblems problemsService;
 
@@ -55,18 +56,28 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         Supplier<Optional<PluginId>> pluginId = () -> typeOriginInspector.findPluginDefining(type);
         return new ProblemRecordingTypeValidationContext(type, pluginId, getProblemsService()) {
             @Override
-            protected void recordProblem(InternalProblem problem) {
+            protected void recordError(InternalProblem problem) {
                 if (DefaultTypeValidationContext.onlyAffectsCacheableWork(problem.getDefinition().getId()) && !cacheable) {
                     return;
                 }
-                problems.add(problem);
+                errors.add(problem);
+            }
+
+            @Override
+            protected void recordWarning(InternalProblem problem) {
+                warnings.add(problem);
             }
         };
     }
 
     @Override
-    public List<InternalProblem> getProblems() {
-        return problems.build();
+    public List<InternalProblem> getErrors() {
+        return errors.build();
+    }
+
+    @Override
+    public List<InternalProblem> getWarnings() {
+        return warnings.build();
     }
 
     @Override

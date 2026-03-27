@@ -129,7 +129,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
                 DefaultTransform.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, validationContext);
             }
         }
-        DefaultTypeValidationContext.throwOnProblemsOf(implementation, validationContext.getProblems());
+        DefaultTypeValidationContext.throwOnProblemsOf(implementation, validationContext.getErrors());
         Transform transform = new DefaultTransform(
             implementation,
             parameterObject,

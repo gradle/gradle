@@ -36,6 +36,18 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.6.0]]
+== Upgrading from 9.5.0 and earlier
+
+=== Deprecations
+
+[[deprecate_problem_spec_severity]]
+==== Deprecation of `ProblemSpec.severity()`
+
+Problem severity can no longer be set explicitly when creating a new instance.
+Instead, it is determined by the reporting method: `ProblemReporter.report()` produces warnings and `ProblemReporter.throwing()` produces errors.
+Calling `.severity()` on `ProblemSpec` is now a no-op and will be removed in Gradle 10.0.
+
 [[changes_9.5.0]]
 == Upgrading from 9.4.0 and earlier
 

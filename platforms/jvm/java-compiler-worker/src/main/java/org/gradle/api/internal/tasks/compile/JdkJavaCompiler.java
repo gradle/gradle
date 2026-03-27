@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDecla
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -138,7 +137,6 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
     }
 
     private static void buildProblemFrom(RuntimeException ex, ProblemSpec spec) {
-        spec.severity(Severity.ERROR);
         spec.contextualLabel(ex.getLocalizedMessage());
         spec.withException(ex);
     }

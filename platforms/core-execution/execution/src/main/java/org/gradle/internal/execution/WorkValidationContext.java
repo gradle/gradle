@@ -30,7 +30,9 @@ public interface WorkValidationContext {
 
     InternalProblems getProblemsService();
 
-    List<InternalProblem> getProblems();
+    List<InternalProblem> getWarnings();
+
+    List<InternalProblem> getErrors();
 
     ImmutableSet<Class<?>> getValidatedTypes();
 

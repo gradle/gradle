@@ -49,7 +49,7 @@ public class DefaultCatalogProblemBuilder {
         formatter.startChildren();
         for (InternalProblem problem : problems) {
             formatter.node(getProblemString(problem));
-            problemsService.getInternalReporter().report(problem);
+            problemsService.getInternalReporter().reportError(problem);
         }
         formatter.endChildren();
         throw new InvalidUserDataException(formatter.toString());

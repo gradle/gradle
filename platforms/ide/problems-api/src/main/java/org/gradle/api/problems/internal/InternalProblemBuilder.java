@@ -83,7 +83,10 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder withException(Throwable t);
 
     @Override
+    @Deprecated
     InternalProblemBuilder severity(Severity severity);
+
+    InternalProblemBuilder internalSeverity(Severity severity);
 
     ProblemsInfrastructure getInfrastructure();
 }

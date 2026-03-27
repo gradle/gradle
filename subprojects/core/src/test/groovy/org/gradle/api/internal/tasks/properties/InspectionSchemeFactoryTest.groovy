@@ -67,7 +67,8 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.visitValidationFailures(null, validationContext)
 
         then:
-        validationContext.problems.isEmpty()
+        validationContext.warnings.isEmpty()
+        validationContext.errors.isEmpty()
 
         when:
         def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
@@ -93,7 +94,8 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.visitValidationFailures(null, validationContext)
 
         then:
-        validationContext.problems.isEmpty()
+        validationContext.warnings.isEmpty()
+        validationContext.errors.isEmpty()
 
         when:
         def properties = metadata.propertiesMetadata.groupBy { it.propertyName }

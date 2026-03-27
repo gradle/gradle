@@ -31,7 +31,6 @@ public class StandardPlugin implements Plugin<Project> {
         problems.getReporter().report(problemId, problem -> problem
                 .contextualLabel("The 'standard-plugin' is deprecated")
                 .documentedAt("https://github.com/gradle/gradle/README.md")
-                .severity(Severity.WARNING)
                 .solution("Please use a more recent plugin version")
                 .additionalData(SomeAdditionalData.class, additionalData -> {
                     additionalData.setName("Some name");

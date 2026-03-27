@@ -18,7 +18,6 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -50,10 +49,11 @@ public class DefaultNodeValidator implements NodeValidator {
     @Override
     public boolean hasValidationProblems(LocalTaskNode node) {
         WorkValidationContext validationContext = validateNode(node);
-        List<? extends InternalProblem> problems = validationContext.getProblems();
-        logWarnings(problems);
-        reportErrors(problems, node.getTask(), validationContext);
-        return !problems.isEmpty();
+        List<? extends InternalProblem> warnings = validationContext.getWarnings();
+        List<? extends InternalProblem> errors = validationContext.getErrors();
+        logWarnings(warnings);
+        reportErrors(warnings, errors, node.getTask(), validationContext);
+        return !warnings.isEmpty() || !errors.isEmpty();
     }
 
     private WorkValidationContext validateNode(LocalTaskNode node) {
@@ -68,7 +68,6 @@ public class DefaultNodeValidator implements NodeValidator {
     private void logWarnings(List<? extends InternalProblem> problems) {
         // We are logging all the warnings that we encountered during validation here
         problems.stream()
-            .filter(DefaultNodeValidator::isWarning)
             .forEach(problem -> {
                 // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
                 // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
@@ -82,12 +81,10 @@ public class DefaultNodeValidator implements NodeValidator {
             });
     }
 
-    private void reportErrors(List<? extends InternalProblem> problems, TaskInternal task, WorkValidationContext validationContext) {
-        for (InternalProblem problem : problems) {
-            problemsService.getInternalReporter().report(problem);
-        }
-
-        Set<String> uniqueErrors = getUniqueErrors(problems);
+    private void reportErrors(List<? extends InternalProblem> warnings, List<? extends InternalProblem> errors, TaskInternal task, WorkValidationContext validationContext) {
+        problemsService.getInternalReporter().report(warnings);
+        problemsService.getInternalReporter().reportError(errors);
+        Set<String> uniqueErrors = getUniqueErrors(errors);
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
                 .withSummaryForContext(task.toString(), validationContext)
@@ -97,12 +94,7 @@ public class DefaultNodeValidator implements NodeValidator {
 
     private static Set<String> getUniqueErrors(List<? extends InternalProblem> problems) {
         return problems.stream()
-            .filter(problem -> !isWarning(problem))
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(toImmutableSet());
-    }
-
-    private static boolean isWarning(InternalProblem problem) {
-        return problem.getDefinition().getSeverity().equals(Severity.WARNING);
     }
 }

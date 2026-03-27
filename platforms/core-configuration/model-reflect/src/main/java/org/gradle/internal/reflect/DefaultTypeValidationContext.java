@@ -34,7 +34,8 @@ import static java.util.stream.Collectors.toList;
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
     private final boolean reportCacheabilityProblems;
-    private final ImmutableList.Builder<InternalProblem> problems = ImmutableList.builder();
+    private final ImmutableList.Builder<InternalProblem> errors = ImmutableList.builder();
+    private final ImmutableList.Builder<InternalProblem> warnings = ImmutableList.builder();
 
     public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, InternalProblems problems) {
         return new DefaultTypeValidationContext(rootType, cacheable, problems);
@@ -57,15 +58,24 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
 
     @Override
-    protected void recordProblem(InternalProblem problem) {
+    protected void recordError(InternalProblem problem) {
         if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) {
             return;
         }
-        problems.add(problem);
+        errors.add(problem);
     }
 
-    public ImmutableList<InternalProblem> getProblems() {
-        return problems.build();
+    @Override
+    protected void recordWarning(InternalProblem problem) {
+        warnings.add(problem);
+    }
+
+    public ImmutableList<InternalProblem> getErrors() {
+        return errors.build();
+    }
+
+    public ImmutableList<InternalProblem> getWarnings() {
+        return warnings.build();
     }
 
     public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<InternalProblem> validationMessages) {
