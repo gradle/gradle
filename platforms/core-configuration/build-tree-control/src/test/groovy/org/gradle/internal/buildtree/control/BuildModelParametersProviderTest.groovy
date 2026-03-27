@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree
+package org.gradle.internal.buildtree.control
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
@@ -22,7 +22,8 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
-import org.gradle.internal.buildtree.control.BuildModelParametersProvider
+import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.buildtree.BuildModelParameters
 import spock.lang.Specification
 
 class BuildModelParametersProviderTest extends Specification {

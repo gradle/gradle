@@ -23,7 +23,7 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildModelParametersFactory
 import org.gradle.util.internal.IncubationLogger
 
-internal class DefaultBuildModelParametersFactory : BuildModelParametersFactory {
+class DefaultBuildModelParametersFactory : BuildModelParametersFactory {
 
     private val logger = Logging.getLogger(DefaultBuildModelParametersFactory::class.java)
 
