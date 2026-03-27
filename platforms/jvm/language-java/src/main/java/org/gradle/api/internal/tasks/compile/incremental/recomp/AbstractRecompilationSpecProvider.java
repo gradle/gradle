@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.Genera
 import org.gradle.api.internal.tasks.compile.incremental.transaction.CompileTransaction;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
+import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 
 import java.io.File;
@@ -116,6 +117,11 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
                 spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile(fileChange));
             }
             sourceFileChangeProcessor.processChange(changedClasses, spec);
+            // For added/modified files, record the source path directly so it's included
+            // in compilation even if the class-to-source reverse mapping is stale (see #28916).
+            if (fileChange.getChangeType() != ChangeType.REMOVED && !changedClasses.isEmpty()) {
+                spec.addSourcePath(relativeFilePath);
+            }
         }
     }
 
