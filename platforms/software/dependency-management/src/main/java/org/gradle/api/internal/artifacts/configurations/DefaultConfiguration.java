@@ -250,7 +250,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.domainObjectContext = domainObjectContext;
 
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
-        this.configurationAttributes = new FreezableAttributeContainer(configurationServices.getAttributesFactory().mutable(), this.displayName);
+        this.configurationAttributes = configurationServices.getAttributesFactory().freezable(configurationServices.getAttributesFactory().mutable(), this.displayName);
 
         this.resolutionAccess = new ConfigurationResolutionAccess();
         this.resolvableDependencies = configurationServices.getObjectFactory().newInstance(ConfigurationResolvableDependencies.class, this);
