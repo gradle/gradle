@@ -20,307 +20,166 @@ import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
-import org.gradle.internal.SystemProperties
-import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.util.internal.CollectionUtils
 import org.jetbrains.kotlin.K1Deprecation
-import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
-import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
-import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
+import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinLogger
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.COMPILER_PLUGINS
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.LANGUAGE_VERSION
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_METADATA_VERSION_CHECK
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_PRERELEASE_CHECK
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_USE_FIR_LT
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
+import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.CLASSPATH
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_DEFAULT
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_TARGET
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.MODULE_NAME
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.NO_REFLECT
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.NO_STDLIB
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.SCRIPT_TEMPLATES
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_ALLOW_UNSTABLE_DEPENDENCIES
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_JSR305
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SAM_CONVERSIONS
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.common.messages.MessageUtil
-import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.cli.jvm.config.addJvmSdkRoots
-import org.jetbrains.kotlin.codegen.CompilationException
-import org.jetbrains.kotlin.com.intellij.openapi.Disposable
-import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
-import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
-import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import org.jetbrains.kotlin.config.AnalysisFlags
-import org.jetbrains.kotlin.config.ApiVersion
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.JDK_HOME
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.SAM_CONVERSIONS
-import org.jetbrains.kotlin.config.JvmAnalysisFlags
-import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
-import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.config.JvmTarget.JVM_25
-import org.jetbrains.kotlin.config.LanguageVersion
-import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
-import org.jetbrains.kotlin.load.java.JavaTypeEnhancementState
-import org.jetbrains.kotlin.load.java.Jsr305Settings
-import org.jetbrains.kotlin.load.java.ReportLevel
 import org.jetbrains.kotlin.name.NameUtils
-import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverComponentRegistrar
-import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverConfigurationKeys
-import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
-import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingK2CompilerPluginRegistrar
-import org.jetbrains.kotlin.scripting.compiler.plugin.impl.ScriptJvmCompilerFromEnvironment
-import org.jetbrains.kotlin.scripting.compiler.plugin.toCompilerMessageSeverity
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
-import org.jetbrains.kotlin.utils.PathUtil
+import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverPluginNames
+import org.jetbrains.kotlin.scripting.compiler.plugin.KOTLIN_SCRIPTING_PLUGIN_ID
 import org.slf4j.Logger
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.OutputStream
-import java.io.PrintStream
+import java.nio.file.Path
+import kotlin.io.path.Path
 import kotlin.reflect.KClass
-import kotlin.script.experimental.api.ResultWithDiagnostics
-import kotlin.script.experimental.api.ScriptCompilationConfiguration
-import kotlin.script.experimental.api.ScriptDiagnostic
-import kotlin.script.experimental.api.SourceCode
-import kotlin.script.experimental.api.baseClass
-import kotlin.script.experimental.api.defaultImports
-import kotlin.script.experimental.api.hostConfiguration
-import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.experimental.api.isError
-import kotlin.script.experimental.api.with
-import kotlin.script.experimental.host.ScriptingHostConfiguration
-import kotlin.script.experimental.host.configurationDependencies
-import kotlin.script.experimental.host.getScriptingClass
-import kotlin.script.experimental.host.toScriptSource
-import kotlin.script.experimental.jvm.JvmDependency
-import kotlin.script.experimental.jvm.JvmGetScriptingClass
-import kotlin.script.experimental.jvm.updateClasspath
-import kotlin.script.experimental.jvmhost.BasicJvmScriptClassFilesGenerator
-import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
-import kotlin.script.experimental.jvmhost.JvmScriptCompiler
+import kotlin.reflect.jvm.jvmName
 
-fun scriptDefinitionFromTemplate(
-    template: KClass<out Any>,
-    implicitImports: List<String>,
-    implicitReceiver: KClass<*>? = null,
-    classPath: List<File> = listOf()
-): ScriptDefinition {
-    val hostConfiguration = ScriptingHostConfiguration {
-        getScriptingClass(JvmGetScriptingClass())
-        configurationDependencies(JvmDependency(classPath))
+private const val MODULE_NAME = "buildscript"
+
+
+@OptIn(ExperimentalBuildToolsApi::class)
+private class Compiler {
+
+    // TODO: this should be done in an isolated classloader and then we can load an
+    //  implementation with a different version than the API we are using, thus making it configurable to users
+    //  supported versions range from -3 major version to +1 major version
+    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
+
+    // TODO: session should be closed after no longer needed, for cleanup to happen
+    private val buildSession = toolchains.createBuildSession()
+
+    @OptIn(ExperimentalCompilerArgument::class)
+    fun compile(
+        sources: List<Path>,
+        destinationDirectory: Path,
+        logger: Logger,
+        arguments: (JvmCompilerArguments.Builder) -> Unit,
+    ): CompilationResult {
+        val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
+
+        // compilation operation config
+        operationBuilder[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+        // TODO: incremental compilation should make explicit fingerprint checking obsolete
+
+        arguments.invoke(operationBuilder.compilerArguments)
+
+        val operation = operationBuilder.build()
+        // TODO operation[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = ... will be the proper replacement for MessageCollector
+
+        // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Deamon mode can be enabled
+        return buildSession.executeOperation(operation, toolchains.createInProcessExecutionPolicy(), CompilationLogger(logger))
     }
-    return ScriptDefinition.FromConfigurations(
-        hostConfiguration = hostConfiguration,
-        compilationConfiguration = ScriptCompilationConfiguration {
-            baseClass(template)
-            defaultImports(implicitImports)
-            hostConfiguration(hostConfiguration)
-            implicitReceiver?.let {
-                implicitReceivers(it)
-            }
-        },
-        evaluationConfiguration = null
-    )
 }
 
+private val compiler by lazy { Compiler() }
 
+
+@ExperimentalCompilerArgument
 internal
 fun compileKotlinScriptToDirectory(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
     scriptFile: File,
-    scriptDef: ScriptDefinition,
+    template: KClass<out Any>,
     classPath: List<File>,
     logger: Logger,
-    pathTranslation: (String) -> String
+    @Suppress("unused") pathTranslation: (String) -> String // TODO: path translation ignored for now
 ): String {
+    fun configureClasspath(arguments: JvmCompilerArguments.Builder, classPath: List<File>) {
+        arguments[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
+        arguments[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath. // TODO: is it really covered by NO_STDLIB?
+        arguments[CLASSPATH] = CollectionUtils.join(File.pathSeparator, classPath)
+    }
 
-    compileKotlinScriptModuleTo(
-        outputDirectory,
-        compilerOptions,
-        "buildscript",
-        listOf(scriptFile.path),
-        scriptDef,
-        classPath,
-        messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
-    )
+    fun configurePlugins(arguments: JvmCompilerArguments.Builder, classPath: List<File>) {
+        arguments[COMPILER_PLUGINS] = listOf(
+            CompilerPlugin(
+                pluginId = KOTLIN_SCRIPTING_PLUGIN_ID,
+                classpath = listOf(classPath.first { it.name.contains("kotlin-scripting-compiler-embeddable") }.toPath()),
+                rawArguments = listOf(),
+                orderingRequirements = setOf()
+            ),
+            CompilerPlugin(
+                pluginId = SamWithReceiverPluginNames.PLUGIN_ID,
+                classpath = listOf(classPath.first { it.name.contains("kotlin-sam-with-receiver-compiler-plugin") }.toPath()),
+                rawArguments = listOf(CompilerPluginOption(SamWithReceiverPluginNames.ANNOTATION_OPTION_NAME, HasImplicitReceiver::class.qualifiedName!!)),
+                orderingRequirements = setOf()
+            ),
+            CompilerPlugin(
+                pluginId = AssignmentPluginNames.PLUGIN_ID,
+                classpath = listOf(classPath.first { it.name.contains("kotlin-assignment-compiler-plugin-embeddable") }.toPath()),
+                rawArguments = listOf(CompilerPluginOption(AssignmentPluginNames.ANNOTATION_OPTION_NAME, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)),
+                orderingRequirements = setOf()
+            ),
+        )
+    }
+
+    compiler.compile(listOf(Path(scriptFile.path)), outputDirectory.toPath(), logger) {
+        // TODO: put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        it[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
+        it[X_USE_FIR_LT] = false
+        it[JVM_TARGET] = org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.valueOf("JVM_" + compilerOptions.jvmTarget.toKotlinJvmTarget().description) // TODO: ugly conversion
+        it[X_SAM_CONVERSIONS] = "class"
+        // TODO: addJvmSdkRoot(...)
+
+        it.also { // apply language version settings
+            it[LANGUAGE_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
+            it[API_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
+            it.also { // apply analysis flags
+                it[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
+                it[X_SKIP_PRERELEASE_CHECK] = true
+                it[X_ALLOW_UNSTABLE_DEPENDENCIES] = true
+                it[JVM_DEFAULT] = "enable"
+                it.also { // apply java type enhancement settings
+                    it[X_JSR305] = arrayOf("strict", "under-migration:strict")
+                    // TODO: not sure what the equivalent of `getReportLevelForAnnotation` is... maybe JvmCompilerArguments.X_JSPECIFY_ANNOTATIONS, but that defaults to the right value
+                }
+            }
+        }
+
+        it[MODULE_NAME] = org.gradle.kotlin.dsl.support.MODULE_NAME
+
+        configureClasspath(it, classPath)
+        configurePlugins(it, classPath)
+
+        it[SCRIPT_TEMPLATES] = arrayOf(template.jvmName)
+    } // TODO: compilation result ignored
 
     return NameUtils.getScriptNameForFile(scriptFile.name).asString()
 }
-
-
-private
-fun compileKotlinScriptModuleTo(
-    outputDirectory: File,
-    compilerOptions: KotlinCompilerOptions,
-    moduleName: String,
-    scriptFiles: Collection<String>,
-    scriptDef: ScriptDefinition,
-    classPath: Iterable<File>,
-    messageCollector: LoggingMessageCollector
-) {
-    withRootDisposable {
-        withCompilationExceptionHandler(messageCollector) {
-            val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
-                put(OUTPUT_DIRECTORY, outputDirectory)
-                setModuleName(moduleName)
-                addScriptingCompilerComponents()
-                add(SamWithReceiverConfigurationKeys.ANNOTATION, HasImplicitReceiver::class.qualifiedName!!)
-                add(AssignmentConfigurationKeys.ANNOTATION, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
-            }
-
-            val environment = kotlinCoreEnvironmentFor(configuration)
-
-            val host = BasicJvmScriptingHost(
-                compiler = JvmScriptCompiler(scriptDef.hostConfiguration, ScriptJvmCompilerFromEnvironment(environment)),
-                evaluator = BasicJvmScriptClassFilesGenerator(outputDirectory)
-            )
-            val compilationConfiguration = scriptDef.compilationConfiguration.with {
-                updateClasspath(classPath.toList())
-            }
-            scriptFiles.forEach {
-                val script = File(it).toScriptSource()
-                host.eval(script, compilationConfiguration, scriptDef.evaluationConfiguration)
-                    .reportToMessageCollectorAndThrowOnErrors(script, messageCollector)
-            }
-        }
-    }
-}
-
-
-private fun ResultWithDiagnostics<*>.reportToMessageCollectorAndThrowOnErrors(script: SourceCode, messageCollector: MessageCollector): ResultWithDiagnostics<*> = also {
-    val lines = if (it.reports.isEmpty()) null else script.text.lines()
-    val scriptErrors = ArrayList<ScriptCompilationError>()
-    for (report in it.reports) {
-        val location = report.location
-        val sourcePath = report.sourcePath
-        val compilerMessageLocation = if (location != null && sourcePath != null) {
-            CompilerMessageLocation.create(
-                sourcePath,
-                location.start.line, location.start.col,
-                lines?.getOrNull(location.start.line - 1)
-            )
-        } else null
-
-        if (report.isError() || report.severity == ScriptDiagnostic.Severity.WARNING) {
-            scriptErrors.add(ScriptCompilationError(report.message, compilerMessageLocation))
-        }
-        messageCollector.report(
-            report.severity.toCompilerMessageSeverity(),
-            report.render(withSeverity = false, withLocation = location == null || sourcePath == null),
-            compilerMessageLocation
-        )
-    }
-    if (it is ResultWithDiagnostics.Failure || (messageCollector.hasErrors() && scriptErrors.isNotEmpty())) {
-        throw ScriptCompilationException(scriptErrors)
-    }
-}
-
-
-private
-inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
-    val rootDisposable = newDisposable()
-    try {
-        return action(rootDisposable)
-    } finally {
-        dispose(rootDisposable)
-    }
-}
-
-
-private
-inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageCollector, action: () -> T): T {
-    try {
-        val log = messageCollector.log
-        return when {
-            log.isDebugEnabled -> {
-                loggingOutputTo(log::debug) { action() }
-            }
-
-            else -> {
-                ignoringOutputOf { action() }
-            }
-        }
-    } catch (ex: CompilationException) {
-        messageCollector.report(
-            CompilerMessageSeverity.EXCEPTION,
-            ex.localizedMessage,
-            MessageUtil.psiElementToMessageLocation(ex.element)
-        )
-
-        throw IllegalStateException("Internal compiler error: ${ex.localizedMessage}", ex)
-    }
-}
-
-
-private
-inline fun <T> loggingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
-    redirectingOutputTo({ LoggingOutputStream(log) }, action)
-
-
-private
-inline fun <T> ignoringOutputOf(action: () -> T): T =
-    redirectingOutputTo({ NullOutputStream.INSTANCE }, action)
-
-
-private
-inline fun <T> redirectingOutputTo(noinline outputStream: () -> OutputStream, action: () -> T): T =
-    redirecting(System.err, System::setErr, outputStream()) {
-        redirecting(System.out, System::setOut, outputStream()) {
-            action()
-        }
-    }
-
-
-private
-inline fun <T> redirecting(
-    stream: PrintStream,
-    set: (PrintStream) -> Unit,
-    to: OutputStream,
-    action: () -> T
-): T = try {
-    set(PrintStream(to, true))
-    action()
-} finally {
-    set(stream)
-    to.flush()
-}
-
-
-private
-class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
-
-    private
-    val buffer = ByteArrayOutputStream()
-
-    override fun write(b: Int) = buffer.write(b)
-
-    override fun write(b: ByteArray, off: Int, len: Int) = buffer.write(b, off, len)
-
-    override fun flush() {
-        buffer.run {
-            val string = toString("utf8")
-            if (string.isNotBlank()) {
-                log(string)
-            }
-            reset()
-        }
-    }
-
-    override fun close() {
-        flush()
-    }
-}
-
-
-private
-fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions: KotlinCompilerOptions): CompilerConfiguration =
-    CompilerConfiguration().apply {
-        put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-        put(CommonConfigurationKeys.USE_FIR, true) // Enables K2
-        put(JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
-        put(JDK_HOME, File(System.getProperty("java.home")))
-        put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
-        addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
-        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettingsFor(compilerOptions))
-        put(CommonConfigurationKeys.ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS, true)
-    }
 
 
 @VisibleForTesting
@@ -332,91 +191,10 @@ fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
 }
 
 
-private
-fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOptions) = LanguageVersionSettingsImpl(
-    languageVersion = LanguageVersion.KOTLIN_2_2,
-    apiVersion = ApiVersion.KOTLIN_2_2,
-    analysisFlags = mapOf(
-        AnalysisFlags.skipMetadataVersionCheck to compilerOptions.skipMetadataVersionCheck,
-        AnalysisFlags.skipPrereleaseCheck to true,
-        AnalysisFlags.allowUnstableDependencies to true,
-        JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
-        JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(
-            jsr305 = Jsr305Settings(globalLevel = ReportLevel.STRICT, migrationLevel = ReportLevel.STRICT),
-            getReportLevelForAnnotation = { ReportLevel.STRICT }
-        ),
-    ),
-)
-
-
-private
-fun CompilerConfiguration.setModuleName(name: String) {
-    put(CommonConfigurationKeys.MODULE_NAME, name)
-}
-
-
-@OptIn(ExperimentalCompilerApi::class)
-private
-fun CompilerConfiguration.addScriptingCompilerComponents() {
-    @Suppress("DEPRECATION_ERROR")
-    add(
-        org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar.PLUGIN_COMPONENT_REGISTRARS,
-        ScriptingCompilerConfigurationComponentRegistrar()
-    )
-    add(
-        org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar.COMPILER_PLUGIN_REGISTRARS,
-        ScriptingK2CompilerPluginRegistrar()
-    )
-    add(
-        org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar.COMPILER_PLUGIN_REGISTRARS,
-        SamWithReceiverComponentRegistrar()
-    )
-    add(
-        org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar.COMPILER_PLUGIN_REGISTRARS,
-        AssignmentComponentRegistrar()
-    )
-}
-
-
-@OptIn(K1Deprecation::class)
-private
-fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
-    org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
-    return SystemProperties.getInstance().withSystemProperty(
-        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property,
-        "true"
-    ) {
-        KotlinCoreEnvironment.createForProduction(
-            this,
-            configuration,
-            EnvironmentConfigFiles.JVM_CONFIG_FILES
-        )
-    }
-}
-
-
 @OptIn(K1Deprecation::class)
 internal
 fun disposeKotlinCompilerContext() =
     KotlinCoreEnvironment.disposeApplicationEnvironment()
-
-
-private
-fun messageCollectorFor(
-    log: Logger,
-    allWarningsAsErrors: Boolean,
-    pathTranslation: (String) -> String,
-): LoggingMessageCollector =
-    messageCollectorFor(log, onCompilerWarningsFor(allWarningsAsErrors), pathTranslation)
-
-
-private
-fun messageCollectorFor(
-    log: Logger,
-    onCompilerWarning: EmbeddedKotlinCompilerWarning = EmbeddedKotlinCompilerWarning.WARN,
-    pathTranslation: (String) -> String = { it }
-): LoggingMessageCollector =
-    LoggingMessageCollector(log, onCompilerWarning, pathTranslation)
 
 
 internal
@@ -490,67 +268,31 @@ const val INDENT = "  "
 
 
 private
-enum class EmbeddedKotlinCompilerWarning {
-    FAIL, WARN, DEBUG
-}
+class CompilationLogger(val log: Logger) : KotlinLogger {
+    // TODO: MessageCollector does more, how much to duplicate?
 
-
-private
-fun onCompilerWarningsFor(allWarningsAsErrors: Boolean) =
-    if (allWarningsAsErrors) EmbeddedKotlinCompilerWarning.FAIL
-    else EmbeddedKotlinCompilerWarning.WARN
-
-
-private
-class LoggingMessageCollector(
-    val log: Logger,
-    private val onCompilerWarning: EmbeddedKotlinCompilerWarning,
-    private val pathTranslation: (String) -> String,
-) : MessageCollector {
-
-    val errors = arrayListOf<ScriptCompilationError>()
-
-    override fun hasErrors() = errors.isNotEmpty()
-
-    override fun clear() = errors.clear()
-
-    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
-
-        fun msg() =
-            location?.run {
-                path.let(pathTranslation).let { path ->
-                    when {
-                        line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
-                        else -> "${clickableFileUrlFor(path)}: $message"
-                    }
-                }
-            } ?: message
-
-        fun taggedMsg() =
-            "${severity.presentableName[0]}: ${msg()}"
-
-        fun onError() {
-            errors += ScriptCompilationError(message, location)
-            log.error { taggedMsg() }
-        }
-
-        fun onWarning() {
-            when (onCompilerWarning) {
-                EmbeddedKotlinCompilerWarning.FAIL -> onError()
-                EmbeddedKotlinCompilerWarning.WARN -> log.warn { taggedMsg() }
-                EmbeddedKotlinCompilerWarning.DEBUG -> log.debug { taggedMsg() }
-            }
-        }
-
-        when (severity) {
-            CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> onError()
-            in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
-            CompilerMessageSeverity.STRONG_WARNING -> onWarning()
-            CompilerMessageSeverity.WARNING -> onWarning()
-            CompilerMessageSeverity.INFO -> log.info { msg() }
-            else -> log.debug { taggedMsg() }
-        }
+    override fun debug(msg: String) {
+        log.debug(msg)
     }
+
+    override fun error(msg: String, throwable: Throwable?) {
+        log.error(msg, throwable)
+    }
+
+    override fun info(msg: String) {
+        log.info(msg)
+    }
+
+    override fun lifecycle(msg: String) {
+        log.info(msg) // TODO: right level?
+    }
+
+    override fun warn(msg: String, throwable: Throwable?) {
+        log.warn(msg)
+    }
+
+    override val isDebugEnabled: Boolean
+        get() = log.isDebugEnabled
 }
 
 

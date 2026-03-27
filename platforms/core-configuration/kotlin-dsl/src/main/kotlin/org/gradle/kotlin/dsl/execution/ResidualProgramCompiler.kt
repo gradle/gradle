@@ -37,6 +37,7 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 import org.gradle.kotlin.dsl.support.ImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.ASTORE
@@ -59,11 +60,9 @@ import org.gradle.kotlin.dsl.support.bytecode.loadByteArray
 import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
-import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
-import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 import org.gradle.plugin.management.internal.MultiPluginRequests
 import org.gradle.plugin.use.internal.PluginRequestCollector
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
+import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
@@ -90,7 +89,7 @@ class ResidualProgramCompiler(
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
     private val programTarget: ProgramTarget,
-    private val implicitImports: List<String> = emptyList(),
+    @Suppress("unused") private val implicitImports: List<String> = emptyList(), // TODO: would be good to use in the templates
     private val logger: Logger = interpreterLogger,
     private val temporaryFileProvider: TemporaryFileProvider,
     private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
@@ -214,16 +213,16 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitCollectProjectScriptDependencies(source: ProgramSource) {
-        val scriptDefinition = stage1ScriptDefinition
-        val compiledScriptClass = compileStage1(source, scriptDefinition, classPath + stage1BlocksClassPath)
-        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
+        val scriptTemplate = stage1ScriptTemplate
+        val compiledScriptClass = compileStage1(source, scriptTemplate, classPath + stage1BlocksClassPath)
+        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptTemplate)
     }
 
     private
     fun MethodVisitor.emitEval(source: ProgramSource) {
-        val scriptDefinition = stage1ScriptDefinition
-        val compiledScriptClass = compileStage1(source, scriptDefinition)
-        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
+        val scriptTemplate = stage1ScriptTemplate
+        val compiledScriptClass = compileStage1(source, scriptTemplate)
+        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptTemplate)
     }
 
     private
@@ -242,7 +241,7 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitStage1Sequence(stage1Seq: List<Program.Stage1>) {
-        val scriptDefinition = buildscriptWithPluginsScriptDefinition
+        val scriptTemplate = buildscriptWithPluginsScriptTemplate
         val plugins = stage1Seq.filterIsInstance<Program.Plugins>().singleOrNull()
         val firstElement = stage1Seq.first()
         val compiledBuildscriptWithPluginsBlock =
@@ -250,11 +249,11 @@ class ResidualProgramCompiler(
                 firstElement.fragment.source.map {
                     it.preserve(stage1Seq.map { stage1 -> stage1.fragment.range })
                 },
-                scriptDefinition,
+                scriptTemplate,
                 stage1BlocksClassPath
             )
 
-        val implicitReceiverType = implicitReceiverOf(scriptDefinition)!!
+        val implicitReceiverType = implicitReceiverOf(scriptTemplate)!!
         compiledScriptClassInstantiation(compiledBuildscriptWithPluginsBlock) {
 
             emitPluginRequestCollectorInstantiation()
@@ -362,11 +361,11 @@ class ResidualProgramCompiler(
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
 
-        val scriptDefinition = stage2ScriptDefinition
+        val scriptTemplate = stage2ScriptTemplate
         val compiledScriptClass = compileScript(
             scriptFile,
             originalPath,
-            scriptDefinition,
+            scriptTemplate,
             StableDisplayNameFor.stage2
         )
 
@@ -374,7 +373,7 @@ class ResidualProgramCompiler(
 
             overrideExecute {
 
-                emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
+                emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptTemplate)
             }
         }
     }
@@ -556,7 +555,7 @@ class ResidualProgramCompiler(
     fun compilePlugins(program: Program.Plugins) =
         compileStage1(
             program.fragment.source.map { it.preserve(program.fragment.range) },
-            pluginsScriptDefinition,
+            pluginsScriptTemplate,
             stage1BlocksClassPath
         )
 
@@ -577,10 +576,10 @@ class ResidualProgramCompiler(
     private
     fun MethodVisitor.emitInstantiationOfCompiledScriptClass(
         compiledScriptClass: InternalName,
-        scriptDefinition: ScriptDefinition
+        scriptTemplate: KClass<out Any>
     ) {
 
-        val implicitReceiverType = implicitReceiverOf(scriptDefinition)
+        val implicitReceiverType = implicitReceiverOf(scriptTemplate)
         compiledScriptClassInstantiation(compiledScriptClass) {
 
             // ${compiledScriptClass}(scriptHost)
@@ -689,7 +688,7 @@ class ResidualProgramCompiler(
     private
     fun compileStage1(
         source: ProgramSource,
-        scriptDefinition: ScriptDefinition,
+        scriptTemplate: KClass<out Any>,
         compileClassPath: ClassPath = classPath
     ): InternalName =
         temporaryFileProvider.withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
@@ -697,17 +696,18 @@ class ResidualProgramCompiler(
             compileScript(
                 scriptFile,
                 originalScriptPath,
-                scriptDefinition,
+                scriptTemplate,
                 StableDisplayNameFor.stage1,
                 compileClassPath
             )
         }
 
+    @OptIn(ExperimentalCompilerArgument::class)
     private
     fun compileScript(
         scriptFile: File,
         originalPath: String,
-        scriptDefinition: ScriptDefinition,
+        scriptTemplate: KClass<out Any>,
         stage: String,
         compileClassPath: ClassPath = classPath
     ): InternalName {
@@ -718,7 +718,7 @@ class ResidualProgramCompiler(
                     outputDir,
                     compilerOptions,
                     scriptFile,
-                    scriptDefinition,
+                    scriptTemplate,
                     compileClassPath.asFiles,
                     logger
                 ) { path ->
@@ -747,53 +747,33 @@ class ResidualProgramCompiler(
     }
 
     private
-    val stage1ScriptDefinition
-        get() = scriptDefinitionFromTemplate(
-            when (programTarget) {
-                ProgramTarget.Project -> CompiledKotlinBuildscriptBlock::class
-                ProgramTarget.Settings -> CompiledKotlinSettingsBuildscriptBlock::class
-                ProgramTarget.Gradle -> CompiledKotlinInitscriptBlock::class
-            }
-        )
+    val stage1ScriptTemplate
+        get() = when (programTarget) {
+            ProgramTarget.Project -> CompiledKotlinBuildscriptBlock::class
+            ProgramTarget.Settings -> CompiledKotlinSettingsBuildscriptBlock::class
+            ProgramTarget.Gradle -> CompiledKotlinInitscriptBlock::class
+        }
+    
+    private
+    val stage2ScriptTemplate
+        get() = when (programTarget) {
+            ProgramTarget.Project -> CompiledKotlinBuildScript::class
+            ProgramTarget.Settings -> CompiledKotlinSettingsScript::class
+            ProgramTarget.Gradle -> CompiledKotlinInitScript::class
+        }
 
     private
-    val stage2ScriptDefinition
-        get() = scriptDefinitionFromTemplate(
-            when (programTarget) {
-                ProgramTarget.Project -> CompiledKotlinBuildScript::class
-                ProgramTarget.Settings -> CompiledKotlinSettingsScript::class
-                ProgramTarget.Gradle -> CompiledKotlinInitScript::class
-            }
-        )
+    val pluginsScriptTemplate
+        get() = CompiledKotlinPluginsBlock::class
+
+    private val buildscriptWithPluginsScriptTemplate
+        get() = when (programTarget) {
+            ProgramTarget.Project -> CompiledKotlinBuildscriptAndPluginsBlock::class
+            ProgramTarget.Settings -> CompiledKotlinSettingsPluginManagementBlock::class
+            else -> TODO("Unsupported program target: `$programTarget`")
+        }
 
     private
-    val pluginsScriptDefinition
-        get() = scriptDefinitionFromTemplate(CompiledKotlinPluginsBlock::class)
-
-    private
-    fun implicitReceiverOf(scriptDefinition: ScriptDefinition): KClass<*>? =
-        implicitReceiverOf(scriptDefinition.baseClassType.fromClass!!)
-
-    private
-    val buildscriptWithPluginsScriptDefinition
-        get() = scriptDefinitionFromTemplate(
-            when (programTarget) {
-                ProgramTarget.Project -> CompiledKotlinBuildscriptAndPluginsBlock::class
-                ProgramTarget.Settings -> CompiledKotlinSettingsPluginManagementBlock::class
-                else -> TODO("Unsupported program target: `$programTarget`")
-            }
-        )
-
-    private
-    fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
-        scriptDefinitionFromTemplate(
-            template,
-            implicitImports,
-            implicitReceiverOf(template),
-            classPath.asFiles
-        )
-
-    private
-    fun implicitReceiverOf(template: KClass<*>) =
-        template.annotations.firstNotNullOfOrNull { (it as? ImplicitReceiver)?.type }
+    fun implicitReceiverOf(template: KClass<*>): KClass<*>? =
+        template.annotations.firstNotNullOfOrNull { (it as? ImplicitReceiver)?.type } // TODO: use KotlinScript.compilationConfiguration... instead
 }

@@ -59,7 +59,6 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.files)
     implementation(projects.functional)
-    implementation(projects.io)
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.projectFeaturesApi)
@@ -86,16 +85,10 @@ dependencies {
     api(libs.kotlinScriptingCommon) {
         isTransitive = false
     }
-    implementation(libs.kotlinScriptingJvm) {
-        isTransitive = false
-    }
-    implementation(libs.kotlinScriptingJvmHost) {
-        isTransitive = false
-    }
     implementation(libs.kotlinScriptingCompilerEmbeddable) {
         isTransitive = false
     }
-    api(libs.kotlinScriptingCompilerImplEmbeddable) {
+    implementation(libs.kotlinScriptingCompilerImplEmbeddable) {
         isTransitive = false
     }
     implementation(libs.kotlinSamWithReceiverCompilerPlugin) {
@@ -109,6 +102,9 @@ dependencies {
     }
 
     runtimeOnly(libs.kotlinBuildToolsImpl) {
+        isTransitive = false
+    }
+    runtimeOnly(libs.kotlinScriptingJvm) {
         isTransitive = false
     }
 
