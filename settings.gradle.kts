@@ -160,6 +160,7 @@ val core = platform("core") {
         subproject("execution-e2e-tests")
         subproject("file-watching")
         subproject("hashing")
+        subproject("hashing-services")
         subproject("persistent-cache")
         subproject("worker-process-services")
         subproject("request-handler-worker")

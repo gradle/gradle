@@ -735,6 +735,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "hashing-services",
+    "path": "platforms/core-execution/hashing-services",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "ide",
     "path": "platforms/ide/ide",
     "unitTests": true,
