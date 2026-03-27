@@ -55,19 +55,27 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
  * For creating {@link DirectorySnapshot}s of directories.
  *
- * File hashing within each directory is parallelized for directories exceeding
- * {@link #PARALLEL_FILE_THRESHOLD} files. Directory tree traversal remains sequential (depth-first).
+ * <p>Uses two parallelism strategies based on whether a predicate (filter) is present:</p>
+ * <ul>
+ *   <li><b>No predicate (common case)</b>: fully non-blocking async traversal using
+ *       {@link CompletableFuture} composition. Both directory traversal and file hashing
+ *       are parallelized. No thread ever blocks waiting for another task, enabling natural
+ *       work distribution across the thread pool.</li>
+ *   <li><b>With predicate</b>: sequential directory traversal on the main thread
+ *       (predicate may not be thread-safe) with parallel file hashing on the executor.</li>
+ * </ul>
  */
 public class DirectorySnapshotter {
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
@@ -107,22 +115,6 @@ public class DirectorySnapshotter {
         this.executor = executor;
     }
 
-    /**
-     * Snapshots a directory, reusing existing previously known snapshots.
-     *
-     * Follows symlinks and includes them in the returned snapshot.
-     * Snapshots of followed symlinks are marked with {@link AccessType#VIA_SYMLINK}.
-     *
-     * @param absolutePath The absolute path of the directory to snapshot.
-     * @param predicate A predicate that determines which files to include in the snapshot.
-     *                  {@code null} means to include everything.
-     * @param previouslyKnownSnapshots Snapshots already known to exist in the file system.
-     * @param unfilteredSnapshotRecorder If the returned snapshot is filtered by the predicate, i.e. it doesn't have all the contents of the directory,
-     * then this consumer will receive all the unfiltered snapshots within the snapshot directory.
-     * For example, if an element of a directory is filtered out, the consumer will receive all the non-filtered out
-     * file snapshots and all the non-filtered directory snapshots in the directory.
-     * @return The (possible filtered) snapshot of the directory.
-     */
     public FileSystemLocationSnapshot snapshot(
         String absolutePath,
         SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate,
@@ -148,7 +140,21 @@ public class DirectorySnapshotter {
 
         FileSystemLocationSnapshot result;
         if (rootAttrs.isDirectory()) {
-            result = visitor.processDirectory(rootPath, new ArrayList<>(), new HashSet<>(), true).snapshot;
+            if (predicate == null) {
+                // Fully async: non-blocking CompletableFuture composition.
+                // Only this .get() call blocks (on main thread, not an executor thread).
+                try {
+                    result = visitor.processDirectoryAsync(rootPath, new HashSet<>()).get().snapshot;
+                } catch (ExecutionException e) {
+                    throw UncheckedException.throwAsUncheckedException(e.getCause());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            } else {
+                // Sequential traversal (predicate not thread-safe) + parallel file hashing
+                result = visitor.processDirectory(rootPath, new ArrayList<>(), new HashSet<>()).snapshot;
+            }
         } else {
             collector.recordVisitFile();
             String rootName = visitor.getInternedFileName(rootPath);
@@ -306,11 +312,13 @@ public class DirectorySnapshotter {
     }
 
     /**
-     * Visits a directory tree using manual recursive traversal via {@link Files#list(Path)}.
-     * File hashing within each directory can be parallelized.
-     * Directory tree traversal is always sequential (depth-first).
-     * Each {@code processDirectory} call returns a complete {@link DirectorySnapshot} directly,
-     * without using a stack-based builder.
+     * Visits a directory tree. Two modes of operation:
+     * <ul>
+     *   <li>{@link #processDirectoryAsync}: non-blocking, returns CompletableFuture.
+     *       Used when no predicate - enables full tree+file parallelism.</li>
+     *   <li>{@link #processDirectory}: synchronous with parallel file hashing.
+     *       Used when predicate is present (predicate may not be thread-safe).</li>
+     * </ul>
      */
     private static class DirectoryVisitor {
         private final SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate;
@@ -348,11 +356,186 @@ public class DirectorySnapshotter {
             this.executor = executor;
         }
 
+        // ======================== Async path (no predicate) ========================
+
         /**
-         * Processes a directory and returns its complete snapshot.
-         * Hashes files in parallel, recurses into subdirectories sequentially.
+         * Non-blocking async directory processing. Lists children on the current thread,
+         * then submits file hashing and child directories as CompletableFutures.
+         * No thread ever blocks waiting for another task's result.
          */
-        SnapshotResult processDirectory(Path dir, List<String> relativePathSegments, Set<String> parentDirPaths, boolean parallelDirs) {
+        CompletableFuture<SnapshotResult> processDirectoryAsync(Path dir, Set<String> parentDirPaths) {
+            String internedName = getInternedFileName(dir);
+            String internedAbsPath = intern(symbolicLinkMapping.remapAbsolutePath(dir));
+
+            // Previously known snapshot - return immediately
+            FileSystemLocationSnapshot previouslyKnownSnapshot = previouslyKnownSnapshots.get(internedAbsPath);
+            if (previouslyKnownSnapshot instanceof DirectorySnapshot) {
+                return CompletableFuture.completedFuture(new SnapshotResult(previouslyKnownSnapshot, false));
+            } else if (previouslyKnownSnapshot != null) {
+                throw new IllegalStateException("Expected a previously known directory snapshot at " + internedAbsPath + " but got " + previouslyKnownSnapshot);
+            }
+
+            Set<String> newParentDirPaths = new HashSet<>(parentDirPaths);
+            newParentDirPaths.add(dir.toString());
+
+            // List children synchronously (I/O work on current thread)
+            List<FileToSnapshot> filesToHash = new ArrayList<>();
+            List<DirToVisit> dirsToRecurse = new ArrayList<>();
+            List<CompletableFuture<DirectorySnapshot>> symlinkDirCFs = new ArrayList<>();
+
+            try (Stream<Path> childStream = listDirectoryChildren(dir)) {
+                collector.recordVisitDirectory();
+
+                childStream.forEach(child -> {
+                    try {
+                        BasicFileAttributes attrs = Files.readAttributes(child, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+                        String childName = getInternedFileName(child);
+
+                        if (attrs.isDirectory()) {
+                            if (!defaultExcludes.excludeDir(childName)) {
+                                dirsToRecurse.add(new DirToVisit(child));
+                            }
+                        } else if (attrs.isSymbolicLink()) {
+                            collector.recordVisitFile();
+                            BasicFileAttributes targetAttrs = readAttributesOfSymlinkTarget(child, attrs);
+                            if (targetAttrs.isDirectory()) {
+                                if (!defaultExcludes.excludeDir(childName)) {
+                                    CompletableFuture<DirectorySnapshot> symlinkCF = followSymlinkAsync(child, childName, newParentDirPaths);
+                                    if (symlinkCF != null) {
+                                        symlinkDirCFs.add(symlinkCF);
+                                    }
+                                }
+                            } else if (!defaultExcludes.excludeFile(childName)) {
+                                filesToHash.add(new FileToSnapshot(child, childName, targetAttrs, AccessType.VIA_SYMLINK));
+                            }
+                        } else {
+                            collector.recordVisitFile();
+                            if (!defaultExcludes.excludeFile(childName)) {
+                                filesToHash.add(new FileToSnapshot(child, childName, attrs, AccessType.DIRECT));
+                            }
+                        }
+                    } catch (IOException e) {
+                        handleFailedNoFilter(child, e);
+                    }
+                });
+            }
+
+            // Submit file hashing (non-blocking)
+            CompletableFuture<List<FileSystemLeafSnapshot>> filesCF = submitFileHashingAsync(filesToHash);
+
+            // Submit child directories (non-blocking) - each returns a CF
+            List<CompletableFuture<SnapshotResult>> dirCFs = new ArrayList<>(dirsToRecurse.size());
+            for (DirToVisit dirToVisit : dirsToRecurse) {
+                dirCFs.add(forkDirectoryAsync(dirToVisit.path, newParentDirPaths));
+            }
+
+            // Compose all: when files + dirs + symlinks complete, build the snapshot
+            List<CompletableFuture<?>> allWork = new ArrayList<>();
+            allWork.add(filesCF);
+            allWork.addAll(dirCFs);
+            allWork.addAll(symlinkDirCFs);
+
+            return CompletableFuture.allOf(allWork.toArray(new CompletableFuture<?>[0]))
+                .thenApply(v -> {
+                    List<FileSystemLocationSnapshot> children = new ArrayList<>();
+                    for (CompletableFuture<SnapshotResult> cf : dirCFs) {
+                        children.add(cf.join().snapshot);
+                    }
+                    for (CompletableFuture<DirectorySnapshot> cf : symlinkDirCFs) {
+                        children.add(cf.join());
+                    }
+                    children.addAll(filesCF.join());
+                    return new SnapshotResult(buildDirectorySnapshot(internedAbsPath, internedName, AccessType.DIRECT, children), false);
+                });
+        }
+
+        /**
+         * Forks a directory for async processing on the executor.
+         * The executor thread lists the directory and submits its children (quick),
+         * then returns. thenCompose flattens the nested CF.
+         */
+        @SuppressWarnings("FutureReturnValueIgnored") // thenCompose flattens the nested CF
+        private CompletableFuture<SnapshotResult> forkDirectoryAsync(Path dir, Set<String> parentDirPaths) {
+            return CompletableFuture
+                .supplyAsync(() -> processDirectoryAsync(dir, parentDirPaths), executor)
+                .thenCompose(Function.identity());
+        }
+
+        @Nullable
+        private CompletableFuture<DirectorySnapshot> followSymlinkAsync(Path file, String internedFileName, Set<String> parentDirPaths) {
+            try {
+                Path targetDir = file.toRealPath();
+                String targetDirString = targetDir.toString();
+                if (parentDirPaths.contains(targetDirString)) {
+                    return null;
+                }
+                SymbolicLinkMapping newMapping = symbolicLinkMapping.withNewMapping(file.toString(), targetDirString, Collections.emptyList());
+                DirectoryVisitor subtreeVisitor = new DirectoryVisitor(
+                    null, hasBeenFiltered, hasher, stringInterner, defaultExcludes,
+                    collector, newMapping, previouslyKnownSnapshots, unfilteredSnapshotRecorder, executor);
+
+                collector.recordVisitHierarchy();
+                return subtreeVisitor.processDirectoryAsync(targetDir, parentDirPaths)
+                    .thenApply(result -> {
+                        DirectorySnapshot targetSnapshot = (DirectorySnapshot) result.snapshot;
+                        return new DirectorySnapshot(
+                            targetSnapshot.getAbsolutePath(), internedFileName,
+                            AccessType.VIA_SYMLINK, targetSnapshot.getHash(), targetSnapshot.getChildren());
+                    });
+            } catch (IOException e) {
+                throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", file), e);
+            }
+        }
+
+        @SuppressWarnings("FutureReturnValueIgnored")
+        private CompletableFuture<List<FileSystemLeafSnapshot>> submitFileHashingAsync(List<FileToSnapshot> files) {
+            if (files.isEmpty()) {
+                return CompletableFuture.completedFuture(Collections.emptyList());
+            }
+            if (files.size() >= PARALLEL_FILE_THRESHOLD) {
+                @SuppressWarnings({"unchecked", "rawtypes"})
+                CompletableFuture<FileSystemLeafSnapshot>[] futures = new CompletableFuture[files.size()];
+                for (int i = 0; i < files.size(); i++) {
+                    FileToSnapshot f = files.get(i);
+                    futures[i] = CompletableFuture.supplyAsync(
+                        () -> snapshotFile(f.path, f.internedName, f.attrs, f.accessType), executor);
+                }
+                return CompletableFuture.allOf(futures).thenApply(v -> {
+                    List<FileSystemLeafSnapshot> results = new ArrayList<>(futures.length);
+                    for (CompletableFuture<FileSystemLeafSnapshot> cf : futures) {
+                        results.add(cf.join());
+                    }
+                    return results;
+                });
+            }
+            // Batch: one worker hashes all files
+            return CompletableFuture.supplyAsync(() -> {
+                List<FileSystemLeafSnapshot> results = new ArrayList<>(files.size());
+                for (FileToSnapshot f : files) {
+                    results.add(snapshotFile(f.path, f.internedName, f.attrs, f.accessType));
+                }
+                return results;
+            }, executor);
+        }
+
+        private void handleFailedNoFilter(Path file, IOException exc) {
+            collector.recordVisitFileFailed();
+            if (isNotFileSystemLoopException(exc)) {
+                String internedFileName = getInternedFileName(file);
+                boolean isDirectory = Files.isDirectory(file);
+                if (isDirectory ? !defaultExcludes.excludeDir(internedFileName) : !defaultExcludes.excludeFile(internedFileName)) {
+                    throw UncheckedException.throwAsUncheckedException(exc);
+                }
+            }
+        }
+
+        // ======================== Sync path (with predicate) ========================
+
+        /**
+         * Synchronous directory processing with parallel file hashing.
+         * Used when a predicate is present (predicate may not be thread-safe).
+         */
+        SnapshotResult processDirectory(Path dir, List<String> relativePathSegments, Set<String> parentDirPaths) {
             String internedName = getInternedFileName(dir);
             String internedAbsPath = intern(symbolicLinkMapping.remapAbsolutePath(dir));
 
@@ -372,7 +555,6 @@ public class DirectorySnapshotter {
             List<DirToVisit> dirsToRecurse = new ArrayList<>();
             List<DirectorySnapshot> symlinkDirSnapshots = new ArrayList<>();
             Set<FileSystemLocationSnapshot> filteredChildDirs = new HashSet<>();
-            // Track whether any child was filtered - mutable from lambda via array
             boolean[] isCurrentDirFiltered = {false};
 
             try (Stream<Path> childStream = listDirectoryChildren(dir)) {
@@ -417,21 +599,29 @@ public class DirectorySnapshotter {
                 });
             }
 
-            // Submit file hashing (non-blocking), recurse into subdirectories, then join.
-            SubmittedFileHashing fileHashingResult = submitFileHashing(filesToHash);
+            // Submit file hashing, recurse into subdirectories, then join
+            CompletableFuture<List<FileSystemLeafSnapshot>> filesCF = submitFileHashingAsync(filesToHash);
 
             List<FileSystemLocationSnapshot> children = new ArrayList<>();
-            processSubdirectories(dirsToRecurse, parentDirPaths, parallelDirs, children, filteredChildDirs, isCurrentDirFiltered);
+            for (DirToVisit dirToVisit : dirsToRecurse) {
+                SnapshotResult childResult = processDirectory(dirToVisit.path, dirToVisit.relativePathSegments, parentDirPaths);
+                children.add(childResult.snapshot);
+                if (childResult.isFiltered) {
+                    filteredChildDirs.add(childResult.snapshot);
+                    isCurrentDirFiltered[0] = true;
+                }
+            }
             children.addAll(symlinkDirSnapshots);
-            joinAndAddFiles(fileHashingResult, children);
+            try {
+                children.addAll(filesCF.join());
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
 
             parentDirPaths.remove(dir.toString());
 
             DirectorySnapshot result = buildDirectorySnapshot(internedAbsPath, internedName, AccessType.DIRECT, children);
 
-            // If this directory was filtered, record its direct unfiltered children.
-            // Skip child directories that are themselves filtered - their own children
-            // were already recorded when they were processed.
             if (isCurrentDirFiltered[0]) {
                 for (FileSystemLocationSnapshot child : result.getChildren()) {
                     if (child.getType() != FileType.Directory || !filteredChildDirs.contains(child)) {
@@ -443,56 +633,12 @@ public class DirectorySnapshotter {
             return new SnapshotResult(result, isCurrentDirFiltered[0]);
         }
 
-        /**
-         * Processes subdirectories, either in parallel or sequentially.
-         * Parallel traversal is used when no predicate is set (predicate may not be thread-safe)
-         * and parallelDirs is allowed. Forked tasks use parallelDirs=false to prevent nested
-         * forking which risks deadlock with fixed thread pools.
-         */
-        private void processSubdirectories(
-            List<DirToVisit> dirsToRecurse,
-            Set<String> parentDirPaths,
-            boolean parallelDirs,
-            List<FileSystemLocationSnapshot> children,
-            Set<FileSystemLocationSnapshot> filteredChildDirs,
-            boolean[] isCurrentDirFiltered
-        ) {
-            boolean forkDirs = parallelDirs && predicate == null && dirsToRecurse.size() > 1;
-            if (forkDirs) {
-                Set<String> parentDirPathsSnapshot = new HashSet<>(parentDirPaths);
-                List<Future<SnapshotResult>> dirFutures = new ArrayList<>(dirsToRecurse.size());
-                for (DirToVisit dirToVisit : dirsToRecurse) {
-                    dirFutures.add(executor.submit(() ->
-                        processDirectory(dirToVisit.path, dirToVisit.relativePathSegments, parentDirPathsSnapshot, false)));
-                }
-                for (Future<SnapshotResult> future : dirFutures) {
-                    try {
-                        children.add(future.get().snapshot);
-                    } catch (ExecutionException e) {
-                        throw UncheckedException.throwAsUncheckedException(e.getCause());
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-            } else {
-                for (DirToVisit dirToVisit : dirsToRecurse) {
-                    SnapshotResult childResult = processDirectory(dirToVisit.path, dirToVisit.relativePathSegments, parentDirPaths, parallelDirs);
-                    children.add(childResult.snapshot);
-                    if (childResult.isFiltered) {
-                        filteredChildDirs.add(childResult.snapshot);
-                        isCurrentDirFiltered[0] = true;
-                    }
-                }
-            }
-        }
-
         FileSystemLocationSnapshot processFileAsRoot(Path file, String internedName, BasicFileAttributes attrs) {
             if (attrs.isSymbolicLink()) {
                 BasicFileAttributes targetAttrs = readAttributesOfSymlinkTarget(file, attrs);
                 if (targetAttrs.isDirectory()) {
                     AtomicBoolean symlinkHasBeenFiltered = new AtomicBoolean();
-                    DirectorySnapshot targetSnapshot = followSymlinkAsRoot(file, symlinkHasBeenFiltered);
+                    DirectorySnapshot targetSnapshot = followSymlinkSync(file, symlinkHasBeenFiltered);
                     if (targetSnapshot != null) {
                         DirectorySnapshot snapshotViaSymlink = new DirectorySnapshot(
                             targetSnapshot.getAbsolutePath(), internedName,
@@ -520,7 +666,7 @@ public class DirectorySnapshotter {
             }
 
             AtomicBoolean symlinkHasBeenFiltered = new AtomicBoolean();
-            DirectorySnapshot targetSnapshot = followSymlink(symlinkPath, internedFileName, symlinkHasBeenFiltered, parentRelativeSegments, parentDirPaths);
+            DirectorySnapshot targetSnapshot = followSymlinkWithPredicate(symlinkPath, internedFileName, symlinkHasBeenFiltered, parentRelativeSegments, parentDirPaths);
             if (targetSnapshot == null) {
                 return null;
             }
@@ -541,7 +687,7 @@ public class DirectorySnapshotter {
         }
 
         @Nullable
-        private DirectorySnapshot followSymlinkAsRoot(Path file, AtomicBoolean symlinkHasBeenFiltered) {
+        private DirectorySnapshot followSymlinkSync(Path file, AtomicBoolean symlinkHasBeenFiltered) {
             try {
                 Path targetDir = file.toRealPath();
                 String targetDirString = targetDir.toString();
@@ -552,7 +698,7 @@ public class DirectorySnapshotter {
                     collector, newMapping, previouslyKnownSnapshots, unfilteredSnapshotRecorder, executor);
 
                 collector.recordVisitHierarchy();
-                SnapshotResult result = subtreeVisitor.processDirectory(targetDir, new ArrayList<>(), new HashSet<>(), true);
+                SnapshotResult result = subtreeVisitor.processDirectory(targetDir, new ArrayList<>(), new HashSet<>());
                 return (DirectorySnapshot) result.snapshot;
             } catch (IOException e) {
                 throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", file), e);
@@ -560,7 +706,7 @@ public class DirectorySnapshotter {
         }
 
         @Nullable
-        private DirectorySnapshot followSymlink(Path file, String internedFileName, AtomicBoolean symlinkHasBeenFiltered, List<String> parentRelativeSegments, Set<String> parentDirPaths) {
+        private DirectorySnapshot followSymlinkWithPredicate(Path file, String internedFileName, AtomicBoolean symlinkHasBeenFiltered, List<String> parentRelativeSegments, Set<String> parentDirPaths) {
             try {
                 Path targetDir = file.toRealPath();
                 String targetDirString = targetDir.toString();
@@ -573,7 +719,7 @@ public class DirectorySnapshotter {
                         collector, newMapping, previouslyKnownSnapshots, unfilteredSnapshotRecorder, executor);
 
                     collector.recordVisitHierarchy();
-                    SnapshotResult result = subtreeVisitor.processDirectory(targetDir, new ArrayList<>(), parentDirPaths, true);
+                    SnapshotResult result = subtreeVisitor.processDirectory(targetDir, new ArrayList<>(), parentDirPaths);
                     return (DirectorySnapshot) result.snapshot;
                 } else {
                     return null;
@@ -583,43 +729,7 @@ public class DirectorySnapshotter {
             }
         }
 
-        private SubmittedFileHashing submitFileHashing(List<FileToSnapshot> files) {
-            if (files.isEmpty()) {
-                return Collections::emptyList;
-            }
-            if (files.size() >= PARALLEL_FILE_THRESHOLD) {
-                List<Future<FileSystemLeafSnapshot>> futures = new ArrayList<>(files.size());
-                for (FileToSnapshot f : files) {
-                    futures.add(executor.submit(() -> snapshotFile(f.path, f.internedName, f.attrs, f.accessType)));
-                }
-                return () -> {
-                    List<FileSystemLeafSnapshot> results = new ArrayList<>(futures.size());
-                    for (Future<FileSystemLeafSnapshot> future : futures) {
-                        results.add(future.get());
-                    }
-                    return results;
-                };
-            }
-            Future<List<FileSystemLeafSnapshot>> batchFuture = executor.submit(() -> {
-                List<FileSystemLeafSnapshot> results = new ArrayList<>(files.size());
-                for (FileToSnapshot f : files) {
-                    results.add(snapshotFile(f.path, f.internedName, f.attrs, f.accessType));
-                }
-                return results;
-            });
-            return batchFuture::get;
-        }
-
-        private static void joinAndAddFiles(SubmittedFileHashing submitted, List<FileSystemLocationSnapshot> children) {
-            try {
-                children.addAll(submitted.join());
-            } catch (ExecutionException e) {
-                throw UncheckedException.throwAsUncheckedException(e.getCause());
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
+        // ======================== Shared utilities ========================
 
         private FileSystemLeafSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
             String internedRemappedAbsoluteFilePath = intern(symbolicLinkMapping.remapAbsolutePath(absoluteFilePath));
@@ -719,16 +829,17 @@ public class DirectorySnapshotter {
 
     private static class DirToVisit {
         final Path path;
+        @Nullable
         final List<String> relativePathSegments;
+
+        DirToVisit(Path path) {
+            this.path = path;
+            this.relativePathSegments = null;
+        }
 
         DirToVisit(Path path, List<String> relativePathSegments) {
             this.path = path;
             this.relativePathSegments = relativePathSegments;
         }
-    }
-
-    @FunctionalInterface
-    private interface SubmittedFileHashing {
-        List<FileSystemLeafSnapshot> join() throws ExecutionException, InterruptedException;
     }
 }
