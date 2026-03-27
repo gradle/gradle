@@ -38,16 +38,12 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         given:
         file("gradle.properties") << "someProjectProperty=true"
         settingsFile << """
-            if (properties.someProjectProperty == 'true') {
+            if (getProperty('someProjectProperty') == 'true') {
                 println('signal')
             }
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_script_get_properties")
         succeeds('help')
 
         then:
