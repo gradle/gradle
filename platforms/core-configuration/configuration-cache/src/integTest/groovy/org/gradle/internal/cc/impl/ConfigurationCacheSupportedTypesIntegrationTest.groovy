@@ -586,7 +586,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         file("buildSrc/src/main/java/WithAlternativeTypes.java") << """
             public record WithAlternativeTypes(Integer number, Boolean a, boolean b, java.util.TreeSet<String> ts) {}
         """
-
         file("buildSrc/build.gradle.kts") << """
             plugins {
                 `java-library`
@@ -633,6 +632,41 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "WithExtraDeclaredFields" | "new WithExtraDeclaredFields('str', 42)"                                                         | "WithExtraDeclaredFields[str=str, number=42]"
         "WithExtraConstructors"   | "new WithExtraConstructors('str', 42)"                                                           | "WithExtraConstructors[str=str, number=42]"
         "WithAlternativeTypes"    | "new WithAlternativeTypes(42, true, false as boolean, new TreeSet(['a', 'b', 'c']))"             | "WithAlternativeTypes[number=42, a=true, b=false, ts=[a, b, c]]"
+    }
+
+    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    @Issue("https://github.com/gradle/gradle/issues/35594")
+    def "restores task fields whose value is instance of a package-private java record"() {
+        javaFile("buildSrc/src/main/java/my/PackagePrivateRecord.java", """
+            package my;
+            record PackagePrivateRecord(String value, int number) {}
+        """)
+        javaFile("buildSrc/src/main/java/my/SomeTask.java", """
+            package my;
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+            public class SomeTask extends DefaultTask {
+                private final PackagePrivateRecord value = new PackagePrivateRecord("str", 42);
+                @TaskAction
+                void run() {
+                    System.out.println("this.value = " + value);
+                }
+            }
+        """)
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+        """
+        buildFile """
+            tasks.register("ok", my.SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("this.value = PackagePrivateRecord[value=str, number=42]")
     }
 
     def "task actions support capturing project extra properties"() {
