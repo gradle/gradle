@@ -62,9 +62,43 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             """.stripMargin("|").strip()
         )
 
-        receivedProblem(0).fqid == "scripts:dcl-schema:illegal-variance-in-parameterized-type-usage"
-        receivedProblem(1).fqid == "scripts:dcl-schema:unsupported-map-factory"
-        receivedProblem(2).fqid == "scripts:dcl-schema:unsupported-map-factory"
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:illegal-variance-in-parameterized-type-usage"
+            details == "Illegal 'OUT' variance\n" +
+                "  in type argument 'out kotlin.CharSequence'\n" +
+                "  in return value type 'org.gradle.api.provider.Property<out kotlin.CharSequence>'\n" +
+                "  in member 'fun org.gradle.test.FeatureDefinition.getWildcard(): org.gradle.api.provider.Property<out kotlin.CharSequence!>!'\n" +
+                "  in class 'org.gradle.test.FeatureDefinition'"
+            solutions == [
+                "Use invariant type arguments (with no wildcards or in/out-projections)",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == "scripts:dcl-schema:unsupported-map-factory"
+            details == "Illegal type 'kotlin.collections.Map<kotlin.String, kotlin.String>': functions returning Map types are not supported\n" +
+                "  in return value type 'kotlin.collections.Map<kotlin.String, kotlin.String>'\n" +
+                "  in member 'fun org.gradle.test.FeatureDefinition.anotherMap(): kotlin.collections.(Mutable)Map<kotlin.String!, kotlin.String!>!'\n" +
+                "  in class 'org.gradle.test.FeatureDefinition'"
+            solutions == [
+                "If regular Map values (mapOf) don't work for this use case, use a custom type instead of Map.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
+        verifyAll(receivedProblem(2)) {
+            fqid == "scripts:dcl-schema:unsupported-map-factory"
+            details == "Illegal type 'kotlin.collections.Map<kotlin.String, kotlin.String>': functions returning Map types are not supported\n" +
+                "  in return value type 'kotlin.collections.Map<kotlin.String, kotlin.String>'\n" +
+                "  in member 'fun org.gradle.test.FeatureDefinition.myMap(): kotlin.collections.(Mutable)Map<kotlin.String!, kotlin.String!>!'\n" +
+                "  in class 'org.gradle.test.FeatureDefinition'"
+            solutions == [
+                "If regular Map values (mapOf) don't work for this use case, use a custom type instead of Map.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
     }
 
     def 'unsafe non-interface type in safe definition is reported'() {
@@ -80,7 +114,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         )
         file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
             "Property<String> getBuzz();",
-            "abstract Property<String> getBuzz();"
+            "public abstract Property<String> getBuzz();"
         )
 
         expect:
@@ -90,7 +124,18 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
 
-        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-non-interface-type"
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:unsafe-non-interface-type"
+            details == "Unsafe declaration in safe definition: non-interface type\n" +
+                "  in schema type 'org.gradle.test.FeatureDefinition.Fizz'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Make the type safe by making it an interface.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
     }
 
     def 'unsafe hidden member in safe definition is reported'() {
@@ -114,7 +159,18 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
 
-        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+            details == "Unsafe declaration in safe definition: hidden member 'getHiddenProp'\n" +
+                "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Remove the hidden members.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
     }
 
     def 'unsafe non-public member in safe definition is reported'() {
@@ -173,7 +229,19 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
 
-        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-java-bean-property"
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:unsafe-java-bean-property"
+            details == "Unsafe declaration in safe definition: unsafe property\n" +
+                "  in schema property 'plainText: String'\n" +
+                "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Make the property safe by using Gradle Property API.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
     }
 
     def 'unsafe non-abstract member in safe definition is reported'() {
@@ -196,7 +264,19 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
 
-        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-non-abstract-member"
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:unsafe-non-abstract-member"
+            details == "Unsafe declaration in safe definition: non-abstract member\n" +
+                "  in schema property 'defaultValue: String'\n" +
+                "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Make the member safe by removing the implementation (making it abstract).",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
     }
 
     def 'unsafe non-pure function in safe definition is reported'() {
@@ -221,7 +301,20 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
 
-        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-non-pure-function"
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:unsafe-non-pure-function"
+            details == "Unsafe declaration in safe definition: function relying on side effects or custom implementation\n" +
+                "  in schema function 'addFizz(): Fizz'\n" +
+                "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Use read-only properties to expose nested models.",
+                "Use NamedDomainObjectContainer or collection properties to model multi-element containers.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
     }
 
     def 'unsafe inject property is reported'() {
@@ -304,6 +397,17 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             "      in safe feature definitions of 'feature', 'anotherFeature' (plugin 'com.example.test-software-ecosystem')"
         )
 
-        receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+            details == "Unsafe declaration in safe definition: hidden member 'getHiddenProp'\n" +
+                "  in schema type 'org.gradle.test.SharedType'\n" +
+                "  in safe feature definitions of 'feature', 'anotherFeature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Remove the hidden members.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
     }
 }
