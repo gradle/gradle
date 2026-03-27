@@ -36,6 +36,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultEnumClass
 import org.gradle.internal.declarativedsl.analysis.DefaultExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.DefaultVarargSignature
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal
 import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeBecauseHasHiddenMembers
 import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonInterfaceType
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
@@ -690,8 +691,12 @@ class DataSchemaBuilder(
                     if (!kClass.java.isInterface) {
                         add(DefaultUnsafeNonInterfaceType)
                     }
-                    if (host.classMembers(kClass).hiddenMemberNames.isNotEmpty()) {
-                        add(DefaultUnsafeBecauseHasHiddenMembers(host.classMembers(kClass).hiddenMemberNames.toList()))
+                    val classMembers = host.classMembers(kClass)
+                    if (classMembers.hiddenMemberNames.isNotEmpty()) {
+                        add(DefaultUnsafeBecauseHasHiddenMembers(classMembers.hiddenMemberNames.toList()))
+                    }
+                    if (classMembers.nonPublicMemberNames.isNotEmpty()) {
+                        add(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeBecauseHasNonPublicMembers(classMembers.nonPublicMemberNames.toList()))
                     }
                 }
                 DefaultDataClass(kClass.fqName, kClass.java.name, listOf(), supertypesOf(kClass), properties, functions, emptyList(), metadata)

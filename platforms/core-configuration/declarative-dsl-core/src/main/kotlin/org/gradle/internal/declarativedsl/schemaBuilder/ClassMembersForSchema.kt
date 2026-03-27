@@ -42,7 +42,8 @@ import kotlin.reflect.jvm.javaField
 
 data class ClassMembersForSchema(
     val membersBySupertype: Map<KClass<*>, List<ExtractionResult<SupportedCallable, KCallable<*>>>>,
-    val hiddenMemberNames: Set<String>
+    val hiddenMemberNames: Set<String>,
+    val nonPublicMemberNames: Set<String>
 ) {
     val declarativeMembers: Iterable<SupportedCallable> by lazy {
         membersBySupertype.values.flatten()
@@ -55,7 +56,7 @@ typealias SupportedCallableResult = ExtractionResult<SupportedCallable, KCallabl
 internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>): ClassMembersForSchema {
     // Members in enum types are not supported
     if (kClass.isSubclassOf(Enum::class)) {
-        return ClassMembersForSchema(emptyMap(), emptySet())
+        return ClassMembersForSchema(emptyMap(), emptySet(), emptySet())
     }
 
     val supertypesWithMapping = host.declarativeSupertypesHierarchy(kClass)
@@ -63,6 +64,7 @@ internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>
     val results: MutableMap<KClass<*>, List<SupportedCallableResult>> = mutableMapOf()
 
     val hiddenMemberNames = mutableSetOf<String>()
+    val nonPublicMemberNames = mutableSetOf<String>()
 
     supertypesWithMapping.forEach { supertype ->
         if (!isValidMemberHolderType(supertype.superClass)) {
@@ -76,6 +78,9 @@ internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>
                         if (!ignoreSafeUsageOfUnsafeClass(supertype.superClass.qualifiedName.orEmpty()) && isHiddenMember(supertype, member)) {
                             hiddenMemberNames.add(member.name)
                         }
+                        if (member.visibility != KVisibility.PUBLIC) {
+                            nonPublicMemberNames.add(member.name)
+                        }
                         maybeSupportedCallable(host, member, supertype)
                     }
                 }
@@ -85,7 +90,7 @@ internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>
         }
     }
 
-    return ClassMembersForSchema(mergeMembersBySignature(results), hiddenMemberNames)
+    return ClassMembersForSchema(mergeMembersBySignature(results), hiddenMemberNames, nonPublicMemberNames)
 }
 
 private fun isValidMemberHolderType(kClass: KClass<*>): Boolean = when {

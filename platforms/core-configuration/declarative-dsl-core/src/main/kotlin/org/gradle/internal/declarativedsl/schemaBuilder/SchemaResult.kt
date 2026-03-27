@@ -23,7 +23,9 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
 import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
 import org.gradle.declarative.dsl.schema.UnsafeBecauseHasHiddenMembers
+import org.gradle.declarative.dsl.schema.UnsafeBecauseHasNonPublicMembers
 import org.gradle.declarative.dsl.schema.UnsafeNonPureFunction
+import org.gradle.declarative.dsl.schema.UnsafeInjectProperty
 import org.gradle.declarative.dsl.schema.UnsafeNonAbstractMember
 import org.gradle.declarative.dsl.schema.UnsafeNonInterfaceType
 import org.gradle.declarative.dsl.schema.UnsafeJavaBeanProperty
@@ -175,6 +177,7 @@ object SchemaFailureMessageFormatter {
         context.asReversed()
             .joinToString("\n") { "  in ${it.userRepresentation}" }
 
+    @Suppress("CyclomaticComplexMethod")
     fun messageForIssue(schemaIssue: SchemaIssue): String =
         when (schemaIssue) {
             is SchemaIssue.HiddenTypeUsedInDeclaration ->
@@ -202,9 +205,11 @@ object SchemaFailureMessageFormatter {
             is SchemaIssue.UnsafeDeclarationInSafeFeatureApi -> "Unsafe declaration in safe definition" + when (val cause = schemaIssue.unsafeApiCause) {
                 is UnsafeNonInterfaceType -> ": non-interface type"
                 is UnsafeNonAbstractMember -> ": non-abstract member"
+                is UnsafeInjectProperty -> ": injected service property"
                 is UnsafeJavaBeanProperty -> ": unsafe property"
                 is UnsafeNonPureFunction -> ": function relying on side effects or custom implementation"
                 is UnsafeBecauseHasHiddenMembers -> ": hidden member${if (cause.memberNames.size > 1) "s" else ""} ${cause.memberNames.joinToString(limit = 3) { "'$it'" }}"
+                is UnsafeBecauseHasNonPublicMembers -> ": non-public member${if (cause.memberNames.size > 1) "s" else ""} ${cause.memberNames.joinToString(limit = 3) { "'$it'" }}"
                 else -> ""
             }
             else -> "Schema issue: $schemaIssue"

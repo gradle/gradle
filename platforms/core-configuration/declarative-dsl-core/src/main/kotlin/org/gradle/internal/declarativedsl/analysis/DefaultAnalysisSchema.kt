@@ -38,7 +38,9 @@ import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
 import org.gradle.declarative.dsl.schema.UnsafeBecauseHasHiddenMembers
+import org.gradle.declarative.dsl.schema.UnsafeBecauseHasNonPublicMembers
 import org.gradle.declarative.dsl.schema.UnsafeNonPureFunction
+import org.gradle.declarative.dsl.schema.UnsafeInjectProperty
 import org.gradle.declarative.dsl.schema.UnsafeJavaBeanProperty
 import org.gradle.declarative.dsl.schema.UnsafeNonAbstractMember
 import org.gradle.declarative.dsl.schema.UnsafeNonInterfaceType
@@ -545,6 +547,13 @@ object SchemaItemMetadataInternal {
         }
 
         @Serializable
+        @SerialName("unsafeInjectProperty")
+        data object DefaultUnsafeInjectProperty : UnsafeInjectProperty {
+            @Suppress("unused")
+            private fun readResolve(): Any = DefaultUnsafeInjectProperty
+        }
+
+        @Serializable
         @SerialName("unsafeJavaBeanProperty")
         data object DefaultUnsafeJavaBeanProperty : UnsafeJavaBeanProperty {
             @Suppress("unused")
@@ -561,6 +570,10 @@ object SchemaItemMetadataInternal {
         @Serializable
         @SerialName("unsafeBecauseHasHiddenMembers")
         data class DefaultUnsafeBecauseHasHiddenMembers(override val memberNames: List<String>) : UnsafeBecauseHasHiddenMembers
+
+        @Serializable
+        @SerialName("unsafeBecauseHasNonPublicMembers")
+        data class DefaultUnsafeBecauseHasNonPublicMembers(override val memberNames: List<String>) : UnsafeBecauseHasNonPublicMembers
     }
 }
 

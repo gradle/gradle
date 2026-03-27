@@ -22,8 +22,10 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode
-import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeInjectProperty
 import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeJavaBeanProperty
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonAbstractMember
+import javax.inject.Inject
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KMutableProperty
@@ -120,8 +122,9 @@ class DefaultPropertyExtractor(
                         isDirectAccessOnly = isDirectAccessOnly,
                         isHiddenInDsl = false,
                         metadata = listOfNotNull(
+                            if (getter.kCallable.annotations.any { it is Inject }) DefaultUnsafeInjectProperty else null,
                             if (setter != null) DefaultUnsafeJavaBeanProperty else null,
-                            if (!getter.kCallable.isAbstract || setter?.kCallable?.isAbstract == false) SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonAbstractMember else null
+                            if (!getter.kCallable.isAbstract || setter?.kCallable?.isAbstract == false) DefaultUnsafeNonAbstractMember else null
                         )
                     ),
                     metadata = PropertyExtractionMetadata(listOfNotNull(getter, setter), getter.returnType)
@@ -164,8 +167,9 @@ class DefaultPropertyExtractor(
                 isHiddenInDsl = false,
                 isDirectAccessOnly = isDirectAccessOnly,
                 metadata = listOfNotNull(
+                    if (property.kCallable.annotationsWithGetters.any { it is Inject }) DefaultUnsafeInjectProperty else null,
                     if (property.kCallable is KMutableProperty) DefaultUnsafeJavaBeanProperty else null,
-                    if (!property.kCallable.isAbstract) SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonAbstractMember else null
+                    if (!property.kCallable.isAbstract) DefaultUnsafeNonAbstractMember else null
                 )
             ),
             metadata = PropertyExtractionMetadata(listOf(property), property.returnType)

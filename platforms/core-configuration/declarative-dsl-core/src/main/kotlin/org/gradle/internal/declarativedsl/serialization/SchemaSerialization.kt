@@ -203,8 +203,10 @@ object SchemaSerialization {
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultConfigureFromGetterOrigin::class)
                 subclass(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonInterfaceType::class)
                 subclass(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonAbstractMember::class)
+                subclass(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeInjectProperty::class)
                 subclass(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeJavaBeanProperty::class)
                 subclass(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeBecauseHasHiddenMembers::class)
+                subclass(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeBecauseHasNonPublicMembers::class)
                 subclass(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonPureFunction::class)
             }
             polymorphic(SchemaMemberOrigin::class) {

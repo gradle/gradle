@@ -16,10 +16,15 @@
 
 package org.gradle.features.internal.binding
 
-import com.google.common.collect.ImmutableSortedSet
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.tasks.properties.InspectionScheme
+import org.gradle.api.problems.ProblemDefinition
+import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.InternalProblem
+import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.features.annotations.BindsProjectFeature
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.BuildModel
@@ -29,11 +34,6 @@ import org.gradle.features.binding.ProjectFeatureBinding
 import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.api.internal.tasks.properties.InspectionScheme
-import org.gradle.api.problems.ProblemDefinition
-import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.InternalProblem
-import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.Instantiator
@@ -144,7 +144,6 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
     def "registering the same plugin twice does not add two implementations"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def pluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
-        def definitionTypeMetadata = Mock(TypeMetadata)
         def definitionTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
         when:
@@ -164,9 +163,6 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
             builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentDefinition, Mock(ProjectFeatureApplyAction))
         }
-        1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
-        1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
-        1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
 
         and:
         implementations.size() == 1
@@ -177,8 +173,6 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         def duplicatePluginTypeMetadata = Mock(TypeMetadata)
         def pluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
         def duplicatePluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
-        def definitionTypeMetadata = Mock(TypeMetadata)
-        def definitionTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
         when:
         declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
@@ -204,9 +198,6 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
                 builder.bindProjectFeatureToBuildModel("test", TestDefinition, alreadyRegisteredTargetType, Mock(ProjectFeatureApplyAction))
             }
         }
-        1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
-        1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
-        1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
 
         1 * duplicatePluginTypeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
         1 * duplicatePluginTypeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
@@ -220,9 +211,6 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
                 builder.bindProjectFeatureToBuildModel("test", TestDefinition, toBeRegisteredTargetType, Mock(ProjectFeatureApplyAction))
             }
         }
-        1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
-        1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
-        1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
 
         1 * problemReporter.internalCreate(_) >> Stub(InternalProblem) {
             getDefinition() >> Stub(ProblemDefinition) {
@@ -254,8 +242,6 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         def duplicatePluginTypeMetadata = Mock(TypeMetadata)
         def pluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
         def duplicatePluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
-        def definitionTypeMetadata = Mock(TypeMetadata)
-        def definitionTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
         when:
         declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
@@ -281,9 +267,6 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
                 builder.bindProjectFeatureToBuildModel("test", TestDefinition, targetType, Mock(ProjectFeatureApplyAction))
             }
         }
-        1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
-        1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
-        1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
 
         1 * duplicatePluginTypeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
         1 * duplicatePluginTypeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
@@ -297,9 +280,6 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
                 builder.bindProjectFeatureToBuildModel("test", TestDefinition, anotherTargetType, Mock(ProjectFeatureApplyAction))
             }
         }
-        1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
-        1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
-        1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
 
         and:
         implementations.size() == 1
