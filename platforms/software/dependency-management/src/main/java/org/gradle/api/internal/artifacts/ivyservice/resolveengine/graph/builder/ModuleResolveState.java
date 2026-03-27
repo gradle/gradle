@@ -78,9 +78,9 @@ public class ModuleResolveState implements CandidateModule {
     private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
 
     private @Nullable AttributeMergingException attributeMergingError;
-    private VirtualPlatformState platformState;
+    private @Nullable VirtualPlatformState platformState;
     private boolean overriddenSelection;
-    private Set<VirtualPlatformState> platformOwners;
+    private @Nullable Set<VirtualPlatformState> platformOwners;
     private boolean replaced = false;
     private int selectionChangedCounter;
 
@@ -493,6 +493,11 @@ public class ModuleResolveState implements CandidateModule {
                             return selected.getVersion();
                         }
                     }
+                }
+            }
+            if (platformOwners != null) {
+                for (VirtualPlatformState owner : platformOwners) {
+                    owner.invalidateVirtualPlatformConstraints();
                 }
             }
         }

@@ -82,7 +82,6 @@ public class NodeState implements DependencyGraphNode {
     private final ModuleExclusions moduleExclusions;
     private final boolean isTransitive;
     private final boolean selectedByVariantAwareResolution;
-    private final boolean dependenciesMayChange;
 
 
     private boolean queued;
@@ -175,7 +174,6 @@ public class NodeState implements DependencyGraphNode {
         this.isTransitive = metadata.isTransitive() || metadata.isExternalVariant();
         this.selectedByVariantAwareResolution = selectedByVariantAwareResolution;
         this.moduleExclusions = resolveState.getModuleExclusions();
-        this.dependenciesMayChange = component.getModule().isVirtualPlatform();
         this.allExcludes = moduleExclusions.everything();
         this.ownExclusions = moduleExclusions.excludeAny(variantState.getExcludes());
     }
@@ -290,7 +288,7 @@ public class NodeState implements DependencyGraphNode {
         }
 
         boolean sameAllEdges = true;
-        if (allEdges == null || dependenciesMayChange) {
+        if (allEdges == null || virtualPlatformNeedsRefresh) {
             List<EdgeState> newAllEdges = computeAllEdges();
             sameAllEdges = newAllEdges.equals(allEdges);
             this.allEdges = newAllEdges;
@@ -358,7 +356,6 @@ public class NodeState implements DependencyGraphNode {
 
         // If we have visited our dependencies before, we can in some cases skip a complete visit.
         if (visitedDependencies
-            && !virtualPlatformNeedsRefresh
             && sameFilteredEdges
         ) {
             // Our excludes did not change, or after applying new excludes to our outgoing dependencies,
