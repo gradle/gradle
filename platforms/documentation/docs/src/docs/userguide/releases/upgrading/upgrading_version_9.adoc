@@ -41,6 +41,10 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Upgrade to Kotlin 2.3.20
+
+The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20[Kotlin 2.3.20].
+
 ==== Plugins requested by precompiled settings plugins are now validated at compile time
 
 Gradle now validates plugin requests in precompiled settings plugins (`*.settings.gradle.kts`) during compilation, failing the build if a requested plugin cannot be resolved.
@@ -56,9 +60,25 @@ plugins {
 }
 ----
 
-If you have precompiled settings plugins that are declared but not currently applied, check their `plugins {}` blocks and remove or fix any plugin requests that cannot be resolved from the compiling build's dependencies.
+If you have precompiled settings plugins that are declared but not currently applied, check their `plugins {}` blocks and remove or fix any plugin requests that cannot be resolved from the dependencies available in the build being compiled.
 
-==== Calling `.values()` on environment variables or system properties now tracked by Configuration Cache
+==== The Windows start script has been reworked to improve usability
+
+The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
+
+If you use a custom start script template or invoke `gradlew.bat` from another batch file, review the changes below, as some may affect your build.
+
+The new script includes the following changes:
+
+- The `OS` variable check has been removed, since Gradle no longer supports non-NT-based versions of Windows.
+- `endlocal` is now called before invoking the application, so environment variable changes made inside the script do not leak into the invoked process. Any environment variables needed by the application must be set before calling `gradlew.bat`.
+- `& CALL` is now used after invoking the application, which suppresses the "Terminate batch job (Y/N)?" prompt. If your scripts rely on this prompt for flow control, they will need to be updated.
+- `exit /b` has been replaced with `"%COMSPEC%" /c exit`, enabling the use of `&&` and `||` operators when calling the script from another batch file.
+
+Upgrading the wrapper to the new script may cause a one-time error if done before Gradle 8.14, because `cmd.exe` re-reads the script after it changes.
+To avoid this, first upgrade to Gradle 8.14 or 9.0.0, then upgrade to 9.5.0.
+
+==== Calling `.values()` on environment variables or system properties is now tracked as Configuration Cache input
 
 Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` now records all environment variables or system properties as Configuration Cache inputs.
 This is consistent with how <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, `.forEach()` calls are already tracked>>.
@@ -68,30 +88,33 @@ If you experience unexpected cache invalidations after upgrading, check whether 
 
 ==== Dependency lockfiles are generated with a platform-independent line ending
 
-Dependency lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
+In the context of <<dependency_locking#locking-versions, Dependency Locking>>, lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
 Existing lockfiles using Windows line endings (CRLF, `\r\n`) can still be read, but newly generated lockfiles will always use LF.
 
-When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed, this is expected and only happens once.
+When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed. This is expected and only happens once.
 
-==== The Windows start script has been reworked to improve usability
+==== Dependency verification armored key rings now render non-ASCII characters correctly
 
-The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
+In the context of <<dependency_verification#verifying-dependencies, Dependency Verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
 
-If you use a custom start script template or invoke `gradlew.bat` from another batch file, review the changes below as some may affect your build.
+When running a <<dependency_verification#sec:local-keyring,dependency verification key export>> with Gradle 9.5.0 or above, if your keyring already contained keys with non-ASCII metadata, the exported armored keyring will be updated to render those characters correctly.
+This is expected to happen only once.
 
-The new script includes the following changes:
+==== The `outgoingVariants` and `resolvableConfigurations` reports now hide variants without attributes by default
 
-- The `OS` variable check has been removed, since Gradle no longer supports non-NT-based versions of Windows.
-- `endlocal` is now called before invoking the application, so environment variable changes made inside the script do not leak into the invoked process. Any environment variables needed by the application must be set before calling `gradlew.bat`.
-- `& CALL` is now used after invoking the application, which suppresses the "Terminate batch job (Y/N)?" prompt. If your scripts rely on this prompt for flow control, they will need to be updated.
-- `exit /b` has been replaced with `"%COMSPEC%" /c exit`, enabling the use of `&&` and `||` operators when calling the script from another batch file.
+The `outgoingVariants` and `resolvableConfigurations` report tasks now only show variants and configurations that have attributes defined, since only these can participate in variant-aware dependency resolution.
 
-Upgrading the wrapper to the new script may cause a one-time error if done from before Gradle 8.14 due to `cmd.exe` re-reading the script after it changes.
-To avoid this, first upgrade to Gradle 8.14 or 9.0.0, then upgrade to 9.5.0.
+Previously, variants and configurations without attributes were included in the default output. They are now hidden unless the `--all` flag is passed.
 
-==== Upgrade to Kotlin 2.3.20
+When shown (via `--all`), attributeless entries are marked with `(n)` in the report to indicate they are not selectable via variant-aware resolution.
 
-The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20[Kotlin 2.3.20].
+If you rely on seeing attributeless variants or configurations in these reports, add `--all` to your invocation:
+
+[source,bash]
+----
+./gradlew outgoingVariants --all
+./gradlew resolvableConfigurations --all
+----
 
 === Deprecations
 

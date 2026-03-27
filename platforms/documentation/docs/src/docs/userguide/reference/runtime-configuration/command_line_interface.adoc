@@ -412,6 +412,20 @@ If you need to be more precise, you can display only the tasks from a specific g
 $ ./gradlew tasks --group="build setup"
 ----
 
+You can use the `--provenance` option to show where each task was registered (e.g., by a plugin or build script):
+
+[source,bash]
+----
+$ ./gradlew tasks --provenance
+----
+[source,text]
+----
+Build tasks
+-----------
+assemble - Assembles the outputs of this project. (registered by plugin 'org.gradle.language.base.plugins.LifecycleBasePlugin')
+build - Assembles and tests this project. (registered by plugin 'org.gradle.language.base.plugins.LifecycleBasePlugin')
+----
+
 [[sec:show_task_details]]
 === Show task usage details
 
@@ -427,6 +441,7 @@ include::{snippetsPath}/tutorial/projectReports/tests/taskHelp.out[]
 ----
 
 This information includes the full task path, the task type, possible <<sec:task_options,task-specific command line options>>, and the description of the given task.
+The output also includes provenance information showing where the task was registered (e.g., in a build file or by a plugin).
 
 You can get detailed information about the task class types using the `--types` option or using `--no-types` to hide this information.
 
@@ -543,7 +558,7 @@ image::gradle-completion-4.0.gif[]
 == Debugging options
 
 `-?`, `-h`, `--help`::
-Shows a help message with the built-in CLI options.
+Shows a help message with the built-in CLI options organized into logical sections.
 To show project-contextual options, including help on a specific task, see the `help` task.
 
 `-v`, `--version`::
