@@ -49,7 +49,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
     private static final SnapshotHierarchy EMPTY = DefaultSnapshotHierarchy.empty(CASE_SENSITIVE)
 
-    DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector))
+    DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector), java.util.concurrent.Executors.newFixedThreadPool(4))
 
     def diffListener = new SnapshotHierarchy.NodeDiffListener() {
         @Override

@@ -52,7 +52,7 @@ class DirectorySnapshotterTest extends Specification {
 
     def fileHasher = new TestFileHasher()
     def statisticsCollector = Stub(DirectorySnapshotterStatistics.Collector)
-    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner(), [], statisticsCollector)
+    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner(), [], statisticsCollector, java.util.concurrent.Executors.newFixedThreadPool(4))
     List<FileSystemLocationSnapshot> unfilteredSubsnapshots = []
     Consumer<FileSystemLocationSnapshot> unfilteredSubSnapshotsCollector = { FileSystemLocationSnapshot snapshot ->
         unfilteredSubsnapshots.add(snapshot)

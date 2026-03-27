@@ -217,7 +217,8 @@ public class TestFiles {
             fileSystem()::stat,
             virtualFileSystem,
             locations -> {},
-            new DirectorySnapshotterStatistics.Collector()
+            new DirectorySnapshotterStatistics.Collector(),
+            java.util.concurrent.Executors.newFixedThreadPool(4)
         );
     }
 

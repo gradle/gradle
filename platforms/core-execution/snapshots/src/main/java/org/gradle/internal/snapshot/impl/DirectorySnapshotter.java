@@ -72,7 +72,7 @@ import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirecto
  */
 public class DirectorySnapshotter {
     @VisibleForTesting
-    static final int PARALLEL_FILE_THRESHOLD = 20;
+    static final int PARALLEL_FILE_THRESHOLD = 5;
 
     private static final SymbolicLinkMapping EMPTY_SYMBOLIC_LINK_MAPPING = new SymbolicLinkMapping() {
 
@@ -96,14 +96,9 @@ public class DirectorySnapshotter {
     private final Interner<String> stringInterner;
     private final DefaultExcludes defaultExcludes;
     private final DirectorySnapshotterStatistics.Collector collector;
-    @Nullable
     private final ExecutorService executor;
 
-    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, Collection<String> defaultExcludes, DirectorySnapshotterStatistics.Collector collector) {
-        this(hasher, stringInterner, defaultExcludes, collector, null);
-    }
-
-    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, Collection<String> defaultExcludes, DirectorySnapshotterStatistics.Collector collector, @Nullable ExecutorService executor) {
+    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, Collection<String> defaultExcludes, DirectorySnapshotterStatistics.Collector collector, ExecutorService executor) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
@@ -325,7 +320,6 @@ public class DirectorySnapshotter {
         private final Set<FileSystemLocationSnapshot> filteredDirectorySnapshots = new HashSet<>();
         private final ImmutableMap<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots;
         private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder;
-        @Nullable
         private final ExecutorService executor;
 
         public DirectoryVisitor(
@@ -338,7 +332,7 @@ public class DirectorySnapshotter {
             SymbolicLinkMapping symbolicLinkMapping,
             Map<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots,
             Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder,
-            @Nullable ExecutorService executor
+            ExecutorService executor
         ) {
             this.builder = FilteredTrackingMerkleDirectorySnapshotBuilder.sortingRequired(this::recordUnfilteredSnapshot);
             this.predicate = predicate;
@@ -433,7 +427,7 @@ public class DirectorySnapshotter {
             // This overlaps file I/O with subdirectory traversal: while the main thread
             // descends into subdirectories, worker threads hash this directory's files.
             // By the time we join, most futures are already complete.
-            List<Future<FileSystemLeafSnapshot>> fileFutures = submitFileHashing(filesToHash);
+            SubmittedFileHashing fileFutures = submitFileHashing(filesToHash);
 
             // Recurse into subdirectories while file hashing runs in background
             for (DirToVisit dirToVisit : dirsToRecurse) {
@@ -441,7 +435,7 @@ public class DirectorySnapshotter {
             }
 
             // Join file results and add to builder - likely already complete
-            joinAndAddFiles(fileFutures, filesToHash);
+            joinAndAddFiles(fileFutures);
 
             parentDirPaths.remove(dir.toString());
 
@@ -568,49 +562,52 @@ public class DirectorySnapshotter {
         }
 
         /**
-         * Submits file hashing tasks to the executor (non-blocking).
-         * Returns futures if parallel, or null if files will be hashed during join.
+         * Submits file hashing to the executor (non-blocking).
+         * Below threshold: single batch task (one worker hashes all).
+         * At/above threshold: individual tasks for load balancing.
          */
-        @Nullable
-        private List<Future<FileSystemLeafSnapshot>> submitFileHashing(List<FileToSnapshot> files) {
-            if (executor == null || files.size() < PARALLEL_FILE_THRESHOLD) {
-                return null;
+        private SubmittedFileHashing submitFileHashing(List<FileToSnapshot> files) {
+            if (files.isEmpty()) {
+                return Collections::emptyList;
             }
-            List<Future<FileSystemLeafSnapshot>> futures = new ArrayList<>(files.size());
-            for (FileToSnapshot f : files) {
-                futures.add(executor.submit(() -> snapshotFile(f.path, f.internedName, f.attrs, f.accessType)));
+            if (files.size() >= PARALLEL_FILE_THRESHOLD) {
+                // Individual tasks - load balanced across workers
+                List<Future<FileSystemLeafSnapshot>> futures = new ArrayList<>(files.size());
+                for (FileToSnapshot f : files) {
+                    futures.add(executor.submit(() -> snapshotFile(f.path, f.internedName, f.attrs, f.accessType)));
+                }
+                return () -> {
+                    List<FileSystemLeafSnapshot> results = new ArrayList<>(futures.size());
+                    for (Future<FileSystemLeafSnapshot> future : futures) {
+                        results.add(future.get());
+                    }
+                    return results;
+                };
             }
-            return futures;
+            // Single batch task - one worker hashes all files, main thread keeps traversing
+            Future<List<FileSystemLeafSnapshot>> batchFuture = executor.submit(() -> {
+                List<FileSystemLeafSnapshot> results = new ArrayList<>(files.size());
+                for (FileToSnapshot f : files) {
+                    results.add(snapshotFile(f.path, f.internedName, f.attrs, f.accessType));
+                }
+                return results;
+            });
+            return batchFuture::get;
         }
 
         /**
          * Joins file hashing results and adds them to the builder.
-         * If futures is null (below threshold or no executor), hashes sequentially here.
          */
-        private void joinAndAddFiles(
-            @Nullable List<Future<FileSystemLeafSnapshot>> futures,
-            List<FileToSnapshot> files
-        ) {
-            if (files.isEmpty()) {
-                return;
-            }
-            if (futures == null) {
-                // Sequential path - hash and add inline
-                for (FileToSnapshot f : files) {
-                    builder.visitLeafElement(snapshotFile(f.path, f.internedName, f.attrs, f.accessType));
+        private void joinAndAddFiles(SubmittedFileHashing submitted) {
+            try {
+                for (FileSystemLeafSnapshot snapshot : submitted.join()) {
+                    builder.visitLeafElement(snapshot);
                 }
-                return;
-            }
-            // Parallel path - collect results from futures
-            for (Future<FileSystemLeafSnapshot> future : futures) {
-                try {
-                    builder.visitLeafElement(future.get());
-                } catch (ExecutionException e) {
-                    throw UncheckedException.throwAsUncheckedException(e.getCause());
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+            } catch (ExecutionException e) {
+                throw UncheckedException.throwAsUncheckedException(e.getCause());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -731,5 +728,10 @@ public class DirectorySnapshotter {
             this.path = path;
             this.relativePathSegments = relativePathSegments;
         }
+    }
+
+    @FunctionalInterface
+    private interface SubmittedFileHashing {
+        List<FileSystemLeafSnapshot> join() throws ExecutionException, InterruptedException;
     }
 }

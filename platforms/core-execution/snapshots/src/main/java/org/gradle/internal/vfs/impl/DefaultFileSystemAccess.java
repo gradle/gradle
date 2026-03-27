@@ -38,8 +38,6 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -62,7 +60,6 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     private final Interner<String> stringInterner;
     private final WriteListener writeListener;
     private final DirectorySnapshotterStatistics.Collector statisticsCollector;
-    @Nullable
     private final ExecutorService snapshotterExecutor;
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
@@ -76,19 +73,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         VirtualFileSystem virtualFileSystem,
         WriteListener writeListener,
         DirectorySnapshotterStatistics.Collector statisticsCollector,
-        String... defaultExcludes
-    ) {
-        this(hasher, stringInterner, stat, virtualFileSystem, writeListener, statisticsCollector, null, defaultExcludes);
-    }
-
-    public DefaultFileSystemAccess(
-        FileHasher hasher,
-        Interner<String> stringInterner,
-        FileMetadataAccessor stat,
-        VirtualFileSystem virtualFileSystem,
-        WriteListener writeListener,
-        DirectorySnapshotterStatistics.Collector statisticsCollector,
-        @Nullable ExecutorService snapshotterExecutor,
+        ExecutorService snapshotterExecutor,
         String... defaultExcludes
     ) {
         this.stringInterner = stringInterner;
