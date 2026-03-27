@@ -59,7 +59,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
@@ -156,8 +155,9 @@ public class DirectorySnapshotter {
 
         if (rootAttrs.isDirectory()) {
             // relativePathSegments is empty for root - RelativePathTracker.getSegments()
-            // does not include the root directory name, only child segments
-            visitor.processDirectory(rootPath, Collections.emptyList(), Collections.emptySet());
+            // does not include the root directory name, only child segments.
+            // Both collections are mutable - sequential traversal uses push/pop.
+            visitor.processDirectory(rootPath, new ArrayList<>(), new HashSet<>());
         } else {
             // Root is a regular file or symlink (edge case - normally snapshot() is called on directories)
             collector.recordVisitFile();
@@ -382,64 +382,54 @@ public class DirectorySnapshotter {
                 }
             }
 
-            // Attempt to list directory before entering it in the builder.
-            // This mirrors walkFileTree behavior: preVisitDirectory is only called for
-            // directories that can be opened; otherwise visitFileFailed is called.
-            List<Path> children;
-            try (Stream<Path> stream = Files.list(dir)) {
-                children = stream.collect(Collectors.toList());
-            } catch (IOException e) {
-                // Directory couldn't be listed (permission denied, deleted, etc.)
-                collector.recordVisitFileFailed();
-                throw new UncheckedIOException(e);
-            }
-
-            // Successfully listed - record the visit and enter in the builder
-            collector.recordVisitDirectory();
-            builder.enterDirectory(AccessType.DIRECT, internedAbsPath, internedName, INCLUDE_EMPTY_DIRS);
-
-            Set<String> newParentDirPaths = new HashSet<>(parentDirPaths);
-            newParentDirPaths.add(dir.toString());
+            // Mutable set for cycle detection - sequential traversal allows add/remove
+            parentDirPaths.add(dir.toString());
 
             List<FileToSnapshot> filesToHash = new ArrayList<>();
             List<DirToVisit> dirsToRecurse = new ArrayList<>();
 
-            for (Path child : children) {
-                try {
-                    BasicFileAttributes attrs = Files.readAttributes(child, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-                    String childName = getInternedFileName(child);
+            try (Stream<Path> childStream = listDirectoryChildren(dir)) {
+                collector.recordVisitDirectory();
+                builder.enterDirectory(AccessType.DIRECT, internedAbsPath, internedName, INCLUDE_EMPTY_DIRS);
 
-                    if (attrs.isDirectory()) {
-                        Iterable<String> childSegments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
-                        if (shouldVisit(child, childName, true, childSegments)) {
-                            List<String> childSegmentsList = new ArrayList<>(relativePathSegments);
-                            childSegmentsList.add(childName);
-                            dirsToRecurse.add(new DirToVisit(child, childSegmentsList));
-                        }
-                    } else if (attrs.isSymbolicLink()) {
-                        collector.recordVisitFile();
-                        BasicFileAttributes targetAttrs = readAttributesOfSymlinkTarget(child, attrs);
-                        if (targetAttrs.isDirectory()) {
-                            handleSymlinkToDirectory(child, childName, relativePathSegments, newParentDirPaths);
+                childStream.forEach(child -> {
+                    try {
+                        BasicFileAttributes attrs = Files.readAttributes(child, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+                        String childName = getInternedFileName(child);
+
+                        if (attrs.isDirectory()) {
+                            Iterable<String> childSegments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
+                            if (shouldVisit(child, childName, true, childSegments)) {
+                                // Push/snapshot/pop to avoid copying the list per child dir
+                                relativePathSegments.add(childName);
+                                dirsToRecurse.add(new DirToVisit(child, new ArrayList<>(relativePathSegments)));
+                                relativePathSegments.remove(relativePathSegments.size() - 1);
+                            }
+                        } else if (attrs.isSymbolicLink()) {
+                            collector.recordVisitFile();
+                            BasicFileAttributes targetAttrs = readAttributesOfSymlinkTarget(child, attrs);
+                            if (targetAttrs.isDirectory()) {
+                                handleSymlinkToDirectory(child, childName, relativePathSegments, parentDirPaths);
+                            } else {
+                                Iterable<String> childSegments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
+                                if (shouldVisit(child, childName, false, childSegments)) {
+                                    filesToHash.add(new FileToSnapshot(child, childName, targetAttrs, AccessType.VIA_SYMLINK));
+                                }
+                            }
                         } else {
+                            collector.recordVisitFile();
                             Iterable<String> childSegments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
                             if (shouldVisit(child, childName, false, childSegments)) {
-                                filesToHash.add(new FileToSnapshot(child, childName, targetAttrs, AccessType.VIA_SYMLINK));
+                                filesToHash.add(new FileToSnapshot(child, childName, attrs, AccessType.DIRECT));
                             }
                         }
-                    } else {
-                        collector.recordVisitFile();
-                        Iterable<String> childSegments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
-                        if (shouldVisit(child, childName, false, childSegments)) {
-                            filesToHash.add(new FileToSnapshot(child, childName, attrs, AccessType.DIRECT));
-                        }
+                    } catch (IOException e) {
+                        handleFailed(child, e, relativePathSegments);
                     }
-                } catch (IOException e) {
-                    handleFailed(child, e, relativePathSegments);
-                }
+                });
             }
 
-            // Hash files - parallel if above threshold and executor available
+            // Hash files - parallel if above threshold, sequential otherwise
             List<FileSystemLeafSnapshot> fileSnapshots = snapshotFiles(filesToHash);
             for (FileSystemLeafSnapshot snapshot : fileSnapshots) {
                 builder.visitLeafElement(snapshot);
@@ -447,8 +437,10 @@ public class DirectorySnapshotter {
 
             // Recurse into subdirectories sequentially
             for (DirToVisit dirToVisit : dirsToRecurse) {
-                processDirectory(dirToVisit.path, dirToVisit.relativePathSegments, newParentDirPaths);
+                processDirectory(dirToVisit.path, dirToVisit.relativePathSegments, parentDirPaths);
             }
+
+            parentDirPaths.remove(dir.toString());
 
             boolean currentLevelComplete = builder.isCurrentLevelUnfiltered();
             FileSystemLocationSnapshot currentLevel = builder.leaveDirectory();
@@ -531,7 +523,7 @@ public class DirectorySnapshotter {
                     collector, newMapping, previouslyKnownSnapshots, unfilteredSnapshotRecorder, executor);
 
                 collector.recordVisitHierarchy();
-                subtreeVisitor.processDirectory(targetDir, Collections.emptyList(), Collections.emptySet());
+                subtreeVisitor.processDirectory(targetDir, new ArrayList<>(), new HashSet<>());
 
                 return (DirectorySnapshot) subtreeVisitor.getResult();
             } catch (IOException e) {
@@ -561,7 +553,7 @@ public class DirectorySnapshotter {
                         executor);
 
                     collector.recordVisitHierarchy();
-                    subtreeVisitor.processDirectory(targetDir, Collections.emptyList(), parentDirPaths);
+                    subtreeVisitor.processDirectory(targetDir, new ArrayList<>(), parentDirPaths);
 
                     return (DirectorySnapshot) subtreeVisitor.getResult();
                 } else {
@@ -647,6 +639,20 @@ public class DirectorySnapshotter {
                 if (shouldVisit(file, internedFileName, isDirectory, segments)) {
                     throw UncheckedException.throwAsUncheckedException(exc);
                 }
+            }
+        }
+
+        /**
+         * Opens a directory stream, recording a failed visit if the directory cannot be opened.
+         * On success, the caller is responsible for closing the stream (via try-with-resources).
+         */
+        @SuppressWarnings("StreamResourceLeak") // Caller closes via try-with-resources
+        private Stream<Path> listDirectoryChildren(Path dir) {
+            try {
+                return Files.list(dir);
+            } catch (IOException e) {
+                collector.recordVisitFileFailed();
+                throw new UncheckedIOException(e);
             }
         }
 
