@@ -31,6 +31,7 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 
 @PolyglotDslTest
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "no Groovy support for nested model access like foo { }")
 class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
     @Rule
     MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)

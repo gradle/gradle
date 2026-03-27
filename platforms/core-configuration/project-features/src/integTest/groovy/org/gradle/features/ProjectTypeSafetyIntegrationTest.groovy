@@ -22,8 +22,10 @@ import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
 
 @PolyglotDslTest
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Uses foo { } syntax for nested models which is not supported in Groovy")
 class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
     def setup() {
         // enable DCL support to have KTS accessors generated

@@ -33,6 +33,7 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 
 @PolyglotDslTest
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "no Groovy support for nested model access like foo { }")
 class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec implements ProjectFeatureFixture, PolyglotTestFixture {
 
     @Rule
