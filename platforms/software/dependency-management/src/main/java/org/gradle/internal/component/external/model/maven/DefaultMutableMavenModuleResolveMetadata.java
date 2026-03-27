@@ -43,6 +43,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private String snapshotTimestamp;
     private final ImmutableList<MavenDependencyDescriptor> dependencies;
     private final ImmutableMap<String, Configuration> configurationDefinitions;
+    private ImmutableList<ModuleComponentIdentifier> parentPomChain = ImmutableList.of();
 
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id,
                                                     ModuleComponentIdentifier componentIdentifier,
@@ -76,6 +77,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this.relocated = metadata.isRelocated();
         this.snapshotTimestamp = metadata.getSnapshotTimestamp();
         this.dependencies = metadata.getDependencies();
+        this.parentPomChain = metadata.getParentPomChain();
         this.objectInstantiator = objectInstantiator;
         this.configurationDefinitions = GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
     }
@@ -134,6 +136,16 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     @Override
     public ImmutableList<MavenDependencyDescriptor> getDependencies() {
         return dependencies;
+    }
+
+    @Override
+    public ImmutableList<ModuleComponentIdentifier> getParentPomChain() {
+        return parentPomChain;
+    }
+
+    @Override
+    public void setParentPomChain(ImmutableList<ModuleComponentIdentifier> parentPomChain) {
+        this.parentPomChain = parentPomChain;
     }
 
     NamedObjectInstantiator getObjectInstantiator() {
