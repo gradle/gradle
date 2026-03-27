@@ -429,16 +429,19 @@ public class DirectorySnapshotter {
                 });
             }
 
-            // Hash files - parallel if above threshold, sequential otherwise
-            List<FileSystemLeafSnapshot> fileSnapshots = snapshotFiles(filesToHash);
-            for (FileSystemLeafSnapshot snapshot : fileSnapshots) {
-                builder.visitLeafElement(snapshot);
-            }
+            // Submit file hashing first (non-blocking), then recurse into subdirectories.
+            // This overlaps file I/O with subdirectory traversal: while the main thread
+            // descends into subdirectories, worker threads hash this directory's files.
+            // By the time we join, most futures are already complete.
+            List<Future<FileSystemLeafSnapshot>> fileFutures = submitFileHashing(filesToHash);
 
-            // Recurse into subdirectories sequentially
+            // Recurse into subdirectories while file hashing runs in background
             for (DirToVisit dirToVisit : dirsToRecurse) {
                 processDirectory(dirToVisit.path, dirToVisit.relativePathSegments, parentDirPaths);
             }
+
+            // Join file results and add to builder - likely already complete
+            joinAndAddFiles(fileFutures, filesToHash);
 
             parentDirPaths.remove(dir.toString());
 
@@ -565,34 +568,43 @@ public class DirectorySnapshotter {
         }
 
         /**
-         * Snapshots a batch of files, using parallel hashing if an executor is available
-         * and the number of files exceeds the threshold.
+         * Submits file hashing tasks to the executor (non-blocking).
+         * Returns futures if parallel, or null if files will be hashed during join.
          */
-        private List<FileSystemLeafSnapshot> snapshotFiles(List<FileToSnapshot> files) {
+        @Nullable
+        private List<Future<FileSystemLeafSnapshot>> submitFileHashing(List<FileToSnapshot> files) {
             if (executor == null || files.size() < PARALLEL_FILE_THRESHOLD) {
-                List<FileSystemLeafSnapshot> results = new ArrayList<>(files.size());
-                for (FileToSnapshot f : files) {
-                    results.add(snapshotFile(f.path, f.internedName, f.attrs, f.accessType));
-                }
-                return results;
+                return null;
             }
-
-            // Parallel: submit N-1 tasks to executor, run 1 on current thread
-            List<Future<FileSystemLeafSnapshot>> futures = new ArrayList<>(files.size() - 1);
-            for (int i = 1; i < files.size(); i++) {
-                FileToSnapshot f = files.get(i);
+            List<Future<FileSystemLeafSnapshot>> futures = new ArrayList<>(files.size());
+            for (FileToSnapshot f : files) {
                 futures.add(executor.submit(() -> snapshotFile(f.path, f.internedName, f.attrs, f.accessType)));
             }
+            return futures;
+        }
 
-            // Main thread processes the first file
-            List<FileSystemLeafSnapshot> results = new ArrayList<>(files.size());
-            FileToSnapshot first = files.get(0);
-            results.add(snapshotFile(first.path, first.internedName, first.attrs, first.accessType));
-
-            // Collect results from worker threads
+        /**
+         * Joins file hashing results and adds them to the builder.
+         * If futures is null (below threshold or no executor), hashes sequentially here.
+         */
+        private void joinAndAddFiles(
+            @Nullable List<Future<FileSystemLeafSnapshot>> futures,
+            List<FileToSnapshot> files
+        ) {
+            if (files.isEmpty()) {
+                return;
+            }
+            if (futures == null) {
+                // Sequential path - hash and add inline
+                for (FileToSnapshot f : files) {
+                    builder.visitLeafElement(snapshotFile(f.path, f.internedName, f.attrs, f.accessType));
+                }
+                return;
+            }
+            // Parallel path - collect results from futures
             for (Future<FileSystemLeafSnapshot> future : futures) {
                 try {
-                    results.add(future.get());
+                    builder.visitLeafElement(future.get());
                 } catch (ExecutionException e) {
                     throw UncheckedException.throwAsUncheckedException(e.getCause());
                 } catch (InterruptedException e) {
@@ -600,7 +612,6 @@ public class DirectorySnapshotter {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
-            return results;
         }
 
         private FileSystemLeafSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
