@@ -22,7 +22,7 @@ import org.gradle.work.DisableCachingByDefault
 
 // TODO: Remove this and replace it with a BuildBuilderGenerator instead.
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask {
+abstract class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask {
     @Internal
     gradlebuild.performance.generator.DependencyGenerator.DependencyInfo depInfo
 

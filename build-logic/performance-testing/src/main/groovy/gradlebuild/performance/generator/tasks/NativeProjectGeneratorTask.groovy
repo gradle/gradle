@@ -25,7 +25,7 @@ import org.gradle.work.DisableCachingByDefault
  * Currently only supports C and PCH.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-class NativeProjectGeneratorTask extends AbstractProjectGeneratorTask {
+abstract class NativeProjectGeneratorTask extends AbstractProjectGeneratorTask {
 
     void generateProjectSource(File projectDir, TestProject testProject, Map args) {
         generateProjectSource(projectDir, "c", testProject, args)

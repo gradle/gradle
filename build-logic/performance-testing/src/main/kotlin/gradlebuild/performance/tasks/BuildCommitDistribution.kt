@@ -17,11 +17,11 @@
 package gradlebuild.performance.tasks
 
 import com.google.gson.Gson
-import gradlebuild.basics.repoRoot
 import gradlebuild.identity.model.ReleasedVersions
 import gradlebuild.performance.generator.tasks.RemoteProject
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
@@ -65,8 +65,12 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     private val execOps: ExecOperations,
     private val javaToolchainService: JavaToolchainService
 ) : DefaultTask() {
+
     @get:Internal
     abstract val releasedVersionsFile: RegularFileProperty
+
+    @get:Internal
+    abstract val repoRoot: DirectoryProperty
 
     @get:Input
     @get:Optional
@@ -84,7 +88,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
 
     @TaskAction
     fun buildCommitDistribution() {
-        val rootProjectDir = project.repoRoot().asFile.absolutePath
+        val rootProjectDir = repoRoot.get().asFile.absolutePath
         val commit = commitBaseline.map { it.substring(it.lastIndexOf('-') + 1) }
         val checkoutDir = RemoteProject.checkout(fsOps, execOps, rootProjectDir, commit.get(), temporaryDir)
 
@@ -116,7 +120,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     @Suppress("SpreadOperator")
     private
     fun runDistributionBuild(checkoutDir: File, os: OutputStream) {
-        val cmdArgs = getBuildCommands()
+        val cmdArgs = getBuildCommands(checkoutDir).toTypedArray()
         println("Building commit distribution with command: ${cmdArgs.joinToString(" ")}")
         execOps.exec {
             commandLine(*cmdArgs)
@@ -154,11 +158,9 @@ abstract class BuildCommitDistribution @Inject internal constructor(
                 val closestReleasedVersion = determineClosestReleasedVersion(GradleVersion.version(expectedWrapperVersion))
                 val repository = if (closestReleasedVersion.isSnapshot) "distributions-snapshots" else "distributions"
                 val wrapperPropertiesFile = checkoutDir.resolve("gradle/wrapper/gradle-wrapper.properties")
-                val wrapperProperties = Properties().apply {
-                    load(wrapperPropertiesFile.inputStream())
-                    this["distributionUrl"] = "https://services.gradle.org/$repository/gradle-${closestReleasedVersion.version}-bin.zip"
-                }
-                wrapperProperties.store(wrapperPropertiesFile.outputStream(), "Modified by `BuildCommitDistribution` task")
+                val wrapperProperties = wrapperPropertiesFile.readAsProperties()
+                wrapperProperties["distributionUrl"] = "https://services.gradle.org/$repository/gradle-${closestReleasedVersion.version}-bin.zip"
+                wrapperPropertiesFile.writeProperties(wrapperProperties, "Modified by `BuildCommitDistribution` task")
                 println("First attempt to build commit distribution failed: \n\n$outputString\n\nTrying again with ${closestReleasedVersion.version}")
 
                 val output2 = ByteArrayOutputStream()
@@ -185,25 +187,21 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     }
 
     private
-    fun getBuildCommands(): Array<String> {
+    fun getBuildCommands(checkoutDir: File): List<String> {
         val mirrorInitScript = temporaryDir.resolve("mirroring-init-script.gradle")
         BuildCommitDistribution::class.java.getResource("/mirroring-init-script.gradle")?.let { mirrorInitScript.writeText(it.readText()) }
 
-        val buildCommands = mutableListOf(
+        // null, "CC" or "IP"
+        val gradleModeCompatibility = resolveGradleModeCompatibility(checkoutDir)
+
+        return listOfNotNull(
             "./gradlew" + (if (OperatingSystem.current().isWindows) ".bat" else ""),
-            // TODO:configuration-cache https://github.com/gradle/gradle/issues/36770
-            "--no-configuration-cache",
+            if (gradleModeCompatibility == null) "--no-configuration-cache" else null,
             // TODO:isolated https://github.com/gradle/gradle/issues/36771
-            "-Dorg.gradle.unsafe.isolated-projects=false",
+            if (gradleModeCompatibility == "IP") null else "-Dorg.gradle.unsafe.isolated-projects=false",
             "--init-script",
             mirrorInitScript.absolutePath,
-        )
-
-        System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY)?.let {
-            buildCommands.add("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=$it")
-        }
-
-        buildCommands += listOf(
+            PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY.let { name -> System.getProperty(name)?.let { "-D$name=$it" } },
             "clean",
             "-Dscan.tag.BuildCommitDistribution",
             ":distributions-full:binDistributionZip",
@@ -214,11 +212,19 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             "-PbuildCommitDistribution=true",
             "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
         )
-
-        if (project.gradle.startParameter.isBuildCacheEnabled) {
-            buildCommands.add("--build-cache")
-        }
-
-        return buildCommands.toTypedArray()
     }
+
+    private fun resolveGradleModeCompatibility(checkoutDir: File): String? {
+        val property = "buildCommitDistribution.gradleModeCompatibility"
+        val value = checkoutDir.resolve("gradle.properties").readAsProperties()[property]?.toString()
+        val expectedValues = listOf(null, "CC", "IP")
+        check(value in expectedValues) { "Unknown value for $property: '$value'. Expected one of: $expectedValues" }
+        return value
+    }
+
+    private
+    fun File.readAsProperties(): Properties = Properties().apply { inputStream().use { load(it) } }
+
+    private
+    fun File.writeProperties(properties: Properties, comment: String? = null): Unit = outputStream().use { properties.store(it, comment) }
 }

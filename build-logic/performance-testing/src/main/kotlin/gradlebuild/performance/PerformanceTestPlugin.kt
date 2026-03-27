@@ -334,6 +334,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         buildCommitDistribution.configure {
             dependsOn(determineBaselines)
+            repoRoot = project.repoRoot()
             releasedVersionsFile = project.releasedVersionsFile()
             commitBaseline = determineBaselines.flatMap { it.determinedBaselines }
             commitDistribution = buildCommitDistributionsDir.zip(commitBaseline) { dir, version -> dir.file("gradle-$version.zip") }
