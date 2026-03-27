@@ -312,7 +312,6 @@
             <option value="$PROJECT_DIR$/platforms/software/testing-base" />
             <option value="$PROJECT_DIR$/platforms/software/testing-base-infrastructure" />
             <option value="$PROJECT_DIR$/platforms/software/version-control" />
-            <option value="$PROJECT_DIR$/subprojects/build-events" />
             <option value="$PROJECT_DIR$/subprojects/composite-builds" />
             <option value="$PROJECT_DIR$/subprojects/core" />
             <option value="$PROJECT_DIR$/subprojects/core-api" />
