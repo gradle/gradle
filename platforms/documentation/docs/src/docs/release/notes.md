@@ -21,6 +21,7 @@ This release improves [diagnostics and reporting](#diagnostics-and-reporting-imp
 Other [improvements](#general-improvements) include additional `gradle init` option, easier Develocity integration, and grouped `--help` output. Finally, the [Tooling API](#tooling-and-ide-integration) now exposes help and version information.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[atm1020](https://github.com/atm1020),
 [mataha](https://github.com/mataha),
 [Adam](https://github.com/aSemy),
 [Attila Kelemen](https://github.com/kelemen),
