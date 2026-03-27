@@ -18,7 +18,6 @@ package org.gradle.features
 
 import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
@@ -59,15 +58,10 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
-            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
-            "  - Project feature 'testProjectType' has a definition with type 'TestProjectTypeDefinition' which was declared safe but is not an interface.\n" +
-            "    \n" +
-            "    Reason: Safe definition types must be an interface.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Refactor the type as an interface."
+        failure.assertHasErrorOutput(
+            "Unsafe declaration in safe definition: non-interface type\n" +
+                "      in schema type 'org.gradle.test.TestProjectTypeDefinition'\n" +
+                "      in safe feature definition of 'testProjectType' (plugin 'com.example.test-software-ecosystem')"
         )
     }
 
@@ -83,15 +77,11 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
-            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
-            "  - The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.\n" +
-            "    \n" +
-            "    Reason: Safe definition types cannot inject services.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Remove the @Inject annotation from the 'objects' property."
+        failure.assertHasErrorOutput(
+            "Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'objects: ObjectFactory'\n" +
+                "      in schema type 'org.gradle.test.TestProjectTypeDefinition'\n" +
+                "      in safe feature definition of 'testProjectType' (plugin 'com.example.test-software-ecosystem')"
         )
     }
 
@@ -107,15 +97,11 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
-            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
-            "  - The definition type has @Inject annotated property 'objects' in type 'Foo'.\n" +
-            "    \n" +
-            "    Reason: Safe definition types cannot inject services.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Remove the @Inject annotation from the 'objects' property."
+        failure.assertHasErrorOutput(
+            "Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'objects: ObjectFactory'\n" +
+                "      in schema type 'org.gradle.test.TestProjectTypeDefinition.Foo'\n" +
+                "      in safe feature definition of 'testProjectType' (plugin 'com.example.test-software-ecosystem')"
         )
     }
 
@@ -131,22 +117,17 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
-            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
-                "  - The definition type has @Inject annotated property 'objects' in type 'Foo'.\n" +
-                "    \n" +
-                "    Reason: Safe definition types cannot inject services.\n" +
-                "    \n" +
-                "    Possible solutions:\n" +
-                "      1. Mark the definition as unsafe.\n" +
-                "      2. Remove the @Inject annotation from the 'objects' property.\n" +
-                "  - The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.\n" +
-                "    \n" +
-                "    Reason: Safe definition types cannot inject services.\n" +
-                "    \n" +
-                "    Possible solutions:\n" +
-                "      1. Mark the definition as unsafe.\n" +
-                "      2. Remove the @Inject annotation from the 'objects' property."
+        failure.assertHasErrorOutput(
+            "Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'objects: ObjectFactory'\n" +
+                "      in schema type 'org.gradle.test.TestProjectTypeDefinition'\n" +
+                "      in safe feature definition of 'testProjectType' (plugin 'com.example.test-software-ecosystem')"
+        )
+        failure.assertHasErrorOutput(
+            "Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'objects: ObjectFactory'\n" +
+                "      in schema type 'org.gradle.test.TestProjectTypeDefinition.Foo'\n" +
+                "      in safe feature definition of 'testProjectType' (plugin 'com.example.test-software-ecosystem')"
         )
     }
 
@@ -162,15 +143,11 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
-            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
-            "  - The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.\n" +
-            "    \n" +
-            "    Reason: Safe definition types cannot inject services.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Remove the @Inject annotation from the 'objects' property."
+        failure.assertHasErrorOutput(
+            "Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'objects: ObjectFactory'\n" +
+                "      in schema type 'org.gradle.test.TestProjectTypeDefinition'\n" +
+                "      in safe feature definition of 'testProjectType' (plugin 'com.example.test-software-ecosystem')"
         )
     }
 
@@ -186,22 +163,21 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
-            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
-            "  - Project feature 'testProjectType' has a definition with type 'TestProjectTypeDefinition' which was declared safe but is not an interface.\n" +
-            "    \n" +
-            "    Reason: Safe definition types must be an interface.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Refactor the type as an interface.\n" +
-            "  - The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.\n" +
-            "    \n" +
-            "    Reason: Safe definition types cannot inject services.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Remove the @Inject annotation from the 'objects' property."
+        failure.assertHasErrorOutput(
+            "Unsafe declaration in safe definition: non-interface type\n" +
+                "      in schema type 'org.gradle.test.TestProjectTypeDefinition'\n" +
+                "      in safe feature definition of 'testProjectType' (plugin 'com.example.test-software-ecosystem')"
+        )
+        failure.assertHasErrorOutput(
+            "Unsafe declaration in safe definition: non-abstract member\n" +
+                "      in schema property 'foo: Foo'\n" +
+                "      in schema type 'org.gradle.test.TestProjectTypeDefinition'\n" +
+                "      in safe feature definition of 'testProjectType' (plugin 'com.example.test-software-ecosystem')"
+        )
+        failure.assertHasErrorOutput(
+            "Unsafe declaration in safe definition: non-interface type\n" +
+                "      in schema type 'org.gradle.test.TestProjectTypeDefinition.Foo'\n" +
+                "      in safe feature definition of 'testProjectType' (plugin 'com.example.test-software-ecosystem')"
         )
     }
 
@@ -271,14 +247,6 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
             "\n" +
             "Possible solution: Remove the 'org.gradle.test.ProjectTypeImplPlugin\$Binding\$UnknownService' injection from the apply action."
         )
-    }
-
-    void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {
-        if (currentDsl() == GradleDsl.DECLARATIVE) {
-            failure.assertHasDescription(expectedMessage)
-        } else {
-            failure.assertHasCause(expectedMessage)
-        }
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectType() {

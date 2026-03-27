@@ -27,7 +27,9 @@ import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.evaluation.SchemaIssue
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.schema.UnsafeBecauseHasHiddenMembers
+import org.gradle.declarative.dsl.schema.UnsafeBecauseHasNonPublicMembers
 import org.gradle.declarative.dsl.schema.UnsafeNonPureFunction
+import org.gradle.declarative.dsl.schema.UnsafeInjectProperty
 import org.gradle.declarative.dsl.schema.UnsafeNonAbstractMember
 import org.gradle.declarative.dsl.schema.UnsafeNonInterfaceType
 import org.gradle.declarative.dsl.schema.UnsafeJavaBeanProperty
@@ -67,11 +69,14 @@ private object ProblemIds {
     val SCHEMA_UNSUPPORTED_VARARG_TYPE = create("unsupported-vararg-type", "Unsupported vararg type", group)
     val SCHEMA_UNSAFE_NON_INTERFACE_TYPE = create("unsafe-non-interface-type", "Unsafe non-interface type in safe feature API", group)
     val SCHEMA_UNSAFE_NON_ABSTRACT_MEMBER = create("unsafe-non-abstract-member", "Unsafe non-abstract member in safe feature API", group)
+    val SCHEMA_UNSAFE_INJECT_PROPERTY = create("unsafe-inject-property", "Unsafe injected service property in safe feature API", group)
     val SCHEMA_UNSAFE_JAVA_BEAN_PROPERTY = create("unsafe-java-bean-property", "Unsafe Java bean property in safe feature API", group)
     val SCHEMA_UNSAFE_NON_PURE_FUNCTION = create("unsafe-non-pure-function", "Unsafe non-pure function in safe feature API", group)
     val SCHEMA_UNSAFE_BECAUSE_HAS_HIDDEN_MEMBERS = create("unsafe-because-has-hidden-members", "Unsafe hidden members in safe feature API", group)
+    val SCHEMA_UNSAFE_BECAUSE_HAS_NON_PUBLIC_MEMBERS = create("unsafe-because-has-non-public-members", "Non-public members in safe feature API", group)
 }
 
+@Suppress("CyclomaticComplexMethod")
 internal fun schemaBuildingFailureProblemId(failure: SchemaBuildingFailure): ProblemId = when (failure.issue) {
     is SchemaIssue.DeclarationBothHiddenAndVisible -> ProblemIds.SCHEMA_DECLARATION_BOTH_VISIBLE_AND_HIDDEN
     is SchemaIssue.HiddenTypeUsedInDeclaration -> ProblemIds.SCHEMA_HIDDEN_DECLARATION_USED_IN_DEFINITION
@@ -90,9 +95,11 @@ internal fun schemaBuildingFailureProblemId(failure: SchemaBuildingFailure): Pro
     is SchemaIssue.UnsafeDeclarationInSafeFeatureApi -> when ((failure.issue as SchemaIssue.UnsafeDeclarationInSafeFeatureApi).unsafeApiCause) {
         is UnsafeNonInterfaceType -> ProblemIds.SCHEMA_UNSAFE_NON_INTERFACE_TYPE
         is UnsafeNonAbstractMember -> ProblemIds.SCHEMA_UNSAFE_NON_ABSTRACT_MEMBER
+        is UnsafeInjectProperty -> ProblemIds.SCHEMA_UNSAFE_INJECT_PROPERTY
         is UnsafeJavaBeanProperty -> ProblemIds.SCHEMA_UNSAFE_JAVA_BEAN_PROPERTY
         is UnsafeNonPureFunction -> ProblemIds.SCHEMA_UNSAFE_NON_PURE_FUNCTION
         is UnsafeBecauseHasHiddenMembers -> ProblemIds.SCHEMA_UNSAFE_BECAUSE_HAS_HIDDEN_MEMBERS
+        is UnsafeBecauseHasNonPublicMembers -> ProblemIds.SCHEMA_UNSAFE_BECAUSE_HAS_NON_PUBLIC_MEMBERS
         else -> ProblemIds.SCHEMA_BUILDING_FAILURE
     }
     else -> ProblemIds.SCHEMA_BUILDING_FAILURE
@@ -153,11 +160,16 @@ internal fun ProblemSpec.solutionFor(failure: SchemaBuildingFailure) {
         is SchemaIssue.UnsafeDeclarationInSafeFeatureApi -> {
             when (issue.unsafeApiCause) {
                 is UnsafeBecauseHasHiddenMembers -> solution("Remove the hidden members.")
+                is UnsafeBecauseHasNonPublicMembers -> {
+                    solution("Remove the non-public members from the safe definition.")
+                    solution("Make the members public.")
+                }
                 is UnsafeNonPureFunction -> {
                     solution("Use read-only properties to expose nested models.")
                     solution("Use NamedDomainObjectContainer or collection properties to model multi-element containers.")
                 }
                 is UnsafeNonAbstractMember -> solution("Make the member safe by removing the implementation (making it abstract).")
+                is UnsafeInjectProperty -> solution("Remove the @Inject annotation.")
                 is UnsafeNonInterfaceType -> solution("Make the type safe by making it an interface.")
                 is UnsafeJavaBeanProperty -> solution("Make the property safe by using Gradle Property API.")
                 else -> Unit
@@ -171,6 +183,6 @@ internal fun ProblemSpec.solutionFor(failure: SchemaBuildingFailure) {
 
     }
 
-    solution("Remove the violating declaration or make it non-public.")
-    solution("If the definition is unsafe, annotate the violating declaration as @${HiddenInDefinition::class.simpleName} to exclude it from the Declarative schema.")
+    solution("Remove the violating declaration or make it non-public in an unsafe definition.")
+    solution("In an unsafe definition, annotate the violating declaration as @${HiddenInDefinition::class.simpleName} to exclude it from the Declarative schema.")
 }

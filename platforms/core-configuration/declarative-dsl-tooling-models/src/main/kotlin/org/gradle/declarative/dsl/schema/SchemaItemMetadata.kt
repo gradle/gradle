@@ -28,6 +28,7 @@ import java.io.Serializable
         UnsafeSchemaItem::class,
         UnsafeNonInterfaceType::class,
         UnsafeNonAbstractMember::class,
+        UnsafeInjectProperty::class,
         UnsafeJavaBeanProperty::class,
         UnsafeNonPureFunction::class,
         UnsafeBecauseHasHiddenMembers::class,
@@ -69,17 +70,23 @@ interface ConfigureFromGetterOrigin : SchemaMemberOrigin {
     subTypes = [
         UnsafeNonInterfaceType::class,
         UnsafeNonAbstractMember::class,
+        UnsafeInjectProperty::class,
         UnsafeJavaBeanProperty::class,
         UnsafeNonPureFunction::class,
         UnsafeBecauseHasHiddenMembers::class,
+        UnsafeBecauseHasNonPublicMembers::class
     ]
 )
 interface UnsafeSchemaItem : SchemaItemMetadata
 
 interface UnsafeNonInterfaceType : UnsafeSchemaItem
 interface UnsafeNonAbstractMember : UnsafeSchemaItem
+interface UnsafeInjectProperty : UnsafeSchemaItem
 interface UnsafeJavaBeanProperty : UnsafeSchemaItem
 interface UnsafeNonPureFunction : UnsafeSchemaItem
 interface UnsafeBecauseHasHiddenMembers : UnsafeSchemaItem {
+    val memberNames: List<String>
+}
+interface UnsafeBecauseHasNonPublicMembers : UnsafeSchemaItem {
     val memberNames: List<String>
 }

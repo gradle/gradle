@@ -117,6 +117,41 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
     }
 
+    def 'unsafe non-public member in safe definition is reported'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
+            "Property<String> getText();",
+            "Property<String> getText();\nprivate String nonPublicMember() { return \"\"; }"
+        )
+
+        expect:
+        fails().assertHasErrorOutput(
+            "Unsafe declaration in safe definition: non-public member 'nonPublicMember'\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:unsafe-because-has-non-public-members"
+            details == "Unsafe declaration in safe definition: non-public member 'nonPublicMember'\n" +
+                "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Remove the non-public members from the safe definition.",
+                "Make the members public.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
+    }
+
+
     def 'unsafe java bean property in safe definition is reported'() {
         given:
         PluginBuilder pluginBuilder = withProjectFeature()
@@ -188,6 +223,44 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
 
         receivedProblem(0).fqid == "scripts:dcl-schema:unsafe-non-pure-function"
     }
+
+    def 'unsafe inject property is reported'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
+            "Property<String> getText();",
+            "Property<String> getText();\n" +
+                "@javax.inject.Inject\n" +
+                "Fizz getInjectedFizz();"
+        )
+
+        expect:
+        fails().assertHasErrorOutput(
+            "Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'injectedFizz: Fizz'\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:unsafe-inject-property"
+            details == "Unsafe declaration in safe definition: injected service property\n" +
+                "  in schema property 'injectedFizz: Fizz'\n" +
+                "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Remove the @Inject annotation.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
+    }
+
 
     def 'unsafe declaration in type used by two safe definitions reports both features'() {
         given:

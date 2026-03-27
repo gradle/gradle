@@ -82,7 +82,7 @@ class ProjectTypeDefinitionAbstractClassBuilder extends ProjectTypeDefinitionCla
     String getMaybeInjectedServiceDeclaration() {
         return hasInjectedServices ? """
             @Inject
-            abstract ObjectFactory getObjects();
+            public abstract ObjectFactory getObjects();
         """ : ""
     }
 
@@ -90,7 +90,7 @@ class ProjectTypeDefinitionAbstractClassBuilder extends ProjectTypeDefinitionCla
     String getMaybeNestedInjectedServiceDeclaration() {
         return hasNestedInjectedServices ? """
             @Inject
-            abstract ObjectFactory getObjects();
+            public abstract ObjectFactory getObjects();
         """ : ""
     }
 

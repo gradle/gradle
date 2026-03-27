@@ -35,7 +35,8 @@ import java.io.Serializable
     SchemaIssue.UnsupportedNullableReadOnlyProperty::class,
     SchemaIssue.NonClassifiableType::class,
     SchemaIssue.UnitAddingFunctionWithLambda::class,
-    SchemaIssue.UnrecognizedMember::class
+    SchemaIssue.UnrecognizedMember::class,
+    SchemaIssue.UnsafeDeclarationInSafeFeatureApi::class
 ])
 interface SchemaIssue : Serializable {
     interface DeclarationBothHiddenAndVisible : SchemaIssue
