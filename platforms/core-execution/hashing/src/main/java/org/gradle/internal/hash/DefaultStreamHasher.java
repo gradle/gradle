@@ -41,7 +41,7 @@ public class DefaultStreamHasher implements StreamHasher {
     private HashCode doHash(InputStream inputStream, OutputStream outputStream) throws IOException {
         byte[] buffer = takeBuffer();
         try {
-            PrimitiveHasher hasher = Hashing.newPrimitiveHasher();
+            PrimitiveHasher hasher = Hashing.newFileContentPrimitiveHasher();
             hasher.putHash(SIGNATURE);
             while (true) {
                 int nread = inputStream.read(buffer);
@@ -65,7 +65,7 @@ public class DefaultStreamHasher implements StreamHasher {
     private byte[] takeBuffer() {
         byte[] buffer = buffers.poll();
         if (buffer == null) {
-            buffer = new byte[8192];
+            buffer = new byte[65536];
         }
         return buffer;
     }

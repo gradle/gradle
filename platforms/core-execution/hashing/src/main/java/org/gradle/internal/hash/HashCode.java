@@ -69,6 +69,24 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         }
     }
 
+    /**
+     * Creates a {@link HashCode} from the first {@code length} bytes of the given array,
+     * without copying when the result is a {@link HashCode128} (reads longs directly).
+     */
+    static HashCode fromBytesPrefix(byte[] bytes, int length) {
+        switch (length) {
+            case 16:
+                return new HashCode128(
+                    bytesToLong(bytes, 0),
+                    bytesToLong(bytes, 8)
+                );
+            default:
+                byte[] truncated = new byte[length];
+                System.arraycopy(bytes, 0, truncated, 0, length);
+                return new ByteArrayBackedHashCode(truncated);
+        }
+    }
+
     public static HashCode fromBytes(byte[] bytes) {
         // Make sure hash codes are serializable with a single byte length
         if (bytes.length < MIN_NUMBER_OF_BYTES || bytes.length > MAX_NUMBER_OF_BYTES) {

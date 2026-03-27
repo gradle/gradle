@@ -51,6 +51,13 @@ public class Hashing {
     private static final HashFunction DEFAULT = MD5;
 
     /**
+     * Hash function used for hashing file content.
+     * Uses SHA-256 for hardware acceleration (SHA-NI on x86, SHA2 on ARM),
+     * truncated to 128 bits to maintain the compact {@link HashCode} representation.
+     */
+    private static final HashFunction FILE_CONTENT = SHA256;
+
+    /**
      * Returns a new {@link Hasher} based on the default hashing implementation.
      */
     public static Hasher newHasher() {
@@ -62,6 +69,14 @@ public class Hashing {
      */
     public static PrimitiveHasher newPrimitiveHasher() {
         return DEFAULT.newPrimitiveHasher();
+    }
+
+    /**
+     * Returns a new {@link PrimitiveHasher} optimized for hashing file content.
+     * Uses SHA-256 (hardware-accelerated when available) truncated to 128 bits.
+     */
+    public static PrimitiveHasher newFileContentPrimitiveHasher() {
+        return new TruncatingPrimitiveHasher(FILE_CONTENT.newPrimitiveHasher(), 16);
     }
 
     /**
@@ -360,6 +375,70 @@ public class Hashing {
             byte[] bytes = getDigest().digest();
             digest = null;
             return HashCode.fromBytes(bytes, SAFE_TO_REUSE_BYTES);
+        }
+    }
+
+    private static class TruncatingPrimitiveHasher implements PrimitiveHasher {
+        private final PrimitiveHasher delegate;
+        private final int truncatedLength;
+
+        TruncatingPrimitiveHasher(PrimitiveHasher delegate, int truncatedLength) {
+            this.delegate = delegate;
+            this.truncatedLength = truncatedLength;
+        }
+
+        @Override
+        public void putByte(byte b) {
+            delegate.putByte(b);
+        }
+
+        @Override
+        public void putBytes(byte[] bytes) {
+            delegate.putBytes(bytes);
+        }
+
+        @Override
+        public void putBytes(byte[] bytes, int off, int len) {
+            delegate.putBytes(bytes, off, len);
+        }
+
+        @Override
+        public void putInt(int value) {
+            delegate.putInt(value);
+        }
+
+        @Override
+        public void putLong(long value) {
+            delegate.putLong(value);
+        }
+
+        @Override
+        public void putDouble(double value) {
+            delegate.putDouble(value);
+        }
+
+        @Override
+        public void putBoolean(boolean value) {
+            delegate.putBoolean(value);
+        }
+
+        @Override
+        public void putString(CharSequence value) {
+            delegate.putString(value);
+        }
+
+        @Override
+        public void putHash(HashCode hashCode) {
+            delegate.putHash(hashCode);
+        }
+
+        @Override
+        public HashCode hash() {
+            HashCode fullHash = delegate.hash();
+            if (fullHash.length() <= truncatedLength) {
+                return fullHash;
+            }
+            return HashCode.fromBytesPrefix(fullHash.bytes(), truncatedLength);
         }
     }
 
