@@ -556,6 +556,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Deprecated
         @Override
+        @Deprecated
         public Map<String, T> getProperties() {
             return getAsMap();
         }

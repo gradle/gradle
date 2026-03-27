@@ -24,6 +24,7 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
@@ -627,8 +628,9 @@ public class ExtensibleDynamicObjectTest {
             extensibleDynamicObject = new ExtensibleDynamicObject(this, Bean.class, TestUtil.instantiatorFactory().decorateLenient());
         }
 
-        public DynamicObject getAsDynamicObject() {
-            return extensibleDynamicObject;
+        @Override
+        public HierarchicalDynamicObject getAsDynamicObject() {
+            return extensibleDynamicObject.getInheritable();
         }
 
         @Override
@@ -636,7 +638,7 @@ public class ExtensibleDynamicObjectTest {
             return "<bean>";
         }
 
-        public void setParent(DynamicObject parent) {
+        public void setParent(HierarchicalDynamicObject parent) {
             extensibleDynamicObject.setParent(parent);
         }
 

@@ -29,7 +29,6 @@ import java.util.Map;
  * An empty {@link DynamicObject}.
  */
 public abstract class AbstractDynamicObject implements DynamicObject {
-    public abstract String getDisplayName();
 
     @Override
     public String toString() {
@@ -150,6 +149,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     @Deprecated
     @Override
+    @Deprecated
     public Map<String, ? extends @Nullable Object> getProperties() {
         return Collections.emptyMap();
     }

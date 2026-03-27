@@ -1806,7 +1806,7 @@ resultsFile:
 
         buildFile << """
             apply from: 'other.gradle'
-        """ << declareAttributes() << multiProjectWithJarSizeTransform(paramValue: "ext.value") << withClassesSizeTransform()
+        """ << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform(paramValue: "rootProject.ext.value")
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -2400,13 +2400,10 @@ resultsFile:
     }
 
     def multiProjectWithJarSizeTransform(Map options = [:]) {
-        String paramValue = options.paramValue ?: "1"
         String fileValue = options.fileValue ?: "String.valueOf(input.length())"
         boolean incremental = options.incremental ?: false
 
         """
-            ext.paramValue = $paramValue
-
             ${registerFileSizer(fileValue, incremental)}
 
             project(':util') {
@@ -2480,7 +2477,7 @@ resultsFile:
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
                         parameters {
-                            value = paramValue
+                            value = 1
                         }
                     }
                 }
@@ -2513,14 +2510,15 @@ resultsFile:
         """
     }
 
-    def withClassesSizeTransform() {
+    def withClassesSizeTransform(Map options = [:]) {
+        String paramValue = options.paramValue ?: "1"
         """
             allprojects {
                 dependencies {
                     registerTransform(FileSizer) {
                         from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
-                        parameters { value = paramValue }
+                        parameters { value = $paramValue }
                     }
                 }
             }
