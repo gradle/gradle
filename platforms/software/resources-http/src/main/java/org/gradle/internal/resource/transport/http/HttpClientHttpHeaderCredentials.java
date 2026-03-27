@@ -40,6 +40,7 @@ public class HttpClientHttpHeaderCredentials implements Credentials {
     }
 
     @Override
+    @Deprecated
     public char[] getPassword() {
         return null;
     }

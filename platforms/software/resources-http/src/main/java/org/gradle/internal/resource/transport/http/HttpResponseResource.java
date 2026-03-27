@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.time.Instant;
 import java.util.Date;
 
 public class HttpResponseResource implements ExternalResourceReadResponse {
@@ -44,7 +45,8 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         this.response = response;
 
         String etag = getEtag(response);
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename(), response.isMissing());
+        // TODO: This should use Instant and not Date
+        this.metaData = new DefaultExternalResourceMetaData(source, new Date(getLastModified().toEpochMilli()), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename(), response.isMissing());
     }
 
     public URI getURI() {
@@ -65,16 +67,15 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         return response.getStatusCode();
     }
 
-    public Date getLastModified() {
+    public Instant getLastModified() {
         String responseHeader = response.getHeader(HttpHeaders.LAST_MODIFIED);
-        if (responseHeader == null) {
-            return new Date(0);
+        if (responseHeader != null) {
+            Instant parsed = DateUtils.parseStandardDate(responseHeader);
+            if (parsed != null) {
+                return parsed;
+            }
         }
-        try {
-            return DateUtils.parseDate(responseHeader);
-        } catch (Exception e) {
-            return new Date(0);
-        }
+        return Instant.now();
     }
 
     private String getFilename() {

@@ -51,10 +51,6 @@ gradleModule {
     }
 }
 
-strictCompile {
-    ignoreDeprecations() // uses deprecated HC5 APIs (NTLM, SPNEGO, SSLConnectionSocketFactory) that have no replacements yet
-}
-
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

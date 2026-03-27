@@ -30,7 +30,6 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -63,6 +62,7 @@ import static org.apache.hc.client5.http.protocol.HttpClientContext.REDIRECT_LOC
  * Implementation of {@link HttpClient} backed by Apache Commons HttpClient.
  */
 @NullMarked
+@SuppressWarnings("deprecation")
 public class ApacheCommonsHttpClient implements HttpClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApacheCommonsHttpClient.class);
@@ -236,7 +236,7 @@ public class ApacheCommonsHttpClient implements HttpClient {
     private HttpClient.Response performRawRequest(HttpUriRequestBase request) throws IOException {
         if (sharedContext == null) {
             // There's no authentication involved, requests can be done concurrently
-            return performHttpRequest(request, new BasicHttpContext());
+            return performHttpRequest(request, new org.apache.hc.core5.http.protocol.BasicHttpContext());
         }
         HttpContext httpContext = nextAvailableSharedContext();
         try {
@@ -249,7 +249,7 @@ public class ApacheCommonsHttpClient implements HttpClient {
     private HttpContext nextAvailableSharedContext() {
         HttpContext context = sharedContext.poll();
         if (context == null) {
-            return new BasicHttpContext();
+            return new org.apache.hc.core5.http.protocol.BasicHttpContext();
         }
         return context;
     }

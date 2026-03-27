@@ -22,7 +22,6 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.CredentialsStore;
-import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.ExecChain;
@@ -39,16 +38,12 @@ import org.apache.hc.client5.http.impl.LaxRedirectStrategy;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
@@ -153,10 +148,11 @@ public class HttpClientConfigurer {
         builder.disableContentCompression();
     }
 
+    @SuppressWarnings("deprecation")
     private void configureConnectionManager(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
         HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
         builder.setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
-            .setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), sslProtocols, null, hostnameVerifier))
+            .setSSLSocketFactory(new org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory(sslContextFactory.createSslContext(), sslProtocols, null, hostnameVerifier))
             .setMaxConnTotal(httpSettings.getMaxConnTotal())
             .setMaxConnPerRoute(httpSettings.getMaxConnPerRoute())
             .setDefaultSocketConfig(SocketConfig.custom()
@@ -169,13 +165,14 @@ public class HttpClientConfigurer {
             .build());
     }
 
+    @SuppressWarnings("deprecation")
     private void configureAuthSchemeRegistry(HttpClientBuilder builder) {
         builder.setDefaultAuthSchemeRegistry(RegistryBuilder.<AuthSchemeFactory>create()
             .register(StandardAuthScheme.BASIC, new BasicSchemeFactory())
             .register(StandardAuthScheme.DIGEST, new DigestSchemeFactory())
-            .register(StandardAuthScheme.NTLM, NTLMSchemeFactory.INSTANCE)
-            .register(StandardAuthScheme.SPNEGO, SPNegoSchemeFactory.DEFAULT)
-            .register(StandardAuthScheme.KERBEROS, KerberosSchemeFactory.DEFAULT)
+            .register(StandardAuthScheme.NTLM, org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory.INSTANCE)
+            .register(StandardAuthScheme.SPNEGO, org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory.DEFAULT)
+            .register(StandardAuthScheme.KERBEROS, org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory.DEFAULT)
             .register(HttpHeaderAuthScheme.AUTH_SCHEME_NAME, new HttpHeaderSchemeFactory())
             .build()
         );
@@ -186,6 +183,7 @@ public class HttpClientConfigurer {
      * in its default scheme priority list (they were removed as deprecated). Override the
      * strategy to restore support for these schemes.
      */
+    @SuppressWarnings("deprecation")
     private void configureAuthenticationStrategy(HttpClientBuilder builder) {
         DefaultAuthenticationStrategy strategy = new DefaultAuthenticationStrategy() {
             @Override
@@ -249,6 +247,7 @@ public class HttpClientConfigurer {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void useCredentials(CredentialsStore credentialsProvider, Collection<? extends Authentication> authentications) {
         for (Authentication authentication : authentications) {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
@@ -286,7 +285,7 @@ public class HttpClientConfigurer {
 
                     if (authentication instanceof AllSchemesAuthentication) {
                         NTLMCredentials ntlmCredentials = new NTLMCredentials(username, password);
-                        Credentials httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword() != null ? ntlmCredentials.getPassword().toCharArray() : null, ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
+                        Credentials httpCredentials = new org.apache.hc.client5.http.auth.NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword() != null ? ntlmCredentials.getPassword().toCharArray() : null, ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
                         credentialsProvider.setCredentials(new AuthScope(null, host, port, null, StandardAuthScheme.NTLM), httpCredentials);
 
                         LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", credentials, ntlmCredentials, host, port, StandardAuthScheme.NTLM);
@@ -310,6 +309,7 @@ public class HttpClientConfigurer {
         builder.setUserAgent(UriTextResource.getUserAgentString());
     }
 
+    @SuppressWarnings("deprecation")
     private void configureRequestConfig(HttpClientBuilder builder) {
         HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
         RequestConfig config = RequestConfig.custom()
