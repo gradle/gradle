@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Describable;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.internal.Describables;
 
@@ -30,7 +29,4 @@ public abstract class DefaultSingleFileReport extends SimpleReport implements Si
         super(name, Describables.of(name, "report for", owner), OutputType.FILE);
         getRequired().convention(false);
     }
-
-    @Inject
-    protected abstract ProjectLayout getProjectLayout();
 }
