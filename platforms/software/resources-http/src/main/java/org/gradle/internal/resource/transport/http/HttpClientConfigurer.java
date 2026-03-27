@@ -170,9 +170,9 @@ public class HttpClientConfigurer {
         builder.setDefaultAuthSchemeRegistry(RegistryBuilder.<AuthSchemeFactory>create()
             .register(StandardAuthScheme.BASIC, new BasicSchemeFactory())
             .register(StandardAuthScheme.DIGEST, new DigestSchemeFactory())
-            .register(StandardAuthScheme.NTLM, org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory.INSTANCE)
-            .register(StandardAuthScheme.SPNEGO, org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory.DEFAULT)
-            .register(StandardAuthScheme.KERBEROS, org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory.DEFAULT)
+            .register(StandardAuthScheme.NTLM, new DeprecatedSchemeFactory(org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory.INSTANCE, StandardAuthScheme.NTLM))
+            .register(StandardAuthScheme.SPNEGO, new DeprecatedSchemeFactory(org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory.DEFAULT, StandardAuthScheme.SPNEGO))
+            .register(StandardAuthScheme.KERBEROS, new DeprecatedSchemeFactory(org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory.DEFAULT, StandardAuthScheme.KERBEROS))
             .register(HttpHeaderAuthScheme.AUTH_SCHEME_NAME, new HttpHeaderSchemeFactory())
             .build()
         );
