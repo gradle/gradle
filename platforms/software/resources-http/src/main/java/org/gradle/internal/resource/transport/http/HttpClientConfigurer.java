@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -70,7 +71,6 @@ import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
-import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
 import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,7 +173,7 @@ public class HttpClientConfigurer {
         builder.setDefaultAuthSchemeRegistry(RegistryBuilder.<AuthSchemeFactory>create()
             .register(StandardAuthScheme.BASIC, new BasicSchemeFactory())
             .register(StandardAuthScheme.DIGEST, new DigestSchemeFactory())
-            .register(StandardAuthScheme.NTLM, new NTLMSchemeFactory())
+            .register(StandardAuthScheme.NTLM, NTLMSchemeFactory.INSTANCE)
             .register(StandardAuthScheme.SPNEGO, SPNegoSchemeFactory.DEFAULT)
             .register(StandardAuthScheme.KERBEROS, KerberosSchemeFactory.DEFAULT)
             .register(HttpHeaderAuthScheme.AUTH_SCHEME_NAME, new HttpHeaderSchemeFactory())
