@@ -94,6 +94,7 @@ Class 'org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker' from pl
 Class 'org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker' from platform 'core' imports class 'org.gradle.internal.resource.transfer.AccessorBackedExternalResource' from a forbidden platform 'software'
 Class 'org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker' from platform 'core' imports class 'org.gradle.internal.resource.transfer.DownloadAction' from a forbidden platform 'software'
 Class 'org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker' from platform 'core' imports class 'org.gradle.internal.resource.transfer.ExternalResourceConnector' from a forbidden platform 'software'
+Class 'org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker' from platform 'core' imports class 'org.gradle.internal.resource.ResourceExceptions' from a forbidden platform 'software'
 Class 'org.gradle.internal.declarativedsl.interpreter.DefaultDeclarativeKotlinScriptEvaluator' from platform 'core' imports class 'org.gradle.internal.resource.TextResource' from a forbidden platform 'software'
 Class 'org.gradle.internal.extensions.core.ScriptSourceExtensionsKt' from platform 'core' imports class 'org.gradle.internal.resource.ResourceLocation' from a forbidden platform 'software'
 Class 'org.gradle.internal.extensions.core.ScriptSourceExtensionsKt' from platform 'core' imports class 'org.gradle.internal.resource.TextResource' from a forbidden platform 'software'
