@@ -1,0 +1,132 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices_for_laziness]]
+= Best Practices for Laziness
+
+[[map_versus_flatmap]]
+== Be Careful with `map` vs. `flatMap` when Wiring Properties
+
+When wiring task outputs to inputs, several common patterns break task dependency tracking or cause configuration-time failures.
+Understanding when to use `map`, `flatMap`, and how to avoid creating "naked providers" is essential for reliable builds.
+
+=== Explanation
+
+Gradle's Provider API uses `map` and `flatMap` to transform and connect task properties.
+However, certain patterns break the connection between tasks, causing builds to fail or produce incorrect results.
+
+When wiring task outputs to inputs:
+
+1. **Use `flatMap` to extract Provider properties** — this is correct and necessary for the Provider API
+2. **Chain `map` to transform values** — don't create new providers with `provider {}`
+3. **Use `map` to extract eager properties** — extract plain values like `File` or `String`, not Provider properties
+4. **Never call `.get()` to read file content in callbacks** — the file doesn't exist yet at configuration time
+5. **Use directly annotated output properties** — avoid deriving properties through `.map {}`
+
+NOTE: For dependency tracking to work, task output properties must be properly annotated with `@OutputFile`, `@OutputDirectory`, or similar annotations.
+Without these annotations, Gradle cannot track task dependencies.
+
+=== Use `flatMap` to Extract Lazy Provider Properties and `map` to Transform Values
+
+When wiring task outputs to inputs, use `flatMap` to extract a Provider property from a task, then chain `map` to transform the value.
+A common mistake is creating a new provider with `provider {}` inside `flatMap`, which produces a "naked provider" with no dependency information and breaks task dependency tracking.
+
+==== Don't Do This
+
+Creating a new provider inside `flatMap` loses all dependency information:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/kotlin",files="build.gradle.kts[tags=naked-provider]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/groovy",files="build.gradle[tags=naked-provider]"]
+====
+
+The `provider {}` factory creates a provider with no connection to any task, so Gradle cannot determine that it depends on the `generate` task.
+
+==== Do This Instead
+
+Use `flatMap` to extract the Provider property, then chain `map` to transform the value:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=flatmap-provider]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=flatmap-provider]"]
+====
+
+This preserves the task dependency because the provider chain remains connected to the original task.
+
+=== Use `map` for Eager Properties
+
+When a task uses old-style eager properties (like `File`) instead of Provider properties, use `map` instead of `flatMap` to extract the value.
+The `flatMap` operator expects a Provider return type, so it cannot be used with plain values:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=eager-property]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=eager-property]"]
+====
+
+=== Avoid Reading File Content at Configuration Time
+
+Calling `.get()` inside `map` to read file content fails because the file does not exist yet at configuration time — the producer task has not run.
+This pattern also breaks the Configuration Cache.
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/kotlin",files="build.gradle.kts[tags=config-time-read]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/groovy",files="build.gradle[tags=config-time-read]"]
+====
+
+==== Do This Instead
+
+Use the `flatMap`/`map` chain instead.
+The `map` on a `flatMap` result is evaluated lazily at execution time, when the file exists:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=flatmap-provider]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=flatmap-provider]"]
+====
+
+=== Be Careful with `flatMap` on Derived Properties
+
+When a task's output property is derived through `.map {}` rather than directly annotated, `flatMap` may extract the mapped provider without preserving the task dependency.
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/kotlin",files="build.gradle.kts[tags=derived-property]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-avoid/groovy",files="build.gradle[tags=derived-property]"]
+====
+
+==== Do This Instead
+
+As a workaround, use `.map { it.property.get() }` to preserve the dependency:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=derived-property-fix]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=derived-property-fix]"]
+====
+
+The preferred approach is to use directly annotated abstract properties instead of derived ones, so that `flatMap` works reliably:
+
+====
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/kotlin",files="build.gradle.kts[tags=direct-annotation]"]
+include::sample[dir="snippets/bestPractices/beCarefulWithMapFlatmap-do/groovy",files="build.gradle[tags=direct-annotation]"]
+====
+
+=== References
+
+- <<lazy_configuration.adoc#sec:working_with_task_output_properties,Working with Task Output Properties>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:task-configuration-avoidance,#task-configuration-avoidance>>`

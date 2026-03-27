@@ -1,0 +1,128 @@
+// tag::common-tasks[]
+// Task that generates a file
+abstract class GeneratorTask extends DefaultTask {
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    @TaskAction
+    void generate() {
+        outputFile.get().asFile.text = "Generated content"
+    }
+}
+
+// Task that consumes the generated file
+abstract class ConsumerTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getInputFile()
+
+    @Input
+    abstract Property<String> getInputContent()
+
+    @TaskAction
+    void consume() {
+        println "Input file: ${inputFile.get().asFile}"
+        println "Content: ${inputContent.get()}"
+    }
+}
+// end::common-tasks[]
+
+// tag::flatmap-provider[]
+def generator = tasks.register('generate', GeneratorTask) {
+    outputFile = layout.buildDirectory.file('output.txt')
+}
+
+tasks.register('consume', ConsumerTask) {
+    // CORRECT: flatMap extracts the Provider property
+    // The dependency on 'generate' is preserved
+    inputFile = generator.flatMap { it.outputFile }
+
+    // CORRECT: Chain map on the Provider to read content lazily
+    inputContent = generator.flatMap { it.outputFile }
+        .map { it.asFile.text }
+}
+// end::flatmap-provider[]
+
+// tag::eager-property[]
+abstract class LegacyTask extends DefaultTask {
+    // Old-style eager property (before Provider API)
+    @OutputDirectory
+    File destinationDir
+
+    @TaskAction
+    void execute() {
+        destinationDir.mkdirs()
+        new File(destinationDir, 'output.txt').text = 'content'
+    }
+}
+
+def legacy = tasks.register('legacy', LegacyTask) {
+    destinationDir = layout.buildDirectory.dir('docs').get().asFile
+}
+
+tasks.register('consumeLegacy', ConsumerTask) {
+    // CORRECT: Use map for eager (non-Provider) properties
+    inputFile.fileProvider(legacy.map { new File(it.destinationDir, 'output.txt') })
+    inputContent = legacy.map { new File(it.destinationDir, 'output.txt').text }
+}
+// end::eager-property[]
+
+// tag::chaining[]
+tasks.register('consumeChained', ConsumerTask) {
+    // CORRECT: Chain transformations on the Provider itself
+    // First flatMap extracts the Provider, then map transforms it
+    inputFile = generator.flatMap { it.outputFile }
+    inputContent = generator.flatMap { it.outputFile }
+        .map { it.asFile.text }
+        .map { it.toUpperCase() }
+}
+// end::chaining[]
+
+// tag::derived-property-fix[]
+abstract class ProducerTask extends DefaultTask {
+    @Internal
+    abstract DirectoryProperty getSomeDirectory()
+
+    @OutputFile
+    Provider<RegularFile> getOutputFile() {
+        someDirectory.map { it.file('output.txt') }
+    }
+
+    @TaskAction
+    void execute() {
+        outputFile.get().asFile.text = 'content'
+    }
+}
+
+def producer = tasks.register('producer', ProducerTask) {
+    someDirectory = layout.buildDirectory.dir('output')
+}
+
+tasks.register('consumeSync', Sync) {
+    // WORKAROUND: Using map with .get() preserves the dependency
+    from(producer.map { it.outputFile.get() })
+    into(layout.buildDirectory.dir('sync'))
+}
+// end::derived-property-fix[]
+
+// tag::direct-annotation[]
+abstract class DirectProducerTask extends DefaultTask {
+    // Directly annotated property - not derived
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    @TaskAction
+    void execute() {
+        outputFile.get().asFile.text = 'content'
+    }
+}
+
+def directProducer = tasks.register('directProducer', DirectProducerTask) {
+    outputFile = layout.buildDirectory.file('output/output.txt')
+}
+
+tasks.register('consumeDirect', Sync) {
+    // CORRECT: flatMap works reliably with directly annotated properties
+    from(directProducer.flatMap { it.outputFile })
+    into(layout.buildDirectory.dir('sync-direct'))
+}
+// end::direct-annotation[]
