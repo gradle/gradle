@@ -134,6 +134,11 @@ class ConcurrentTestUtil extends ExternalResource {
             ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
                 throw new UnsupportedOperationException()
             }
+
+            @Override
+            ManagedExecutor createWorkStealingPool(String displayName) {
+                return new ManagedExecutorStub(ConcurrentTestUtil.this)
+            }
         }
     }
 

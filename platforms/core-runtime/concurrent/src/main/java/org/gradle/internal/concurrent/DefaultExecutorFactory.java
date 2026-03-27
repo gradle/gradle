@@ -102,6 +102,13 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         return new ScheduledThreadPoolExecutor(fixedSize, newThreadFactory(displayName));
     }
 
+    @Override
+    public ManagedExecutor createWorkStealingPool(String displayName) {
+        TrackedManagedExecutor executor = new TrackedManagedExecutor(Executors.newWorkStealingPool(), new ExecutorPolicy.CatchAndRecordFailures());
+        executors.add(executor);
+        return executor;
+    }
+
     private ThreadFactory newThreadFactory(String displayName) {
         return new ThreadFactoryImpl(displayName, threadFactoryContextClassloader);
     }

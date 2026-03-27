@@ -50,4 +50,9 @@ class TestExecutorFactory implements ExecutorFactory {
     ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
         throw new UnsupportedOperationException()
     }
+
+    @Override
+    ManagedExecutor createWorkStealingPool(String displayName) {
+        return new TestManagedExecutor(executor)
+    }
 }

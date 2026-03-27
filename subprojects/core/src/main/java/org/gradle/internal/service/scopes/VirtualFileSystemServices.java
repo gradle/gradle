@@ -255,7 +255,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 writeListener,
                 statisticsCollector,
                 executorFactory.create("Directory snapshot hashing", Runtime.getRuntime().availableProcessors()),
-                executorFactory.create("Directory snapshot traversal"),
+                executorFactory.createWorkStealingPool("Directory snapshot traversal"),
                 DirectoryScanner.getDefaultExcludes()
             );
             listenerManager.addListener(defaultFileSystemAccess);
@@ -363,7 +363,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 writeListener,
                 statisticsCollector,
                 executorFactory.create("Directory snapshot hashing", Runtime.getRuntime().availableProcessors()),
-                executorFactory.create("Directory snapshot traversal"),
+                executorFactory.createWorkStealingPool("Directory snapshot traversal"),
                 DirectoryScanner.getDefaultExcludes()
             );
 
