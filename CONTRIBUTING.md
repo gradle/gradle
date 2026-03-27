@@ -36,6 +36,10 @@ Do not report security vulnerabilities to the public issue tracker. Follow our [
 
 Contributors must follow the Code of Conduct outlined at [https://gradle.org/conduct/](https://gradle.org/conduct/).
 
+### AI-assisted contributions
+
+If you use AI tools when contributing to Gradle, please review our [AI Policy](AI_POLICY.md).
+
 ### Additional help
 
 If you run into any trouble, please reach out to us on the issue you are working on.
