@@ -176,6 +176,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             groovydoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension(project).getDocsDir().dir("groovydoc").get().getAsFile());
             groovydoc.getConventionMapping().map("docTitle", () -> ReportUtilities.getApiDocTitleFor(project));
             groovydoc.getConventionMapping().map("windowTitle", () -> ReportUtilities.getApiDocTitleFor(project));
+            groovydoc.getJavaLauncher().convention(getJavaLauncher(project));
             groovydoc.getAccess().convention(GroovydocAccess.PROTECTED);
             groovydoc.getIncludeAuthor().convention(false);
             groovydoc.getProcessScripts().convention(true);
