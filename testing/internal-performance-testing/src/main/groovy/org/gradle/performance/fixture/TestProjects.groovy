@@ -29,7 +29,6 @@ class TestProjects {
         if (!jvmArgs.find { it.startsWith("-Xmx") }) {
             throw new IllegalArgumentException("Test project needs to specify -Xmx in gradle.properties. org.gradle.jvmargs = ${jvmArgs?.join(' ')}")
         }
-        verifyGradlePropertiesSettingSpecified(gradleProperties, "org.gradle.parallel")
         verifyGradlePropertiesSettingSpecified(gradleProperties, "org.gradle.workers.max")
     }
 
