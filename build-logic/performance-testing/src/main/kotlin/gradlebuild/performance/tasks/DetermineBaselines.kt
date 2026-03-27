@@ -98,8 +98,8 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     fun forkPointCommitBaseline(): String {
         val source = tryGetUpstream() ?: "origin"
         commandExecutor.execAndGetStdout("git", "fetch", source, "master", "release")
-        val masterForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
-        val releaseForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "origin/release", "HEAD")
+        val masterForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "$source/master", "HEAD")
+        val releaseForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "$source/release", "HEAD")
         val forkPointCommit =
             if (execOperations.exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
                 releaseForkPointCommit

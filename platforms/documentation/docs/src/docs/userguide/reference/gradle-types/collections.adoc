@@ -17,6 +17,25 @@
 
 Gradle provides types for maintaining collections of objects, intended to work well to extends Gradle's DSLs and provide useful features such as lazy configuration.
 
+[[collection_hierarchy]]
+== Collection hierarchy
+
+All Gradle collection types extend from link:{javadocPath}/org/gradle/api/DomainObjectCollection.html[`DomainObjectCollection<T>`], which defines the core contract for live collections — including methods like `configureEach()`, `withType()`, `matching()`, `all()`, `whenObjectAdded()`, and `addLater()`.
+
+[source,text]
+----
+DomainObjectCollection<T>
+├── DomainObjectSet<T>
+│   └── NamedDomainObjectSet<T>
+└── NamedDomainObjectCollection<T>
+    ├── NamedDomainObjectSet<T>
+    ├── NamedDomainObjectList<T>
+    └── NamedDomainObjectContainer<T>
+        └── ExtensiblePolymorphicDomainObjectContainer<T>
+----
+
+NOTE: `NamedDomainObjectSet` extends both `DomainObjectSet` and `NamedDomainObjectCollection`.
+
 [[available_collections]]
 == Available collections
 
