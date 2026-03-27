@@ -157,7 +157,7 @@ This is especially useful in environments like native builds, where not all conf
 
 == Understanding the locking mechanism during dependency resolution
 
-When dependency locking is active and a lock state exists, Gradle adds locked versions as <<dependency_versions.adoc#sec:strict-version,`strictly`>> dependency constraints during resolution.
+When dependency locking is active, and a lock state exists, Gradle adds locked versions as <<dependency_versions.adoc#sec:strict-version,`strictly`>> dependency constraints during resolution.
 These constraints apply to both direct and transitive dependencies, but they interact differently with each:
 
 * For **transitive dependencies**, the lock's `strictly` constraint pins the resolved version.

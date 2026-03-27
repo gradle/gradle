@@ -61,7 +61,40 @@ This notation automatically performs several actions:
 - Sets the link:{javadocPath}/org/gradle/api/attributes/Category.html[`org.gradle.category` attribute] to platform, ensuring Gradle selects the platform component.
 - Enables the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions--[`endorseStrictVersions`] behavior by default, enforcing strict versions defined in the platform.
 
-If <<dependency_versions.adoc#sec:strict-version,strict version>> enforcement isn't needed, you can disable it using the `doNotEndorseStrictVersions` method.
+[[sec:endorsing-platform-strict-versions]]
+=== Strict version endorsement
+
+When a platform declares dependencies with <<dependency_versions.adoc#sec:strict-version,`strictly`>> constraints, those constraints do not automatically propagate to the consuming project.
+By default, `platform()` enables `endorseStrictVersions`, which tells Gradle to treat the platform's `strictly` declarations as if the consuming project declared them directly.
+
+Without endorsement, a platform's `strictly` constraints are treated as regular version recommendations in the consumer's dependency graph — they will not prevent transitive upgrades.
+
+If you do not need the platform's strict constraints to propagate, you can disable endorsement:
+
+====
+[source,kotlin]
+----
+dependencies {
+    // The platform's strictly declarations will NOT be enforced in this project.
+    // Transitive dependencies may upgrade past the versions the platform intended to pin.
+    implementation(platform("com.example:my-platform:1.0")) {
+        doNotEndorseStrictVersions()
+    }
+}
+----
+[source,groovy]
+----
+dependencies {
+    // The platform's strictly declarations will NOT be enforced in this project.
+    // Transitive dependencies may upgrade past the versions the platform intended to pin.
+    implementation(platform('com.example:my-platform:1.0')) {
+        doNotEndorseStrictVersions()
+    }
+}
+----
+====
+
+TIP: If you create a platform with `strictly` constraints and your consuming project does not seem to enforce them, verify that `endorseStrictVersions` has not been disabled. The `platform()` keyword enables it by default, but importing a platform without this keyword (e.g., as a regular dependency) will not endorse its strict versions.
 
 == Creating a platform
 
