@@ -19,6 +19,7 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
+import org.gradle.internal.IoActions;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -72,11 +73,7 @@ public class ApacheHttpResponse implements HttpClient.Response {
     public void close() {
         if (!closed) {
             closed = true;
-            try {
-                httpResponse.close();
-            } catch (IOException e) {
-                // Silently ignore close failures, similar to HttpClientUtils.closeQuietly
-            }
+            IoActions.closeQuietly(httpResponse);
         }
     }
 

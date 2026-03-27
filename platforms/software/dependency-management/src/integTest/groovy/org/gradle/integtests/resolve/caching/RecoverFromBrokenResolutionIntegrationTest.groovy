@@ -109,7 +109,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertThatCause(matchesRegexp(".*?Connect to (http://)?127.0.0.1:${port}( \\[.*\\])? failed: Connection refused.*"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to http://127.0.0.1:${port}( \\[.*\\])? failed: Connection refused.*"))
 
         when:
         server.resetExpectations()
@@ -143,7 +143,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertThatCause(matchesRegexp(".*?Connect to (http://)?127.0.0.1:${port}( \\[.*\\])? failed: Connection refused.*"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to http://127.0.0.1:${port}( \\[.*\\])? failed: Connection refused.*"))
 
         when:
         server.resetExpectations()
@@ -240,7 +240,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         and:
         failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertThatCause(matchesRegexp(".*?Connect to (http://)?127.0.0.1:${port}( \\[.*\\])? failed: Connection refused.*"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to http://127.0.0.1:${port}( \\[.*\\])? failed: Connection refused.*"))
 
         when:
         server.resetExpectations()
@@ -295,7 +295,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not list versions using Ivy pattern 'http://127.0.0.1:${port}/ivyRepo/[organisation]/[module]/[revision]/ivy-[revision].xml")
-        failure.assertThatCause(matchesRegexp(".*?Connect to (http://)?127.0.0.1:${port}( \\[.*\\])? failed: Connection refused.*"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to http://127.0.0.1:${port}( \\[.*\\])? failed: Connection refused.*"))
 
         when:
         server.resetExpectations()

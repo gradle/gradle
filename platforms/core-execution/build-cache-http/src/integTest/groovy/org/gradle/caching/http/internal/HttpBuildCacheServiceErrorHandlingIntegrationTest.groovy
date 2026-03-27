@@ -74,15 +74,11 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         }
         settingsFile << withHttpBuildCacheServer()
 
-        // We see connection refused because the first partial request is retried,
-        // then the subsequent is flat refused because we stopped the server.
-        String errorPattern = /(Connect to (http:\/\/)?127\.0\.0\.1:\d+( \[\/127\.0\.0\.1\])? failed: Connection refused|127\.0\.0\.1:\d+ failed to respond|Connection reset)/
-
         when:
         withBuildCache().run "customTask"
 
         then:
-        output =~ /Could not store entry .* in remote build cache: ${errorPattern}/
+        output =~ /Could not store entry .* in remote build cache: Connect to http:\/\/127\.0\.0\.1:\d+ failed: Connection refused/
     }
 
     def "build does not fail if connection repeatedly drops during store"() {

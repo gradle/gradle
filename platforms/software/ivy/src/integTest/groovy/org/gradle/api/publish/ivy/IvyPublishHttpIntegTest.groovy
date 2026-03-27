@@ -262,7 +262,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         and:
         failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\' (registered by plugin \'org.gradle.ivy-publish\').')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
-        failure.assertThatCause(matchesRegexp(".*?Connect to (http://)?127.0.0.1:${repositoryPort}( \\[.*\\])? failed: Connection refused.*"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to http://127.0.0.1:${repositoryPort}( \\[.*\\])? failed: Connection refused.*"))
     }
 
     def "uses first configured pattern for publication"() {

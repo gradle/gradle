@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
@@ -35,6 +34,8 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
+import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
+import org.apache.hc.client5.http.impl.LaxRedirectStrategy;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
@@ -45,6 +46,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -331,9 +333,9 @@ public class HttpClientConfigurer {
     private RedirectStrategy getBaseRedirectStrategy() {
         switch (httpSettings.getRedirectMethodHandlingStrategy()) {
             case ALLOW_FOLLOW_FOR_MUTATIONS:
-                return new AllowFollowForMutatingMethodRedirectStrategy();
+                return new DefaultRedirectStrategy();
             case ALWAYS_FOLLOW_AND_PRESERVE:
-                return new AlwaysFollowAndPreserveMethodRedirectStrategy();
+                return new LaxRedirectStrategy();
             default:
                 throw new IllegalArgumentException(httpSettings.getRedirectMethodHandlingStrategy().name());
         }
