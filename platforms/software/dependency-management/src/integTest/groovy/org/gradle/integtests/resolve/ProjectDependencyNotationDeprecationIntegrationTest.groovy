@@ -27,10 +27,6 @@ class ProjectDependencyNotationDeprecationIntegrationTest extends AbstractIntegr
 
     def "emits deprecation when Project object is used directly as dependency notation"() {
         given:
-        settingsFile << "include 'sub'"
-        file("sub/build.gradle") << """
-            plugins { id 'java-library' }
-        """
         buildFile << """
             plugins { id 'java-library' }
             dependencies {
@@ -186,6 +182,74 @@ class ProjectDependencyNotationDeprecationIntegrationTest extends AbstractIntegr
             plugins { id 'java-library' }
             dependencies {
                 implementation project.getDependencyFactory().createProjectDependency(":sub")
+            }
+        """
+
+        expect:
+        succeeds("dependencies")
+    }
+
+    def "no deprecation when using project() no-arg on DependencyHandler"() {
+        given:
+        buildFile << """
+            plugins { id 'java-library' }
+            dependencies {
+                constraints {
+                    implementation project()
+                }
+            }
+        """
+
+        expect:
+        succeeds("dependencies")
+    }
+
+    def "no deprecation when creating constraint using project(path) on DependencyHandler"() {
+        given:
+        settingsFile << "include 'sub'"
+        file("sub/build.gradle") << """
+            plugins { id 'java-library' }
+        """
+        buildFile << """
+            plugins { id 'java-library' }
+            dependencies {
+                constraints {
+                    implementation project(":sub")
+                }
+            }
+        """
+
+        expect:
+        succeeds("dependencies")
+    }
+
+    def "no deprecation when creating constraint using dependencyFactory createProjectDependency no-arg"() {
+        given:
+        buildFile << """
+            plugins { id 'java-library' }
+            dependencies {
+                constraints {
+                    implementation project.getDependencyFactory().createProjectDependency()
+                }
+            }
+        """
+
+        expect:
+        succeeds("dependencies")
+    }
+
+    def "no deprecation when creating constraint using dependencyFactory createProjectDependency with path"() {
+        given:
+        settingsFile << "include 'sub'"
+        file("sub/build.gradle") << """
+            plugins { id 'java-library' }
+        """
+        buildFile << """
+            plugins { id 'java-library' }
+            dependencies {
+                constraints {
+                    implementation project.getDependencyFactory().createProjectDependency(":sub")
+                }
             }
         """
 
