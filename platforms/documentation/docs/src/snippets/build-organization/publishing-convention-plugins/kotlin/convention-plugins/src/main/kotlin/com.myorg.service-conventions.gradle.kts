@@ -20,7 +20,7 @@ val integrationTestTask = tasks.register<Test>("integrationTest") {
 }
 
 dependencies {
-    "integrationTestImplementation"(project)
+    "integrationTestImplementation"(project())
 }
 
 // The organization requires additional documentation in the README for this project

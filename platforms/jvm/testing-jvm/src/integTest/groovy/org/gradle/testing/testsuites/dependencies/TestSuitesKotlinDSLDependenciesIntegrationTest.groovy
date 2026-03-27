@@ -373,7 +373,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
                 // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                 val integTestImplementation by configurations.getting
-                integTestImplementation(project)
+                integTestImplementation(project())
                 integTestImplementation("com.google.guava:guava:29.0-jre")
                 val integTestCompileOnly by configurations.getting
                 integTestCompileOnly("javax.servlet:servlet-api:2.5")

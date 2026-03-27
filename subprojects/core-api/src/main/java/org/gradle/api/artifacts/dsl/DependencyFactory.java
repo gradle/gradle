@@ -91,7 +91,9 @@ public interface DependencyFactory {
      *
      * @param project the project
      * @return the new dependency
+     * @deprecated Use {@link #createProjectDependency(String)} instead. This method will be removed in Gradle 10.0.
      */
+    @Deprecated
     ProjectDependency create(Project project);
 
     /**

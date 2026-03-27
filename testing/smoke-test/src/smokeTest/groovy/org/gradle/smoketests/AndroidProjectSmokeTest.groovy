@@ -101,6 +101,7 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
         def result = runner
             .deprecations(AndroidProjectDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
+                expectProjectDependencyNotationDeprecation()
             }
             .buildAndFail()
 

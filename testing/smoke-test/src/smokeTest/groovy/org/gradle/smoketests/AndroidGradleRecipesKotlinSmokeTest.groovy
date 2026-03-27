@@ -129,6 +129,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
         def runner = mixedRunner(agpVersion, kotlinVersionNumber, taskName)
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
+                expectProjectDependencyNotationDeprecation()
             }
 
         when: 'running the build for the 1st time'
@@ -145,6 +146,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
         when: 'running the build for the 2nd time'
         result = runner.deprecations(AndroidDeprecations) {
             expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
+            expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
         }.build()
 
         then:
