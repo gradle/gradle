@@ -8,8 +8,8 @@ if (hasProperty("myProjectProp")) {
 // Accessing the value of a project property, null if absent
 println(findProperty("myProjectProp"))
 
-// Accessing the Map<String, Any?> of project properties
-println(properties["myProjectProp"])
+// Accessing the value of a project property via findProperty(), null if absent
+println(findProperty("myProjectProp"))
 
 // Using Kotlin delegated properties on `project`
 val myProjectProp: String by project
