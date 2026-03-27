@@ -887,6 +887,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         private void handleAnnotatedIgnoredMethod(Class<? extends Annotation> ignoredMethodAnnotation) {
+            List<Class<? extends Annotation>> disallowedAnnotations = ignoreAnnotationDisallowedModifiers(declaredAnnotations.values())
+                .<Class<? extends Annotation>>map(Annotation::annotationType)
+                .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation))
+                .collect(Collectors.toList());
+            // FQN required: java.util.Optional is also imported
+            boolean onlyOptional = disallowedAnnotations.size() == 1
+                && disallowedAnnotations.get(0).equals(org.gradle.api.tasks.Optional.class);
             visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
@@ -895,15 +902,17 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         String.format(
                             "annotated with @%s should not be also annotated with %s",
                             ignoredMethodAnnotation.getSimpleName(),
-                            simpleAnnotationNames(ignoreAnnotationDisallowedModifiers(declaredAnnotations.values())
-                                .<Class<? extends Annotation>>map(Annotation::annotationType)
-                                .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
+                            simpleAnnotationNames(disallowedAnnotations.stream())
                         )
                     )
                     .documentedAt(userManual("validation_problems", IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
                     .severity(ERROR)
-                    .details("A property is ignored but also has input annotations")
-                    .solution("Remove the input annotations")
+                    .details(onlyOptional
+                        ? "@" + ignoredMethodAnnotation.getSimpleName() + " properties are excluded from up-to-date checks; @Optional is redundant and not allowed here"
+                        : "A property is ignored but also has input annotations")
+                    .solution(onlyOptional
+                        ? "Remove the @Optional annotation"
+                        : "Remove the input annotations")
                     .solution("Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
             );
         }

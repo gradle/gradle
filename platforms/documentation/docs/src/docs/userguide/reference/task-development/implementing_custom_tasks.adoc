@@ -1236,7 +1236,7 @@ When a task with an @OutputFile-annotated property is executed, Gradle will chec
 |Property is a file or directory and changes to it can be queried with `@InputChanges.getFileChanges()`
 
 |`@Optional`
-|Property is any type, its value does not have to be specified and validation checks are disabled
+|Modifier annotation — marks an input or output property as not required. Must be combined with an input or output annotation such as `@InputFile` or `@OutputDirectory`.
 
 |`@PathSensitive`
 |Property is one or more files and only the given part of the file path is important
