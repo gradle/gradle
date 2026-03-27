@@ -597,32 +597,66 @@ public class DirectorySnapshotter {
         }
 
         private SubmittedFileHashing submitFileHashing(List<FileToSnapshot> files) {
-            if (files.isEmpty()) {
+            int totalFiles = files.size();
+            if (totalFiles == 0) {
                 return Collections::emptyList;
             }
-            if (files.size() >= PARALLEL_FILE_THRESHOLD) {
-                // Individual tasks on hashing executor - load balanced across workers
-                List<Future<FileSystemLeafSnapshot>> futures = new ArrayList<>(files.size());
-                for (FileToSnapshot f : files) {
-                    futures.add(hashingExecutor.submit(() -> snapshotFile(f.path, f.internedName, f.attrs, f.accessType)));
-                }
-                return () -> {
-                    List<FileSystemLeafSnapshot> results = new ArrayList<>(futures.size());
-                    for (Future<FileSystemLeafSnapshot> future : futures) {
-                        results.add(future.get());
+
+            // If under the threshold, execute as a single batch
+            if (totalFiles <= PARALLEL_FILE_THRESHOLD) {
+                Future<List<FileSystemLeafSnapshot>> batchFuture = hashingExecutor.submit(() -> {
+                    List<FileSystemLeafSnapshot> results = new ArrayList<>(totalFiles);
+                    for (int i = 0; i < totalFiles; i++) {
+                        FileToSnapshot f = files.get(i);
+                        results.add(snapshotFile(f.path, f.internedName, f.attrs, f.accessType));
                     }
                     return results;
-                };
+                });
+                return batchFuture::get;
             }
-            // Single batch task on hashing executor
-            Future<List<FileSystemLeafSnapshot>> batchFuture = hashingExecutor.submit(() -> {
-                List<FileSystemLeafSnapshot> results = new ArrayList<>(files.size());
-                for (FileToSnapshot f : files) {
-                    results.add(snapshotFile(f.path, f.internedName, f.attrs, f.accessType));
+
+            // Delegate to the extracted chunking method
+            List<Future<List<FileSystemLeafSnapshot>>> futures = submitInChunks(files, totalFiles);
+
+            // Join the chunked results
+            return () -> {
+                List<FileSystemLeafSnapshot> finalResults = new ArrayList<>(totalFiles);
+                for (Future<List<FileSystemLeafSnapshot>> future : futures) {
+                    finalResults.addAll(future.get());
                 }
-                return results;
-            });
-            return batchFuture::get;
+                return finalResults;
+            };
+        }
+
+        private List<Future<List<FileSystemLeafSnapshot>>> submitInChunks(List<FileToSnapshot> files, int totalFiles) {
+            int availableProcessors = Runtime.getRuntime().availableProcessors();
+            int targetTaskCount = availableProcessors * 4;
+
+            // Calculate chunk size, ensuring it's at least 5
+            int chunkSize = Math.max(PARALLEL_FILE_THRESHOLD, (int) Math.ceil((double) totalFiles / targetTaskCount));
+
+            // Calculate exactly how many chunks we will have to size the futures array
+            int numChunks = (int) Math.ceil((double) totalFiles / chunkSize);
+            List<Future<List<FileSystemLeafSnapshot>>> futures = new ArrayList<>(numChunks);
+            // Iterate through the list using index ranges
+            for (int startIndex = 0; startIndex < totalFiles; startIndex += chunkSize) {
+                // Capture the start and end indices for the lambda
+                final int start = startIndex;
+                final int end = Math.min(start + chunkSize, totalFiles);
+                final int size = end - start;
+
+                futures.add(hashingExecutor.submit(() -> {
+                    List<FileSystemLeafSnapshot> results = new ArrayList<>(size);
+                    // Process only this specific slice of the original array
+                    for (int i = start; i < end; i++) {
+                        FileToSnapshot f = files.get(i);
+                        results.add(snapshotFile(f.path, f.internedName, f.attrs, f.accessType));
+                    }
+                    return results;
+                }));
+            }
+
+            return futures;
         }
 
         private static void joinAndAddFiles(SubmittedFileHashing submitted, List<FileSystemLocationSnapshot> children) {
