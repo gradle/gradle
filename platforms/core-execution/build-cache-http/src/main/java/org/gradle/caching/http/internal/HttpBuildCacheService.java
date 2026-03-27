@@ -86,7 +86,7 @@ public class HttpBuildCacheService implements BuildCacheService {
     private static ImmutableMap<String, String> getDefaultStoreHeaders(HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
         ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
         if (useExpectContinue) {
-            builder.put("Expect", "100-continue");
+            builder.put(HttpHeaders.EXPECT, "100-continue");
         }
         builder.put(HttpHeaders.CONTENT_TYPE, BUILD_CACHE_CONTENT_TYPE);
         requestCustomizer.visitHeaders(builder::put);
