@@ -19,6 +19,8 @@ import org.gradle.api.Describable;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
@@ -30,12 +32,15 @@ import java.util.Set;
  */
 public final class FreezableAttributeContainer extends AbstractAttributeContainer {
 
+    private final Property<AttributeContainerInternal> delegate;
     private final Describable owner;
 
-    private AttributeContainerInternal delegate;
-
-    public FreezableAttributeContainer(AttributeContainerInternal delegate, Describable owner) {
-        this.delegate = delegate;
+    public FreezableAttributeContainer(
+        AttributeContainerInternal delegate,
+        Describable owner,
+        PropertyFactory propertyFactory
+    ) {
+        this.delegate = propertyFactory.property(AttributeContainerInternal.class).value(delegate);
         this.owner = owner;
     }
 
@@ -43,47 +48,47 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
      * Prevent further mutations to this attribute container.
      */
     public void freeze() {
-        this.delegate = delegate.asImmutable();
+        this.delegate.set(delegate.get().asImmutable());
     }
 
     @Override
     public String toString() {
-        return delegate.toString();
+        return delegate.get().toString();
     }
 
     @Override
     public ImmutableAttributes asImmutable() {
-        return delegate.asImmutable();
+        return delegate.get().asImmutable();
     }
 
     @Override
     public Map<Attribute<?>, ?> asMap() {
-        return delegate.asMap();
+        return delegate.get().asMap();
     }
 
     @Override
     public Set<Attribute<?>> keySet() {
-        return delegate.keySet();
+        return delegate.get().keySet();
     }
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
         assertMutable();
-        delegate.attribute(key, value);
+        delegate.get().attribute(key, value);
         return this;
     }
 
     @Override
     public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
         assertMutable();
-        delegate.attributeProvider(key, provider);
+        delegate.get().attributeProvider(key, provider);
         return this;
     }
 
     @Override
     public AttributeContainer addAllLater(AttributeContainer other) {
         assertMutable();
-        delegate.addAllLater(other);
+        delegate.get().addAllLater(other);
         return this;
     }
 
@@ -93,33 +98,33 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
         if (!isValidAttributeRequest(key)) {
             return null;
         }
-        return delegate.getAttribute(key);
+        return delegate.get().getAttribute(key);
     }
 
     @Override
     public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider() {
-        return delegate.getEntriesProvider();
+        return delegate.flatMap(AttributeContainerInternal::getEntriesProvider);
     }
 
     @Override
     public boolean isEmpty() {
-        return delegate.isEmpty();
+        return delegate.get().isEmpty();
     }
 
     @Override
     public boolean contains(Attribute<?> key) {
-        return delegate.contains(key);
+        return delegate.get().contains(key);
     }
 
     private void assertMutable() {
-        if (delegate instanceof ImmutableAttributes) {
+        if (delegate.get() instanceof ImmutableAttributes) {
             throw new IllegalStateException(String.format("Cannot change attributes of %s after it has been locked for mutation", owner.getDisplayName()));
         }
     }
 
     @Override
     public <T extends Named> T named(Class<T> type, String name) {
-        return delegate.named(type, name);
+        return delegate.get().named(type, name);
     }
 
     @Override
@@ -129,13 +134,13 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
         }
 
         FreezableAttributeContainer that = (FreezableAttributeContainer) o;
-        return owner.equals(that.owner) && delegate.equals(that.delegate);
+        return owner.equals(that.owner) && delegate.get().equals(that.delegate.get());
     }
 
     @Override
     public int hashCode() {
         int result = owner.hashCode();
-        result = 31 * result + delegate.hashCode();
+        result = 31 * result + delegate.get().hashCode();
         return result;
     }
 }
