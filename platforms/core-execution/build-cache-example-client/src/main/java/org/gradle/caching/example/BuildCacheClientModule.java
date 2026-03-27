@@ -487,7 +487,8 @@ class BuildCacheClientModule extends AbstractModule {
             virtualFileSystem,
             locations -> locations.forEach(System.out::println),
             statisticsCollector,
-            java.util.concurrent.Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+            java.util.concurrent.Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()),
+            java.util.concurrent.Executors.newCachedThreadPool()
         );
     }
 }

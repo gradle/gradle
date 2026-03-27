@@ -60,7 +60,8 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     private final Interner<String> stringInterner;
     private final WriteListener writeListener;
     private final DirectorySnapshotterStatistics.Collector statisticsCollector;
-    private final ExecutorService snapshotterExecutor;
+    private final ExecutorService hashingExecutor;
+    private final ExecutorService traversalExecutor;
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
@@ -73,16 +74,18 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         VirtualFileSystem virtualFileSystem,
         WriteListener writeListener,
         DirectorySnapshotterStatistics.Collector statisticsCollector,
-        ExecutorService snapshotterExecutor,
+        ExecutorService hashingExecutor,
+        ExecutorService traversalExecutor,
         String... defaultExcludes
     ) {
         this.stringInterner = stringInterner;
         this.stat = stat;
         this.writeListener = writeListener;
         this.statisticsCollector = statisticsCollector;
-        this.snapshotterExecutor = snapshotterExecutor;
+        this.hashingExecutor = hashingExecutor;
+        this.traversalExecutor = traversalExecutor;
         this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
-        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes, statisticsCollector, snapshotterExecutor);
+        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes, statisticsCollector, hashingExecutor, traversalExecutor);
         this.hasher = hasher;
         this.virtualFileSystem = virtualFileSystem;
     }
@@ -242,7 +245,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         if (!defaultExcludes.equals(newDefaultExcludes)) {
             LOGGER.debug("Default excludes changes from {} to {}", defaultExcludes, newDefaultExcludes);
             defaultExcludes = newDefaultExcludes;
-            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes, statisticsCollector, snapshotterExecutor);
+            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes, statisticsCollector, hashingExecutor, traversalExecutor);
             virtualFileSystem.invalidateAll();
         }
     }

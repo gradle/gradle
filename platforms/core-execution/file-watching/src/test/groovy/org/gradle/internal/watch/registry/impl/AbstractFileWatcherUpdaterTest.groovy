@@ -58,7 +58,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def probeLocationResolver = { hierarchy -> new File(hierarchy, ".gradle/file-watching.probe") } as Function<File, File>
     def probeRegistry = Stub(FileWatcherProbeRegistry)
     def watchableHierarchies = new WatchableHierarchies(probeRegistry, immutableLocationsFilter)
-    def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector), java.util.concurrent.Executors.newFixedThreadPool(4))
+    def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector), java.util.concurrent.Executors.newFixedThreadPool(4), java.util.concurrent.Executors.newCachedThreadPool())
     FileWatcherUpdater updater
     def virtualFileSystem = new TestVirtualFileSystem(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) {
         @Override
