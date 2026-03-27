@@ -86,6 +86,26 @@ class PomVariantResolutionIntegrationTest extends AbstractHttpDependencyResoluti
         succeeds('resolvePom')
     }
 
+    def "POM variant is not available when Gradle Module Metadata is present"() {
+        transitive.withModuleMetadata()
+        transitive.publish()
+        direct.withModuleMetadata()
+        direct.publish()
+
+        buildFile << """
+            tasks.resolvePom {
+                expectedFiles = []
+            }
+        """
+        expect:
+        direct.pom.allowGetOrHead()
+        direct.moduleMetadata.expectGet()
+        transitive.pom.allowGetOrHead()
+        transitive.moduleMetadata.expectGet()
+
+        succeeds('resolvePom')
+    }
+
     def "POM variant is not selected during normal dependency resolution"() {
         transitive.publish()
         direct.publish()
