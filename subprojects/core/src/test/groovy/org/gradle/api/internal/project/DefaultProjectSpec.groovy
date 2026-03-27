@@ -42,6 +42,8 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Describables
+import org.gradle.internal.buildoption.DefaultInternalOptions
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
@@ -253,6 +255,7 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(InstantiatorFactory, Stub(InstantiatorFactory))
         serviceRegistry.add(AttributesSchema, Stub(AttributesSchema))
         serviceRegistry.add(ModelRegistry, Stub(ModelRegistry))
+        serviceRegistry.add(InternalOptions, new DefaultInternalOptions([:]))
         serviceRegistry.add(CrossProjectModelAccess, Stub(CrossProjectModelAccess))
         serviceRegistry.add(DependencyResolutionManagementInternal, Stub(DependencyResolutionManagementInternal))
         serviceRegistry.add(DynamicLookupRoutine, new DefaultDynamicLookupRoutine())
