@@ -71,4 +71,13 @@ public interface Category extends Named {
      */
     @Incubating
     String VERIFICATION = "verification";
+
+    /**
+     * The metadata category, for variants which contain build metadata artifacts
+     * such as POM files or Ivy descriptors.
+     *
+     * @since 9.6.0
+     */
+    @Incubating
+    String METADATA = "metadata";
 }
