@@ -35,7 +35,7 @@ import static org.junit.Assert.assertTrue
 
 class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    private static String CC_STATE_DIR = ".gradle/configuration-cache"
+    private static String configurationCacheStateDir = ".gradle/configuration-cache"
 
     def setup() {
         runner.minimumBaseVersion = "6.6"
@@ -53,6 +53,12 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         runner.tasksToRun = ["assemble"]
         // use the deprecated property so it works with previous versions
         runner.args = ["-D${ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=true"]
+
+        runner.addInterceptor { builder ->
+            builder.invocation {
+                buildLog(new File(workingDirectory, "build.log"))
+            }
+        }
 
         and:
         runner.useDaemon = daemon == hot
@@ -84,7 +90,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
             @Override
             void beforeBuild(BuildContext context) {
                 if (action == storing) {
-                    new TestFile(invocationSettings.projectDir).file(CC_STATE_DIR).deleteDir()
+                    new TestFile(invocationSettings.projectDir).file(configurationCacheStateDir).deleteDir()
                 }
             }
 
@@ -94,9 +100,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
                     def tag = action == storing
                         ? "Calculating task graph as no (cached configuration|configuration cache) is available"
                         : "Reusing configuration cache"
-                    File workingDir = invocationSettings.projectDir.parentFile
-                    File buildLog = new File(workingDir, "profile.log")
-
+                    File buildLog = invocationSettings.buildLog
                     def found = Files.lines(buildLog.toPath()).withCloseable { lines ->
                         def pattern = Pattern.compile(tag)
                         lines.anyMatch { line -> pattern.matcher(line).find() }
