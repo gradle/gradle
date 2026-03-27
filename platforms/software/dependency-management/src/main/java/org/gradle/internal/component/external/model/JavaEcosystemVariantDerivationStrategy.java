@@ -21,6 +21,8 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 
 import javax.inject.Inject;
@@ -94,13 +96,22 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
     }
 
     /**
-     * Synthesizes a "pom" variant to expose the POM metadata file as a consumable artifact.
+     * Synthesizes a "pom" variant to expose the POM metadata file and its parent POM chain as consumable artifacts.
      */
     private DefaultConfigurationMetadata libraryWithPomVariant(DefaultConfigurationMetadata runtimeConfiguration, ImmutableAttributes originAttributes, ModuleComponentResolveMetadata metadata) {
+        DefaultMavenModuleResolveMetadata md = (DefaultMavenModuleResolveMetadata) metadata;
+        ImmutableList.Builder<ModuleComponentArtifactMetadata> artifacts = ImmutableList.builder();
+        // Add the module's own POM
+        artifacts.add(metadata.optionalArtifact("pom", "pom", null));
+        // Add parent POM chain
+        for (ModuleComponentIdentifier parentId : md.getParentPomChain()) {
+            IvyArtifactName parentArtifactName = new DefaultIvyArtifactName(parentId.getModule(), "pom", "pom", null);
+            artifacts.add(new ModuleComponentOptionalArtifactMetadata(parentId, parentArtifactName));
+        }
         return runtimeConfiguration.mutate()
             .withName("pom")
             .withAttributes(mavenAttributesFactory.pomVariant(originAttributes))
-            .withArtifacts(ImmutableList.of(metadata.optionalArtifact("pom", "pom", null)))
+            .withArtifacts(artifacts.build())
             .withoutConstraints()
             .build();
     }

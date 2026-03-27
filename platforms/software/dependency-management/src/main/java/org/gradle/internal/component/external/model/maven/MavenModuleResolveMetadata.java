@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model.maven;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -39,4 +40,10 @@ public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetada
     String getSnapshotTimestamp();
 
     ImmutableList<MavenDependencyDescriptor> getDependencies();
+
+    /**
+     * Returns the chain of parent POM identifiers, from immediate parent to root ancestor.
+     * Empty if this module has no parent POM.
+     */
+    ImmutableList<ModuleComponentIdentifier> getParentPomChain();
 }

@@ -234,6 +234,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
+    private final ImmutableList<ModuleComponentIdentifier> parentPomChain;
 
     private final ImmutableList<? extends ModuleConfigurationMetadata> derivedVariants;
 
@@ -247,6 +248,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
         dependencies = metadata.getDependencies();
+        parentPomChain = metadata.getParentPomChain();
         this.derivedVariants = ImmutableList.copyOf(derivedVariants);
     }
 
@@ -257,6 +259,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;
         dependencies = metadata.dependencies;
+        parentPomChain = metadata.parentPomChain;
         this.derivedVariants = metadata.derivedVariants;
     }
 
@@ -316,6 +319,11 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     @Override
     public ImmutableList<MavenDependencyDescriptor> getDependencies() {
         return dependencies;
+    }
+
+    @Override
+    public ImmutableList<ModuleComponentIdentifier> getParentPomChain() {
+        return parentPomChain;
     }
 
     @Override

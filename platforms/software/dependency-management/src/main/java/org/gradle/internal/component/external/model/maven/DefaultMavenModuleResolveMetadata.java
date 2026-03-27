@@ -63,6 +63,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
+    private final ImmutableList<ModuleComponentIdentifier> parentPomChain;
 
     private ImmutableList<? extends ModuleConfigurationMetadata> derivedVariants;
 
@@ -77,6 +78,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
         dependencies = metadata.getDependencies();
+        parentPomChain = metadata.getParentPomChain();
     }
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
@@ -87,6 +89,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;
         dependencies = metadata.dependencies;
+        parentPomChain = metadata.parentPomChain;
 
         copyCachedState(metadata, metadata.getVariantDerivationStrategy() != derivationStrategy);
     }
@@ -240,6 +243,11 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     @Override
     public ImmutableList<MavenDependencyDescriptor> getDependencies() {
         return dependencies;
+    }
+
+    @Override
+    public ImmutableList<ModuleComponentIdentifier> getParentPomChain() {
+        return parentPomChain;
     }
 
     @Override
