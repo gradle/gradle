@@ -76,6 +76,14 @@ public interface JavaToolchainSpec extends Describable {
     Property<JvmImplementation> getImplementation();
 
     /**
+     * The value of System.getProperty("java.version").
+     *
+     * @since 9.3.0
+     */
+    @Incubating
+    Property<String> getImplementationVersion();
+
+    /**
      * Indicates if the toolchain should be native-image capable.
      *
      * @since 8.14
@@ -90,6 +98,7 @@ public interface JavaToolchainSpec extends Describable {
         builder.add("languageVersion", getLanguageVersion().map(JavaLanguageVersion::toString).getOrElse("unspecified"));
         builder.add("vendor", getVendor().map(JvmVendorSpec::toString).getOrNull());
         builder.add("implementation", getImplementation().map(JvmImplementation::toString).getOrNull());
+        builder.add("implementationVersion", getImplementationVersion().getOrNull());
         builder.add("nativeImageCapable", getNativeImageCapable().getOrElse(false));
         return builder.toString();
     }
