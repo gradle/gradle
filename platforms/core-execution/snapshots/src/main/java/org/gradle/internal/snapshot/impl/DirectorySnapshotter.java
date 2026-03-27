@@ -148,7 +148,7 @@ public class DirectorySnapshotter {
 
         FileSystemLocationSnapshot result;
         if (rootAttrs.isDirectory()) {
-            result = visitor.processDirectory(rootPath, new ArrayList<>(), new HashSet<>()).snapshot;
+            result = visitor.processDirectory(rootPath, new ArrayList<>(), new HashSet<>(), true).snapshot;
         } else {
             collector.recordVisitFile();
             String rootName = visitor.getInternedFileName(rootPath);
@@ -352,7 +352,7 @@ public class DirectorySnapshotter {
          * Processes a directory and returns its complete snapshot.
          * Hashes files in parallel, recurses into subdirectories sequentially.
          */
-        SnapshotResult processDirectory(Path dir, List<String> relativePathSegments, Set<String> parentDirPaths) {
+        SnapshotResult processDirectory(Path dir, List<String> relativePathSegments, Set<String> parentDirPaths, boolean parallelDirs) {
             String internedName = getInternedFileName(dir);
             String internedAbsPath = intern(symbolicLinkMapping.remapAbsolutePath(dir));
 
@@ -420,18 +420,8 @@ public class DirectorySnapshotter {
             // Submit file hashing (non-blocking), recurse into subdirectories, then join.
             SubmittedFileHashing fileHashingResult = submitFileHashing(filesToHash);
 
-            // Collect all children: subdirectories (recursive), symlink dirs, and files.
-            // Track which child directories are filtered so we can skip them
-            // when recording unfiltered children.
             List<FileSystemLocationSnapshot> children = new ArrayList<>();
-            for (DirToVisit dirToVisit : dirsToRecurse) {
-                SnapshotResult childResult = processDirectory(dirToVisit.path, dirToVisit.relativePathSegments, parentDirPaths);
-                children.add(childResult.snapshot);
-                if (childResult.isFiltered) {
-                    filteredChildDirs.add(childResult.snapshot);
-                    isCurrentDirFiltered[0] = true;
-                }
-            }
+            processSubdirectories(dirsToRecurse, parentDirPaths, parallelDirs, children, filteredChildDirs, isCurrentDirFiltered);
             children.addAll(symlinkDirSnapshots);
             joinAndAddFiles(fileHashingResult, children);
 
@@ -451,6 +441,50 @@ public class DirectorySnapshotter {
             }
 
             return new SnapshotResult(result, isCurrentDirFiltered[0]);
+        }
+
+        /**
+         * Processes subdirectories, either in parallel or sequentially.
+         * Parallel traversal is used when no predicate is set (predicate may not be thread-safe)
+         * and parallelDirs is allowed. Forked tasks use parallelDirs=false to prevent nested
+         * forking which risks deadlock with fixed thread pools.
+         */
+        private void processSubdirectories(
+            List<DirToVisit> dirsToRecurse,
+            Set<String> parentDirPaths,
+            boolean parallelDirs,
+            List<FileSystemLocationSnapshot> children,
+            Set<FileSystemLocationSnapshot> filteredChildDirs,
+            boolean[] isCurrentDirFiltered
+        ) {
+            boolean forkDirs = parallelDirs && predicate == null && dirsToRecurse.size() > 1;
+            if (forkDirs) {
+                Set<String> parentDirPathsSnapshot = new HashSet<>(parentDirPaths);
+                List<Future<SnapshotResult>> dirFutures = new ArrayList<>(dirsToRecurse.size());
+                for (DirToVisit dirToVisit : dirsToRecurse) {
+                    dirFutures.add(executor.submit(() ->
+                        processDirectory(dirToVisit.path, dirToVisit.relativePathSegments, parentDirPathsSnapshot, false)));
+                }
+                for (Future<SnapshotResult> future : dirFutures) {
+                    try {
+                        children.add(future.get().snapshot);
+                    } catch (ExecutionException e) {
+                        throw UncheckedException.throwAsUncheckedException(e.getCause());
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
+            } else {
+                for (DirToVisit dirToVisit : dirsToRecurse) {
+                    SnapshotResult childResult = processDirectory(dirToVisit.path, dirToVisit.relativePathSegments, parentDirPaths, parallelDirs);
+                    children.add(childResult.snapshot);
+                    if (childResult.isFiltered) {
+                        filteredChildDirs.add(childResult.snapshot);
+                        isCurrentDirFiltered[0] = true;
+                    }
+                }
+            }
         }
 
         FileSystemLocationSnapshot processFileAsRoot(Path file, String internedName, BasicFileAttributes attrs) {
@@ -518,7 +552,7 @@ public class DirectorySnapshotter {
                     collector, newMapping, previouslyKnownSnapshots, unfilteredSnapshotRecorder, executor);
 
                 collector.recordVisitHierarchy();
-                SnapshotResult result = subtreeVisitor.processDirectory(targetDir, new ArrayList<>(), new HashSet<>());
+                SnapshotResult result = subtreeVisitor.processDirectory(targetDir, new ArrayList<>(), new HashSet<>(), true);
                 return (DirectorySnapshot) result.snapshot;
             } catch (IOException e) {
                 throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", file), e);
@@ -539,7 +573,7 @@ public class DirectorySnapshotter {
                         collector, newMapping, previouslyKnownSnapshots, unfilteredSnapshotRecorder, executor);
 
                     collector.recordVisitHierarchy();
-                    SnapshotResult result = subtreeVisitor.processDirectory(targetDir, new ArrayList<>(), parentDirPaths);
+                    SnapshotResult result = subtreeVisitor.processDirectory(targetDir, new ArrayList<>(), parentDirPaths, true);
                     return (DirectorySnapshot) result.snapshot;
                 } else {
                     return null;
