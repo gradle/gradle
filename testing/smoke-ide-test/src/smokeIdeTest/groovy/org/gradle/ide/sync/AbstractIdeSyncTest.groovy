@@ -52,7 +52,7 @@ abstract class AbstractIdeSyncTest extends Specification {
     // https://youtrack.jetbrains.com/articles/IDEA-A-21/IDEA-Latest-Builds-And-Release-Notes
     final static String IDEA_VERSION = "2025.3.2"
     // https://developer.android.com/studio/archive
-    final static String ANDROID_STUDIO_VERSION = "2025.2.3.8"
+    final static String ANDROID_STUDIO_VERSION = "2025.3.2.6"
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
