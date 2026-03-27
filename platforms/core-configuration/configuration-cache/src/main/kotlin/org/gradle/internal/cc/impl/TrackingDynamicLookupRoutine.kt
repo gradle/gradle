@@ -49,8 +49,6 @@ class TrackingDynamicLookupRoutine(
             receiver.hasProperty(propertyName)
         }
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Will be removed in Gradle 10.0")
     override fun getProperties(receiver: DynamicObject): Map<String, *>? =
         withDynamicCall(receiver) {
             receiver.properties

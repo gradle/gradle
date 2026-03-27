@@ -38,7 +38,7 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         given:
         file("gradle.properties") << "someProjectProperty=true"
         settingsFile << """
-            if (getProperty('someProjectProperty') == 'true') {
+            if (findProperty('someProjectProperty') == 'true') {
                 println('signal')
             }
         """

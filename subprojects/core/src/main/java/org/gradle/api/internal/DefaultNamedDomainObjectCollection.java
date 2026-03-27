@@ -554,7 +554,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return t == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(t);
         }
 
-        @Deprecated
         @Override
         public Map<String, T> getProperties() {
             return getAsMap();

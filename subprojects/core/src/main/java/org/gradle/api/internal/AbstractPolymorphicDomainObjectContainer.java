@@ -131,7 +131,6 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
             return object == null ? DynamicInvokeResult.notFound() : DynamicInvokeResult.found(object);
         }
 
-        @Deprecated
         @Override
         public Map<String, T> getProperties() {
             return getAsMap();

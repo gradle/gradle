@@ -34,7 +34,6 @@ public interface DynamicLookupRoutine {
     @Nullable Object findProperty(DynamicObject receiver, String propertyName);
     void setProperty(DynamicObject receiver, String name, @Nullable Object value);
     boolean hasProperty(DynamicObject receiver, String propertyName);
-    @Deprecated
     @Nullable Map<String, ? extends @Nullable Object> getProperties(DynamicObject receiver);
     @Nullable Object invokeMethod(DynamicObject receiver, String name, Object... args);
 

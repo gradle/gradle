@@ -68,8 +68,6 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
         return delegate.trySetPropertyWithoutInstrumentation(name, value)
     }
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Will be removed in Gradle 10.0")
     override fun getProperties(): MutableMap<String, *> {
         onAccess(MemberKind.PROPERTY, null)
         return delegate.properties

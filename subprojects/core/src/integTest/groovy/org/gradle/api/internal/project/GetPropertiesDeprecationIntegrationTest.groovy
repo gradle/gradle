@@ -38,6 +38,7 @@ class GetPropertiesDeprecationIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
 
         where:
+        // Note: settings.gradle.kts does not expose `properties` so no Kotlin settings script test is needed
         scriptType               | scriptFile            | expectedDeprecation
         "Kotlin build script"    | "build.gradle.kts"    | PROJECT_DEPRECATION
         "Groovy build script"    | "build.gradle"        | SCRIPT_DEPRECATION

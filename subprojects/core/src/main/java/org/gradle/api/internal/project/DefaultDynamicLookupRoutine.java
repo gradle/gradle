@@ -45,7 +45,6 @@ public class DefaultDynamicLookupRoutine implements DynamicLookupRoutine {
         return receiver.hasProperty(propertyName);
     }
 
-    @Deprecated
     @Override
     public Map<String, ? extends @Nullable Object> getProperties(DynamicObject receiver) {
         return receiver.getProperties();

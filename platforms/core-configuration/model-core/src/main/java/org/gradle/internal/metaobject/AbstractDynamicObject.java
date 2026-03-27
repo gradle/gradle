@@ -148,7 +148,6 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         }
     }
 
-    @Deprecated
     @Override
     public Map<String, ? extends @Nullable Object> getProperties() {
         return Collections.emptyMap();

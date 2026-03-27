@@ -52,10 +52,6 @@ public interface PropertyAccess {
 
     /**
      * Returns the properties known for this object.
-     *
-     * @deprecated Will be removed in Gradle 10.0.
      */
-    @Deprecated
     Map<String, ? extends @Nullable Object> getProperties();
-
 }
