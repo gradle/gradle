@@ -1,0 +1,20 @@
+// tag::avoid-this[]
+def customElementsDependenciesProvider = configurations.dependencyScope('customElementsDependencies')
+
+dependencies {
+    customElementsDependencies(project(path: ':producer', configuration: 'customElements'))
+}
+
+def customElements = configurations.resolvable('customElements') { // <2>
+    extendsFrom(customElementsDependenciesProvider.get())
+}
+
+tasks.register('resolveCustom') {
+    inputs.files(customElements)
+    doLast {
+        inputs.files.each { file ->
+            logger.lifecycle("Resolved: ${file.name}")
+        }
+    }
+}
+// end::avoid-this[]

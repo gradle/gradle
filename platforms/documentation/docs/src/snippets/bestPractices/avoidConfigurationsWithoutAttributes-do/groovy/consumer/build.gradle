@@ -1,0 +1,31 @@
+import org.gradle.api.attributes.Usage
+
+// tag::do-this[]
+def customElementsDependenciesProvider = configurations.dependencyScope('customElementsDependencies')
+
+dependencies {
+    customElementsDependencies(project(':producer')) // <3>
+}
+
+def CUSTOM_ATTRIBUTE = Attribute.of("custom", String) // <4>
+dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
+
+
+def customElements = configurations.resolvable('customElements') {
+    extendsFrom(customElementsDependenciesProvider.get())
+    attributes { // <5>
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+        attribute(CUSTOM_ATTRIBUTE, "my-custom-value")
+    }
+}
+
+
+tasks.register('resolveCustom') {
+    inputs.files(customElements)
+    doLast {
+        inputs.files.each { file ->
+            logger.lifecycle("Resolved: ${file.name}")
+        }
+    }
+}
+// end::do-this[]
