@@ -56,7 +56,7 @@ Previously, you could declare a project dependency by passing a `Project` instan
 ----
 def someProject = project(":some-project")
 dependencies {
-    implementation someProject  // Deprecated
+    implementation(someProject)  // Deprecated
 }
 ----
 =====
@@ -71,7 +71,7 @@ Instead, use the `project()` method on `DependencyHandler` or the `createProject
 [source,groovy]
 ----
 dependencies {
-    implementation project(":some-project")
+    implementation(project(":some-project"))
 }
 ----
 =====
@@ -81,7 +81,9 @@ Or, when using the `DependencyFactory` directly (e.g., from a plugin):
 
 [source,java]
 ----
-project.getDependencyFactory().createProjectDependency(":some-project");
+Configuration implementation = project.getConfigurations().getByName("implementation");
+ProjectDependency dependency = project.getDependencyFactory().createProjectDependency(":some-project");
+implementation.getDependencies().add(dependency);
 ----
 
 [[changes_9.5.0]]
