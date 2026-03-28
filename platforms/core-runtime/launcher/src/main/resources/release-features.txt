@@ -1,0 +1,3 @@
+ - Task provenance in reports and failure messages
+ - Type-safe accessors for precompiled Kotlin Settings plugins
+ - Build authoring improvements
