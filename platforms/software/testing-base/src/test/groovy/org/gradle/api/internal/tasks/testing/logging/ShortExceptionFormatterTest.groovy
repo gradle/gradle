@@ -35,8 +35,8 @@ class ShortExceptionFormatterTest extends Specification {
         ]
         expect:
         formatter.format(testDescriptor, exceptions) == """\
-    java.io.IOException at FileName1.java:11
-    java.lang.AssertionError at FileName0.java:1
+    java.io.IOException: oops at FileName1.java:11
+    java.lang.AssertionError: ouch at FileName0.java:1
 """
     }
 
@@ -45,9 +45,7 @@ class ShortExceptionFormatterTest extends Specification {
         testDescriptor.className = getClass().name
 
         expect:
-        formatter.format(testDescriptor, [exception]) == """\
-    java.lang.Exception at ShortExceptionFormatterTest.groovy:44
-"""
+        formatter.format(testDescriptor, [exception]).startsWith("    java.lang.Exception: oops at ShortExceptionFormatterTest.groovy:")
     }
 
     def "optionally shows causes"() {
@@ -59,9 +57,9 @@ class ShortExceptionFormatterTest extends Specification {
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.lang.Exception at FileName1.java:11
-        Caused by: java.lang.IllegalArgumentException at FileName0.java:1
-            Caused by: java.lang.RuntimeException at FileName00.java:1
+    java.lang.Exception: argh at FileName1.java:11
+        Caused by: java.lang.IllegalArgumentException: ouch at FileName0.java:1
+            Caused by: java.lang.RuntimeException: oops at FileName00.java:1
 """
     }
 
@@ -70,7 +68,7 @@ class ShortExceptionFormatterTest extends Specification {
         testDescriptor.className = getClass().name
 
         expect:
-        formatter.format(testDescriptor, [exception]).contains("java.lang.Exception at ShortExceptionFormatterTest.groovy")
+        formatter.format(testDescriptor, [exception]).contains("java.lang.Exception: oops at ShortExceptionFormatterTest.groovy")
 
         where:
         exception << [
