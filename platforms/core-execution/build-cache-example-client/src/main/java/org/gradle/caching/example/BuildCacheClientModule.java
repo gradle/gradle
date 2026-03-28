@@ -127,7 +127,8 @@ class BuildCacheClientModule extends AbstractModule {
         TemporaryFileFactory temporaryFileProvider,
         BuildCacheEntryPacker buildCacheEntryPacker,
         OriginMetadataFactory originMetadataFactory,
-        Interner<String> stringInterner
+        Interner<String> stringInterner,
+        ExecutorFactory executorFactory
     ) {
         return new DefaultBuildCacheController(
             buildCacheServicesConfig,
@@ -138,7 +139,8 @@ class BuildCacheClientModule extends AbstractModule {
             true,
             buildCacheEntryPacker,
             originMetadataFactory,
-            stringInterner
+            stringInterner,
+            executorFactory
         );
     }
 
