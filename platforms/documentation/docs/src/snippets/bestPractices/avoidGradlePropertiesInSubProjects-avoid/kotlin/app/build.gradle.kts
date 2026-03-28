@@ -1,7 +1,7 @@
 // This file is located in /app
 tasks.register("printProperties") { // <1>
-    val propA = project.properties.get("propertyA") // <2>
-    val propB = project.properties.get("propertyB")
+    val propA = project.findProperty("propertyA") // <2>
+    val propB = project.findProperty("propertyB")
 
     doLast {
         println("propertyA in app: $propA")

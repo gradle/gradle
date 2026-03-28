@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.MissingPropertyException;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.jspecify.annotations.Nullable;
@@ -48,7 +47,7 @@ public class DefaultDynamicLookupRoutine implements DynamicLookupRoutine {
 
     @Override
     public Map<String, ? extends @Nullable Object> getProperties(DynamicObject receiver) {
-        return DeprecationLogger.whileDisabled(() -> receiver.getProperties());
+        return receiver.getProperties();
     }
 
     @Nullable
