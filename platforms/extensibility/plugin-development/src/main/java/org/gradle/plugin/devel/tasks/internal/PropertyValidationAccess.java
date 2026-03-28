@@ -25,6 +25,7 @@ import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
+import org.gradle.internal.instantiation.generator.GeneratedClassBytecodeCache;
 import org.gradle.internal.properties.annotations.NestedValidationUtil;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
@@ -66,6 +67,7 @@ public class PropertyValidationAccess {
                 // TODO: do we need any factories here?
                 registration.add(DefaultManagedFactoryRegistry.class, new DefaultManagedFactoryRegistry());
                 registration.add(OutputPropertyRoleAnnotationHandler.class);
+                registration.add(GeneratedClassBytecodeCache.class, GeneratedClassBytecodeCache.NONE);
                 registration.add(DefaultInstantiatorFactory.class);
                 List<GradleModuleServices> servicesProviders = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(GradleModuleServices.class);
                 for (GradleModuleServices services : servicesProviders) {

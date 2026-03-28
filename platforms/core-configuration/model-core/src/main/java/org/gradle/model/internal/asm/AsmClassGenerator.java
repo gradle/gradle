@@ -53,11 +53,23 @@ public class AsmClassGenerator {
         return generatedType;
     }
 
+    public byte[] toByteArray() {
+        return visitor.toByteArray();
+    }
+
     public <T> Class<T> define() {
-        return define(targetType.getClassLoader());
+        return define(toByteArray(), targetType.getClassLoader());
     }
 
     public <T> Class<T> define(ClassLoader targetClassLoader) {
-        return ClassLoaderUtils.defineDecorator(targetType, targetClassLoader, generatedTypeName, visitor.toByteArray());
+        return define(toByteArray(), targetClassLoader);
+    }
+
+    public <T> Class<T> define(byte[] bytecode) {
+        return define(bytecode, targetType.getClassLoader());
+    }
+
+    public <T> Class<T> define(byte[] bytecode, ClassLoader targetClassLoader) {
+        return ClassLoaderUtils.defineDecorator(targetType, targetClassLoader, generatedTypeName, bytecode);
     }
 }

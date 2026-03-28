@@ -223,6 +223,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     @Override
+    protected String getSuffix() {
+        return suffix;
+    }
+
+    @Override
+    protected int getFactoryId() {
+        return factoryId;
+    }
+
+    @Override
     protected InstantiationStrategy createUsingConstructor(Constructor<?> constructor) {
         return new InvokeConstructorStrategy(constructor, getRoleHandler());
     }
@@ -1815,17 +1825,18 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public Class<?> generate() {
+        public GenerationResult generate() {
             writeGenericReturnTypeFields();
             visitEnd();
 
-            Class<?> generatedClass = classGenerator.define();
+            byte[] bytecode = classGenerator.toByteArray();
+            Class<?> generatedClass = classGenerator.define(bytecode);
 
             if (managed) {
                 attachFactoryIdToImplType(generatedClass, factoryId);
             }
 
-            return generatedClass;
+            return new GenerationResult(bytecode, generatedClass);
         }
 
         private void writeGenericReturnTypeFields() {
@@ -2040,8 +2051,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public Class<?> generate() {
-            return type;
+        public GenerationResult generate() {
+            return new GenerationResult(null, type);
         }
     }
 

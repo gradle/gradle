@@ -30,7 +30,7 @@ import java.util.Collection;
  *
  * <p>A service of this type is available in all scopes and is the recommended way to obtain an {@link Instantiator} and other types.</p>
  */
-@ServiceScope(Scope.Global.class)
+@ServiceScope({Scope.Global.class, Scope.UserHome.class})
 public interface InstantiatorFactory {
     /**
      * Creates an {@link Instantiator} that can inject services and user provided values into the instances it creates, but does not decorate the instances. Is not lenient.

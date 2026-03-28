@@ -77,7 +77,7 @@ public class InstantiationBenchmark {
     public void setup() {
         ClassCacheFactory cacheFactory = new BenchmarkClassCacheFactory();
         PropertyRoleAnnotationHandler roleHandler = new NoOpPropertyRoleAnnotationHandler();
-        InstantiatorFactory factory = new DefaultInstantiatorFactory(cacheFactory, Collections.emptyList(), roleHandler);
+        InstantiatorFactory factory = new DefaultInstantiatorFactory(cacheFactory, Collections.emptyList(), roleHandler, GeneratedClassBytecodeCache.NONE);
 
         ServiceLookup services = new NoOpServiceLookup();
         decoratedInstantiator = factory.decorate(services);
