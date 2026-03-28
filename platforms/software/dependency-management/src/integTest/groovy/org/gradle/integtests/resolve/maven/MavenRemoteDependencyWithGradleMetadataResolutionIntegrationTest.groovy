@@ -219,11 +219,11 @@ dependencies {
 }
 task checkDebug {
     inputs.files(configurations.debug)
-    doLast { assert inputs.files*.name == ['a-1.2-debug.jar', 'b-2.0.jar'] }
+    doLast { println inputs.files*.name }
 }
 task checkRelease {
     inputs.files(configurations.release)
-    doLast { assert inputs.files*.name == ['a-1.2-release.jar', 'c-2.2.jar'] }
+    doLast { println inputs.files*.name }
 }
 """
 
@@ -235,6 +235,7 @@ task checkRelease {
 
         expect:
         succeeds("checkDebug")
+        outputContains("[a-1.2-debug.jar, b-2.0.jar]")
 
         and:
         server.resetExpectations()
@@ -244,10 +245,13 @@ task checkRelease {
 
         and:
         succeeds("checkRelease")
+        outputContains("[a-1.2-release.jar, c-2.2.jar]")
 
         and:
         succeeds("checkDebug")
+        outputContains("[a-1.2-debug.jar, b-2.0.jar]")
         succeeds("checkRelease")
+        outputContains("[a-1.2-release.jar, c-2.2.jar]")
     }
 
     def "variant can define zero files or multiple files"() {
@@ -301,11 +305,11 @@ dependencies {
 }
 task checkDebug {
     inputs.files(configurations.debug)
-    doLast { assert inputs.files*.name == ['a-1.2-api.jar', 'a-1.2-runtime.jar', 'b-2.0.jar'] }
+    doLast { println inputs.files*.name }
 }
 task checkRelease {
     inputs.files(configurations.release)
-    doLast { assert inputs.files*.name == ['b-2.0.jar'] }
+    doLast { println inputs.files*.name }
 }
 """
 
@@ -318,17 +322,21 @@ task checkRelease {
 
         expect:
         succeeds("checkDebug")
+        outputContains("[a-1.2-api.jar, a-1.2-runtime.jar, b-2.0.jar]")
 
         and:
         server.resetExpectations()
 
         and:
         succeeds("checkRelease")
+        outputContains("[b-2.0.jar]")
 
         and:
         // Cached
         succeeds("checkDebug")
+        outputContains("[a-1.2-api.jar, a-1.2-runtime.jar, b-2.0.jar]")
         succeeds("checkRelease")
+        outputContains("[b-2.0.jar]")
 
         and:
         server.resetExpectations()
@@ -380,7 +388,7 @@ dependencies {
 }
 task checkDebug {
     inputs.files(configurations.debug)
-    doLast { assert inputs.files*.name == ['a_main.jar', 'a_extra.jar', 'a.zip'] }
+    doLast { println inputs.files*.name }
 }
 """
 
@@ -392,6 +400,7 @@ task checkDebug {
 
         expect:
         succeeds("checkDebug")
+        outputContains("[a_main.jar, a_extra.jar, a.zip]")
 
         and:
         server.resetExpectations()
@@ -399,6 +408,7 @@ task checkDebug {
         and:
         // cached
         succeeds("checkDebug")
+        outputContains("[a_main.jar, a_extra.jar, a.zip]")
 
         and:
         server.resetExpectations()
@@ -454,7 +464,7 @@ dependencies {
 }
 task checkDebug {
     inputs.files(configurations.debug)
-    doLast { assert inputs.files*.name == ['file1.jar', 'a-1.2.jar', 'a-3.jar', 'file4.jar', 'a_5.jar'] }
+    doLast { println inputs.files*.name }
 }
 """
 
@@ -468,6 +478,7 @@ task checkDebug {
 
         expect:
         succeeds("checkDebug")
+        outputContains("[file1.jar, a-1.2.jar, a-3.jar, file4.jar, a_5.jar]")
 
         and:
         server.resetExpectations()
@@ -475,6 +486,7 @@ task checkDebug {
         and:
         // Cached result
         succeeds("checkDebug")
+        outputContains("[file1.jar, a-1.2.jar, a-3.jar, file4.jar, a_5.jar]")
 
         and:
         server.resetExpectations()
@@ -566,11 +578,11 @@ dependencies {
 }
 task checkDebug {
     def files = configurations.debug
-    doLast { assert files*.name == ['a-1.2-debug.jar', 'b-2.0.jar', 'c-preview-debug.jar'] }
+    doLast { println files*.name }
 }
 task checkRelease {
     def files = configurations.release
-    doLast { assert files*.name == [] }
+    doLast { println files*.name }
 }
 """
 
@@ -586,12 +598,14 @@ task checkRelease {
 
         expect:
         succeeds("checkDebug")
+        outputContains("[a-1.2-debug.jar, b-2.0.jar, c-preview-debug.jar]")
 
         and:
         server.resetExpectations()
 
         and:
         succeeds("checkRelease")
+        outputContains("[]")
     }
 
     def "consumer can use attribute of type #type"() {
@@ -647,11 +661,11 @@ dependencies {
 }
 task checkDebug {
     inputs.files(configurations.debug)
-    doLast { assert inputs.files*.name == ['a-1.2-debug.jar'] }
+    doLast { println inputs.files*.name }
 }
 task checkRelease {
     inputs.files(configurations.release)
-    doLast { assert inputs.files*.name == [] }
+    doLast { println inputs.files*.name }
 }
 """
 
@@ -661,16 +675,20 @@ task checkRelease {
 
         expect:
         succeeds("checkDebug")
+        outputContains("[a-1.2-debug.jar]")
 
         and:
         server.resetExpectations()
 
         and:
         succeeds("checkRelease")
+        outputContains("[]")
 
         // Cached
         succeeds("checkDebug")
+        outputContains("[a-1.2-debug.jar]")
         succeeds("checkRelease")
+        outputContains("[]")
 
         where:
         encodedDebugValue | encodedReleaseValue | type            | debugValue                          | releaseValue

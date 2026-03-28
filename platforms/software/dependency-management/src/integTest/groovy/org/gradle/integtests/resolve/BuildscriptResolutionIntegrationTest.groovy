@@ -565,7 +565,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
                 }
                 def files = conf.incoming.files
                 doLast {
-                    assert files.files*.name == ["foo.txt"]
+                    println files.files*.name
                 }
             }
         """
@@ -587,6 +587,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(":resolve")
+        outputContains("[foo.txt]")
     }
 
     def "standalone buildscripts support detached configurations for resolving local dependencies"() {
@@ -598,7 +599,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
             def files = buildscript.configurations.detachedConfiguration(
                 buildscript.dependencies.create(dependencies.project(":other"))
             ).incoming.files
-            assert files.files*.name == ["foo.txt"]
+            println files.files*.name
         """
         settingsFile << """
             include "other"
@@ -622,6 +623,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("help")
+        outputContains("[foo.txt]")
     }
 
     def "creating a settings buildscript configuration is forbidden in Kotlin"() {
