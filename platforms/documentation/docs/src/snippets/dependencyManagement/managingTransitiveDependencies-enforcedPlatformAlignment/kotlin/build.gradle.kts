@@ -10,5 +10,14 @@ repositories {
 dependencies {
     // Pins all Log4j modules to 2.17.0
     implementation(enforcedPlatform("org.apache.logging.log4j:log4j-bom:2.17.0"))
+    //implementation(enforcedPlatform("org.apache.logging.log4j:log4j-bom:2.16.0")) <-- This would fail resolution
+
+    // The strictly constraint overrides the BOM for log4j-core
+    implementation("org.apache.logging.log4j:log4j-core") {
+        version {
+            strictly("[2.17, 3[")
+            prefer("2.17.0")
+        }
+    }
 }
 // end::enforced-platform-alignment[]
