@@ -16,14 +16,21 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.execution.selection.BuildTaskSelector
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
+import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 
 
 class ConfigurationCacheAwareBuildTreeWorkGraphPreparer(
-    private val delegate: BuildTreeWorkGraphPreparer,
+    buildRegistry: BuildStateRegistry,
+    buildTaskSelector: BuildTaskSelector,
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeWorkGraphPreparer {
+
+    private val delegate = DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
+
     override fun prepareToScheduleTasks(workGraph: BuildTreeWorkGraph.Builder) {
         if (!cache.isLoaded) {
             delegate.prepareToScheduleTasks(workGraph)

@@ -17,8 +17,6 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
-import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
 
@@ -59,7 +57,6 @@ val allowedProperties = setOf(
 )
 
 
-@ServiceScope(Scope.BuildTree::class)
 internal
 class InstrumentedInputAccessListener(
     private val inputListener: UndeclaredBuildInputListener,
