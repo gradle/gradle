@@ -1130,4 +1130,94 @@ my-lib.module = "org.gradle.test:lib"
             }
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/35539")
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "reasonable error message when dotted keys are used as library aliases"() {
+        tomlFile << """[libraries]
+flyway.core = { module = "org.flywaydb:flyway-core" }
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasErrorOutput("In version catalog libs, entry 'flyway.core' is not a valid alias.")
+        failure.assertHasErrorOutput("Dots (.) in TOML keys create nested entries and cannot be used in alias names")
+        failure.assertHasErrorOutput("Use '-' or '_' separators instead of '.'")
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35539")
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "reasonable error message when multiple dotted keys are used as library aliases"() {
+        tomlFile << """[libraries]
+flyway.core = { module = "org.flywaydb:flyway-core" }
+flyway.postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasErrorOutput("In version catalog libs, entries 'flyway.core' and 'flyway.postgresql' are not valid aliases.")
+        failure.assertHasErrorOutput("Dots (.) in TOML keys create nested entries and cannot be used in alias names")
+        failure.assertHasErrorOutput("Use '-' or '_' separators instead of '.' or a nested entry")
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35539")
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "reasonable error message when dotted keys are used as plugin aliases"() {
+        tomlFile << """[plugins]
+kotlin.jvm = "org.jetbrains.kotlin.jvm:1.9.0"
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasErrorOutput("In version catalog libs, entry 'kotlin.jvm' is not a valid alias.")
+        failure.assertHasErrorOutput("Dots (.) in TOML keys create nested entries and cannot be used in alias names")
+        failure.assertHasErrorOutput("Use '-' or '_' separators instead of '.' or a nested entry")
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+        }
+    }
+
+    @VersionCatalogProblemTestFor([
+        VersionCatalogProblemId.TOML_SYNTAX_ERROR
+    ])
+    def "reasonable error message when dotted keys are used as version aliases"() {
+        tomlFile << """[versions]
+jackson = { strictly = "2.21.1" }
+$alias = $declaration
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasErrorOutput("In version catalog libs, entry '$alias' is not a valid alias.")
+        failure.assertHasErrorOutput("Dots (.) in TOML keys create nested entries and cannot be used in alias names")
+        failure.assertHasErrorOutput("Use '-' or '_' separators instead of '.' or a nested entry")
+        verifyAll(receivedProblem(0)) {
+            fqid == 'dependency-version-catalog:toml-syntax-error'
+        }
+
+        where:
+        alias         | declaration
+        "kotlin.jvm"  | '{ strictly = "1.9.0" }'
+        "spring.core" | '"2.9.0"'
+    }
 }

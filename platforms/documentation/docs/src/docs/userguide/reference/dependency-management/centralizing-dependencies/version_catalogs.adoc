@@ -85,7 +85,7 @@ This enables IDEs to provide autocompletion, highlight typos, and identify missi
 [[sec:mapping-aliases-to-accessors]]
 === Aliases and type-safe accessors
 
-Aliases in a version catalog consist of identifiers separated by a dash (`-`), underscore (`_`), or dot (`.`).
+Aliases in a version catalog consist of identifiers separated by a dash (`-`) or underscore (`_`).
 Type-safe accessors are generated for each alias, normalized to dot notation:
 
 [cols="1,1"]
@@ -97,9 +97,6 @@ Type-safe accessors are generated for each alias, normalized to dot notation:
 
 |`groovy-core`
 |`libs.groovy.core`
-
-|`androidx.awesome.lib`
-|`libs.androidx.awesome.lib`
 |===
 
 [[sec:version-catalog-declaration]]
