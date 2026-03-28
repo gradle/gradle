@@ -58,6 +58,7 @@ import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
+import org.gradle.internal.process.ArgWriter;
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory.RootClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JvmOptions;
@@ -69,6 +70,10 @@ import org.jspecify.annotations.NonNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -125,9 +130,8 @@ public class DefaultDaemonStarter implements DaemonStarter {
             throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
         }
 
-        // We only need the daemon main jar for initial startup. The daemon is responsible for loading everything else.
         ModuleRegistry registry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
-        ClassPath classpath = registry.getModule("gradle-daemon-main").getImplementationClasspath();
+        ClassPath classpath = registry.getRuntimeClasspath("gradle-daemon-server");
         if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
@@ -140,8 +144,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         Collection<String> daemonOpts = daemonRequestContext.getDaemonOpts();
         daemonArgs.addAll(JpmsConfiguration.forDaemonProcesses(majorJavaVersion, daemonRequestContext.getNativeServicesMode().isPotentiallyEnabled()));
         daemonArgs.addAll(daemonOpts);
-        daemonArgs.add("-cp");
-        daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
+        daemonArgs.add(getOrCreateClasspathArgsFile(Arrays.asList("-cp", CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()))));
 
         // TODO: remove in Gradle 10
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
@@ -199,6 +202,26 @@ public class DefaultDaemonStarter implements DaemonStarter {
             daemonDir.getVersionedDir(),
             stdInput
         );
+    }
+
+    private String getOrCreateClasspathArgsFile(List<String> args) {
+        File argsFile = new File(daemonDir.getVersionedDir(), "daemon-classpath.txt");
+        if (!argsFile.exists()) {
+            File tmpFile = new File(daemonDir.getVersionedDir(), "daemon-classpath.tmp." + UUID.randomUUID());
+            ArgWriter.javaStyle().generateArgsFile(args, tmpFile);
+            try {
+                Files.move(tmpFile.toPath(), argsFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                try {
+                    Files.move(tmpFile.toPath(), argsFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return "@" + argsFile.getAbsolutePath();
     }
 
     @NonNull

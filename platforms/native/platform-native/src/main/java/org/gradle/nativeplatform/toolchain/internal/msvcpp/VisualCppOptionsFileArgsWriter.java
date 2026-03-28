@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 import org.gradle.internal.process.ArgWriter;
+import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter;
 
 import java.io.File;
 import java.util.List;
@@ -32,6 +32,6 @@ class VisualCppOptionsFileArgsWriter extends OptionsFileArgsWriter {
 
     @Override
     protected List<String> transformArgs(List<String> originalArgs, File tempDir) {
-        return ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.windowsStyleFactory()).apply(originalArgs);
+        return ArgWriter.windowsStyle().generateArgsFile(originalArgs, new File(tempDir, "options.txt"));
     }
 }
