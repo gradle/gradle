@@ -21,13 +21,10 @@ import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
-import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceScope
 
 /**
  * A stub implementation of ProblemsListener.
  */
-@ServiceScope(Scope.BuildTree::class)
 object IgnoringProblemsListener : ProblemsListener {
     override fun onProblem(problem: PropertyProblem) = Unit
 

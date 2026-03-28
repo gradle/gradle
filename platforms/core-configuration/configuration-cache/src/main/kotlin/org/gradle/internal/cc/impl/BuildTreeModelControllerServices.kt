@@ -52,6 +52,7 @@ import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.cc.impl.services.DefaultEnvironment
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.service.Provides
@@ -86,7 +87,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             // Allow nudging to enable CC if it is off and there is no explicit decision. CC doesn't work for model building so do not nudge there.
             !requirements.startParameter.configurationCache.isExplicit && !requirements.isCreatesModel -> registration.add(ConfigurationCachePromoHandler::class.java)
             // Do not nudge if CC is explicitly disabled or if models are requested.
-            else -> registration.add(IgnoringProblemsListener::class.java, IgnoringProblemsListener)
+            else -> registration.add(ProblemsListener::class.java, IgnoringProblemsListener)
         }
 
         if (modelParameters.isConfigurationCache) {
