@@ -49,7 +49,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
     private static final SnapshotHierarchy EMPTY = DefaultSnapshotHierarchy.empty(CASE_SENSITIVE)
 
-    DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector), java.util.concurrent.Executors.newFixedThreadPool(4), java.util.concurrent.Executors.newCachedThreadPool())
+    DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector), new org.gradle.test.fixtures.ManagedForkJoinPoolStub())
 
     def diffListener = new SnapshotHierarchy.NodeDiffListener() {
         @Override

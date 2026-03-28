@@ -53,7 +53,8 @@ abstract class AbstractFileSystemAccessTest extends Specification {
         fileSystem::stat,
         TestFiles.virtualFileSystem(),
         updateListener,
-        statisticsCollector
+        statisticsCollector,
+        new org.gradle.test.fixtures.ManagedForkJoinPoolStub()
     )
 
     void allowFileSystemAccess(boolean allow) {

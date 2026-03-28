@@ -15,6 +15,8 @@ dependencies {
     api(libs.jspecify)
     api(libs.jsr305)
 
+    implementation(projects.collections)
+    implementation(projects.concurrent)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.processServices)

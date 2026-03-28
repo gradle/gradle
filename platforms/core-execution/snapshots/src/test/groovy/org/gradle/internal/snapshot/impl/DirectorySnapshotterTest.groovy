@@ -52,7 +52,7 @@ class DirectorySnapshotterTest extends Specification {
 
     def fileHasher = new TestFileHasher()
     def statisticsCollector = Stub(DirectorySnapshotterStatistics.Collector)
-    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner(), [], statisticsCollector, java.util.concurrent.Executors.newFixedThreadPool(4), java.util.concurrent.Executors.newCachedThreadPool())
+    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner(), [], statisticsCollector, new org.gradle.test.fixtures.ManagedForkJoinPoolStub())
     List<FileSystemLocationSnapshot> unfilteredSubsnapshots = []
     Consumer<FileSystemLocationSnapshot> unfilteredSubSnapshotsCollector = { FileSystemLocationSnapshot snapshot ->
         unfilteredSubsnapshots.add(snapshot)

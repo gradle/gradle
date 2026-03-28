@@ -81,5 +81,5 @@ public interface ExecutorFactory {
      * @param displayName The display name for this executor. Used for logging and error messages.
      * @return The executor.
      */
-    ManagedExecutor createWorkStealingPool(String displayName);
+    ManagedForkJoinPool createWorkStealingPool(String displayName);
 }

@@ -78,7 +78,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
     }
 
     private DirectorySnapshotter directorySnapshotter() {
-        new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector), java.util.concurrent.Executors.newFixedThreadPool(4), java.util.concurrent.Executors.newCachedThreadPool())
+        new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [], Stub(DirectorySnapshotterStatistics.Collector), new org.gradle.test.fixtures.ManagedForkJoinPoolStub())
     }
 
     private static List<FileVisitDetails> walkFiles(rootDir) {

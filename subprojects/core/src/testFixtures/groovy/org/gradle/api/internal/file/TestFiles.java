@@ -218,8 +218,7 @@ public class TestFiles {
             virtualFileSystem,
             locations -> {},
             new DirectorySnapshotterStatistics.Collector(),
-            java.util.concurrent.Executors.newFixedThreadPool(4),
-            java.util.concurrent.Executors.newCachedThreadPool()
+            new org.gradle.test.fixtures.ManagedForkJoinPoolStub()
         );
     }
 
