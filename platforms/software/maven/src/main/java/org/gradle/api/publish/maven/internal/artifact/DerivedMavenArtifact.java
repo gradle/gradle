@@ -18,20 +18,31 @@ package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
 import static com.google.common.io.Files.getFileExtension;
 
+@NullMarked
 public class DerivedMavenArtifact extends AbstractMavenArtifact {
     private final AbstractMavenArtifact original;
     private final PublicationInternal.DerivedArtifact derivedFile;
+    private final Provider<Boolean> enableChecksumFileGeneration;
 
-    public DerivedMavenArtifact(AbstractMavenArtifact original, PublicationInternal.DerivedArtifact derivedFile, TaskDependencyFactory taskDependencyFactory) {
+    public DerivedMavenArtifact(
+        AbstractMavenArtifact original,
+        PublicationInternal.DerivedArtifact derivedFile,
+        TaskDependencyFactory taskDependencyFactory,
+        Provider<Boolean> enableChecksumFileGeneration
+    ) {
         super(taskDependencyFactory);
         this.original = original;
         this.derivedFile = derivedFile;
+        this.enableChecksumFileGeneration = enableChecksumFileGeneration;
     }
 
     @Override
@@ -45,6 +56,7 @@ public class DerivedMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
+    @Nullable
     protected String getDefaultClassifier() {
         return original.getClassifier();
     }
@@ -57,5 +69,13 @@ public class DerivedMavenArtifact extends AbstractMavenArtifact {
     @Override
     public boolean shouldBePublished() {
         return original.shouldBePublished() && derivedFile.shouldBePublished();
+    }
+
+    @Override
+    public Provider<Boolean> getEnableChecksumFileGeneration() {
+        return enableChecksumFileGeneration.zip(original.getEnableChecksumFileGeneration(),
+            (derivedEnabled, originalEnabled) ->
+                originalEnabled && derivedEnabled
+        );
     }
 }
