@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 @UsedByScanPlugin
 public final class TaskIdentity<T extends Task> {
@@ -77,11 +78,17 @@ public final class TaskIdentity<T extends Task> {
     @Deprecated
     public final long uniqueId;
 
-    private final UserCodeSource userCodeSource;
+    private final @Nullable UserCodeSource userCodeSource;
 
     private final ProjectIdentity projectIdentity;
 
-    TaskIdentity(Class<T> type, String name, ProjectIdentity projectIdentity, long uniqueId, UserCodeSource userCodeSource) {
+    TaskIdentity(
+        Class<T> type,
+        String name,
+        ProjectIdentity projectIdentity,
+        long uniqueId,
+        @Nullable UserCodeSource userCodeSource
+    ) {
         this.name = name;
         this.type = type;
         this.projectIdentity = projectIdentity;
@@ -93,7 +100,15 @@ public final class TaskIdentity<T extends Task> {
         this.buildPath = projectIdentity.getBuildPath();
     }
 
-    public UserCodeSource getUserCodeSource() {
+    /**
+     * Get the user code that was executing when the identified task was created.
+     * May be null if the task was not created by user code, or if the user code
+     * creating this task was not properly tracked.
+     * <p>
+     * Note: We do not properly track user code for software model rules, so this
+     * field is improperly null for tasks created by software model rules.
+     */
+    public @Nullable UserCodeSource getUserCodeSource() {
         return userCodeSource;
     }
 

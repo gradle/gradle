@@ -6,7 +6,7 @@ There were test failures:
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':runOperatorsTestFailingCUnitExe' (registered by Rule).
+Execution failed for task ':runOperatorsTestFailingCUnitExe'.
 > There were failing tests. See the results at: file:///home/user/gradle/samples/build/test-results/operatorsTest/failing/
 
 * Try:

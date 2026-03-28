@@ -99,6 +99,7 @@ import org.gradle.internal.serialize.codecs.core.TaskNodeCodec
 import org.gradle.internal.serialize.codecs.core.TaskReferenceCodec
 import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintBuildServiceProviderCodec
 import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintFlowProviders
+import org.gradle.internal.serialize.codecs.core.UserCodeSourceCodec
 import org.gradle.internal.serialize.codecs.core.ValueSourceProviderCodec
 import org.gradle.internal.serialize.codecs.core.WorkNodeActionCodec
 import org.gradle.internal.serialize.codecs.core.WorkNodeCodec
@@ -267,6 +268,7 @@ class DefaultConfigurationCacheCodecs(
             bind(DestinationRootCopySpecCodec(fileResolver))
 
             bind(TaskReferenceCodec)
+            bind(UserCodeSourceCodec)
 
             bind(IsolatedManagedValueCodec(managedFactoryRegistry))
             bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))

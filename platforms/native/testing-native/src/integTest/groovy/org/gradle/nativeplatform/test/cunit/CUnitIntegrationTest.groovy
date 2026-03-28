@@ -397,7 +397,7 @@ model {
         fails "runHelloTestCUnitExe"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':runHelloTestCUnitExe' (registered by Rule).")
+        failure.assertHasDescription("Execution failed for task ':runHelloTestCUnitExe'.")
         failure.assertHasCause("There were failing tests. See the results at: ")
 
         and:

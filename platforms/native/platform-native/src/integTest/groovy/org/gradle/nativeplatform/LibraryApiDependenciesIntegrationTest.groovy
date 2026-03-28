@@ -260,6 +260,6 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable' (registered by Rule).")
+        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
     }
 }
