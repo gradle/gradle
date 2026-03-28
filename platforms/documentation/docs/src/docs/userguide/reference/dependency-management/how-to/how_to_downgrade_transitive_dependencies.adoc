@@ -59,9 +59,11 @@ include::sample[dir="snippets/how-to/downgrade-transitives/tests",files="depende
 
 Important notes about strict versions:
 
-- A **strict version behaves like a force**, meaning it overrides transitive dependencies.
-- If another dependency **requires a higher version**, Gradle **will fail** with a resolution error.
-- Use **version ranges** instead of absolute strict versions to allow flexibility.
+Important notes about strict versions:
+
+* A *strict version is the strongest version declaration* — it overrides versions brought in by transitive dependencies.
+* If a single strict version (e.g., `strictly("1.9")`) is used and a consumer of your project requires a higher version, resolution will fail because the versions are incompatible. To avoid this, use a strict range with a preferred version instead (see Step 2 below).
+* When using a strict range (e.g., `strictly("[1.9, 2.0[")`), other dependencies can resolve to any version within that range without causing a failure.
 
 === Step 2: Setting a Strict Version Range
 

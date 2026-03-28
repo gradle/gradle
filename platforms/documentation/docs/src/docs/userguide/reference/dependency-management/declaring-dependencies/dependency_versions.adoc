@@ -141,6 +141,8 @@ For transitive dependencies, if no acceptable version is found, dependency resol
 Dynamic versions are supported.
 +
 When defined, it overrides any previous `require` declaration and clears any previous `reject` already declared on that dependency.
++
+NOTE: `strictly` is meant to replace `force`.
 
 [[sec:required-version]]
 `require`::
@@ -285,6 +287,260 @@ Rich version information is preserved in the Gradle Module Metadata format.
 However, converting this information to Ivy or Maven metadata formats is lossy.
 The highest level of version declaration—`strictly` or `require` over `prefer`—will be published, and any `reject` will be ignored.
 ====
+
+[[sec:rich-version-examples]]
+=== Choosing between `strictly`, `reject`, and `require`
+
+==== Use `strictly` when you need to prevent version upgrades
+
+A `strictly` declaration sets an upper bound that transitive dependencies cannot override.
+This is useful when you know that versions outside a specific range are incompatible with your project:
+
+====
+[source,kotlin]
+----
+dependencies {
+    // Your project depends on an API from Commons Codec 1.9 that was removed in 1.10.
+    // Use strictly to prevent HttpClient from upgrading it to 1.10 transitively.
+    implementation("commons-codec:commons-codec") {
+        version {
+            strictly("[1.9, 1.10[")
+        }
+    }
+    implementation("org.apache.httpcomponents:httpclient:4.5.4") // brings in commons-codec:1.10
+}
+// Result: commons-codec resolves to 1.9, not 1.10
+----
+[source,groovy]
+----
+dependencies {
+    // Your project depends on an API from Commons Codec 1.9 that was removed in 1.10.
+    // Use strictly to prevent HttpClient from upgrading it to 1.10 transitively.
+    implementation('commons-codec:commons-codec') {
+        version {
+            strictly '[1.9, 1.10['
+        }
+    }
+    implementation('org.apache.httpcomponents:httpclient:4.5.4') // brings in commons-codec:1.10
+}
+// Result: commons-codec resolves to 1.9, not 1.10
+----
+====
+
+Without `strictly`, Gradle's default conflict resolution would select `1.10` (the highest version), because a standard `require` declaration allows upgrades.
+
+==== Use `reject` when specific versions are known to be broken
+
+A `reject` declaration excludes individual versions from consideration without constraining the overall range.
+Use this when most versions are acceptable but one or more have known defects:
+
+====
+[source,kotlin]
+----
+dependencies {
+    // Version 1.4 has a known bug; any other version in the 1.x range is fine.
+    implementation("com.example:my-lib") {
+        version {
+            require("[1.0, 2.0[")
+            reject("1.4")
+        }
+    }
+}
+// Result: resolves to the highest available version in [1.0, 2.0) that is not 1.4
+----
+[source,groovy]
+----
+dependencies {
+    // Version 1.4 has a known bug; any other version in the 1.x range is fine.
+    implementation('com.example:my-lib') {
+        version {
+            require '[1.0, 2.0['
+            reject '1.4'
+        }
+    }
+}
+// Result: resolves to the highest available version in [1.0, 2.0) that is not 1.4
+----
+====
+
+If the only version available is `1.4`, resolution will fail.
+Unlike `strictly`, `reject` does not prevent upgrades — it only removes specific versions from the candidate set.
+
+==== Combine `strictly` with `prefer` for library-friendly constraints
+
+When publishing a library, a pinned `strictly` (e.g., `strictly("1.9")`) can cause resolution failures for consumers who need a different version.
+Use a strict range with `prefer` to set boundaries while remaining flexible:
+
+====
+[source,kotlin]
+----
+dependencies {
+    implementation("org.example:some-lib") {
+        version {
+            strictly("[1.0, 2.0[")  // consumers must stay within 1.x
+            prefer("1.7.25")        // use 1.7.25 when no other opinion exists
+        }
+    }
+}
+----
+[source,groovy]
+----
+dependencies {
+    implementation('org.example:some-lib') {
+        version {
+            strictly '[1.0, 2.0['  // consumers must stay within 1.x
+            prefer '1.7.25'        // use 1.7.25 when no other opinion exists
+        }
+    }
+}
+----
+====
+
+A consumer of your library that requires `1.8.0` will resolve successfully — the version falls within the strict range.
+A consumer that requires `2.0.0` will get a resolution error, because `2.0.0` is outside the strict range.
+
+==== Use `strictly` to enforce a minimum version for security fixes
+
+When a vulnerability is discovered in a transitive dependency, use `strictly` with a range to ensure no dependency in the graph can pull in the affected version:
+
+====
+[source,kotlin]
+----
+dependencies {
+    constraints {
+        implementation("org.apache.logging.log4j:log4j-core") {
+            version {
+                strictly("[2.17.1, 3[")
+            }
+            because("CVE-2021-44832: versions prior to 2.17.1 are vulnerable")
+        }
+    }
+}
+----
+[source,groovy]
+----
+dependencies {
+    constraints {
+        implementation('org.apache.logging.log4j:log4j-core') {
+            version {
+                strictly '[2.17.1, 3['
+            }
+            because 'CVE-2021-44832: versions prior to 2.17.1 are vulnerable'
+        }
+    }
+}
+----
+====
+
+Here, `strictly` is used to *upgrade* rather than downgrade — any transitive dependency that brings in a version below `2.17.1` will be overridden.
+Using a constraint rather than a direct dependency means the constraint only takes effect if `log4j-core` appears somewhere in the graph.
+
+==== Use `reject` to exclude multiple known-bad versions
+
+You can call `reject` multiple times to exclude several specific versions:
+
+====
+[source,kotlin]
+----
+dependencies {
+    implementation("com.google.guava:guava") {
+        version {
+            require("[33.0, 34.0[")
+            reject("33.4.4-jre", "33.5.0-jre")
+        }
+    }
+}
+----
+[source,groovy]
+----
+dependencies {
+    implementation('com.google.guava:guava') {
+        version {
+            require '[33.0, 34.0['
+            reject '33.4.4-jre', '33.5.0-jre'
+        }
+    }
+}
+----
+====
+
+This resolves to the highest available version in the `[33.0, 34.0[` range that is neither `33.4.4-jre` nor `33.5.0-jre`.
+
+==== Use `strictly` in dependency constraints to actually constrain
+
+When you declare a version in a <<dependency_constraints.adoc#dependency-constraints,dependency constraint>>, the version is treated as `require` — not `strictly`.
+This means a transitive dependency can still upgrade past the version you specified:
+
+====
+[source,kotlin]
+----
+dependencies {
+    implementation("org.apache.httpcomponents:httpclient:4.5.4") // brings in commons-codec:1.10
+
+    constraints {
+        // This does NOT prevent commons-codec from resolving to 1.10.
+        // The version "1.9" is treated as "require 1.9", which allows upgrades.
+        implementation("commons-codec:commons-codec:1.9")
+    }
+}
+// Result: commons-codec resolves to 1.10 — the constraint is satisfied because 1.10 >= 1.9
+----
+[source,groovy]
+----
+dependencies {
+    implementation('org.apache.httpcomponents:httpclient:4.5.4') // brings in commons-codec:1.10
+
+    constraints {
+        // This does NOT prevent commons-codec from resolving to 1.10.
+        // The version "1.9" is treated as "require 1.9", which allows upgrades.
+        implementation('commons-codec:commons-codec:1.9')
+    }
+}
+// Result: commons-codec resolves to 1.10 — the constraint is satisfied because 1.10 >= 1.9
+----
+====
+
+To actually cap the version, use `strictly` inside the constraint:
+
+====
+[source,kotlin]
+----
+dependencies {
+    implementation("org.apache.httpcomponents:httpclient:4.5.4")
+
+    constraints {
+        implementation("commons-codec:commons-codec") {
+            version {
+                strictly("[1.0, 1.10[")
+                prefer("1.9")
+            }
+            because("API we depend on was removed in 1.10")
+        }
+    }
+}
+// Result: commons-codec resolves to 1.9
+----
+[source,groovy]
+----
+dependencies {
+    implementation('org.apache.httpcomponents:httpclient:4.5.4')
+
+    constraints {
+        implementation('commons-codec:commons-codec') {
+            version {
+                strictly '[1.0, 1.10['
+                prefer '1.9'
+            }
+            because 'API we depend on was removed in 1.10'
+        }
+    }
+}
+// Result: commons-codec resolves to 1.9
+----
+====
+
+This distinction matters because dependency constraints only take effect when the module appears in the graph — if no dependency brings in `commons-codec`, the constraint is ignored entirely.
+Adding `strictly` ensures that *when* the module appears, its version is genuinely constrained.
 
 [[sec:endorsing-strict-versions]]
 == Endorsing strict versions
