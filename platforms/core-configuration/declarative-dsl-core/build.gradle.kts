@@ -18,6 +18,8 @@ dependencies {
     implementation(libs.kotlinReflect)
     implementation(libs.kotlinxSerializationCore)
     implementation(libs.kotlinxSerializationJson)
+    implementation(libs.guava)
+    implementation(libs.inject)
     implementation(projects.declarativeDslApi)
 
     testImplementation(libs.jetbrainsAnnotations)

@@ -35,7 +35,6 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.api.tasks.Nested;
 import org.gradle.internal.Pair;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.properties.annotations.TypeMetadata;
@@ -44,7 +43,6 @@ import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -224,19 +222,6 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             ));
         }
 
-        if (!binding.getDefinitionType().isInterface()) {
-            problems.add(problemReporter.internalCreate(builder -> builder
-                .id("unsafe-definition-type-not-interface", "Definition type not an interface for safe definition", GradleCoreProblemGroup.configurationUsage())
-                .details("Safe definition types must be an interface.")
-                .contextualLabel("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but is not an interface")
-                .solution("Mark the definition as unsafe.")
-                .solution("Refactor the type as an interface.")
-                .severity(Severity.ERROR)
-            ));
-        }
-
-        validateDefinition(binding.getDefinitionType(), problems);
-
         problemReporter.report(problems);
 
         throwTypeValidationException("Project feature '" + binding.getName() + "' has a definition type which was declared safe but has the following issues:", problems);
@@ -256,26 +241,6 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             formatter.endChildren();
             throw new IllegalArgumentException(formatter.toString());
         }
-    }
-
-    private void validateDefinition(Class<?> definitionType, List<InternalProblem> problems) {
-        TypeMetadata definitionTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(definitionType);
-        definitionTypeMetadata.getTypeAnnotationMetadata().getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
-            if (propertyMetadata.isAnnotationPresent(Inject.class)) {
-                problems.add(problemReporter.internalCreate(builder -> builder
-                    .id("unsafe-definition-inject-property", "Property annotated with @Inject in safe definition", GradleCoreProblemGroup.configurationUsage())
-                    .details("Safe definition types cannot inject services.")
-                    .contextualLabel("The definition type has @Inject annotated property '" + propertyMetadata.getPropertyName() + "' in type '" + definitionType.getSimpleName() + "'")
-                    .solution("Mark the definition as unsafe.")
-                    .solution("Remove the @Inject annotation from the '" + propertyMetadata.getPropertyName() + "' property.")
-                    .severity(Severity.ERROR)
-                ));
-            }
-
-            if (propertyMetadata.isAnnotationPresent(Nested.class)) {
-                validateDefinition(propertyMetadata.getDeclaredReturnType().getRawType(), problems);
-            }
-        });
     }
 
     @Override

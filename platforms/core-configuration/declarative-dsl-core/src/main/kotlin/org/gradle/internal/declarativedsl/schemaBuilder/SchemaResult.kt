@@ -21,6 +21,15 @@ import org.gradle.declarative.dsl.evaluation.SchemaIssue
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
+import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
+import org.gradle.declarative.dsl.schema.UnsafeBecauseHasHiddenMembers
+import org.gradle.declarative.dsl.schema.UnsafeBecauseHasNonPublicMembers
+import org.gradle.declarative.dsl.schema.UnsafeNonPureFunction
+import org.gradle.declarative.dsl.schema.UnsafeInjectProperty
+import org.gradle.declarative.dsl.schema.UnsafeNonAbstractMember
+import org.gradle.declarative.dsl.schema.UnsafeNonInterfaceType
+import org.gradle.declarative.dsl.schema.UnsafeJavaBeanProperty
+import org.gradle.declarative.dsl.schema.UnsafeSchemaItem
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.ContainerElement
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.PropertyType
@@ -149,6 +158,11 @@ sealed interface SchemaBuildingIssue {
     class UnitAddingFunctionWithLambda : SchemaBuildingIssue, SchemaIssue.UnitAddingFunctionWithLambda
 
     class UnrecognizedMember : SchemaBuildingIssue, SchemaIssue.UnrecognizedMember
+
+    class UnsafeDeclarationInSafeFeatureApi(
+        override val usedInSafeFeatures: List<ProjectFeatureOrigin>,
+        override val unsafeApiCause: UnsafeSchemaItem
+    ) : SchemaBuildingIssue, SchemaIssue.UnsafeDeclarationInSafeFeatureApi
 }
 
 object SchemaFailureMessageFormatter {
@@ -163,6 +177,7 @@ object SchemaFailureMessageFormatter {
         context.asReversed()
             .joinToString("\n") { "  in ${it.userRepresentation}" }
 
+    @Suppress("CyclomaticComplexMethod")
     fun messageForIssue(schemaIssue: SchemaIssue): String =
         when (schemaIssue) {
             is SchemaIssue.HiddenTypeUsedInDeclaration ->
@@ -187,6 +202,16 @@ object SchemaFailureMessageFormatter {
             is SchemaIssue.UnsupportedNullableReadOnlyProperty -> "Unsupported property declaration: nullable read-only property"
             is SchemaIssue.UnsupportedNullableType -> "Unsupported usage of a nullable type"
             is SchemaIssue.UnsupportedVarargType -> "Unsupported vararg type ${schemaIssue.typeName}"
+            is SchemaIssue.UnsafeDeclarationInSafeFeatureApi -> "Unsafe declaration in safe definition" + when (val cause = schemaIssue.unsafeApiCause) {
+                is UnsafeNonInterfaceType -> ": non-interface type"
+                is UnsafeNonAbstractMember -> ": non-abstract member"
+                is UnsafeInjectProperty -> ": injected service property"
+                is UnsafeJavaBeanProperty -> ": unsafe property"
+                is UnsafeNonPureFunction -> ": function relying on side effects or custom implementation"
+                is UnsafeBecauseHasHiddenMembers -> ": hidden member${if (cause.memberNames.size > 1) "s" else ""} ${cause.memberNames.joinToString(limit = 3) { "'$it'" }}"
+                is UnsafeBecauseHasNonPublicMembers -> ": non-public member${if (cause.memberNames.size > 1) "s" else ""} ${cause.memberNames.joinToString(limit = 3) { "'$it'" }}"
+                else -> ""
+            }
             else -> "Schema issue: $schemaIssue"
         }
 
@@ -199,5 +224,6 @@ private fun discoveryTagDescription(tag: DiscoveryTag, violatingClass: KClass<*>
         "in the supertypes of '${tag.ofType.qualifiedName}'"
 
     is UsedInMember -> "referenced from member '${tag.member}'"
+    is DiscoveryTag.ProjectFeatureDefinition -> "definition of project feature '${tag.featureData.featureName}'"
     is Special -> tag.description
 }

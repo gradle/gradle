@@ -149,7 +149,9 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
                     is DataClass -> type.memberFunctions.filter { it.metadata.any { item -> item is ConfigureFromGetterOrigin } }.mapNotNull { function ->
                         val nestedModelType = (function.semantics as? FunctionSemantics.ConfigureSemantics)?.configuredType?.let(typeRefContext::resolveRef)
                             as? DataClass ?: return@mapNotNull null
-                        NestedModelEntry(function.simpleName, typeOf(type, classLoader)!!, typeOf(nestedModelType, classLoader)!!)
+                        val ownerClass = typeOf(type, classLoader) ?: return@mapNotNull null
+                        val nestedModelClass = typeOf(nestedModelType, classLoader) ?: return@mapNotNull null
+                        NestedModelEntry(function.simpleName, ownerClass, nestedModelClass)
                     }
                     else -> emptyList()
                 }

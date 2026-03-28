@@ -30,6 +30,7 @@ interface DataProperty : Serializable {
     val hasDefaultValue: Boolean
     val isHiddenInDsl: Boolean
     val isDirectAccessOnly: Boolean
+    val metadata: List<SchemaItemMetadata>
 
     @ToolingModelContract(subTypes = [
         ReadWrite::class,
