@@ -28,10 +28,8 @@ import org.jspecify.annotations.NullMarked;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -122,17 +120,10 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     }
 
     @Override
-    public void store(HashCode key, IoConsumer<OutputStream> result) {
+    public void store(HashCode key, InputStream entry) {
         tempFileStore.withTempFile(key, file -> {
             try {
-                Closer closer = Closer.create();
-                try {
-                    result.accept(closer.register(new FileOutputStream(file)));
-                } catch (Exception e) {
-                    throw closer.rethrow(e);
-                } finally {
-                    closer.close();
-                }
+                FileUtils.copyInputStreamToFile(entry, file);
             } catch (IOException ex) {
                 throw UncheckedException.throwAsUncheckedException(ex);
             }

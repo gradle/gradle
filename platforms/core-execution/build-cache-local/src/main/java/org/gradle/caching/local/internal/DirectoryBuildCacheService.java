@@ -52,7 +52,12 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter result) throws BuildCacheException {
-        cache.store(((BuildCacheKeyInternal) key).getHashCodeInternal(), result::writeTo);
+        HashCode hash = ((BuildCacheKeyInternal) key).getHashCodeInternal();
+        try {
+            cache.store(hash, result.getInputStream());
+        } catch (IOException e) {
+            throw new BuildCacheException("storing " + key, e);
+        }
     }
 
     @Override

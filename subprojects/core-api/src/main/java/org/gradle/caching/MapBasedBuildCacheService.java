@@ -16,7 +16,7 @@
 
 package org.gradle.caching;
 
-import org.gradle.internal.io.StreamByteBuffer;
+import com.google.common.io.ByteStreams;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -50,13 +50,14 @@ public class MapBasedBuildCacheService implements BuildCacheService {
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter output) throws BuildCacheException {
-        StreamByteBuffer buffer = new StreamByteBuffer();
+        byte[] data;
         try {
-            output.writeTo(buffer.getOutputStream());
+            data = ByteStreams.toByteArray(output.getInputStream());
         } catch (IOException e) {
             throw new BuildCacheException("storing " + key, e);
         }
-        delegate.put(key.getHashCode(), buffer.readAsByteArray());
+
+        delegate.put(key.getHashCode(), data);
     }
 
     @Override
