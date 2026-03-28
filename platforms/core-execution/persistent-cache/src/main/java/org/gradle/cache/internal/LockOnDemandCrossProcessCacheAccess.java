@@ -44,6 +44,7 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
     private FileLock fileLock;
     private final CacheInitializationAction initAction;
     private FileLockReleasedSignal lockReleaseSignal;
+    private boolean closed;
 
     /**
      * Actions are notified when lock is opened or closed. Actions are called while holding state lock, so that no other threads are working with cache while these are running.
@@ -77,6 +78,7 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
             if (lockCount != 0) {
                 throw new IllegalStateException(String.format("Cannot close cache access for %s as it is currently in use for %s operations.", cacheDisplayName, lockCount));
             }
+            closed = true;
             releaseLockIfHeld();
         } finally {
             stateLock.unlock();
@@ -96,6 +98,9 @@ public class LockOnDemandCrossProcessCacheAccess extends AbstractCrossProcessCac
     private void incrementLockCount() {
         stateLock.lock();
         try {
+            if (closed) {
+                throw new IllegalStateException(String.format("Cannot acquire lock for %s as it has already been closed.", cacheDisplayName));
+            }
             if (fileLock == null) {
                 if (lockCount != 0) {
                     throw new IllegalStateException("Mismatched lock count.");

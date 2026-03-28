@@ -70,13 +70,17 @@ public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterE
     }
 
     @Override
+    @SuppressWarnings("FutureReturnValueIgnored")
     protected R executeMutable(MutableUnitOfWork work, C context) {
         if (work.shouldCleanupStaleOutputs()) {
             cleanupStaleOutputs(work, context);
         }
         R result = delegate.execute(work, context);
-        result.getAfterExecutionOutputState()
-            .ifPresent(afterExecutionState -> outputFilesRepository.recordOutputs(afterExecutionState.getOutputFilesProducedByWork().values()));
+        result.getAfterExecutionOutputStateFuture().thenAccept(optState ->
+            optState.ifPresent(afterExecutionState ->
+                outputFilesRepository.recordOutputs(afterExecutionState.getOutputFilesProducedByWork().values())
+            )
+        );
         return result;
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.history.ExecutionOutputState;
@@ -23,29 +24,45 @@ import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class AfterExecutionResult extends Result {
-    @Nullable
-    private final ExecutionOutputState afterExecutionOutputState;
+    private final CompletableFuture<Optional<ExecutionOutputState>> futureOutputState;
 
     public AfterExecutionResult(Duration duration, Try<Execution> execution, @Nullable ExecutionOutputState afterExecutionOutputState) {
         super(duration, execution);
-        this.afterExecutionOutputState = afterExecutionOutputState;
+        this.futureOutputState = CompletableFuture.completedFuture(Optional.ofNullable(afterExecutionOutputState));
     }
 
     public AfterExecutionResult(Result parent, @Nullable ExecutionOutputState afterExecutionOutputState) {
         super(parent);
-        this.afterExecutionOutputState = afterExecutionOutputState;
+        this.futureOutputState = CompletableFuture.completedFuture(Optional.ofNullable(afterExecutionOutputState));
+    }
+
+    public AfterExecutionResult(Result parent, CompletableFuture<Optional<ExecutionOutputState>> futureOutputState) {
+        super(parent);
+        this.futureOutputState = futureOutputState;
     }
 
     protected AfterExecutionResult(AfterExecutionResult parent) {
-        this(parent, parent.getAfterExecutionOutputState().orElse(null));
+        super(parent);
+        this.futureOutputState = parent.getAfterExecutionOutputStateFuture();
     }
 
     /**
      * State after execution, or {@link Optional#empty()} if work is untracked.
+     * Blocks until the state is available (snapshotting may happen asynchronously).
      */
+    @VisibleForTesting
     public Optional<ExecutionOutputState> getAfterExecutionOutputState() {
-        return Optional.ofNullable(afterExecutionOutputState);
+        return futureOutputState.join();
+    }
+
+    /**
+     * Future for the state after execution. Use for non-blocking chaining of post-execution work.
+     * The future completes with {@link Optional#empty()} if the work is untracked.
+     */
+    public CompletableFuture<Optional<ExecutionOutputState>> getAfterExecutionOutputStateFuture() {
+        return futureOutputState;
     }
 }

@@ -37,6 +37,7 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 
 import java.time.Duration
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -79,6 +80,7 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
             getOutcome() >> Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
         })
         getAfterExecutionOutputState() >> Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), originMetadata, false))
+        getAfterExecutionOutputStateFuture() >> CompletableFuture.completedFuture(Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), originMetadata, false)))
     }
 
     Map<Thread, Throwable> exceptions = [:]
