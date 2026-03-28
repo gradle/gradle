@@ -11,6 +11,7 @@ dependencies {
     api(projects.buildCachePackaging)
     api(projects.buildCacheSpi)
     api(projects.buildOperations)
+    api(projects.concurrent)
     api(projects.enterpriseOperations)
     api(projects.files)
     api(projects.hashing)
