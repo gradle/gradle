@@ -38,6 +38,8 @@ import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.Identity;
+
+import java.util.concurrent.CompletableFuture;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -101,7 +103,9 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
         FineGrainedCacheBuilder cacheBuilder = cacheBuilderFactory
             .createFineGrainedCacheBuilder(CacheLayout.TRANSFORMS.getName())
             .withDisplayName("Artifact transforms cache");
-        CrossBuildInMemoryCache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result.getResult().isSuccessful());
+        CrossBuildInMemoryCache<Identity, CompletableFuture<DeferredResult<TransformExecutionResult.TransformWorkspaceResult>>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(
+            future -> future.isDone() && !future.isCompletedExceptionally() && future.join().getResult().isSuccessful()
+        );
         CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory);
         return new ImmutableTransformWorkspaceServices() {
             @Override
@@ -110,7 +114,7 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
             }
 
             @Override
-            public Cache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
+            public Cache<Identity, CompletableFuture<DeferredResult<TransformExecutionResult.TransformWorkspaceResult>>> getIdentityCache() {
                 return identityCache;
             }
 
