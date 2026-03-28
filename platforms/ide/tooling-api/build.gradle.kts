@@ -21,6 +21,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.buildDiscoveryImpl)
+    implementation(projects.buildProcessServices)
     implementation(projects.functional)
     implementation(projects.logging)
     implementation(projects.serviceProvider)

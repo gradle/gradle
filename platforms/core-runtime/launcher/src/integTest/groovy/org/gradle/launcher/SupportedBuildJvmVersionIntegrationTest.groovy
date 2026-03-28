@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
+import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -46,6 +47,9 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         executer.withJvm(jdk)
 
         expect:
+        if (jdk.javaVersionMajor < SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION) {
+            executer.expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.getExpectedClientDeprecationWarning("CLI"))
+        }
         fails("help")
         failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(jdk.javaVersionMajor))
 
@@ -65,6 +69,9 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         executer.withJvm(unsupportedJdk)
 
         expect:
+        if (unsupportedJdk.javaVersionMajor < SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION) {
+            executer.expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.getExpectedClientDeprecationWarning("CLI"))
+        }
         fails(["help"] + (noDaemon ? ["--no-daemon"] : []))
         failure.assertHasErrorOutput(SupportedJavaVersionsExpectations.getMisconfiguredDaemonJavaVersionErrorMessage(unsupportedJdk.javaVersionMajor))
 

@@ -18,6 +18,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.SupportedJavaVersions
+import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -44,6 +46,9 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         """
 
         expect:
+        if (jdk.javaVersionMajor < SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION) {
+            wrapperExecuter.expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.getExpectedClientDeprecationWarning("CLI"))
+        }
         def wrapperResult = wrapperExecuter.withTasks("help").run()
         wrapperResult.assertOutputContains("Version: " + Jvm.current().javaVersion)
         wrapperResult.assertTaskScheduled(":help")

@@ -168,6 +168,13 @@ If you rely on seeing attributeless variants or configurations in these reports,
 
 === Deprecations
 
+[[minimum_client_jvm_version]]
+==== Running Gradle Clients on older JVMs
+
+Starting in Gradle 10.0.0, Gradle will require JVM 11 or later to run the CLI client and the Tooling API client.
+
+The Gradle Daemon already requires Java 17 to run, so this change will likely be transparent to most users.
+
 [[deprecate_exit_environment_var]]
 ==== Deprecation of setting an exit environment variable
 

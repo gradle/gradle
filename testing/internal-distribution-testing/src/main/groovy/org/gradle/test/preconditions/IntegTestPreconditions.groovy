@@ -176,6 +176,36 @@ class IntegTestPreconditions {
         }
     }
 
+    /**
+     * A JVM that is not able to run the Gradle client is available.
+     */
+    static class UnsupportedClientJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !AvailableJavaHomes.unsupportedClientJdks.isEmpty()
+        }
+    }
+
+    /**
+     * A JVM that can run the Gradle client, but will not be able to in the next major version, is available.
+     */
+    static class DeprecatedClientJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !AvailableJavaHomes.deprecatedClientJdks.isEmpty()
+        }
+    }
+
+    /**
+     * A JVM that can run the Gradle client, and will continue to be able to in the next major version, is available.
+     */
+    static class NonDeprecatedClientJavaHomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !AvailableJavaHomes.nonDeprecatedClientJdks.isEmpty()
+        }
+    }
+
     static class Java7HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {

@@ -15,6 +15,9 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -45,6 +48,22 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
     public DefaultGradleConnector(ConnectionFactory connectionFactory, DistributionFactory distributionFactory) {
         this.connectionFactory = connectionFactory;
         this.distributionFactory = distributionFactory;
+
+        int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
+        if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION) {
+            int currentMajorGradleVersion = GradleVersion.current().getMajorVersion();
+
+            // We do not use a DeprecationLogger here since it is not initialized in the client.
+            LOGGER.warn("Executing the Gradle Tooling API Client on JVM versions {} and lower has been deprecated. " +
+                    "This will fail with an error in Gradle {}. " +
+                    "Use JVM {} or greater to execute the Gradle Tooling API Client. " +
+                    "Consult the upgrading guide for further information: {}",
+                SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION - 1,
+                currentMajorGradleVersion + 1,
+                SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION,
+                new DocumentationRegistry().getDocumentationFor("upgrading_version_" + currentMajorGradleVersion, "minimum_client_jvm_version")
+            );
+        }
     }
 
     /**
