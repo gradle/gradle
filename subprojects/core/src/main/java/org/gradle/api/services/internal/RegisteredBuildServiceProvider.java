@@ -29,7 +29,6 @@ import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -101,7 +100,6 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         return serviceDetails.getParameters();
     }
 
-    @NullMarked
     @Override
     public Class<T> getType() {
         return serviceDetails.getImplementationType();
