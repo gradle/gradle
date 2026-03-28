@@ -48,6 +48,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.DirectoryStream;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,7 +61,6 @@ import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.RecursiveTask;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
  * Snapshots directories using a three-phase approach:
@@ -141,29 +141,27 @@ public class DirectorySnapshotter {
 
         ImmutableMap<String, FileSystemLocationSnapshot> snapshots = ImmutableMap.copyOf(previouslyKnownSnapshots);
 
-        // Phase 1: tree walk -> skeleton
-        DirectoryTreeInfo skeleton;
-        if (predicate == null) {
-            skeleton = forkJoinPool.invoke(
-                new TreeWalkTask(rootPath, EMPTY_SYMBOLIC_LINK_MAPPING, PersistentSet.of(), snapshots));
-        } else {
-            skeleton = new SequentialTreeWalker(predicate, snapshots, EMPTY_SYMBOLIC_LINK_MAPPING)
-                .walk(rootPath, new ArrayList<>(), new HashSet<>());
-        }
-
-        // Phase 2: parallel file hashing
-        List<FileToHash> allFiles = new ArrayList<>();
-        skeleton.collectAllFiles(allFiles);
-        if (!allFiles.isEmpty()) {
-            hashFiles(allFiles);
-        }
-
-        // Phase 3: build snapshot tree (in-memory)
-        DirectorySnapshot result = buildSnapshotFromSkeleton(skeleton, unfilteredSnapshotRecorder);
+        DirectoryTreeInfo skeleton = walkDirectory(rootPath, predicate, snapshots, EMPTY_SYMBOLIC_LINK_MAPPING);
+        DirectorySnapshot result = hashAndBuildSnapshot(skeleton, unfilteredSnapshotRecorder);
         if (!skeleton.hasFilteredDescendants()) {
             unfilteredSnapshotRecorder.accept(result);
         }
         return result;
+    }
+
+    // ---- Phase 1: Tree Walk dispatch ----
+
+    private DirectoryTreeInfo walkDirectory(
+        Path dir,
+        SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate,
+        ImmutableMap<String, ? extends FileSystemLocationSnapshot> snapshots,
+        SymbolicLinkMapping mapping
+    ) {
+        if (predicate == null) {
+            return forkJoinPool.invoke(new TreeWalker(dir, mapping, PersistentSet.of(), snapshots, null, null));
+        } else {
+            return new TreeWalker(dir, mapping, PersistentSet.of(), snapshots, predicate, new ArrayList<>()).compute();
+        }
     }
 
     // ---- Phase 2: File Hashing ----
@@ -181,6 +179,20 @@ public class DirectorySnapshotter {
         } else {
             forkJoinPool.invoke(new HashAllFilesTask(allFiles, 0, allFiles.size()));
         }
+    }
+
+    // ---- Phase 2 + 3: Hash files then build snapshot tree ----
+
+    private DirectorySnapshot hashAndBuildSnapshot(
+        DirectoryTreeInfo skeleton,
+        Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder
+    ) {
+        List<FileToHash> allFiles = new ArrayList<>();
+        skeleton.collectAllFiles(allFiles);
+        if (!allFiles.isEmpty()) {
+            hashFiles(allFiles);
+        }
+        return buildSnapshotFromSkeleton(skeleton, unfilteredSnapshotRecorder);
     }
 
     // ---- Phase 3: Snapshot Build ----
@@ -236,28 +248,13 @@ public class DirectorySnapshotter {
                 // Symlink to directory at root
                 try {
                     Path targetDir = file.toRealPath();
-                    SymbolicLinkMapping newMapping = EMPTY_SYMBOLIC_LINK_MAPPING.withNewMapping(
-                        file.toString(), targetDir.toString(), Collections.emptyList());
+                    SymbolicLinkMapping newMapping = EMPTY_SYMBOLIC_LINK_MAPPING.withNewMapping(file.toString(), targetDir.toString(), Collections.emptyList());
 
                     collector.recordVisitHierarchy();
-                    DirectoryTreeInfo skeleton;
-                    if (predicate == null) {
-                        skeleton = forkJoinPool.invoke(
-                            new TreeWalkTask(targetDir, newMapping, PersistentSet.of(), snapshots));
-                    } else {
-                        skeleton = new SequentialTreeWalker(predicate, snapshots, newMapping)
-                            .walk(targetDir, new ArrayList<>(), new HashSet<>());
-                    }
+                    DirectoryTreeInfo skeleton = walkDirectory(targetDir, predicate, snapshots, newMapping);
+                    DirectorySnapshot targetSnapshot = hashAndBuildSnapshot(skeleton, unfilteredSnapshotRecorder);
 
-                    List<FileToHash> allFiles = new ArrayList<>();
-                    skeleton.collectAllFiles(allFiles);
-                    if (!allFiles.isEmpty()) {
-                        hashFiles(allFiles);
-                    }
-
-                    DirectorySnapshot targetSnapshot = buildSnapshotFromSkeleton(skeleton, unfilteredSnapshotRecorder);
-                    DirectorySnapshot snapshotViaSymlink = new DirectorySnapshot(
-                        targetSnapshot.getAbsolutePath(), internedName,
+                    DirectorySnapshot snapshotViaSymlink = new DirectorySnapshot(targetSnapshot.getAbsolutePath(), internedName,
                         AccessType.VIA_SYMLINK, targetSnapshot.getHash(), targetSnapshot.getChildren());
 
                     if (!skeleton.hasFilteredDescendants()) {
@@ -325,10 +322,10 @@ public class DirectorySnapshotter {
         return new RegularFileSnapshot(internedAbsPath, internedName, hash, metadata);
     }
 
-    @SuppressWarnings("StreamResourceLeak")
-    private Stream<Path> listDirectoryChildren(Path dir) {
+    @SuppressWarnings("StreamResourceLeak") // Caller is responsible for closing via try-with-resources
+    private DirectoryStream<Path> listDirectoryChildren(Path dir) {
         try {
-            return Files.list(dir);
+            return Files.newDirectoryStream(dir);
         } catch (IOException e) {
             collector.recordVisitFileFailed();
             throw new UncheckedIOException(e);
@@ -357,20 +354,46 @@ public class DirectorySnapshotter {
         return stringInterner.intern(string);
     }
 
-    // ---- Phase 1 (Parallel): TreeWalkTask ----
+    // ---- Phase 1: Unified Tree Walker ----
+    //
+    // Handles both parallel (predicate == null) and sequential/filtered (predicate != null) tree walking.
+    // In parallel mode, subdirectories are forked as ForkJoinPool tasks and joined after iteration.
+    // In sequential mode, subdirectories are walked inline via direct compute() calls.
+    // The DeferredSubdir abstraction unifies the post-loop result collection for both modes.
 
-    private class TreeWalkTask extends RecursiveTask<DirectoryTreeInfo> {
+    private class TreeWalker extends RecursiveTask<DirectoryTreeInfo> {
         private final Path dir;
         private final SymbolicLinkMapping mapping;
         private final PersistentSet<String> parentDirPaths;
-        private final ImmutableMap<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots;
+        private final ImmutableMap<String, ? extends FileSystemLocationSnapshot> snapshots;
+        private final SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate;
+        @Nullable private final List<String> relativePathSegments;
 
-        TreeWalkTask(Path dir, SymbolicLinkMapping mapping, PersistentSet<String> parentDirPaths,
-                     ImmutableMap<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots) {
+        // Per-directory accumulation state, initialized in compute()
+        private PersistentSet<String> currentPaths;
+        private List<FileSystemLocationSnapshot> cachedChildren;
+        private List<FileToHash> filesToHash;
+        private List<DeferredSubdir> deferredSubdirs;
+        private boolean isFiltered;
+
+        TreeWalker(
+            Path dir,
+            SymbolicLinkMapping mapping,
+            PersistentSet<String> parentDirPaths,
+            ImmutableMap<String, ? extends FileSystemLocationSnapshot> snapshots,
+            SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate,
+            @Nullable List<String> relativePathSegments
+        ) {
             this.dir = dir;
             this.mapping = mapping;
             this.parentDirPaths = parentDirPaths;
-            this.previouslyKnownSnapshots = previouslyKnownSnapshots;
+            this.snapshots = snapshots;
+            this.predicate = predicate;
+            this.relativePathSegments = relativePathSegments;
+        }
+
+        private boolean isParallel() {
+            return predicate == null;
         }
 
         @Override
@@ -378,272 +401,196 @@ public class DirectorySnapshotter {
             String internedName = getInternedFileName(dir);
             String internedAbsPath = intern(mapping.remapAbsolutePath(dir));
 
-            FileSystemLocationSnapshot cached = previouslyKnownSnapshots.get(internedAbsPath);
-            if (cached instanceof DirectorySnapshot) {
-                return DirectoryTreeInfo.fullyCached(internedAbsPath, internedName, AccessType.DIRECT, (DirectorySnapshot) cached);
-            } else if (cached != null) {
-                throw new IllegalStateException("Expected a previously known directory snapshot at " + internedAbsPath + " but got " + cached);
+            // Directory-level cache reuse (only without predicate — filtered walks can't use it)
+            if (isParallel()) {
+                FileSystemLocationSnapshot cached = snapshots.get(internedAbsPath);
+                if (cached instanceof DirectorySnapshot) {
+                    return DirectoryTreeInfo.fullyCached(internedAbsPath, internedName, AccessType.DIRECT, (DirectorySnapshot) cached);
+                } else if (cached != null) {
+                    throw new IllegalStateException("Expected a previously known directory snapshot at " + internedAbsPath + " but got " + cached);
+                }
             }
 
-            PersistentSet<String> currentPaths = parentDirPaths.plus(dir.toString());
+            currentPaths = parentDirPaths.plus(dir.toString());
+            cachedChildren = new ArrayList<>();
+            filesToHash = new ArrayList<>();
+            deferredSubdirs = new ArrayList<>();
+            isFiltered = false;
 
-            List<FileSystemLocationSnapshot> cachedChildren = new ArrayList<>();
-            List<FileToHash> filesToHash = new ArrayList<>();
-            List<TreeWalkTask> forkedSubdirTasks = new ArrayList<>();
-            List<SymlinkDirEntry> forkedSymlinkDirTasks = new ArrayList<>();
-
-            try (Stream<Path> children = listDirectoryChildren(dir)) {
+            try (DirectoryStream<Path> children = listDirectoryChildren(dir)) {
                 collector.recordVisitDirectory();
-                children.forEach(child -> {
-                    try {
-                        BasicFileAttributes attrs = Files.readAttributes(child, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-                        String childName = getInternedFileName(child);
-
-                        if (attrs.isDirectory()) {
-                            if (!defaultExcludes.excludeDir(childName)) {
-                                TreeWalkTask task = new TreeWalkTask(child, mapping, currentPaths, previouslyKnownSnapshots);
-                                task.fork();
-                                forkedSubdirTasks.add(task);
-                            }
-                        } else if (attrs.isSymbolicLink()) {
-                            collector.recordVisitFile();
-                            BasicFileAttributes targetAttrs = readAttributesOfSymlinkTarget(child, attrs);
-                            if (targetAttrs.isDirectory()) {
-                                handleSymlinkDir(child, childName, currentPaths, forkedSymlinkDirTasks);
-                            } else if (!defaultExcludes.excludeFile(childName)) {
-                                addFileOrCached(child, childName, targetAttrs, AccessType.VIA_SYMLINK, cachedChildren, filesToHash);
-                            }
-                        } else {
-                            collector.recordVisitFile();
-                            if (!defaultExcludes.excludeFile(childName)) {
-                                addFileOrCached(child, childName, attrs, AccessType.DIRECT, cachedChildren, filesToHash);
-                            }
-                        }
-                    } catch (IOException e) {
-                        collector.recordVisitFileFailed();
-                        if (isNotFileSystemLoopException(e)) {
-                            throw new UncheckedIOException(e);
-                        }
-                    }
-                });
+                for (Path child : children) {
+                    processChild(child);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
 
+            // Collect deferred subdirectory results
             List<DirectoryTreeInfo> uncachedSubdirs = new ArrayList<>();
-            for (TreeWalkTask task : forkedSubdirTasks) {
-                DirectoryTreeInfo subdirInfo = task.join();
+            Set<DirectoryTreeInfo> filteredSubdirs = isParallel() ? Collections.emptySet() : new HashSet<>();
+            for (DeferredSubdir deferred : deferredSubdirs) {
+                DirectoryTreeInfo subdirInfo = deferred.resolve();
+                if (deferred.symlinkName != null) {
+                    subdirInfo.applySymlinkOverrides(deferred.symlinkName);
+                }
                 if (subdirInfo.cachedSnapshot != null) {
                     cachedChildren.add(subdirInfo.cachedSnapshot);
                 } else {
                     uncachedSubdirs.add(subdirInfo);
-                }
-            }
-            for (SymlinkDirEntry entry : forkedSymlinkDirTasks) {
-                DirectoryTreeInfo subdirInfo = entry.task.join();
-                subdirInfo.internedName = entry.symlinkName;
-                subdirInfo.accessType = AccessType.VIA_SYMLINK;
-                if (subdirInfo.cachedSnapshot != null) {
-                    DirectorySnapshot wrapped = new DirectorySnapshot(
-                        subdirInfo.cachedSnapshot.getAbsolutePath(), entry.symlinkName,
-                        AccessType.VIA_SYMLINK, subdirInfo.cachedSnapshot.getHash(),
-                        subdirInfo.cachedSnapshot.getChildren());
-                    cachedChildren.add(wrapped);
-                } else {
-                    uncachedSubdirs.add(subdirInfo);
-                }
-            }
-
-            return new DirectoryTreeInfo(internedAbsPath, internedName, AccessType.DIRECT,
-                cachedChildren, filesToHash, uncachedSubdirs);
-        }
-
-        private void handleSymlinkDir(Path child, String symlinkName, PersistentSet<String> currentPaths,
-                                       List<SymlinkDirEntry> forkedSymlinkDirTasks) {
-            try {
-                Path targetDir = child.toRealPath();
-                String targetDirString = targetDir.toString();
-                if (!currentPaths.contains(targetDirString)) {
-                    SymbolicLinkMapping newMapping = mapping.withNewMapping(
-                        child.toString(), targetDirString, Collections.emptyList());
-                    collector.recordVisitHierarchy();
-                    TreeWalkTask task = new TreeWalkTask(targetDir, newMapping, currentPaths, previouslyKnownSnapshots);
-                    task.fork();
-                    forkedSymlinkDirTasks.add(new SymlinkDirEntry(symlinkName, task));
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", child), e);
-            }
-        }
-
-        private void addFileOrCached(Path child, String childName, BasicFileAttributes attrs, AccessType accessType,
-                                      List<FileSystemLocationSnapshot> cachedChildren, List<FileToHash> filesToHash) {
-            String fileAbsPath = intern(mapping.remapAbsolutePath(child));
-            FileSystemLocationSnapshot cachedFile = previouslyKnownSnapshots.get(fileAbsPath);
-            if (cachedFile instanceof FileSystemLeafSnapshot) {
-                cachedChildren.add(cachedFile);
-            } else {
-                filesToHash.add(new FileToHash(child, childName, attrs, accessType, mapping, previouslyKnownSnapshots));
-            }
-        }
-    }
-
-    // ---- Phase 1 (Sequential): SequentialTreeWalker ----
-
-    private class SequentialTreeWalker {
-        private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
-        private final ImmutableMap<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots;
-        private final SymbolicLinkMapping rootMapping;
-
-        SequentialTreeWalker(
-            SnapshottingFilter.DirectoryWalkerPredicate predicate,
-            ImmutableMap<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots,
-            SymbolicLinkMapping rootMapping
-        ) {
-            this.predicate = predicate;
-            this.previouslyKnownSnapshots = previouslyKnownSnapshots;
-            this.rootMapping = rootMapping;
-        }
-
-        DirectoryTreeInfo walk(Path dir, List<String> relativePathSegments, Set<String> parentDirPaths) {
-            return walkWithMapping(dir, relativePathSegments, parentDirPaths, rootMapping);
-        }
-
-        private DirectoryTreeInfo walkWithMapping(Path dir, List<String> relativePathSegments, Set<String> parentDirPaths, SymbolicLinkMapping mapping) {
-            String internedName = getInternedFileName(dir);
-            String internedAbsPath = intern(mapping.remapAbsolutePath(dir));
-
-            // No directory-level cache reuse when predicate is present (existing behavior)
-
-            parentDirPaths.add(dir.toString());
-
-            List<FileSystemLocationSnapshot> cachedChildren = new ArrayList<>();
-            List<FileToHash> filesToHash = new ArrayList<>();
-            List<DirectoryTreeInfo> uncachedSubdirs = new ArrayList<>();
-            boolean isFiltered = false;
-            Set<DirectoryTreeInfo> filteredSubdirs = new HashSet<>();
-
-            try (Stream<Path> children = listDirectoryChildren(dir)) {
-                collector.recordVisitDirectory();
-                for (Path child : (Iterable<Path>) children::iterator) {
-                    try {
-                        BasicFileAttributes attrs = Files.readAttributes(child, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-                        String childName = getInternedFileName(child);
-
-                        if (attrs.isDirectory()) {
-                            Iterable<String> segments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
-                            if (shouldVisit(child, childName, true, segments, mapping)) {
-                                relativePathSegments.add(childName);
-                                DirectoryTreeInfo subdirInfo = walkWithMapping(child, relativePathSegments, parentDirPaths, mapping);
-                                uncachedSubdirs.add(subdirInfo);
-                                if (subdirInfo.isFiltered || subdirInfo.hasFilteredDescendants()) {
-                                    filteredSubdirs.add(subdirInfo);
-                                    isFiltered = true;
-                                }
-                                relativePathSegments.remove(relativePathSegments.size() - 1);
-                            } else {
-                                isFiltered = true;
-                            }
-                        } else if (attrs.isSymbolicLink()) {
-                            collector.recordVisitFile();
-                            BasicFileAttributes targetAttrs = readAttributesOfSymlinkTarget(child, attrs);
-                            if (targetAttrs.isDirectory()) {
-                                Iterable<String> segments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
-                                if (shouldVisit(child, childName, true, segments, mapping)) {
-                                    DirectoryTreeInfo symlinkInfo = handleSequentialSymlinkDir(
-                                        child, childName, relativePathSegments, parentDirPaths, mapping);
-                                    if (symlinkInfo != null) {
-                                        symlinkInfo.internedName = childName;
-                                        symlinkInfo.accessType = AccessType.VIA_SYMLINK;
-                                        uncachedSubdirs.add(symlinkInfo);
-                                        if (symlinkInfo.isFiltered || symlinkInfo.hasFilteredDescendants()) {
-                                            filteredSubdirs.add(symlinkInfo);
-                                            isFiltered = true;
-                                        }
-                                    }
-                                } else {
-                                    isFiltered = true;
-                                }
-                            } else {
-                                Iterable<String> segments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
-                                if (shouldVisit(child, childName, false, segments, mapping)) {
-                                    addSequentialFileOrCached(child, childName, targetAttrs, AccessType.VIA_SYMLINK, mapping, cachedChildren, filesToHash);
-                                } else {
-                                    isFiltered = true;
-                                }
-                            }
-                        } else {
-                            collector.recordVisitFile();
-                            Iterable<String> segments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
-                            if (shouldVisit(child, childName, false, segments, mapping)) {
-                                addSequentialFileOrCached(child, childName, attrs, AccessType.DIRECT, mapping, cachedChildren, filesToHash);
-                            } else {
-                                isFiltered = true;
-                            }
-                        }
-                    } catch (IOException e) {
-                        collector.recordVisitFileFailed();
-                        if (isNotFileSystemLoopException(e)) {
-                            String failedName = getInternedFileName(child);
-                            boolean isDirectory = Files.isDirectory(child);
-                            Iterable<String> segments = Iterables.concat(relativePathSegments, Collections.singleton(failedName));
-                            if (shouldVisit(child, failedName, isDirectory, segments, mapping)) {
-                                throw new UncheckedIOException(e);
-                            }
-                        }
+                    if (!isParallel() && subdirInfo.hasFilteredDescendants()) {
+                        filteredSubdirs.add(subdirInfo);
+                        isFiltered = true;
                     }
                 }
             }
 
-            parentDirPaths.remove(dir.toString());
-
-            DirectoryTreeInfo info = new DirectoryTreeInfo(internedAbsPath, internedName, AccessType.DIRECT,
-                cachedChildren, filesToHash, uncachedSubdirs);
+            DirectoryTreeInfo info = new DirectoryTreeInfo(internedAbsPath, internedName, AccessType.DIRECT, cachedChildren, filesToHash, uncachedSubdirs);
             info.isFiltered = isFiltered;
             info.filteredSubdirectories = filteredSubdirs;
             return info;
         }
 
+        private void processChild(Path child) {
+            try {
+                BasicFileAttributes attrs = Files.readAttributes(child, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+                String childName = getInternedFileName(child);
+                if (attrs.isDirectory()) {
+                    processDirectory(child, childName);
+                } else if (attrs.isSymbolicLink()) {
+                    processSymlink(child, childName, attrs);
+                } else {
+                    processFile(child, childName, attrs);
+                }
+            } catch (IOException e) {
+                collector.recordVisitFileFailed();
+                if (isNotFileSystemLoopException(e)) {
+                    if (isParallel()) {
+                        throw new UncheckedIOException(e);
+                    }
+                    String failedName = getInternedFileName(child);
+                    boolean isDirectory = Files.isDirectory(child);
+                    if (shouldVisit(child, failedName, isDirectory)) {
+                        throw new UncheckedIOException(e);
+                    }
+                }
+            }
+        }
+
+        private void processDirectory(Path child, String childName) {
+            if (shouldVisitDir(child, childName)) {
+                deferredSubdirs.add(scheduleSubdirWalk(child, childName));
+            } else if (!isParallel()) {
+                isFiltered = true;
+            }
+        }
+
+        private void processSymlink(Path child, String childName, BasicFileAttributes attrs) {
+            collector.recordVisitFile();
+            BasicFileAttributes targetAttrs = readAttributesOfSymlinkTarget(child, attrs);
+            if (targetAttrs.isDirectory()) {
+                if (shouldVisitDir(child, childName)) {
+                    DeferredSubdir symlinkSubdir = scheduleSymlinkDirWalk(child, childName);
+                    if (symlinkSubdir != null) {
+                        deferredSubdirs.add(symlinkSubdir);
+                    }
+                } else if (!isParallel()) {
+                    isFiltered = true;
+                }
+            } else {
+                if (shouldVisitFile(child, childName)) {
+                    addFileOrCached(child, childName, targetAttrs, AccessType.VIA_SYMLINK);
+                } else if (!isParallel()) {
+                    isFiltered = true;
+                }
+            }
+        }
+
+        private void processFile(Path child, String childName, BasicFileAttributes attrs) {
+            collector.recordVisitFile();
+            if (shouldVisitFile(child, childName)) {
+                addFileOrCached(child, childName, attrs, AccessType.DIRECT);
+            } else if (!isParallel()) {
+                isFiltered = true;
+            }
+        }
+
+        private DeferredSubdir scheduleSubdirWalk(Path child, String childName) {
+            if (isParallel()) {
+                TreeWalker task = new TreeWalker(child, mapping, currentPaths, snapshots, null, null);
+                task.fork();
+                return new DeferredSubdir(task, null);
+            } else {
+                relativePathSegments.add(childName);
+                DirectoryTreeInfo result = new TreeWalker(child, mapping, currentPaths, snapshots, predicate, relativePathSegments).compute();
+                relativePathSegments.remove(relativePathSegments.size() - 1);
+                return new DeferredSubdir(result, null);
+            }
+        }
+
         @Nullable
-        private DirectoryTreeInfo handleSequentialSymlinkDir(
-            Path symlinkPath, String childName, List<String> parentRelativeSegments,
-            Set<String> parentDirPaths, SymbolicLinkMapping mapping
-        ) {
+        private DeferredSubdir scheduleSymlinkDirWalk(Path symlinkPath, String childName) {
             try {
                 Path targetDir = symlinkPath.toRealPath();
                 String targetDirString = targetDir.toString();
-                if (!parentDirPaths.contains(targetDirString)) {
-                    Iterable<String> symlinkSegments = Iterables.concat(parentRelativeSegments, Collections.singleton(childName));
-                    SymbolicLinkMapping newMapping = mapping.withNewMapping(
-                        symlinkPath.toString(), targetDirString, symlinkSegments);
-                    collector.recordVisitHierarchy();
-                    return walkWithMapping(targetDir, new ArrayList<>(), parentDirPaths, newMapping);
+                if (currentPaths.contains(targetDirString)) {
+                    return null;
                 }
-                return null;
+
+                Iterable<String> symlinkSegments = isParallel()
+                    ? Collections.emptyList()
+                    : Iterables.concat(relativePathSegments, Collections.singleton(childName));
+                SymbolicLinkMapping newMapping = mapping.withNewMapping(
+                    symlinkPath.toString(), targetDirString, symlinkSegments);
+                collector.recordVisitHierarchy();
+
+                if (isParallel()) {
+                    TreeWalker task = new TreeWalker(targetDir, newMapping, currentPaths, snapshots, null, null);
+                    task.fork();
+                    return new DeferredSubdir(task, childName);
+                } else {
+                    DirectoryTreeInfo result = new TreeWalker(targetDir, newMapping, currentPaths, snapshots, predicate, new ArrayList<>()).compute();
+                    return new DeferredSubdir(result, childName);
+                }
             } catch (IOException e) {
                 throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", symlinkPath), e);
             }
         }
 
-        private void addSequentialFileOrCached(Path child, String childName, BasicFileAttributes attrs, AccessType accessType,
-                                                SymbolicLinkMapping mapping,
-                                                List<FileSystemLocationSnapshot> cachedChildren, List<FileToHash> filesToHash) {
+        private void addFileOrCached(Path child, String childName, BasicFileAttributes attrs, AccessType accessType) {
             String fileAbsPath = intern(mapping.remapAbsolutePath(child));
-            FileSystemLocationSnapshot cachedFile = previouslyKnownSnapshots.get(fileAbsPath);
+            FileSystemLocationSnapshot cachedFile = snapshots.get(fileAbsPath);
             if (cachedFile instanceof FileSystemLeafSnapshot) {
                 cachedChildren.add(cachedFile);
             } else {
-                filesToHash.add(new FileToHash(child, childName, attrs, accessType, mapping, previouslyKnownSnapshots));
+                filesToHash.add(new FileToHash(child, childName, attrs, accessType, mapping, snapshots));
             }
         }
 
-        private boolean shouldVisit(Path path, String internedName, boolean isDirectory, Iterable<String> segments, SymbolicLinkMapping mapping) {
-            if (isDirectory) {
-                if (defaultExcludes.excludeDir(internedName)) {
-                    return false;
-                }
-            } else if (defaultExcludes.excludeFile(internedName)) {
+        private boolean shouldVisitDir(Path child, String childName) {
+            if (defaultExcludes.excludeDir(childName)) {
                 return false;
             }
-            return predicate.test(path, internedName, isDirectory, mapping.getRemappedSegments(segments));
+            if (predicate != null) {
+                Iterable<String> segments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
+                return predicate.test(child, childName, true, mapping.getRemappedSegments(segments));
+            }
+            return true;
+        }
+
+        private boolean shouldVisitFile(Path child, String childName) {
+            if (defaultExcludes.excludeFile(childName)) {
+                return false;
+            }
+            if (predicate != null) {
+                Iterable<String> segments = Iterables.concat(relativePathSegments, Collections.singleton(childName));
+                return predicate.test(child, childName, false, mapping.getRemappedSegments(segments));
+            }
+            return true;
+        }
+
+        private boolean shouldVisit(Path child, String childName, boolean isDirectory) {
+            return isDirectory ? shouldVisitDir(child, childName) : shouldVisitFile(child, childName);
         }
     }
 
@@ -681,6 +628,34 @@ public class DirectorySnapshotter {
 
     // ---- Data structures ----
 
+    /**
+     * Wraps either a forked {@link TreeWalker} task (parallel mode) or an already-resolved
+     * {@link DirectoryTreeInfo} (sequential mode). Unifies the post-loop result collection.
+     */
+    private static class DeferredSubdir {
+        // Use RecursiveTask instead of TreeWalker to avoid JSpecify @Nullable restriction on non-static inner class types
+        @Nullable private final RecursiveTask<DirectoryTreeInfo> forkedTask;
+        @Nullable private final DirectoryTreeInfo resolvedResult;
+        @Nullable final String symlinkName;
+
+        DeferredSubdir(RecursiveTask<DirectoryTreeInfo> forkedTask, @Nullable String symlinkName) {
+            this.forkedTask = forkedTask;
+            this.resolvedResult = null;
+            this.symlinkName = symlinkName;
+        }
+
+        DeferredSubdir(DirectoryTreeInfo resolvedResult, @Nullable String symlinkName) {
+            this.forkedTask = null;
+            this.resolvedResult = resolvedResult;
+            this.symlinkName = symlinkName;
+        }
+
+        @SuppressWarnings("DataFlowIssue") // Exactly one of forkedTask/resolvedResult is always non-null
+        DirectoryTreeInfo resolve() {
+            return forkedTask != null ? forkedTask.join() : resolvedResult;
+        }
+    }
+
     private static class DirectoryTreeInfo {
         final String internedAbsPath;
         String internedName;
@@ -691,9 +666,9 @@ public class DirectorySnapshotter {
         final List<DirectoryTreeInfo> uncachedSubdirectories;
 
         // Non-null when this entire subtree was resolved from cache
-        final @Nullable DirectorySnapshot cachedSnapshot;
+        @Nullable DirectorySnapshot cachedSnapshot;
 
-        // Filtering state (set by SequentialTreeWalker only)
+        // Filtering state (set by sequential/filtered walks only)
         boolean isFiltered;
         Set<DirectoryTreeInfo> filteredSubdirectories = Collections.emptySet();
 
@@ -726,6 +701,17 @@ public class DirectorySnapshotter {
             return new DirectoryTreeInfo(internedAbsPath, internedName, accessType, snapshot);
         }
 
+        void applySymlinkOverrides(String symlinkName) {
+            internedName = symlinkName;
+            accessType = AccessType.VIA_SYMLINK;
+            if (cachedSnapshot != null) {
+                cachedSnapshot = new DirectorySnapshot(
+                    cachedSnapshot.getAbsolutePath(), symlinkName,
+                    AccessType.VIA_SYMLINK, cachedSnapshot.getHash(),
+                    cachedSnapshot.getChildren());
+            }
+        }
+
         void collectAllFiles(List<FileToHash> accumulator) {
             accumulator.addAll(filesToHash);
             for (DirectoryTreeInfo sub : uncachedSubdirectories) {
@@ -743,16 +729,6 @@ public class DirectorySnapshotter {
                 }
             }
             return false;
-        }
-    }
-
-    private static class SymlinkDirEntry {
-        final String symlinkName;
-        final TreeWalkTask task;
-
-        SymlinkDirEntry(String symlinkName, TreeWalkTask task) {
-            this.symlinkName = symlinkName;
-            this.task = task;
         }
     }
 
@@ -848,12 +824,10 @@ public class DirectorySnapshotter {
                     if (firstStar == -1) {
                         excludeFiles.add(defaultExclude);
                     } else {
-                        Predicate<String> start = firstStar == 0
-                            ? it -> true
-                            : new StartMatcher(defaultExclude.substring(0, firstStar));
-                        Predicate<String> end = firstStar == length - 1
-                            ? it -> true
-                            : new EndMatcher(defaultExclude.substring(firstStar + 1, length));
+                        String startStr = defaultExclude.substring(0, firstStar);
+                        String endStr = defaultExclude.substring(firstStar + 1, length);
+                        Predicate<String> start = firstStar == 0 ? it -> true : it -> it.startsWith(startStr);
+                        Predicate<String> end = firstStar == length - 1 ? it -> true : it -> it.endsWith(endStr);
                         excludeFileSpecs.add(start.and(end));
                     }
                 }
@@ -872,30 +846,5 @@ public class DirectorySnapshotter {
             return excludeFileNames.contains(name) || excludedFileNameSpec.test(name);
         }
 
-        private static class EndMatcher implements Predicate<String> {
-            private final String end;
-
-            EndMatcher(String end) {
-                this.end = end;
-            }
-
-            @Override
-            public boolean test(String element) {
-                return element.endsWith(end);
-            }
-        }
-
-        private static class StartMatcher implements Predicate<String> {
-            private final String start;
-
-            StartMatcher(String start) {
-                this.start = start;
-            }
-
-            @Override
-            public boolean test(String element) {
-                return element.startsWith(start);
-            }
-        }
     }
 }
