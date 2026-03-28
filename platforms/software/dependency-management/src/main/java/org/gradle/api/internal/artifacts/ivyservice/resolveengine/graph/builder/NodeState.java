@@ -851,7 +851,11 @@ public class NodeState implements DependencyGraphNode {
      */
     private void invalidateEndorsedStrictVersionsAndEnqueue() {
         this.staleEndorsedStrictVersions = true;
-        resolveState.onMoreSelected(this);
+        // Use onFewerSelected, placing this node at the front of the queue, so this node recomputes
+        // its endorsed strict versions before its children are processed. Children inherit from this
+        // node's endorsed strict versions, so processing this node first avoids wasted work where
+        // children compute with stale values and must be reprocessed.
+        resolveState.onFewerSelected(this);
     }
 
     @Override
