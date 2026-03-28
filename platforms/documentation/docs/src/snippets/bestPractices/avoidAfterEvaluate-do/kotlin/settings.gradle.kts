@@ -1,0 +1,1 @@
+rootProject.name = "avoid-after-evaluate-do"
