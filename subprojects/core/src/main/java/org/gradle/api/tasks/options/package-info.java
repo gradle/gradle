@@ -19,4 +19,7 @@
  *
  * @since 4.6
  */
+@NullMarked
 package org.gradle.api.tasks.options;
+
+import org.jspecify.annotations.NullMarked;

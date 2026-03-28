@@ -83,6 +83,17 @@ This is useful for running Gradle in automated environments such as CI pipelines
 
 See the [Non-interactive mode](userguide/command_line_interface.html#sec:non_interactive) section in the Gradle User Manual for more information.
 
+### More control over test filtering on the command line
+
+When running `--tests` filters on a task like `test` that spans multiple subprojects, Gradle previously failed the build if the task found no matching tests.
+You can now pass `--allow-no-matches` alongside `--tests` to allow the build to succeed when a filter matches no tests on a given `Test` task:
+
+`./gradlew test --tests "*FooTest*" --allow-no-matches`
+
+This is especially useful in multi-project builds where a filter is only expected to match tests in some subprojects.
+
+The default behavior (fail when no tests match) is unchanged.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 

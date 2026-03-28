@@ -61,9 +61,11 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.api.tasks.options.NoDisable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
@@ -691,7 +693,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     private boolean shouldFailOnNoMatchingTests() {
-        return patternFiltersSpecified() && filter.isFailOnNoMatchingTests();
+        return patternFiltersSpecified() && getAllowNoMatchingTests().map(allow -> !allow).getOrElse(filter.isFailOnNoMatchingTests());
     }
 
     boolean testsAreNotFiltered() {
@@ -792,6 +794,29 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     public TestFilter getFilter() {
         return filter;
     }
+
+    /**
+     * Whether to allow the task to succeed when a filter was configured but no tests matched.
+     * When not set, falls back to {@link TestFilter#isFailOnNoMatchingTests()} (default: fail).
+     *
+     * <p>
+     * If configured this takes precedence over {@link TestFilter#isFailOnNoMatchingTests()}.
+     * <p>
+     * The main use case for this property is the CLI: when running a generic test task with a
+     * filter (e.g. {@code --tests "*FooTest*"}) across a multi-project build, only some subprojects
+     * may have matching tests. Pass {@code --allow-no-matches} to avoid failing in those that don't.
+     * <p>
+     * The exposed CLI option is {@code --allow-no-matches}.
+     *
+     * @since 9.6.0
+     * @see TestFilter#isFailOnNoMatchingTests()
+     */
+    @Incubating
+    @Option(option = "allow-no-matches", description = "Allow the task to succeed when a filter was specified but no tests matched.")
+    @NoDisable
+    @Optional
+    @Input
+    public abstract Property<Boolean> getAllowNoMatchingTests();
 
     /**
      * Whether the task should fail if test sources are present, but no tests are discovered during test execution.  Defaults to true.

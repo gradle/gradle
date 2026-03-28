@@ -84,7 +84,11 @@ public class TaskOptionsGenerator {
             if (option instanceof InstanceOptionDescriptor) {
                 OptionElement optionElement = ((InstanceOptionDescriptor) option).getOptionElement();
                 if (optionElement instanceof BooleanOptionElement) {
-                    BooleanOptionElement oppositeOptionElement = BooleanOptionElement.oppositeOf((BooleanOptionElement) optionElement);
+                    BooleanOptionElement booleanOptionElement = (BooleanOptionElement) optionElement;
+                    if (!booleanOptionElement.isGenerateDisabledOption()) {
+                        continue;
+                    }
+                    BooleanOptionElement oppositeOptionElement = BooleanOptionElement.oppositeOf(booleanOptionElement);
                     String oppositeOptionName = oppositeOptionElement.getOptionName();
                     if (options.containsKey(oppositeOptionName)) {
                         LOGGER.warn("Opposite option '{}' in task {} was disabled for clashing with another option of same name", oppositeOptionName, target);
