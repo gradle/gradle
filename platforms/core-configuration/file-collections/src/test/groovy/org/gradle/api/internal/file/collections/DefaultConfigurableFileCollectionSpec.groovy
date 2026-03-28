@@ -2050,7 +2050,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/8755#issuecomment-2075260802")
-    def "self-referencing using minus operator leads to StackOverflowError"() {
+    def "self-referencing using minus operator throws an error"() {
         given:
         def file1 = new File("1")
         def file2 = new File("2")
@@ -2061,16 +2061,16 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         when:
         collection.setFrom(child1 - collection)
-        collection.files
 
         then:
-        thrown StackOverflowError
+        def e1 = thrown UnsupportedOperationException
+        e1.message == "ConfigurableFileCollection does not support self-referencing through the '-' operator or minus() method"
 
         when:
         collection.setFrom(collection - child1)
-        collection.files
 
         then:
-        thrown StackOverflowError
+        def e2 = thrown UnsupportedOperationException
+        e2.message == "ConfigurableFileCollection does not support self-referencing through the '-' operator or minus() method"
     }
 }
