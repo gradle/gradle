@@ -93,3 +93,15 @@ tasks.register("resolveSources", ResolveFiles) {
     }.files)
 }
 // end::variant-reselection[]
+
+// tag::pom-variant-reselection[]
+tasks.register("resolvePoms", ResolveFiles) {
+    files.from(configurations.runtimeClasspath.incoming.artifactView {
+        withVariantReselection()
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.METADATA))
+            attribute(MetadataFormat.METADATA_FORMAT_ATTRIBUTE, objects.named(MetadataFormat, MetadataFormat.MAVEN))
+        }
+    }.files)
+}
+// end::pom-variant-reselection[]
