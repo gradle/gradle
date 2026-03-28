@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan
 
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
@@ -34,7 +35,10 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.Factory
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -57,7 +61,10 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     def setup() {
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
+        def workerLeaseService = Stub(WorkerLeaseService) {
+            runAsIsolatedTask(_ as Factory) >> { Factory factory -> factory.create() }
+        }
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator, workerLeaseService, new TestBuildOperationExecutor(), Stub(ProjectStateRegistry), false)
     }
 
     Node priorityNode(Map<String, ?> options = [:]) {
