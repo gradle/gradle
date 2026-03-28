@@ -17,6 +17,7 @@
 package org.gradle.internal.properties.annotations;
 
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
@@ -42,9 +43,17 @@ public interface MissingPropertyAnnotationHandler {
             .id(TextUtil.screamingSnakeToKebabCase(missingAnnotation), "Missing annotation", GradleCoreProblemGroup.validation().property())
             .contextualLabel("is missing " + displayName)
             .documentedAt(userManual("validation_problems", missingAnnotation.toLowerCase(Locale.ROOT)))
-            .severity(ERROR)
-            .details("A property without annotation isn't considered during up-to-date checking")
-            .solution("Add " + displayName)
-            .solution("Mark it as @Internal");
+            .severity(ERROR);
+        if (annotationMetadata.isAnnotationPresent(Optional.class)) {
+            problem
+                .details("@Optional is a modifier annotation and has no effect without an input or output annotation")
+                .solution("@Optional requires a matching input or output annotation")
+                .solution("Replace @Optional with @Internal for ignoring this property");
+        } else {
+            problem
+                .details("Properties must be annotated so that Gradle knows how to handle them during up-to-date checking")
+                .solution("Add " + displayName)
+                .solution("Mark it as @Internal");
+        }
     });
 }
