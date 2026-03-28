@@ -32,8 +32,10 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
@@ -606,6 +608,72 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             set(newValue);
         } else {
             set((Iterable<? extends T>) null);
+        }
+    }
+
+    public Provider<C> plus(Object other) {
+        Collector<T> snapshotCollector = new ElementsFromCollectionProvider<>(Cast.uncheckedCast(shallowCopy()));
+        return Cast.uncheckedCast(newSupplierOf(snapshotCollector).plus(toCollector(other)));
+    }
+
+    public Provider<C> minus(Object other) {
+        ProviderInternal<C> snapshotProvider = shallowCopy();
+        CollectingSupplier<T, C> otherSupplier = newSupplierOf(toCollector(other));
+        return new CollectionMinusProvider(snapshotProvider, otherSupplier);
+    }
+
+    private Collector<T> toCollector(Object other) {
+        if (other instanceof Provider) {
+            ProviderInternal<?> provider = Providers.internal(Cast.uncheckedCast(other));
+            Class<?> type = provider.getType();
+            if (type != null && Iterable.class.isAssignableFrom(type)) {
+                return new ElementsFromCollectionProvider<>(Cast.uncheckedCast(provider));
+            }
+            return new ElementFromProvider<>(Cast.uncheckedCast(provider));
+        } else if (other instanceof Iterable) {
+            return new ElementsFromCollection<>(Cast.uncheckedCast(other));
+        } else if (other != null && other.getClass().isArray()) {
+            return new ElementsFromArray<>(Cast.uncheckedCast(other));
+        } else if (other != null) {
+            return new SingleElement<>(Cast.uncheckedCast(other));
+        }
+        throw new IllegalArgumentException("Cannot use null as a value for the '+' or '-' operator on a collection property");
+    }
+
+    private class CollectionMinusProvider extends AbstractMinimalProvider<C> {
+        private final ProviderInternal<? extends C> left;
+        private final ProviderInternal<? extends C> right;
+
+        CollectionMinusProvider(ProviderInternal<? extends C> left, ProviderInternal<? extends C> right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        protected Value<? extends C> calculateOwnValue(ValueConsumer consumer) {
+            Value<? extends C> leftValue = left.calculateValue(consumer);
+            if (leftValue.isMissing()) {
+                return leftValue.asType();
+            }
+            Value<? extends C> rightValue = right.calculateValue(consumer);
+            if (rightValue.isMissing()) {
+                return rightValue.asType();
+            }
+            Set<T> toRemove = new HashSet<>(rightValue.getWithoutSideEffect());
+            ImmutableCollection.Builder<T> builder = getCollectionFactory().get();
+            for (T element : leftValue.getWithoutSideEffect()) {
+                if (!toRemove.contains(element)) {
+                    builder.add(element);
+                }
+            }
+            C result = Cast.uncheckedNonnullCast(builder.build());
+            return Value.of(result).withSideEffect(SideEffect.fixedFrom(leftValue));
+        }
+
+        @Nullable
+        @Override
+        public Class<C> getType() {
+            return getCollectionType();
         }
     }
 }
