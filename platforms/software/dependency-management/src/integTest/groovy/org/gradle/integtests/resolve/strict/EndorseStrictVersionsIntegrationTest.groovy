@@ -218,7 +218,6 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                 dependsOn 'org:foo:2.0'
             }
             'org:foo:1.0'()
-            'org:foo:2.0'()
         }
 
         buildFile << """
@@ -249,9 +248,6 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
             'org:foo:1.0' {
                 expectGetMetadata()
                 expectGetArtifact()
-            }
-            'org:foo:2.0' {
-                expectGetMetadata()
             }
         }
         run ':checkDeps', ':dependencies'

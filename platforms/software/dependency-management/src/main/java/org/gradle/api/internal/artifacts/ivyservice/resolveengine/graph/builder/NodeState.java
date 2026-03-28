@@ -64,6 +64,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -135,16 +136,26 @@ public class NodeState implements DependencyGraphNode {
     private boolean visitedDependencies = false;
 
     /**
-     * True of {@link #ancestorsStrictVersions} needs to be recomputed and this node is in the queue.
-     */
-    private boolean staleAncestorsStrictVersions = true;
-
-    /**
-     * The transitive strict versions from inherited from parents. May need to be recomputed if
-     * {@link #staleAncestorsStrictVersions} is true, in which case, this node should be in the queue.
+     * The transitive strict versions inherited from parents, or null if the value is
+     * not yet known or has been invalidated. When nodes compute their ancestors strict
+     * versions via intersection of incoming edges, they skip edges from nodes with null
+     * ancestors strict versions. This is necessary to handle cycles in the graph. Without
+     * skipping, a cycle participant's stale value would be treated as authoritative during
+     * intersection, preventing new values from propagating through the cycle.
+     * <p>
+     * This is set to null when:
+     * <ul>
+     *   <li>The node is first created (not yet computed)</li>
+     *   <li>An incoming edge is added or removed (needs recomputation)</li>
+     *   <li>{@link #invalidateAncestorsStrictVersionsAndEnqueue()} is called</li>
+     * </ul>
+     * <p>
+     * This field is strictly enforced such that if a node's ancestors strict versions is
+     * null, all child nodes ancestors strict versions are null. This allows recursive
+     * invalidations to be efficiently implemented.
      */
     @VisibleForTesting
-    StrictVersionConstraints ancestorsStrictVersions = StrictVersionConstraints.EMPTY;
+    @Nullable StrictVersionConstraints ancestorsStrictVersions;
 
     /**
      * Our own strict version constraints, from the previous graph traversal.
@@ -317,15 +328,23 @@ public class NodeState implements DependencyGraphNode {
         }
 
         boolean sameAncestorsStrictVersions = true;
-        if (staleAncestorsStrictVersions ||
+        @Nullable StrictVersionConstraints previousAncestorsStrictVersions = this.ancestorsStrictVersions;
+        if (previousAncestorsStrictVersions == null ||
             // Our own strict versions contribute to our ancestors strict versions if our ancestor endorses us.
             (!sameOwnStrictVersions && Iterables.any(incomingEdges, edge -> edge.getDependencyMetadata().isEndorsingStrictVersions()))
         ) {
-            StrictVersionConstraints newAncestorsStrictVersions = collectAncestorsStrictVersions(incomingEdges, ownStrictVersions);
-            sameAncestorsStrictVersions = ancestorsStrictVersions.equals(newAncestorsStrictVersions);
+            @Nullable StrictVersionConstraints newAncestorsStrictVersions = collectAncestorsStrictVersions(incomingEdges, ownStrictVersions);
+            sameAncestorsStrictVersions = Objects.equals(newAncestorsStrictVersions, previousAncestorsStrictVersions);
             this.ancestorsStrictVersions = newAncestorsStrictVersions;
-            this.staleAncestorsStrictVersions = false;
         }
+
+        // ancestorsStrictVersions may still be null if all incoming edges have unsettled
+        // parents. In that case, use EMPTY as the effective value for downstream processing.
+        // We don't silence any selectors until we know the definitive inherited strict versions set.
+        // Once a parent settles, we will be re-enqueued and reprocess with the real value.
+        StrictVersionConstraints effectiveAncestorsStrictVersions = this.ancestorsStrictVersions != null
+            ? this.ancestorsStrictVersions
+            : StrictVersionConstraints.EMPTY;
 
         // Step 2: Given the changes made to this node, process any side effects.
 
@@ -349,7 +368,7 @@ public class NodeState implements DependencyGraphNode {
             // edges, which is confusing and potentially not desired).
             if (!sameFilteredEdges) {
                 removeOutgoingEdges();
-                visitOwners(ancestorsStrictVersions, discoveredEdges);
+                visitOwners(effectiveAncestorsStrictVersions, discoveredEdges);
             }
             return;
         }
@@ -370,7 +389,15 @@ public class NodeState implements DependencyGraphNode {
                 }
             }
 
-            if (!sameEndorsedStrictVersions || !sameAncestorsStrictVersions || !sameOwnStrictVersions) {
+            if (!sameEndorsedStrictVersions || !sameOwnStrictVersions ||
+                // Only invalidate children for ancestors strict version changes when the
+                // previous value was settled (non-null). When settling from null (first
+                // computation or after invalidation), children will pick up the new value
+                // when they are next processed. Invalidating children when settling from
+                // null would cause an infinite loop in cycles, as each settlement would
+                // re-invalidate cycle participants.
+                (previousAncestorsStrictVersions != null && !sameAncestorsStrictVersions)
+            ) {
                 // Our own, endorsed, and ancestors strict versions contribute to the
                 // ancestors strict versions of our children.
                 for (EdgeState outgoingEdge : outgoingEdges) {
@@ -383,19 +410,19 @@ public class NodeState implements DependencyGraphNode {
             if (!sameAncestorsStrictVersions) {
                 // Our strict versions changed. Update our outgoing edges with the new strict versions.
                 for (EdgeState outgoingEdge : outgoingEdges) {
-                    outgoingEdge.recomputeSelectorAndRequeueTargetNodes(ancestorsStrictVersions, discoveredEdges);
+                    outgoingEdge.recomputeSelectorAndRequeueTargetNodes(effectiveAncestorsStrictVersions, discoveredEdges);
                 }
             }
 
-            visitNewAndInvalidatedDependencies(ancestorsStrictVersions, discoveredEdges);
+            visitNewAndInvalidatedDependencies(effectiveAncestorsStrictVersions, discoveredEdges);
             return;
         }
 
         // If we have any prior state, clear it before doing a full visit.
         removeOutgoingEdges();
 
-        visitDependencies(ancestorsStrictVersions, discoveredEdges);
-        visitOwners(ancestorsStrictVersions, discoveredEdges);
+        visitDependencies(effectiveAncestorsStrictVersions, discoveredEdges);
+        visitOwners(effectiveAncestorsStrictVersions, discoveredEdges);
     }
 
     /**
@@ -721,7 +748,7 @@ public class NodeState implements DependencyGraphNode {
         if (!incomingEdges.contains(dependencyEdge)) {
             incomingEdges.add(dependencyEdge);
             staleAllExcludes = true;
-            staleAncestorsStrictVersions = true;
+            ancestorsStrictVersions = null;
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount++;
             }
@@ -734,7 +761,7 @@ public class NodeState implements DependencyGraphNode {
     void removeIncomingEdge(EdgeState dependencyEdge) {
         if (incomingEdges.remove(dependencyEdge)) {
             staleAllExcludes = true;
-            staleAncestorsStrictVersions = true;
+            ancestorsStrictVersions = null;
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount--;
             }
@@ -757,7 +784,7 @@ public class NodeState implements DependencyGraphNode {
         List<EdgeState> removedEdges = ImmutableList.copyOf(incomingEdges);
         incomingEdges.clear();
         staleAllExcludes = true;
-        staleAncestorsStrictVersions = true;
+        ancestorsStrictVersions = null;
         transitiveEdgeCount = 0;
 
         for (EdgeState incomingEdge : removedEdges) {
@@ -791,10 +818,31 @@ public class NodeState implements DependencyGraphNode {
 
     /**
      * Queue this node for traversal, marking that its ancestors strict versions must be recalculated.
+     * <p>
+     * This method recursively marks all descendants' ancestors strict versions as stale as well. This
+     * maintains the invariant that if a node's ancestors strict versions are stale, all descendants
+     * reachable through outgoing edges must also have stale ancestors strict versions. This invariant
+     * is required so that when a node computes its ancestors strict versions via intersection of incoming
+     * edges, it can skip edges from nodes with stale values rather than treating their outdated values as
+     * authoritative. Without this, cycles in the graph would prevent strict version changes from propagating.
+     * A stale cycle participant's old value would "block" new values during intersection.
+     * <p>
+     * The recursive push short-circuits on nodes already marked stale, guaranteeing termination
+     * on cyclic graphs and keeping the runtime cost proportional to the number of nodes.
      */
     void invalidateAncestorsStrictVersionsAndEnqueue() {
-        this.staleAncestorsStrictVersions = true;
+        if (this.ancestorsStrictVersions == null) {
+            // Already invalidated. By the invariant, all descendants are also invalidated.
+            return;
+        }
+
+        this.ancestorsStrictVersions = null;
         resolveState.onMoreSelected(this);
+        for (EdgeState outgoingEdge : outgoingEdges) {
+            for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
+                targetNode.invalidateAncestorsStrictVersionsAndEnqueue();
+            }
+        }
     }
 
 
@@ -971,7 +1019,7 @@ public class NodeState implements DependencyGraphNode {
      * versions coming from all incoming edges.
      */
     @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private static StrictVersionConstraints collectAncestorsStrictVersions(List<EdgeState> incomingEdges, StrictVersionConstraints ownStrictVersions) {
+    private static @Nullable StrictVersionConstraints collectAncestorsStrictVersions(List<EdgeState> incomingEdges, StrictVersionConstraints ownStrictVersions) {
         if (incomingEdges.isEmpty()) {
             return StrictVersionConstraints.EMPTY;
         }
@@ -990,25 +1038,40 @@ public class NodeState implements DependencyGraphNode {
             if (!dependencyEdge.getFrom().isSelected()) {
                 continue;
             }
-            StrictVersionConstraints allEdgeStrictVersions = getStrictVersionsForEdge(dependencyEdge, ownStrictVersions);
+            StrictVersionConstraints edgeStrictVersions = getStrictVersionsForEdge(dependencyEdge, ownStrictVersions);
+            if (edgeStrictVersions == null) {
+                // This incoming edge comes from a node whose ancestors strict versions are
+                // not yet settled. Skip it since it does not constrain the intersection. When the
+                // parent node settles, it will enqueue us for recomputation.
+                continue;
+            }
 
             ancestorsStrictVersions = ancestorsStrictVersions == null
-                ? allEdgeStrictVersions
-                : ancestorsStrictVersions.intersect(allEdgeStrictVersions);
+                ? edgeStrictVersions
+                : ancestorsStrictVersions.intersect(edgeStrictVersions);
 
             if (ancestorsStrictVersions == StrictVersionConstraints.EMPTY) {
                 // No need to continue. Empty intersected with anything is empty.
                 break;
             }
         }
-        return ancestorsStrictVersions != null ?  ancestorsStrictVersions : StrictVersionConstraints.EMPTY;
+        // If no settled edges were found, return null, remaining unsettled.
+        // Otherwise, return the intersection of settled edges.
+        return ancestorsStrictVersions;
     }
 
     /**
      * Determine the strict versions inherited through a given edge.
+     *
+     * @return the strict versions flowing through this edge, or null if the source
+     * node's ancestors strict versions are not yet settled.
      */
-    private static StrictVersionConstraints getStrictVersionsForEdge(EdgeState dependencyEdge, StrictVersionConstraints ownStrictVersions) {
+    private static @Nullable StrictVersionConstraints getStrictVersionsForEdge(EdgeState dependencyEdge, StrictVersionConstraints ownStrictVersions) {
         NodeState from = dependencyEdge.getFrom();
+
+        if (from.ancestorsStrictVersions == null) {
+            return null;
+        }
 
         // The strong strict versions of a node are those that are sourced from higher up
         // in the graph and therefore take precedence over endorsed strict versions.
