@@ -20,6 +20,10 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.WrapUtil
+import spock.lang.Issue
+
+import java.nio.file.Files
+import java.nio.file.LinkOption
 
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 
@@ -107,5 +111,23 @@ class DeleteTest extends AbstractConventionTaskTest {
         delete.getDidWork()
         !link.exists()
         keepTxt.exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15073")
+    @Requires(UnitTestPreconditions.Symlinks)
+    def "can delete broken symlinks"() {
+        given:
+        def link = new File(temporaryFolder.getTestDirectory(), "link")
+        fileSystem().createSymbolicLink(link, new File(temporaryFolder.getTestDirectory(), "non-existent-target"))
+
+        when:
+        delete.delete(link)
+        execute(delete)
+
+        then:
+        delete.getDidWork()
+        // java.io.File.exists() return false for symbolic links to nonexistent targets
+        // https://bugs.openjdk.org/browse/JDK-4956115
+        !Files.exists(link.toPath(), LinkOption.NOFOLLOW_LINKS)
     }
 }

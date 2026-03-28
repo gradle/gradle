@@ -19,6 +19,10 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import spock.lang.Issue
+
+import java.nio.file.Files
+import java.nio.file.LinkOption
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
@@ -99,6 +103,31 @@ abstract class DeleteIntegrationTest extends AbstractIntegrationSpec {
         assertFalse(keep.exists())
         assertFalse(remove.exists())
         assertFalse(link.exists())
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15073")
+    def "can delete broken symlinks"() {
+        given:
+        setupSymlinks()
+
+        and:
+        buildFile << '''
+            task delete(type: Delete) {
+                delete 'test/orig'
+                delete 'test/subject/link'
+                followSymlinks = false
+            }
+        '''
+
+        expect:
+        succeeds("delete")
+        assertFalse(orig.exists())
+        assertTrue(subject.exists())
+        assertFalse(keep.exists())
+        assertTrue(remove.exists())
+        // java.io.File.exists() return false for symbolic links to nonexistent targets
+        // https://bugs.openjdk.org/browse/JDK-4956115
+        assertFalse(Files.exists(link.toPath(), LinkOption.NOFOLLOW_LINKS))
     }
 
     protected void setupSymlinks() {
