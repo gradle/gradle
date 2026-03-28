@@ -466,20 +466,20 @@ baz:1.0 requested
         then:
         outputContains """
 testCompileClasspath
-   project :lib (apiElements)
+   project ':lib' (apiElements)
       org:dep:1.0 (compile)
-   project :tool (testFixturesApiElements)
-      project :tool (apiElements)
+   project ':tool' (testFixturesApiElements)
+      project ':tool' (apiElements)
          com:baz:1.0 (compile)
       com:foo:1.0 (compile)
 """
 
         and:
         outputContains """testRuntimeClasspath
-   project :lib (runtimeElements)
+   project ':lib' (runtimeElements)
       org:dep:1.0 (runtime)
-   project :tool (testFixturesRuntimeElements)
-      project :tool (runtimeElements)
+   project ':tool' (testFixturesRuntimeElements)
+      project ':tool' (runtimeElements)
          com:baz:1.0 (runtime)
       com:foo:1.0 (runtime)
       com:bar:1.0 (runtime)
@@ -565,21 +565,21 @@ testCompileClasspath
         then:
         outputContains("""
 testCompileClasspath
-   project :producer (apiElements)
+   project ':producer' (apiElements)
       org:baz:1.0 (compile)
-   project :producer (testFixturesApiElements)
-      project :producer (apiElements)
+   project ':producer' (testFixturesApiElements)
+      project ':producer' (apiElements)
       org:foo:1.0 (compile)
 """)
 
         and:
         outputContains("""
 testRuntimeClasspath
-   project :producer (runtimeElements)
+   project ':producer' (runtimeElements)
       org:baz:1.0 (runtime)
       org:gaz:1.0 (runtime)
-   project :producer (testFixturesRuntimeElements)
-      project :producer (runtimeElements)
+   project ':producer' (testFixturesRuntimeElements)
+      project ':producer' (runtimeElements)
       org:foo:1.0 (runtime)
       org:bar:1.0 (runtime)
       org:baz:1.0 (runtime)
@@ -589,6 +589,7 @@ testRuntimeClasspath
     def "reports if we try to get dependencies from a different variant"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         settingsFile << """
+            rootProject.name = 'test'
             include 'producer'
             dependencyResolutionManagement {
                 ${mavenTestRepository()}
@@ -619,7 +620,7 @@ testRuntimeClasspath
                 def rootComponent = result.map { it.root }
                 def allComponents = result.map { it.allComponents }
                 doLast {
-                    def childComponent = allComponents.get().find { it.toString() == 'project :producer' }
+                    def childComponent = allComponents.get().find { it.toString() == "project ':producer'" }
                     def childVariant = childComponent.variants[0]
                     // try to get dependencies for child variant on the wrong component
                     println(rootComponent.get().getDependenciesForVariant(childVariant))
@@ -631,7 +632,7 @@ testRuntimeClasspath
         fails 'resolve'
 
         then:
-        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'root project :'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
+        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'root project 'test''. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12643")

@@ -248,7 +248,7 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     String applyTransform(String transformName, String project = ":lib") {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "Transform lib.jar (project $project) with $transformName"
+            return "Transform lib.jar (project ${projectDisplayName(project)}) with $transformName"
         } else {
             return "Transform artifact lib.jar (project $project) with $transformName"
         }
@@ -256,9 +256,17 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     String transformTarget(String project = ":lib") {
         if (targetVersion.baseVersion >= GradleVersion.version("6.6")) {
-            return "lib.jar (project $project)"
+            return "lib.jar (project ${projectDisplayName(project)})"
         } else {
             return "artifact lib.jar (project $project)"
+        }
+    }
+
+    String projectDisplayName(String project) {
+        if (targetVersion.baseVersion >= GradleVersion.version("9.6")) {
+            return "'$project'"
+        } else {
+            return project
         }
     }
 

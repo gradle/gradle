@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
-import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -287,12 +286,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public DisplayName getDisplayName() {
-            Path identityPath = identity.getBuildTreePath();
-            if (identityPath.equals(Path.ROOT)) {
-                return Describables.withTypeAndName("root project", identity.getProjectName());
-            } else {
-                return Describables.withTypeAndName("project", identityPath.asString());
-            }
+            return identity;
         }
 
         @Override

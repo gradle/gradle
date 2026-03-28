@@ -672,9 +672,10 @@ class ResolveTestFixture {
 
         private NodeBuilder projectNode(String projectIdentityPath, String moduleVersion) {
             if (Objects.equals(Path.path(projectIdentityPath), Path.ROOT)) {
-                return node("project:$projectIdentityPath", "root project $projectIdentityPath", moduleVersion)
+                def projectName = moduleVersion.split(':')[1]
+                return node("project:$projectIdentityPath", "root project '$projectName'", moduleVersion)
             } else {
-                return node("project:$projectIdentityPath", "project $projectIdentityPath", moduleVersion)
+                return node("project:$projectIdentityPath", "project '$projectIdentityPath'", moduleVersion)
             }
         }
 

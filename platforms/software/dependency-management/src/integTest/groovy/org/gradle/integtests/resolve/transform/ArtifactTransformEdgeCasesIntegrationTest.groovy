@@ -27,6 +27,7 @@ import org.gradle.util.internal.ToBeImplemented
 class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
     def "multiple distinct transformation chains fails with a reasonable message"() {
         file("my-initial-file.txt") << "Contents"
+        settingsFile << "rootProject.name = 'test'"
 
         buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
@@ -129,7 +130,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
 
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project 'test'' with requested attributes:
        - color 'red'
        - matter 'liquid'
        - shape 'round'
@@ -238,6 +239,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
 
     def "multiple distinct transformation chains fails with a reasonable message with different transform types and non-corresponding from-to attribute pairs"() {
         file("my-initial-file.txt") << "Contents"
+        settingsFile << "rootProject.name = 'test'"
 
         buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
@@ -332,7 +334,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
 
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project 'test'' with requested attributes:
        - color 'red'
        - matter 'liquid'
        - shape 'round'
@@ -377,6 +379,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
 
     def "multiple identical attribute transformations of distinct types should fail"() {
         file("my-initial-file.txt") << "Contents"
+        settingsFile << "rootProject.name = 'test'"
 
         buildKotlinFile << """
             val color = Attribute.of("color", String::class.java)
@@ -451,7 +454,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         fails "forceResolution"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project 'test'' with requested attributes:
        - color 'red'
        - texture 'smooth'
      Found the following transformation chains:
@@ -700,7 +703,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':app:resolve'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':app:compileClasspath'.")
-        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:""")
+        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project ':lib'' with requested attributes:""")
         failure.assertHasResolution("Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.")
     }
 

@@ -284,7 +284,7 @@ empty=d
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.getMessage().contains("Dependency locking cannot be used for project :foo")
+        ex.getMessage().contains("Dependency locking cannot be used for project ':foo'")
     }
 
     def 'fails to read a legacy lockfile if root could not be determined'() {
@@ -297,7 +297,7 @@ empty=d
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.getMessage().contains("Dependency locking cannot be used for project :foo")
+        ex.getMessage().contains("Dependency locking cannot be used for project ':foo'")
     }
 
     def 'fails to write a unique lockfile if root could not be determined'() {
@@ -310,6 +310,6 @@ empty=d
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.getMessage().contains("Dependency locking cannot be used for project :foo")
+        ex.getMessage().contains("Dependency locking cannot be used for project ':foo'")
     }
 }

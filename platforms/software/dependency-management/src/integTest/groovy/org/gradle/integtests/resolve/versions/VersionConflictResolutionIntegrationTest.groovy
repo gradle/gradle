@@ -88,9 +88,9 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("""runtimeClasspath - Runtime classpath of source set 'main'.
-+--- project :api
++--- project ':api'
 |    \\--- org:foo:1.3.3 FAILED
-\\--- project :impl
+\\--- project ':impl'
      \\--- org:foo:1.4.4 FAILED""")
 
         when:

@@ -141,7 +141,7 @@ Required by:
                 def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
                 assert selectors.size() == 2
                 assert selectors[0].displayName == 'org.test:${dependencyName}:1.2'
-                assert selectors[1].displayName == 'project :${buildName}:a'
+                assert selectors[1].displayName == 'project \\':${buildName}:a\\''
                 assert selectors[1].buildPath == ':${buildName}'
                 assert selectors[1].projectPath == ':a'
             }

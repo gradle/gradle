@@ -80,7 +80,7 @@ repositories {
 
         when:
         fixture.requestComponent('MavenModule').requestArtifact('MavenPomArtifact')
-            .expectUnresolvedComponentResult(new IllegalArgumentException("Cannot query artifacts for a project component (root project :)."))
+            .expectUnresolvedComponentResult(new IllegalArgumentException("Cannot query artifacts for a project component (root project '${testDirectory.name}')."))
             .expectNoMetadataFiles()
             .createVerifyTaskForProjectComponentIdentifier()
 

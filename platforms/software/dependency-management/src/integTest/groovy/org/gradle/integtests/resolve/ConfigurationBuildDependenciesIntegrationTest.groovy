@@ -266,13 +266,13 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
-        failure.assertHasCause("""Unable to find a matching variant of project :child:
+        failure.assertHasCause("""Unable to find a matching variant of project ':child':
   - No variants exist.""")
 
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
-        failure.assertHasCause("""Unable to find a matching variant of project :child:
+        failure.assertHasCause("""Unable to find a matching variant of project ':child':
   - No variants exist.""")
 
         where:
@@ -303,12 +303,12 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
-        failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
+        failure.assertHasCause("More than one variant of project ':child' matches the consumer attributes:")
 
         fails("useCompileConfiguration")
         failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
-        failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
+        failure.assertHasCause("More than one variant of project ':child' matches the consumer attributes:")
 
         where:
         fluid << [true, false]

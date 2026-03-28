@@ -79,8 +79,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 2
-        output.count("artifacts: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), lib3.jar.txt (lib3.jar), lib4-1.0.jar.txt (org.test.foo:lib4:1.0)]") == 2
-        output.count("components: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts: [lib1.jar.txt (project ':lib'), lib2.jar.txt (project ':lib'), lib3.jar.txt (lib3.jar), lib4-1.0.jar.txt (org.test.foo:lib4:1.0)]") == 2
+        output.count("components: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
 
         output.count("Transformed") == 4
         isTransformed("lib1.jar", "lib1.jar.txt")
@@ -238,8 +238,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         succeeds ":util:resolve"
 
-        def transformationPosition1 = output.indexOf("> Transform lib1.jar (project :lib) with FileSizer")
-        def transformationPosition2 = output.indexOf("> Transform lib2.jar (project :lib) with FileSizer")
+        def transformationPosition1 = output.indexOf("> Transform lib1.jar (project ':lib') with FileSizer")
+        def transformationPosition2 = output.indexOf("> Transform lib2.jar (project ':lib') with FileSizer")
         def taskPosition = output.indexOf("> Task :util:resolve")
 
         then:
@@ -269,8 +269,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":util2:resolve"
 
         then:
-        output.count("> Transform lib1.jar (project :lib) with FileSizer") == 1
-        output.count("> Transform lib2.jar (project :lib) with FileSizer") == 1
+        output.count("> Transform lib1.jar (project ':lib') with FileSizer") == 1
+        output.count("> Transform lib2.jar (project ':lib') with FileSizer") == 1
     }
 
     def "scheduled chained transformation is only invoked once per subject"() {
@@ -369,12 +369,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         run ":app1:resolveRed", ":app2:resolveYellow"
 
         then:
-        output.count("> Transform lib1.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib1.jar (project :lib) with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib1.jar (project :lib) with MakeGreenToRedThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeGreenToRedThings") == 1
+        output.count("> Transform lib1.jar (project ':lib') with MakeBlueToGreenThings") == 1
+        output.count("> Transform lib2.jar (project ':lib') with MakeBlueToGreenThings") == 1
+        output.count("> Transform lib1.jar (project ':lib') with MakeGreenToYellowThings") == 1
+        output.count("> Transform lib2.jar (project ':lib') with MakeGreenToYellowThings") == 1
+        output.count("> Transform lib1.jar (project ':lib') with MakeGreenToRedThings") == 1
+        output.count("> Transform lib2.jar (project ':lib') with MakeGreenToRedThings") == 1
     }
 
     // This shows current behaviour, where the transform is executed even though the input artifact has not been created yet
@@ -563,11 +563,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         output.count("files 1: [lib1.jar.size, lib2.jar.size, lib3.jar.size, lib4-1.0.jar.size]") == 2
-        output.count("artifacts 1: [lib1.jar.size (project :lib), lib2.jar.size (project :lib), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 1: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 1: [lib1.jar.size (project ':lib'), lib2.jar.size (project ':lib'), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 1: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
         output.count("files 2: [lib1.jar.hash, lib2.jar.hash, lib3.jar.hash, lib4-1.0.jar.hash]") == 2
-        output.count("artifacts 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 2: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 2: [lib1.jar.hash (project ':lib'), lib2.jar.hash (project ':lib'), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 2: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
 
         output.count("Transformed") == 8
         isTransformed("lib1.jar", "lib1.jar.size")
@@ -873,11 +873,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         output.count("files 1: [lib1.jar.size, lib2.jar.size, lib3.jar.size, lib4-1.0.jar.size]") == 2
-        output.count("artifacts 1: [lib1.jar.size (project :lib), lib2.jar.size (project :lib), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 1: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 1: [lib1.jar.size (project ':lib'), lib2.jar.size (project ':lib'), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 1: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
         output.count("files 2: [lib1.jar.hash, lib2.jar.hash, lib3.jar.hash, lib4-1.0.jar.hash]") == 2
-        output.count("artifacts 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 2: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 2: [lib1.jar.hash (project ':lib'), lib2.jar.hash (project ':lib'), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 2: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
 
         output.count("Transformed") == 8
         isTransformed("lib1.jar", "lib1.jar.size")
@@ -908,8 +908,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
-        failure.assertHasCause("Failed to transform lib1.jar (project :lib) to match attributes {artifactType=size, usage=api}")
-        failure.assertHasCause("Failed to transform lib2.jar (project :lib) to match attributes {artifactType=size, usage=api}")
+        failure.assertHasCause("Failed to transform lib1.jar (project ':lib') to match attributes {artifactType=size, usage=api}")
+        failure.assertHasCause("Failed to transform lib2.jar (project ':lib') to match attributes {artifactType=size, usage=api}")
         def outputDir1 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
         def outputDir2 = gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt")
         def outputDir3 = gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt")
