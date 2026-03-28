@@ -22,6 +22,8 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -102,6 +104,14 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         return new ScheduledThreadPoolExecutor(fixedSize, newThreadFactory(displayName));
     }
 
+    @Override
+    public ManagedForkJoinPool createWorkStealingPool(String displayName) {
+        ForkJoinPool pool = (ForkJoinPool) Executors.newWorkStealingPool();
+        TrackedManagedForkJoinPool executor = new TrackedManagedForkJoinPool(pool, new ExecutorPolicy.CatchAndRecordFailures());
+        executors.add(executor);
+        return executor;
+    }
+
     private ThreadFactory newThreadFactory(String displayName) {
         return new ThreadFactoryImpl(displayName, threadFactoryContextClassloader);
     }
@@ -124,6 +134,29 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     private class TrackedScheduledManagedExecutor extends ManagedScheduledExecutorImpl {
         TrackedScheduledManagedExecutor(ScheduledExecutorService executor, ExecutorPolicy executorPolicy) {
             super(executor, executorPolicy);
+        }
+
+        @Override
+        public void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException {
+            try {
+                super.stop(timeoutValue, timeoutUnits);
+            } finally {
+                executors.remove(this);
+            }
+        }
+    }
+
+    private class TrackedManagedForkJoinPool extends ManagedExecutorImpl implements ManagedForkJoinPool {
+        private final ForkJoinPool forkJoinPool;
+
+        TrackedManagedForkJoinPool(ForkJoinPool pool, ExecutorPolicy executorPolicy) {
+            super(pool, executorPolicy);
+            this.forkJoinPool = pool;
+        }
+
+        @Override
+        public <T> T invoke(ForkJoinTask<T> task) {
+            return forkJoinPool.invoke(task);
         }
 
         @Override

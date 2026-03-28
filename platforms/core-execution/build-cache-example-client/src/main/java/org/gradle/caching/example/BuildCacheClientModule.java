@@ -478,7 +478,8 @@ class BuildCacheClientModule extends AbstractModule {
         Interner<String> stringInterner,
         FileMetadataAccessor stat,
         VirtualFileSystem virtualFileSystem,
-        DirectorySnapshotterStatistics.Collector statisticsCollector
+        DirectorySnapshotterStatistics.Collector statisticsCollector,
+        ExecutorFactory executorFactory
     ) {
         return new DefaultFileSystemAccess(
             fileHasher,
@@ -486,7 +487,8 @@ class BuildCacheClientModule extends AbstractModule {
             stat,
             virtualFileSystem,
             locations -> locations.forEach(System.out::println),
-            statisticsCollector
+            statisticsCollector,
+            executorFactory.createWorkStealingPool("Directory snapshotter")
         );
     }
 }

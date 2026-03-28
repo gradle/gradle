@@ -36,7 +36,7 @@ class DirectorySnapshotterStatisticsTest extends Specification {
 
     def fileHasher = new TestFileHasher()
     def statisticsCollector = Mock(DirectorySnapshotterStatistics.Collector)
-    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner(), [], statisticsCollector)
+    def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner(), [], statisticsCollector, new org.gradle.test.fixtures.ManagedForkJoinPoolStub())
 
     def "can visit missing file"() {
         when:

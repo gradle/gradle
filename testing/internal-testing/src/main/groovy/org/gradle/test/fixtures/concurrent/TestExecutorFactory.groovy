@@ -18,9 +18,12 @@ package org.gradle.test.fixtures.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.concurrent.ManagedForkJoinPool
 import org.gradle.internal.concurrent.ManagedScheduledExecutor
 import org.gradle.internal.concurrent.ManagedThreadPoolExecutor
 
+import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.ForkJoinTask
 import java.util.concurrent.TimeUnit
 
 class TestExecutorFactory implements ExecutorFactory {
@@ -49,5 +52,28 @@ class TestExecutorFactory implements ExecutorFactory {
     @Override
     ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
         throw new UnsupportedOperationException()
+    }
+
+    @Override
+    ManagedForkJoinPool createWorkStealingPool(String displayName) {
+        return new TestManagedForkJoinPool()
+    }
+
+    private static class TestManagedForkJoinPool extends TestManagedExecutor implements ManagedForkJoinPool {
+        private final ForkJoinPool pool = new ForkJoinPool()
+
+        TestManagedForkJoinPool() {
+            super(null)
+        }
+
+        @Override
+        <T> T invoke(ForkJoinTask<T> task) {
+            return pool.invoke(task)
+        }
+
+        @Override
+        void execute(Runnable command) {
+            pool.execute(command)
+        }
     }
 }

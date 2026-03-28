@@ -73,4 +73,13 @@ public interface ExecutorFactory {
      * @see java.util.concurrent.ScheduledExecutorService
      */
     ManagedScheduledExecutor createScheduled(String displayName, int fixedSize);
+
+    /**
+     * Creates a work-stealing executor backed by a {@link java.util.concurrent.ForkJoinPool}.
+     * Suitable for recursive task decomposition where parent tasks block on child results.
+     *
+     * @param displayName The display name for this executor. Used for logging and error messages.
+     * @return The executor.
+     */
+    ManagedForkJoinPool createWorkStealingPool(String displayName);
 }

@@ -17,6 +17,7 @@ package org.gradle.test.fixtures
 
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.concurrent.ManagedForkJoinPool
 import org.gradle.internal.concurrent.ManagedScheduledExecutor
 import org.gradle.internal.concurrent.ManagedThreadPoolExecutor
 import org.junit.rules.ExternalResource
@@ -27,6 +28,8 @@ import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
+import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.ForkJoinTask
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.Lock
@@ -133,6 +136,11 @@ class ConcurrentTestUtil extends ExternalResource {
             @Override
             ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
                 throw new UnsupportedOperationException()
+            }
+
+            @Override
+            ManagedForkJoinPool createWorkStealingPool(String displayName) {
+                return new ManagedForkJoinPoolStub()
             }
         }
     }
@@ -547,6 +555,30 @@ class ManagedExecutorStub extends AbstractExecutorService implements ManagedExec
     boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         throw new UnsupportedOperationException()
     }
+
+    @Override
+    void setKeepAlive(int timeout, TimeUnit timeUnit) {
+        throw new UnsupportedOperationException()
+    }
+}
+
+class ManagedForkJoinPoolStub extends AbstractExecutorService implements ManagedForkJoinPool {
+    private final ForkJoinPool pool = new ForkJoinPool()
+
+    @Override
+    <T> T invoke(ForkJoinTask<T> task) {
+        return pool.invoke(task)
+    }
+
+    void stop() { pool.shutdown() }
+    void stop(int timeoutValue, TimeUnit timeoutUnits) { pool.shutdown() }
+    void requestStop() { pool.shutdown() }
+    void execute(Runnable command) { pool.execute(command) }
+    void shutdown() { pool.shutdown() }
+    List<Runnable> shutdownNow() { return pool.shutdownNow() }
+    boolean isShutdown() { return pool.isShutdown() }
+    boolean isTerminated() { return pool.isTerminated() }
+    boolean awaitTermination(long timeout, TimeUnit unit) { return pool.awaitTermination(timeout, unit) }
 
     @Override
     void setKeepAlive(int timeout, TimeUnit timeUnit) {

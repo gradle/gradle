@@ -38,6 +38,8 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.gradle.internal.concurrent.ManagedForkJoinPool;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,6 +61,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
     private final Interner<String> stringInterner;
     private final WriteListener writeListener;
     private final DirectorySnapshotterStatistics.Collector statisticsCollector;
+    private final ManagedForkJoinPool forkJoinPool;
     private ImmutableList<String> defaultExcludes;
     private DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
@@ -71,14 +74,16 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         VirtualFileSystem virtualFileSystem,
         WriteListener writeListener,
         DirectorySnapshotterStatistics.Collector statisticsCollector,
+        ManagedForkJoinPool forkJoinPool,
         String... defaultExcludes
     ) {
         this.stringInterner = stringInterner;
         this.stat = stat;
         this.writeListener = writeListener;
         this.statisticsCollector = statisticsCollector;
+        this.forkJoinPool = forkJoinPool;
         this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
-        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes, statisticsCollector);
+        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes, statisticsCollector, forkJoinPool);
         this.hasher = hasher;
         this.virtualFileSystem = virtualFileSystem;
     }
@@ -238,7 +243,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         if (!defaultExcludes.equals(newDefaultExcludes)) {
             LOGGER.debug("Default excludes changes from {} to {}", defaultExcludes, newDefaultExcludes);
             defaultExcludes = newDefaultExcludes;
-            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes, statisticsCollector);
+            directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes, statisticsCollector, forkJoinPool);
             virtualFileSystem.invalidateAll();
         }
     }
