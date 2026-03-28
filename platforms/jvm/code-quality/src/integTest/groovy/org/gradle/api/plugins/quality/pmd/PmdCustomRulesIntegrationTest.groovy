@@ -56,6 +56,7 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
                 id "java-library"
             }
             pmd {
+                consoleOutput = true
                 toolVersion = '$version'
                 incrementalAnalysis = ${supportIncrementalAnalysis()}
             }
@@ -68,6 +69,42 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
         expect:
         fails(":pmdMain")
         errorOutput.contains("PMD rule violations were found")
+        output.contains("AvoidCatchingThrowable")
+    }
+
+    def "overrides default rules if custom rules are configured in pmdMain only"() {
+        given:
+        buildFile << """
+            plugins {
+                id "pmd"
+                id "java-library"
+            }
+
+            ${requiredSourceCompatibility()}
+
+            ${mavenCentralRepository()}
+
+            pmd {
+                toolVersion = '$version'
+                incrementalAnalysis = ${supportIncrementalAnalysis()}
+            }
+
+            pmdMain {
+                $customRuleSetConfig
+            }
+        """
+
+        file("src/main/java/org/gradle/ruleusing/Class1.java") << breakingDefaultRulesCode()
+        file("rules.xml") << customRuleSet()
+
+        expect:
+        succeeds(":pmdMain")
+
+        where:
+        customRuleSetConfig << [
+            'ruleSetConfig = resources.text.fromFile("rules.xml")',
+            'ruleSetFiles = files("rules.xml")'
+        ]
     }
 
     private static breakingDefaultRulesCode() {
@@ -79,7 +116,8 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
                 void foo() {
                    try {
                    } catch(Throwable t) {
-                       System.out.println("Rule from category/java/errorprone.xml: Should not call throwable");
+                       // AvoidCatchingThrowable: https://docs.pmd-code.org/latest/pmd_rules_java_errorprone.html#avoidcatchingthrowable
+                       System.out.println("Rule from category/java/errorprone.xml: Should not catch throwable");
                    }
                 }
             }
