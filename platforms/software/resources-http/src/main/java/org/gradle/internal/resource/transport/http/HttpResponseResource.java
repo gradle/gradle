@@ -24,10 +24,15 @@ import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class HttpResponseResource implements ExternalResourceReadResponse {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResponseResource.class);
@@ -80,31 +85,210 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
     private String getFilename() {
         String disposition = response.getHeader("Content-Disposition");
         if (disposition != null) {
-            // extracts file name from header field
-            int beginIndex = disposition.indexOf("filename=\"");
-            if (beginIndex > 0) {
-                int endIndex = disposition.indexOf(';', beginIndex + 11); // find the next semicolon
-                endIndex = endIndex < 0 ? disposition.length() : endIndex; // if no semicolon is found, then there is nothing else in the disposition
-                endIndex -= 1; // ignore the closing quotes
-                return disposition.substring(beginIndex + 10, endIndex);
-            }
-
-            beginIndex = disposition.indexOf("filename=");
-            if (beginIndex > 0) {
-                int endIndex = disposition.indexOf(';', beginIndex + 10); // find the next semicolon
-                endIndex = endIndex < 0 ? disposition.length() : endIndex; // if no semicolon is found, then there is nothing else in the disposition
-                return disposition.substring(beginIndex + 9, endIndex);
-            }
-        } else {
-            // extracts file name from URL
-            URI uri = response.getEffectiveUri() == null ? source : response.getEffectiveUri();
-            String sourceInStringForm = uri.toString();
-            int fileNameIndex = sourceInStringForm.lastIndexOf("/");
-            if (fileNameIndex >= 0) {
-                return sourceInStringForm.substring(fileNameIndex + 1);
+            String fromHeader = extractFilenameFromContentDisposition(disposition);
+            if (fromHeader != null && !fromHeader.isEmpty()) {
+                return fromHeader;
             }
         }
+
+        URI effectiveUri = response.getEffectiveUri() != null ? response.getEffectiveUri() : source;
+        return extractFilenameFromUri(effectiveUri);
+    }
+
+    private static String extractFilenameFromUri(URI uri) {
+        String path = uri.getPath();
+        if (path != null && !path.isEmpty()) {
+            int lastSlash = path.lastIndexOf('/');
+            String candidate = lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
+            if (!candidate.isEmpty()) {
+                return candidate;
+            }
+        }
+
+        String rawUri = uri.toString();
+        int lastSlash = rawUri.lastIndexOf('/');
+        if (lastSlash >= 0 && lastSlash + 1 < rawUri.length()) {
+            String candidate = rawUri.substring(lastSlash + 1);
+            int queryStart = candidate.indexOf('?');
+            if (queryStart >= 0) {
+                candidate = candidate.substring(0, queryStart);
+            }
+            int fragmentStart = candidate.indexOf('#');
+            if (fragmentStart >= 0) {
+                candidate = candidate.substring(0, fragmentStart);
+            }
+            if (!candidate.isEmpty()) {
+                return candidate;
+            }
+        }
+
         return null;
+    }
+
+    /**
+     * Parses the Content-Disposition header value to extract a filename.
+     * Supports both {@code filename} (RFC 2183) and {@code filename*} (RFC 5987) parameters,
+     * preferring {@code filename*} when both are present.
+     */
+    static String extractFilenameFromContentDisposition(String disposition) {
+        if (disposition == null) {
+            return null;
+        }
+
+        String filename = null;
+        String filenameStar = null;
+
+        for (String part : splitHeaderParameters(disposition)) {
+            String trimmedPart = part.trim();
+            if (trimmedPart.isEmpty()) {
+                continue;
+            }
+            int equalsIndex = trimmedPart.indexOf('=');
+            if (equalsIndex <= 0) {
+                continue;
+            }
+
+            String paramName = trimmedPart.substring(0, equalsIndex).trim().toLowerCase(Locale.ROOT);
+            String rawValue = trimmedPart.substring(equalsIndex + 1).trim();
+            String paramValue = unquoteAndUnescape(rawValue);
+
+            if ("filename*".equals(paramName)) {
+                String decoded = decodeRfc5987(paramValue);
+                if (decoded != null && !decoded.isEmpty()) {
+                    filenameStar = decoded;
+                }
+            } else if ("filename".equals(paramName)) {
+                if (paramValue != null && !paramValue.isEmpty()) {
+                    filename = paramValue;
+                }
+            }
+        }
+
+        return filenameStar != null ? filenameStar : filename;
+    }
+
+    /**
+     * Splits a header value on semicolons, respecting quoted strings.
+     */
+    private static List<String> splitHeaderParameters(String headerValue) {
+        List<String> parts = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inQuotes = false;
+        boolean escaped = false;
+
+        for (int i = 0; i < headerValue.length(); i++) {
+            char ch = headerValue.charAt(i);
+
+            if (escaped) {
+                current.append(ch);
+                escaped = false;
+                continue;
+            }
+
+            if (ch == '\\' && inQuotes) {
+                current.append(ch);
+                escaped = true;
+                continue;
+            }
+
+            if (ch == '"') {
+                inQuotes = !inQuotes;
+                current.append(ch);
+                continue;
+            }
+
+            if (ch == ';' && !inQuotes) {
+                parts.add(current.toString());
+                current.setLength(0);
+                continue;
+            }
+
+            current.append(ch);
+        }
+
+        parts.add(current.toString());
+        return parts;
+    }
+
+    /**
+     * Removes surrounding quotes and unescapes quoted-pairs (backslash-escaped characters).
+     */
+    private static String unquoteAndUnescape(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.length() < 2 || trimmed.charAt(0) != '"' || trimmed.charAt(trimmed.length() - 1) != '"') {
+            return trimmed;
+        }
+
+        String inner = trimmed.substring(1, trimmed.length() - 1);
+        StringBuilder result = new StringBuilder(inner.length());
+        boolean escaped = false;
+        for (int i = 0; i < inner.length(); i++) {
+            char ch = inner.charAt(i);
+            if (escaped) {
+                result.append(ch);
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else {
+                result.append(ch);
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Decodes an RFC 5987 encoded value: {@code charset'language'percent-encoded-value}.
+     */
+    private static String decodeRfc5987(String value) {
+        if (value == null) {
+            return null;
+        }
+        int firstQuote = value.indexOf('\'');
+        if (firstQuote < 0) {
+            return null;
+        }
+        int secondQuote = value.indexOf('\'', firstQuote + 1);
+        if (secondQuote < 0) {
+            return null;
+        }
+
+        String charsetName = value.substring(0, firstQuote).trim();
+        if (charsetName.isEmpty()) {
+            return null;
+        }
+
+        String encoded = value.substring(secondQuote + 1);
+        try {
+            byte[] bytes = percentDecodeToBytes(encoded);
+            return new String(bytes, Charset.forName(charsetName));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static byte[] percentDecodeToBytes(String input) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream(input.length());
+        for (int i = 0; i < input.length(); i++) {
+            char ch = input.charAt(i);
+            if (ch == '%') {
+                if (i + 2 >= input.length()) {
+                    throw new IllegalArgumentException("Incomplete percent-encoding at index " + i);
+                }
+                int high = Character.digit(input.charAt(i + 1), 16);
+                int low = Character.digit(input.charAt(i + 2), 16);
+                if (high < 0 || low < 0) {
+                    throw new IllegalArgumentException("Invalid percent-encoding at index " + i);
+                }
+                output.write((high << 4) + low);
+                i += 2;
+            } else {
+                output.write((byte) ch);
+            }
+        }
+        return output.toByteArray();
     }
 
     public long getContentLength() {

@@ -159,6 +159,44 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput(testPath)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37104")
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    def "toolchain download succeeds when server sends Content-Disposition attachment without filename"() {
+        given:
+        Assume.assumeFalse(JavaVersion.current() == JavaVersion.VERSION_11)
+
+        def jdkRepository = new JdkRepository(JavaVersion.VERSION_11)
+        def uri = jdkRepository.start()
+        jdkRepository.expectHead()
+        jdkRepository.expectGetWithContentDispositionAttachment()
+
+        executer
+            .requireOwnGradleUserHomeDir("needs to not have cached toolchains")
+            .withToolchainDownloadEnabled()
+
+        settingsFile << """
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        expect:
+        succeeds("compileJava")
+
+        cleanup:
+        jdkRepository.stop()
+    }
+
     def "custom toolchain registries are consulted in order"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(), DEFAULT_PLUGIN, NO_TOOLCHAIN_MANAGEMENT)}
