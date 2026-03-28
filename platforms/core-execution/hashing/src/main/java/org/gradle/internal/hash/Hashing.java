@@ -48,7 +48,14 @@ public class Hashing {
 
     private static final HashFunction SHA512 = MessageDigestHashFunction.of("SHA-512");
 
-    private static final HashFunction DEFAULT = MD5;
+    private static final HashFunction DEFAULT = new GuavaHashAdapter(com.google.common.hash.Hashing.murmur3_128());
+
+    /**
+     * Hash function used for hashing file content.
+     * Uses SHA-256 for hardware acceleration (SHA-NI on x86, SHA2 on ARM),
+     * truncated to 128 bits to maintain the compact {@link HashCode} representation.
+     */
+    private static final HashFunction FILE_CONTENT = DEFAULT;
 
     /**
      * Returns a new {@link Hasher} based on the default hashing implementation.
@@ -62,6 +69,14 @@ public class Hashing {
      */
     public static PrimitiveHasher newPrimitiveHasher() {
         return DEFAULT.newPrimitiveHasher();
+    }
+
+    /**
+     * Returns a new {@link PrimitiveHasher} optimized for hashing file content.
+     * Uses SHA-256 (hardware-accelerated when available) truncated to 128 bits.
+     */
+    public static PrimitiveHasher newFileContentPrimitiveHasher() {
+        return new TruncatingPrimitiveHasher(FILE_CONTENT.newPrimitiveHasher(), 16);
     }
 
     /**
@@ -363,6 +378,70 @@ public class Hashing {
         }
     }
 
+    private static class TruncatingPrimitiveHasher implements PrimitiveHasher {
+        private final PrimitiveHasher delegate;
+        private final int truncatedLength;
+
+        TruncatingPrimitiveHasher(PrimitiveHasher delegate, int truncatedLength) {
+            this.delegate = delegate;
+            this.truncatedLength = truncatedLength;
+        }
+
+        @Override
+        public void putByte(byte b) {
+            delegate.putByte(b);
+        }
+
+        @Override
+        public void putBytes(byte[] bytes) {
+            delegate.putBytes(bytes);
+        }
+
+        @Override
+        public void putBytes(byte[] bytes, int off, int len) {
+            delegate.putBytes(bytes, off, len);
+        }
+
+        @Override
+        public void putInt(int value) {
+            delegate.putInt(value);
+        }
+
+        @Override
+        public void putLong(long value) {
+            delegate.putLong(value);
+        }
+
+        @Override
+        public void putDouble(double value) {
+            delegate.putDouble(value);
+        }
+
+        @Override
+        public void putBoolean(boolean value) {
+            delegate.putBoolean(value);
+        }
+
+        @Override
+        public void putString(CharSequence value) {
+            delegate.putString(value);
+        }
+
+        @Override
+        public void putHash(HashCode hashCode) {
+            delegate.putHash(hashCode);
+        }
+
+        @Override
+        public HashCode hash() {
+            HashCode fullHash = delegate.hash();
+            if (fullHash.length() <= truncatedLength) {
+                return fullHash;
+            }
+            return HashCode.fromBytesPrefix(fullHash.bytes(), truncatedLength);
+        }
+    }
+
     private static class DefaultHasher implements Hasher {
         private final PrimitiveHasher hasher;
 
@@ -437,6 +516,121 @@ public class Hashing {
         @Override
         public HashCode hash() {
             return hasher.hash();
+        }
+    }
+
+    private static class GuavaHashAdapter implements HashFunction {
+        private final com.google.common.hash.HashFunction delegate;
+
+        public GuavaHashAdapter(com.google.common.hash.HashFunction delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public PrimitiveHasher newPrimitiveHasher() {
+            return new GuavaPrimitiveHasherAdapter(delegate.newHasher());
+        }
+
+        @Override
+        public Hasher newHasher() {
+            return new DefaultHasher(newPrimitiveHasher());
+        }
+
+        @Override
+        public HashCode hashBytes(byte[] bytes) {
+            return HashCode.fromBytes(delegate.hashBytes(bytes).asBytes(), SAFE_TO_REUSE_BYTES);
+        }
+
+        @Override
+        public HashCode hashString(CharSequence string) {
+            return HashCode.fromBytes(delegate.hashString(string, StandardCharsets.UTF_8).asBytes(), SAFE_TO_REUSE_BYTES);
+        }
+
+        @Override
+        public HashCode hashStream(InputStream stream) throws IOException {
+            // Optimized low-allocation stream hashing
+            com.google.common.hash.Hasher hasher = delegate.newHasher();
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = stream.read(buffer)) != -1) {
+                hasher.putBytes(buffer, 0, bytesRead);
+            }
+            return HashCode.fromBytes(hasher.hash().asBytes(), SAFE_TO_REUSE_BYTES);
+        }
+
+        @Override
+        public HashCode hashFile(File file) throws IOException {
+            try (InputStream stream = java.nio.file.Files.newInputStream(file.toPath())) {
+                return hashStream(stream);
+            }
+        }
+
+        @Override
+        public int getHexDigits() {
+            return delegate.bits() / 4;
+        }
+
+        @Override
+        public String getAlgorithm() {
+            return "Murmur3-128";
+        }
+    }
+
+    private static class GuavaPrimitiveHasherAdapter implements PrimitiveHasher {
+        private final com.google.common.hash.Hasher delegate;
+
+        public GuavaPrimitiveHasherAdapter(com.google.common.hash.Hasher delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void putByte(byte b) {
+            delegate.putByte(b);
+        }
+
+        @Override
+        public void putBytes(byte[] bytes) {
+            delegate.putBytes(bytes);
+        }
+
+        @Override
+        public void putBytes(byte[] bytes, int off, int len) {
+            delegate.putBytes(bytes, off, len);
+        }
+
+        @Override
+        public void putInt(int value) {
+            delegate.putInt(value);
+        }
+
+        @Override
+        public void putLong(long value) {
+            delegate.putLong(value);
+        }
+
+        @Override
+        public void putDouble(double value) {
+            delegate.putDouble(value);
+        }
+
+        @Override
+        public void putBoolean(boolean value) {
+            delegate.putBoolean(value);
+        }
+
+        @Override
+        public void putString(CharSequence value) {
+            delegate.putString(value, StandardCharsets.UTF_8);
+        }
+
+        @Override
+        public void putHash(HashCode hashCode) {
+            hashCode.appendToHasher(this);
+        }
+
+        @Override
+        public HashCode hash() {
+            return HashCode.fromBytes(delegate.hash().asBytes(), SAFE_TO_REUSE_BYTES);
         }
     }
 }
