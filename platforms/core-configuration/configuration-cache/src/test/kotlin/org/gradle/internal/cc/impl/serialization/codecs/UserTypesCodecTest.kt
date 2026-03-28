@@ -38,6 +38,28 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
         )
     }
 
+    class Bar(val barString: String) {
+        var foo: Foo? = null
+    }
+
+    class Foo(val fooString: String) {
+        var bar: Bar? = null
+    }
+
+    @Test
+    fun `can handle circular bean references`() {
+        val foo = Foo("fooString")
+        val bar = Bar("barString")
+        foo.bar = bar
+        bar.foo = foo
+
+        val readFoo = configurationCacheRoundtripOf(foo)
+
+        assertThat(readFoo.fooString, equalTo("fooString"))
+        assertThat(readFoo.bar!!.barString, equalTo("barString"))
+        assertThat(readFoo.bar!!.foo, sameInstance(readFoo))
+    }
+
     @Test
     fun `internal types codec leaves not implemented trace for unsupported types`() {
 
