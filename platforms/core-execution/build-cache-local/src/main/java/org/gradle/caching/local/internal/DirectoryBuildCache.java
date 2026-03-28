@@ -19,6 +19,7 @@ package org.gradle.caching.local.internal;
 import com.google.common.io.Closer;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
@@ -37,8 +38,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 
 @NullMarked
@@ -48,7 +47,7 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
     private final BuildCacheTempFileStore tempFileStore;
     private final FileAccessTracker fileAccessTracker;
     private final String failedFileSuffix;
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ProducerGuard<HashCode> lock = ProducerGuard.adaptive();
 
     public DirectoryBuildCache(PersistentCache persistentCache, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.persistentCache = persistentCache;
@@ -90,12 +89,10 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
         // We need to lock other processes out here because garbage collection can be under way in another process
         persistentCache.withFileLock(() -> {
             // Additional locking necessary because of https://github.com/gradle/gradle/issues/3537
-            lock.readLock().lock();
-            try {
+            lock.guardByKey(key, () -> {
                 loadInsideLock(key, reader);
-            } finally {
-                lock.readLock().unlock();
-            }
+                return null;
+            });
         });
     }
 
@@ -146,12 +143,10 @@ public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, 
         // We need to lock other processes out here because garbage collection can be under way in another process
         persistentCache.withFileLock(() -> {
             // Additional locking necessary because of https://github.com/gradle/gradle/issues/3537
-            lock.writeLock().lock();
-            try {
+            lock.guardByKey(key, () -> {
                 storeInsideLock(key, file);
-            } finally {
-                lock.writeLock().unlock();
-            }
+                return null;
+            });
         });
     }
 
