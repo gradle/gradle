@@ -27,7 +27,7 @@ class ExecutionResultExecTaskIntegrationTest extends AbstractExecutionResultExec
         buildFile.text = """
             apply plugin: "java"
 
-            task run(type: Exec) {
+            def run = tasks.register("run", Exec) {
                 dependsOn(compileJava)
                 executable = ${Jvm.canonicalName}.current().javaExecutable
                 args '-cp', project.layout.files(compileJava).asPath, 'driver.Driver', "1"
@@ -60,11 +60,6 @@ class ExecutionResultExecTaskIntegrationTest extends AbstractExecutionResultExec
         """)
     }
 
-    @Override
-    protected String getTaskNameUnderTest() {
-        return "run"
-    }
-
     private static String mainClass(String body) {
         return """
             package driver;
@@ -78,10 +73,5 @@ class ExecutionResultExecTaskIntegrationTest extends AbstractExecutionResultExec
                 }
             }
         """
-    }
-
-    @Override
-    protected String getExecResultDsl() {
-        return "${taskUnderTestDsl}.executionResult.getOrNull()"
     }
 }
