@@ -23,7 +23,13 @@ import org.gradle.internal.Describables;
 import javax.inject.Inject;
 
 public abstract class DefaultSingleFileReport extends SimpleReport implements SingleFileReport {
-
+    /**
+     * Creates a single file report.
+     *
+     * @param name The name of the report
+     * @param owner A {@link Describable} that describes the container that contains and owns this report,
+     *   not necessarily the owner itself, only used for naming purposes
+     */
     @Inject
     public DefaultSingleFileReport(String name, Describable owner) {
         super(name, Describables.of(name, "report for", owner), OutputType.FILE);
