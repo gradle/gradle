@@ -81,6 +81,22 @@ include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolu
 When this API is used, the attributes used for variant reselection are specified solely by the `ArtifactView.getAttributes()` method.
 The graph resolution attributes specified on the configuration are completely ignored during variant reselection.
 
+=== Resolving POM files
+
+Similarly, you can use variant reselection to resolve the POM metadata files for all dependencies.
+For external Maven modules without Gradle Module Metadata, Gradle derives a `metadata` variant containing the module's POM file and its parent POM chain.
+
+NOTE: This example uses incubating APIs.
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=pom-variant-reselection]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=pom-variant-reselection]"]
+====
+
+The resolved files include both direct and transitive dependency POM files, as well as any parent POMs referenced in the POM hierarchy.
+
+NOTE: The POM variant is only available for Maven modules that do not publish Gradle Module Metadata.
+
 == 2. Performing lenient artifact selection and resolution
 
 The `ArtifactView` API can also be used to perform lenient artifact resolution.
