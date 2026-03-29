@@ -23,8 +23,6 @@ import org.gradle.api.artifacts.ComponentVariantIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
@@ -36,7 +34,6 @@ import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -84,35 +81,19 @@ public class CapabilityConflictResolver {
         // If there is only one candidate at the beginning of conflict resolution, select that candidate.
         if (nodes.size() == 1) {
             NodeState onlyNode = nodes.iterator().next();
-            onlyNode.getComponent().getModule().changeSelection(onlyNode.getComponent());
+            onlyNode.resolveCapabilityConflict(onlyNode);
             return;
         }
 
         ImmutableList<Candidate> candidates = discoverCandidates(group, name, nodes);
         SelectedCandidate winner = findSelectedCandidate(group, name, candidates);
         if (winner != null) {
-            // Evict any node from the same component as the selected node, so we make sure to attach
-            // edges to the winning node instead.
-            for (Candidate candidate : candidates) {
-                if (candidate.node.getComponent().getComponentId().equals(winner.node.getComponent().getComponentId())) {
-                    if (candidate.node != winner.node) {
-                        candidate.node.replaceWith(winner.node);
-                    }
-                }
-            }
-
-            // Visit the winning module first so that when we visit unattached dependencies of
-            // losing modules, the winning module always has a selected component.
-            Set<ModuleResolveState> seen = new HashSet<>();
-            ModuleResolveState winningModule = winner.node.getComponent().getModule();
-            winningModule.changeSelection(winner.node.getComponent());
+            winner.node.resolveCapabilityConflict(winner.node);
             winner.node.getComponent().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(winner.reason));
-            seen.add(winningModule);
 
             for (Candidate losingCandidate : candidates) {
-                ModuleResolveState losingModule = losingCandidate.node.getComponent().getModule();
-                if (seen.add(losingModule)) {
-                    losingModule.changeSelection(winner.node.getComponent());
+                if (losingCandidate.node != winner.node) {
+                    losingCandidate.node.resolveCapabilityConflict(winner.node);
                 }
             }
         } else {
@@ -122,9 +103,7 @@ public class CapabilityConflictResolver {
                     .filter(node -> node != candidate.node)
                     .collect(Collectors.toSet());
 
-                ComponentState component = candidate.node.getComponent();
-                component.rejectForCapabilityConflict(candidate.capability, conflictedNodes);
-                component.getModule().changeSelection(component);
+                candidate.node.rejectForCapabilityConflict(candidate.capability, conflictedNodes);
             }
         }
     }

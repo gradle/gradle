@@ -112,7 +112,7 @@ class DependencyGraphBuilderTest extends Specification {
                 args[0].run()
             }
         }
-        runAll(_) >> { args ->
+        runAll(_, _) >> { args ->
             args[0].execute(queue)
         }
     }
