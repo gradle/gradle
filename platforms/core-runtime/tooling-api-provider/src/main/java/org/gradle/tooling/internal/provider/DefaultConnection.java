@@ -136,13 +136,7 @@ public class DefaultConnection implements ConnectionVersion4,
      */
     @Override
     public void shutdown(ShutdownParameters parameters) {
-        if (embeddedDaemonState != null) {
-            embeddedDaemonState.getServices().get(ShutdownCoordinator.class).stopAllDaemons();
-            embeddedDaemonState.close();
-            embeddedDaemonState = null;
-        }
         if (clientServices != null) {
-            clientServices.get(ShutdownCoordinator.class).stopAllDaemons();
             clientServices.close();
             clientServices = null;
         }

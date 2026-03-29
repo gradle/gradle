@@ -81,6 +81,7 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
             }
             connections.clear();
         }
+        ConnectorServices.connectorDisconnected();
     }
 
     @Override

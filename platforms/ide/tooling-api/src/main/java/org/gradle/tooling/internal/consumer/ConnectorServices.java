@@ -42,17 +42,31 @@ import org.jspecify.annotations.NullMarked;
 public class ConnectorServices {
 
     private static GradleConnectorFactory sharedConnectorFactory = createConnectorFactory();
+    private static int activeConnectors;
 
     public static CancellationTokenSource createCancellationTokenSource() {
         return new DefaultCancellationTokenSource();
     }
 
-    public static GradleConnector createConnector() {
+    public static synchronized GradleConnector createConnector() {
+        activeConnectors++;
         return sharedConnectorFactory.createConnector();
     }
 
     public static void close() {
         sharedConnectorFactory.close();
+    }
+
+    /**
+     * Called when a connector is disconnected. If no more connectors are active,
+     * closes the shared services to release all resources (including non-daemon threads
+     * like the file lock request listener).
+     */
+    static synchronized void connectorDisconnected() {
+        activeConnectors--;
+        if (activeConnectors <= 0) {
+            close();
+        }
     }
 
     /**
