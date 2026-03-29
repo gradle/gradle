@@ -125,11 +125,12 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 ModuleComponentSelector parentId = DefaultModuleComponentSelector.newSelector(
                     DefaultModuleIdentifier.newId(parentGroupId, parentArtifactId),
                     new DefaultImmutableVersionConstraint(parentVersion));
-                PomReader parentPomReader = parsePomForSelector(parserSettings, parentId, pomReader.getAllPomProperties());
-                pomReader.setPomParent(parentPomReader);
-                // Collect parent POM identifier for the parent chain
+                // Collect parent POM identifier for the parent chain before recursing,
+                // so that grandparent POMs are also accumulated into the same list
                 parentPomChain.add(DefaultModuleComponentIdentifier.newId(
                     DefaultModuleIdentifier.newId(parentGroupId, parentArtifactId), parentVersion));
+                PomReader parentPomReader = parsePomForSelector(parserSettings, parentId, pomReader.getAllPomProperties(), parentPomChain);
+                pomReader.setPomParent(parentPomReader);
 
                 // Current POM can derive version/artifactId from parent. Resolve GAV and substitute values
                 pomReader.resolveGAV();
@@ -231,6 +232,12 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         VersionSelector acceptor = mavenVersionSelectorScheme.parseSelector(selector.getVersion());
         LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(selector, acceptor, ArtifactType.MAVEN_POM);
         return parsePomResource(parseContext, localResource, childProperties);
+    }
+
+    private PomReader parsePomForSelector(DescriptorParseContext parseContext, ModuleComponentSelector selector, Map<String, String> childProperties, List<ModuleComponentIdentifier> parentPomChain) throws IOException, SAXException {
+        VersionSelector acceptor = mavenVersionSelectorScheme.parseSelector(selector.getVersion());
+        LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(selector, acceptor, ArtifactType.MAVEN_POM);
+        return parsePomResource(parseContext, localResource, childProperties, parentPomChain);
     }
 
     private PomReader parsePomResource(DescriptorParseContext parseContext, LocallyAvailableExternalResource localResource, Map<String, String> childProperties) throws SAXException, IOException {

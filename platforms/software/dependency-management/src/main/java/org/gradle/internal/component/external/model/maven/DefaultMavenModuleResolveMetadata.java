@@ -266,7 +266,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return relocated == that.relocated
             && Objects.equal(dependencies, that.dependencies)
             && Objects.equal(packaging, that.packaging)
-            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp);
+            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp)
+            && Objects.equal(parentPomChain, that.parentPomChain);
     }
 
     @Override
@@ -275,7 +276,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
             dependencies,
             packaging,
             relocated,
-            snapshotTimestamp);
+            snapshotTimestamp,
+            parentPomChain);
     }
 
     /**

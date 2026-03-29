@@ -342,7 +342,8 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return relocated == that.relocated
             && Objects.equal(dependencies, that.dependencies)
             && Objects.equal(packaging, that.packaging)
-            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp);
+            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp)
+            && Objects.equal(parentPomChain, that.parentPomChain);
     }
 
     @Override
@@ -351,6 +352,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             dependencies,
             packaging,
             relocated,
-            snapshotTimestamp);
+            snapshotTimestamp,
+            parentPomChain);
     }
 }
