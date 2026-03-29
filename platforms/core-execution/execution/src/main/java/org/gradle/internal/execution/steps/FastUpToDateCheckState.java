@@ -26,6 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.UserHome.class)
 public class FastUpToDateCheckState implements FastUpToDateCheckLifecycle {
+    static final char SEP = File.separatorChar;
+
     private final Set<String> changedPaths = ConcurrentHashMap.newKeySet();
     private final Set<String> producedOutputRootPaths = ConcurrentHashMap.newKeySet();
     private volatile boolean configurationCacheHit;
@@ -45,54 +47,41 @@ public class FastUpToDateCheckState implements FastUpToDateCheckLifecycle {
         watchingError = true;
     }
 
-    public void recordProducedOutputRoots(Set<String> outputRootPaths) {
-        producedOutputRootPaths.addAll(outputRootPaths);
+    public void recordProducedOutputRoot(String outputRootPath) {
+        producedOutputRootPaths.add(outputRootPath);
     }
 
     public boolean isFastPathEnabled() {
         return configurationCacheHit && watchingFileSystem && !watchingError && hasVfsBaseline;
     }
 
-    public boolean hasVfsChangesOverlappingWith(Set<String> rootPaths) {
-        if (changedPaths.isEmpty()) {
-            return false;
-        }
-        for (String changedPath : changedPaths) {
-            for (String rootPath : rootPaths) {
-                if (pathsOverlap(changedPath, rootPath)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    /**
+     * Returns the set of file paths changed since the last build, as reported by VFS file watching.
+     * The returned set is a live concurrent view — safe to iterate from multiple threads.
+     */
+    Set<String> getChangedPaths() {
+        return changedPaths;
     }
 
-    public boolean hasProducedOutputsOverlappingWith(Set<String> inputRootPaths) {
-        if (producedOutputRootPaths.isEmpty()) {
-            return false;
-        }
-        for (String producedRoot : producedOutputRootPaths) {
-            for (String inputRoot : inputRootPaths) {
-                if (pathsOverlap(producedRoot, inputRoot)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    /**
+     * Returns the set of output root paths produced by tasks that executed in the current build.
+     * The returned set is a live concurrent view — safe to iterate from multiple threads.
+     */
+    Set<String> getProducedOutputRootPaths() {
+        return producedOutputRootPaths;
     }
 
     static boolean pathsOverlap(String path1, String path2) {
         if (path1.equals(path2)) {
             return true;
         }
-        char sep = File.separatorChar;
         if (path2.length() > path1.length()
-            && path2.charAt(path1.length()) == sep
+            && path2.charAt(path1.length()) == SEP
             && path2.startsWith(path1)) {
             return true;
         }
         if (path1.length() > path2.length()
-            && path1.charAt(path2.length()) == sep
+            && path1.charAt(path2.length()) == SEP
             && path1.startsWith(path2)) {
             return true;
         }
