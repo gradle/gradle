@@ -195,9 +195,9 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new AssignMutableWorkspaceStep<>(
             new HandleStaleOutputsStep<>(buildOperationRunner, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
+            new FastUpToDateCheckStep<>(fastUpToDateCheckState,
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyMutableWorkStep(problemHandler, outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
-            new FastUpToDateCheckStep<>(fastUpToDateCheckState,
             new CaptureMutableStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep.Mutable<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,

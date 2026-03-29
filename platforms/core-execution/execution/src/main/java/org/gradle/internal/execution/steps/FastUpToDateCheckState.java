@@ -19,36 +19,79 @@ package org.gradle.internal.execution.steps;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.UserHome.class)
 public class FastUpToDateCheckState implements FastUpToDateCheckLifecycle {
-    private final Set<Path> changedPaths = ConcurrentHashMap.newKeySet();
-    private volatile boolean anyTaskTouched;
+    private final Set<String> changedPaths = ConcurrentHashMap.newKeySet();
+    private final Set<String> producedOutputRootPaths = ConcurrentHashMap.newKeySet();
     private volatile boolean configurationCacheHit;
     private volatile boolean watchingFileSystem;
+    private volatile boolean watchingError;
 
     public void recordChange(Path path) {
-        changedPaths.add(path);
+        changedPaths.add(path.toString());
     }
 
     public void stopWatchingAfterError() {
-        watchingFileSystem = false;
-        changedPaths.clear();
+        watchingError = true;
     }
 
-    public boolean isAnyTaskTouched() {
-        return anyTaskTouched;
+    public void recordProducedOutputRoots(Set<String> outputRootPaths) {
+        producedOutputRootPaths.addAll(outputRootPaths);
     }
 
-    public void setAnyTaskTouched(boolean anyTaskTouched) {
-        this.anyTaskTouched = anyTaskTouched;
+    public boolean isFastPathEnabled() {
+        return configurationCacheHit && watchingFileSystem && !watchingError;
     }
 
-    public boolean isConfigurationCacheHit() {
-        return configurationCacheHit;
+    public boolean hasVfsChangesOverlappingWith(Set<String> rootPaths) {
+        if (changedPaths.isEmpty()) {
+            return false;
+        }
+        for (String changedPath : changedPaths) {
+            for (String rootPath : rootPaths) {
+                if (pathsOverlap(changedPath, rootPath)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean hasProducedOutputsOverlappingWith(Set<String> inputRootPaths) {
+        if (producedOutputRootPaths.isEmpty()) {
+            return false;
+        }
+        for (String producedRoot : producedOutputRootPaths) {
+            for (String inputRoot : inputRootPaths) {
+                if (pathsOverlap(producedRoot, inputRoot)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static boolean pathsOverlap(String path1, String path2) {
+        if (path1.equals(path2)) {
+            return true;
+        }
+        char sep = File.separatorChar;
+        if (path2.length() > path1.length()
+            && path2.charAt(path1.length()) == sep
+            && path2.startsWith(path1)) {
+            return true;
+        }
+        if (path1.length() > path2.length()
+            && path1.charAt(path2.length()) == sep
+            && path1.startsWith(path2)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -56,22 +99,15 @@ public class FastUpToDateCheckState implements FastUpToDateCheckLifecycle {
         this.configurationCacheHit = configurationCacheHit;
     }
 
-    public boolean isWatchingFileSystem() {
-        return watchingFileSystem;
-    }
-
     public void setWatchingFileSystem(boolean watchingFileSystem) {
         this.watchingFileSystem = watchingFileSystem;
     }
 
-    public Set<Path> getChangedPaths() {
-        return changedPaths;
-    }
-
     @Override
     public void resetForBuildStart() {
-        anyTaskTouched = false;
+        producedOutputRootPaths.clear();
         configurationCacheHit = false;
+        watchingError = false;
     }
 
     @Override

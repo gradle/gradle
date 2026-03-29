@@ -16,22 +16,26 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
-import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
+
 public class FastUpToDateCheckStep<C extends PreviousExecutionContext, R extends CachingResult> implements Step<C, R> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FastUpToDateCheckStep.class);
 
     private final FastUpToDateCheckState state;
     private final Step<? super C, ? extends R> delegate;
@@ -43,78 +47,100 @@ public class FastUpToDateCheckStep<C extends PreviousExecutionContext, R extends
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        if (state.isConfigurationCacheHit() && state.isWatchingFileSystem() && !state.isAnyTaskTouched()) {
-            Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
-            if (previousExecutionState.isPresent()) {
-                PreviousExecutionState previousState = previousExecutionState.get();
-                if (!hasAnyInputOrOutputChanged(previousState, state.getChangedPaths())) {
-                    @SuppressWarnings("unchecked")
-                    R shortcutResult = (R) CachingResult.shortcutResult(
-                        previousState.getOriginMetadata().getExecutionTime(),
-                        Execution.skipped(Execution.ExecutionOutcome.UP_TO_DATE, work),
-                        new DefaultExecutionOutputState(true, previousState.getOutputFilesProducedByWork(), previousState.getOriginMetadata(), true),
-                        null,
-                        previousState.getOriginMetadata()
-                    );
-                    return shortcutResult;
-                }
+        if (state.isFastPathEnabled() && !context.getNonIncrementalReason().isPresent()) {
+            R fastResult = tryFastPath(work, context);
+            if (fastResult != null) {
+                return fastResult;
             }
         }
 
         R result = delegate.execute(work, context);
-
-        result.getExecution().ifSuccessfulOrElse(
-            execution -> {
-                Execution.ExecutionOutcome outcome = execution.getOutcome();
-                if (outcome != Execution.ExecutionOutcome.UP_TO_DATE && outcome != Execution.ExecutionOutcome.SHORT_CIRCUITED) {
-                    state.setAnyTaskTouched(true);
-                }
-            },
-            failure -> state.setAnyTaskTouched(true)
-        );
-
+        recordProducedOutputsIfExecuted(result, context);
         return result;
     }
 
-    private boolean hasAnyInputOrOutputChanged(PreviousExecutionState previousState, Set<Path> changedPaths) {
-        if (changedPaths.isEmpty()) {
-            return false;
+    private R tryFastPath(UnitOfWork work, C context) {
+        PreviousExecutionState previousState = context.getPreviousExecutionState().orElse(null);
+        if (previousState == null || !previousState.isSuccessful()) {
+            return null;
         }
 
-        for (Path changedPath : changedPaths) {
-            Path current = changedPath;
-            while (current != null) {
-                String pathStr = current.toString();
-                for (FileCollectionFingerprint fingerprint : previousState.getInputFileProperties().values()) {
-                    if (fingerprint.getFingerprints().containsKey(pathStr)) {
-                        return true;
-                    }
-                }
-                current = current.getParent();
-            }
+        Set<String> inputRootPaths = extractInputRootPaths(previousState);
+        Set<String> outputRootPaths = extractOutputRootPaths(previousState);
+
+        Set<String> allRootPaths = new HashSet<>(inputRootPaths);
+        allRootPaths.addAll(outputRootPaths);
+
+        if (state.hasVfsChangesOverlappingWith(allRootPaths)) {
+            return null;
+        }
+        if (state.hasProducedOutputsOverlappingWith(inputRootPaths)) {
+            return null;
         }
 
-        Set<String> outputPaths = new HashSet<>();
-        for (FileSystemSnapshot snapshot : previousState.getOutputFilesProducedByWork().values()) {
-            snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
-                @Override
-                public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot) {
-                    outputPaths.add(snapshot.getAbsolutePath());
-                    return SnapshotVisitResult.CONTINUE;
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Skipping {} as it is fast up-to-date.", work.getDisplayName());
+        }
+
+        ExecutionOutputState outputState = new DefaultExecutionOutputState(
+            true,
+            previousState.getOutputFilesProducedByWork(),
+            previousState.getOriginMetadata(),
+            true
+        );
+        @SuppressWarnings("unchecked")
+        R shortcutResult = (R) CachingResult.shortcutResult(
+            previousState.getOriginMetadata().getExecutionTime(),
+            Execution.skipped(UP_TO_DATE, work),
+            outputState,
+            null,
+            previousState.getOriginMetadata()
+        );
+        return shortcutResult;
+    }
+
+    private void recordProducedOutputsIfExecuted(R result, C context) {
+        result.getExecution().ifSuccessfulOrElse(
+            execution -> {
+                Execution.ExecutionOutcome outcome = execution.getOutcome();
+                if (outcome != UP_TO_DATE && outcome != Execution.ExecutionOutcome.SHORT_CIRCUITED) {
+                    recordOutputRoots(result, context);
                 }
+            },
+            failure -> recordOutputRoots(result, context)
+        );
+    }
+
+    private void recordOutputRoots(R result, C context) {
+        result.getAfterExecutionOutputState().ifPresent(outputState -> {
+            Set<String> roots = extractOutputRootPathsFromSnapshots(outputState.getOutputFilesProducedByWork());
+            state.recordProducedOutputRoots(roots);
+        });
+        if (!result.getAfterExecutionOutputState().isPresent()) {
+            context.getPreviousExecutionState().ifPresent(previousState -> {
+                Set<String> roots = extractOutputRootPaths(previousState);
+                state.recordProducedOutputRoots(roots);
             });
         }
+    }
 
-        for (Path changedPath : changedPaths) {
-            Path current = changedPath;
-            while (current != null) {
-                if (outputPaths.contains(current.toString())) {
-                    return true;
-                }
-                current = current.getParent();
-            }
+    private static Set<String> extractInputRootPaths(PreviousExecutionState previousState) {
+        Set<String> roots = new HashSet<>();
+        for (FileCollectionFingerprint fingerprint : previousState.getInputFileProperties().values()) {
+            roots.addAll(fingerprint.getRootHashes().keySet());
         }
+        return roots;
+    }
 
-        return false;
+    private static Set<String> extractOutputRootPaths(PreviousExecutionState previousState) {
+        return extractOutputRootPathsFromSnapshots(previousState.getOutputFilesProducedByWork());
+    }
+
+    private static Set<String> extractOutputRootPathsFromSnapshots(java.util.Map<String, FileSystemSnapshot> snapshots) {
+        Set<String> roots = new HashSet<>();
+        for (FileSystemSnapshot snapshot : snapshots.values()) {
+            snapshot.roots().forEach(root -> roots.add(root.getAbsolutePath()));
+        }
+        return roots;
     }
 }
