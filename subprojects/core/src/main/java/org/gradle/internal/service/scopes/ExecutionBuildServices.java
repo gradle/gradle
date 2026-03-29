@@ -54,6 +54,8 @@ import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ChoosePipelineStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep;
+import org.gradle.internal.execution.steps.FastUpToDateCheckState;
+import org.gradle.internal.execution.steps.FastUpToDateCheckStep;
 import org.gradle.internal.execution.steps.HandleStaleOutputsStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
@@ -80,6 +82,7 @@ import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -160,8 +163,11 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         StartParameter startParameter,
         TimeoutHandler timeoutHandler,
         InternalProblems problems,
+        FastUpToDateCheckState fastUpToDateCheckState,
+        NativeCapabilities nativeCapabilities,
         WorkerLeaseService workerLeaseService
     ) {
+        fastUpToDateCheckState.setWatchingFileSystem(nativeCapabilities.useFileSystemWatching());
         UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
         boolean emitBuildCacheDebugLogging = startParameter.isBuildCacheDebugLogging();
@@ -189,6 +195,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new AssignMutableWorkspaceStep<>(
             new HandleStaleOutputsStep<>(buildOperationRunner, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
+            new FastUpToDateCheckStep<>(fastUpToDateCheckState,
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyMutableWorkStep(problemHandler, outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureMutableStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
@@ -207,7 +214,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
             new ExecuteStep.Mutable(buildOperationRunner
-        )))))))))))))))))))));
+        ))))))))))))))))))))));
 
         return new DefaultExecutionEngine(
             new IdentifyStep<>(buildOperationRunner, classLoaderHierarchyHasher,
