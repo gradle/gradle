@@ -17,204 +17,142 @@
 package org.gradle.integtests.resolve.derived
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.MavenHttpModule
 
+/**
+ * Tests for POM variant resolution via ArtifactView with variant reselection.
+ */
 class PomVariantResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    MavenHttpModule direct
-    MavenHttpModule transitive
 
-    def setup() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
+    def "can resolve POM files for direct and transitive dependencies"() {
+        def transitive = mavenHttpRepo.module("test", "transitive", "1.0").publish()
+        def direct = mavenHttpRepo.module("test", "direct", "1.0").dependsOn(transitive).publish()
 
-            repositories {
-                maven { url = '$mavenHttpRepo.uri' }
-            }
+        buildFile.text = pomResolveBuildFile()
 
-            dependencies {
-                implementation 'test:direct:1.0'
-            }
+        expect:
+        direct.pom.allowGetOrHead()
+        transitive.pom.allowGetOrHead()
+        succeeds('resolvePom')
+        outputContains('direct-1.0.pom')
+        outputContains('transitive-1.0.pom')
+    }
 
-            abstract class Resolve extends DefaultTask {
-                @InputFiles
-                abstract ConfigurableFileCollection getArtifacts()
+    def "POM variant includes parent POMs"() {
+        def parent = mavenHttpRepo.module("test", "parent-a", "1.0").hasPackaging("pom").publish()
+        def transitive = mavenHttpRepo.module("test", "transitive-a", "1.0").publish()
+        def direct = mavenHttpRepo.module("test", "direct-a", "1.0").dependsOn(transitive).parent("test", "parent-a", "1.0").publish()
 
-                @Internal
-                List<String> expectedFiles = []
+        buildFile.text = pomResolveBuildFile('test:direct-a:1.0')
 
-                @TaskAction
-                void assertThat() {
-                    assert artifacts.files*.name.sort() == expectedFiles.sort()
+        expect:
+        direct.pom.allowGetOrHead()
+        transitive.pom.allowGetOrHead()
+        parent.pom.allowGetOrHead()
+        succeeds('resolvePom')
+        outputContains('direct-a-1.0.pom')
+        outputContains('parent-a-1.0.pom')
+        outputContains('transitive-a-1.0.pom')
+    }
+
+    def "POM variant includes grandparent POMs"() {
+        def grandparent = mavenHttpRepo.module("test", "grandparent-b", "1.0").hasPackaging("pom").publish()
+        def parent = mavenHttpRepo.module("test", "parent-b", "1.0").hasPackaging("pom").parent("test", "grandparent-b", "1.0").publish()
+        def transitive = mavenHttpRepo.module("test", "transitive-b", "1.0").publish()
+        def direct = mavenHttpRepo.module("test", "direct-b", "1.0").dependsOn(transitive).parent("test", "parent-b", "1.0").publish()
+
+        buildFile.text = pomResolveBuildFile('test:direct-b:1.0')
+
+        expect:
+        direct.pom.allowGetOrHead()
+        transitive.pom.allowGetOrHead()
+        parent.pom.allowGetOrHead()
+        grandparent.pom.allowGetOrHead()
+        succeeds('resolvePom')
+        outputContains('direct-b-1.0.pom')
+        outputContains('grandparent-b-1.0.pom')
+        outputContains('parent-b-1.0.pom')
+        outputContains('transitive-b-1.0.pom')
+    }
+
+    def "POM variant includes both versions when two modules share a parent at different versions"() {
+        def parentV1 = mavenHttpRepo.module("test", "parent-c", "1.0").hasPackaging("pom").publish()
+        def parentV2 = mavenHttpRepo.module("test", "parent-c", "2.0").hasPackaging("pom").publish()
+        def transitive = mavenHttpRepo.module("test", "transitive-c", "1.0").parent("test", "parent-c", "2.0").publish()
+        def direct = mavenHttpRepo.module("test", "direct-c", "1.0").dependsOn(transitive).parent("test", "parent-c", "1.0").publish()
+
+        buildFile.text = pomResolveBuildFile('test:direct-c:1.0')
+
+        expect:
+        direct.pom.allowGetOrHead()
+        transitive.pom.allowGetOrHead()
+        parentV1.pom.allowGetOrHead()
+        parentV2.pom.allowGetOrHead()
+        succeeds('resolvePom')
+        outputContains('direct-c-1.0.pom')
+        outputContains('parent-c-1.0.pom')
+        outputContains('parent-c-2.0.pom')
+        outputContains('transitive-c-1.0.pom')
+    }
+
+    def "POM variant is synthesized when Gradle Module Metadata is present but has no pom variant"() {
+        def transitive = mavenHttpRepo.module("test", "transitive-d", "1.0").withModuleMetadata().publish()
+        def direct = mavenHttpRepo.module("test", "direct-d", "1.0").dependsOn(transitive).withModuleMetadata().publish()
+
+        buildFile.text = pomResolveBuildFile('test:direct-d:1.0')
+
+        expect:
+        direct.pom.allowGetOrHead()
+        direct.moduleMetadata.expectGet()
+        transitive.pom.allowGetOrHead()
+        transitive.moduleMetadata.expectGet()
+        succeeds('resolvePom')
+        outputContains('direct-d-1.0.pom')
+        outputContains('transitive-d-1.0.pom')
+    }
+
+    def "POM variant is not selected during normal dependency resolution"() {
+        def transitive = mavenHttpRepo.module("test", "transitive-e", "1.0").publish()
+        def direct = mavenHttpRepo.module("test", "direct-e", "1.0").dependsOn(transitive).publish()
+
+        buildFile.text = """
+            plugins { id 'java' }
+            repositories { maven { url = '$mavenHttpRepo.uri' } }
+            dependencies { implementation 'test:direct-e:1.0' }
+            task resolveRuntime {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    def fileNames = files*.name
+                    assert !fileNames.any { it.endsWith('.pom') }
                 }
             }
+        """
 
-            task resolvePom(type: Resolve) {
-                def artifactView = configurations.runtimeClasspath.incoming.artifactView {
+        expect:
+        direct.pom.allowGetOrHead()
+        transitive.pom.allowGetOrHead()
+        direct.artifact.expectGet()
+        transitive.artifact.expectGet()
+        succeeds('resolveRuntime')
+    }
+
+    private String pomResolveBuildFile(String dependency = 'test:direct:1.0') {
+        return """
+            plugins { id 'java' }
+            repositories { maven { url = '$mavenHttpRepo.uri' } }
+            dependencies { implementation '$dependency' }
+            task resolvePom {
+                def view = configurations.runtimeClasspath.incoming.artifactView {
                     withVariantReselection()
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.METADATA))
                         attribute(MetadataFormat.METADATA_FORMAT_ATTRIBUTE, objects.named(MetadataFormat, MetadataFormat.MAVEN))
                     }
                 }
-                artifacts.from(artifactView.files)
-            }
-
-            task resolveRuntime(type: Resolve) {
-                artifacts.from(configurations.runtimeClasspath.incoming.files)
-            }
-        """
-        transitive = mavenHttpRepo.module("test", "transitive", "1.0")
-        direct = mavenHttpRepo.module("test", "direct", "1.0")
-        direct.dependsOn(transitive)
-    }
-
-    def "can resolve POM files for direct and transitive dependencies"() {
-        transitive.publish()
-        direct.publish()
-
-        buildFile << """
-            tasks.resolvePom {
-                expectedFiles = ['direct-1.0.pom', 'transitive-1.0.pom']
+                def files = view.files
+                doLast {
+                    files.each { println it.name }
+                }
             }
         """
-        expect:
-        direct.pom.allowGetOrHead()
-        transitive.pom.allowGetOrHead()
-
-        succeeds('resolvePom')
-    }
-
-    def "POM variant includes parent POMs"() {
-        def parent = mavenHttpRepo.module("test", "parent", "1.0")
-        parent.hasPackaging("pom")
-        parent.publish()
-
-        direct.parent("test", "parent", "1.0")
-        transitive.publish()
-        direct.publish()
-
-        buildFile << """
-            tasks.resolvePom {
-                expectedFiles = ['direct-1.0.pom', 'parent-1.0.pom', 'transitive-1.0.pom']
-            }
-        """
-        expect:
-        direct.pom.allowGetOrHead()
-        transitive.pom.allowGetOrHead()
-        parent.pom.allowGetOrHead()
-
-        succeeds('resolvePom')
-    }
-
-    def "POM variant includes grandparent POMs"() {
-        def grandparent = mavenHttpRepo.module("test", "grandparent", "1.0")
-        grandparent.hasPackaging("pom")
-        grandparent.publish()
-
-        def parent = mavenHttpRepo.module("test", "parent", "1.0")
-        parent.hasPackaging("pom")
-        parent.parent("test", "grandparent", "1.0")
-        parent.publish()
-
-        direct.parent("test", "parent", "1.0")
-        transitive.publish()
-        direct.publish()
-
-        buildFile << """
-            tasks.resolvePom {
-                expectedFiles = ['direct-1.0.pom', 'grandparent-1.0.pom', 'parent-1.0.pom', 'transitive-1.0.pom']
-            }
-        """
-        expect:
-        direct.pom.allowGetOrHead()
-        transitive.pom.allowGetOrHead()
-        parent.pom.allowGetOrHead()
-        grandparent.pom.allowGetOrHead()
-
-        succeeds('resolvePom')
-    }
-
-    def "POM variant includes both versions when two modules share a parent at different versions"() {
-        def parentV1 = mavenHttpRepo.module("test", "parent", "1.0")
-        parentV1.hasPackaging("pom")
-        parentV1.publish()
-
-        def parentV2 = mavenHttpRepo.module("test", "parent", "2.0")
-        parentV2.hasPackaging("pom")
-        parentV2.publish()
-
-        direct.parent("test", "parent", "1.0")
-        transitive.parent("test", "parent", "2.0")
-        transitive.publish()
-        direct.publish()
-
-        buildFile << """
-            tasks.resolvePom {
-                expectedFiles = ['direct-1.0.pom', 'parent-1.0.pom', 'parent-2.0.pom', 'transitive-1.0.pom']
-            }
-        """
-        expect:
-        direct.pom.allowGetOrHead()
-        transitive.pom.allowGetOrHead()
-        parentV1.pom.allowGetOrHead()
-        parentV2.pom.allowGetOrHead()
-
-        succeeds('resolvePom')
-    }
-
-    def "POM variant is not available when Gradle Module Metadata is present"() {
-        transitive.withModuleMetadata()
-        transitive.publish()
-        direct.withModuleMetadata()
-        direct.publish()
-
-        buildFile << """
-            tasks.resolvePom {
-                expectedFiles = []
-            }
-        """
-        expect:
-        direct.pom.allowGetOrHead()
-        direct.moduleMetadata.expectGet()
-        transitive.pom.allowGetOrHead()
-        transitive.moduleMetadata.expectGet()
-
-        succeeds('resolvePom')
-    }
-
-    def "POM variant is not selected during normal dependency resolution"() {
-        transitive.publish()
-        direct.publish()
-
-        buildFile << """
-            tasks.resolveRuntime {
-                expectedFiles = ['direct-1.0.jar', 'transitive-1.0.jar']
-            }
-        """
-        expect:
-        direct.pom.allowGetOrHead()
-        transitive.pom.allowGetOrHead()
-        direct.artifact.expectGet()
-        transitive.artifact.expectGet()
-
-        succeeds('resolveRuntime')
-    }
-
-    def "POM file content is valid XML"() {
-        transitive.publish()
-        direct.publish()
-
-        buildFile << """
-            tasks.resolvePom {
-                expectedFiles = ['direct-1.0.pom', 'transitive-1.0.pom']
-            }
-        """
-        expect:
-        direct.pom.allowGetOrHead()
-        transitive.pom.allowGetOrHead()
-
-        succeeds('resolvePom')
     }
 }

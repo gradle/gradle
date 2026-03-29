@@ -108,6 +108,18 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return Optional.ofNullable(getDerivedVariants());
     }
 
+    @Override
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveSupplementalVariants() {
+        VariantDerivationStrategy strategy = getVariantDerivationStrategy();
+        if (strategy.derivesVariants()) {
+            ImmutableList<? extends ModuleConfigurationMetadata> supplemental = strategy.deriveSupplementalVariants(this);
+            if (supplemental != null) {
+                return Optional.of(supplemental);
+            }
+        }
+        return Optional.empty();
+    }
+
     protected Optional<List<? extends ModuleConfigurationMetadata>> deriveVariants() {
         return Optional.ofNullable(getDerivedVariants());
     }
