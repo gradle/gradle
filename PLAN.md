@@ -139,30 +139,49 @@ The fast-path is conservative — any doubt falls through to normal pipeline:
 
 ## Future Work: Fast-Path for Immutable Pipeline
 
-The immutable pipeline (artifact transforms, script compilation) has similar overhead from `IdentifyStep` — input fingerprinting + identity computation costs ~10-30ms per work unit. For builds with many artifact transforms (e.g., Android with 500+ transforms), this adds up to seconds of pure overhead.
+The immutable pipeline (artifact transforms, script compilation) has similar overhead from `IdentifyStep` — input fingerprinting + identity computation costs ~10-30ms per work unit.
 
-### Opportunity
+### Approach
 
 Cache a mapping of **stable work key → (identity, input root paths)** across builds in the daemon. On the next build:
 1. Look up cached input root paths for this work unit
-2. Check VFS: did any of those paths change?
-3. If not → identity is the same → workspace already exists → skip `IdentifyStep` + `AssignImmutableWorkspaceStep` entirely
+2. Check VFS (or trust immutability for external deps): did any inputs change?
+3. If not → identity is the same → skip `IdentifyStep`, use cached identity
+4. `AssignImmutableWorkspaceStep` still runs for workspace integrity (Gradle User Home is not VFS-watched)
 
-This is more powerful than the mutable case because it skips the **entire pipeline**, not just fingerprinting.
+Skip `IdentifyStep` (~15-40ms per unit), keep workspace verification (~5-13ms). `AssignImmutableWorkspaceStep.loadImmutableWorkspaceIfExists()` must remain since Gradle User Home isn't watched and workspaces could be deleted externally.
 
-### Key use cases
+### Use case 1: Build script compilation (CC miss with warm daemon)
 
-- **Artifact transforms**: Run during execution phase even with CC. Hundreds of transforms per Android/JVM build. Skipping `IdentifyStep` for unchanged transforms could save 5-10s on large builds.
-- **CC miss with warm daemon**: Running a different task (e.g., `test` after `compileJava`) causes CC miss, re-running script compilation identity computation even though no scripts changed.
+Running a different task (e.g., `test` after `compileJava`) causes CC miss. Script compilation identity is recomputed even though no scripts changed. With the fast-path, skip `IdentifyStep` for unchanged scripts.
 
-### Challenge: Stable key without identity
+- **Stable key**: Script file path (e.g., `/project/build.gradle.kts`). Gradle controls these work units — implementation is fixed, inputs are file-based and VFS-trackable.
+- **Savings**: ~15-40ms per script. For 22 subprojects: ~330-880ms. For 100+ subprojects: ~1.5-4s.
+- **CC not required** for this case — only VFS confirmation that script source files + classpath haven't changed. Implementation is Gradle-internal and can't change between builds on the same daemon.
 
-The core problem: immutable work's "unique ID" IS the identity (computed from inputs). You need the identity to look up the workspace, but computing the identity is the overhead you want to skip.
+### Use case 2: Artifact transforms (CC hit required)
 
-Possible approaches:
-- **Internal work (script compilation)**: Gradle controls these — assign a stable key (e.g., script file path) that doesn't depend on identity. Implementation is fixed, inputs are file-based and VFS-trackable.
-- **Artifact transforms**: Use `(transform class + input artifact path)` as a stable pre-identity key. Parameters are value inputs (not file-based), but the artifact file is trackable via VFS. If VFS confirms the artifact hasn't changed and parameters come from CC-cached configuration, the identity is unchanged.
-- **Daemon-scoped cache**: Map `work display name → (previous identity, input root paths)`, populated after each build. Less precise but more general.
+Transforms run during execution phase even with CC hit. Each transform goes through `IdentifyStep` to fingerprint the input artifact + parameters.
+
+- **CC hit required**: Without CC, transform parameters could differ. CC guarantees parameters are unchanged.
+- **Stable key**: `(transform class + input artifact path)`.
+- **External dependency inputs** (in `~/.gradle/caches/`): Content-addressed and immutable once downloaded. If the jar is at the same path, it hasn't changed — VFS isn't even needed. With CC hit, identity is guaranteed the same.
+- **Project dependency inputs** (in `build/` dirs): Watched by VFS — VFS can verify these haven't changed.
+
+Estimated savings:
+
+| Build type | ~Transforms | IdentifyStep total | Savings (skip IdentifyStep) |
+|---|---|---|---|
+| JVM (50 deps) | ~30-50 | ~300-750ms | **~200-500ms** |
+| Android (200+ deps) | ~200-500 | ~2-5s | **~1.5-4s** |
+
+### Implementation sketch
+
+1. Add `Optional<String> getStableCacheKey()` to `UnitOfWork`. Script compilation returns script path. Transforms return `(class + artifact path)`. Tasks return empty.
+2. Cache `Map<String, CachedImmutableIdentity>` in `FastUpToDateCheckState` (daemon-scoped). Stores `(Identity, inputRootPaths)` per stable key.
+3. Add fast-path in `IdentifyStep` (or a wrapping step before it): if stable key exists, cached identity found, and VFS/immutability confirms inputs unchanged → create `IdentityContext` from cache, skip fingerprinting.
+4. After `IdentifyStep` computes a fresh identity, store it in the cache for next build.
+5. `AssignImmutableWorkspaceStep` proceeds normally with the (cached) identity — verifies workspace integrity since Gradle User Home isn't watched.
 
 ## Verification
 
