@@ -84,7 +84,8 @@ The graph resolution attributes specified on the configuration are completely ig
 === Resolving POM files
 
 Similarly, you can use variant reselection to resolve the POM metadata files for all dependencies.
-For external Maven modules without Gradle Module Metadata, Gradle derives a `metadata` variant containing the module's POM file and its parent POM chain.
+Gradle provides a `metadata` variant for all Maven dependencies, containing the module's POM file and its parent POM chain.
+For project dependencies that apply the `maven-publish` plugin, the generated POM is also available.
 
 NOTE: This example uses incubating APIs.
 
@@ -94,8 +95,6 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-artifact
 ====
 
 The resolved files include both direct and transitive dependency POM files, as well as any parent POMs referenced in the POM hierarchy.
-
-NOTE: The POM variant is only available for Maven modules that do not publish Gradle Module Metadata.
 
 == 2. Performing lenient artifact selection and resolution
 

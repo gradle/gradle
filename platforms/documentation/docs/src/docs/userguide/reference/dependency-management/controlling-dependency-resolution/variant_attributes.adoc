@@ -114,16 +114,16 @@ They are *not publishable*, and will produce an error if added to a component wh
 [[sec:metadata-category]]
 When the `Category` attribute is present with the incubating value `org.gradle.category=metadata` on a variant, that variant contains build metadata artifacts such as POM files.
 
-For external Maven modules without Gradle Module Metadata, Gradle automatically derives a `metadata` variant that exposes the module's POM file and its parent POM chain.
-You can resolve these POM files using an link:artifact_views.adoc[artifact view] with variant reselection:
+For Maven modules, Gradle automatically provides a `metadata` variant that exposes the module's POM file and its parent POM chain.
+This works for all Maven dependencies — whether they publish Gradle Module Metadata or not.
+For project dependencies that apply the `maven-publish` plugin, the generated POM is also available as a `metadata` variant.
+
+You can resolve POM files for all dependencies using an link:artifact_views.adoc[artifact view] with variant reselection:
 
 ====
 include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=pom-variant-reselection]"]
 include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=pom-variant-reselection]"]
 ====
-
-NOTE: The POM variant is only available for Maven modules that do not publish Gradle Module Metadata.
-When Gradle Module Metadata is present, only the variants explicitly declared in that metadata are used.
 
 [%header%autowidth,compact]
 |===
