@@ -45,17 +45,20 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     private final ExternalResourceLister lister;
     // Should really be a parameter to the 'withContent' methods or baked into the accessor
     private final boolean revalidate;
+    @Nullable
+    private final File partPosition;
 
-    public AccessorBackedExternalResource(ExternalResourceName name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader, ExternalResourceLister lister, boolean revalidate) {
+    public AccessorBackedExternalResource(ExternalResourceName name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader, ExternalResourceLister lister, boolean revalidate, @Nullable File partPosition) {
         this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
         this.revalidate = revalidate;
+        this.partPosition = partPosition;
     }
 
     public AccessorBackedExternalResource(ExternalResourceName name, ExternalResourceConnector connector, boolean revalidate) {
-        this(name, connector, connector, connector, revalidate);
+        this(name, connector, connector, connector, revalidate, null);
     }
 
     @Override
@@ -71,7 +74,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     @Nullable
     @Override
     public ExternalResourceReadResult<Void> writeToIfPresent(File destination) throws ResourceException {
-        return accessor.withContent(name, revalidate, inputStream -> {
+        return accessor.withContent(name, revalidate, partPosition, inputStream -> {
             try (CountingInputStream input = new CountingInputStream(inputStream)) {
                 try (FileOutputStream output = new FileOutputStream(destination)) {
                     IOUtils.copyLarge(input, output);
@@ -89,7 +92,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     @Nullable
     @Override
     public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAction<? extends T> readAction) throws ResourceException {
-        return accessor.withContent(name, revalidate, inputStream -> {
+        return accessor.withContent(name, revalidate, partPosition, inputStream -> {
             try (CountingInputStream input = new CountingInputStream(new BufferedInputStream(inputStream))) {
                 T value = readAction.execute(input);
                 return ExternalResourceReadResult.of(input.getCount(), value);
@@ -100,7 +103,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
     @Nullable
     @Override
     public <T> ExternalResourceReadResult<T> withContentIfPresent(ContentAndMetadataAction<? extends T> readAction) throws ResourceException {
-        return accessor.withContent(name, revalidate, (inputStream, metadata) -> {
+        return accessor.withContent(name, revalidate, partPosition, (inputStream, metadata) -> {
             try (CountingInputStream stream = new CountingInputStream(new BufferedInputStream(inputStream))) {
                 T value = readAction.execute(stream, metadata);
                 return ExternalResourceReadResult.of(stream.getCount(), value);
@@ -110,7 +113,7 @@ public class AccessorBackedExternalResource extends AbstractExternalResource {
 
     @Override
     public ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) throws ResourceException {
-        ExternalResourceReadResult<Void> result = accessor.withContent(name, revalidate, inputStream -> {
+        ExternalResourceReadResult<Void> result = accessor.withContent(name, revalidate, partPosition, inputStream -> {
             CountingInputStream input = new CountingInputStream(inputStream);
             readAction.execute(input);
             return ExternalResourceReadResult.of(input.getCount());

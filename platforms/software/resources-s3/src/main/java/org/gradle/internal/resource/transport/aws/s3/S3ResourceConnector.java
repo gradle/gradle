@@ -31,6 +31,7 @@ import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -51,7 +52,7 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
     }
 
     @Override
-    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate) {
+    public ExternalResourceReadResponse openResource(ExternalResourceName location, boolean revalidate, File partPosition) {
         LOGGER.debug("Attempting to get resource: {}", location);
         S3Object s3Object = s3Client.getResource(location.getUri());
         if (s3Object == null) {

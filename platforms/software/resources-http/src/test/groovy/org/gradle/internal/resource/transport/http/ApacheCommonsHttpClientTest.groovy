@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.http
 
 import com.google.common.collect.ImmutableMap
 import org.apache.http.HttpEntity
+import org.apache.http.HttpHeaders
 import org.apache.http.StatusLine
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpUriRequest
@@ -81,6 +82,37 @@ class ApacheCommonsHttpClientTest extends Specification {
         thrown(HttpErrorStatusCodeException)
         1 * response.close()
         1 * response.entity.content.close()
+    }
+
+    def "performRawGet forwards custom headers"() {
+        HttpUriRequest capturedRequest
+        def response = Mock(CloseableHttpResponse) {
+            getStatusLine() >> Mock(StatusLine) {
+                getStatusCode() >> 206
+                getReasonPhrase() >> "Partial Content"
+            }
+        }
+
+        def client = new ApacheCommonsHttpClient(new DocumentationRegistry(), httpSettings, () -> {
+            Stub(HttpClientBuilder) {
+                build() >> Mock(CloseableHttpClient) {
+                    execute(_ as HttpUriRequest, _ as HttpContext) >> { HttpUriRequest request, HttpContext ignored ->
+                        capturedRequest = request
+                        response
+                    }
+                }
+            }
+        })
+
+        when:
+        def rawResponse = client.performRawGet(URI.create("http://gradle.org"), ImmutableMap.of(HttpHeaders.RANGE, "bytes=10-"))
+
+        then:
+        rawResponse.statusCode == 206
+        capturedRequest.getFirstHeader(HttpHeaders.RANGE).value == "bytes=10-"
+
+        cleanup:
+        rawResponse?.close()
     }
 
     def "stripping user credentials removes username and password"() {
