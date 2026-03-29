@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -35,8 +34,7 @@ import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
+import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.file.Deleter;
@@ -61,7 +59,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Base64;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -73,35 +71,44 @@ import java.util.stream.Collectors;
 public abstract class GenericHtmlTestReportGenerator implements TestReportGenerator {
 
     private static final Logger LOG = Logging.getLogger(GenericHtmlTestReportGenerator.class);
-    private static final HashFunction HASHER = Hashing.farmHashFingerprint64();
 
-    @VisibleForTesting
-    public static String hashSegment(String name) {
-        byte[] hashBytes = HASHER.hashUnencodedChars(name).asBytes();
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(hashBytes);
+    public static String getFilePath(boolean shrink, org.gradle.util.Path path, boolean isLeaf) {
+        List<SafeFileLocationUtils.Segment> segments = buildSegments(path, isLeaf);
+        return shrink
+            ? SafeFileLocationUtils.toMinimumSafeFilePath(segments)
+            : SafeFileLocationUtils.toSafeFilePath(segments);
     }
 
-    public static String getFilePath(org.gradle.util.Path path, boolean isLeaf) {
+    /**
+     * Build the segments for a given path, used both for shrink-mode detection and file path generation.
+     */
+    static List<SafeFileLocationUtils.Segment> buildSegments(org.gradle.util.Path path, boolean isLeaf) {
         if (path.segmentCount() == 0) {
-            return "index.html";
-        } else if (isLeaf) {
-            // Avoid using a directory for each leaf node
-            // This reduces VFS overhead from many directories for large test suites
-            String prefix = String.join("/", Iterables.transform(
-                path.getParent().segments(),
-                GenericHtmlTestReportGenerator::hashSegment
-            ));
-            return prefix + (prefix.isEmpty() ? "" : "/") + hashSegment(path.getName()) + ".html";
-        } else {
-            return String.join("/", Iterables.transform(
-                path.segments(),
-                GenericHtmlTestReportGenerator::hashSegment
-            )) + "/index.html";
+            return ImmutableList.of(SafeFileLocationUtils.Segment.file("index.html"));
         }
+
+        List<String> directoryNames;
+        String fileName;
+        if (isLeaf && !Objects.equals(path.getName(), "index")) {
+            // Flat leaves use a/b/c.html instead of a/b/c/index.html,
+            // reducing VFS overhead from many directories for large test suites
+            directoryNames = path.getParent().segments();
+            fileName = path.getName() + ".html";
+        } else {
+            directoryNames = path.segments();
+            fileName = "index.html";
+        }
+
+        ImmutableList.Builder<SafeFileLocationUtils.Segment> builder = ImmutableList.builderWithExpectedSize(directoryNames.size() + 1);
+        for (String dirName : directoryNames) {
+            builder.add(SafeFileLocationUtils.Segment.directory(dirName));
+        }
+        builder.add(SafeFileLocationUtils.Segment.file(fileName));
+        return builder.build();
     }
 
-    private static String getFilePath(TestTreeModel tree) {
-        return getFilePath(tree.getPath(), tree.getChildren().isEmpty());
+    private static String getFilePath(boolean shrink, TestTreeModel tree) {
+        return getFilePath(shrink, tree.getPath(), tree.getChildren().isEmpty());
     }
 
     private final BuildOperationRunner buildOperationRunner;
@@ -163,10 +170,44 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportsDirectory);
     }
 
+    private static SafeFileLocationUtils.PathLimitCheckResult checkAllPaths(SafeFileLocationUtils.PathLimitChecker pathLimitChecker, TestTreeModel tree) {
+        if (tree.getChildren().isEmpty()) {
+            // Only check leaves — a leaf path is always at least as long as its ancestors,
+            // so if any path exceeds the limit, a leaf will too.
+            List<SafeFileLocationUtils.Segment> segments = buildSegments(tree.getPath(), true);
+            return pathLimitChecker.check(segments);
+        }
+        boolean exceedsLimit = false;
+        for (TestTreeModel child : tree.getChildren()) {
+            // Cannot short-circuit here, even if one child needs shrinking,
+            // we still need to check all children to validate that none are unshrinkable
+            SafeFileLocationUtils.PathLimitCheckResult childResult = checkAllPaths(pathLimitChecker, child);
+            if (childResult == SafeFileLocationUtils.PathLimitCheckResult.UNSHRINKABLE) {
+                return SafeFileLocationUtils.PathLimitCheckResult.UNSHRINKABLE;
+            } else if (childResult == SafeFileLocationUtils.PathLimitCheckResult.EXCEEDS_LIMIT) {
+                exceedsLimit = true;
+            }
+        }
+        return exceedsLimit
+            ? SafeFileLocationUtils.PathLimitCheckResult.EXCEEDS_LIMIT
+            : SafeFileLocationUtils.PathLimitCheckResult.WITHIN_LIMIT;
+    }
+
     private void generateFiles(TestTreeModel model, final List<TestOutputReader> outputReaders) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
             buildOperationRunner.run(new DeleteOldReportOperation(fileCollectionFactory, deleter, reportsDirectory));
+            final String basePath = reportsDirectory.toAbsolutePath().toString();
+            final SafeFileLocationUtils.PathLimitChecker pathLimitChecker = new SafeFileLocationUtils.PathLimitChecker(basePath);
+            final SafeFileLocationUtils.PathLimitCheckResult allPathsCheckResult = checkAllPaths(pathLimitChecker, model);
+            if (allPathsCheckResult == SafeFileLocationUtils.PathLimitCheckResult.UNSHRINKABLE) {
+                throw new GradleException(
+                    "Cannot generate HTML test report because some test result paths exceed the file system limit and cannot be shortened." +
+                        " Try using a shorter base report directory or reducing nesting in your tests." +
+                        " The current base report directory is '" + basePath + "'."
+                );
+            }
+            final boolean shrink = allPathsCheckResult == SafeFileLocationUtils.PathLimitCheckResult.EXCEEDS_LIMIT;
 
             ListMultimap<String, Integer> namesToIndexes = ArrayListMultimap.create();
             List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
@@ -186,7 +227,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                 }
             });
 
-            htmlRenderer.render(model, new ReportRenderer<TestTreeModel, HtmlReportBuilder>() {
+            htmlRenderer.render(model, new ReportRenderer<>() {
                 @Override
                 public void render(final TestTreeModel model, final HtmlReportBuilder output) {
                     buildOperationExecutor.runAll(
@@ -212,6 +253,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                         }
                     }
                     queue.add(new HtmlReportFileGenerator(
+                        shrink,
                         requestsBuilder.build(),
                         output,
                         outputReaders,
@@ -236,17 +278,20 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     }
 
     private static final class HtmlReportFileGenerator implements RunnableBuildOperation {
+        private final boolean shrink;
         private final List<TestTreeModel> requests;
         private final HtmlReportBuilder output;
         private final List<TestOutputReader> outputReaders;
         private final List<String> rootDisplayNames;
 
         HtmlReportFileGenerator(
+            boolean shrink,
             List<TestTreeModel> requests,
             HtmlReportBuilder output,
             List<TestOutputReader> outputReaders,
             List<String> rootDisplayNames
         ) {
+            this.shrink = shrink;
             this.requests = requests;
             this.output = output;
             this.outputReaders = outputReaders;
@@ -264,9 +309,9 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
         @Override
         public void run(BuildOperationContext context) {
-            GenericPageRenderer renderer = new GenericPageRenderer(outputReaders, rootDisplayNames);
+            GenericPageRenderer renderer = new GenericPageRenderer(shrink, outputReaders, rootDisplayNames);
             for (TestTreeModel request : requests) {
-                output.renderHtmlPage(getFilePath(request), request, renderer);
+                output.renderHtmlPage(getFilePath(shrink, request), request, renderer);
             }
         }
     }

@@ -18,8 +18,8 @@ package org.gradle.testing
 
 import com.google.common.base.Utf8
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.SafeFileLocationUtils
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -76,20 +76,11 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
         noExceptionThrown()
 
         and:
-        def htmlReportName = GenericHtmlTestReportGenerator.hashSegment(name) + "/index.html"
-        // 255 is the filesystem limit on many systems, so we limit to that.
-        def xmlReportName = buildSafeFileName("TEST-", "-5KFS1VR5035J6.xml")
-        // These do an `any` check to give a better error message on failure
+        def htmlReportName = SafeFileLocationUtils.toSafeFileName(name, true) + "/index.html"
+        def xmlReportName = SafeFileLocationUtils.toSafeFileName("TEST-", name + ".xml", false)
         file("build/reports/tests/test/").assertContainsDescendants(htmlReportName)
         file("build/test-results/test/").assertContainsDescendants(xmlReportName)
         file("build/reports/tests/test/index.html").text.contains(name)
-    }
-
-    private static String buildSafeFileName(String prefix, String suffix) {
-        def maxFileNameLength = 120
-        def safeLength = maxFileNameLength - (Utf8.encodedLength(prefix) + Utf8.encodedLength(suffix))
-        def safeName = "A" * safeLength
-        return "${prefix}${safeName}${suffix}"
     }
 
     @Issue("GRADLE-2702")
