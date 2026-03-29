@@ -596,7 +596,7 @@ public class NodeState implements DependencyGraphNode {
 
                     boolean forced = hasStrongOpinion();
                     final ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(platformId.getModuleIdentifier(), platformId.getVersion());
-                    DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(resolveState, this, selector, platformId, platformId, forced, true, false);
+                    DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(selector, platformId, forced, false);
                     EdgeState virtualPlatformEdge = createEdge(dependencyMetadata);
 
                     registerOutgoingEdge(
@@ -627,7 +627,7 @@ public class NodeState implements DependencyGraphNode {
         }
         if (resolvedComponent == null) {
             // the platform doesn't exist, so we're building a lenient one
-            ComponentGraphResolveState newLenientPlatform = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), componentId, toModuleVersionId, virtualPlatformState, this, resolveState);
+            ComponentGraphResolveState newLenientPlatform = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), componentId, toModuleVersionId, virtualPlatformState, resolveState);
             componentState.setState(newLenientPlatform, ComponentGraphSpecificResolveState.EMPTY_STATE);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             componentState.getModule().maybeCreateVirtualMetadata(resolveState);
