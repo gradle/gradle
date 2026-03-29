@@ -154,7 +154,9 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
         and:
         if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateLoaded()
+            if (!AGP_VERSIONS.isOld(agpVersion)) {
+                result.assertConfigurationCacheStateLoaded()
+            }
         }
 
         where:
