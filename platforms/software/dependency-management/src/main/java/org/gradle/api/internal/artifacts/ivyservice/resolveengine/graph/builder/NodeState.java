@@ -37,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
+import org.gradle.internal.Pair;
 import org.gradle.internal.Try;
 import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -66,6 +67,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -87,9 +89,21 @@ public class NodeState implements DependencyGraphNode {
 
     @Nullable
     ExcludeSpec previousTraversalExclusions;
-
     private boolean queued;
+
+    /**
+     * The number of unresolved capability conflicts this node is involved in.
+     */
+    private int numCapabilityConflicts;
+
+    /**
+     * The node this node has been replaced by in a capability conflict, if this
+     * node has been previously involved in a resolved capability conflict and
+     * has lost that conflict.
+     */
     private @Nullable NodeState replacement;
+    private @Nullable Pair<Capability, Collection<NodeState>> capabilityReject;
+
     private int transitiveEdgeCount;
     private @Nullable Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
 
@@ -760,15 +774,75 @@ public class NodeState implements DependencyGraphNode {
         return !incomingEdges.isEmpty();
     }
 
+    public void markInCapabilityConflict() {
+        this.numCapabilityConflicts++;
+        if (numCapabilityConflicts == 1) {
+            resolveState.onFewerSelected(this);
+        }
+    }
+
+    public boolean isInCapabilityConflict() {
+        return numCapabilityConflicts > 0;
+    }
+
+    public void onFilteredFromConflict() {
+        numCapabilityConflicts--;
+        assert numCapabilityConflicts >= 0;
+    }
+
     /**
-     * Mark this node as being evicted by another node in the same component,
-     * after these two nodes entered a capability conflict and the conflict
-     * was resolved with the given node as the winner and this node as a loser.
+     * Resolve a capability conflict this node is involved in.
      */
     @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public void replaceWith(@Nullable NodeState replacement) {
-        assert replacement == null || replacement.getComponent() == getComponent();
-        this.replacement = replacement;
+    public void resolveCapabilityConflict(NodeState winner) {
+        numCapabilityConflicts--;
+        assert numCapabilityConflicts >= 0;
+        if (winner == this) {
+            resolveState.onMoreSelected(this);
+        } else {
+            this.replacement = winner;
+            restartIncomingEdges();
+        }
+    }
+
+    public boolean isRejectedForCapabilityConflict() {
+        return capabilityReject != null;
+    }
+
+    public void rejectForCapabilityConflict(Capability capability, Collection<NodeState> conflictedNodes) {
+        if (this.capabilityReject == null) {
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
+        } else {
+            mergeCapabilityRejects(capability, conflictedNodes);
+        }
+
+        numCapabilityConflicts--;
+        assert numCapabilityConflicts >= 0;
+        resolveState.onMoreSelected(this);
+    }
+
+    private void mergeCapabilityRejects(Capability capability, Collection<NodeState> conflictedNodes) {
+        // Only merge if about the same capability, otherwise last wins
+        if (this.capabilityReject.getLeft().equals(capability)) {
+            this.capabilityReject.getRight().addAll(conflictedNodes);
+        } else {
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
+        }
+    }
+
+    public String getRejectedErrorMessage() {
+        assert capabilityReject != null;
+        return formatCapabilityRejectMessage(getComponent().getModule().getId(), capabilityReject);
+    }
+
+    private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        return "Module '" + id + "' has been rejected:\n" +
+            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
+            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
+    }
+
+    private static String formatCapability(Capability capability) {
+        return capability.getGroup() + ":" + capability.getName() + ":" + capability.getVersion();
     }
 
     /**
@@ -1174,26 +1248,11 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Called for each participant of a conflict after the conflict was resolved.
-     */
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public void restart(ComponentState selected) {
-        if (component == selected && replacement == null) {
-            // We are in the selected component and are not replaced by another node in our own component.
-            // We are the winning node. Queue ourselves up for traversal.
-            resolveState.onMoreSelected(this);
-        } else {
-            // We are the losing node. Retarget all incoming edges so they are attached to their correct nodes.
-            restartIncomingEdges();
-        }
-    }
-
-    /**
      * Called on losing nodes after conflict resolution to retarget their existing incoming
      * edges to the winning node. This method must be called after any relevant state is updated
      * so that retargeting chooses the correct new target node.
      */
-    private void restartIncomingEdges() {
+    void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
             EdgeState singleEdge = incomingEdges.get(0);
             singleEdge.retarget();
@@ -1206,10 +1265,6 @@ public class NodeState implements DependencyGraphNode {
         // This method is called on a node that fails conflict resolution. If, after retargeting,
         // we still have incoming edges, something went wrong.
         assert incomingEdges.isEmpty();
-    }
-
-    public void deselect() {
-        removeOutgoingEdges();
     }
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
@@ -1342,11 +1397,9 @@ public class NodeState implements DependencyGraphNode {
 
     private void dependsTransitivelyOn(Set<NodeState> visited) {
         for (EdgeState outgoingEdge : getOutgoingEdges()) {
-            if (outgoingEdge.getTargetComponent() != null) {
-                for (NodeState nodeState : outgoingEdge.getTargetComponent().getNodes()) {
-                    if (visited.add(nodeState)) {
-                        nodeState.dependsTransitivelyOn(visited);
-                    }
+            for (NodeState nodeState : outgoingEdge.getTargetNodes()) {
+                if (visited.add(nodeState)) {
+                    nodeState.dependsTransitivelyOn(visited);
                 }
             }
         }

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.capabilities
 
+import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
@@ -253,6 +254,91 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
                 module('org:testB:1.0:runtimeAlt').byConflictResolution("On capability org:testB we want runtimeAlt with 'special'")
                 module('org:testB:1.0:runtimeAlt')
                 module('org:testB:1.0:runtimeOptional')
+            }
+        }
+    }
+
+    def "can select unrelated variant from component with variant that loses capability conflict"() {
+        settingsFile << """
+            include("producer1")
+            include("producer2")
+        """
+        buildFile << """
+            dependencies {
+                conf(project(":producer2")) {
+                    capabilities {
+                        requireCapability("org:bar:1.0")
+                    }
+                }
+                conf(project(":producer1")) {
+                    capabilities {
+                        requireCapability("org:foo:2.0")
+                    }
+                }
+                conf(project(":producer2")) {
+                    capabilities {
+                        requireCapability("org:foo:1.0")
+                    }
+                }
+            }
+
+            configurations.conf {
+                resolutionStrategy {
+                    capabilitiesResolution {
+                        withCapability("org:foo") {
+                            selectHighestVersion()
+                        }
+                    }
+                }
+            }
+        """
+
+        file("producer1/build.gradle") << """
+            configurations {
+                consumable("foo") {
+                    outgoing.capability("org:foo:2.0")
+                    outgoing.artifact(file("producer1-foo-\${version}.jar"))
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                    }
+                }
+            }
+        """
+        file("producer2/build.gradle") << """
+            configurations {
+                consumable("foo") {
+                    outgoing.capability("org:foo:1.0")
+                    outgoing.artifact(file("producer2-foo-\${version}.jar"))
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                    }
+                }
+                consumable("bar") {
+                    outgoing.capability("org:bar:1.0")
+                    outgoing.artifact(file("producer2-bar-\${version}.jar"))
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(":producer2", "test:producer2:unspecified") {
+                    variant("bar", [(Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY])
+                    artifact(name: "producer2-bar")
+                }
+                project(":producer1", "test:producer1:unspecified") {
+                    variant("foo", [(Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY])
+                    artifact(name: "producer1-foo")
+                    byReason("conflict resolution: latest version of capability org:foo")
+                }
+                edge("project :producer2", "project :producer1", "test:producer1:unspecified")
             }
         }
     }

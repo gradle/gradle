@@ -70,7 +70,7 @@ class DefaultModuleConflictHandlerTest extends Specification {
         handler.hasConflicts()
 
         and:
-        1 * resolveState.getModule(a.id).clearSelection()
+        1 * resolveState.getModule(a.id).markInModuleConflict()
     }
 
     def "registers module with module conflict"() {
@@ -89,8 +89,8 @@ class DefaultModuleConflictHandlerTest extends Specification {
         handler.hasConflicts()
 
         and:
-        2 * resolveState.getModule(a.id).clearSelection()
-        1 * resolveState.getModule(b.id).clearSelection()
+        2 * resolveState.getModule(a.id).markInModuleConflict()
+        1 * resolveState.getModule(b.id).markInModuleConflict()
     }
 
     def "resolves conflict"() {
@@ -110,7 +110,7 @@ class DefaultModuleConflictHandlerTest extends Specification {
             def selected = details.candidates.find { it.id.version == '2' }
             details.select(selected)
         }
-        1 * targetModule.changeSelection(selectedVersion)
+        1 * targetModule.resolveModuleConflict(selectedVersion)
         0 * resolver._
 
         then:
