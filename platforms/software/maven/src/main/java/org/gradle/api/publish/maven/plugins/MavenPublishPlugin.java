@@ -22,9 +22,14 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.MetadataFormat;
+import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -116,11 +121,44 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             publish.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
         }));
 
+        final boolean[] pomElementsWired = {false};
         mavenPublications.all(publication -> {
             createGenerateMetadataTask(tasks, publication, mavenPublications, buildDirectory);
-            createGeneratePomTask(tasks, publication, buildDirectory);
+            TaskProvider<GenerateMavenPom> pomTask = createGeneratePomTask(tasks, publication, buildDirectory);
             createLocalInstallTask(tasks, publishLocalLifecycleTask, publication);
             createPublishTasksForEachMavenRepo(tasks, publishLifecycleTask, publication, repositories);
+            maybeCreatePomElements(project, publication, pomTask, pomElementsWired);
+        });
+    }
+
+    private void maybeCreatePomElements(Project project, MavenPublicationInternal publication, TaskProvider<GenerateMavenPom> pomTask, boolean[] pomElementsWired) {
+        project.getGradle().projectsEvaluated(gradle -> {
+            if (pomElementsWired[0]) {
+                return;
+            }
+            if (!publication.getComponent().isPresent()) {
+                return;
+            }
+            SoftwareComponentInternal component = publication.getComponent().get();
+            if (!(component instanceof AdhocComponentWithVariants)) {
+                return;
+            }
+            pomElementsWired[0] = true;
+
+            ConfigurationContainer configurations = project.getConfigurations();
+            configurations.consumable("pomElements", pomElements -> {
+                pomElements.setDescription("POM metadata elements for the '" + publication.getName() + "' publication.");
+                pomElements.attributes(attrs -> {
+                    attrs.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.METADATA));
+                    attrs.attribute(MetadataFormat.METADATA_FORMAT_ATTRIBUTE, objectFactory.named(MetadataFormat.class, MetadataFormat.MAVEN));
+                });
+                pomElements.getOutgoing().artifact(pomTask);
+            });
+
+            ((AdhocComponentWithVariants) component).addVariantsFromConfiguration(
+                configurations.getByName("pomElements"),
+                variant -> {}
+            );
         });
     }
 
@@ -166,7 +204,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         publishLocalLifecycleTask.configure(task -> task.dependsOn(installTaskName));
     }
 
-    private void createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir) {
+    private TaskProvider<GenerateMavenPom> createGeneratePomTask(TaskContainer tasks, final MavenPublicationInternal publication, final DirectoryProperty buildDir) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generatePomFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateMavenPom> generatorTask = tasks.register(descriptorTaskName, GenerateMavenPom.class, generatePomTask -> {
@@ -178,6 +216,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             }
         });
         publication.setPomGenerator(generatorTask);
+        return generatorTask;
     }
 
     private void createGenerateMetadataTask(final TaskContainer tasks, final MavenPublicationInternal publication, final Set<? extends MavenPublicationInternal> publications, final DirectoryProperty buildDir) {
