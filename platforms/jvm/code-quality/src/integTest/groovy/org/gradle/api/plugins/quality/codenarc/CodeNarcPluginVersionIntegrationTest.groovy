@@ -23,7 +23,6 @@ import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
@@ -215,8 +214,26 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         succeeds("check")
     }
 
-    def "output should be printed in stdout if console type is specified"() {
+    def "console report produces no output when there are no violations"() {
+        given:
+        buildFile << '''
+            codenarc {
+                reportFormat = 'console'
+            }
+        '''
+        goodCode()
+
         when:
+        succeeds('check')
+
+        then:
+        result.assertNotOutput('[ant:codenarc]')
+        result.assertNotOutput('CodeNarc Report')
+        result.assertNotOutput('CodeNarc completed')
+    }
+
+    def "console report shows violations without ant prefix"() {
+        given:
         buildFile << '''
             codenarc {
                 configFile == file('config/codenarc/codenarc.xml')
@@ -225,10 +242,12 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         '''
         badCode()
 
-        then:
+        when:
         fails('check')
-        def codenarcOutput = result.groupedOutput.task(":codenarcTest")
-        codenarcOutput.assertOutputContains('[ant:codenarc]     Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
+
+        then:
+        output.contains('Violation: Rule=ClassName P=2')
+        !output.contains('[ant:codenarc]')
     }
 
     def "can enable multiple reports with console"() {
@@ -251,15 +270,14 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         fails('check')
         and:
         // Failures should be reported to console, HTML report should be written and failure should link to HTML report
-        def codenarcOutput = result.groupedOutput.task(":codenarcTest")
-        codenarcOutput.assertOutputContains('[ant:codenarc]     Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
+        output.contains('Violation: Rule=ClassName P=2')
+        !output.contains('[ant:codenarc]')
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         report("test").assertExists()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
-    @ToBeImplemented
-    def "check task should not be up-to-date after clean if console type is specified"() {
+    def "console report produces no verbose output after clean"() {
         given:
         buildFile << '''
             codenarc {
@@ -274,9 +292,8 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         succeeds('clean', 'check')
 
         then:
-        // TODO These should match
-        !!!skipped(':codenarcMain')
-        !!!output.contains('CodeNarc Report')
-        !!!output.contains('CodeNarc completed: (p1=0; p2=0; p3=0)')
+        !output.contains('CodeNarc Report')
+        !output.contains('CodeNarc completed')
+        !output.contains('[ant:codenarc]')
     }
 }
