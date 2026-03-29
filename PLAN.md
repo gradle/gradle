@@ -137,6 +137,33 @@ The fast-path is conservative — any doubt falls through to normal pipeline:
 - **`--rerun-tasks`**: `getNonIncrementalReason()` is non-null → no fast-path.
 - **Parallel execution**: `producedOutputRootPaths` uses ConcurrentHashMap.newKeySet(). Topological ordering guarantees task A completes (and records outputs) before dependent task B starts.
 
+## Future Work: Fast-Path for Immutable Pipeline
+
+The immutable pipeline (artifact transforms, script compilation) has similar overhead from `IdentifyStep` — input fingerprinting + identity computation costs ~10-30ms per work unit. For builds with many artifact transforms (e.g., Android with 500+ transforms), this adds up to seconds of pure overhead.
+
+### Opportunity
+
+Cache a mapping of **stable work key → (identity, input root paths)** across builds in the daemon. On the next build:
+1. Look up cached input root paths for this work unit
+2. Check VFS: did any of those paths change?
+3. If not → identity is the same → workspace already exists → skip `IdentifyStep` + `AssignImmutableWorkspaceStep` entirely
+
+This is more powerful than the mutable case because it skips the **entire pipeline**, not just fingerprinting.
+
+### Key use cases
+
+- **Artifact transforms**: Run during execution phase even with CC. Hundreds of transforms per Android/JVM build. Skipping `IdentifyStep` for unchanged transforms could save 5-10s on large builds.
+- **CC miss with warm daemon**: Running a different task (e.g., `test` after `compileJava`) causes CC miss, re-running script compilation identity computation even though no scripts changed.
+
+### Challenge: Stable key without identity
+
+The core problem: immutable work's "unique ID" IS the identity (computed from inputs). You need the identity to look up the workspace, but computing the identity is the overhead you want to skip.
+
+Possible approaches:
+- **Internal work (script compilation)**: Gradle controls these — assign a stable key (e.g., script file path) that doesn't depend on identity. Implementation is fixed, inputs are file-based and VFS-trackable.
+- **Artifact transforms**: Use `(transform class + input artifact path)` as a stable pre-identity key. Parameters are value inputs (not file-based), but the artifact file is trackable via VFS. If VFS confirms the artifact hasn't changed and parameters come from CC-cached configuration, the identity is unchanged.
+- **Daemon-scoped cache**: Map `work display name → (previous identity, input root paths)`, populated after each build. Less precise but more general.
+
 ## Verification
 
 1. Run existing tests: `./gradlew :execution:test` and `:core:test`
