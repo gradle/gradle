@@ -1862,8 +1862,6 @@ Class <org.gradle.internal.resource.transport.http.RedirectVerifyingStrategyDeco
 Class <org.gradle.internal.resource.transport.http.RepeatableInputStreamEntity> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (RepeatableInputStreamEntity.java:0)
 Class <org.gradle.internal.resource.transport.http.SslContextFactory> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (SslContextFactory.java:0)
 Class <org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (NTLMCredentials.java:0)
-Class <org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory$JCIFSEngine> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (NTLMSchemeFactory.java:0)
-Class <org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (NTLMSchemeFactory.java:0)
 Class <org.gradle.internal.resource.transport.sftp.LockableSftpClient> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (LockableSftpClient.java:0)
 Class <org.gradle.internal.resource.transport.sftp.SftpClientFactory$DefaultLockableSftpClient> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (SftpClientFactory.java:0)
 Class <org.gradle.internal.resource.transport.sftp.SftpClientFactory$SftpClientCreator> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (SftpClientFactory.java:0)
