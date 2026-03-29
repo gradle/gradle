@@ -67,6 +67,26 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
         return null;
     }
 
+    @Override
+    public ImmutableList<? extends ModuleConfigurationMetadata> deriveSupplementalVariants(ModuleComponentResolveMetadata metadata) {
+        if (metadata instanceof DefaultMavenModuleResolveMetadata) {
+            DefaultMavenModuleResolveMetadata md = (DefaultMavenModuleResolveMetadata) metadata;
+            DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("runtime");
+            if (runtimeConfiguration == null) {
+                // GMM modules may not have a "runtime" configuration — use "compile" or any available config as base
+                runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("compile");
+            }
+            if (runtimeConfiguration == null) {
+                return null;
+            }
+            ImmutableAttributes attributes = md.getAttributes();
+            return ImmutableList.of(
+                libraryWithPomVariant(runtimeConfiguration, attributes, metadata)
+            );
+        }
+        return null;
+    }
+
     /**
      * Synthesizes a "sources" variant since maven metadata cannot represent it
      *

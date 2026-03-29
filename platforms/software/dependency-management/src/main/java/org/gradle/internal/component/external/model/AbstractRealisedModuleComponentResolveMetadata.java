@@ -87,15 +87,33 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         return graphVariants.orElse(Collections.emptyList());
     }
 
+    @SuppressWarnings("unchecked")
     private Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {
             return maybeDeriveVariants();
         }
-        ImmutableList.Builder<ModuleConfigurationMetadata> configurations = new ImmutableList.Builder<>();
+        ImmutableList.Builder<ExternalModuleVariantGraphResolveMetadata> configurations = new ImmutableList.Builder<>();
         for (ComponentVariant variant : variants) {
             configurations.add(new RealisedVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory()));
         }
+        if (!hasVariantNamed(variants, "pom")) {
+            Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> supplemental = maybeDeriveSupplementalVariants();
+            supplemental.ifPresent(configurations::addAll);
+        }
         return Optional.of(configurations.build());
+    }
+
+    private static boolean hasVariantNamed(List<? extends ComponentVariant> variants, String name) {
+        for (ComponentVariant variant : variants) {
+            if (name.equals(variant.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveSupplementalVariants() {
+        return Optional.empty();
     }
 
     protected static class NameOnlyVariantResolveMetadata implements VariantResolveMetadata {

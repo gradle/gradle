@@ -268,6 +268,18 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return Optional.of(getDerivedVariants());
     }
 
+    @Override
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveSupplementalVariants() {
+        VariantDerivationStrategy strategy = getVariantDerivationStrategy();
+        if (strategy.derivesVariants()) {
+            ImmutableList<? extends ModuleConfigurationMetadata> supplemental = strategy.deriveSupplementalVariants(this);
+            if (supplemental != null) {
+                return Optional.of(supplemental);
+            }
+        }
+        return Optional.empty();
+    }
+
     ImmutableList<? extends ModuleConfigurationMetadata> getDerivedVariants() {
         return derivedVariants;
     }
