@@ -31,6 +31,11 @@ public class FastUpToDateCheckState implements FastUpToDateCheckLifecycle {
     private volatile boolean configurationCacheHit;
     private volatile boolean watchingFileSystem;
     private volatile boolean watchingError;
+    // True only after at least one build has completed with watching active.
+    // On a cold daemon, changedPaths is empty but that means "not yet watching",
+    // not "nothing changed". This flag ensures we only fast-path after the VFS
+    // has established a baseline from a completed build.
+    private volatile boolean hasVfsBaseline;
 
     public void recordChange(Path path) {
         changedPaths.add(path.toString());
@@ -45,7 +50,7 @@ public class FastUpToDateCheckState implements FastUpToDateCheckLifecycle {
     }
 
     public boolean isFastPathEnabled() {
-        return configurationCacheHit && watchingFileSystem && !watchingError;
+        return configurationCacheHit && watchingFileSystem && !watchingError && hasVfsBaseline;
     }
 
     public boolean hasVfsChangesOverlappingWith(Set<String> rootPaths) {
@@ -113,5 +118,6 @@ public class FastUpToDateCheckState implements FastUpToDateCheckLifecycle {
     @Override
     public void clearChangedPaths() {
         changedPaths.clear();
+        hasVfsBaseline = true;
     }
 }
