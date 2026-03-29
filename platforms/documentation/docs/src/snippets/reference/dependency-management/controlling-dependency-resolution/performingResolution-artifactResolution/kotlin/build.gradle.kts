@@ -99,3 +99,53 @@ tasks.register<ResolveFiles>("resolvePoms") {
     })
 }
 // end::pom-variant-reselection[]
+
+// tag::pom-license-extraction[]
+tasks.register("extractLicenses") {
+    val pomArtifacts = configurations.runtimeClasspath.map {
+        it.incoming.artifactView {
+            withVariantReselection()
+            attributes {
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.METADATA))
+                attribute(MetadataFormat.METADATA_FORMAT_ATTRIBUTE, objects.named(MetadataFormat.MAVEN))
+            }
+        }.artifacts
+    }
+    doLast {
+        // Index all resolved POMs by filename for parent chain lookups
+        val pomsByFilename = pomArtifacts.get().associate { it.file.name to it.file }
+        val dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+        val db = dbf.newDocumentBuilder()
+
+        pomArtifacts.get().forEach { artifact ->
+            val doc = db.parse(artifact.file)
+            val componentId = artifact.id.componentIdentifier
+
+            // Look for <licenses> in this POM, then walk parent chain if not found
+            var licenses = doc.getElementsByTagName("license")
+            if (licenses.length == 0) {
+                // Walk parent chain: parse <parent> to find the parent POM file
+                var current = doc
+                while (licenses.length == 0) {
+                    val parents = current.getElementsByTagName("parent")
+                    if (parents.length == 0) break
+                    val parent = parents.item(0) as org.w3c.dom.Element
+                    val parentArtifactId = parent.getElementsByTagName("artifactId").item(0)?.textContent ?: break
+                    val parentVersion = parent.getElementsByTagName("version").item(0)?.textContent ?: break
+                    val parentFile = pomsByFilename["$parentArtifactId-$parentVersion.pom"] ?: break
+                    current = db.parse(parentFile)
+                    licenses = current.getElementsByTagName("license")
+                }
+            }
+
+            if (licenses.length > 0) {
+                val names = (0 until licenses.length).mapNotNull { i ->
+                    (licenses.item(i) as org.w3c.dom.Element)
+                        .getElementsByTagName("name").item(0)?.textContent
+                }
+                println("$componentId: ${names.joinToString(", ")}")
+            }
+        }
+    }
+}
+// end::pom-license-extraction[]
