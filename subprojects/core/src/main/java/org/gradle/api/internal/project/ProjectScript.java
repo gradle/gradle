@@ -15,14 +15,19 @@
  */
 package org.gradle.api.internal.project;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import groovy.lang.Closure;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 public abstract class ProjectScript extends PluginsAwareScript {
 
@@ -70,5 +75,44 @@ public abstract class ProjectScript extends PluginsAwareScript {
     @Override
     public ProjectInternal getScriptTarget() {
         return (ProjectInternal) super.getScriptTarget();
+    }
+
+    private PropertyApiViolationReporterFactory propertyApiViolationReporterFactory;
+
+    @Override
+    protected void initDynamicLookupRoutine(Object target, ServiceRegistry services) {
+        propertyApiViolationReporterFactory = services.get(PropertyApiViolationReporterFactory.class);
+        // Check if IP is enabled without creating a reporter (no project reference yet)
+        if (!propertyApiViolationReporterFactory.hasReporter()) {
+            super.initDynamicLookupRoutine(target, services);
+            return;
+        }
+        // Set up wrapper with a lazy reporter — resolved on first violation, not during init
+        DynamicLookupRoutine buildScopedLookup = services.get(DynamicLookupRoutine.class);
+        dynamicLookupRoutine = new DelegatingDynamicLookupRoutine(buildScopedLookup) {
+            final Supplier<Consumer<String>> reporter = Suppliers.memoize(
+                () -> propertyApiViolationReporterFactory.createViolationReporter(getScriptTarget())
+            );
+
+            @Override
+            public boolean hasProperty(DynamicObject receiver, String propertyName) {
+                reporter.get().accept("hasProperty");
+                return super.hasProperty(receiver, propertyName);
+            }
+
+            @Override
+            public Map<String, ?> getProperties(DynamicObject receiver) {
+                reporter.get().accept("properties");
+                return super.getProperties(receiver);
+            }
+
+            @Override
+            public Object invokeMethod(DynamicObject receiver, String name, Object... args) {
+                if ("property".equals(name) || "findProperty".equals(name)) {
+                    reporter.get().accept(name);
+                }
+                return super.invokeMethod(receiver, name, args);
+            }
+        };
     }
 }

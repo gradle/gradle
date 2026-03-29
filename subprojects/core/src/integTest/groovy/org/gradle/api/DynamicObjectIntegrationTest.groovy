@@ -18,6 +18,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
@@ -133,14 +134,26 @@ global=some value
 '''
         buildFile '''
 assert 'some value' == global
+assert 'some value' == project.global
+'''
+
+        if (GradleContextualExecuter.isIsolatedProjects()) {
+            buildFile '''
+assert ext.has('global')
+assert 'some value' == ext.get('global')
+assert project.ext.has('global')
+assert 'some value' == project.ext.get('global')
+'''
+        } else {
+            buildFile '''
 assert hasProperty('global')
 assert 'some value' == property('global')
 assert 'some value' == properties.global
-assert 'some value' == project.global
 assert project.hasProperty('global')
 assert 'some value' == project.property('global')
 assert 'some value' == project.properties.global
 '''
+        }
         file("child/gradle.properties") << '''
 global=overridden value
 '''
@@ -435,7 +448,44 @@ assert 'overridden value' == global
 
     def canAddNewPropertiesViaTheAdhocNamespace() {
 
-        buildFile """
+        if (GradleContextualExecuter.isIsolatedProjects()) {
+            buildFile """
+            assert !ext.has("p1")
+
+            ext {
+                set "p1", 1
+            }
+
+            assert p1 == 1
+            assert ext.p1 == 1
+            assert ext.has("p1")
+            assert ext.get("p1") == 1
+            assert getProperty("p1") == 1
+            assert ext.getProperty("p1") == 1
+
+            p1 = 2
+            assert p1 == 2
+            assert ext.p1 == 2
+
+            task run {
+                doLast { task ->
+                    assert !task.hasProperty("p1")
+
+                    ext {
+                        set "p1", 1
+                    }
+                    assert p1 == 1
+                    assert task.hasProperty("p1")
+                    assert task.property("p1") == 1
+
+                    p1 = 2
+                    assert p1 == 2
+                    assert ext.p1 == 2
+                }
+            }
+        """
+        } else {
+            buildFile """
             assert !hasProperty("p1")
 
             ext {
@@ -471,6 +521,7 @@ assert 'overridden value' == global
                 }
             }
         """
+        }
 
         expect:
         succeeds("run")
@@ -526,8 +577,9 @@ task print(type: MyTask) {
     }
 
     def failsWhenGettingUnknownPropertyOnProject() {
+        def guard = GradleContextualExecuter.isIsolatedProjects() ? '!ext.has("p1")' : '!hasProperty("p1")'
         buildFile """
-            assert !hasProperty("p1")
+            assert $guard
             println p1
         """
 
@@ -538,8 +590,9 @@ task print(type: MyTask) {
     }
 
     def failsWhenSettingUnknownPropertyOnProject() {
+        def guard = GradleContextualExecuter.isIsolatedProjects() ? '!ext.has("p1")' : '!hasProperty("p1")'
         buildFile """
-            assert !hasProperty("p1")
+            assert $guard
 
             p1 = 1
         """
