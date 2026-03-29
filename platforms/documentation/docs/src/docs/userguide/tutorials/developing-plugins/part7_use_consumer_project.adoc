@@ -83,7 +83,7 @@ include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="settings.gr
 The key line here is `includeBuild("plugin")` inside the `pluginManagement {}` block.
 This makes all the plugins from the `plugin` project available to other projects in the composite build by their ID.
 
-Finally, we need to update the `plugin`'s build file to account for the composite build setup.
+Finally, we need to update the `plugin` project's build file to account for the composite build setup.
 We'll change the `id` from a local file to a standard `String`.
 
 ====
