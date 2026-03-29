@@ -75,7 +75,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
                 return parsed;
             }
         }
-        return Instant.now();
+        return Instant.EPOCH;
     }
 
     private String getFilename() {

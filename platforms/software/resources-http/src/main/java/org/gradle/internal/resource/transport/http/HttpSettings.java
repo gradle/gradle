@@ -16,7 +16,6 @@
 package org.gradle.internal.resource.transport.http;
 
 
-import org.apache.hc.client5.http.impl.LaxRedirectStrategy;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 
@@ -61,7 +60,7 @@ public interface HttpSettings {
          * This was introduced to overcome a regression caused by switching to Apache HttpClient
          * as the transport mechanism for publishing (https://issues.gradle.org/browse/GRADLE-3312).
          *
-         * @see LaxRedirectStrategy
+         * @see AlwaysFollowAndPreserveMethodRedirectStrategy
          */
         ALWAYS_FOLLOW_AND_PRESERVE
     }

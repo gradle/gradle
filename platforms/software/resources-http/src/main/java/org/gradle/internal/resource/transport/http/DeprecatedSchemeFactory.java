@@ -20,7 +20,9 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public class DeprecatedSchemeFactory implements AuthSchemeFactory {
     private final AuthSchemeFactory delegate;
     private final String authScheme;

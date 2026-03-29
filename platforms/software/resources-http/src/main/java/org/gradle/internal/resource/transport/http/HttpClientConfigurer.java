@@ -34,7 +34,6 @@ import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
-import org.apache.hc.client5.http.impl.LaxRedirectStrategy;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
@@ -335,7 +334,7 @@ public class HttpClientConfigurer {
             case ALLOW_FOLLOW_FOR_MUTATIONS:
                 return new DefaultRedirectStrategy();
             case ALWAYS_FOLLOW_AND_PRESERVE:
-                return new LaxRedirectStrategy();
+                return new AlwaysFollowAndPreserveMethodRedirectStrategy();
             default:
                 throw new IllegalArgumentException(httpSettings.getRedirectMethodHandlingStrategy().name());
         }
