@@ -20,7 +20,7 @@ import org.gradle.api.problems.DocLink;
 
 import java.io.Serializable;
 
-public interface InternalDocLink extends DocLink, Serializable  {
+public interface DocLinkInternal extends DocLink, Serializable  {
     /**
      * A message that tells the user to consult the documentation.
      * There are currently 2 different messages used for this, hence this method.

@@ -23,115 +23,115 @@ import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.AdditionalDataSpec;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemBuilder;
-import org.gradle.api.problems.internal.InternalProblemSpec;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemBuilderInternal;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
 import org.gradle.api.problems.internal.ProblemsInfrastructure;
 import org.gradle.problems.ProblemDiagnostics;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @NullMarked
-class DelegatingProblemBuilder implements InternalProblemBuilder {
+class DelegatingProblemBuilder implements ProblemBuilderInternal {
 
-    private final InternalProblemBuilder delegate;
+    private final ProblemBuilderInternal delegate;
 
-    DelegatingProblemBuilder(InternalProblemBuilder delegate) {
+    DelegatingProblemBuilder(ProblemBuilderInternal delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public InternalProblem build() {
+    public ProblemInternal build() {
         return delegate.build();
     }
 
     @Override
-    public InternalProblemBuilder id(ProblemId problemId) {
+    public ProblemBuilderInternal id(ProblemId problemId) {
         return validateDelegate(delegate).id(problemId);
     }
 
     @Override
-    public InternalProblemBuilder id(String name, String displayName, ProblemGroup parent) {
+    public ProblemBuilderInternal id(String name, String displayName, ProblemGroup parent) {
         return validateDelegate(delegate).id(name, displayName, parent);
     }
 
     @Override
-    public InternalProblemBuilder contextualLabel(String contextualLabel) {
+    public ProblemBuilderInternal contextualLabel(String contextualLabel) {
         return validateDelegate(delegate).contextualLabel(contextualLabel);
     }
 
     @Override
-    public InternalProblemBuilder documentedAt(DocLink doc) {
+    public ProblemBuilderInternal documentedAt(DocLink doc) {
         return validateDelegate(delegate.documentedAt(doc));
     }
 
     @Override
-    public InternalProblemBuilder documentedAt(String url) {
+    public ProblemBuilderInternal documentedAt(String url) {
         return validateDelegate(delegate.documentedAt(url));
     }
 
     @Override
-    public InternalProblemBuilder fileLocation(String path) {
+    public ProblemBuilderInternal fileLocation(String path) {
         return validateDelegate(delegate.fileLocation(path));
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line) {
+    public ProblemBuilderInternal lineInFileLocation(String path, int line) {
         return validateDelegate(delegate.lineInFileLocation(path, line));
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line, int column) {
+    public ProblemBuilderInternal lineInFileLocation(String path, int line, int column) {
         return validateDelegate(delegate.offsetInFileLocation(path, line, column));
     }
 
     @Override
-    public InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length) {
+    public ProblemBuilderInternal lineInFileLocation(String path, int line, int column, int length) {
         return validateDelegate(delegate.lineInFileLocation(path, line, column, length));
     }
 
     @Override
-    public InternalProblemBuilder offsetInFileLocation(String path, int offset, int length) {
+    public ProblemBuilderInternal offsetInFileLocation(String path, int offset, int length) {
         return validateDelegate(delegate.offsetInFileLocation(path, offset, length));
     }
 
     @Override
-    public InternalProblemBuilder stackLocation() {
+    public ProblemBuilderInternal stackLocation() {
         return validateDelegate(delegate.stackLocation());
     }
 
     @Override
-    public InternalProblemBuilder details(String details) {
+    public ProblemBuilderInternal details(String details) {
         return validateDelegate(delegate.details(details));
     }
 
     @Override
-    public InternalProblemBuilder solution(@Nullable String solution) {
+    public ProblemBuilderInternal solution(@Nullable String solution) {
         return validateDelegate(delegate.solution(solution));
     }
 
     @Override
-    public InternalProblemBuilder taskLocation(String buildTreePath) {
+    public ProblemBuilderInternal taskLocation(String buildTreePath) {
         return validateDelegate(delegate.taskLocation(buildTreePath));
     }
 
     @Override
-    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalDataInternal(Class<? extends U> specType, Action<? super U> config) {
+    public <U extends AdditionalDataSpec> ProblemBuilderInternal additionalDataInternal(Class<? extends U> specType, Action<? super U> config) {
         return validateDelegate(delegate.additionalDataInternal(specType, config));
     }
 
     @Override
-    public <T extends AdditionalData> InternalProblemBuilder additionalData(Class<T> type, Action<? super T> config) {
+    public <T extends AdditionalData> ProblemBuilderInternal additionalData(Class<T> type, Action<? super T> config) {
         return validateDelegate(delegate.additionalData(type, config));
     }
 
     @Override
-    public InternalProblemBuilder withException(Throwable t) {
+    public ProblemBuilderInternal withException(Throwable t) {
         return validateDelegate(delegate.withException(t));
     }
 
     @Override
-    public InternalProblemBuilder severity(Severity severity) {
+    public ProblemBuilderInternal severity(Severity severity) {
         return validateDelegate(delegate.severity(severity));
     }
 
@@ -141,7 +141,7 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics) {
+    public ProblemSpecInternal diagnostics(ProblemDiagnostics diagnostics) {
         return delegate.diagnostics(diagnostics);
     }
 

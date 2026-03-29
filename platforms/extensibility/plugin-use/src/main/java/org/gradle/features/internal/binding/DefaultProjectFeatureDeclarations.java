@@ -32,8 +32,8 @@ import org.gradle.features.binding.TargetTypeInformation;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.Pair;
@@ -69,9 +69,9 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     @SuppressWarnings("unused")
     private final InspectionScheme inspectionScheme;
     private final Instantiator instantiator;
-    private final InternalProblemReporter problemReporter;
+    private final ProblemReporterInternal problemReporter;
 
-    public DefaultProjectFeatureDeclarations(InspectionScheme inspectionScheme, Instantiator instantiator, InternalProblemReporter problemReporter) {
+    public DefaultProjectFeatureDeclarations(InspectionScheme inspectionScheme, Instantiator instantiator, ProblemReporterInternal problemReporter) {
         this.inspectionScheme = inspectionScheme;
         this.instantiator = instantiator;
         this.problemReporter = problemReporter;
@@ -114,7 +114,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         if (binding.targetDefinitionType() instanceof TargetTypeInformation.BuildModelTargetTypeInformation &&
             ((TargetTypeInformation.BuildModelTargetTypeInformation<?>) binding.targetDefinitionType()).getBuildModelType().equals(BuildModel.None.class)) {
 
-            InternalProblem bindingTypeProblem = problemReporter.internalCreate(builder -> builder
+            ProblemInternal bindingTypeProblem = problemReporter.internalCreate(builder -> builder
                 .id("bind=to-build-model-none", "Project features binds to BuildModel.None", GradleCoreProblemGroup.configurationUsage())
                 .details("A project feature cannot bind to 'BuildModel.None' as its target build model type.")
                 .contextualLabel("Project feature '" + projectFeatureName + "' is bound to 'BuildModel.None'")
@@ -138,7 +138,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             .collect(Collectors.toList());
 
         if (!existingPluginClasses.isEmpty()) {
-            List<InternalProblem> problems = new ArrayList<>();
+            List<ProblemInternal> problems = new ArrayList<>();
             existingPluginClasses.forEach(existingPluginClass -> {
                 problems.add(
                     problemReporter.internalCreate(builder -> builder
@@ -212,7 +212,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     }
 
     private void validateDefinitionSafety(ProjectFeatureBindingDeclaration<?, ?> binding) {
-        List<InternalProblem> problems = new ArrayList<>();
+        List<ProblemInternal> problems = new ArrayList<>();
         if (binding.getDefinitionImplementationType().isPresent() && !binding.getDefinitionImplementationType().get().equals(binding.getDefinitionType())) {
             problems.add(problemReporter.internalCreate(builder -> builder
                 .id("unsafe-definition-implementation-type", "Definition implementation type specified for safe definition", GradleCoreProblemGroup.configurationUsage())
@@ -242,7 +242,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         throwTypeValidationException("Project feature '" + binding.getName() + "' has a definition type which was declared safe but has the following issues:", problems);
     }
 
-    private static void throwTypeValidationException(String summary, List<InternalProblem> problems) {
+    private static void throwTypeValidationException(String summary, List<ProblemInternal> problems) {
         List<String> formattedErrors = problems.stream()
             .filter(problem -> problem.getDefinition().getSeverity().equals(Severity.ERROR))
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
@@ -258,7 +258,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         }
     }
 
-    private void validateDefinition(Class<?> definitionType, List<InternalProblem> problems) {
+    private void validateDefinition(Class<?> definitionType, List<ProblemInternal> problems) {
         TypeMetadata definitionTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(definitionType);
         definitionTypeMetadata.getTypeAnnotationMetadata().getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
             if (propertyMetadata.isAnnotationPresent(Inject.class)) {

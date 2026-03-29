@@ -20,7 +20,7 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.problems.ProblemDefinition
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalProblem
+import org.gradle.api.problems.internal.ProblemInternal
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -41,7 +41,7 @@ Unknown symbol: foo
     }
 
     def compilationProblem() {
-        Mock(InternalProblem) {
+        Mock(ProblemInternal) {
             getDefinition() >> Mock(ProblemDefinition) {
                 getId() >> Mock(ProblemId) {
                     getName() >> ''

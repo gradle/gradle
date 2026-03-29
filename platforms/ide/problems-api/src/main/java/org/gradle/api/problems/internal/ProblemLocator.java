@@ -22,10 +22,10 @@ import java.util.Collections;
 public interface ProblemLocator {
     ProblemLocator EMPTY_LOCATOR = new ProblemLocator() {
         @Override
-        public Collection<InternalProblem> findAll(Throwable t) {
+        public Collection<ProblemInternal> findAll(Throwable t) {
             return Collections.emptyList();
         }
     };
 
-    Collection<InternalProblem> findAll(Throwable t);
+    Collection<ProblemInternal> findAll(Throwable t);
 }

@@ -23,13 +23,12 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.jspecify.annotations.NonNull;
 
-public class DefaultProblems implements InternalProblems {
+public class DefaultProblems implements ProblemsInternal {
 
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ProblemSummarizer problemSummarizer;
-    private final InternalProblemReporter internalReporter;
+    private final ProblemReporterInternal reporterInternal;
     private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
     private final ProblemsInfrastructure infrastructure;
@@ -50,14 +49,14 @@ public class DefaultProblems implements InternalProblems {
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
         this.infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream);
-        this.internalReporter = createReporter();
+        this.reporterInternal = createReporter();
     }
 
     @Override
     public ProblemReporter getReporter() {
         return createReporter();
     }
-    @NonNull
+
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
             problemSummarizer,
@@ -68,8 +67,8 @@ public class DefaultProblems implements InternalProblems {
     }
 
     @Override
-    public InternalProblemReporter getInternalReporter() {
-        return internalReporter;
+    public ProblemReporterInternal getInternalReporter() {
+        return reporterInternal;
     }
 
     @Override
@@ -77,7 +76,7 @@ public class DefaultProblems implements InternalProblems {
         return infrastructure;
     }
     @Override
-    public InternalProblemBuilder getProblemBuilder() {
+    public ProblemBuilderInternal getProblemBuilder() {
         return new DefaultProblemBuilder(infrastructure);
     }
 }

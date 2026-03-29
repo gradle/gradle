@@ -32,8 +32,8 @@ import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.problems.ProblemDefinition
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.InternalProblem
-import org.gradle.api.problems.internal.InternalProblemReporter
+import org.gradle.api.problems.internal.ProblemInternal
+import org.gradle.api.problems.internal.ProblemReporterInternal
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.Instantiator
@@ -43,7 +43,7 @@ import spock.lang.Specification
 class DefaultProjectFeatureDeclarationsTest extends Specification {
     def metadataStore = Mock(TypeMetadataStore)
     def inspectionScheme = Mock(InspectionScheme)
-    def problemReporter = Mock(InternalProblemReporter)
+    def problemReporter = Mock(ProblemReporterInternal)
     def instantiator = Mock(Instantiator)
     def declarations = new DefaultProjectFeatureDeclarations(inspectionScheme, instantiator, problemReporter)
     def pluginId = "com.example.test"
@@ -224,7 +224,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
         1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
 
-        1 * problemReporter.internalCreate(_) >> Stub(InternalProblem) {
+        1 * problemReporter.internalCreate(_) >> Stub(ProblemInternal) {
             getDefinition() >> Stub(ProblemDefinition) {
                 getSeverity() >> Severity.ERROR
             }

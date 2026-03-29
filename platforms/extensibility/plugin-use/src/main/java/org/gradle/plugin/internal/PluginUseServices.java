@@ -28,7 +28,7 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
@@ -113,7 +113,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        void configure(ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory, InternalProblems problemsService) {
+        void configure(ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory, ProblemsInternal problemsService) {
             DefaultProjectFeatureDeclarations projectFeatureRegistry = new DefaultProjectFeatureDeclarations(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator(), problemsService.getInternalReporter());
             registration.add(ProjectFeatureDeclarations.class, projectFeatureRegistry);
         }
@@ -192,7 +192,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         ProjectFeatureApplicator createProjectFeatureApplicator(
             InstantiatorFactory instantiatorFactory,
             ProjectInternal project,
-            InternalProblems problems,
+            ProblemsInternal problems,
             ServiceRegistry services
         ) {
             return instantiatorFactory.inject(services).newInstance(DefaultProjectFeatureApplicator.class,

@@ -18,14 +18,14 @@ package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.io.PrintWriter;
 
 class JavaCompilationWriter implements SelectiveProblemWriter {
 
     @Override
-    public void write(InternalProblem problem, RenderOptions options, PrintWriter output) {
+    public void write(ProblemInternal problem, RenderOptions options, PrintWriter output) {
         output.print(problem.getDetails());
     }
 

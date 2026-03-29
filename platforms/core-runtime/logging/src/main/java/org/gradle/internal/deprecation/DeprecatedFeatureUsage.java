@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.DeprecationData;
-import org.gradle.api.problems.internal.InternalDocLink;
+import org.gradle.api.problems.internal.DocLinkInternal;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
 import org.jspecify.annotations.Nullable;
 
@@ -172,7 +172,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         append(outputBuilder, contextualAdvice);
         append(outputBuilder, advice);
         if (documentation != null) {
-            append(outputBuilder, ((InternalDocLink) documentation).getConsultDocumentationMessage());
+            append(outputBuilder, ((DocLinkInternal) documentation).getConsultDocumentationMessage());
         }
         return outputBuilder.toString();
     }

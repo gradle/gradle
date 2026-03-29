@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 
@@ -29,10 +29,10 @@ public class DaemonSideCompiler implements org.gradle.language.base.internal.com
 
     private final ObjectFactory objectFactory;
     private final List<File> javaCompilerPlugins;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
 
     @Inject
-    public DaemonSideCompiler(ObjectFactory objectFactory, List<File> javaCompilerPlugins, InternalProblems problemsService) {
+    public DaemonSideCompiler(ObjectFactory objectFactory, List<File> javaCompilerPlugins, ProblemsInternal problemsService) {
         this.objectFactory = objectFactory;
         this.javaCompilerPlugins = javaCompilerPlugins;
         this.problemsService = problemsService;

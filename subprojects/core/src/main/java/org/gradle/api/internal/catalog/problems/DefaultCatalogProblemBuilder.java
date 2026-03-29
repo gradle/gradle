@@ -20,8 +20,8 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemDefinition;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.NonNull;
 
@@ -37,17 +37,17 @@ public class DefaultCatalogProblemBuilder {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     public static final String VERSION_CATALOG_PROBLEMS = "version_catalog_problems";
 
-    public static void maybeThrowError(InternalProblems problemsService, String error, Collection<InternalProblem> problems) {
+    public static void maybeThrowError(ProblemsInternal problemsService, String error, Collection<ProblemInternal> problems) {
         if (!problems.isEmpty()) {
             throw throwError(problemsService, error, problems);
         }
     }
 
-    public static RuntimeException throwError(InternalProblems problemsService, String error, Collection<InternalProblem> problems) {
+    public static RuntimeException throwError(ProblemsInternal problemsService, String error, Collection<ProblemInternal> problems) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(error);
         formatter.startChildren();
-        for (InternalProblem problem : problems) {
+        for (ProblemInternal problem : problems) {
             formatter.node(getProblemString(problem));
             problemsService.getInternalReporter().report(problem);
         }
@@ -55,7 +55,7 @@ public class DefaultCatalogProblemBuilder {
         throw new InvalidUserDataException(formatter.toString());
     }
 
-    public static String getProblemString(InternalProblem problem) {
+    public static String getProblemString(ProblemInternal problem) {
         ProblemDefinition definition = problem.getDefinition();
         String contextualLabel = problem.getContextualLabel();
         String renderedLabel = contextualLabel == null ? definition.getId().getDisplayName() : contextualLabel;

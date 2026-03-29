@@ -30,7 +30,7 @@ import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.GeneralData;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.PluginIdLocation;
 import org.gradle.api.problems.internal.ProblemSummaryData;
 import org.gradle.api.problems.internal.StackTraceLocation;
@@ -91,7 +91,7 @@ public class ProblemsProgressEventUtils {
     }
 
     static InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, DefaultProblemProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
-        InternalProblem problem = details.getProblem();
+        ProblemInternal problem = details.getProblem();
         return new DefaultProblemEvent(
             createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
             createDefaultProblemDetails(problem)
@@ -126,7 +126,7 @@ public class ProblemsProgressEventUtils {
             parentBuildOperationId);
     }
 
-    static DefaultProblemDetails createDefaultProblemDetails(InternalProblem problem) {
+    static DefaultProblemDetails createDefaultProblemDetails(ProblemInternal problem) {
         return new DefaultProblemDetails(
             toInternalDefinition(problem.getDefinition()),
             toInternalDetails(problem.getDetails()),
@@ -216,7 +216,7 @@ public class ProblemsProgressEventUtils {
     }
 
 
-    private static InternalAdditionalData toInternalAdditionalData(InternalProblem problem) {
+    private static InternalAdditionalData toInternalAdditionalData(ProblemInternal problem) {
         Object additionalData = problem.getAdditionalData();
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
