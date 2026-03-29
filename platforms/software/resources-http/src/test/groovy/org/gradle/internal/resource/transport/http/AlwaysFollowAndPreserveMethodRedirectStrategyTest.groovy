@@ -41,7 +41,7 @@ class AlwaysFollowAndPreserveMethodRedirectStrategyTest extends Specification {
         request.getPath() >> "/"
 
         expect:
-        new AllowFollowForMutatingMethodRedirectStrategy().isRedirected(request, response, context)
+        new AlwaysFollowAndPreserveMethodRedirectStrategy().isRedirected(request, response, context)
 
         where:
         method << HTTP_METHODS
