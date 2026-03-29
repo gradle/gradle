@@ -136,6 +136,34 @@ class PomVariantResolutionIntegrationTest extends AbstractHttpDependencyResoluti
         succeeds('resolvePom')
     }
 
+    def "POM variant includes both versions when two modules share a parent at different versions"() {
+        def parentV1 = mavenHttpRepo.module("test", "parent", "1.0")
+        parentV1.hasPackaging("pom")
+        parentV1.publish()
+
+        def parentV2 = mavenHttpRepo.module("test", "parent", "2.0")
+        parentV2.hasPackaging("pom")
+        parentV2.publish()
+
+        direct.parent("test", "parent", "1.0")
+        transitive.parent("test", "parent", "2.0")
+        transitive.publish()
+        direct.publish()
+
+        buildFile << """
+            tasks.resolvePom {
+                expectedFiles = ['direct-1.0.pom', 'parent-1.0.pom', 'parent-2.0.pom', 'transitive-1.0.pom']
+            }
+        """
+        expect:
+        direct.pom.allowGetOrHead()
+        transitive.pom.allowGetOrHead()
+        parentV1.pom.allowGetOrHead()
+        parentV2.pom.allowGetOrHead()
+
+        succeeds('resolvePom')
+    }
+
     def "POM variant is not available when Gradle Module Metadata is present"() {
         transitive.withModuleMetadata()
         transitive.publish()
