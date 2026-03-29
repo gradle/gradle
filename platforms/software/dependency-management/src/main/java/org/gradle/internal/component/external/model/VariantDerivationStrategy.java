@@ -27,4 +27,14 @@ import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 public interface VariantDerivationStrategy {
     boolean derivesVariants();
     ImmutableList<? extends ModuleConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata);
+
+    /**
+     * Returns variants that should be present even when the module has explicit variants
+     * (e.g. from Gradle Module Metadata) that don't already include them.
+     * For example, Maven modules always have a POM file regardless of GMM.
+     * Returns null if no supplemental variants should be added.
+     */
+    default ImmutableList<? extends ModuleConfigurationMetadata> deriveSupplementalVariants(ModuleComponentResolveMetadata metadata) {
+        return null;
+    }
 }

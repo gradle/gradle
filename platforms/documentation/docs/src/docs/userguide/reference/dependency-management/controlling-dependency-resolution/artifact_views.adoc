@@ -81,6 +81,34 @@ include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolu
 When this API is used, the attributes used for variant reselection are specified solely by the `ArtifactView.getAttributes()` method.
 The graph resolution attributes specified on the configuration are completely ignored during variant reselection.
 
+=== Resolving POM files
+
+Similarly, you can use variant reselection to resolve the POM metadata files for all dependencies.
+Gradle provides a `metadata` variant for all Maven dependencies, containing the module's POM file and its parent POM chain.
+For project dependencies that apply the `maven-publish` plugin, the generated POM is also available.
+
+NOTE: This example uses incubating APIs.
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=pom-variant-reselection]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=pom-variant-reselection]"]
+====
+
+The resolved files include both direct and transitive dependency POM files, as well as any parent POMs referenced in the POM hierarchy.
+
+==== Extracting license information from POMs
+
+The resolved POM files can be parsed to extract metadata such as license information.
+Since some modules declare licenses in a parent POM rather than the module's own POM, you may need to walk the parent chain.
+All parent POMs are included in the resolved file set, so the chain can be resolved locally without additional network requests:
+
+NOTE: This example uses incubating APIs.
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=pom-license-extraction]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=pom-license-extraction]"]
+====
+
 == 2. Performing lenient artifact selection and resolution
 
 The `ArtifactView` API can also be used to perform lenient artifact resolution.

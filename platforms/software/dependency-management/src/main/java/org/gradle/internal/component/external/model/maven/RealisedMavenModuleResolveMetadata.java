@@ -234,6 +234,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
+    private final ImmutableList<ModuleComponentIdentifier> parentPomChain;
 
     private final ImmutableList<? extends ModuleConfigurationMetadata> derivedVariants;
 
@@ -247,6 +248,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
         dependencies = metadata.getDependencies();
+        parentPomChain = metadata.getParentPomChain();
         this.derivedVariants = ImmutableList.copyOf(derivedVariants);
     }
 
@@ -257,12 +259,25 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;
         dependencies = metadata.dependencies;
+        parentPomChain = metadata.parentPomChain;
         this.derivedVariants = metadata.derivedVariants;
     }
 
     @Override
     protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveVariants() {
         return Optional.of(getDerivedVariants());
+    }
+
+    @Override
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveSupplementalVariants() {
+        VariantDerivationStrategy strategy = getVariantDerivationStrategy();
+        if (strategy.derivesVariants()) {
+            ImmutableList<? extends ModuleConfigurationMetadata> supplemental = strategy.deriveSupplementalVariants(this);
+            if (supplemental != null) {
+                return Optional.of(supplemental);
+            }
+        }
+        return Optional.empty();
     }
 
     ImmutableList<? extends ModuleConfigurationMetadata> getDerivedVariants() {
@@ -319,6 +334,11 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     }
 
     @Override
+    public ImmutableList<ModuleComponentIdentifier> getParentPomChain() {
+        return parentPomChain;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -334,7 +354,8 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return relocated == that.relocated
             && Objects.equal(dependencies, that.dependencies)
             && Objects.equal(packaging, that.packaging)
-            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp);
+            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp)
+            && Objects.equal(parentPomChain, that.parentPomChain);
     }
 
     @Override
@@ -343,6 +364,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             dependencies,
             packaging,
             relocated,
-            snapshotTimestamp);
+            snapshotTimestamp,
+            parentPomChain);
     }
 }

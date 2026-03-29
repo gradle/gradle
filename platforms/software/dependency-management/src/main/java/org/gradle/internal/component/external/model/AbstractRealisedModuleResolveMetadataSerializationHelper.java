@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
@@ -160,6 +161,14 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                 alternative = IvyArtifactNameSerializer.INSTANCE.read(decoder);
             }
             boolean optional = decoder.readBoolean();
+            // Read per-artifact component ID if present (for parent POM artifacts etc.)
+            boolean hasExplicitComponentId = decoder.readBoolean();
+            if (hasExplicitComponentId) {
+                String cidGroup = decoder.readString();
+                String cidModule = decoder.readString();
+                String cidVersion = decoder.readString();
+                cid = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(cidGroup, cidModule), cidVersion);
+            }
 
             if (optional) {
                 artifacts.add(new ModuleComponentOptionalArtifactMetadata(cid, artifactName));
@@ -226,6 +235,16 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                     IvyArtifactNameSerializer.INSTANCE.write(encoder, artifact.getAlternativeArtifact().get().getName());
                 }
                 encoder.writeBoolean(artifact.isOptionalArtifact());
+                // Write whether this artifact has a different component ID than the owning module
+                if (componentId instanceof ModuleComponentIdentifier) {
+                    ModuleComponentIdentifier mcid = (ModuleComponentIdentifier) componentId;
+                    encoder.writeBoolean(true);
+                    encoder.writeString(mcid.getGroup());
+                    encoder.writeString(mcid.getModule());
+                    encoder.writeString(mcid.getVersion());
+                } else {
+                    encoder.writeBoolean(false);
+                }
             }
         }
         encoder.writeSmallInt(fileArtifactsCount);

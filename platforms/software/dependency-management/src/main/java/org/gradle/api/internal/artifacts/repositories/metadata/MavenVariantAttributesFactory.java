@@ -39,5 +39,6 @@ public interface MavenVariantAttributesFactory {
     ImmutableAttributes platformWithUsage(ImmutableAttributes original, String usage, boolean enforced);
     ImmutableAttributes sourcesVariant(ImmutableAttributes original);
     ImmutableAttributes javadocVariant(ImmutableAttributes original);
+    ImmutableAttributes pomVariant(ImmutableAttributes original);
 
 }

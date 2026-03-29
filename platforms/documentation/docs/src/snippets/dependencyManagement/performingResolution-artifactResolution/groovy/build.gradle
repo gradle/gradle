@@ -93,3 +93,55 @@ tasks.register("resolveSources", ResolveFiles) {
     }.files)
 }
 // end::variant-reselection[]
+
+// tag::pom-variant-reselection[]
+tasks.register("resolvePoms", ResolveFiles) {
+    files.from(configurations.runtimeClasspath.incoming.artifactView {
+        withVariantReselection()
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.METADATA))
+            attribute(MetadataFormat.METADATA_FORMAT_ATTRIBUTE, objects.named(MetadataFormat, MetadataFormat.MAVEN))
+        }
+    }.files)
+}
+// end::pom-variant-reselection[]
+
+// tag::pom-license-extraction[]
+tasks.register("extractLicenses") {
+    def pomArtifacts = configurations.runtimeClasspath.incoming.artifactView {
+        withVariantReselection()
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.METADATA))
+            attribute(MetadataFormat.METADATA_FORMAT_ATTRIBUTE, objects.named(MetadataFormat, MetadataFormat.MAVEN))
+        }
+    }.artifacts
+    doLast {
+        // Index all resolved POMs by filename for parent chain lookups
+        def pomsByFilename = pomArtifacts.collectEntries { [it.file.name, it.file] }
+
+        pomArtifacts.each { artifact ->
+            def componentId = artifact.id.componentIdentifier
+            def pom = new XmlSlurper().parse(artifact.file)
+
+            // Look for <licenses> in this POM, then walk parent chain if not found
+            def licenses = pom.licenses.license
+            if (licenses.size() == 0) {
+                def current = pom
+                while (licenses.size() == 0 && current.parent.size() > 0) {
+                    def parentArtifactId = current.parent.artifactId.text()
+                    def parentVersion = current.parent.version.text()
+                    def parentFile = pomsByFilename["${parentArtifactId}-${parentVersion}.pom"]
+                    if (!parentFile) break
+                    current = new XmlSlurper().parse(parentFile)
+                    licenses = current.licenses.license
+                }
+            }
+
+            if (licenses.size() > 0) {
+                def names = licenses.collect { it.name.text() }
+                println "${componentId}: ${names.join(', ')}"
+            }
+        }
+    }
+}
+// end::pom-license-extraction[]

@@ -63,6 +63,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
+    private final ImmutableList<ModuleComponentIdentifier> parentPomChain;
 
     private ImmutableList<? extends ModuleConfigurationMetadata> derivedVariants;
 
@@ -77,6 +78,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         relocated = metadata.isRelocated();
         snapshotTimestamp = metadata.getSnapshotTimestamp();
         dependencies = metadata.getDependencies();
+        parentPomChain = metadata.getParentPomChain();
     }
 
     private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
@@ -87,6 +89,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         relocated = metadata.relocated;
         snapshotTimestamp = metadata.snapshotTimestamp;
         dependencies = metadata.dependencies;
+        parentPomChain = metadata.parentPomChain;
 
         copyCachedState(metadata, metadata.getVariantDerivationStrategy() != derivationStrategy);
     }
@@ -103,6 +106,18 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     @Override
     protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveVariants() {
         return Optional.ofNullable(getDerivedVariants());
+    }
+
+    @Override
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveSupplementalVariants() {
+        VariantDerivationStrategy strategy = getVariantDerivationStrategy();
+        if (strategy.derivesVariants()) {
+            ImmutableList<? extends ModuleConfigurationMetadata> supplemental = strategy.deriveSupplementalVariants(this);
+            if (supplemental != null) {
+                return Optional.of(supplemental);
+            }
+        }
+        return Optional.empty();
     }
 
     protected Optional<List<? extends ModuleConfigurationMetadata>> deriveVariants() {
@@ -243,6 +258,11 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
+    public ImmutableList<ModuleComponentIdentifier> getParentPomChain() {
+        return parentPomChain;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -258,7 +278,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return relocated == that.relocated
             && Objects.equal(dependencies, that.dependencies)
             && Objects.equal(packaging, that.packaging)
-            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp);
+            && Objects.equal(snapshotTimestamp, that.snapshotTimestamp)
+            && Objects.equal(parentPomChain, that.parentPomChain);
     }
 
     @Override
@@ -267,7 +288,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
             dependencies,
             packaging,
             relocated,
-            snapshotTimestamp);
+            snapshotTimestamp,
+            parentPomChain);
     }
 
     /**

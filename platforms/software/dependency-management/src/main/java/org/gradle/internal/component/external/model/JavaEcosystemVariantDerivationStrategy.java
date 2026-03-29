@@ -21,6 +21,8 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 
 import javax.inject.Inject;
@@ -56,10 +58,31 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
                 libraryRuntimeScope(runtimeConfiguration, attributes),
                 libraryWithSourcesVariant(runtimeConfiguration, attributes, metadata),
                 libraryWithJavadocVariant(runtimeConfiguration, attributes, metadata),
+                libraryWithPomVariant(runtimeConfiguration, attributes, metadata),
                 platformWithUsageAttribute(compileConfiguration, attributes, Usage.JAVA_API, false, shadowedPlatformCapability),
                 platformWithUsageAttribute(runtimeConfiguration, attributes, Usage.JAVA_RUNTIME, false, shadowedPlatformCapability),
                 platformWithUsageAttribute(compileConfiguration, attributes, Usage.JAVA_API, true, shadowedEnforcedPlatformCapability),
                 platformWithUsageAttribute(runtimeConfiguration, attributes, Usage.JAVA_RUNTIME, true, shadowedEnforcedPlatformCapability));
+        }
+        return null;
+    }
+
+    @Override
+    public ImmutableList<? extends ModuleConfigurationMetadata> deriveSupplementalVariants(ModuleComponentResolveMetadata metadata) {
+        if (metadata instanceof DefaultMavenModuleResolveMetadata) {
+            DefaultMavenModuleResolveMetadata md = (DefaultMavenModuleResolveMetadata) metadata;
+            DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("runtime");
+            if (runtimeConfiguration == null) {
+                // GMM modules may not have a "runtime" configuration — use "compile" or any available config as base
+                runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("compile");
+            }
+            if (runtimeConfiguration == null) {
+                return null;
+            }
+            ImmutableAttributes attributes = md.getAttributes();
+            return ImmutableList.of(
+                libraryWithPomVariant(runtimeConfiguration, attributes, metadata)
+            );
         }
         return null;
     }
@@ -88,6 +111,27 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
             .withName("javadoc")
             .withAttributes(mavenAttributesFactory.javadocVariant(originAttributes))
             .withArtifacts(ImmutableList.of(metadata.optionalArtifact("jar", "jar", "javadoc")))
+            .withoutConstraints()
+            .build();
+    }
+
+    /**
+     * Synthesizes a "pom" variant to expose the POM metadata file and its parent POM chain as consumable artifacts.
+     */
+    private DefaultConfigurationMetadata libraryWithPomVariant(DefaultConfigurationMetadata runtimeConfiguration, ImmutableAttributes originAttributes, ModuleComponentResolveMetadata metadata) {
+        DefaultMavenModuleResolveMetadata md = (DefaultMavenModuleResolveMetadata) metadata;
+        ImmutableList.Builder<ModuleComponentArtifactMetadata> artifacts = ImmutableList.builder();
+        // Add the module's own POM
+        artifacts.add(metadata.optionalArtifact("pom", "pom", null));
+        // Add parent POM chain
+        for (ModuleComponentIdentifier parentId : md.getParentPomChain()) {
+            IvyArtifactName parentArtifactName = new DefaultIvyArtifactName(parentId.getModule(), "pom", "pom", null);
+            artifacts.add(new ModuleComponentOptionalArtifactMetadata(parentId, parentArtifactName));
+        }
+        return runtimeConfiguration.mutate()
+            .withName("pom")
+            .withAttributes(mavenAttributesFactory.pomVariant(originAttributes))
+            .withArtifacts(artifacts.build())
             .withoutConstraints()
             .build();
     }

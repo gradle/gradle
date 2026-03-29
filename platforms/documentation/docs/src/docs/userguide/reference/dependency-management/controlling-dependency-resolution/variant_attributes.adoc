@@ -98,6 +98,11 @@ As a plugin author, these attributes, and the way they are defined, can serve as
 | Indicates what kind of verification task produced this output.
 | `VerificationType` values built from constants defined in link:{javadocPath}/org/gradle/api/attributes/VerificationType.html[VerificationType]
 | No default, no compatibility
+
+| link:{javadocPath}/org/gradle/api/attributes/MetadataFormat.html#METADATA_FORMAT_ATTRIBUTE[`org.gradle.metadata.format`]
+| Indicates the format of a `org.gradle.category=metadata` variant
+| `MetadataFormat` values built from constants defined in link:{javadocPath}/org/gradle/api/attributes/MetadataFormat.html[MetadataFormat]
+| No default, no compatibility
 |===
 
 [[sec:verification-category]]
@@ -105,6 +110,20 @@ When the `Category` attribute is present with the incubating value `org.gradle.c
 
 These variants are meant to contain only the results of running verification tasks, such as test results or code coverage reports.
 They are *not publishable*, and will produce an error if added to a component which is published.
+
+[[sec:metadata-category]]
+When the `Category` attribute is present with the incubating value `org.gradle.category=metadata` on a variant, that variant contains build metadata artifacts such as POM files.
+
+For Maven modules, Gradle automatically provides a `metadata` variant that exposes the module's POM file and its parent POM chain.
+This works for all Maven dependencies — whether they publish Gradle Module Metadata or not.
+For project dependencies that apply the `maven-publish` plugin, the generated POM is also available as a `metadata` variant.
+
+You can resolve POM files for all dependencies using an link:artifact_views.adoc[artifact view] with variant reselection:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=pom-variant-reselection]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=pom-variant-reselection]"]
+====
 
 [%header%autowidth,compact]
 |===
