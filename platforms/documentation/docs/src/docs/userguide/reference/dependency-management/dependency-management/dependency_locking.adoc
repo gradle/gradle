@@ -194,7 +194,7 @@ With the above configuration, the generated `gradle.lockfile` will look like thi
 [source,text]
 .gradle.lockfile
 ----
-include::{snippetsPath}/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy/gradle.lockfile[]
+include::{snippetsPath}/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/common/gradle.lockfile[]
 ----
 
 Where:

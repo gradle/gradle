@@ -301,7 +301,7 @@ The setter method for the property is annotated with link:{javadocPath}/org/grad
 [source,java]
 .UrlVerify.java
 ----
-include::{snippetsPath}/tasks/commandLineOption-stringOption/groovy/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
+include::{snippetsPath}/tasks/commandLineOption-stringOption/common/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
 ----
 
 All options declared for a task can be <<#sec:listing_task_options,rendered as console output>> by running the `help` task and the `--task` option.
@@ -408,7 +408,7 @@ The task implementation provides a list of available values for the option `outp
 [source,java]
 .UrlProcess.java
 ----
-include::{snippetsPath}/tasks/commandLineOption-optionValues/groovy/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
+include::{snippetsPath}/tasks/commandLineOption-optionValues/common/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
 ----
 
 [[sec:listing_task_options]]
