@@ -17,14 +17,13 @@
 package org.gradle.internal.resource.transport.http
 
 import com.google.common.collect.ImmutableMap
-import org.apache.http.HttpEntity
-import org.apache.http.StatusLine
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpUriRequest
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClientBuilder
-import org.apache.http.protocol.HttpContext
-import org.apache.http.ssl.SSLContexts
+import org.apache.hc.core5.http.ClassicHttpResponse
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder
+import org.apache.hc.core5.http.protocol.HttpContext
+import org.apache.hc.core5.ssl.SSLContexts
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -38,7 +37,7 @@ class ApacheCommonsHttpClientTest extends Specification {
         def client = new ApacheCommonsHttpClient(new DocumentationRegistry(), httpSettings, () -> {
             Stub(HttpClientBuilder) {
                 build() >> Mock(CloseableHttpClient) {
-                    execute(_ as HttpUriRequest, _ as HttpContext) >> {
+                    execute(_ as HttpUriRequestBase, _ as HttpContext) >> {
                         throw new IOException("ouch")
                     }
                 }
@@ -54,21 +53,15 @@ class ApacheCommonsHttpClientTest extends Specification {
     }
 
     def "response is closed if an error occurs during a request"() {
-        def response = Mock(CloseableHttpResponse) {
-            getStatusLine() >> Mock(StatusLine) {
-                getStatusCode() >> 500
-            }
-            getEntity() >> Mock(HttpEntity) {
-                isStreaming() >> true
-                getContent() >> Mock(InputStream)
-            }
+        def mockResponse = Mock(ClassicHttpResponse) {
+            getCode() >> 500
         }
 
         def client = new ApacheCommonsHttpClient(new DocumentationRegistry(), httpSettings, () -> {
             Stub(HttpClientBuilder) {
                 build() >> Mock(CloseableHttpClient) {
-                    execute(_ as HttpUriRequest, _ as HttpContext) >> {
-                        return response
+                    execute(_ as HttpUriRequestBase, _ as HttpContext) >> {
+                        return CloseableHttpResponse.adapt(mockResponse)
                     }
                 }
             }
@@ -79,8 +72,7 @@ class ApacheCommonsHttpClientTest extends Specification {
 
         then:
         thrown(HttpErrorStatusCodeException)
-        1 * response.close()
-        1 * response.entity.content.close()
+        1 * mockResponse.close()
     }
 
     def "stripping user credentials removes username and password"() {

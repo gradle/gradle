@@ -16,10 +16,10 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.utils.HttpClientUtils;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.gradle.internal.IoActions;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -61,19 +61,19 @@ public class ApacheHttpResponse implements HttpClient.Response {
 
     @Override
     public int getStatusCode() {
-        return httpResponse.getStatusLine().getStatusCode();
+        return httpResponse.getCode();
     }
 
     @Override
     public String getStatusReason() {
-        return httpResponse.getStatusLine().getReasonPhrase();
+        return httpResponse.getReasonPhrase();
     }
 
     @Override
     public void close() {
         if (!closed) {
             closed = true;
-            HttpClientUtils.closeQuietly(httpResponse);
+            IoActions.closeQuietly(httpResponse);
         }
     }
 

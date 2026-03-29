@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.transport.http
 
 import com.google.common.collect.ImmutableMap
-import org.apache.http.ssl.SSLContexts
+import org.apache.hc.core5.ssl.SSLContexts
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.SetSystemProperties

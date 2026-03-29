@@ -16,58 +16,36 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolException;
-import org.apache.http.client.methods.*;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 import java.net.URI;
 
 /**
- * A class which makes httpclient follow redirects for all http methods.
- * This has been introduced to overcome a regression caused by switching to apache httpclient as the transport mechanism for publishing (https://issues.gradle.org/browse/GRADLE-3312)
- * The rational for httpclient not following redirects, by default, can be found here: https://issues.apache.org/jira/browse/HTTPCLIENT-860
+ * A redirect strategy that follows redirects for all HTTP methods and preserves the original method.
+ *
+ * In HC5, the redirect executor changes POST/PUT to GET for 301/302/303 responses by default.
+ * To preserve the original method (matching the HC4 behavior), this strategy upgrades 301/302/303
+ * to 307 (Temporary Redirect) for unsafe methods before the redirect executor processes them.
+ *
+ * This was introduced to overcome a regression caused by switching to Apache HttpClient
+ * as the transport mechanism for publishing (https://issues.gradle.org/browse/GRADLE-3312).
  */
 public class AlwaysFollowAndPreserveMethodRedirectStrategy extends DefaultRedirectStrategy {
 
-    public AlwaysFollowAndPreserveMethodRedirectStrategy() {
-    }
-
     @Override
-    protected boolean isRedirectable(String method) {
-        return true;
-    }
-
-    @Override
-    public HttpUriRequest getRedirect(HttpRequest request, HttpResponse response, HttpContext context) throws ProtocolException {
-        URI uri = this.getLocationURI(request, response, context);
-        String method = request.getRequestLine().getMethod();
-        if (method.equalsIgnoreCase(HttpHead.METHOD_NAME)) {
-            return new HttpHead(uri);
-        } else if (method.equalsIgnoreCase(HttpPost.METHOD_NAME)) {
-            return this.copyEntity(new HttpPost(uri), request);
-        } else if (method.equalsIgnoreCase(HttpPut.METHOD_NAME)) {
-            return this.copyEntity(new HttpPut(uri), request);
-        } else if (method.equalsIgnoreCase(HttpDelete.METHOD_NAME)) {
-            return new HttpDelete(uri);
-        } else if (method.equalsIgnoreCase(HttpTrace.METHOD_NAME)) {
-            return new HttpTrace(uri);
-        } else if (method.equalsIgnoreCase(HttpOptions.METHOD_NAME)) {
-            return new HttpOptions(uri);
-        } else if (method.equalsIgnoreCase(HttpPatch.METHOD_NAME)) {
-            return this.copyEntity(new HttpPatch(uri), request);
-        } else {
-            return new HttpGet(uri);
+    public URI getLocationURI(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException {
+        if (!Method.isSafe(request.getMethod())) {
+            int code = response.getCode();
+            if (code == HttpStatus.SC_MOVED_PERMANENTLY || code == HttpStatus.SC_MOVED_TEMPORARILY || code == HttpStatus.SC_SEE_OTHER) {
+                response.setCode(HttpStatus.SC_TEMPORARY_REDIRECT);
+            }
         }
-    }
-
-    private HttpUriRequest copyEntity(HttpEntityEnclosingRequestBase redirect, HttpRequest original) {
-        if (original instanceof HttpEntityEnclosingRequest) {
-            redirect.setEntity(((HttpEntityEnclosingRequest) original).getEntity());
-        }
-        return redirect;
+        return super.getLocationURI(request, response, context);
     }
 }

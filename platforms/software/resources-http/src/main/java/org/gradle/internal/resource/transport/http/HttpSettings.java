@@ -57,7 +57,10 @@ public interface HttpSettings {
         /**
          * Always redirects with the original method regardless of type of redirect.
          *
-         * @see AlwaysFollowAndPreserveMethodRedirectStrategy for discussion of why this exists (and is default)
+         * This was introduced to overcome a regression caused by switching to Apache HttpClient
+         * as the transport mechanism for publishing (https://issues.gradle.org/browse/GRADLE-3312).
+         *
+         * @see AlwaysFollowAndPreserveMethodRedirectStrategy
          */
         ALWAYS_FOLLOW_AND_PRESERVE
     }

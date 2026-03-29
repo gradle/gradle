@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.HttpHeaders;
-import org.apache.http.client.utils.DateUtils;
+import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.time.Instant;
 import java.util.Date;
 
 public class HttpResponseResource implements ExternalResourceReadResponse {
@@ -44,7 +45,8 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         this.response = response;
 
         String etag = getEtag(response);
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename(), response.isMissing());
+        // TODO: This should use Instant and not Date
+        this.metaData = new DefaultExternalResourceMetaData(source, new Date(getLastModified().toEpochMilli()), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename(), response.isMissing());
     }
 
     public URI getURI() {
@@ -65,16 +67,15 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         return response.getStatusCode();
     }
 
-    public Date getLastModified() {
+    public Instant getLastModified() {
         String responseHeader = response.getHeader(HttpHeaders.LAST_MODIFIED);
-        if (responseHeader == null) {
-            return new Date(0);
+        if (responseHeader != null) {
+            Instant parsed = DateUtils.parseStandardDate(responseHeader);
+            if (parsed != null) {
+                return parsed;
+            }
         }
-        try {
-            return DateUtils.parseDate(responseHeader);
-        } catch (Exception e) {
-            return new Date(0);
-        }
+        return Instant.EPOCH;
     }
 
     private String getFilename() {

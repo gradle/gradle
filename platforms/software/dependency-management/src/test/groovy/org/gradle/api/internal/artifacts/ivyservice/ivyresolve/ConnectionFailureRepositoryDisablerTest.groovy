@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.http.NoHttpResponseException
+import org.apache.hc.core5.http.NoHttpResponseException
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import spock.lang.Specification
 import spock.lang.Subject

@@ -23,7 +23,6 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.jcifs)
     implementation(libs.jsoup)
     implementation(libs.slf4jApi)
 

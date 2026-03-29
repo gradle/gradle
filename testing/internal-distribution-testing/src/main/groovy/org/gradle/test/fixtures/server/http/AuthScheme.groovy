@@ -16,7 +16,7 @@
 
 package org.gradle.test.fixtures.server.http
 
-import org.apache.http.HttpHeaders
+import org.apache.hc.core5.http.HttpHeaders
 import org.eclipse.jetty.http.HttpHeader
 import org.eclipse.jetty.security.Authenticator
 import org.eclipse.jetty.security.ConstraintMapping

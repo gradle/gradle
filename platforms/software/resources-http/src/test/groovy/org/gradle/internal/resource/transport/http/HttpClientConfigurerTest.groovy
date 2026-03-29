@@ -15,9 +15,10 @@
  */
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.auth.AuthScope
-import org.apache.http.impl.client.HttpClientBuilder
-import org.apache.http.ssl.SSLContexts
+import org.apache.hc.client5.http.auth.AuthScope
+import org.apache.hc.client5.http.auth.CredentialsStore
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder
+import org.apache.hc.core5.ssl.SSLContexts
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.authentication.AllSchemesAuthentication
 import org.gradle.internal.resource.UriTextResource
@@ -60,7 +61,8 @@ class HttpClientConfigurerTest extends Specification {
         configurer.configure(httpClientBuilder)
 
         then:
-        httpClientBuilder.credentialsProvider.getCredentials(AuthScope.ANY) == null
+        CredentialsStore credentialsProvider = httpClientBuilder.credentialsProvider as CredentialsStore
+        credentialsProvider.getCredentials(new AuthScope(null, null, -1, null, null), null) == null
     }
 
     def "configures http client with proxy credentials"() {
@@ -72,16 +74,17 @@ class HttpClientConfigurerTest extends Specification {
         configurer.configure(httpClientBuilder)
 
         then:
-        def proxyCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(PROXY_HOST, SOME_PORT))
+        CredentialsStore credentialsProvider = httpClientBuilder.credentialsProvider as CredentialsStore
+        def proxyCredentials = credentialsProvider.getCredentials(new AuthScope(null, PROXY_HOST, SOME_PORT, null, null), null)
         proxyCredentials.userPrincipal.name == "domain/proxyUser"
-        proxyCredentials.password == "proxyPass"
+        new String(proxyCredentials.password) == "proxyPass"
 
         and:
-        def ntlmCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(PROXY_HOST, SOME_PORT, AuthScope.ANY_REALM, "ntlm"))
+        def ntlmCredentials = credentialsProvider.getCredentials(new AuthScope(null, PROXY_HOST, SOME_PORT, null, "ntlm"), null)
         ntlmCredentials.userPrincipal.name == 'DOMAIN\\proxyUser'
         ntlmCredentials.domain == 'DOMAIN'
         ntlmCredentials.userName == 'proxyUser'
-        ntlmCredentials.password == 'proxyPass'
+        new String(ntlmCredentials.password) == 'proxyPass'
         ntlmCredentials.workstation != ''
     }
 
@@ -95,20 +98,21 @@ class HttpClientConfigurerTest extends Specification {
         configurer.configure(httpClientBuilder)
 
         then:
-        def basicCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(REMOTE_HOST, SOME_PORT))
+        CredentialsStore credentialsProvider = httpClientBuilder.credentialsProvider as CredentialsStore
+        def basicCredentials = credentialsProvider.getCredentials(new AuthScope(null, REMOTE_HOST, SOME_PORT, null, null), null)
         basicCredentials.userPrincipal.name == "domain/user"
-        basicCredentials.password == "pass"
+        new String(basicCredentials.password) == "pass"
 
         and:
-        def ntlmCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(REMOTE_HOST, SOME_PORT, AuthScope.ANY_REALM, "ntlm"))
+        def ntlmCredentials = credentialsProvider.getCredentials(new AuthScope(null, REMOTE_HOST, SOME_PORT, null, "ntlm"), null)
         ntlmCredentials.userPrincipal.name == 'DOMAIN\\user'
         ntlmCredentials.domain == 'DOMAIN'
         ntlmCredentials.userName == 'user'
-        ntlmCredentials.password == 'pass'
+        new String(ntlmCredentials.password) == 'pass'
         ntlmCredentials.workstation != ''
 
         and:
-        httpClientBuilder.requestFirst[0] instanceof HttpClientConfigurer.PreemptiveAuth
+        httpClientBuilder.execInterceptors.first().interceptor instanceof HttpClientConfigurer.PreemptiveAuth
     }
 
     def "configures http client with http header auth credentials"() {
@@ -121,14 +125,15 @@ class HttpClientConfigurerTest extends Specification {
 
         when:
         configurer.configure(httpClientBuilder)
-        HttpClientHttpHeaderCredentials actualHttpHeaderCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(REMOTE_HOST, SOME_PORT))
+        CredentialsStore credentialsProvider = httpClientBuilder.credentialsProvider as CredentialsStore
+        HttpClientHttpHeaderCredentials actualHttpHeaderCredentials = credentialsProvider.getCredentials(new AuthScope(null, REMOTE_HOST, SOME_PORT, null, null), null)
 
         then:
         actualHttpHeaderCredentials.header.name == 'TestHttpHeaderName'
         actualHttpHeaderCredentials.header.value == 'TestHttpHeaderValue'
 
         and:
-        httpClientBuilder.requestFirst[0] instanceof HttpClientConfigurer.PreemptiveAuth
+        httpClientBuilder.execInterceptors.first().interceptor instanceof HttpClientConfigurer.PreemptiveAuth
     }
 
     def "configures http client with user agent"() {
@@ -154,9 +159,8 @@ class HttpClientConfigurerTest extends Specification {
         1 * httpSettings.sslContextFactory >> sslContextFactory
         1 * timeoutSettings.connectionTimeoutMs >> 10000
         2 * timeoutSettings.socketTimeoutMs >> 30000
-        httpClientBuilder.defaultRequestConfig.connectTimeout == 10000
-        httpClientBuilder.defaultRequestConfig.socketTimeout == 30000
-        httpClientBuilder.defaultSocketConfig.soKeepAlive
+        httpClientBuilder.defaultRequestConfig.connectTimeout.toMilliseconds() == 10000
+        httpClientBuilder.defaultRequestConfig.responseTimeout.toMilliseconds() == 30000
     }
 
     def "enables expect-continue when proxy credentials are configured"() {

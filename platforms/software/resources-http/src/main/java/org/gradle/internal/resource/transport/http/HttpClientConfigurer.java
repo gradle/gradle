@@ -15,46 +15,43 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.AuthState;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.NTCredentials;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.RedirectStrategy;
-import org.apache.http.client.config.AuthSchemes;
-import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.DateUtils;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.util.PublicSuffixMatcher;
-import org.apache.http.conn.util.PublicSuffixMatcherLoader;
-import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.auth.BasicSchemeFactory;
-import org.apache.http.impl.auth.DigestSchemeFactory;
-import org.apache.http.impl.auth.KerberosSchemeFactory;
-import org.apache.http.impl.auth.SPNegoSchemeFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
-import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
-import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
-import org.apache.http.impl.cookie.IgnoreSpecProvider;
-import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
-import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
+import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.CredentialsStore;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.classic.ExecChain;
+import org.apache.hc.client5.http.classic.ExecChainHandler;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
+import org.apache.hc.client5.http.impl.ChainElement;
+import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
+import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
+import org.apache.hc.client5.http.impl.auth.BasicScheme;
+import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.protocol.RedirectStrategy;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.api.credentials.PasswordCredentials;
@@ -68,17 +65,17 @@ import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
-import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
 import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
+import java.io.IOException;
 import java.net.ProxySelector;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
@@ -132,56 +129,102 @@ public class HttpClientConfigurer {
 
     public void configure(HttpClientBuilder builder) {
         SystemDefaultCredentialsProvider credentialsProvider = new SystemDefaultCredentialsProvider();
-        configureSslSocketConnectionFactory(builder, httpSettings.getSslContextFactory(), httpSettings.getHostnameVerifier());
+        configureConnectionManager(builder, httpSettings.getSslContextFactory(), httpSettings.getHostnameVerifier());
         configureAuthSchemeRegistry(builder);
+        configureAuthenticationStrategy(builder);
         configureCredentials(builder, credentialsProvider, httpSettings.getAuthenticationSettings());
         configureProxy(builder, credentialsProvider, httpSettings);
         configureUserAgent(builder);
-        configureCookieSpecRegistry(builder);
         configureRequestConfig(builder);
-        configureSocketConfig(builder);
         configureRedirectStrategy(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
-        builder.setMaxConnTotal(httpSettings.getMaxConnTotal());
-        builder.setMaxConnPerRoute(httpSettings.getMaxConnPerRoute());
-        builder.setConnectionTimeToLive(httpSettings.getTimeoutSettings().getIdleConnectionTimeoutMs(), TimeUnit.MILLISECONDS);
+        // Disable HC5's automatic content compression handling.
+        // HC5's ContentCompressionExec wraps response entities in DecompressingEntity, but
+        // ResponseEntityProxy.eofDetected()/streamClosed() close the underlying ChunkedInputStream.
+        // If DecompressingEntity.getContent() is called after this (creating a new EofSensorInputStream
+        // wrapping the now-closed ChunkedInputStream), it fails with StreamClosedException.
+        // Gradle handles response content directly without needing transparent decompression.
+        builder.disableContentCompression();
     }
 
-    private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
-        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), sslProtocols, null, hostnameVerifier));
+    @SuppressWarnings("deprecation")
+    private void configureConnectionManager(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
+        HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
+        builder.setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+            .setSSLSocketFactory(new org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory(sslContextFactory.createSslContext(), sslProtocols, null, hostnameVerifier))
+            .setMaxConnTotal(httpSettings.getMaxConnTotal())
+            .setMaxConnPerRoute(httpSettings.getMaxConnPerRoute())
+            .setDefaultSocketConfig(SocketConfig.custom()
+                .setSoTimeout(Timeout.ofMilliseconds(timeoutSettings.getSocketTimeoutMs()))
+                .setSoKeepAlive(true)
+                .build())
+            .setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setTimeToLive(TimeValue.ofMilliseconds(timeoutSettings.getIdleConnectionTimeoutMs()))
+                .build())
+            .build());
     }
 
+    @SuppressWarnings("deprecation")
     private void configureAuthSchemeRegistry(HttpClientBuilder builder) {
-        builder.setDefaultAuthSchemeRegistry(RegistryBuilder.<AuthSchemeProvider>create()
-            .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-            .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-            .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-            .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
-            .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
+        builder.setDefaultAuthSchemeRegistry(RegistryBuilder.<AuthSchemeFactory>create()
+            .register(StandardAuthScheme.BASIC, new BasicSchemeFactory())
+            .register(StandardAuthScheme.DIGEST, new DigestSchemeFactory())
+            .register(StandardAuthScheme.NTLM, new DeprecatedSchemeFactory(org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory.INSTANCE, StandardAuthScheme.NTLM))
+            .register(StandardAuthScheme.SPNEGO, new DeprecatedSchemeFactory(org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory.DEFAULT, StandardAuthScheme.SPNEGO))
+            .register(StandardAuthScheme.KERBEROS, new DeprecatedSchemeFactory(org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory.DEFAULT, StandardAuthScheme.KERBEROS))
             .register(HttpHeaderAuthScheme.AUTH_SCHEME_NAME, new HttpHeaderSchemeFactory())
             .build()
         );
     }
 
-    private void configureCredentials(HttpClientBuilder builder, CredentialsProvider credentialsProvider, Collection<Authentication> authentications) {
+    /**
+     * HC5's {@code DefaultAuthenticationStrategy} no longer includes NTLM or SPNEGO/Kerberos
+     * in its default scheme priority list (they were removed as deprecated). Override the
+     * strategy to restore support for these schemes.
+     */
+    @SuppressWarnings("deprecation")
+    private void configureAuthenticationStrategy(HttpClientBuilder builder) {
+        DefaultAuthenticationStrategy strategy = new DefaultAuthenticationStrategy() {
+            @Override
+            protected java.util.List<String> getSchemePriority() {
+                return Arrays.asList(
+                    StandardAuthScheme.SPNEGO,
+                    StandardAuthScheme.KERBEROS,
+                    StandardAuthScheme.NTLM,
+                    StandardAuthScheme.DIGEST,
+                    StandardAuthScheme.BASIC
+                );
+            }
+        };
+        builder.setTargetAuthenticationStrategy(strategy);
+        builder.setProxyAuthenticationStrategy(strategy);
+    }
+
+    private void configureCredentials(HttpClientBuilder builder, CredentialsStore credentialsProvider, Collection<Authentication> authentications) {
         if (authentications.size() > 0) {
             useCredentials(credentialsProvider, authentications);
 
-            // Use preemptive authorisation if no other authorisation has been established
-            builder.addInterceptorFirst(new PreemptiveAuth(getAuthScheme(authentications), isPreemptiveEnabled(authentications)));
+            // Use preemptive authorisation if no other authorisation has been established.
+            // This must be an exec chain handler (not a request interceptor) because HC5's
+            // ProtocolExec loads auth from the AuthCache BEFORE running request interceptors.
+            builder.addExecInterceptorBefore(
+                ChainElement.PROTOCOL.name(),
+                "PREEMPTIVE_AUTH",
+                new PreemptiveAuth(getAuthSchemeSupplier(authentications), isPreemptiveEnabled(authentications))
+            );
         }
     }
 
-    private AuthScheme getAuthScheme(final Collection<Authentication> authentications) {
+    private Supplier<AuthScheme> getAuthSchemeSupplier(final Collection<Authentication> authentications) {
         if (authentications.size() == 1) {
             if (authentications.iterator().next() instanceof HttpHeaderAuthentication) {
-                return new HttpHeaderAuthScheme();
+                return HttpHeaderAuthScheme::new;
             }
         }
-        return new BasicScheme();
+        return BasicScheme::new;
     }
 
-    private void configureProxy(HttpClientBuilder builder, CredentialsProvider credentialsProvider, HttpSettings httpSettings) {
+    private void configureProxy(HttpClientBuilder builder, CredentialsStore credentialsProvider, HttpSettings httpSettings) {
         useCredentialsForProxy(credentialsProvider, httpSettings.getProxySettings().getProxy());
         useCredentialsForProxy(credentialsProvider, httpSettings.getSecureProxySettings().getProxy());
 
@@ -195,7 +238,7 @@ public class HttpClientConfigurer {
             || (httpsProxy != null && httpsProxy.credentials != null);
     }
 
-    private void useCredentialsForProxy(CredentialsProvider credentialsProvider, HttpProxySettings.HttpProxy httpsProxy) {
+    private void useCredentialsForProxy(CredentialsStore credentialsProvider, HttpProxySettings.HttpProxy httpsProxy) {
         if (httpsProxy != null && httpsProxy.credentials != null) {
             AllSchemesAuthentication authentication1 = new AllSchemesAuthentication(httpsProxy.credentials);
             authentication1.addHost(httpsProxy.host, httpsProxy.port);
@@ -203,7 +246,8 @@ public class HttpClientConfigurer {
         }
     }
 
-    private void useCredentials(CredentialsProvider credentialsProvider, Collection<? extends Authentication> authentications) {
+    @SuppressWarnings("deprecation")
+    private void useCredentials(CredentialsStore credentialsProvider, Collection<? extends Authentication> authentications) {
         for (Authentication authentication : authentications) {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
 
@@ -222,7 +266,7 @@ public class HttpClientConfigurer {
                 if (credentials instanceof HttpHeaderCredentials) {
                     HttpHeaderCredentials httpHeaderCredentials = (HttpHeaderCredentials) credentials;
                     Credentials httpCredentials = new HttpClientHttpHeaderCredentials(httpHeaderCredentials.getName(), httpHeaderCredentials.getValue());
-                    credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
+                    credentialsProvider.setCredentials(new AuthScope(null, host, port, null, scheme), httpCredentials);
 
                     LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", httpHeaderCredentials, host, port, scheme);
                 } else if (credentials instanceof PasswordCredentials || credentials instanceof HttpProxySettings.HttpProxyCredentials) {
@@ -240,14 +284,14 @@ public class HttpClientConfigurer {
 
                     if (authentication instanceof AllSchemesAuthentication) {
                         NTLMCredentials ntlmCredentials = new NTLMCredentials(username, password);
-                        Credentials httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
-                        credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthSchemes.NTLM), httpCredentials);
+                        Credentials httpCredentials = new org.apache.hc.client5.http.auth.NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword() != null ? ntlmCredentials.getPassword().toCharArray() : null, ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
+                        credentialsProvider.setCredentials(new AuthScope(null, host, port, null, StandardAuthScheme.NTLM), httpCredentials);
 
-                        LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", credentials, ntlmCredentials, host, port, AuthSchemes.NTLM);
+                        LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", credentials, ntlmCredentials, host, port, StandardAuthScheme.NTLM);
                     }
 
-                    Credentials httpCredentials = new UsernamePasswordCredentials(username, password);
-                    credentialsProvider.setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
+                    Credentials httpCredentials = new UsernamePasswordCredentials(username, password != null ? password.toCharArray() : null);
+                    credentialsProvider.setCredentials(new AuthScope(null, host, port, null, scheme), httpCredentials);
                     LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", credentials, host, port, scheme);
                 } else {
                     throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s or %s", PasswordCredentials.class.getCanonicalName(), HttpHeaderCredentials.class.getCanonicalName()));
@@ -264,46 +308,17 @@ public class HttpClientConfigurer {
         builder.setUserAgent(UriTextResource.getUserAgentString());
     }
 
-    private void configureCookieSpecRegistry(HttpClientBuilder builder) {
-        PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();
-        builder.setPublicSuffixMatcher(publicSuffixMatcher);
-        // Add more data patterns to the default configuration to work around https://github.com/gradle/gradle/issues/1596
-        final CookieSpecProvider defaultProvider = new DefaultCookieSpecProvider(DefaultCookieSpecProvider.CompatibilityLevel.DEFAULT, publicSuffixMatcher, new String[]{
-            "EEE, dd-MMM-yy HH:mm:ss z", // Netscape expires pattern
-            DateUtils.PATTERN_RFC1036,
-            DateUtils.PATTERN_ASCTIME,
-            DateUtils.PATTERN_RFC1123
-        }, false);
-        final CookieSpecProvider laxStandardProvider = new RFC6265CookieSpecProvider(
-            RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcher);
-        final CookieSpecProvider strictStandardProvider = new RFC6265CookieSpecProvider(
-            RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcher);
-        builder.setDefaultCookieSpecRegistry(RegistryBuilder.<CookieSpecProvider>create()
-            .register(CookieSpecs.DEFAULT, defaultProvider)
-            .register("best-match", defaultProvider)
-            .register("compatibility", defaultProvider)
-            .register(CookieSpecs.STANDARD, laxStandardProvider)
-            .register(CookieSpecs.STANDARD_STRICT, strictStandardProvider)
-            .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
-            .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
-            .build()
-        );
-    }
-
+    @SuppressWarnings("deprecation")
     private void configureRequestConfig(HttpClientBuilder builder) {
         HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
         RequestConfig config = RequestConfig.custom()
-            .setConnectTimeout(timeoutSettings.getConnectionTimeoutMs())
-            .setSocketTimeout(timeoutSettings.getSocketTimeoutMs())
+            .setConnectTimeout(Timeout.ofMilliseconds(timeoutSettings.getConnectionTimeoutMs()))
+            .setResponseTimeout(Timeout.ofMilliseconds(timeoutSettings.getSocketTimeoutMs()))
             .setMaxRedirects(httpSettings.getMaxRedirects())
             .setExpectContinueEnabled(hasProxyCredentials(httpSettings))
+            .setCookieSpec(StandardCookieSpec.RELAXED)
             .build();
         builder.setDefaultRequestConfig(config);
-    }
-
-    private void configureSocketConfig(HttpClientBuilder builder) {
-        HttpTimeoutSettings timeoutSettings = httpSettings.getTimeoutSettings();
-        builder.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeoutSettings.getSocketTimeoutMs()).setSoKeepAlive(true).build());
     }
 
     private void configureRedirectStrategy(HttpClientBuilder builder) {
@@ -317,7 +332,7 @@ public class HttpClientConfigurer {
     private RedirectStrategy getBaseRedirectStrategy() {
         switch (httpSettings.getRedirectMethodHandlingStrategy()) {
             case ALLOW_FOLLOW_FOR_MUTATIONS:
-                return new AllowFollowForMutatingMethodRedirectStrategy();
+                return new DefaultRedirectStrategy();
             case ALWAYS_FOLLOW_AND_PRESERVE:
                 return new AlwaysFollowAndPreserveMethodRedirectStrategy();
             default:
@@ -327,46 +342,62 @@ public class HttpClientConfigurer {
 
     private String getAuthScheme(Authentication authentication) {
         if (authentication instanceof BasicAuthentication) {
-            return AuthSchemes.BASIC;
+            return StandardAuthScheme.BASIC;
         } else if (authentication instanceof DigestAuthentication) {
-            return AuthSchemes.DIGEST;
+            return StandardAuthScheme.DIGEST;
         } else if (authentication instanceof HttpHeaderAuthentication) {
             return HttpHeaderAuthScheme.AUTH_SCHEME_NAME;
         } else if (authentication instanceof AllSchemesAuthentication) {
-            return AuthScope.ANY_SCHEME;
+            return null;
         } else {
             throw new IllegalArgumentException(String.format("Authentication scheme of '%s' is not supported.", authentication.getClass().getSimpleName()));
         }
     }
 
-    static class PreemptiveAuth implements HttpRequestInterceptor {
-        private final AuthScheme authScheme;
+    /**
+     * Generates preemptive auth headers before {@code ProtocolExec} runs.
+     *
+     * <p>In HC5, {@code ProtocolExec} handles authentication <em>before</em> running
+     * request interceptors, so a request interceptor approach (as used in HC4) would
+     * be too late. Instead, this exec chain handler directly generates the auth header
+     * and adds it to the request. {@code ProtocolExec} will then skip its own auth
+     * handling for the request since the {@code Authorization} header is already present.</p>
+     */
+    static class PreemptiveAuth implements ExecChainHandler {
+        private final Supplier<AuthScheme> authSchemeSupplier;
         private final boolean alwaysSendAuth;
 
-        PreemptiveAuth(AuthScheme authScheme, boolean alwaysSendAuth) {
-            this.authScheme = authScheme;
+        PreemptiveAuth(Supplier<AuthScheme> authSchemeSupplier, boolean alwaysSendAuth) {
+            this.authSchemeSupplier = authSchemeSupplier;
             this.alwaysSendAuth = alwaysSendAuth;
         }
 
         @Override
-        public void process(final HttpRequest request, final HttpContext context) throws HttpException {
+        public ClassicHttpResponse execute(ClassicHttpRequest request, ExecChain.Scope scope, ExecChain chain) throws IOException, HttpException {
+            HttpClientContext context = scope.clientContext;
+            HttpHost target = scope.route.getTargetHost();
 
-            AuthState authState = (AuthState) context.getAttribute(HttpClientContext.TARGET_AUTH_STATE);
-
-            if (authState.getAuthScheme() != null || authState.hasAuthOptions()) {
-                return;
-            }
-
-            // If no authState has been established and this is a PUT or POST request, add preemptive authorisation
-            String requestMethod = request.getRequestLine().getMethod();
+            String requestMethod = request.getMethod();
             if (alwaysSendAuth || requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
-                CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(HttpClientContext.CREDS_PROVIDER);
-                HttpHost targetHost = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
-                Credentials credentials = credentialsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));
-                if (credentials != null) {
-                    authState.update(authScheme, credentials);
+                CredentialsProvider credentialsProvider = context.getCredentialsProvider();
+                if (credentialsProvider != null) {
+                    AuthScheme scheme = authSchemeSupplier.get();
+                    try {
+                        if (scheme.isResponseReady(target, credentialsProvider, context)) {
+                            String authResponse = scheme.generateAuthResponse(target, request, context);
+                            if (authResponse != null) {
+                                request.addHeader(HttpHeaders.AUTHORIZATION, authResponse);
+                            }
+                            // For HttpHeaderAuthScheme, the custom header is added directly
+                            // to the request in generateAuthResponse(), which returns null.
+                        }
+                    } catch (AuthenticationException e) {
+                        LOGGER.debug("Preemptive auth failed", e);
+                    }
                 }
             }
+
+            return chain.proceed(request, scope);
         }
     }
 

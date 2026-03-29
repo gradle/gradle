@@ -16,37 +16,28 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.Header;
-import org.apache.http.HttpRequest;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ContextAwareAuthScheme;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Args;
+import org.apache.hc.client5.http.auth.AuthChallenge;
+import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
-public class HttpHeaderAuthScheme implements ContextAwareAuthScheme {
+import java.security.Principal;
+
+public class HttpHeaderAuthScheme implements AuthScheme {
 
     public static final String AUTH_SCHEME_NAME = "header";
 
-    @Override
-    public void processChallenge(final Header header) throws MalformedChallengeException {
-    }
+    private HttpClientHttpHeaderCredentials credentials;
 
     @Override
-    public String getSchemeName() {
+    public String getName() {
         return AUTH_SCHEME_NAME;
-    }
-
-    @Override
-    public String getParameter(final String name) {
-        return null;
-    }
-
-    @Override
-    public String getRealm() {
-        return null;
     }
 
     @Override
@@ -55,20 +46,44 @@ public class HttpHeaderAuthScheme implements ContextAwareAuthScheme {
     }
 
     @Override
-    public boolean isComplete() {
+    public String getRealm() {
+        return null;
+    }
+
+    @Override
+    public void processChallenge(AuthChallenge authChallenge, HttpContext context) throws MalformedChallengeException {
+    }
+
+    @Override
+    public boolean isChallengeComplete() {
         return true;
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public Header authenticate(final Credentials credentials, final HttpRequest request) throws AuthenticationException {
-        return this.authenticate(credentials, request, new BasicHttpContext());
+    public boolean isResponseReady(HttpHost host, CredentialsProvider credentialsProvider, HttpContext context) throws AuthenticationException {
+        AuthScope authScope = new AuthScope(host, null, AUTH_SCHEME_NAME);
+        Credentials creds = credentialsProvider.getCredentials(authScope, context);
+        if (creds instanceof HttpClientHttpHeaderCredentials) {
+            this.credentials = (HttpClientHttpHeaderCredentials) creds;
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public Header authenticate(final Credentials credentials, final HttpRequest request, final HttpContext context) throws AuthenticationException {
-        Args.check(credentials instanceof HttpClientHttpHeaderCredentials, "Only " + HttpClientHttpHeaderCredentials.class.getCanonicalName() + " supported for AuthScheme " + this.getClass().getCanonicalName() + ", got " + credentials.getClass().getName());
-        HttpClientHttpHeaderCredentials httpClientHttpHeaderCredentials = (HttpClientHttpHeaderCredentials) credentials;
-        return httpClientHttpHeaderCredentials.getHeader();
+    public Principal getPrincipal() {
+        return null;
+    }
+
+    @Override
+    public String generateAuthResponse(HttpHost host, HttpRequest request, HttpContext context) throws AuthenticationException {
+        if (credentials == null) {
+            throw new AuthenticationException("No header credentials available");
+        }
+        // Add the custom header directly to the request rather than returning a value,
+        // because HC5's auth framework would place the return value under the standard
+        // "Authorization" header, which is wrong for custom header authentication.
+        request.addHeader(credentials.getHeader());
+        return null;
     }
 }

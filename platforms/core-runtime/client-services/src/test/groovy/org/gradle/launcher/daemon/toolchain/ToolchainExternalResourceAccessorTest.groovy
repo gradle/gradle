@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.toolchain
 
 import com.google.common.collect.ImmutableMap
-import org.apache.http.HttpHeaders
+import org.apache.hc.core5.http.HttpHeaders
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.transport.http.HttpClient

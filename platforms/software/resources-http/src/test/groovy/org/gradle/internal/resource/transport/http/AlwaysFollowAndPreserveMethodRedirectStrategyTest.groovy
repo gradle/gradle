@@ -16,12 +16,12 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.HttpRequest
-import org.apache.http.RequestLine
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.message.BasicHeader
-import org.apache.http.params.HttpParams
-import org.apache.http.protocol.HttpContext
+import org.apache.hc.core5.http.HttpRequest
+import org.apache.hc.core5.http.HttpResponse
+import org.apache.hc.core5.http.HttpStatus
+import org.apache.hc.core5.http.message.BasicHeader
+import org.apache.hc.core5.http.message.BasicHttpResponse
+import org.apache.hc.core5.http.protocol.HttpContext
 import spock.lang.Specification
 
 class AlwaysFollowAndPreserveMethodRedirectStrategyTest extends Specification {
@@ -29,31 +29,67 @@ class AlwaysFollowAndPreserveMethodRedirectStrategyTest extends Specification {
     static final String[] HTTP_METHODS = ['GET', 'POST', 'PUT', 'HEAD', 'DELETE', 'OPTIONS', 'TRACE', 'PATCH']
 
     def "should consider all requests redirectable"() {
+        setup:
+        HttpRequest request = Mock()
+        HttpResponse response = new BasicHttpResponse(301)
+        response.setHeader(new BasicHeader('location', 'http://redirectTo'))
+        HttpContext context = Mock()
+        request.getMethod() >> method
+        request.getUri() >> new URI("http://original.com")
+        request.getScheme() >> "http"
+        request.getAuthority() >> null
+        request.getPath() >> "/"
+
         expect:
-        new AllowFollowForMutatingMethodRedirectStrategy().isRedirectable(method)
+        new AlwaysFollowAndPreserveMethodRedirectStrategy().isRedirected(request, response, context)
 
         where:
         method << HTTP_METHODS
     }
 
-    def "should get redirect for http method [#httpMethod]"() {
+    def "should upgrade non-method-preserving redirects to 307 for unsafe methods [#httpMethod]"() {
         setup:
         HttpRequest request = Mock()
-        CloseableHttpResponse response = Mock()
+        HttpResponse response = new BasicHttpResponse(redirect)
+        response.setHeader(new BasicHeader('location', 'http://redirectTo'))
         HttpContext context = Mock()
-        response.getFirstHeader("location") >> new BasicHeader('location', 'http://redirectTo')
-        request.getRequestLine() >> Mock(RequestLine) {
-            getMethod() >> httpMethod
-        }
-        request.getParams() >> Mock(HttpParams)
+        request.getMethod() >> httpMethod
+        request.getUri() >> new URI("http://original.com")
+        request.getScheme() >> "http"
+        request.getAuthority() >> null
+        request.getPath() >> "/"
 
         when:
-        def redirect = new AlwaysFollowAndPreserveMethodRedirectStrategy().getRedirect(request, response, context)
+        new AlwaysFollowAndPreserveMethodRedirectStrategy().getLocationURI(request, response, context)
 
         then:
-        redirect.getClass() == Class.forName("org.apache.http.client.methods.Http${httpMethod.toLowerCase().capitalize()}")
+        // For unsafe methods with 301/302/303, the strategy upgrades to 307 to preserve the method
+        response.getCode() == HttpStatus.SC_TEMPORARY_REDIRECT
 
         where:
-        httpMethod << HTTP_METHODS + HTTP_METHODS.collect { it.toLowerCase() }
+        [httpMethod, redirect] << [['POST', 'PUT', 'DELETE', 'PATCH'], [301, 302, 303]].combinations()
+    }
+
+    def "should not modify redirect code for safe methods [#httpMethod,#redirect]"() {
+        setup:
+        HttpRequest request = Mock()
+        HttpResponse response = new BasicHttpResponse(redirect)
+        response.setHeader(new BasicHeader('location', 'http://redirectTo'))
+        HttpContext context = Mock()
+        request.getMethod() >> httpMethod
+        request.getUri() >> new URI("http://original.com")
+        request.getScheme() >> "http"
+        request.getAuthority() >> null
+        request.getPath() >> "/"
+
+        when:
+        new AlwaysFollowAndPreserveMethodRedirectStrategy().getLocationURI(request, response, context)
+
+        then:
+        // For safe methods, the redirect code is not modified
+        response.getCode() == redirect
+
+        where:
+        [httpMethod, redirect] << [['GET', 'HEAD'], [301, 302, 303]].combinations()
     }
 }

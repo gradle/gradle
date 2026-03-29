@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.http.NoHttpResponseException
-import org.apache.http.conn.HttpHostConnectException
+import org.apache.hc.core5.http.NoHttpResponseException
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -56,7 +55,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     @Shared
     def connectTimeout = new SocketTimeoutException()
     @Shared
-    def cannotConnect = new HttpHostConnectException(null, null)
+    def cannotConnect = new ConnectException("Connection refused")
     @Shared
     def noResponse = new NoHttpResponseException('No response from server')
     @Shared

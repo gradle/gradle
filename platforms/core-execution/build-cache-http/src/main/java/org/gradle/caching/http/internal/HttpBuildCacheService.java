@@ -18,11 +18,10 @@ package org.gradle.caching.http.internal;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.protocol.HTTP;
+import org.apache.hc.client5.http.ClientProtocolException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.net.URIBuilder;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -87,7 +86,7 @@ public class HttpBuildCacheService implements BuildCacheService {
     private static ImmutableMap<String, String> getDefaultStoreHeaders(HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
         ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
         if (useExpectContinue) {
-            builder.put(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
+            builder.put(HttpHeaders.EXPECT, "100-continue");
         }
         builder.put(HttpHeaders.CONTENT_TYPE, BUILD_CACHE_CONTENT_TYPE);
         requestCustomizer.visitHeaders(builder::put);
