@@ -164,7 +164,6 @@ Running a different task (e.g., `test` after `compileJava`) causes CC miss. Scri
 Transforms run during execution phase even with CC hit. Each transform goes through `IdentifyStep` to fingerprint the input artifact + parameters.
 
 - **CC hit required**: Without CC, transform parameters could differ. CC guarantees parameters are unchanged.
-- **Stable key**: `(transform class + input artifact path)`.
 - **External dependency inputs** (in `~/.gradle/caches/`): Content-addressed and immutable once downloaded. If the jar is at the same path, it hasn't changed — VFS isn't even needed. With CC hit, identity is guaranteed the same.
 - **Project dependency inputs** (in `build/` dirs): Watched by VFS — VFS can verify these haven't changed.
 
@@ -175,13 +174,60 @@ Estimated savings:
 | JVM (50 deps) | ~30-50 | ~300-750ms | **~200-500ms** |
 | Android (200+ deps) | ~200-500 | ~2-5s | **~1.5-4s** |
 
+#### Transform stable key
+
+The full identity (`TransformWorkspaceIdentity`) is computed in `ImmutableTransformExecution.createIdentity()` from fingerprinted inputs:
+```java
+TransformWorkspaceIdentity.createNormalizedImmutable(
+    scalarInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),   // artifact path or name
+    fileInputs.get(INPUT_ARTIFACT_PROPERTY_NAME),           // artifact content fingerprint  ← expensive
+    scalarInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),  // hash of transform parameters
+    fileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()    // dependencies fingerprint hash ← expensive
+)
+```
+
+Computing this requires `IdentifyStep` to fingerprint input artifact contents and dependency files. The stable key avoids this by identifying the transform execution WITHOUT content hashing:
+
+**Stable key**: `implementationClass.getName() + ":" + fromAttributes + ":" + toAttributes + ":" + inputArtifact.getAbsolutePath()`
+
+Derived from fields already available on `ImmutableTransformExecution` / `AbstractTransformExecution`:
+- `transform.getImplementationClass()` — visited in `visitImplementations()` (line 213)
+- `transform.getFromAttributes()` / `transform.getToAttributes()` — which variant transformation
+- `inputArtifact.getAbsolutePath()` — which artifact (the `File` field, not its content)
+
+With CC hit, `secondaryInputsHash` (transform parameters) and `dependencies` can't change — they're part of the cached configuration. So the only thing that could invalidate the cached identity is the input artifact content changing, which VFS can check (for project outputs in `build/` dirs) or is guaranteed unchanged (for external deps in `~/.gradle/caches/`).
+
+### Use case 3: Mutable transforms (CC hit, project dependency transforms)
+
+`MutableTransformExecution` implements `MutableUnitOfWork` and goes through the mutable pipeline — it already benefits from `FastUpToDateCheckStep` (skipping fingerprinting/up-to-date checking). But it still pays for `IdentifyStep` (~10-30ms) before entering the mutable pipeline.
+
+With the stable key approach, we could skip `IdentifyStep` too. Combined savings per mutable transform: `IdentifyStep` (~10-30ms) + mutable pipeline steps already skipped by `FastUpToDateCheckStep` (~60-230ms).
+
+Mutable transforms are a strong candidate because:
+- Input artifact is in `build/` dirs → **VFS-watched**
+- Has execution history (`getHistory()` returns the store) — previous state available
+- `producerBuildTreePath` available for stable key construction
+
+#### Stable key for both transform types
+
+The stable key is the same structure for both `ImmutableTransformExecution` and `MutableTransformExecution`:
+
+**Stable key**: `implementationClass.getName() + ":" + fromAttributes + ":" + toAttributes + ":" + inputArtifact.getAbsolutePath()`
+
+Derived from:
+- `transform.getImplementationClass()` — which transform
+- `transform.getFromAttributes()` — source variant attributes
+- `transform.getToAttributes()` — target variant attributes
+- `inputArtifact.getAbsolutePath()` — which artifact (the `File` path, not content)
+
 ### Implementation sketch
 
-1. Add `Optional<String> getStableCacheKey()` to `UnitOfWork`. Script compilation returns script path. Transforms return `(class + artifact path)`. Tasks return empty.
+1. Add `Optional<String> getStableCacheKey()` to `UnitOfWork`. Script compilation returns script path. `ImmutableTransformExecution` and `MutableTransformExecution` return `implementationClass + fromAttrs + toAttrs + inputArtifact path`. Tasks return empty.
 2. Cache `Map<String, CachedImmutableIdentity>` in `FastUpToDateCheckState` (daemon-scoped). Stores `(Identity, inputRootPaths)` per stable key.
 3. Add fast-path in `IdentifyStep` (or a wrapping step before it): if stable key exists, cached identity found, and VFS/immutability confirms inputs unchanged → create `IdentityContext` from cache, skip fingerprinting.
 4. After `IdentifyStep` computes a fresh identity, store it in the cache for next build.
-5. `AssignImmutableWorkspaceStep` proceeds normally with the (cached) identity — verifies workspace integrity since Gradle User Home isn't watched.
+5. For immutable transforms: `AssignImmutableWorkspaceStep` proceeds normally with the (cached) identity — verifies workspace integrity since Gradle User Home isn't watched.
+6. For mutable transforms: `FastUpToDateCheckStep` provides a second layer of fast-path for the mutable pipeline steps.
 
 ## Verification
 
