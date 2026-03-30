@@ -519,6 +519,8 @@ class PerformanceTestExtension(
             }
             destinationDirectory = project.layout.buildDirectory
             archiveFileName = "test-results-${junitXmlDir.name}.zip"
+            // TODO: Remove suppression and use zip64 directly in Gradle 10
+            @Suppress("DEPRECATION")
             isZip64 = true
         }
 }
