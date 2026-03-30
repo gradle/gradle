@@ -21,6 +21,7 @@ import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.gradle.util.internal.CollectionUtils
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
@@ -49,6 +50,7 @@ import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Compan
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_ALLOW_UNSTABLE_DEPENDENCIES
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_JSR305
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SAM_CONVERSIONS
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SCRIPT_RESOLVER_ENVIRONMENT
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
@@ -113,10 +115,11 @@ fun compileKotlinScriptToDirectory(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
     scriptFile: File,
+    implicitImports: List<String>,
     template: KClass<out Any>,
     classPath: List<File>,
-    logger: Logger,
-    @Suppress("unused") pathTranslation: (String) -> String // TODO: path translation ignored for now
+    logger: Logger, // TODO: path translation ignored for now
+    @Suppress("unused") pathTranslation: (String) -> String
 ): String {
     fun configureClasspath(arguments: JvmCompilerArguments.Builder, classPath: List<File>) {
         arguments[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
@@ -176,6 +179,11 @@ fun compileKotlinScriptToDirectory(
         configurePlugins(it, classPath)
 
         it[SCRIPT_TEMPLATES] = arrayOf(template.jvmName)
+        it[X_SCRIPT_RESOLVER_ENVIRONMENT] = arrayOf(
+            resolverEnvironmentStringFor(
+                listOf(kotlinDslImplicitImports to implicitImports)
+            )
+        )
     } // TODO: compilation result ignored
 
     return NameUtils.getScriptNameForFile(scriptFile.name).asString()
