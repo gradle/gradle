@@ -59,6 +59,7 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.files)
     implementation(projects.functional)
+    implementation(projects.hashingServices)
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.projectFeaturesApi)
