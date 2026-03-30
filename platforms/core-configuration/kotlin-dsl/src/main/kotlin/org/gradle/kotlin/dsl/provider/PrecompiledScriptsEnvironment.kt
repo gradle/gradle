@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.kotlin.dsl.support.implicitImportsFrom
+import org.gradle.kotlin.dsl.support.stringList
 import org.gradle.kotlin.dsl.support.KotlinScriptHashing
 import kotlin.script.dependencies.Environment
 
@@ -35,19 +37,6 @@ object PrecompiledScriptsEnvironment {
         implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)
 
     private
-    fun implicitImportsFrom(environment: Environment?) =
-        environment.stringList(EnvironmentProperties.kotlinDslImplicitImports)
-
-    private
     fun precompiledScriptPluginImportsFrom(environment: Environment?, scriptText: CharSequence): List<String> =
         environment.stringList(KotlinScriptHashing.hashOfNormalisedString(scriptText))
-
-    private
-    fun Environment?.stringList(key: String) =
-        string(key)?.split(':')
-            ?: emptyList()
-
-    private
-    fun Environment?.string(key: String) =
-        this?.get(key) as? String
 }
