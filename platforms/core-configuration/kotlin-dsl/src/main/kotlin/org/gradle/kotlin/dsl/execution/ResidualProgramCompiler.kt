@@ -34,7 +34,6 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
-import org.gradle.kotlin.dsl.support.ImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
@@ -70,6 +69,10 @@ import org.jetbrains.org.objectweb.asm.Type
 import org.slf4j.Logger
 import java.io.File
 import kotlin.reflect.KClass
+import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.implicitReceivers
+import kotlin.script.experimental.util.PropertiesCollection
 
 
 internal
@@ -775,6 +778,24 @@ class ResidualProgramCompiler(
         }
 
     private
-    fun implicitReceiverOf(template: KClass<*>): KClass<*>? =
-        template.annotations.firstNotNullOfOrNull { (it as? ImplicitReceiver)?.type } // TODO: use KotlinScript.compilationConfiguration... instead
+    fun implicitReceiverOf(template: KClass<*>): KClass<*>? {
+        val compilationConfigurationClass : KClass<out ScriptCompilationConfiguration>? = template.annotations.firstNotNullOfOrNull { (it as? KotlinScript)?.compilationConfiguration }
+        return compilationConfigurationClass?.let {
+            val compileConfiguration = scriptConfigInstance(compilationConfigurationClass)
+            compileConfiguration?.get(ScriptCompilationConfiguration.implicitReceivers)?.firstOrNull()?.fromClass
+        }
+    }
+
+    private
+    inline fun <reified T : PropertiesCollection> scriptConfigInstance(kclass: KClass<out T>): T? =
+        kclass.objectInstance ?: run {
+            val noArgsConstructor = kclass.java.constructors.singleOrNull { it.parameters.isEmpty() }
+            noArgsConstructor?.let {
+                try {
+                    it.isAccessible = true
+                } catch (_: RuntimeException) {
+                }
+                it.newInstance() as T
+            }
+        }
 }
