@@ -31,11 +31,16 @@ TIP: Use constraints when you want to control versions centrally and avoid addin
 You can declare constraints:
 
 - Alongside <<declaring_dependencies_basics.adoc#declaring-dependencies-basics,dependencies>> in a single project (scoped to the same configuration buckets like `implementation`, `runtimeOnly`, `testImplementation`, etc.).
-- Centrally in a <<platforms.adoc#sec:sharing-dep-versions-between-projects,platform>> (recommended for multi-project builds) using the `java-platform` plugin:
-
++
 ====
-include::sample[dir="snippets/java-platform/recommender/kotlin/platform",files="build.gradle.kts[tags=full-platform]"]
-include::sample[dir="snippets/java-platform/recommender/groovy/platform",files="build.gradle[tags=full-platform]"]
+include::sample[dir="snippets/dependencyManagement/constraintsAlongsideDependencies/kotlin",files="build.gradle.kts[tags=constraints-alongside-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/constraintsAlongsideDependencies/groovy",files="build.gradle[tags=constraints-alongside-dependencies]"]
+====
+- Centrally in a <<platforms.adoc#sec:sharing-dep-versions-between-projects,platform>> (recommended for multi-project builds) using the `java-platform` plugin:
++
+====
+include::sample[dir="snippets/java-platform/constraintsInPlatform/kotlin",files="build.gradle.kts[tags=constraints-in-platform]"]
+include::sample[dir="snippets/java-platform/constraintsInPlatform/groovy",files="build.gradle[tags=constraints-in-platform]"]
 ====
 
 You cannot declare constraints in <<version_catalogs.adoc#version-catalog,version catalogs>>.
@@ -43,20 +48,25 @@ You cannot declare constraints in <<version_catalogs.adoc#version-catalog,versio
 [[sec:declaring-constraints-dependencies]]
 == Declaring constraints alongside direct dependencies
 
-Constraints are <<dependency_configurations.adoc#sub:what-are-dependency-configurations,scoped by *bucket configurations*>> (e.g., `implementation`, `runtimeOnly`).
+Constraints are <<dependency_configurations.adoc#sub:what-are-dependency-configurations,scoped by *configurations*>> (e.g., `implementation`, `runtimeOnly`).
 They apply whenever that dependency is encountered during resolution.
 
 The `constraints {}` block is used within the `dependencies {}` block to declare these constraints:
 
 ====
-include::sample[dir="snippets/java-platform/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin,constraints]"]
-include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.gradle[tags=use-plugin,constraints]"]
+include::sample[dir="snippets/dependencyManagement/declaringConstraints/kotlin",files="build.gradle.kts[tags=direct-constraints]"]
+include::sample[dir="snippets/dependencyManagement/declaringConstraints/groovy",files="build.gradle[tags=direct-constraints]"]
 ====
 
-1. `api("commons-httpclient:commons-httpclient:3.1")`: ensures ≥ 3.1 for `api`.
-2. `runtime("org.postgresql:postgresql:42.2.5")`: ensures ≥ 42.2.5 for `runtime`.
+Here, `jackson-databind` is declared without a version.
+The constraint ensures that when it is resolved, Gradle selects at least version `2.16.1`:
 
-If multiple requirements exist, Gradle picks a version that satisfies all.
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/declaringConstraints/tests/declaring-constraints.out[]
+----
+
+If multiple constraints or dependencies require different versions of the same module, Gradle picks a version that satisfies all.
 If none exists, resolution *fails* with an error describing the conflict.
 
 [[sec:adding-constraints-transitive-deps]]
@@ -65,55 +75,82 @@ If none exists, resolution *fails* with an error describing the conflict.
 Use constraints to select transitive modules *without* introducing them as direct dependencies:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-constraints]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
+include::sample[dir="snippets/dependencyManagement/constraintsOnTransitiveDependencies/kotlin",files="build.gradle.kts[tags=transitive-constraints]"]
+include::sample[dir="snippets/dependencyManagement/constraintsOnTransitiveDependencies/groovy",files="build.gradle[tags=transitive-constraints]"]
 ====
+
+Here, `httpclient:4.5.13` pulls in `commons-codec:1.11` as a transitive dependency.
+The constraint upgrades it to `1.15` without adding `commons-codec` as a direct dependency:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/constraintsOnTransitiveDependencies/tests/constraints-on-transitive-dependencies.out[]
+----
 
 If `commons-codec` isn’t brought in transitively, the constraint is a no-op (it doesn’t add the module).
 If it is brought in, the constraint guides the version selection.
 
-== Rich versions and strict versions for constraints
+== Transitivity and precedence of constraints
 
-You can attach <<dependency_versions.adoc#sec:rich-version-constraints,*rich versions*>> to constraints:
+Dependency constraints are transitive.
+
+If `library A` depends on `library B`, and `library B` declares a constraint on `module C`, that constraint will affect the version of `module C` that `library A` resolves:
+
+[source,text]
+----
+library A
+├── library B
+│   └── constraint: module C >= 3  // <1>
+└── module C:2                     // <2>
+----
+<1> `library B` declares a constraint requiring `module C` version `3` or higher.
+<2> `library A` depends on `module C` version `2` directly, but the transitive constraint from `library B` upgrades it to version `3`.
+
+== Rich versions for constraints
+
+By default, a constraint expresses "at least this version", so Gradle can still upgrade past it.
+
+For tighter control, attach a <<dependency_versions.adoc#sec:rich-version-constraints,*rich version*>> to the constraint:
+
+* `strictly` — pins to an exact version (or range); no other dependency can upgrade past it.
+* `prefer` — indicates the preferred version, but allows Gradle to select a different one if needed.
+* `reject` — excludes specific versions from consideration.
+
+For example, using `strictly` to prevent any upgrade past a known-good version:
 
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-strictly]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-strictly]"]
 ====
 
-== Transitivity and precedence of constraints
-
-Dependency constraints are transitive.
-
-If `library A` depends on `library B`, and `library B` declares a constraint on `module C`, that constraint will affect the version of `module C` that `library A` depends on.
-
-For example, if `library A` depends on `module C version 2`, but `library B` declares a constraint on `module C version 3`, `library A` will resolve `module C version 3`.
-
 [[sec:strictly-constraint-precedence]]
-=== Behavior of `strictly` constraints at different dependency graph depths
+=== `strictly` constraints at different dependency graph depths
 
 When multiple `strictly` version constraints are declared for the same dependency at different points in the dependency graph, Gradle always selects the constraint that is *closest to the root* of the graph.
 Constraints declared deeper in the graph, such as in transitive dependencies or subprojects, cannot override a parent project's `strictly` constraint.
 
 In other words, a `strictly` constraint declared directly in your project's dependency declarations takes precedence over any `strictly` constraints declared by the components you depend on.
 
-In this example, the root project declares a `strictly` constraint on version 4.4, while a subproject declares a `strictly` constraint on version 4.5:
-
-Because the root project sits higher in the dependency graph, its constraint (4.4) takes precedence, and the subproject's constraint is ignored.
-
-Root project build file:
+In this example, the root project declares a `strictly` constraint on version `4.4`:
 
 ====
 include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/kotlin",files="build.gradle.kts[tags=strictly-precedence-root]"]
 include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/groovy",files="build.gradle[tags=strictly-precedence-root]"]
 ====
 
-Subproject (`moduleA`) build file:
+While a subproject declares a `strictly` constraint on version `4.5`:
 
 ====
-include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/kotlin/moduleA",files="build.gradle.kts[tags=strictly-precedence-module]"]
-include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/groovy/moduleA",files="build.gradle[tags=strictly-precedence-module]"]
+include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/kotlin",files="moduleA/build.gradle.kts[tags=strictly-precedence-module]"]
+include::sample[dir="snippets/dependencyManagement/strictlyConstraintPrecedence/groovy",files="moduleA/build.gradle[tags=strictly-precedence-module]"]
 ====
+
+Because the root project sits higher in the dependency graph, its constraint (`4.4`) takes precedence, and the subproject's constraint is ignored:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlyConstraintPrecedence/tests/strictlyConstraintPrecedence.out[]
+----
 
 This behavior ensures that projects maintain control over the versions of their direct dependencies and can override any constraints introduced by transitive dependencies.
 
