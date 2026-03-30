@@ -25,16 +25,12 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
-import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
-import org.gradle.kotlin.dsl.ScriptHandlerScope
+import org.gradle.kotlin.dsl.*
 import org.gradle.plugin.use.PluginDependenciesSpec
 import kotlin.script.experimental.annotations.KotlinScript
-import kotlin.script.experimental.api.ScriptCompilationConfiguration
-import kotlin.script.experimental.api.defaultImports
-import kotlin.script.experimental.api.implicitReceivers
 
 
-@KotlinScript(compilationConfiguration = CompiledKotlinBuildScriptCompilationConfiguration::class)
+@KotlinScript(compilationConfiguration = BuildScriptCompilationConfiguration::class)
 @ImplicitReceiver(Project::class) // TODO: remove
 open class CompiledKotlinBuildScript(
     private val host: KotlinScriptHost<Project>
@@ -65,19 +61,11 @@ open class CompiledKotlinBuildScript(
         invalidPluginsCall()
 }
 
-object CompiledKotlinBuildScriptCompilationConfiguration : ScriptCompilationConfiguration(
-    {
-        implicitReceivers(Project::class)
-        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
-    })
-
-
-
 
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
-@KotlinScript(compilationConfiguration = CompiledKotlinBuildscriptBlockCompilationConfiguration::class)
+@KotlinScript(compilationConfiguration = BuildScriptCompilationConfiguration::class)
 @ImplicitReceiver(Project::class) // TODO: remove
 open class CompiledKotlinBuildscriptBlock(
     private val host: KotlinScriptHost<Project>
@@ -93,19 +81,11 @@ open class CompiledKotlinBuildscriptBlock(
     }
 }
 
-object CompiledKotlinBuildscriptBlockCompilationConfiguration : ScriptCompilationConfiguration(
-    {
-        implicitReceivers(Project::class)
-        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
-    })
-
-
-
 
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Settings.
  */
-@KotlinScript(compilationConfiguration = CompiledKotlinSettingsBuildscriptBlockCompilationConfiguration::class)
+@KotlinScript(compilationConfiguration = SettingsScriptCompilationConfiguration::class)
 @ImplicitReceiver(Settings::class) // TODO: remove
 open class CompiledKotlinSettingsBuildscriptBlock(
     host: KotlinScriptHost<Settings>
@@ -121,15 +101,8 @@ open class CompiledKotlinSettingsBuildscriptBlock(
     }
 }
 
-object CompiledKotlinSettingsBuildscriptBlockCompilationConfiguration : ScriptCompilationConfiguration(
-    {
-        implicitReceivers(Settings::class)
-        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
-    })
 
-
-
-@KotlinScript(compilationConfiguration = CompiledKotlinInitScriptCompilationConfiguration::class)
+@KotlinScript(compilationConfiguration = InitScriptCompilationConfiguration::class)
 @ImplicitReceiver(Gradle::class) // TODO: remove
 open class CompiledKotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
@@ -149,19 +122,11 @@ open class CompiledKotlinInitScript(
     }
 }
 
-object CompiledKotlinInitScriptCompilationConfiguration : ScriptCompilationConfiguration(
-    {
-        implicitReceivers(Gradle::class)
-        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
-    })
-
-
-
 
 /**
  * Base class for `initscript` block evaluation on scripts targeting Gradle.
  */
-@KotlinScript(compilationConfiguration = CompiledKotlinInitscriptBlockCompilationConfiguration::class)
+@KotlinScript(compilationConfiguration = InitScriptCompilationConfiguration::class)
 @ImplicitReceiver(Gradle::class) // TODO: remove
 open class CompiledKotlinInitscriptBlock(
     host: KotlinScriptHost<Gradle>
@@ -174,14 +139,6 @@ open class CompiledKotlinInitscriptBlock(
         ScriptHandlerScope(initscript).block()
     }
 }
-
-object CompiledKotlinInitscriptBlockCompilationConfiguration : ScriptCompilationConfiguration(
-    {
-        implicitReceivers(Gradle::class)
-        defaultImports(ImplicitImports.kotlinImplicitImportApproximations)
-    })
-
-
 
 
 internal

@@ -718,6 +718,7 @@ class ResidualProgramCompiler(
                     outputDir,
                     compilerOptions,
                     scriptFile,
+                    implicitImports,
                     scriptTemplate,
                     compileClassPath.asFiles,
                     logger
