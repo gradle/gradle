@@ -70,9 +70,10 @@ Running an unverified Wrapper risks executing untrusted code before any of your 
 
 ==== Do this
 
-If you use link:https://github.com/features/actions[GitHub Actions], you can use the link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[Gradle Wrapper validation action].
+If you use the link:https://github.com/marketplace/actions/build-with-gradle#the-setup-gradle-action[setup-gradle action] (version v4 or newer) for GitHub Actions, Wrapper validation will be performed automatically.
+The action validates the checksum of every `gradle-wrapper.jar` in your repository and fails the build if it finds any unknown Wrapper JAR.
 
-This action validates the checksum of every `gradle-wrapper.jar` in your repository and fails the build if it finds any unknown JAR:
+If you cannot use the setup-gradle action, you can alternatively use the dedicated link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[Gradle Wrapper validation action]:
 
 [source,yaml]
 .github/workflows/gradle-wrapper-validation.yml
@@ -89,10 +90,9 @@ jobs:
   wrapper-validation:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      # Recommended action (new namespace)
+      - uses: actions/checkout@v6
       - name: Verify Gradle Wrapper
-        uses: gradle/actions/wrapper-validation@v3
+        uses: gradle/actions/wrapper-validation@v6
 ----
 
 === References
