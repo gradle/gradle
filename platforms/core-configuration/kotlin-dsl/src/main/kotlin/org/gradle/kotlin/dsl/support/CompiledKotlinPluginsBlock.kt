@@ -46,7 +46,6 @@ open class CompiledKotlinPluginsBlock(
  * @constructor Must match the constructor of the [CompiledKotlinBuildscriptAndPluginsBlock] the object!
  */
 @KotlinScript(compilationConfiguration = SettingsScriptCompilationConfiguration::class)
-@ImplicitReceiver(Settings::class) // TODO: remove
 open class CompiledKotlinSettingsPluginManagementBlock(
     host: KotlinScriptHost<Settings>,
     private val pluginDependencies: PluginDependenciesSpec
@@ -73,7 +72,6 @@ open class CompiledKotlinSettingsPluginManagementBlock(
  * @constructor Must match the constructor of the [CompiledKotlinSettingsPluginManagementBlock] object!
  */
 @KotlinScript(compilationConfiguration = BuildScriptCompilationConfiguration::class)
-@ImplicitReceiver(Project::class) // TODO: remove
 open class CompiledKotlinBuildscriptAndPluginsBlock(
     private val host: KotlinScriptHost<Project>,
     private val pluginDependencies: PluginDependenciesSpec

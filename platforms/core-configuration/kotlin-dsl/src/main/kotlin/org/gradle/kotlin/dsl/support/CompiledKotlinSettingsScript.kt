@@ -27,7 +27,6 @@ import kotlin.script.experimental.annotations.KotlinScript
 
 
 @KotlinScript(compilationConfiguration = SettingsScriptCompilationConfiguration::class)
-@ImplicitReceiver(Settings::class) // TODO: remove
 open class CompiledKotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
 ) : DefaultKotlinScript(SettingsScriptHost(host)), PluginAware by PluginAwareScript(host) {
