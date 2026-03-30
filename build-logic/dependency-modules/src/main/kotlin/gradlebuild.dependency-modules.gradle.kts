@@ -64,6 +64,9 @@ dependencies {
         // We only need a few utility classes of this module
         applyRule<DependencyRemovalByNameRule>("jcifs:jcifs", setOf("servlet-api"))
 
+        // HC5 bundles HTTP/2 support which Gradle doesn't use (requires the async API)
+        applyRule<DependencyRemovalByNameRule>("org.apache.httpcomponents.client5:httpclient5", setOf("httpcore5-h2"))
+
         // Bsh moved coordinates. Depend on the new coordinates.
         applyRule<DependencyRemovalByGroupRule>("org.testng:testng", setOf("org.beanshell"))
         applyRule<DependencyAdditionRule>("org.testng:testng", "org.apache-extras.beanshell:bsh")
