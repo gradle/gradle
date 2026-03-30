@@ -808,3 +808,72 @@ This structure uses an extension type to hold values, allowing properties to be 
 === Tags
 
 <<tags_reference.adoc#tag:properties,`#properties`>>
+
+[[avoid_kotlin_property_delegates]]
+== Use Explicit API Instead of Kotlin Property Delegates
+
+Use explicit API calls like `tasks.register("name")`, `configurations.create("name")`, and `extra.set("name", value)` instead of the Kotlin DSL property delegate forms `by tasks.registering`, `by configurations.creating`, and `by extra`.
+
+=== Explanation
+
+The Kotlin DSL provides delegate extensions that derive entity names from the Kotlin variable name.
+This affects tasks (`by tasks.registering`, `by tasks.creating`), configurations (`by configurations.creating`), extra properties (`by extra`), and Gradle properties (`by project`, `by settings`).
+While these can appear concise, Kotlin property delegates are somewhat uncommon, even among experienced Kotlin developers, and can not be easily reproduced in other Gradle DSLs.
+
+The main risk is *implicit name coupling*: the registered entity's name is silently tied to the variable name.
+Renaming a variable renames the task or configuration, which can break CLI invocations, CI scripts, and dependent builds without any compiler warning.
+With the explicit API, the entity name is a visible string literal, and the variable can be named independently -- for example, `val verify = tasks.register("verifyCompatibilityWithPublishedArtifacts")` keeps a short local alias while preserving the descriptive task name.
+
+Avoid using any Kotlin property delegate offered by the Gradle Kotlin DSL.
+The explicit API is equally concise and avoids the pitfalls of implicit naming and delegate-specific correctness bugs.
+
+=== Example
+
+==== Don't Do This
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+.build.gradle.kts
+----
+include::{snippetsPath}/bestPractices/avoidKotlinPropertyDelegates-avoid/kotlin/build.gradle.kts[tags=avoid-this]
+----
+=====
+
+<1> Configuration name is implicitly derived from the variable name `myLibs`. Renaming this variable silently renames the configuration.
+<2> `by extra` attaches a property whose name is derived from the variable. When used with a `Project` receiver (e.g. `var Project.prop by extra`), the delegate silently ignores the receiver and always reads from the declaring project's extra properties, returning wrong values in multi-project builds (link:https://github.com/gradle/gradle/issues/10979[#10979]).
+<3> Task name is implicitly derived from the variable name `greet`. Renaming this variable silently renames the task.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidKotlinPropertyDelegates-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidKotlinPropertyDelegates-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+.build.gradle.kts
+----
+include::{snippetsPath}/bestPractices/avoidKotlinPropertyDelegates-do/kotlin/build.gradle.kts[tags=do-this]
+----
+=====
+
+<1> Configuration name is an explicit string `"myLibs"`. The variable can be renamed freely.
+<2> `extra.set` explicitly names the property. Use `extra["buildNumber"]` to read it back.
+<3> Task name is an explicit string `"greet"`. The variable can be renamed without affecting the task name.
+
+=== References
+
+- <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL Primer>>
+- link:https://kotlinlang.org/docs/delegated-properties.html[Kotlin Delegated Properties]
+
+=== Tags
+
+<<tags_reference.adoc#tag:kotlin-dsl,`#kotlin-dsl`>>
