@@ -1,0 +1,4 @@
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- project :platform
+|    \--- com.google.guava:guava:{strictly 33.0.0-jre} -> 33.0.0-jre (c)
+\--- com.google.guava:guava -> 33.0.0-jre

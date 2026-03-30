@@ -154,6 +154,36 @@ include::{snippetsPath}/dependencyManagement/strictlyConstraintPrecedence/tests/
 
 This behavior ensures that projects maintain control over the versions of their direct dependencies and can override any constraints introduced by transitive dependencies.
 
+[[sec:strictly-from-platform]]
+=== `strictly` constraints from platforms
+
+When a platform declares a `strictly` constraint and a consumer imports it with `platform()`, the strict version is <<platforms.adoc#sec:endorsing-platform-strict-versions,endorsed by default>>, Gradle treats it as if the consumer declared it directly.
+
+A platform that pins `guava` to an exact version:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyFromPlatform/kotlin/platform",files="build.gradle.kts[tags=platform-strictly]"]
+include::sample[dir="snippets/dependencyManagement/strictlyFromPlatform/groovy/platform",files="build.gradle[tags=platform-strictly]"]
+====
+
+A consumer that imports the platform and depends on `guava`:
+
+====
+include::sample[dir="snippets/dependencyManagement/strictlyFromPlatform/kotlin",files="build.gradle.kts[tags=consumer-endorsed]"]
+include::sample[dir="snippets/dependencyManagement/strictlyFromPlatform/groovy",files="build.gradle[tags=consumer-endorsed]"]
+====
+
+The dependency tree confirms that `guava` resolves to `33.0.0-jre`, the version pinned by the platform:
+
+[source,text]
+----
+include::{snippetsPath}/dependencyManagement/strictlyFromPlatform/tests/strictlyFromPlatform.out[]
+----
+
+If the consumer or any transitive dependency requests a version outside the `strictly` constraint (e.g., `guava:33.1.0-jre`), resolution will fail.
+
+To disable this behavior, use `doNotEndorseStrictVersions()` on the platform dependency, see <<platforms.adoc#sec:endorsing-platform-strict-versions,Strict Version Endorsement>>.
+
 == Publishing constraints
 
 Dependency constraints are only published when using <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.

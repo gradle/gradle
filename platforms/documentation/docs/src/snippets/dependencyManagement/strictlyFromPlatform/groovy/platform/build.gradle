@@ -1,0 +1,16 @@
+// tag::platform-strictly[]
+plugins {
+    id 'java-platform'
+}
+
+dependencies {
+    constraints {
+        api('com.google.guava:guava') {
+            version {
+                strictly '33.0.0-jre'
+            }
+            because 'platform pins guava to a tested version'
+        }
+    }
+}
+// end::platform-strictly[]
