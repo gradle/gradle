@@ -31,7 +31,6 @@ import kotlin.script.experimental.annotations.KotlinScript
 
 
 @KotlinScript(compilationConfiguration = BuildScriptCompilationConfiguration::class)
-@ImplicitReceiver(Project::class) // TODO: remove
 open class CompiledKotlinBuildScript(
     private val host: KotlinScriptHost<Project>
 ) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)), PluginAware by host.target {
@@ -66,7 +65,6 @@ open class CompiledKotlinBuildScript(
  * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
 @KotlinScript(compilationConfiguration = BuildScriptCompilationConfiguration::class)
-@ImplicitReceiver(Project::class) // TODO: remove
 open class CompiledKotlinBuildscriptBlock(
     private val host: KotlinScriptHost<Project>
 ) : CompiledKotlinBuildScript(host) {
@@ -86,7 +84,6 @@ open class CompiledKotlinBuildscriptBlock(
  * Base class for `buildscript` block evaluation on scripts targeting Settings.
  */
 @KotlinScript(compilationConfiguration = SettingsScriptCompilationConfiguration::class)
-@ImplicitReceiver(Settings::class) // TODO: remove
 open class CompiledKotlinSettingsBuildscriptBlock(
     host: KotlinScriptHost<Settings>
 ) : CompiledKotlinSettingsScript(host) {
@@ -103,7 +100,6 @@ open class CompiledKotlinSettingsBuildscriptBlock(
 
 
 @KotlinScript(compilationConfiguration = InitScriptCompilationConfiguration::class)
-@ImplicitReceiver(Gradle::class) // TODO: remove
 open class CompiledKotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
 ) : DefaultKotlinScript(InitScriptHost(host)), PluginAware by PluginAwareScript(host) {
@@ -127,7 +123,6 @@ open class CompiledKotlinInitScript(
  * Base class for `initscript` block evaluation on scripts targeting Gradle.
  */
 @KotlinScript(compilationConfiguration = InitScriptCompilationConfiguration::class)
-@ImplicitReceiver(Gradle::class) // TODO: remove
 open class CompiledKotlinInitscriptBlock(
     host: KotlinScriptHost<Gradle>
 ) : CompiledKotlinInitScript(host) {
