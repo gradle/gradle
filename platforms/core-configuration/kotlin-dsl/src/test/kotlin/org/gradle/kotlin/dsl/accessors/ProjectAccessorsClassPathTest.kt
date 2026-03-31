@@ -129,6 +129,93 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     }
 
     @Test
+    fun `#buildAccessorsToJars produces valid JARs with classes, sources and module metadata`() {
+
+        // given:
+        val schema =
+            TypedProjectSchema(
+                extensions = listOf(
+                    entry<Project, SourceSetContainer>("sourceSets"),
+                ),
+                containerElements = listOf(),
+                tasks = listOf(
+                    entry<TaskContainer, Delete>("clean")
+                ),
+                configurations = listOf(ConfigurationEntry("api")),
+                modelDefaults = listOf(),
+                projectFeatureEntries = emptyList(),
+                containerElementFactories = listOf(),
+                nestedModelEntries = listOf()
+            )
+
+        val classesJar = newFile("classes.jar")
+        val sourcesJar = newFile("sources.jar")
+
+        // when:
+        buildAccessorsToJars(schema, testRuntimeClassPath, classesJar, sourcesJar)
+
+        // then: classes JAR contains loadable .class entries
+        val classEntries = java.util.zip.ZipFile(classesJar).use { zip ->
+            zip.entries().asSequence().map { it.name }.filter { it.endsWith(".class") }.toList()
+        }
+        assert(classEntries.isNotEmpty()) {
+            "Expected .class entries in classes JAR"
+        }
+        withClassLoaderFor(classesJar) {
+            classEntries.forEach { entry ->
+                val className = entry.removeSuffix(".class").replace('/', '.')
+                val clazz = loadClass(className)
+                assert(clazz.declaredMethods.isNotEmpty()) {
+                    "Expected accessor methods in $className"
+                }
+            }
+        }
+
+        // and: classes JAR contains Kotlin module metadata
+        val metadataEntries = java.util.zip.ZipFile(classesJar).use { zip ->
+            zip.entries().asSequence().map { it.name }.filter { it.endsWith(".kotlin_module") }.toList()
+        }
+        assertEquals(listOf("META-INF/classes.kotlin_module"), metadataEntries)
+
+        // and: sources JAR contains .kt files under the correct package path
+        val sourceEntries = java.util.zip.ZipFile(sourcesJar).use { zip ->
+            zip.entries().asSequence().map { it.name }.filter { it.endsWith(".kt") }.toList()
+        }
+        assert(sourceEntries.isNotEmpty()) {
+            "Expected .kt source entries in sources JAR"
+        }
+        assert(sourceEntries.all { it.startsWith("org/gradle/kotlin/dsl/") }) {
+            "Expected all sources under org/gradle/kotlin/dsl/, found: $sourceEntries"
+        }
+    }
+
+    @Test
+    fun `#buildAccessorsToJars accessor classes work at runtime`() {
+
+        testAccessorsBuiltBy(::buildAccessorsToJarsAdapter)
+    }
+
+    private
+    fun buildAccessorsToJarsAdapter(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File) {
+        val classesJar = File(binDir, "classes.jar")
+        buildAccessorsToJars(schema, classPath, classesJar, File(srcDir, "sources.jar"))
+        // Extract classes from JAR into binDir so the existing eval helper can use the directory
+        java.util.zip.ZipFile(classesJar).use { zip ->
+            zip.entries().asSequence().forEach { entry ->
+                if (!entry.isDirectory) {
+                    val outFile = File(binDir, entry.name)
+                    outFile.parentFile.mkdirs()
+                    zip.getInputStream(entry).use { input ->
+                        outFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun `#buildAccessorsFor (deprecated configurations)`() {
         val schema =
             TypedProjectSchema(
