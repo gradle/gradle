@@ -62,9 +62,12 @@ import org.jetbrains.kotlin.config.JvmTarget.JVM_25
 import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverPluginNames
 import org.jetbrains.kotlin.scripting.compiler.plugin.KOTLIN_SCRIPTING_PLUGIN_ID
+import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
 import org.slf4j.Logger
 import java.io.File
+import java.net.URLClassLoader
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.io.path.Path
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
@@ -127,27 +130,38 @@ fun compileKotlinScriptToDirectory(
         arguments[CLASSPATH] = CollectionUtils.join(File.pathSeparator, classPath)
     }
 
-    fun configurePlugins(arguments: JvmCompilerArguments.Builder, classPath: List<File>) {
-        arguments[COMPILER_PLUGINS] = listOf(
-            CompilerPlugin(
-                pluginId = KOTLIN_SCRIPTING_PLUGIN_ID,
-                classpath = listOf(classPath.first { it.name.contains("kotlin-scripting-compiler-embeddable") }.toPath()),
-                rawArguments = listOf(),
-                orderingRequirements = setOf()
-            ),
-            CompilerPlugin(
-                pluginId = SamWithReceiverPluginNames.PLUGIN_ID,
-                classpath = listOf(classPath.first { it.name.contains("kotlin-sam-with-receiver-compiler-plugin") }.toPath()),
-                rawArguments = listOf(CompilerPluginOption(SamWithReceiverPluginNames.ANNOTATION_OPTION_NAME, HasImplicitReceiver::class.qualifiedName!!)),
-                orderingRequirements = setOf()
-            ),
-            CompilerPlugin(
-                pluginId = AssignmentPluginNames.PLUGIN_ID,
-                classpath = listOf(classPath.first { it.name.contains("kotlin-assignment-compiler-plugin-embeddable") }.toPath()),
-                rawArguments = listOf(CompilerPluginOption(AssignmentPluginNames.ANNOTATION_OPTION_NAME, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)),
-                orderingRequirements = setOf()
-            ),
+    fun configurePlugins(arguments: JvmCompilerArguments.Builder) {
+        fun pathOfJar(classLoader: ClassLoader, jarName: String): Path { // TODO: blasphemy, but how to do it right?!?
+            if (classLoader !is URLClassLoader) {
+                throw RuntimeException("Invalid classloader!")
+            }
+            val jarFile = classLoader.urLs.firstOrNull() { it.file.contains(jarName) }
+            if (jarFile == null) {
+                throw RuntimeException("$jarName.jar not found on the classpath!")
+            }
+            return Paths.get(jarFile.toURI())
+        }
+
+        val scriptingPlugin = CompilerPlugin(
+            pluginId = KOTLIN_SCRIPTING_PLUGIN_ID,
+            classpath = listOf(pathOfJar(ScriptingCompilerConfigurationComponentRegistrar::class.java.classLoader, "kotlin-scripting-compiler-embeddable")),
+            rawArguments = listOf(),
+            orderingRequirements = setOf()
         )
+        val samWithReceiverPlugin = CompilerPlugin(
+            pluginId = SamWithReceiverPluginNames.PLUGIN_ID,
+            classpath = listOf(pathOfJar(SamWithReceiverPluginNames::class.java.classLoader, "kotlin-sam-with-receiver-compiler-plugin")),
+            rawArguments = listOf(CompilerPluginOption(SamWithReceiverPluginNames.ANNOTATION_OPTION_NAME, HasImplicitReceiver::class.qualifiedName!!)),
+            orderingRequirements = setOf()
+        )
+        val assignmentPlugin = CompilerPlugin(
+            pluginId = AssignmentPluginNames.PLUGIN_ID,
+            classpath = listOf(pathOfJar(AssignmentPluginNames::class.java.classLoader, "kotlin-assignment-compiler-plugin-embeddable")),
+            rawArguments = listOf(CompilerPluginOption(AssignmentPluginNames.ANNOTATION_OPTION_NAME, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)),
+            orderingRequirements = setOf()
+        )
+
+        arguments[COMPILER_PLUGINS] = listOf(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
     }
 
     compiler.compile(listOf(Path(scriptFile.path)), outputDirectory.toPath(), logger) {
@@ -176,7 +190,7 @@ fun compileKotlinScriptToDirectory(
         it[MODULE_NAME] = org.gradle.kotlin.dsl.support.MODULE_NAME
 
         configureClasspath(it, classPath)
-        configurePlugins(it, classPath)
+        configurePlugins(it)
 
         it[SCRIPT_TEMPLATES] = arrayOf(template.jvmName)
         it[X_SCRIPT_RESOLVER_ENVIRONMENT] = arrayOf(
