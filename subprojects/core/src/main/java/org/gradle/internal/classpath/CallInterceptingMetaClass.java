@@ -43,6 +43,7 @@ import org.gradle.internal.metaobject.InterceptedMetaProperty;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -201,6 +202,14 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         String matchedCaller = callsTracker.findCallerForCurrentCallIfNotIntercepted(methodName, INVOKE_METHOD);
         MetaMethod original = adaptee.pickMethod(methodName, arguments);
 
+        // Walk superclasses to find private methods not visible in the concrete class's metaclass.
+        // This is needed because AdaptingMetaClass prevents Groovy's indy runtime from
+        // using direct method handles (invokeSpecial) for private method calls, routing them through pickMethod instead.
+        // See https://github.com/gradle/gradle/issues/37343
+        if (original == null) {
+            original = pickPrivateMethodFromSuperClasses(methodName, arguments);
+        }
+
         if (matchedCaller != null) {
             CallInterceptor callInterceptor = interceptorResolver.resolveCallInterceptor(InterceptScope.methodsNamed(methodName));
             if (callInterceptor instanceof SignatureAwareCallInterceptor) {
@@ -220,6 +229,23 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         }
 
         return original;
+    }
+
+    @Nullable
+    private MetaMethod pickPrivateMethodFromSuperClasses(String methodName, Class[] arguments) {
+        Class<?> current = theClass.getSuperclass();
+        while (current != null && current != Object.class) {
+            MetaClass superMetaClass = registry.getMetaClass(current);
+            if (superMetaClass instanceof AdaptingMetaClass) {
+                superMetaClass = ((AdaptingMetaClass) superMetaClass).getAdaptee();
+            }
+            MetaMethod method = superMetaClass.pickMethod(methodName, arguments);
+            if (method != null && Modifier.isPrivate(method.getModifiers())) {
+                return method;
+            }
+            current = current.getSuperclass();
+        }
+        return null;
     }
 
     @Nullable

@@ -22,6 +22,10 @@ public class InheritedMethodTestReceiver {
         return "Hello";
     }
 
+    private String privateHello() {
+        return "PrivateHello";
+    }
+
     public static class A extends InheritedMethodTestReceiver {
     }
 
