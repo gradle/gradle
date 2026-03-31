@@ -82,6 +82,9 @@ task listJars {
         server.expectGetDirectoryListing("/repo/group/projectB/", 'username', 'password', moduleB.backingModule.moduleDir.parentFile)
         moduleB.ivy.expectGet('username', 'password')
         moduleB.jar.expectGet('username', 'password')
+        if (authScheme == NTLM) {
+            executer.expectDocumentedDeprecationWarning("Authenticating to repositories with scheme 'NTLM'. This behavior has been deprecated. This is scheduled to be removed in Gradle 10. Consider using Basic or Bearer authentication with TLS instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#auth_schemes")
+        }
 
         then:
         succeeds('listJars')
@@ -154,6 +157,9 @@ task listJars {
         moduleD.metaData.expectGet('username', 'password')
         moduleD.pom.expectGet('username', 'password')
         moduleD.artifact.expectGet('username', 'password')
+        if (authScheme == NTLM) {
+            executer.expectDocumentedDeprecationWarning("Authenticating to repositories with scheme 'NTLM'. This behavior has been deprecated. This is scheduled to be removed in Gradle 10. Consider using Basic or Bearer authentication with TLS instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#auth_schemes")
+        }
 
         then:
         succeeds('listJars')
@@ -285,6 +291,9 @@ dependencies {
         and:
         serverAuthScheme = authScheme
         server.allowGetOrHead('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
+        if (authScheme == NTLM) {
+            executer.expectDocumentedDeprecationWarning("Authenticating to repositories with scheme 'NTLM'. This behavior has been deprecated. This is scheduled to be removed in Gradle 10. Consider using Basic or Bearer authentication with TLS instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#auth_schemes")
+        }
 
         then:
         fails 'checkDeps'
@@ -328,6 +337,9 @@ dependencies {
         and:
         serverAuthScheme = authScheme
         module.pom.allowGetOrHead('username', 'password')
+        if (authScheme == NTLM) {
+            executer.expectDocumentedDeprecationWarning("Authenticating to repositories with scheme 'NTLM'. This behavior has been deprecated. This is scheduled to be removed in Gradle 10. Consider using Basic or Bearer authentication with TLS instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#auth_schemes")
+        }
 
         then:
         fails 'checkDeps'

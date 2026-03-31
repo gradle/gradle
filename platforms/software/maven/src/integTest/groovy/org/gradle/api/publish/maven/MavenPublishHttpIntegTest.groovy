@@ -124,6 +124,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         server.authenticationScheme = authScheme
 
         expectPublishModuleWithCredentials(module, credentials)
+        if (authScheme == AuthScheme.NTLM) {
+            executer.expectDocumentedDeprecationWarning("Authenticating to repositories with scheme 'NTLM'. This behavior has been deprecated. This is scheduled to be removed in Gradle 10. Consider using Basic or Bearer authentication with TLS instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#auth_schemes")
+        }
 
         when:
         succeeds 'publish'
@@ -153,6 +156,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401, credentials)
+        if (authScheme == AuthScheme.NTLM) {
+            executer.expectDocumentedDeprecationWarning("Authenticating to repositories with scheme 'NTLM'. This behavior has been deprecated. This is scheduled to be removed in Gradle 10. Consider using Basic or Bearer authentication with TLS instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#auth_schemes")
+        }
 
         when:
         fails 'publish'
@@ -171,6 +177,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         buildFile << publicationBuildWithoutCredentials(version, group, mavenRemoteRepo.uri)
         server.authenticationScheme = authScheme
         module.artifact.expectPut(401)
+        if (authScheme == AuthScheme.NTLM) {
+            executer.expectDocumentedDeprecationWarning("Authenticating to repositories with scheme 'NTLM'. This behavior has been deprecated. This is scheduled to be removed in Gradle 10. Consider using Basic or Bearer authentication with TLS instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#auth_schemes")
+        }
 
         when:
         fails 'publish'
