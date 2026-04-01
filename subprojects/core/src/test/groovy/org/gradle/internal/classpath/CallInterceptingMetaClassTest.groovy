@@ -384,6 +384,24 @@ class CallInterceptingMetaClassTest extends Specification {
         cleanupMetaClass(childClass, classLock, childOriginalMetaClass)
     }
 
+    def 'pickMethod finds private methods from direct parent class'() {
+        given:
+        def childClass = InheritedMethodTestReceiver.B
+        def classLock = new ClassBasedLock(childClass)
+        def childOriginalMetaClass = setupMetaClass(childClass, classLock, interceptors, callTracker)
+        def child = new InheritedMethodTestReceiver.B()
+
+        when:
+        def method = child.metaClass.pickMethod("privateHelloFromA", new Class[]{})
+
+        then:
+        method != null
+        method.invoke(child, [].toArray()) == "PrivateHelloFromA"
+
+        cleanup:
+        cleanupMetaClass(childClass, classLock, childOriginalMetaClass)
+    }
+
     def 'pickMethod does not find non-private methods from superclass via superclass walk'() {
         given:
         def childClass = InheritedMethodTestReceiver.B

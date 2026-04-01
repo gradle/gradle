@@ -205,7 +205,9 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         // Walk superclasses to find private methods not visible in the concrete class's metaclass.
         // This is needed because AdaptingMetaClass prevents Groovy's indy runtime from
         // using direct method handles (invokeSpecial) for private method calls, routing them through pickMethod instead.
+        // Note: this also allows calling private methods from superclasses which deviates a bit from Groovy resolution.
         // See https://github.com/gradle/gradle/issues/37343
+        // See https://issues.apache.org/jira/browse/GROOVY-11568
         if (original == null) {
             original = pickPrivateMethodFromSuperClasses(methodName, arguments);
         }
@@ -236,8 +238,8 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         Class<?> current = theClass.getSuperclass();
         while (current != null && current != Object.class) {
             MetaClass superMetaClass = registry.getMetaClass(current);
-            if (superMetaClass instanceof AdaptingMetaClass) {
-                superMetaClass = ((AdaptingMetaClass) superMetaClass).getAdaptee();
+            if (superMetaClass instanceof CallInterceptingMetaClass) {
+                superMetaClass = ((CallInterceptingMetaClass) superMetaClass).getAdaptee();
             }
             MetaMethod method = superMetaClass.pickMethod(methodName, arguments);
             if (method != null && Modifier.isPrivate(method.getModifiers())) {

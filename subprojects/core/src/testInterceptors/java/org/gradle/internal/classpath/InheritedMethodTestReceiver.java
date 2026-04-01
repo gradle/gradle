@@ -27,6 +27,9 @@ public class InheritedMethodTestReceiver {
     }
 
     public static class A extends InheritedMethodTestReceiver {
+        private String privateHelloFromA() {
+            return "PrivateHelloFromA";
+        }
     }
 
     public static class B extends A {
