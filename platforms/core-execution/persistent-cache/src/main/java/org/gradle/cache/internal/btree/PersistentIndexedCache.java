@@ -34,6 +34,13 @@ public interface PersistentIndexedCache<K, V> {
 
     void remove(K key);
 
+    /**
+     * Flushes any buffered writes to the backing store without closing it.
+     * Called by {@code finishWork()} before file lock release to ensure durability
+     * while keeping the store open for reuse on the next lock acquire.
+     */
+    void flush();
+
     void close();
 
     boolean isOpen();

@@ -201,6 +201,15 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     }
 
     @Override
+    public void flush() {
+        try {
+            store.flush();
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    @Override
     public void close() {
         LOGGER.debug("Closing {}", this);
         try {

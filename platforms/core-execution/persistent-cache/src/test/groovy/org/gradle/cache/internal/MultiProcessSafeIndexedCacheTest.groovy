@@ -78,7 +78,7 @@ class MultiProcessSafeIndexedCacheTest extends Specification {
         0 * _._
     }
 
-    def "holds write lock while closing cache"() {
+    def "holds write lock while flushing cache"() {
         given:
         cacheOpened()
 
@@ -87,11 +87,11 @@ class MultiProcessSafeIndexedCacheTest extends Specification {
 
         then:
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
-        1 * backingCache.close()
+        1 * backingCache.flush()
         0 * _._
     }
 
-    def "closes cache when closed"() {
+    def "flushes cache on finish work"() {
         given:
         cacheOpened()
 
@@ -100,11 +100,11 @@ class MultiProcessSafeIndexedCacheTest extends Specification {
 
         then:
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
-        1 * backingCache.close()
+        1 * backingCache.flush()
         0 * _._
     }
 
-    def "does nothing on close when cache is not open"() {
+    def "does nothing on finish work when cache is not open"() {
         when:
         cache.finishWork()
 
@@ -112,7 +112,7 @@ class MultiProcessSafeIndexedCacheTest extends Specification {
         0 * _._
     }
 
-    def "does nothing on close after cache already closed"() {
+    def "flushes again on subsequent finish work since cache stays open"() {
         cacheOpened()
 
         when:
@@ -120,13 +120,15 @@ class MultiProcessSafeIndexedCacheTest extends Specification {
 
         then:
         1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
-        1 * backingCache.close()
+        1 * backingCache.flush()
         0 * _._
 
         when:
         cache.finishWork()
 
         then:
+        1 * fileAccess.writeFile(!null) >> { Runnable action -> action.run() }
+        1 * backingCache.flush()
         0 * _._
     }
 

@@ -20,7 +20,6 @@ import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.PersistentIndexedCache;
-
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -28,6 +27,7 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
     private final FileAccess fileAccess;
     private final Supplier<PersistentIndexedCache<K, V>> factory;
     private PersistentIndexedCache<K, V> cache;
+    private FileLock.State previousState;
 
     public DefaultMultiProcessSafeIndexedCache(Supplier<PersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
         this.factory = factory;
@@ -76,22 +76,34 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
     }
 
     @Override
-    public void afterLockAcquire(FileLock.State currentCacheState) {
-    }
-
-    @Override
     public void finishWork() {
         if (cache != null) {
-            try {
-                fileAccess.writeFile(() -> cache.close());
-            } finally {
-                cache = null;
-            }
+            // Flush pending data to disk but keep the cache open for reuse.
+            // Closing and reopening on every lock cycle is expensive for stores
+            // that use mmap (e.g. MapDB) — the mmap setup dominates small builds.
+            fileAccess.writeFile(() -> cache.flush());
         }
     }
 
     @Override
     public void beforeLockRelease(FileLock.State currentCacheState) {
+        // Capture state after our own writes so we can detect external modifications
+        // on the next afterLockAcquire()
+        previousState = currentCacheState;
+    }
+
+    @Override
+    public void afterLockAcquire(FileLock.State currentCacheState) {
+        // If another process modified the cache file since we last released the lock,
+        // we must discard our in-process state (stale mmap pages, cached blocks, etc.)
+        // and reopen from disk on next access.
+        if (cache != null && previousState != null && currentCacheState.hasBeenUpdatedSince(previousState)) {
+            try {
+                cache.close();
+            } finally {
+                cache = null;
+            }
+        }
     }
 
     private PersistentIndexedCache<K, V> getCache() {

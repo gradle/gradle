@@ -190,6 +190,13 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     }
 
     @Override
+    public void flush() {
+        if (db != null && !db.isClosed()) {
+            flushPendingWrites();
+        }
+    }
+
+    @Override
     public void close() {
         if (db != null && !db.isClosed()) {
             try {

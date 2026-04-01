@@ -240,6 +240,13 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     }
 
     @Override
+    public void flush() {
+        if (store != null && !store.isClosed() && !store.isReadOnly()) {
+            store.commit();
+        }
+    }
+
+    @Override
     public void close() {
         if (store != null && !store.isClosed()) {
             try {
