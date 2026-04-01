@@ -20,14 +20,13 @@ import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
+import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.gradle.util.internal.CollectionUtils
-import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
-import org.jetbrains.kotlin.buildtools.api.KotlinLogger
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.COMPILER_PLUGINS
@@ -53,8 +52,8 @@ import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Compan
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.config.JvmTarget.JVM_25
@@ -63,7 +62,10 @@ import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverPluginNames
 import org.jetbrains.kotlin.scripting.compiler.plugin.KOTLIN_SCRIPTING_PLUGIN_ID
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
 import org.slf4j.Logger
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.OutputStream
+import java.io.PrintStream
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -86,33 +88,143 @@ fun compileKotlinScriptToDirectory(
     logger: Logger, // TODO: path translation ignored for now
     @Suppress("unused") pathTranslation: (String) -> String
 ): String {
-    compiler.compile(
-        listOf(Path(scriptFile.path)),
-        outputDirectory.toPath(),
+    compileKotlinScriptToDirectory(
+        outputDirectory,
         compilerOptions,
-        classPath,
-        template,
+        scriptFile,
         implicitImports,
-        logger
-    ) // TODO: compilation result ignored
+        template,
+        classPath,
+        messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
+    )
 
     return NameUtils.getScriptNameForFile(scriptFile.name).asString()
 }
 
 
-@VisibleForTesting
-fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 26
-    return JvmTarget.fromString(majorVersion)
-        ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JvmTarget.JVM_26
+private
+fun compileKotlinScriptToDirectory(
+    outputDirectory: File,
+    compilerOptions: KotlinCompilerOptions,
+    scriptFile: File,
+    implicitImports: List<String>,
+    template: KClass<out Any>,
+    classPath: List<File>,
+    messageCollector: LoggingMessageCollector
+) {
+    withCompilationExceptionHandler(messageCollector) {
+        val compilationResult = compiler.compile(
+            listOf(Path(scriptFile.path)),
+            outputDirectory.toPath(),
+            compilerOptions,
+            classPath,
+            template,
+            implicitImports
+        )
+        compilationResult.reportToMessageCollectorAndThrowOnErrors(messageCollector)
+    }
 }
 
 
-@OptIn(K1Deprecation::class)
-internal
-fun disposeKotlinCompilerContext() =
-    KotlinCoreEnvironment.disposeApplicationEnvironment()
+private fun CompilationResult.reportToMessageCollectorAndThrowOnErrors(messageCollector: LoggingMessageCollector) {
+    if (this != CompilationResult.COMPILATION_SUCCESS) {
+        messageCollector.report(CompilerMessageSeverity.ERROR, "Compilation failed!", null)
+    }
+    // TODO: more needed
+}
+
+
+private
+inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageCollector, action: () -> T): T {
+    val log = messageCollector.log
+    return when {
+        log.isDebugEnabled -> {
+            loggingOutputTo(log::debug) { action() }
+        }
+
+        else -> {
+            ignoringOutputOf { action() }
+        }
+    }
+}
+
+
+private
+inline fun <T> loggingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
+    redirectingOutputTo({ LoggingOutputStream(log) }, action)
+
+
+private
+inline fun <T> ignoringOutputOf(action: () -> T): T =
+    redirectingOutputTo({ NullOutputStream.INSTANCE }, action)
+
+
+private
+inline fun <T> redirectingOutputTo(noinline outputStream: () -> OutputStream, action: () -> T): T =
+    redirecting(System.err, System::setErr, outputStream()) {
+        redirecting(System.out, System::setOut, outputStream()) {
+            action()
+        }
+    }
+
+
+private
+inline fun <T> redirecting(
+    stream: PrintStream,
+    set: (PrintStream) -> Unit,
+    to: OutputStream,
+    action: () -> T
+): T = try {
+    set(PrintStream(to, true))
+    action()
+} finally {
+    set(stream)
+    to.flush()
+}
+
+
+private
+class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
+
+    private
+    val buffer = ByteArrayOutputStream()
+
+    override fun write(b: Int) = buffer.write(b)
+
+    override fun write(b: ByteArray, off: Int, len: Int) = buffer.write(b, off, len)
+
+    override fun flush() {
+        buffer.run {
+            val string = toString("utf8")
+            if (string.isNotBlank()) {
+                log(string)
+            }
+            reset()
+        }
+    }
+
+    override fun close() {
+        flush()
+    }
+}
+
+
+private
+fun messageCollectorFor(
+    log: Logger,
+    allWarningsAsErrors: Boolean,
+    pathTranslation: (String) -> String,
+): LoggingMessageCollector =
+    messageCollectorFor(log, onCompilerWarningsFor(allWarningsAsErrors), pathTranslation)
+
+
+private
+fun messageCollectorFor(
+    log: Logger,
+    onCompilerWarning: CompilerWarning = CompilerWarning.WARN,
+    pathTranslation: (String) -> String = { it }
+): LoggingMessageCollector =
+    LoggingMessageCollector(log, onCompilerWarning, pathTranslation)
 
 
 internal
@@ -124,8 +236,8 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
 
     val errors: List<ScriptCompilationError> by unsafeLazy {
         scriptCompilationErrors.filter { it.location == null } +
-            scriptCompilationErrors.filter { it.location != null }
-                .sortedBy { it.location!!.line }
+                scriptCompilationErrors.filter { it.location != null }
+                    .sortedBy { it.location!!.line }
     }
 
     init {
@@ -137,10 +249,10 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
 
     override val message: String
         get() = (
-            listOf("Script compilation $errorPlural:")
-                + indentedErrorMessages()
-                + "${errors.size} $errorPlural"
-            )
+                listOf("Script compilation $errorPlural:")
+                        + indentedErrorMessages()
+                        + "${errors.size} $errorPlural"
+                )
             .joinToString("\n\n")
 
     private
@@ -157,10 +269,10 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
     fun errorAt(location: CompilerMessageSourceLocation, message: String): String {
         val columnIndent = " ".repeat(5 + maxLineNumberStringLength + 1 + location.column)
         return "Line ${lineNumber(location)}: ${location.lineContent}\n" +
-            "^ $message".lines().joinToString(
-                prefix = columnIndent,
-                separator = "\n$columnIndent  $INDENT"
-            )
+                "^ $message".lines().joinToString(
+                    prefix = columnIndent,
+                    separator = "\n$columnIndent  $INDENT"
+                )
     }
 
     private
@@ -186,31 +298,62 @@ const val INDENT = "  "
 
 
 private
-class CompilationLogger(val log: Logger) : KotlinLogger {
-    // TODO: MessageCollector does more, how much to duplicate?
+enum class CompilerWarning {
+    FAIL, WARN, DEBUG
+}
 
-    override fun debug(msg: String) {
-        log.debug(msg)
+
+private
+fun onCompilerWarningsFor(allWarningsAsErrors: Boolean) =
+    if (allWarningsAsErrors) CompilerWarning.FAIL
+    else CompilerWarning.WARN
+
+
+private
+class LoggingMessageCollector(
+    val log: Logger,
+    private val onCompilerWarning: CompilerWarning,
+    private val pathTranslation: (String) -> String,
+) {
+    val errors = arrayListOf<ScriptCompilationError>()
+
+    fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
+
+        fun msg() =
+            location?.run {
+                path.let(pathTranslation).let { path ->
+                    when {
+                        line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
+                        else -> "${clickableFileUrlFor(path)}: $message"
+                    }
+                }
+            } ?: message
+
+        fun taggedMsg() =
+            "${severity.presentableName[0]}: ${msg()}"
+
+        fun onError() {
+            errors += ScriptCompilationError(message, location)
+            log.error { taggedMsg() }
+        }
+
+        fun onWarning() {
+            when (onCompilerWarning) {
+                CompilerWarning.FAIL -> onError()
+                CompilerWarning.WARN -> log.warn { taggedMsg() }
+                CompilerWarning.DEBUG -> log.debug { taggedMsg() }
+            }
+        }
+
+        when (severity) {
+            CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> onError()
+            in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
+            CompilerMessageSeverity.STRONG_WARNING -> onWarning()
+            CompilerMessageSeverity.WARNING -> onWarning()
+            CompilerMessageSeverity.INFO -> log.info { msg() }
+            else -> log.debug { taggedMsg() }
+        }
     }
-
-    override fun error(msg: String, throwable: Throwable?) {
-        log.error(msg, throwable)
-    }
-
-    override fun info(msg: String) {
-        log.info(msg)
-    }
-
-    override fun lifecycle(msg: String) {
-        log.info(msg) // TODO: right level?
-    }
-
-    override fun warn(msg: String, throwable: Throwable?) {
-        log.warn(msg)
-    }
-
-    override val isDebugEnabled: Boolean
-        get() = log.isDebugEnabled
 }
 
 
@@ -247,7 +390,6 @@ private class Compiler {
         classPath: List<File>,
         template: KClass<out Any>,
         implicitImports: List<String>,
-        logger: Logger,
     ): CompilationResult {
         val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
 
@@ -266,7 +408,7 @@ private class Compiler {
         // TODO operation[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = ... will be the proper replacement for MessageCollector
 
         // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Deamon mode can be enabled
-        return buildSession.executeOperation(operation, toolchains.createInProcessExecutionPolicy(), CompilationLogger(logger))
+        return buildSession.executeOperation(operation, toolchains.createInProcessExecutionPolicy())
     }
 
     fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
@@ -346,4 +488,13 @@ private class Compiler {
 
         this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME
     }
+}
+
+
+@VisibleForTesting
+fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 25
+    return JvmTarget.fromString(majorVersion)
+        ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
+        else JVM_25
 }
