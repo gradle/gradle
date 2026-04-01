@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class FileBackedBlockStore implements BlockStore {
-    private static final long FILE_GROWTH_CHUNK_SIZE = 64 * 1024;
+    static final long FILE_GROWTH_CHUNK_SIZE = 64 * 1024;
     private final File cacheFile;
     private RandomAccessFile file;
     private ByteOutput output;

@@ -225,7 +225,8 @@ public class BTreeIndexedCacheTest {
         assertThat(cacheFile.length(), equalTo(len));
 
         cache.put("key_new", "longer value");
-        assertTrue(cacheFile.length() > len);
+        // File may not grow visibly due to chunk-aligned file growth in FileBackedBlockStore,
+        // but the BTree internally allocates a new block for the larger value.
         len = cacheFile.length();
 
         cache.put("key_1", "1234");
@@ -249,13 +250,12 @@ public class BTreeIndexedCacheTest {
 
         checkAddsAndRemoves(Collections.reverseOrder(), values);
 
-        // need to make this better
-        assertTrue(cacheFile.length() < (long)(1.4 * len));
+        // Tolerance accounts for free list fragmentation and chunk-aligned file growth
+        assertTrue(cacheFile.length() < 2 * len);
 
         checkAdds(values);
 
-        // need to make this better
-        assertTrue(cacheFile.length() < (long) (1.4 * 1.4 * len));
+        assertTrue(cacheFile.length() < 2 * 2 * len);
 
         cache.close();
     }
@@ -346,8 +346,9 @@ public class BTreeIndexedCacheTest {
         assertNull(cache.get("key_1"));
         cache.put("key_1", 99);
 
+        // Truncate into actual block data, not just the chunk-growth padding at the end
         RandomAccessFile file = new RandomAccessFile(cacheFile, "rw");
-        file.setLength(file.length() - 10);
+        file.setLength(100);
         file.close();
 
         cache.reset();
@@ -371,6 +372,25 @@ public class BTreeIndexedCacheTest {
         assertThat(cache.get(new File("File")), equalTo(3));
 
         cache.close();
+    }
+
+    @Test
+    public void fileGrowsInChunksToReduceSystemCalls() {
+        createCache();
+        for (int i = 0; i < 100; i++) {
+            cache.put("key_" + i, i);
+            // File size should always be a multiple of the growth chunk size
+            assertThat(cacheFile.length() % FileBackedBlockStore.FILE_GROWTH_CHUNK_SIZE, equalTo(0L));
+        }
+
+
+        // All entries survive a reopen
+        cache.reset();
+        for (int i = 0; i < 100; i++) {
+            assertThat(cache.get("key_" + i), equalTo(i));
+        }
+
+        verifyAndCloseCache();
     }
 
     @Test
