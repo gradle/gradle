@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class FileBackedBlockStore implements BlockStore {
+    private static final long FILE_GROWTH_CHUNK_SIZE = 64 * 1024;
     private final File cacheFile;
     private RandomAccessFile file;
     private ByteOutput output;
@@ -222,10 +223,13 @@ public class FileBackedBlockStore implements BlockStore {
             outputStream.writeInt((int) bytesWritten);
             output.done();
 
-            // Pad
+            // Grow the file in 64KB chunks instead of exact sizes to reduce ftruncate syscalls.
+            // On cloud block storage (e.g. EBS), ftruncate triggers expensive metadata journal
+            // commits. Growing it in chunks reduces the number of ftruncate syscalls and increases performance on such storages.
             if (currentFileSize < finalSize) {
-                file.setLength(finalSize);
-                currentFileSize = finalSize;
+                long newSize = (finalSize + FILE_GROWTH_CHUNK_SIZE - 1) / FILE_GROWTH_CHUNK_SIZE * FILE_GROWTH_CHUNK_SIZE;
+                file.setLength(newSize);
+                currentFileSize = newSize;
             }
         }
 
