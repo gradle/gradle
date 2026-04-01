@@ -23,32 +23,35 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
-import org.mapdb.DataInput2;
-import org.mapdb.DataOutput2;
 import org.mapdb.HTreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * A persistent indexed cache backed by MapDB.
+ * A persistent indexed cache backed by MapDB with a write-behind buffer.
  *
- * Keys are hashed to longs (via SipHash-2-4) for fast lookup.
+ * <p>Keys are hashed to longs (via SipHash-2-4) for fast lookup.
  *
- * Tuned for Gradle's single-threaded access pattern (enforced by
+ * <p>{@code put()} and {@code remove()} operations are buffered in an in-memory
+ * {@link HashMap} and only flushed to MapDB on {@link #close()}. This eliminates
+ * per-operation MapDB overhead from the caller's hot path — the caller pays only
+ * serialization + a HashMap insert. {@code get()} checks the buffer first, falling
+ * through to MapDB on a miss.
+ *
+ * <p>Tuned for Gradle's single-threaded access pattern (enforced by
  * {@code DefaultCacheCoordinator.stateLock} above):
  * <ul>
  *   <li>{@code concurrencyDisable()} — no internal locking overhead</li>
- *   <li>{@code fileMmapEnableIfSupported()} — fastest file I/O for single-threaded access</li>
+ *   <li>{@code fileMmapEnableIfSupported()} — fastest file I/O</li>
  *   <li>{@code fileLockDisable()} — OS file locks above handle multi-process safety</li>
  *   <li>HTreeMap with 1 segment — no segment-level concurrency overhead</li>
- *   <li>Custom {@code org.mapdb.Serializer<V>} — serializes directly to/from MapDB's
- *       {@link DataOutput2}/{@link DataInput2}, eliminating the intermediate {@code byte[]}
- *       that the built-in {@code Serializer.BYTE_ARRAY} approach requires</li>
  * </ul>
  */
 @NullMarked
@@ -56,12 +59,16 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     private static final Logger LOGGER = LoggerFactory.getLogger(MapDBPersistentIndexedCache.class);
     private static final String MAP_NAME = "cache";
     private static final int KRYO_BUFFER_SIZE = 512;
+    /** Sentinel value stored in the pending writes map to represent a removed entry. */
+    private static final byte[] TOMBSTONE = new byte[0];
 
     private final File cacheFile;
     private final Serializer<V> valueSerializer;
     private final FastKeyHasher<K> keyHasher;
+    private final HashMap<Long, byte[]> pendingWrites = new HashMap<>();
+    private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
     private DB db;
-    private HTreeMap<Long, V> map;
+    private HTreeMap<Long, byte[]> map;
 
     public MapDBPersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this.cacheFile = cacheFile;
@@ -93,7 +100,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
             maker = maker.readOnly();
         }
         db = maker.make();
-        map = db.hashMap(MAP_NAME, org.mapdb.Serializer.LONG, new ValueSerializer())
+        map = db.hashMap(MAP_NAME, org.mapdb.Serializer.LONG, org.mapdb.Serializer.BYTE_ARRAY)
             .layout(1, 16, 4)
             .createOrOpen();
     }
@@ -110,7 +117,13 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     @Override
     public V get(K key) {
         try {
-            return map.get(hashKey(key));
+            long hash = hashKey(key);
+            byte[] pending = pendingWrites.get(hash);
+            if (pending != null) {
+                return pending.length == 0 ? null : deserialize(pending);
+            }
+            byte[] data = map.get(hash);
+            return data == null ? null : deserialize(data);
         } catch (Exception e) {
             rebuild();
             return null;
@@ -120,7 +133,9 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     @Override
     public void put(K key, V value) {
         try {
-            map.put(hashKey(key), value);
+            long hash = hashKey(key);
+            byte[] serialized = serialize(value);
+            pendingWrites.put(hash, serialized);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not add entry '%s' to %s.", key, this), e), true);
         }
@@ -129,9 +144,48 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     @Override
     public void remove(K key) {
         try {
-            map.remove(hashKey(key));
+            pendingWrites.put(hashKey(key), TOMBSTONE);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
+        }
+    }
+
+    private void flushPendingWrites() {
+        for (Map.Entry<Long, byte[]> entry : pendingWrites.entrySet()) {
+            byte[] value = entry.getValue();
+            if (value.length == 0) {
+                map.remove(entry.getKey());
+            } else {
+                map.put(entry.getKey(), value);
+            }
+        }
+        pendingWrites.clear();
+    }
+
+    private byte[] serialize(V value) {
+        try {
+            SerializationBuffer sb = serializationBuffers.get();
+            sb.baos.reset();
+            sb.encoder.flush();
+            valueSerializer.write(sb.encoder, value);
+            sb.encoder.flush();
+            int count = sb.baos.getCount();
+            byte[] result = new byte[count];
+            System.arraycopy(sb.baos.getBuffer(), 0, result, 0, count);
+            return result;
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private V deserialize(byte[] data) {
+        try {
+            SerializationBuffer sb = serializationBuffers.get();
+            sb.decoderInput.setData(data);
+            sb.decoder.restart(sb.decoderInput);
+            return valueSerializer.read(sb.decoder);
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -139,6 +193,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     public void close() {
         if (db != null && !db.isClosed()) {
             try {
+                flushPendingWrites();
                 db.close();
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -166,6 +221,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public void clear() {
+        pendingWrites.clear();
         close();
         deleteFiles();
         try {
@@ -182,6 +238,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     private void rebuild() {
         LOGGER.warn("{} is corrupt. Discarding.", this);
+        pendingWrites.clear();
         try {
             if (db != null && !db.isClosed()) {
                 db.close();
@@ -205,117 +262,45 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
         new File(cacheFile.getPath() + ".p").delete();
     }
 
+    private static class SerializationBuffer {
+        final FastByteArrayOutputStream baos = new FastByteArrayOutputStream(KRYO_BUFFER_SIZE);
+        final KryoBackedEncoder encoder = new KryoBackedEncoder(baos, KRYO_BUFFER_SIZE);
+        final ResettableByteArrayInputStream decoderInput = new ResettableByteArrayInputStream();
+        final KryoBackedDecoder decoder = new KryoBackedDecoder(decoderInput, KRYO_BUFFER_SIZE);
+    }
+
     /**
-     * Serializes {@code V} values directly to/from MapDB's {@link DataOutput2}/{@link DataInput2},
-     * eliminating the intermediate {@code byte[]} that {@code org.mapdb.Serializer.BYTE_ARRAY} requires.
-     *
-     * <p>{@link DataOutput2} already extends {@link OutputStream}, so it is passed directly to
-     * {@link KryoBackedEncoder}. For reads, a resettable {@link BoundedInputStream} wraps
-     * {@link DataInput2} as an {@link InputStream} bounded by {@code available} bytes,
-     * then passed to {@link KryoBackedDecoder#restart}.
-     *
-     * <p>Both encoder and decoder are kept in a {@link ThreadLocal} to avoid per-call allocation.
+     * A ByteArrayOutputStream that exposes its internal buffer to avoid
+     * the copy done by {@link ByteArrayOutputStream#toByteArray()}.
      */
-    private class ValueSerializer implements org.mapdb.Serializer<V> {
-        private final ThreadLocal<SerializerState> state = ThreadLocal.withInitial(SerializerState::new);
-
-        @Override
-        public void serialize(DataOutput2 out, V value) throws IOException {
-            SerializerState s = state.get();
-            s.outAdapter.setDelegate(out);
-            s.encoder.flush(); // clear any leftover from a previous call
-            try {
-                valueSerializer.write(s.encoder, value);
-                s.encoder.flush();
-            } catch (IOException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
+    private static class FastByteArrayOutputStream extends ByteArrayOutputStream {
+        FastByteArrayOutputStream(int size) {
+            super(size);
         }
 
-        @Override
-        public V deserialize(DataInput2 input, int available) throws IOException {
-            SerializerState s = state.get();
-            s.inAdapter.reset(input, available);
-            s.decoder.restart(s.inAdapter);
-            try {
-                return valueSerializer.read(s.decoder);
-            } catch (IOException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
+        byte[] getBuffer() {
+            return buf;
         }
 
-        private class SerializerState {
-            final ResettableOutputStream outAdapter = new ResettableOutputStream();
-            final KryoBackedEncoder encoder = new KryoBackedEncoder(outAdapter, KRYO_BUFFER_SIZE);
-            final BoundedInputStream inAdapter = new BoundedInputStream();
-            final KryoBackedDecoder decoder = new KryoBackedDecoder(inAdapter, KRYO_BUFFER_SIZE);
+        int getCount() {
+            return count;
         }
     }
 
     /**
-     * Wraps an {@link OutputStream} delegate that can be swapped per serialize call,
-     * allowing {@link KryoBackedEncoder} to be reused across multiple MapDB write operations.
+     * A ByteArrayInputStream whose backing data can be swapped without allocating a new stream,
+     * allowing reuse of the KryoBackedDecoder across deserialization calls.
      */
-    private static class ResettableOutputStream extends OutputStream {
-        private OutputStream delegate;
-
-        void setDelegate(OutputStream out) {
-            this.delegate = out;
+    private static class ResettableByteArrayInputStream extends ByteArrayInputStream {
+        ResettableByteArrayInputStream() {
+            super(new byte[0]);
         }
 
-        @Override
-        public void write(int b) throws IOException {
-            delegate.write(b);
-        }
-
-        @Override
-        public void write(byte[] b, int off, int len) throws IOException {
-            delegate.write(b, off, len);
-        }
-
-        @Override
-        public void write(byte[] b) throws IOException {
-            delegate.write(b);
-        }
-    }
-
-    /**
-     * Wraps a {@link DataInput2} as a bounded {@link InputStream}, limited to {@code available}
-     * bytes. This prevents {@link KryoBackedDecoder}'s internal read-ahead from consuming
-     * bytes belonging to the next entry, and allows the decoder to be reused across calls
-     * via {@link KryoBackedDecoder#restart}.
-     */
-    private static class BoundedInputStream extends InputStream {
-        private DataInput2 input;
-        private int remaining;
-
-        void reset(DataInput2 input, int available) {
-            this.input = input;
-            this.remaining = available < 0 ? Integer.MAX_VALUE : available;
-        }
-
-        @Override
-        public int read() throws IOException {
-            if (remaining <= 0) {
-                return -1;
-            }
-            remaining--;
-            return input.readUnsignedByte();
-        }
-
-        @Override
-        public int read(byte[] b, int off, int len) throws IOException {
-            if (remaining <= 0) {
-                return -1;
-            }
-            int toRead = Math.min(len, remaining);
-            input.readFully(b, off, toRead);
-            remaining -= toRead;
-            return toRead;
+        void setData(byte[] data) {
+            this.buf = data;
+            this.pos = 0;
+            this.count = data.length;
+            this.mark = 0;
         }
     }
 }
