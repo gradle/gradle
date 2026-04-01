@@ -383,13 +383,32 @@ public class BTreeIndexedCacheTest {
             assertThat(cacheFile.length() % FileBackedBlockStore.FILE_GROWTH_CHUNK_SIZE, equalTo(0L));
         }
 
-
         // All entries survive a reopen
         cache.reset();
         for (int i = 0; i < 100; i++) {
             assertThat(cache.get("key_" + i), equalTo(i));
         }
 
+        verifyAndCloseCache();
+    }
+
+    @Test
+    public void chunkGrowthPaddingIsTrimmedOnClose() {
+        createCache();
+        cache.put("key_1", 1);
+
+        // While open, file is chunk-aligned (padded)
+        long chunkSize = FileBackedBlockStore.FILE_GROWTH_CHUNK_SIZE;
+        assertThat(cacheFile.length() % chunkSize, equalTo(0L));
+        long paddedLength = cacheFile.length();
+
+        // After close, padding is trimmed
+        cache.close();
+        assertTrue(cacheFile.length() < paddedLength);
+
+        // Data survives the trim
+        cache = new BTreePersistentIndexedCache<>(cacheFile, stringSerializer, integerSerializer, (short) 4, 100);
+        assertThat(cache.get("key_1"), equalTo(1));
         verifyAndCloseCache();
     }
 
