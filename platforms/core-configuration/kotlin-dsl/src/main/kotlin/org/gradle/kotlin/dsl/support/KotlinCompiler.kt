@@ -43,7 +43,6 @@ import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.CLASSPATH
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_DEFAULT
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_TARGET
-import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.MODULE_NAME
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.NO_REFLECT
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.NO_STDLIB
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.SCRIPT_TEMPLATES
@@ -72,47 +71,10 @@ import kotlin.io.path.Path
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 
-private const val MODULE_NAME = "buildscript"
-
-
-@OptIn(ExperimentalBuildToolsApi::class)
-private class Compiler {
-
-    // TODO: this should be done in an isolated classloader and then we can load an
-    //  implementation with a different version than the API we are using, thus making it configurable to users
-    //  supported versions range from -3 major version to +1 major version
-    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
-
-    // TODO: session should be closed after no longer needed, for cleanup to happen
-    private val buildSession = toolchains.createBuildSession()
-
-    @OptIn(ExperimentalCompilerArgument::class)
-    fun compile(
-        sources: List<Path>,
-        destinationDirectory: Path,
-        logger: Logger,
-        arguments: (JvmCompilerArguments.Builder) -> Unit,
-    ): CompilationResult {
-        val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
-
-        // compilation operation config
-        operationBuilder[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
-        // TODO: incremental compilation should make explicit fingerprint checking obsolete
-
-        arguments.invoke(operationBuilder.compilerArguments)
-
-        val operation = operationBuilder.build()
-        // TODO operation[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = ... will be the proper replacement for MessageCollector
-
-        // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Deamon mode can be enabled
-        return buildSession.executeOperation(operation, toolchains.createInProcessExecutionPolicy(), CompilationLogger(logger))
-    }
-}
 
 private val compiler by lazy { Compiler() }
 
 
-@ExperimentalCompilerArgument
 internal
 fun compileKotlinScriptToDirectory(
     outputDirectory: File,
@@ -124,81 +86,15 @@ fun compileKotlinScriptToDirectory(
     logger: Logger, // TODO: path translation ignored for now
     @Suppress("unused") pathTranslation: (String) -> String
 ): String {
-    fun configureClasspath(arguments: JvmCompilerArguments.Builder, classPath: List<File>) {
-        arguments[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
-        arguments[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath. // TODO: is it really covered by NO_STDLIB?
-        arguments[CLASSPATH] = CollectionUtils.join(File.pathSeparator, classPath)
-    }
-
-    fun configurePlugins(arguments: JvmCompilerArguments.Builder) {
-        fun pathOfJar(classLoader: ClassLoader, jarName: String): Path { // TODO: blasphemy, but how to do it right?!?
-            if (classLoader !is URLClassLoader) {
-                throw RuntimeException("Invalid classloader!")
-            }
-            val jarFile = classLoader.urLs.firstOrNull() { it.file.contains(jarName) }
-            if (jarFile == null) {
-                throw RuntimeException("$jarName.jar not found on the classpath!")
-            }
-            return Paths.get(jarFile.toURI())
-        }
-
-        val scriptingPlugin = CompilerPlugin(
-            pluginId = KOTLIN_SCRIPTING_PLUGIN_ID,
-            classpath = listOf(pathOfJar(ScriptingCompilerConfigurationComponentRegistrar::class.java.classLoader, "kotlin-scripting-compiler-embeddable")),
-            rawArguments = listOf(),
-            orderingRequirements = setOf()
-        )
-        val samWithReceiverPlugin = CompilerPlugin(
-            pluginId = SamWithReceiverPluginNames.PLUGIN_ID,
-            classpath = listOf(pathOfJar(SamWithReceiverPluginNames::class.java.classLoader, "kotlin-sam-with-receiver-compiler-plugin")),
-            rawArguments = listOf(CompilerPluginOption(SamWithReceiverPluginNames.ANNOTATION_OPTION_NAME, HasImplicitReceiver::class.qualifiedName!!)),
-            orderingRequirements = setOf()
-        )
-        val assignmentPlugin = CompilerPlugin(
-            pluginId = AssignmentPluginNames.PLUGIN_ID,
-            classpath = listOf(pathOfJar(AssignmentPluginNames::class.java.classLoader, "kotlin-assignment-compiler-plugin-embeddable")),
-            rawArguments = listOf(CompilerPluginOption(AssignmentPluginNames.ANNOTATION_OPTION_NAME, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)),
-            orderingRequirements = setOf()
-        )
-
-        arguments[COMPILER_PLUGINS] = listOf(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
-    }
-
-    compiler.compile(listOf(Path(scriptFile.path)), outputDirectory.toPath(), logger) {
-        // TODO: put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-        it[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
-        it[X_USE_FIR_LT] = false
-        it[JVM_TARGET] = org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.valueOf("JVM_" + compilerOptions.jvmTarget.toKotlinJvmTarget().description) // TODO: ugly conversion
-        it[X_SAM_CONVERSIONS] = "class"
-        // TODO: addJvmSdkRoot(...)
-
-        it.also { // apply language version settings
-            it[LANGUAGE_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
-            it[API_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
-            it.also { // apply analysis flags
-                it[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
-                it[X_SKIP_PRERELEASE_CHECK] = true
-                it[X_ALLOW_UNSTABLE_DEPENDENCIES] = true
-                it[JVM_DEFAULT] = "enable"
-                it.also { // apply java type enhancement settings
-                    it[X_JSR305] = arrayOf("strict", "under-migration:strict")
-                    // TODO: not sure what the equivalent of `getReportLevelForAnnotation` is... maybe JvmCompilerArguments.X_JSPECIFY_ANNOTATIONS, but that defaults to the right value
-                }
-            }
-        }
-
-        it[MODULE_NAME] = org.gradle.kotlin.dsl.support.MODULE_NAME
-
-        configureClasspath(it, classPath)
-        configurePlugins(it)
-
-        it[SCRIPT_TEMPLATES] = arrayOf(template.jvmName)
-        it[X_SCRIPT_RESOLVER_ENVIRONMENT] = arrayOf(
-            resolverEnvironmentStringFor(
-                listOf(kotlinDslImplicitImports to implicitImports)
-            )
-        )
-    } // TODO: compilation result ignored
+    compiler.compile(
+        listOf(Path(scriptFile.path)),
+        outputDirectory.toPath(),
+        compilerOptions,
+        classPath,
+        template,
+        implicitImports,
+        logger
+    ) // TODO: compilation result ignored
 
     return NameUtils.getScriptNameForFile(scriptFile.name).asString()
 }
@@ -326,3 +222,128 @@ fun compilerMessageFor(path: String, line: Int, column: Int, message: String) =
 private
 fun clickableFileUrlFor(path: String): String =
     ConsoleRenderer().asClickableFileUrl(File(path))
+
+
+@OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class)
+private class Compiler {
+
+    companion object {
+        private const val MODULE_NAME = "buildscript"
+    }
+
+    // TODO: this should be done in an isolated classloader and then we can load an
+    //  implementation with a different version than the API we are using, thus making it configurable to users
+    //  supported versions range from -3 major version to +1 major version
+    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
+
+    // TODO: session should be closed after no longer needed, for cleanup to happen
+    private val buildSession = toolchains.createBuildSession()
+
+    @OptIn(ExperimentalCompilerArgument::class)
+    fun compile(
+        sources: List<Path>,
+        destinationDirectory: Path,
+        compilerOptions: KotlinCompilerOptions,
+        classPath: List<File>,
+        template: KClass<out Any>,
+        implicitImports: List<String>,
+        logger: Logger,
+    ): CompilationResult {
+        val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
+
+        // compilation operation config
+        operationBuilder[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+        // TODO: incremental compilation should make explicit fingerprint checking obsolete
+
+        operationBuilder.compilerArguments.let {
+            it.configureScriptEnvironment(classPath, template, implicitImports)
+            it.configureLanguageVersion(compilerOptions)
+            it.configurePlugins()
+            it.configureMisc()
+        }
+
+        val operation = operationBuilder.build()
+        // TODO operation[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = ... will be the proper replacement for MessageCollector
+
+        // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Deamon mode can be enabled
+        return buildSession.executeOperation(operation, toolchains.createInProcessExecutionPolicy(), CompilationLogger(logger))
+    }
+
+    fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
+        this[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
+        this[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath. // TODO: is it really covered by NO_STDLIB?
+        this[CLASSPATH] = CollectionUtils.join(File.pathSeparator, classPath)
+
+        this[SCRIPT_TEMPLATES] = arrayOf(template.jvmName)
+        this[X_SCRIPT_RESOLVER_ENVIRONMENT] = arrayOf(
+            resolverEnvironmentStringFor(
+                listOf(kotlinDslImplicitImports to implicitImports)
+            )
+        )
+    }
+
+    fun JvmCompilerArguments.Builder.configureLanguageVersion(compilerOptions: KotlinCompilerOptions) {
+        this[LANGUAGE_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
+        this[API_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
+        this[JVM_TARGET] = org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.valueOf("JVM_" + compilerOptions.jvmTarget.toKotlinJvmTarget().description) // TODO: ugly conversion
+
+        this[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
+        this[X_SKIP_PRERELEASE_CHECK] = true
+        this[X_ALLOW_UNSTABLE_DEPENDENCIES] = true
+        this[JVM_DEFAULT] = "enable"
+
+        this.also { // apply java type enhancement settings
+            it[X_JSR305] = arrayOf("strict", "under-migration:strict")
+            // TODO: not sure what the equivalent of `getReportLevelForAnnotation` is... maybe JvmCompilerArguments.X_JSPECIFY_ANNOTATIONS, but that defaults to the right value
+        }
+    }
+
+    fun JvmCompilerArguments.Builder.configurePlugins() {
+        fun pathOfJar(classLoader: ClassLoader, jarName: String): Path { // TODO: blasphemy, but how to do it right?!?
+            if (classLoader is URLClassLoader) {
+                val jarFile = classLoader.urLs.firstOrNull() { it.file.contains(jarName) }
+                if (jarFile != null) {
+                    return Paths.get(jarFile.toURI())
+                }
+            }
+
+            val pathToJar = System.getProperty("java.class.path").split(File.pathSeparator).firstOrNull { it.contains(jarName) }
+            if (pathToJar != null) {
+                return Paths.get(pathToJar)
+            }
+
+            throw RuntimeException("$jarName.jar not found on the classpath!")
+        }
+
+        val scriptingPlugin = CompilerPlugin(
+            pluginId = KOTLIN_SCRIPTING_PLUGIN_ID,
+            classpath = listOf(pathOfJar(ScriptingCompilerConfigurationComponentRegistrar::class.java.classLoader, "kotlin-scripting-compiler-embeddable")),
+            rawArguments = listOf(),
+            orderingRequirements = setOf()
+        )
+        val samWithReceiverPlugin = CompilerPlugin(
+            pluginId = SamWithReceiverPluginNames.PLUGIN_ID,
+            classpath = listOf(pathOfJar(SamWithReceiverPluginNames::class.java.classLoader, "kotlin-sam-with-receiver-compiler-plugin")),
+            rawArguments = listOf(CompilerPluginOption(SamWithReceiverPluginNames.ANNOTATION_OPTION_NAME, HasImplicitReceiver::class.qualifiedName!!)),
+            orderingRequirements = setOf()
+        )
+        val assignmentPlugin = CompilerPlugin(
+            pluginId = AssignmentPluginNames.PLUGIN_ID,
+            classpath = listOf(pathOfJar(AssignmentPluginNames::class.java.classLoader, "kotlin-assignment-compiler-plugin-embeddable")),
+            rawArguments = listOf(CompilerPluginOption(AssignmentPluginNames.ANNOTATION_OPTION_NAME, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)),
+            orderingRequirements = setOf()
+        )
+
+        this[COMPILER_PLUGINS] = listOf(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
+    }
+
+    fun JvmCompilerArguments.Builder.configureMisc() {
+        // TODO: put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        this[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
+        this[X_USE_FIR_LT] = false
+        this[X_SAM_CONVERSIONS] = "class"
+        // TODO: addJvmSdkRoot(...)
+
+        this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME
+    }
+}
