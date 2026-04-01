@@ -76,6 +76,11 @@ public class FileBackedBlockStore implements BlockStore {
     @Override
     public void close() {
         try {
+            // Trim chunk-growth padding so the next open() starts allocating right after the last block,
+            // and we don't waste disk space. If a daemon is killed before close is called, we still may waste max 64KB.
+            if (nextBlock < currentFileSize) {
+                file.setLength(nextBlock);
+            }
             file.close();
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
