@@ -75,26 +75,6 @@ The action validates the checksum of every `gradle-wrapper.jar` in your reposito
 
 If you use a different GitHub Actions setup, you can use the dedicated link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[Gradle Wrapper validation action] instead.
 
-[source,yaml]
-.github/workflows/gradle-wrapper-validation.yml
-----
-name: Validate Gradle Wrapper
-on:
-  pull_request:
-    paths:
-      - 'gradlew'
-      - 'gradlew.bat'
-      - 'gradle/wrapper/**'
-
-jobs:
-  wrapper-validation:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Verify Gradle Wrapper
-        uses: gradle/actions/wrapper-validation@v6
-----
-
 === References
 
 - <</gradle_wrapper.adoc#configuring_checksum_verification,Gradle Wrapper checksum verification>>
