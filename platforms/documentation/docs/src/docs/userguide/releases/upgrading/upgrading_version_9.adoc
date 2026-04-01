@@ -854,7 +854,7 @@ Calling `.severity()` on `ProblemSpec` is now a no-op and will be removed in Gra
 [[v9_upgrade_to_kotlin_2_3_20]]
 ==== Upgrade to Kotlin 2.3.20
 
-The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20[Kotlin 2.3.20].
+The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.0-Beta1[Kotlin 2.4.0-Beta1].
 
 [[v9_plugins_requested_by_precompiled_settings_plugins_validated]]
 ==== Plugins requested by precompiled settings plugins are now validated at compile time
