@@ -18,7 +18,7 @@ package org.gradle.language.scala.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -66,9 +66,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     public abstract Property<Boolean> getFailOnError();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsFailOnError() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsFailOnError()", "getFailOnError()");
         return getFailOnError();
     }
 
@@ -80,9 +78,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     public abstract Property<Boolean> getDeprecation();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsDeprecation() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsDeprecation()", "getDeprecation()");
         return getDeprecation();
     }
 
@@ -94,9 +90,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     public abstract Property<Boolean> getUnchecked();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsUnchecked() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsUnchecked()", "getUnchecked()");
         return getUnchecked();
     }
 
@@ -117,9 +111,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     public abstract Property<Boolean> getOptimize();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsOptimize() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsOptimize()", "getOptimize()");
         return getOptimize();
     }
 
@@ -142,9 +134,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     public abstract Property<Boolean> getForce();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsForce() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsForce()", "getForce()");
         return getForce();
     }
 
@@ -167,9 +157,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     public abstract Property<Boolean> getListFiles();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsListFiles() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsListFiles()", "getListFiles()");
         return getListFiles();
     }
 

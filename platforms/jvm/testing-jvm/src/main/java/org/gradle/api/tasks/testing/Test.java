@@ -32,7 +32,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -1046,9 +1045,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Added for Kotlin source compatibility. Use {@link #getScanForTestClasses()} instead.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsScanForTestClasses() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsScanForTestClasses()", "getScanForTestClasses()");
         return getScanForTestClasses();
     }
 

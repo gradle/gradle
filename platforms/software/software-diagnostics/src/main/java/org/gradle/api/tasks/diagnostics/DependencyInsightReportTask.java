@@ -270,9 +270,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
 
     // kotlin source compatibility
     @Internal
-    @Deprecated
     public Property<Boolean> getIsShowSinglePathToDependency() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsShowSinglePathToDependency()", "getShowSinglePathToDependency()");
         return getShowSinglePathToDependency();
     }
 

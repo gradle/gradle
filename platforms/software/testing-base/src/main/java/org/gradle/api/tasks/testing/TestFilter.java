@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
@@ -150,9 +149,7 @@ public interface TestFilter {
      * Used for Kotlin source compatibility. use {@link #getFailOnNoMatchingTests()} instead.
      */
     @Internal
-    @Deprecated
     default Property<Boolean> getIsFailOnNoMatchingTests() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsFailOnNoMatchingTests()", "getFailOnNoMatchingTests()");
         return getFailOnNoMatchingTests();
     }
 }

@@ -95,10 +95,7 @@ public abstract class JacocoTaskExtension {
     public abstract Property<Boolean> getEnabled();
 
     @Internal
-    @Deprecated
-    @SuppressWarnings("InlineMeSuggester")
     public Property<Boolean> getIsEnabled() {
-        // TODO: add deprecation message
         return getEnabled();
     }
 
@@ -165,10 +162,7 @@ public abstract class JacocoTaskExtension {
     public abstract Property<Boolean> getIncludeNoLocationClasses();
 
     @Internal
-    @Deprecated
-    @SuppressWarnings("InlineMeSuggester")
     public Property<Boolean> getIsIncludeNoLocationClasses() {
-        // TODO: add deprecation message
         return getIncludeNoLocationClasses();
     }
 
@@ -188,10 +182,7 @@ public abstract class JacocoTaskExtension {
     public abstract Property<Boolean> getDumpOnExit();
 
     @Internal
-    @Deprecated
-    @SuppressWarnings("InlineMeSuggester")
     public Property<Boolean> getIsDumpOnExit() {
-        // TODO: add deprecation message
         return getDumpOnExit();
     }
 
@@ -237,10 +228,7 @@ public abstract class JacocoTaskExtension {
     public abstract Property<Boolean> getJmx();
 
     @Internal
-    @Deprecated
-    @SuppressWarnings("InlineMeSuggester")
     public Property<Boolean> getIsJmx() {
-        // TODO: add deprecation message
         return getJmx();
     }
 

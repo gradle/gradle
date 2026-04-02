@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
@@ -131,9 +130,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getShowViolations();
 
-    @Deprecated
     public Property<Boolean> getIsShowViolations() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsShowViolations()", "getShowViolations()");
         return getShowViolations();
     }
 
