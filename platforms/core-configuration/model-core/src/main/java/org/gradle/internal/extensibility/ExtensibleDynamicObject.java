@@ -22,6 +22,7 @@ import org.codehaus.groovy.runtime.GeneratedClosure;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -55,6 +56,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     private final AbstractDynamicObject dynamicDelegate;
     @Nullable
     private HierarchicalDynamicObject parent;
+    private boolean deprecateParentAccess;
     private final DefaultExtensionContainer extensionContainer;
 
     @Nullable
@@ -134,6 +136,14 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         this.parent = parent;
     }
 
+    /**
+     * Enables deprecation warnings when properties or methods are resolved from the parent.
+     * This should be called when the parent represents a cross-project boundary.
+     */
+    public void setDeprecateParentAccess(boolean deprecateParentAccess) {
+        this.deprecateParentAccess = deprecateParentAccess;
+    }
+
     public ExtensionContainer getExtensions() {
         return extensionContainer;
     }
@@ -182,6 +192,13 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         HierarchicalDynamicObject parent = this.parent;
         while (parent != null) {
             if (parent.hasProperty(name)) {
+                if (deprecateParentAccess) {
+                    DeprecationLogger.deprecateAction("Calling 'hasProperty' to query presence of property from parent project")
+                        .withContext("Tried to query parent project " + parent.getDisplayName() + " for presence property '" + name + "' from " + getDisplayName() + ".")
+                        .willBecomeAnErrorInGradle10()
+                        .undocumented()
+                        .nagUser();
+                }
                 return true;
             }
             parent = parent.getParent();
@@ -199,6 +216,13 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         while (parent != null) {
             result = parent.tryGetProperty(name);
             if (result.isFound()) {
+                if (deprecateParentAccess) {
+                    DeprecationLogger.deprecateAction("Calling 'getProperty' to retrieve property from parent project")
+                        .withContext("Tried to query parent project " + parent.getDisplayName() + " for property '" + name + "' from " + getDisplayName() + ".")
+                        .willBecomeAnErrorInGradle10()
+                        .undocumented()
+                        .nagUser();
+                }
                 return result;
             }
             parent = parent.getParent();
@@ -246,6 +270,9 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         HierarchicalDynamicObject parent = this.parent;
         while (parent != null) {
             if (parent.hasMethod(name, arguments)) {
+                if (deprecateParentAccess) {
+                    emitMethodDeprecation(name, parent);
+                }
                 return true;
             }
             parent = parent.getParent();
@@ -262,11 +289,22 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         while (parent != null) {
             result = parent.tryInvokeMethod(name, arguments);
             if (result.isFound()) {
+                if (deprecateParentAccess) {
+                    emitMethodDeprecation(name, parent);
+                }
                 return result;
             }
             parent = parent.getParent();
         }
         return DynamicInvokeResult.notFound();
+    }
+
+    private void emitMethodDeprecation(String name, DynamicObject parent) {
+        DeprecationLogger.deprecateAction("Dynamically invoking parent method from a child project")
+            .withContext("Cannot dynamically invoke method '" + name + "' on " + parent.getDisplayName() + " from " + getDisplayName() + ".")
+            .willBecomeAnErrorInGradle10()
+            .undocumented()
+            .nagUser();
     }
 
     @Override
