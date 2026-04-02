@@ -232,14 +232,14 @@ data class CIBuildModel(
                             10,
                             TestType.ALL_VERSIONS_CROSS_VERSION,
                             Os.LINUX,
-                            JvmCategory.MIN_VERSION,
+                            JvmCategory.MAX_VERSION,
                             ALL_CROSS_VERSION_BUCKETS.size,
                         ),
                         TestCoverage(
                             11,
                             TestType.ALL_VERSIONS_CROSS_VERSION,
                             Os.WINDOWS,
-                            JvmCategory.MIN_VERSION,
+                            JvmCategory.MAX_VERSION,
                             ALL_CROSS_VERSION_BUCKETS.size,
                         ),
                         TestCoverage(
