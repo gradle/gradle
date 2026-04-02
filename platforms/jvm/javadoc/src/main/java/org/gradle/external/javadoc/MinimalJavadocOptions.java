@@ -252,7 +252,6 @@ public interface MinimalJavadocOptions {
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     Provider<Boolean> getIsVerbose();
 
     /**
@@ -270,7 +269,6 @@ public interface MinimalJavadocOptions {
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     Property<Boolean> getIsBreakIterator();
 
     /**
