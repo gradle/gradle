@@ -30,16 +30,7 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V> {
 
     @Override
     public V get(K key, Function<? super K, ? extends V> factory) {
-        V cached = cache.getIfPresent(key);
-        if (cached != null) {
-            return cached;
-        }
-
-        V value = factory.apply(key); //don't synchronize value creation
-        //we could potentially avoid creating value that is already being created by a different thread.
-
-        cache.put(key, value);
-        return value;
+        return cache.get(key, factory);
     }
 
     @Override

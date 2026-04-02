@@ -43,6 +43,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result"
+        _ * target.supportsConcurrentReads()
         0 * target._
 
         when:
@@ -53,6 +54,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        _ * target.supportsConcurrentReads()
         0 * target._
 
         when:
@@ -64,6 +66,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        _ * target.supportsConcurrentReads()
         0 * target._
     }
 
@@ -81,6 +84,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result 1"
+        _ * target.supportsConcurrentReads()
         0 * target._
 
         when:
@@ -93,6 +97,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result 2"
+        _ * target.supportsConcurrentReads()
         0 * target._
     }
 
@@ -110,6 +115,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> null
+        _ * target.supportsConcurrentReads()
         0 * target._
 
         when:
@@ -120,6 +126,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        _ * target.supportsConcurrentReads()
         0 * target._
     }
 
@@ -139,6 +146,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result"
+        _ * target.supportsConcurrentReads()
         0 * target._
 
         when:
@@ -159,6 +167,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        _ * target.supportsConcurrentReads()
         0 * target._
     }
 
@@ -178,6 +187,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result"
+        _ * target.supportsConcurrentReads()
         0 * target._
 
         when:
@@ -198,6 +208,7 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
+        _ * target.supportsConcurrentReads()
         0 * target._
     }
 

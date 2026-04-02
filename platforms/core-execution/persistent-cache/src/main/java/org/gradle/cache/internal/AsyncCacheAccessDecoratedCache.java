@@ -26,13 +26,20 @@ import java.util.function.Function;
 public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
     private final MultiProcessSafeIndexedCache<K, V> indexedCache;
-    private final boolean concurrentReads;
+    private volatile int concurrentReadsState; // 0 = unknown, 1 = true, -1 = false
 
     public AsyncCacheAccessDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafeIndexedCache<K, V> indexedCache) {
         this.asyncCacheAccess = asyncCacheAccess;
         this.indexedCache = indexedCache;
-        this.concurrentReads = indexedCache instanceof DefaultMultiProcessSafeIndexedCache
-            && ((DefaultMultiProcessSafeIndexedCache<K, V>) indexedCache).supportsConcurrentReads();
+    }
+
+    private boolean supportsConcurrentReads() {
+        int state = concurrentReadsState;
+        if (state == 0) {
+            state = indexedCache.supportsConcurrentReads() ? 1 : -1;
+            concurrentReadsState = state;
+        }
+        return state == 1;
     }
 
     @Override
@@ -47,8 +54,8 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
         // ConcurrentHashMap write-behind), read directly without queuing through the
         // single worker thread. The caller already holds the cross-process file lock
         // via CrossProcessSynchronizingIndexedCache.withFileLock().
-        if (concurrentReads) {
-            return ((DefaultMultiProcessSafeIndexedCache<K, V>) indexedCache).getIfPresentDirectly(key);
+        if (supportsConcurrentReads()) {
+            return indexedCache.getIfPresentDirectly(key);
         }
         return asyncCacheAccess.read(() -> indexedCache.getIfPresent(key));
     }

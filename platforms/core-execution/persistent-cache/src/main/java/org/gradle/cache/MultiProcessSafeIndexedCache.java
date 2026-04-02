@@ -15,8 +15,31 @@
  */
 package org.gradle.cache;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A {@link IndexedCache} implementation that is aware of file locking.
  */
 public interface MultiProcessSafeIndexedCache<K, V> extends IndexedCache<K, V>, UnitOfWorkParticipant {
+
+    /**
+     * Whether this cache supports reads from any thread without going through the
+     * async worker. When true, {@link #getIfPresentDirectly(Object)} can be called
+     * from any thread that holds the cross-process file lock.
+     */
+    default boolean supportsConcurrentReads() {
+        return false;
+    }
+
+    /**
+     * Reads directly from the underlying persistent cache without requiring
+     * coordinator thread ownership. Only safe when the caller holds the
+     * cross-process file lock and {@link #supportsConcurrentReads()} is true.
+     *
+     * @return the value, or null if not found
+     */
+    @Nullable
+    default V getIfPresentDirectly(K key) {
+        return null;
+    }
 }
