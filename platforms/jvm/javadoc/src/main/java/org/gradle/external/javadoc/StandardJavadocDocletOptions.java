@@ -23,7 +23,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -193,9 +192,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsUse() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsUse()", "getUse()");
         return getUse();
     }
 
@@ -222,9 +219,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsVersion() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsVersion()", "getVersion()");
         return getVersion();
     }
 
@@ -250,9 +245,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsAuthor() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsAuthor()", "getAuthor()");
         return getAuthor();
     }
 
@@ -279,9 +272,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsSplitIndex() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsSplitIndex()", "getSplitIndex()");
         return getSplitIndex();
     }
 
@@ -477,9 +468,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsLinkSource() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsLinkSource()", "getLinkSource()");
         return getLinkSource();
     }
 
@@ -572,9 +561,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoDeprecated() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsNoDeprecated()", "getNoDeprecated()");
         return getNoDeprecated();
     }
 
@@ -603,9 +590,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoDeprecatedList() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsNoDeprecatedList()", "getNoDeprecatedList()");
         return getNoDeprecatedList();
     }
 
@@ -631,9 +616,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoSince() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsNoSince()", "getNoSince()");
         return getNoSince();
     }
 
@@ -661,9 +644,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoTree() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsNoTree()", "getNoTree()");
         return getNoTree();
     }
 
@@ -689,9 +670,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoIndex() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsNoIndex()", "getNoIndex()");
         return getNoIndex();
     }
 
@@ -717,9 +696,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoHelp() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsNoHelp()", "getNoHelp()");
         return getNoHelp();
     }
 
@@ -748,9 +725,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoNavBar() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsNoNavBar()", "getNoNavBar()");
         return getNoNavBar();
     }
 
@@ -815,9 +790,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsSerialWarn() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsSerialWarn()", "getSerialWarn()");
         return getSerialWarn();
     }
 
@@ -884,9 +857,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsKeyWords() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsKeyWords()", "getKeyWords()");
         return getKeyWords();
     }
 
@@ -965,9 +936,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsDocFilesSubDirs() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsDocFilesSubDirs()", "getDocFilesSubDirs()");
         return getDocFilesSubDirs();
     }
 
@@ -1022,9 +991,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoTimestamp() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsNoTimestamp()", "getNoTimestamp()");
         return getNoTimestamp();
     }
 
@@ -1048,9 +1015,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoComment() {
-        ProviderApiDeprecationLogger.logDeprecation(StandardJavadocDocletOptions.class, "getIsNoComment()", "getNoComment()");
         return getNoComment();
     }
 

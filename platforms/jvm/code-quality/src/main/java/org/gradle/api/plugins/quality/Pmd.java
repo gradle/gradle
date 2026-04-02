@@ -23,7 +23,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.PmdAction;
 import org.gradle.api.plugins.quality.internal.PmdActionParameters;
@@ -288,9 +287,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     public abstract Property<Boolean> getConsoleOutput();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsConsoleOutput() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsConsoleOutput()", "getConsoleOutput()");
         return getConsoleOutput();
     }
 

@@ -77,9 +77,6 @@ public abstract class CompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFailOnError();
 
-    /**
-     * TODO: Add deprecation warning
-     */
     @ReplacedBy("failOnError")
     public Property<Boolean> getIsFailOnError() {
         return getFailOnError();
@@ -92,9 +89,6 @@ public abstract class CompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getVerbose();
 
-    /**
-     * TODO: Add deprecation warning
-     */
     @ReplacedBy("verbose")
     public Property<Boolean> getIsVerbose() {
         return getVerbose();
@@ -107,9 +101,6 @@ public abstract class CompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getListFiles();
 
-    /**
-     * TODO: Add deprecation warning
-     */
     @ReplacedBy("listFiles")
     public Property<Boolean> getIsListFiles() {
         return getListFiles();
@@ -124,9 +115,6 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
-     *
-     * TODO: Add deprecation warning
-     *
      */
     @ReplacedBy("deprecation")
     public Property<Boolean> getIsDeprecation() {
@@ -142,8 +130,6 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Sets whether to log warning messages. The default is {@code true}.
-     *
-     * TODO: Add deprecation warning
      */
     @ReplacedBy("warnings")
     public Property<Boolean> getIsWarnings() {
@@ -170,8 +156,6 @@ public abstract class CompileOptions implements Serializable {
     /**
      * Sets whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
-     *
-     * TODO: Add deprecation warning
      */
     @ReplacedBy("debug")
     public Property<Boolean> getIsDebug() {
@@ -206,8 +190,6 @@ public abstract class CompileOptions implements Serializable {
      * Sets whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
-     *
-     * TODO: Add deprecation warning
      */
     @ReplacedBy("fork")
     public Property<Boolean> getIsFork() {
@@ -298,9 +280,6 @@ public abstract class CompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
     public abstract Property<Boolean> getIncremental();
 
-    /**
-     * TODO: Add deprecation warning
-     */
     @ReplacedBy("incremental")
     public Property<Boolean> getIsIncremental() {
         return getIncremental();
