@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
@@ -282,9 +281,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     public abstract Property<Boolean> getShowViolations();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsShowViolations() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsShowViolations()", "getShowViolations()");
         return getShowViolations();
     }
 
@@ -307,10 +304,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 9.0
      */
     @Internal
-    @Deprecated
     @ReplacesEagerProperty(adapter = IsIgnoreFailuresAdapter.class)
     public Property<Boolean> getIsIgnoreFailures() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsIgnoreFailures()", "getIgnoreFailures()");
         return getIgnoreFailuresProperty();
     }
 

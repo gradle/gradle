@@ -23,7 +23,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestRunner;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -331,9 +330,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     public abstract Property<Boolean> getUseDefaultListeners();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsUseDefaultListeners() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsUseDefaultListeners()", "getUseDefaultListeners()");
         return getUseDefaultListeners();
     }
 
@@ -380,9 +377,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     public abstract Property<Boolean> getPreserveOrder();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsPreserveOrder() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsPreserveOrder()", "getPreserveOrder()");
         return getPreserveOrder();
     }
 
@@ -405,9 +400,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     public abstract Property<Boolean> getGroupByInstances();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsGroupByInstances() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsGroupByInstances()", "getGroupByInstances()");
         return getGroupByInstances();
     }
 

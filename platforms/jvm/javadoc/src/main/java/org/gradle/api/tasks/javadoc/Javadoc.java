@@ -27,7 +27,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
@@ -329,10 +328,8 @@ public abstract class Javadoc extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFailOnError();
 
-    @Deprecated
     @ReplacedBy("getFailOnError()")
     public Property<Boolean> getIsFailOnError() {
-        ProviderApiDeprecationLogger.logDeprecation(Javadoc.class, "getIsFailOnError()", "failOnError");
         return getFailOnError();
     }
 
