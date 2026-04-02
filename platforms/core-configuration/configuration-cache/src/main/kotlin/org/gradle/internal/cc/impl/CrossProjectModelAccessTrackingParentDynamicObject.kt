@@ -43,7 +43,6 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     }
 
     override fun getParent(): HierarchicalDynamicObject? {
-        onAccess(MemberKind.PARENT, null)
         return delegate.getParent()
     }
 

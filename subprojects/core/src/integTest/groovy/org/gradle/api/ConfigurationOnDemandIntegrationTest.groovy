@@ -584,6 +584,7 @@ allprojects {
             }
         """)
         when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':a' for property 'foo' from project ':a:child'.")
         run(":a:child:printExt")
 
         then:

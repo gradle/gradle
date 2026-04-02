@@ -28,7 +28,6 @@ import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.scripts.GradleScript;
 import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
@@ -124,7 +123,6 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
         @Deprecated
         @Override
-        @Deprecated
         public Map<String, ? extends @Nullable Object> getProperties() {
             return dynamicTarget.getProperties();
         }

@@ -508,6 +508,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     def "reports cross-project model access on #kind lookup in the parent project using `#expr`"() {
         createDirs("a")
         settingsFile << """
+            rootProject.name = "root"
             include("a")
         """
         file("build.gradle") << """
@@ -518,12 +519,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        if (expr == "properties") {
-            executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
-                "This will fail with an error in Gradle 10. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
-        }
+        executer.expectDocumentedDeprecationWarning(deprecationMessage)
         isolatedProjectsFails(":a:help")
 
         then:
@@ -533,19 +529,20 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        kind       | setExpr         | expr
-        "property" | "ext.foo = 1"   | "foo"
-        "property" | "ext.foo = 1"   | "hasProperty('foo')"
-        "property" | "ext.foo = 1"   | "property('foo')"
-        "property" | "ext.foo = 1"   | "findProperty('foo')"
-        "property" | "ext.foo = 1"   | "getProperty('foo')"
-        "property" | "ext.foo = 1"   | "properties"
-        "method"   | "def foo() { }" | "foo()"
+        kind       | setExpr         | expr                  | deprecationMessage
+        "property" | "ext.foo = 1"   | "foo"                 | "Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'root' for property 'foo' from project ':a'."
+        "property" | "ext.foo = 1"   | "hasProperty('foo')"  | "Calling 'hasProperty' to query presence of property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'root' for presence property 'foo' from project ':a'."
+        "property" | "ext.foo = 1"   | "property('foo')"     | "Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'root' for property 'foo' from project ':a'."
+        "property" | "ext.foo = 1"   | "findProperty('foo')" | "Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'root' for property 'foo' from project ':a'."
+        "property" | "ext.foo = 1"   | "getProperty('foo')"  | "Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'root' for property 'foo' from project ':a'."
+        "property" | "ext.foo = 1"   | "properties"          | "Dynamically calling getProperties() on a script has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties"
+        "method"   | "def foo() { }" | "foo()"               | "Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'foo' on root project 'root' from project ':a'."
     }
 
     def 'no duplicate problems reported for dynamic property lookup in transitive parents'() {
         createDirs("sub", "sub/sub-a", "sub/sub-b")
         settingsFile << """
+            rootProject.name = "root"
             include(":sub")
             include(":sub:sub-a")
             include(":sub:sub-b")
@@ -561,6 +558,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Tried to query parent project project ':sub' for property 'foo' from project ':sub:sub-a'.")
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Tried to query parent project project ':sub' for property 'foo' from project ':sub:sub-b'.")
         isolatedProjectsFails(":sub:sub-a:help", ":sub:sub-b:help")
 
         then:
@@ -575,6 +578,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
     def "invocations of GroovyObject methods on DefaultProject track the dynamic call context"() {
         createDirs("a")
         settingsFile << """
+            rootProject.name = "root"
             include("a")
         """
         file("build.gradle") << """
@@ -593,6 +597,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'root' for property 'foo' from project ':a'.")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'bar' on root project 'root' from project ':a'.")
         isolatedProjectsFails(":a:help")
 
         then:
@@ -607,6 +613,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         given:
         createDirs("a", "aa")
         settingsFile """
+            rootProject.name = "root"
             include(":a")
             include(":a:aa")
         """
@@ -628,6 +635,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':a' for property 'projectProperty' from project ':a:aa'.")
         isolatedProjectsFails("help")
 
         then:
@@ -699,6 +707,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         when:
         // TODO:isolated should succeed without problems
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'printInfo' on root project 'root' from project ':a'.")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'printInfo' on root project 'root' from project ':b'.")
         isolatedProjectsFails("something")
 
         then:
@@ -770,23 +780,23 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        expr                                                       | setup
-        "files()"                                                  | ""
-        "files() + files()"                                        | ""
-        "fileTree(buildDir)"                                       | ""
-        "fileTree(buildDir) + fileTree(rootDir)"                   | ""
-        "resources.text.fromFile('1.txt', 'UTF-8')"                | ""
-        "fromTask"                                                 | "def fromTask = new Object() { def buildDependencies = tasks.help.taskDependencies }"
-        "artifacts.add('default', new File('a.txt'))"              | "configurations.create('default')"
-        "configurations.compileClasspath"                          | "plugins { id('java') }"
-        "configurations.compileClasspath.dependencies"             | "plugins { id('java') }"
-        "sourceSets.main.java"                                     | "plugins { id('java') }"
-        "sourceSets.main.output"                                   | "plugins { id('java') }"
-        "configurations.apiElements.allArtifacts"                  | "plugins { id('java') }"
-        "configurations.apiElements.allArtifacts.toList()[0]"      | "plugins { id('java') }"
-        "testing.suites.test"                                      | "plugins { id('java'); id('jvm-test-suite') }"
-        "testing.suites.test.targets.toList()[0]"                  | "plugins { id('java'); id('jvm-test-suite') }"
-        "publishing.publications.maven.artifacts.toList()[0]"      | "plugins { id('java'); id('maven-publish') }; publishing.publications.create('maven', MavenPublication) { from(components['java']) }"
+        expr                                                  | setup
+        "files()"                                             | ""
+        "files() + files()"                                   | ""
+        "fileTree(buildDir)"                                  | ""
+        "fileTree(buildDir) + fileTree(rootDir)"              | ""
+        "resources.text.fromFile('1.txt', 'UTF-8')"           | ""
+        "fromTask"                                            | "def fromTask = new Object() { def buildDependencies = tasks.help.taskDependencies }"
+        "artifacts.add('default', new File('a.txt'))"         | "configurations.create('default')"
+        "configurations.compileClasspath"                     | "plugins { id('java') }"
+        "configurations.compileClasspath.dependencies"        | "plugins { id('java') }"
+        "sourceSets.main.java"                                | "plugins { id('java') }"
+        "sourceSets.main.output"                              | "plugins { id('java') }"
+        "configurations.apiElements.allArtifacts"             | "plugins { id('java') }"
+        "configurations.apiElements.allArtifacts.toList()[0]" | "plugins { id('java') }"
+        "testing.suites.test"                                 | "plugins { id('java'); id('jvm-test-suite') }"
+        "testing.suites.test.targets.toList()[0]"             | "plugins { id('java'); id('jvm-test-suite') }"
+        "publishing.publications.maven.artifacts.toList()[0]" | "plugins { id('java'); id('maven-publish') }; publishing.publications.create('maven', MavenPublication) { from(components['java']) }"
     }
 
     def "mentions the specific project and build file in getDependencies(...) problems"() {

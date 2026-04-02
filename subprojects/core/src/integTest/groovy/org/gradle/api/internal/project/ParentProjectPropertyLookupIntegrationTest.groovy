@@ -215,7 +215,9 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_get_properties")
+        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
         succeeds("help")
     }
 
@@ -225,7 +227,9 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_get_properties")
+        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
         succeeds("help")
     }
 
@@ -235,7 +239,9 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_script_get_properties")
+        executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
         succeeds("help")
     }
 
@@ -246,7 +252,9 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         child.touch()
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_script_get_properties")
+        executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
         succeeds("help")
     }
 
@@ -256,7 +264,9 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_script_get_properties")
+        executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
         fails("help", "-I", "init.gradle")
 
         then:
