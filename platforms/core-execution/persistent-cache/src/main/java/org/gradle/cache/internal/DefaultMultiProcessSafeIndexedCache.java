@@ -20,6 +20,8 @@ import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.PersistentIndexedCache;
+import org.jspecify.annotations.Nullable;
+
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -103,6 +105,39 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
             } finally {
                 cache = null;
             }
+        }
+    }
+
+    /**
+     * Returns true if the underlying cache supports concurrent reads from any thread
+     * without requiring the coordinator's thread ownership. When true,
+     * {@link #getIfPresentDirectly(Object)} can be used to bypass the async worker.
+     */
+    public boolean supportsConcurrentReads() {
+        PersistentIndexedCache<K, V> c = cache;
+        return c != null && c.supportsConcurrentReads();
+    }
+
+    /**
+     * Reads directly from the underlying persistent cache without going through
+     * {@code fileAccess.readFile()} (which requires thread ownership).
+     *
+     * <p>Only safe when the caller already holds the cross-process file lock
+     * (e.g. via {@code CrossProcessSynchronizingIndexedCache.withFileLock()})
+     * and the underlying cache supports concurrent reads.
+     *
+     * @return the value, or null if not found or cache not yet initialized
+     */
+    @Nullable
+    public V getIfPresentDirectly(K key) {
+        PersistentIndexedCache<K, V> c = cache;
+        if (c == null) {
+            return null;
+        }
+        try {
+            return c.get(key);
+        } catch (Exception e) {
+            return null;
         }
     }
 

@@ -31,8 +31,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A persistent indexed cache backed by MapDB with a write-behind buffer.
@@ -65,7 +65,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     private final File cacheFile;
     private final Serializer<V> valueSerializer;
     private final FastKeyHasher<K> keyHasher;
-    private final HashMap<Long, byte[]> pendingWrites = new HashMap<>();
+    private final ConcurrentHashMap<Long, byte[]> pendingWrites = new ConcurrentHashMap<>();
     private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
     private DB db;
     private HTreeMap<Long, byte[]> map;
@@ -111,6 +111,11 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    @Override
+    public boolean supportsConcurrentReads() {
+        return true;
     }
 
     @Nullable

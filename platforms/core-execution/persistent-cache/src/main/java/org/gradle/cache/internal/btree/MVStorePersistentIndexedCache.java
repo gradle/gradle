@@ -35,8 +35,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A persistent indexed cache backed by H2 MVStore.
@@ -67,7 +67,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     private final Serializer<V> valueSerializer;
     private final FastKeyHasher<K> keyHasher;
     private final boolean useStreamStore;
-    private final HashMap<Long, byte[]> pendingWrites = new HashMap<>();
+    private final ConcurrentHashMap<Long, byte[]> pendingWrites = new ConcurrentHashMap<>();
     private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
     private MVStore store;
     private MVMap<Long, byte[]> map;
@@ -130,6 +130,11 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    @Override
+    public boolean supportsConcurrentReads() {
+        return true;
     }
 
     @Nullable

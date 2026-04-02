@@ -26,10 +26,13 @@ import java.util.function.Function;
 public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
     private final MultiProcessSafeIndexedCache<K, V> indexedCache;
+    private final boolean concurrentReads;
 
     public AsyncCacheAccessDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafeIndexedCache<K, V> indexedCache) {
         this.asyncCacheAccess = asyncCacheAccess;
         this.indexedCache = indexedCache;
+        this.concurrentReads = indexedCache instanceof DefaultMultiProcessSafeIndexedCache
+            && ((DefaultMultiProcessSafeIndexedCache<K, V>) indexedCache).supportsConcurrentReads();
     }
 
     @Override
@@ -40,6 +43,13 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafeAsy
     @Nullable
     @Override
     public V get(final K key) {
+        // When the backing cache supports concurrent reads (e.g. MVStore/MapDB with
+        // ConcurrentHashMap write-behind), read directly without queuing through the
+        // single worker thread. The caller already holds the cross-process file lock
+        // via CrossProcessSynchronizingIndexedCache.withFileLock().
+        if (concurrentReads) {
+            return ((DefaultMultiProcessSafeIndexedCache<K, V>) indexedCache).getIfPresentDirectly(key);
+        }
         return asyncCacheAccess.read(() -> indexedCache.getIfPresent(key));
     }
 

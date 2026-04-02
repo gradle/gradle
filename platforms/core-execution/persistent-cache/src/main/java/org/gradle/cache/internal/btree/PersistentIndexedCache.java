@@ -30,6 +30,20 @@ public interface PersistentIndexedCache<K, V> {
     @Nullable
     V get(K key);
 
+    /**
+     * Whether this cache supports concurrent reads from multiple threads without
+     * external synchronization. When true, {@code get()} may be called from any
+     * thread while another thread is performing {@code put()} or {@code flush()}.
+     *
+     * <p>Implementations backed by a write-behind {@link java.util.concurrent.ConcurrentHashMap}
+     * and a thread-safe read path (e.g. MVStore's MVCC pages) return {@code true}.
+     * Implementations with non-thread-safe internals (e.g. BTree's CachingBlockStore)
+     * return {@code false}.
+     */
+    default boolean supportsConcurrentReads() {
+        return false;
+    }
+
     void put(K key, V value);
 
     void remove(K key);
