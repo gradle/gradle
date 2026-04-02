@@ -17,7 +17,6 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Nested;
@@ -126,13 +125,8 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
 
     /**
      * This method exists only for Kotlin source backward compatibility.
-     *
-     * @deprecated This method is deprecated and will be removed in the next major version of Gradle.
-     * Use {@link #getAllowUntrustedServer()} instead.
      **/
-    @Deprecated
     public Property<Boolean> getIsAllowUntrustedServer() {
-        ProviderApiDeprecationLogger.logDeprecation(HttpBuildCache.class, "getIsAllowUntrustedServer()", "getAllowUntrustedServer()");
         return getAllowUntrustedServer();
     }
 
@@ -158,12 +152,8 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
 
     /**
      * This method exists only for Kotlin source backward compatibility.
-     * @deprecated This method is deprecated and will be removed in the next major version of Gradle.
-     * Use {@link #getAllowInsecureProtocol()} instead.
      **/
-    @Deprecated
     public Property<Boolean> getIsAllowInsecureProtocol() {
-        ProviderApiDeprecationLogger.logDeprecation(HttpBuildCache.class, "getIsAllowInsecureProtocol()", "getAllowInsecureProtocol()");
         return getAllowInsecureProtocol();
     }
 
@@ -187,12 +177,8 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
 
     /**
      * This method exists only for Kotlin source backward compatibility.
-     * @deprecated This method is deprecated and will be removed in the next major version of Gradle.
-     * Use {@link #getUseExpectContinue()} instead.
      **/
-    @Deprecated
     public Property<Boolean> getIsUseExpectContinue() {
-        ProviderApiDeprecationLogger.logDeprecation(HttpBuildCache.class, "getIsUseExpectContinue()", "getUseExpectContinue()");
         return getUseExpectContinue();
     }
 
