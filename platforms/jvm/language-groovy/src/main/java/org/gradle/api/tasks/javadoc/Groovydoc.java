@@ -22,7 +22,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
 import org.gradle.api.internal.tasks.GroovydocParameters;
 import org.gradle.api.model.ObjectFactory;
@@ -241,9 +240,7 @@ public abstract class Groovydoc extends SourceTask {
     public abstract Property<Boolean> getUse();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsUse() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsUse()", "getUse()");
         return getUse();
     }
 
@@ -255,9 +252,7 @@ public abstract class Groovydoc extends SourceTask {
     public abstract Property<Boolean> getNoTimestamp();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoTimestamp() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsNoTimestamp()", "getNoTimestamp()");
         return getNoTimestamp();
     }
 
@@ -269,9 +264,7 @@ public abstract class Groovydoc extends SourceTask {
     public abstract Property<Boolean> getNoVersionStamp();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsNoVersionStamp() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsNoVersionStamp()", "getNoVersionStamp()");
         return getNoVersionStamp();
     }
 

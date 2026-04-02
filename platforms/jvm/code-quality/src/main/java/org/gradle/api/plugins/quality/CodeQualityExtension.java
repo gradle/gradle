@@ -17,7 +17,6 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
@@ -59,9 +58,7 @@ public abstract class CodeQualityExtension {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getIgnoreFailures();
 
-    @Deprecated
     public Property<Boolean> getIsIgnoreFailures() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsIgnoreFailures()", "getIgnoreFailures()");
         return getIgnoreFailures();
     }
 

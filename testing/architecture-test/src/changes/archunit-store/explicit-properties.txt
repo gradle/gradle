@@ -30,6 +30,7 @@ Method <org.gradle.api.tasks.AbstractExecTask.getIsIgnoreExitValue()> is not abs
 Method <org.gradle.api.tasks.AbstractExecTask.getStandardInput()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getStandardOutput()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getWorkingDirectory()> is not abstract
+Method <org.gradle.api.tasks.Delete.getIsFollowSymlinks()> is not abstract
 Method <org.gradle.api.tasks.Exec.getArgs()> is not abstract
 Method <org.gradle.api.tasks.Exec.getErrorOutput()> is not abstract
 Method <org.gradle.api.tasks.Exec.getIgnoreExitValue()> is not abstract
@@ -82,7 +83,6 @@ Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsUse()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getSource()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getIsFailOnError()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getOptionsFile()> is not abstract
-Method <org.gradle.api.tasks.javadoc.Javadoc.getOutputDirectory()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getSource()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getFilteredCompilationOutputs()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getSource()> is not abstract

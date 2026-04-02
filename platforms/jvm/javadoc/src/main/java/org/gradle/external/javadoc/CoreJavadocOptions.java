@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -329,9 +328,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     @Override
-    @Deprecated
     public Provider<Boolean> getIsVerbose() {
-        ProviderApiDeprecationLogger.logDeprecation(CoreJavadocOptions.class, "getIsVerbose()", "getVerbose()");
         return getVerbose();
     }
 
@@ -374,9 +371,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public abstract Property<Boolean> getBreakIterator();
 
     @Override
-    @Deprecated
     public Property<Boolean> getIsBreakIterator() {
-        ProviderApiDeprecationLogger.logDeprecation(CoreJavadocOptions.class, "getIsBreakIterator()", "getBreakIterator()");
         return getBreakIterator();
     }
 

@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
@@ -72,9 +71,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     public abstract Property<Boolean> getFailOnError();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsFailOnError() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsFailOnError()", "getFailOnError()");
         return getFailOnError();
     }
 
@@ -86,9 +83,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     public abstract Property<Boolean> getVerbose();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsVerbose() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsVerbose()", "getVerbose()");
         return getVerbose();
     }
 
@@ -100,9 +95,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     public abstract Property<Boolean> getListFiles();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsListFiles() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsListFiles()", "getListFiles()");
         return getListFiles();
     }
 
@@ -121,9 +114,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     public abstract Property<Boolean> getFork();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsFork() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsFork()", "getFork()");
         return getFork();
     }
 
@@ -210,9 +201,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     public abstract Property<Boolean> getJavaAnnotationProcessing();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsJavaAnnotationProcessing() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsJavaAnnotationProcessing()", "getJavaAnnotationProcessing()");
         return getJavaAnnotationProcessing();
     }
 
@@ -226,9 +215,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     public abstract Property<Boolean> getParameters();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsParameters() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsParameters()", "getParameters()");
         return getParameters();
     }
 
@@ -325,9 +312,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     public abstract Property<Boolean> getKeepStubs();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsKeepStubs() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsKeepStubs()", "getKeepStubs()");
         return getKeepStubs();
     }
 
