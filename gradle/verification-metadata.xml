@@ -404,6 +404,7 @@
             <trusting group="com.google.testing.compile" name="compile-testing"/>
          </trusted-key>
          <trusted-key id="BE685132AFD2740D9095F9040CC0B712FEE75827" group="org.assertj" name="assertj-core"/>
+         <trusted-key id="BED597EFC4BF399D3283F697432DC97E7B73F0B6" group="org.apache.ant"/>
          <trusted-key id="C0612048F3393B80B22639B4F067A2FD751AE3E4" group="io.github.davidburstrom.contester" name="contester-breakpoint"/>
          <trusted-key id="C0822D185FBFD963C33ACBFEA318A06284D602D5" group="com.tngtech.archunit"/>
          <trusted-key id="C328250FE23A2420814521EC0EB69F76FD171538" group="io.airlift" name="slice"/>

@@ -39,6 +39,12 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 
+=== Potential breaking changes
+
+==== Upgrade to Ant 1.10.16
+
+Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.16/WHATSNEW[Ant 1.10.16].
+
 === Deprecations
 
 [[dependency_project_notation]]
