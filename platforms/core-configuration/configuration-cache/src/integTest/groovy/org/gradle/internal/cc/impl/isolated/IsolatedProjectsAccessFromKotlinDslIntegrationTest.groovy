@@ -167,6 +167,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
     def "access to #description delegated property value is causing a violation"() {
         given:
         settingsFile << """
+            rootProject.name = "root"
             include("a")
         """
         buildKotlinFile << """
@@ -180,6 +181,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'root' for property 'myProperty' from project ':a'.")
         isolatedProjectsFails("help")
 
         then:

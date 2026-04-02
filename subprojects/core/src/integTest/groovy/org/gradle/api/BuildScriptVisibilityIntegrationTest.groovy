@@ -24,7 +24,10 @@ class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects"() {
         createDirs("child1")
-        settingsFile << "include 'child1'"
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'child1'
+        """
         buildFile """
 def doSomething(def value) {
     return "{" + value + "}"
@@ -41,6 +44,8 @@ println "child: " + doSomethingElse(11)
 """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'.")
         // Invoke twice to exercise script caching
         succeeds()
         outputContains("root: {10}")
@@ -49,6 +54,10 @@ println "child: " + doSomethingElse(11)
         outputContains("child: [11]")
 
         and:
+        if (GradleContextualExecuter.notConfigCache) {
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'.")
+        }
         succeeds()
         if (GradleContextualExecuter.notConfigCache) {
             outputContains("root: {10}")
@@ -64,7 +73,10 @@ println "child: " + doSomethingElse(11)
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to script plugins applied to project and descendants"() {
         createDirs("child1")
-        settingsFile << "include 'child1'"
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'child1'
+        """
         buildFile << """
 def doSomething(def value) {
     return "{" + value + "}"
@@ -83,6 +95,8 @@ println project.path + " - " + doSomethingElse(12)
 """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'.")
         // Invoke twice to exercise script caching
         succeeds()
         outputContains(": - {12}")
@@ -91,6 +105,10 @@ println project.path + " - " + doSomethingElse(12)
         outputContains(":child1 - [12]")
 
         and:
+        if (GradleContextualExecuter.notConfigCache) {
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'.")
+        }
         succeeds()
         if (GradleContextualExecuter.notConfigCache) {
             outputContains(": - {12}")
@@ -106,7 +124,10 @@ println project.path + " - " + doSomethingElse(12)
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects when script contains only methods"() {
         createDirs("child1")
-        settingsFile << "include 'child1'"
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'child1'
+        """
         buildFile << """
 def doSomething(def value) {
     return value.toString()
@@ -117,11 +138,15 @@ println "child: " + doSomething(11)
 """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
         // Invoke twice to exercise script caching
         succeeds()
         outputContains("child: 11")
 
         and:
+        if (GradleContextualExecuter.notConfigCache) {
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
+        }
         succeeds()
         if (GradleContextualExecuter.notConfigCache) {
             outputContains("child: 11")
@@ -133,7 +158,10 @@ println "child: " + doSomething(11)
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects when script contains only methods and model block"() {
         createDirs("child1")
-        settingsFile << "include 'child1'"
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'child1'
+        """
         buildFile << """
 def doSomething(def value) {
     return value.toString()
@@ -150,11 +178,15 @@ println "child: " + doSomething(11)
 """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
         // Invoke twice to exercise script caching
         succeeds("hello")
         outputContains("child: 11")
 
         and:
+        if (GradleContextualExecuter.notConfigCache) {
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
+        }
         succeeds("hello")
         if (GradleContextualExecuter.notConfigCache) {
             outputContains("child: 11")

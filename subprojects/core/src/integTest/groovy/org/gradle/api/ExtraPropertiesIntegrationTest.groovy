@@ -28,7 +28,12 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         extraPropertiesMultiBuild()
 
-        expect:
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'extra-properties' for property 'testProp' from project ':a'.")
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'extra-properties' for property 'testProp' from project ':b'.")
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':a' for property 'testProp' from project ':a:a1'.")
+
+        then:
         succeeds checkTestPropTasks()
     }
 
@@ -44,7 +49,11 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent()
         }
 
-        expect:
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'extra-properties' for property 'testProp' from project ':b'.")
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':a' for property 'testProp' from project ':a:a1'.")
+
+        then:
         succeeds checkTestPropTasks()
     }
 

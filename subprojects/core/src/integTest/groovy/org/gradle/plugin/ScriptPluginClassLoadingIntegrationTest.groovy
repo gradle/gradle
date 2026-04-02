@@ -145,7 +145,10 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
     )
     def "methods defined in a build script are visible to scripts applied to sub projects"() {
         given:
-        settingsFile << "include 'sub'"
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'sub'
+        """
 
         buildFile """
             def someMethod() {
@@ -157,6 +160,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         file("sub/script.gradle") << "someMethod()"
 
         when:
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'someMethod' on root project 'test' from project ':sub'.")
         run "help"
 
         then:
@@ -211,7 +215,10 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         pluginBuilder.addPlugin("project.task('hello')")
         pluginBuilder.publishTo(executer, jar)
 
-        settingsFile << "include 'sub'"
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'sub'
+        """
 
         buildFile """
             apply from: "script.gradle"
@@ -248,6 +255,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'pluginClass' from project ':sub'.")
         succeeds "hello"
 
         then:
