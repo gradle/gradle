@@ -143,6 +143,7 @@ abstract class AbstractIdeSyncTest extends Specification {
             "--ide-home=$ideHome",
             "--test-home=$testHome",
             "--ide=$ide",
+            "--ide-archive=/Users/donat/Downloads/android-studio-panda2-mac_arm.dmg"
         ]
 
         if (scenario != null) {

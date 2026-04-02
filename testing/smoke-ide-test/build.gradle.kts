@@ -43,7 +43,7 @@ abstract class IdeStarterPathProvider : CommandLineArgumentProvider {
     abstract val ideStarterDir : DirectoryProperty
 
     override fun asArguments(): Iterable<String> =
-        listOf("-Dide.starter.path=${ideStarterDir.get().asFile.absolutePath}")
+        listOf("-Dide.starter.path=/Users/donat/Development/git/gradle/gradle-ide-starter/app/build/install")
 }
 
 tasks {
