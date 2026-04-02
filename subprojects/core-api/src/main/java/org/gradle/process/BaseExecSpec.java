@@ -15,7 +15,6 @@
  */
 package org.gradle.process;
 
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
@@ -40,9 +39,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
     /**
      * Added for Kotlin DSL source compatibility.
      */
-    @Deprecated
     default Property<Boolean> getIsIgnoreExitValue() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsIgnoreExitValue()", "getIgnoreExitValue()");
         return getIgnoreExitValue();
     }
 

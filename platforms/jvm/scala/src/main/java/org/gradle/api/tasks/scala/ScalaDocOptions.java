@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -46,9 +46,7 @@ public abstract class ScalaDocOptions implements Serializable {
     public abstract Property<Boolean> getDeprecation();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsDeprecation() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsDeprecation()", "getDeprecation()");
         return getDeprecation();
     }
 
@@ -60,9 +58,7 @@ public abstract class ScalaDocOptions implements Serializable {
     public abstract Property<Boolean> getUnchecked();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsUnchecked() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsUnchecked()", "getUnchecked()");
         return getUnchecked();
     }
 
