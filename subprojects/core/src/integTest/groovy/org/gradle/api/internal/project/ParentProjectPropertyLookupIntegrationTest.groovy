@@ -32,6 +32,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
             include(":parent")
             include(":parent:child")
         """
+        createDirs("parent", "parent/child")
         parent.touch()
     }
 
@@ -44,7 +45,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Calling 'findProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property 'value' from project ':parent:child'.")
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property 'value' from project ':parent:child'.")
         succeeds("help")
 
         then:
@@ -60,165 +61,203 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Getting property from parent has been deprecated. This will fail with an error in Gradle 10.")
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property 'value' from project ':parent:child'.")
         succeeds("help")
 
         then:
         outputContains("foo")
     }
 
-    def "implicitly invoking method on parent is deprecated"() {
+    def "implicitly invoking closure property on parent is deprecated"() {
         parent << """
-            ${format}
+            ext.foo = { println('called') }
         """
         child << """
             foo()
-            invokeMethod("foo", new Object[] {})
-            invokeMethod("foo", new Object())
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Getting property from parent has been deprecated. This will fail with an error in Gradle 10.")
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property 'foo' from project ':parent:child'.")
         succeeds("help")
 
         then:
         outputContains("called")
+    }
 
-        where:
-        format << [
-            "ext.foo = { println('called') }",
-            "def foo() { println('called') }"
-        ]
+    def "implicitly invoking method on parent is deprecated"() {
+        parent << """
+            def foo() { println('called') }
+        """
+        child << """
+            foo()
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'foo' on project ':parent' from project ':parent:child'.")
+        succeeds("help")
+
+        then:
+        outputContains("called")
+    }
+
+    def "implicitly invoking closure property on grandparent is deprecated"() {
+        grandparent << """
+            ext.foo = { println('called') }
+        """
+        child << """
+            foo()
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property 'foo' from project ':parent:child'.")
+        succeeds("help")
+
+        then:
+        outputContains("called")
     }
 
     def "implicitly invoking method on grandparent is deprecated"() {
         grandparent << """
-            ${format}
+            def foo() { println('called') }
         """
         child << """
             foo()
-            invokeMethod("foo", new Object[] {})
-            invokeMethod("foo", new Object())
         """
 
         when:
-        2.times { executer.expectDocumentedDeprecationWarning("Getting property from parent has been deprecated. This will fail with an error in Gradle 10.") }
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'foo' on project ':parent' from project ':parent:child'.")
         succeeds("help")
 
         then:
         outputContains("called")
-
-        where:
-        format << [
-            "ext.foo = { println('called') }",
-            "def foo() { println('called') }"
-        ]
     }
 
-    def "implicitly getting property of a grandparent through dynamic getProperty is deprecated"() {
-        grandparent << """
-            ext.value = "foo"
-        """
-        child << """
-            getProperty("foo")
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_get_properties")
-        succeeds("help")
-    }
-
-    def "implicitly getting property of a parent through dynamic getProperty is deprecated"() {
+    def "getting property through dynamic getProperty from parent is deprecated"() {
         parent << """
             ext.value = "foo"
         """
         child << """
-            getProperty("foo")
+            println(getProperty("value"))
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_get_properties")
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property 'value' from project ':parent:child'.")
         succeeds("help")
+
+        then:
+        outputContains("foo")
     }
 
-    def "implicitly getting querying presence of grandparent property through dynamic hasProperty is deprecated"() {
+    def "getting property through dynamic getProperty from grandparent is deprecated"() {
         grandparent << """
             ext.value = "foo"
         """
         child << """
-            hasProperty("foo")
+            println(getProperty("value"))
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_get_properties")
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property 'value' from project ':parent:child'.")
         succeeds("help")
+
+        then:
+        outputContains("foo")
     }
 
-    def "implicitly getting querying presence of a parent property through dynamic hasProperty is deprecated"() {
+    def "querying presence of parent property through dynamic hasProperty is deprecated"() {
         parent << """
             ext.value = "foo"
         """
         child << """
-            hasProperty("foo")
+            assert hasProperty("value")
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_get_properties")
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'hasProperty' to query presence of property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for presence property 'value' from project ':parent:child'.")
         succeeds("help")
+
+        then:
+        noExceptionThrown()
     }
 
-    def "implicitly getting property of a grandparent through static getProperty is deprecated"() {
+    def "querying presence of grandparent property through dynamic hasProperty is deprecated"() {
         grandparent << """
             ext.value = "foo"
         """
-        childKts << """
-            getProperty("foo")
+        child << """
+            assert hasProperty("value")
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_get_properties")
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'hasProperty' to query presence of property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for presence property 'value' from project ':parent:child'.")
         succeeds("help")
+
+        then:
+        noExceptionThrown()
     }
 
-    def "implicitly getting property of a parent through static getProperty is deprecated"() {
+    def "getting property through static getProperty from parent is deprecated"() {
         parent << """
             ext.value = "foo"
         """
         childKts << """
-            getProperty("foo")
+            println(property("value"))
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_get_properties")
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property 'value' from project ':parent:child'.")
         succeeds("help")
+
+        then:
+        outputContains("foo")
     }
 
-    def "implicitly getting querying presence of grandparent property through static hasProperty is deprecated"() {
+    def "getting property through static getProperty from grandparent is deprecated"() {
         grandparent << """
             ext.value = "foo"
         """
         childKts << """
-            hasProperty("foo")
+            println(property("value"))
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_project_get_properties")
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property 'value' from project ':parent:child'.")
         succeeds("help")
+
+        then:
+        outputContains("foo")
     }
 
-    def "implicitly getting querying presence of a parent property through static hasProperty is deprecated"() {
+    def "querying presence of parent property through static hasProperty is deprecated"() {
         parent << """
             ext.value = "foo"
         """
         childKts << """
-            hasProperty("foo")
+            require(project.hasProperty("value"))
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'hasProperty' to query presence of property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for presence property 'value' from project ':parent:child'.")
         succeeds("help")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "querying presence of grandparent property through static hasProperty is deprecated"() {
+        grandparent << """
+            ext.value = "foo"
+        """
+        childKts << """
+            require(project.hasProperty("value"))
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Calling 'hasProperty' to query presence of property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for presence property 'value' from project ':parent:child'.")
+        succeeds("help")
+
+        then:
+        noExceptionThrown()
     }
 
     def "statically getting properties of a project is deprecated"() {
@@ -249,7 +288,6 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         settingsFile << """
             properties
         """
-        child.touch()
 
         expect:
         executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
@@ -272,38 +310,4 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasCause("The default project is not yet available for build")
     }
-
-
-    /*
-
-    @Override
-    public Object property(String propertyName) throws MissingPropertyException {
-        return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
-    }
-
-    @Override
-    public Object findProperty(String propertyName) {
-        return dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName);
-    }
-
-    @Override
-    public void setProperty(String name, Object value) {
-        dynamicLookupRoutine.setProperty(extensibleDynamicObject, name, value);
-    }
-
-    @Override
-    public boolean hasProperty(String propertyName) {
-        return dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName);
-    }
-
-    @Override
-    public Map<String, ? extends @Nullable Object> getProperties() {
-        DeprecationLogger.deprecateMethod(Project.class, "getProperties")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_project_get_properties")
-            .nagUser();
-        return dynamicLookupRoutine.getProperties(extensibleDynamicObject);
-    }
-     */
-
 }
