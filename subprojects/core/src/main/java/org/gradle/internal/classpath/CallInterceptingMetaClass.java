@@ -183,7 +183,11 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     @Override
     @Nullable
     public Object invokeMethod(Object object, String methodName, Object[] arguments) {
-        return invokeIntercepted(object, INVOKE_METHOD, methodName, arguments, () -> adaptee.invokeMethod(object, methodName, arguments));
+        // This is called by GroovyObject.invokeMethod(String, Object) as a fallback when the indy call site
+        // fails to find the method. Private methods in superclasses need the fallback here.
+        // We can probably remove private method fallback with Groovy 5, see https://issues.apache.org/jira/browse/GROOVY-11568
+        return invokeWithPrivateMethodFallback(object, methodName, arguments,
+            () -> invokeIntercepted(object, INVOKE_METHOD, methodName, arguments, () -> adaptee.invokeMethod(object, methodName, arguments)));
     }
 
     @Override
@@ -201,16 +205,6 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     public MetaMethod pickMethod(String methodName, Class[] arguments) {
         String matchedCaller = callsTracker.findCallerForCurrentCallIfNotIntercepted(methodName, INVOKE_METHOD);
         MetaMethod original = adaptee.pickMethod(methodName, arguments);
-
-        // Walk superclasses to find private methods not visible in the concrete class's metaclass.
-        // This is needed because AdaptingMetaClass prevents Groovy's indy runtime from
-        // using direct method handles (invokeSpecial) for private method calls, routing them through pickMethod instead.
-        // Note: this also allows calling private methods from superclasses which deviates a bit from Groovy resolution.
-        // See https://github.com/gradle/gradle/issues/37343
-        // See https://issues.apache.org/jira/browse/GROOVY-11568
-        if (original == null) {
-            original = pickPrivateMethodFromSuperClasses(methodName, arguments);
-        }
 
         if (matchedCaller != null) {
             CallInterceptor callInterceptor = interceptorResolver.resolveCallInterceptor(InterceptScope.methodsNamed(methodName));
@@ -233,21 +227,58 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         return original;
     }
 
+    /**
+     * Invokes the original call, falling back to looking up private methods in superclasses if the call fails with
+     * {@link MissingMethodException}. This is needed because {@link AdaptingMetaClass} prevents Groovy's indy runtime from
+     * using direct method handles (invokeSpecial) for private method calls, routing them through invokeMethod instead.
+     * Note: this also allows calling private methods from superclasses which deviates a bit from Groovy resolution.
+     *
+     * @see <a href="https://github.com/gradle/gradle/issues/37343">gradle/gradle#37343</a>
+     * @see <a href="https://issues.apache.org/jira/browse/GROOVY-11568">GROOVY-11568</a>
+     */
     @Nullable
-    private MetaMethod pickPrivateMethodFromSuperClasses(String methodName, Class[] arguments) {
+    private Object invokeWithPrivateMethodFallback(Object object, String methodName, Object[] arguments, Callable<Object> originalCall) {
+        try {
+            return originalCall.call();
+        } catch (MissingMethodException e) {
+            MetaMethod privateMethod = pickPrivateMethodFromSuperClasses(methodName, arguments);
+            if (privateMethod != null) {
+                return privateMethod.invoke(object, arguments);
+            }
+            throw e;
+        } catch (Throwable e) {
+            ThrowAsUnchecked.doThrow(e);
+            throw new IllegalStateException("this is unreachable code, the call above should always throw an exception");
+        }
+    }
+
+    @Nullable
+    private MetaMethod pickPrivateMethodFromSuperClasses(String methodName, Object[] arguments) {
         Class<?> current = theClass.getSuperclass();
         while (current != null && current != Object.class) {
             MetaClass superMetaClass = registry.getMetaClass(current);
             if (superMetaClass instanceof CallInterceptingMetaClass) {
                 superMetaClass = ((CallInterceptingMetaClass) superMetaClass).getAdaptee();
             }
-            MetaMethod method = superMetaClass.pickMethod(methodName, arguments);
+            MetaMethod method = superMetaClass.pickMethod(methodName, inferTypes(arguments));
             if (method != null && Modifier.isPrivate(method.getModifiers())) {
                 return method;
             }
             current = current.getSuperclass();
         }
         return null;
+    }
+
+    private static Class[] inferTypes(Object[] arguments) {
+        if (arguments.length == 0) {
+            return MetaClassHelper.EMPTY_CLASS_ARRAY;
+        }
+        Class[] classes = new Class[arguments.length];
+        for (int i = 0; i < arguments.length; i++) {
+            Object arg = arguments[i];
+            classes[i] = arg == null ? null : arg.getClass();
+        }
+        return classes;
     }
 
     @Nullable
