@@ -15,8 +15,11 @@
  */
 package org.gradle.internal.extensibility;
 
+import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.codehaus.groovy.runtime.GeneratedClosure;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -25,9 +28,14 @@ import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.CompositeDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +46,7 @@ import java.util.Map;
  *
  * @see org.gradle.internal.instantiation.generator.MixInExtensibleDynamicObject
  */
-public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject {
+public class ExtensibleDynamicObject extends AbstractDynamicObject implements HierarchicalDynamicObject {
 
     public enum Location {
         BeforeConventionNotInherited, BeforeConvention, AfterConvention
@@ -46,8 +54,9 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     private final AbstractDynamicObject dynamicDelegate;
     @Nullable
-    private DynamicObject parent;
+    private HierarchicalDynamicObject parent;
     private final DefaultExtensionContainer extensionContainer;
+
     @Nullable
     private DynamicObject beforeConventionNotInherited;
     @Nullable
@@ -56,8 +65,10 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     private DynamicObject afterConvention;
     private final DynamicObject extraPropertiesDynamicObject;
 
+    private CompositeDynamicObject delegateObjects;
+
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
-        this(delegate, createDynamicObject(delegate, publicType), new DefaultExtensionContainer(instanceGenerator));
+        this(delegate, new BeanDynamicObject(delegate, publicType), new DefaultExtensionContainer(instanceGenerator));
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, InstanceGenerator instanceGenerator) {
@@ -70,10 +81,6 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate.getClass(), convention.getExtraProperties());
 
         updateDelegates();
-    }
-
-    private static BeanDynamicObject createDynamicObject(Object delegate, Class<?> publicType) {
-        return new BeanDynamicObject(delegate, publicType);
     }
 
     private void updateDelegates() {
@@ -91,21 +98,10 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         if (afterConvention != null) {
             delegates[idx++] = afterConvention;
         }
-        boolean addedParent = false;
-        if (parent != null) {
-            addedParent = true;
-            delegates[idx++] = parent;
-        }
+
         DynamicObject[] objects = new DynamicObject[idx];
         System.arraycopy(delegates, 0, objects, 0, idx);
-        setObjects(objects);
-
-        if (addedParent) {
-            idx--;
-            objects = new DynamicObject[idx];
-            System.arraycopy(delegates, 0, objects, 0, idx);
-            setObjectsForUpdate(objects);
-        }
+        this.delegateObjects = new CompositeDynamicObject(objects, this::getDisplayName);
     }
 
     @Override
@@ -128,14 +124,14 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         return extensionContainer.getExtraProperties();
     }
 
+    @Override
     @Nullable
-    public DynamicObject getParent() {
+    public HierarchicalDynamicObject getParent() {
         return parent;
     }
 
-    public void setParent(@Nullable DynamicObject parent) {
+    public void setParent(@Nullable HierarchicalDynamicObject parent) {
         this.parent = parent;
-        updateDelegates();
     }
 
     public ExtensionContainer getExtensions() {
@@ -161,12 +157,12 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
      *
      * @return an object containing the inheritable properties and methods of this object.
      */
-    public DynamicObject getInheritable() {
+    public HierarchicalDynamicObject getInheritable() {
         return new InheritedDynamicObject();
     }
 
     private DynamicObject snapshotInheritable() {
-        final List<DynamicObject> delegates = new ArrayList<>(4);
+        final List<DynamicObject> delegates = new ArrayList<>(5);
         delegates.add(extraPropertiesDynamicObject);
         if (beforeConvention != null) {
             delegates.add(beforeConvention);
@@ -175,19 +171,148 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         if (parent != null) {
             delegates.add(parent);
         }
-        return new CompositeDynamicObject() {
-            {
-                setObjects(delegates.toArray(new DynamicObject[0]));
-            }
-
-            @Override
-            public String getDisplayName() {
-                return dynamicDelegate.getDisplayName();
-            }
-        };
+        return new CompositeDynamicObject(delegates.toArray(new DynamicObject[0]), dynamicDelegate::getDisplayName);
     }
 
-    private class InheritedDynamicObject implements DynamicObject {
+    @Override
+    public boolean hasProperty(String name) {
+        if (delegateObjects.hasProperty(name)) {
+            return true;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            if (parent.hasProperty(name)) {
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
+    }
+
+    @Override
+    public DynamicInvokeResult tryGetProperty(String name) {
+        DynamicInvokeResult result = delegateObjects.tryGetProperty(name);
+        if (result.isFound()) {
+            return result;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            result = parent.tryGetProperty(name);
+            if (result.isFound()) {
+                return result;
+            }
+            parent = parent.getParent();
+        }
+        return DynamicInvokeResult.notFound();
+    }
+
+    @Override
+    public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
+        return delegateObjects.trySetProperty(name, value);
+    }
+
+    @Override
+    public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+        return delegateObjects.trySetPropertyWithoutInstrumentation(name, value);
+    }
+
+    @Override
+    @Deprecated
+    public Map<String, @Nullable Object> getProperties() {
+        Map<String, Object> properties = new HashMap<String, Object>();
+
+        // Push parent properties in reverse order, giving priority
+        // to child properties.
+        Deque<HierarchicalDynamicObject> parents = new ArrayDeque<>();
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            parents.push(parent);
+            parent = parent.getParent();
+        }
+        while ((parent = parents.poll()) != null) {
+            properties.putAll(parent.getProperties());
+        }
+
+        properties.putAll(delegateObjects.getProperties());
+        properties.put("properties", properties);
+        return properties;
+    }
+
+    @Override
+    public boolean hasMethod(String name, @Nullable Object... arguments) {
+        if (delegateObjects.hasMethod(name, arguments)) {
+            return true;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            if (parent.hasMethod(name, arguments)) {
+                return true;
+            }
+            parent = parent.getParent();
+        }
+        return false;
+    }
+
+    private DynamicInvokeResult doTryInvokeMethod(String name, @Nullable Object... arguments) {
+        DynamicInvokeResult result = delegateObjects.tryInvokeMethod(name, arguments);
+        if (result.isFound()) {
+            return result;
+        }
+        HierarchicalDynamicObject parent = this.parent;
+        while (parent != null) {
+            result = parent.tryInvokeMethod(name, arguments);
+            if (result.isFound()) {
+                return result;
+            }
+            parent = parent.getParent();
+        }
+        return DynamicInvokeResult.notFound();
+    }
+
+    @Override
+    public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
+        DynamicInvokeResult result = doTryInvokeMethod(name, arguments);
+        if (result.isFound()) {
+            return result;
+        }
+
+        DynamicInvokeResult propertyResult = tryGetProperty(name);
+        if (propertyResult.isFound()) {
+            Object property = propertyResult.getValue();
+            if (property instanceof Closure) {
+                Closure<?> closure = (Closure<?>) property;
+                closure.setResolveStrategy(Closure.DELEGATE_FIRST);
+                BeanDynamicObject dynamicObject = new BeanDynamicObject(closure);
+                result = dynamicObject.tryInvokeMethod("doCall", arguments);
+                if (!result.isFound() && !(closure instanceof GeneratedClosure)) {
+                    return DynamicInvokeResult.found(closure.call(arguments));
+                }
+                return result;
+            }
+            if (property instanceof NamedDomainObjectContainer && arguments.length == 1 && arguments[0] instanceof Closure) {
+                ((NamedDomainObjectContainer<?>) property).configure((Closure<?>) arguments[0]);
+                return DynamicInvokeResult.found();
+            }
+            DynamicObject dynamicObject = DynamicObjectUtil.asDynamicObject(property);
+            if (dynamicObject.hasMethod("call", arguments)) {
+                return dynamicObject.tryInvokeMethod("call", arguments);
+            }
+        }
+        return DynamicInvokeResult.notFound();
+    }
+
+    private class InheritedDynamicObject implements HierarchicalDynamicObject {
+
+        @Override
+        public @Nullable HierarchicalDynamicObject getParent() {
+            return parent;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return dynamicDelegate.getDisplayName();
+        }
+
         @Override
         public void setProperty(String name, @Nullable Object value) {
             throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
@@ -238,6 +363,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         }
 
         @Override
+        @Deprecated
         public Map<String, ? extends @Nullable Object> getProperties() {
             return snapshotInheritable().getProperties();
         }
@@ -260,4 +386,3 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     }
 }
-

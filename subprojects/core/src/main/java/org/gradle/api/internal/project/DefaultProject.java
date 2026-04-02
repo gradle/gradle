@@ -97,6 +97,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
@@ -238,7 +239,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         taskContainer = services.get(TaskContainerInternal.class);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
 
-        @Nullable DynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
+        @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
         if (parentInherited != null) {
             extensibleDynamicObject.setParent(parentInherited);
         }
@@ -428,7 +429,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public DynamicObject getInheritedScope() {
+    public HierarchicalDynamicObject getInheritedScope() {
         return extensibleDynamicObject.getInheritable();
     }
 
