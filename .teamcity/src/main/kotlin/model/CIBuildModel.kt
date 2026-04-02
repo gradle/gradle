@@ -24,7 +24,6 @@ import configurations.OsAwareBaseGradleBuildType
 import configurations.SanityCheck
 import configurations.SmokeIdeTests
 import configurations.SmokeTests
-import configurations.TestPerformanceTest
 import projects.DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE
 import projects.DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE
 import projects.DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE
@@ -219,9 +218,7 @@ data class CIBuildModel(
                 StageName.READY_FOR_RELEASE,
                 trigger = Trigger.DAILY,
                 specificBuilds =
-                    listOf(
-                        SpecificBuild.TestPerformanceTest,
-                    ),
+                    listOf(),
                 functionalTests =
                     listOf(
                         TestCoverage(
@@ -691,12 +688,6 @@ enum class SpecificBuild {
             model: CIBuildModel,
             stage: Stage,
         ): OsAwareBaseGradleBuildType = LightweightChecks(model, stage)
-    },
-    TestPerformanceTest {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = TestPerformanceTest(model, stage)
     },
     SmokeTestsMinJavaVersion {
         override fun create(
