@@ -17,7 +17,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -256,9 +256,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Override
     @Internal
-    @Deprecated
     public Property<Boolean> getIsIgnoreExitValue() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsIgnoreExitValue()", "getIgnoreExitValue()");
         return getIgnoreExitValue();
     }
 

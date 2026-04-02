@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.Input;
@@ -42,9 +41,7 @@ public interface JUnitXmlReport extends DirectoryReport {
      * Used for Kotlin backward source compatibility after migration to Provider API.
      */
     @Internal
-    @Deprecated
     default Property<Boolean> getIsOutputPerTestCase() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsOutputPerTestCase()", "getOutputPerTestCase()");
         return getOutputPerTestCase();
     }
 

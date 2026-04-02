@@ -38,10 +38,8 @@ public interface BuildCache {
     /**
      * Controls whether the build cache is enabled.
      */
-    @Deprecated
     @ReplacedBy("getEnabled()")
     default Property<Boolean> getIsEnabled() {
-        // TODO: for Gradle 9.0 nag with deprecation once DevelocityConventionsPlugin is updated
         return getEnabled();
     }
 
@@ -56,10 +54,8 @@ public interface BuildCache {
      *
      * Added for Kotlin source compatibility.
      */
-    @Deprecated
     @ReplacedBy("getPush()")
     default Property<Boolean> getIsPush() {
-        // TODO: for Gradle 9.0 nag with deprecation once DevelocityConventionsPlugin is updated
         return getPush();
     }
 }

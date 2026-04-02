@@ -24,7 +24,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.plugins.antlr.internal.AntlrExecuter;
 import org.gradle.api.plugins.antlr.internal.AntlrResult;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
@@ -89,9 +88,7 @@ public abstract class AntlrTask extends SourceTask {
     public abstract Property<Boolean> getTrace();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsTrace() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsTrace()", "getTrace()");
         return getTrace();
     }
 
@@ -103,9 +100,7 @@ public abstract class AntlrTask extends SourceTask {
     public abstract Property<Boolean> getTraceLexer();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsTraceLexer() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsTraceLexer()", "getTraceLexer()");
         return getTraceLexer();
     }
 
@@ -117,9 +112,7 @@ public abstract class AntlrTask extends SourceTask {
     public abstract Property<Boolean> getTraceParser();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsTraceParser() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsTraceParser()", "getTraceParser()");
         return getTraceParser();
     }
 
@@ -131,9 +124,7 @@ public abstract class AntlrTask extends SourceTask {
     public abstract Property<Boolean> getTraceTreeWalker();
 
     @Internal
-    @Deprecated
     public Property<Boolean> getIsTraceTreeWalker() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsTraceTreeWalker()", "getTraceTreeWalker()");
         return getTraceTreeWalker();
     }
 

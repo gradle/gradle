@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts.repositories;
 
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+
 import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
@@ -63,9 +63,7 @@ public interface UrlArtifactRepository {
     /**
      * Added for Kotlin source compatibility.
      */
-    @Deprecated
     default Property<Boolean> getIsAllowInsecureProtocol() {
-        ProviderApiDeprecationLogger.logDeprecation(UrlArtifactRepository.class, "getIsAllowInsecureProtocol()", "getAllowInsecureProtocol()");
         return getAllowInsecureProtocol();
     }
 

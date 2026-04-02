@@ -30,6 +30,7 @@ Method <org.gradle.api.tasks.AbstractExecTask.getIsIgnoreExitValue()> is not abs
 Method <org.gradle.api.tasks.AbstractExecTask.getStandardInput()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getStandardOutput()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getWorkingDir()> is not abstract
+Method <org.gradle.api.tasks.Delete.getIsFollowSymlinks()> is not abstract
 Method <org.gradle.api.tasks.Exec.getArgs()> is not abstract
 Method <org.gradle.api.tasks.Exec.getErrorOutput()> is not abstract
 Method <org.gradle.api.tasks.Exec.getIgnoreExitValue()> is not abstract

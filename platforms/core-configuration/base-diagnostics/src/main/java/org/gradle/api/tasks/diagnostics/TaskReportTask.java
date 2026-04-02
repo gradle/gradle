@@ -24,7 +24,6 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
@@ -96,9 +95,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     // kotlin source compatibility
     @Internal
-    @Deprecated
     public Property<Boolean> getIsShowDetail() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsShowDetail()", "getShowDetail()");
         return getShowDetail();
     }
 

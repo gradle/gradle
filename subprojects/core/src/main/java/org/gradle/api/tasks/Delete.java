@@ -79,6 +79,11 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
     @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "isFollowSymlinks", originalType = boolean.class))
     public abstract Property<Boolean> getFollowSymlinks();
 
+    @Internal
+    public Property<Boolean> getIsFollowSymlinks() {
+        return getFollowSymlinks();
+    }
+
     /**
      * Returns the set of files which will be deleted by this task.
      *

@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.DefaultZipCompressor;
 import org.gradle.api.internal.file.copy.ZipCompressor;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -102,9 +102,7 @@ public abstract class Zip extends AbstractArchiveTask {
      * Added for Kotlin source compatibility. Use {@link #getZip64()} instead.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsZip64() {
-        ProviderApiDeprecationLogger.logDeprecation(Zip.class, "getIsZip64()", "getZip64()");
         return getZip64();
     }
 

@@ -24,7 +24,7 @@ import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -255,9 +255,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Used for Kotlin backward source compatibility after migration to Provider API.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsPreserveFileTimestamps() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsPreserveFileTimestamps()", "getPreserveFileTimestamps()");
         return getPreserveFileTimestamps();
     }
 
@@ -280,9 +278,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Used for Kotlin backward source compatibility after migration to Provider API.
      */
     @Internal
-    @Deprecated
     public Property<Boolean> getIsReproducibleFileOrder() {
-        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsReproducibleFileOrder()", "getReproducibleFileOrder()");
         return getReproducibleFileOrder();
     }
 
