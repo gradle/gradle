@@ -35,8 +35,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A persistent indexed cache backed by H2 MVStore.
@@ -51,6 +49,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * For simple value types ({@link BaseSerializerFactory} serializers such as {@code String},
  * {@code Long}, etc.), values are stored inline as {@code byte[]} in the main map — these
  * are small enough that StreamStore's chunking overhead is not worthwhile.
+ *
+ * <p>MVStore uses MVCC with copy-on-write pages, so concurrent reads from any thread are
+ * safe while the worker thread performs writes. This allows
+ * {@link #supportsConcurrentReads()} to return {@code true}, bypassing the single
+ * {@code ExclusiveCacheAccessingWorker} thread for reads.
  */
 @NullMarked
 public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
@@ -67,7 +70,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     private final Serializer<V> valueSerializer;
     private final FastKeyHasher<K> keyHasher;
     private final boolean useStreamStore;
-    private final ConcurrentHashMap<Long, byte[]> pendingWrites = new ConcurrentHashMap<>();
     private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
     private MVStore store;
     private MVMap<Long, byte[]> map;
@@ -106,7 +108,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
             .cacheSize(CACHE_SIZE_MB)
             .autoCommitDisabled()
             .pageSplitSize(PAGE_SPLIT_SIZE)
-            .cacheConcurrency(1)
+            .cacheConcurrency(8)
             .autoCompactFillRate(0);
         if (cacheFile.exists() && !cacheFile.canWrite()) {
             builder.readOnly();
@@ -141,12 +143,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public V get(K key) {
         try {
-            long hash = hashKey(key);
-            byte[] pending = pendingWrites.get(hash);
-            if (pending != null) {
-                return pending.length == 0 ? null : deserialize(pending);
-            }
-            byte[] data = map.get(hash);
+            byte[] data = map.get(hashKey(key));
             if (data == null || data.length == 0) {
                 return null;
             }
@@ -165,8 +162,13 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     public void put(K key, V value) {
         try {
             long hash = hashKey(key);
-            byte[] serialized = serialize(value);
-            pendingWrites.put(hash, serialized);
+            if (useStreamStore) {
+                removeStreamChunks(map.get(hash));
+                byte[] streamRef = streamStore.put(serializeToStream(value));
+                map.put(hash, streamRef);
+            } else {
+                map.put(hash, serialize(value));
+            }
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not add entry '%s' to %s.", key, this), e), true);
         }
@@ -175,46 +177,38 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public void remove(K key) {
         try {
-            pendingWrites.put(hashKey(key), TOMBSTONE);
+            long hash = hashKey(key);
+            if (useStreamStore) {
+                removeStreamChunks(map.get(hash));
+            }
+            map.put(hash, TOMBSTONE);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Could not remove entry '%s' from %s.", key, this), e), true);
         }
-    }
-
-    /**
-     * Flushes pending writes into MVStore. For simple values, writes the serialized
-     * bytes directly to the map. For StreamStore values, removes old chunks and writes
-     * new stream references.
-     */
-    private void flushPendingWrites() {
-        try {
-            for (Map.Entry<Long, byte[]> entry : pendingWrites.entrySet()) {
-                long hash = entry.getKey();
-                byte[] value = entry.getValue();
-                if (value.length == 0) {
-                    // tombstone
-                    if (useStreamStore) {
-                        removeStreamChunks(map.get(hash));
-                    }
-                    map.put(hash, TOMBSTONE);
-                } else if (useStreamStore) {
-                    removeStreamChunks(map.get(hash));
-                    byte[] streamRef = streamStore.put(new ByteArrayInputStream(value));
-                    map.put(hash, streamRef);
-                } else {
-                    map.put(hash, value);
-                }
-            }
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-        pendingWrites.clear();
     }
 
     /** Removes the stream chunks for {@code existingRef} if it is a live stream reference. */
     private void removeStreamChunks(byte @Nullable [] existingRef) {
         if (existingRef != null && existingRef.length > 0) {
             streamStore.remove(existingRef);
+        }
+    }
+
+    /**
+     * Serializes {@code value} into the ThreadLocal reusable buffer and returns a
+     * {@link ByteArrayInputStream} view over it. Safe to pass to {@link StreamStore#put}
+     * since {@code put} reads the stream synchronously before returning.
+     */
+    private ByteArrayInputStream serializeToStream(V value) {
+        try {
+            SerializationBuffer sb = serializationBuffers.get();
+            sb.baos.reset();
+            sb.encoder.flush();
+            valueSerializer.write(sb.encoder, value);
+            sb.encoder.flush();
+            return new ByteArrayInputStream(sb.baos.getBuffer(), 0, sb.baos.getCount());
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -258,7 +252,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Override
     public void flush() {
         if (store != null && !store.isClosed() && !store.isReadOnly()) {
-            flushPendingWrites();
             store.commit();
         }
     }
@@ -268,7 +261,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
         if (store != null && !store.isClosed()) {
             try {
                 if (!store.isReadOnly()) {
-                    flushPendingWrites();
                     store.commit();
                 }
                 store.close();
@@ -299,7 +291,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
 
     @Override
     public void clear() {
-        pendingWrites.clear();
         close();
         cacheFile.delete();
         try {
@@ -316,7 +307,6 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
 
     private void rebuild() {
         LOGGER.warn("{} is corrupt. Discarding.", this);
-        pendingWrites.clear();
         try {
             if (store != null && !store.isClosed()) {
                 store.closeImmediately();
