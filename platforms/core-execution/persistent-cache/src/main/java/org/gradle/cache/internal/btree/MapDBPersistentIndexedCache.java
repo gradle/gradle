@@ -67,17 +67,26 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     private final FastKeyHasher<K> keyHasher;
     private final ConcurrentHashMap<Long, byte[]> pendingWrites = new ConcurrentHashMap<>();
     private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
-    private DB db;
+    private volatile DB db;
     private HTreeMap<Long, byte[]> map;
 
     public MapDBPersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this.cacheFile = cacheFile;
         this.valueSerializer = valueSerializer;
         this.keyHasher = new FastKeyHasher<>(keySerializer);
-        try {
-            doOpen();
-        } catch (Exception e) {
-            rebuild();
+    }
+
+    private void ensureOpen() {
+        if (db == null) {
+            synchronized (this) {
+                if (db == null) {
+                    try {
+                        doOpen();
+                    } catch (Exception e) {
+                        rebuild();
+                    }
+                }
+            }
         }
     }
 
@@ -121,6 +130,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
     @Nullable
     @Override
     public V get(K key) {
+        ensureOpen();
         try {
             long hash = hashKey(key);
             byte[] pending = pendingWrites.get(hash);
@@ -137,6 +147,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public void put(K key, V value) {
+        ensureOpen();
         try {
             long hash = hashKey(key);
             byte[] serialized = serialize(value);
@@ -148,6 +159,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public void remove(K key) {
+        ensureOpen();
         try {
             pendingWrites.put(hashKey(key), TOMBSTONE);
         } catch (Exception e) {
@@ -196,14 +208,20 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public void flush() {
-        if (db != null && !db.isClosed()) {
+        if (db == null) {
+            return;
+        }
+        if (!db.isClosed()) {
             flushPendingWrites();
         }
     }
 
     @Override
     public void close() {
-        if (db != null && !db.isClosed()) {
+        if (db == null) {
+            return;
+        }
+        if (!db.isClosed()) {
             try {
                 flushPendingWrites();
                 db.close();

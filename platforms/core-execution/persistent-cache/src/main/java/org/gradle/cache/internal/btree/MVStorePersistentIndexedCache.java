@@ -71,7 +71,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     private final FastKeyHasher<K> keyHasher;
     private final boolean useStreamStore;
     private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
-    private MVStore store;
+    private volatile MVStore store;
     private MVMap<Long, byte[]> map;
     @Nullable private StreamStore streamStore;
 
@@ -80,10 +80,19 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
         this.valueSerializer = valueSerializer;
         this.keyHasher = new FastKeyHasher<>(keySerializer);
         this.useStreamStore = !isSimpleSerializer(valueSerializer);
-        try {
-            doOpen();
-        } catch (Exception e) {
-            rebuild();
+    }
+
+    private void ensureOpen() {
+        if (store == null) {
+            synchronized (this) {
+                if (store == null) {
+                    try {
+                        doOpen();
+                    } catch (Exception e) {
+                        rebuild();
+                    }
+                }
+            }
         }
     }
 
@@ -142,6 +151,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
     @Nullable
     @Override
     public V get(K key) {
+        ensureOpen();
         try {
             byte[] data = map.get(hashKey(key));
             if (data == null || data.length == 0) {
@@ -160,6 +170,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
 
     @Override
     public void put(K key, V value) {
+        ensureOpen();
         try {
             long hash = hashKey(key);
             if (useStreamStore) {
@@ -176,6 +187,7 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
 
     @Override
     public void remove(K key) {
+        ensureOpen();
         try {
             long hash = hashKey(key);
             if (useStreamStore) {
@@ -251,14 +263,20 @@ public class MVStorePersistentIndexedCache<K, V> implements PersistentIndexedCac
 
     @Override
     public void flush() {
-        if (store != null && !store.isClosed() && !store.isReadOnly()) {
+        if (store == null) {
+            return;
+        }
+        if (!store.isClosed() && !store.isReadOnly()) {
             store.commit();
         }
     }
 
     @Override
     public void close() {
-        if (store != null && !store.isClosed()) {
+        if (store == null) {
+            return;
+        }
+        if (!store.isClosed()) {
             try {
                 if (!store.isReadOnly()) {
                     store.commit();
