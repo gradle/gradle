@@ -35,7 +35,6 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -221,6 +220,9 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
                     }
                     if (storedHash == hash) {
                         long offset = idx.getLong(pos + 8);
+                        if (offset < 0) {
+                            return null; // tombstoned entry
+                        }
                         accessedKeys.add(hash);
                         return readValueFromChannel(ch, offset);
                     }
@@ -266,10 +268,17 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             return;
         }
         try {
-            // 1. Append pending entries to data file, tracking offsets
+            // 1. Append pending entries to data file, tracking offsets and hashes
             long appendPos = dataFile.exists() ? dataFile.length() : 0;
-            Map<Long, long[]> newEntries = new LinkedHashMap<>();
             long now = System.currentTimeMillis();
+            int newPutCount = 0;
+            int tombstoneCount = 0;
+
+            // Collect new entry hashes/offsets in compact arrays (no Map overhead)
+            int pendingSize = pendingWrites.size();
+            long[] newHashes = new long[pendingSize];
+            long[] newOffsets = new long[pendingSize];
+            int newIdx = 0;
 
             try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(dataFile, true), 8192)) {
                 for (Map.Entry<Long, byte[]> entry : pendingWrites.entrySet()) {
@@ -277,8 +286,12 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
                     byte[] value = entry.getValue();
                     if (value == TOMBSTONE) {
                         flushedWrites.put(hash, TOMBSTONE);
+                        tombstoneCount++;
                     } else {
-                        newEntries.put(hash, new long[]{appendPos, now});
+                        newHashes[newIdx] = hash;
+                        newOffsets[newIdx] = appendPos;
+                        newIdx++;
+                        newPutCount++;
                         appendPos += ENTRY_HEADER_SIZE + value.length + ENTRY_TYPE_SIZE;
                         writeEntry(bos, hash, value, ENTRY_PUT);
                         flushedWrites.put(hash, value);
@@ -288,84 +301,186 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             }
             pendingWrites.clear();
 
-            // 2. Merge new offsets into existing index entries (pure in-memory, no data file scan)
-            Map<Long, long[]> allEntries = new LinkedHashMap<>();
-
-            // Start with existing index
+            // 2. Update the index — in-place if possible, full rebuild if table needs to grow
             ByteBuffer idx = indexBuffer;
             if (idx != null && bucketCount > 0) {
-                for (int i = 0; i < bucketCount; i++) {
-                    int pos = HEADER_SIZE + i * BUCKET_SIZE;
-                    long storedHash = idx.getLong(pos);
-                    if (storedHash != 0) {
-                        long offset = idx.getLong(pos + 8);
-                        long lastAccess = idx.getLong(pos + 16);
-                        if (accessedKeys.contains(storedHash)) {
-                            lastAccess = now;
+                int currentEntryCount = idx.getInt(8);
+                // Count genuinely new keys (not updates to existing)
+                int genuinelyNew = 0;
+                for (int i = 0; i < newPutCount; i++) {
+                    if (!probeIndexContains(idx, bucketCount, bucketMask, newHashes[i])) {
+                        genuinelyNew++;
+                    }
+                }
+                // Tombstones don't add entries, they just mark offset = -1
+                int newTotal = currentEntryCount + genuinelyNew;
+                // Check load factor: 75% of bucket count
+                if (newTotal * 4 <= bucketCount * 3) {
+                    // Fast path: copy byte array, update/insert/tombstone buckets directly
+                    byte[] updatedBytes = new byte[idx.capacity()];
+                    idx.position(0);
+                    idx.get(updatedBytes);
+                    ByteBuffer updated = ByteBuffer.wrap(updatedBytes);
+                    updated.putInt(8, newTotal);
+
+                    // Insert/update puts
+                    for (int i = 0; i < newPutCount; i++) {
+                        insertIntoBuckets(updated, bucketCount, bucketMask, newHashes[i], newOffsets[i], now);
+                    }
+
+                    // Apply tombstones: set offset to -1 (sentinel), keeping hash in place
+                    // to preserve linear probing chains
+                    if (tombstoneCount > 0) {
+                        for (Map.Entry<Long, byte[]> entry : flushedWrites.entrySet()) {
+                            if (entry.getValue() == TOMBSTONE) {
+                                tombstoneInBuckets(updated, bucketCount, bucketMask, entry.getKey());
+                            }
                         }
-                        allEntries.put(storedHash, new long[]{offset, lastAccess});
                     }
+
+                    // Write to disk and use directly
+                    File newIndexFile = new File(indexFile.getPath() + ".new");
+                    Files.write(newIndexFile.toPath(), updatedBytes);
+                    Files.move(newIndexFile.toPath(), indexFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    indexBuffer = updated;
+                    return;
                 }
             }
 
-            // Overlay new entries (override existing keys)
-            allEntries.putAll(newEntries);
-
-            // Apply tombstones
-            for (Map.Entry<Long, byte[]> entry : flushedWrites.entrySet()) {
-                if (entry.getValue() == TOMBSTONE) {
-                    allEntries.remove(entry.getKey());
-                }
-            }
-
-            if (allEntries.isEmpty()) {
-                closeDataChannel();
-                deleteFiles();
-                indexBuffer = null;
-                bucketCount = 0;
-                bucketMask = 0;
-                // no data file
-                return;
-            }
-
-            // 3. Build new index hash table
-            int entryCount = allEntries.size();
-            int newBucketCount = nextPowerOfTwo(entryCount * 4 / 3 + 1);
-            int newBucketMask = newBucketCount - 1;
-
-            byte[] newIndexBytes = new byte[HEADER_SIZE + newBucketCount * BUCKET_SIZE];
-            ByteBuffer newIdx = ByteBuffer.wrap(newIndexBytes);
-            newIdx.putInt(0, MAGIC);
-            newIdx.putInt(4, newBucketCount);
-            newIdx.putInt(8, entryCount);
-
-            for (Map.Entry<Long, long[]> entry : allEntries.entrySet()) {
-                long hash = entry.getKey();
-                long[] meta = entry.getValue();
-                int bucket = (int) (hash & newBucketMask);
-                for (int probe = 0; probe < newBucketCount; probe++) {
-                    int idxPos = HEADER_SIZE + ((bucket + probe) & newBucketMask) * BUCKET_SIZE;
-                    if (newIdx.getLong(idxPos) == 0) {
-                        newIdx.putLong(idxPos, hash);
-                        newIdx.putLong(idxPos + 8, meta[0]);
-                        newIdx.putLong(idxPos + 16, meta[1]);
-                        break;
-                    }
-                }
-            }
-
-            // 4. Write index to disk
-            File newIndexFile = new File(indexFile.getPath() + ".new");
-            Files.write(newIndexFile.toPath(), newIndexBytes);
-            Files.move(newIndexFile.toPath(), indexFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-            // 5. Use the buffer we just built directly — no re-read from disk
-            indexBuffer = newIdx;
-            bucketCount = newBucketCount;
-            bucketMask = newBucketMask;
+            // Slow path: full rebuild (table needs to grow or first flush with empty index)
+            fullRebuildIndex(idx, newPutCount, newHashes, newOffsets, tombstoneCount, now);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    /** Checks whether a hash already exists in the index ByteBuffer. */
+    private static boolean probeIndexContains(ByteBuffer idx, int bc, int mask, long hash) {
+        int bucket = (int) (hash & mask);
+        for (int probe = 0; probe < bc; probe++) {
+            int pos = HEADER_SIZE + ((bucket + probe) & mask) * BUCKET_SIZE;
+            long stored = idx.getLong(pos);
+            if (stored == 0) {
+                return false;
+            }
+            if (stored == hash) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Marks an entry as tombstoned by setting offset to -1. Preserves the hash to keep probe chains intact. */
+    private static void tombstoneInBuckets(ByteBuffer idx, int bc, int mask, long hash) {
+        int bucket = (int) (hash & mask);
+        for (int probe = 0; probe < bc; probe++) {
+            int pos = HEADER_SIZE + ((bucket + probe) & mask) * BUCKET_SIZE;
+            long stored = idx.getLong(pos);
+            if (stored == 0) {
+                return; // not found
+            }
+            if (stored == hash) {
+                idx.putLong(pos + 8, -1L); // sentinel offset — get() returns null
+                return;
+            }
+        }
+    }
+
+    /** Inserts or updates an entry directly in the index byte array. */
+    private static void insertIntoBuckets(ByteBuffer idx, int bc, int mask, long hash, long offset, long lastAccess) {
+        int bucket = (int) (hash & mask);
+        for (int probe = 0; probe < bc; probe++) {
+            int pos = HEADER_SIZE + ((bucket + probe) & mask) * BUCKET_SIZE;
+            long stored = idx.getLong(pos);
+            if (stored == 0 || stored == hash) {
+                // Empty bucket (insert) or same key (update)
+                idx.putLong(pos, hash);
+                idx.putLong(pos + 8, offset);
+                idx.putLong(pos + 16, lastAccess);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Full index rebuild — used when the table needs to grow or when there are tombstones.
+     * Creates a new hash table from existing index entries + new entries.
+     */
+    private void fullRebuildIndex(ByteBuffer oldIdx, int newPutCount, long[] newHashes, long[] newOffsets, int tombstoneCount, long now) throws IOException {
+        // Collect tombstoned hashes for quick lookup
+        Set<Long> tombstones = ConcurrentHashMap.newKeySet();
+        if (tombstoneCount > 0) {
+            for (Map.Entry<Long, byte[]> entry : flushedWrites.entrySet()) {
+                if (entry.getValue() == TOMBSTONE) {
+                    tombstones.add(entry.getKey());
+                }
+            }
+        }
+
+        // Count entries to size the table correctly
+        int existingCount = 0;
+        if (oldIdx != null && bucketCount > 0) {
+            for (int i = 0; i < bucketCount; i++) {
+                int pos = HEADER_SIZE + i * BUCKET_SIZE;
+                long stored = oldIdx.getLong(pos);
+                if (stored != 0 && !tombstones.contains(stored)) {
+                    existingCount++;
+                }
+            }
+        }
+
+        int maxEntries = existingCount + newPutCount;
+        int newBucketCount = nextPowerOfTwo(maxEntries * 4 / 3 + 1);
+        int newBucketMask = newBucketCount - 1;
+
+        byte[] newIndexBytes = new byte[HEADER_SIZE + newBucketCount * BUCKET_SIZE];
+        ByteBuffer newBuf = ByteBuffer.wrap(newIndexBytes);
+        newBuf.putInt(0, MAGIC);
+        newBuf.putInt(4, newBucketCount);
+
+        // Copy existing entries, skipping tombstoned ones
+        int entryCount = 0;
+        if (oldIdx != null && bucketCount > 0) {
+            for (int i = 0; i < bucketCount; i++) {
+                int pos = HEADER_SIZE + i * BUCKET_SIZE;
+                long storedHash = oldIdx.getLong(pos);
+                if (storedHash != 0 && !tombstones.contains(storedHash)) {
+                    long offset = oldIdx.getLong(pos + 8);
+                    long lastAccess = oldIdx.getLong(pos + 16);
+                    if (accessedKeys.contains(storedHash)) {
+                        lastAccess = now;
+                    }
+                    insertIntoBuckets(newBuf, newBucketCount, newBucketMask, storedHash, offset, lastAccess);
+                    entryCount++;
+                }
+            }
+        }
+
+        // Insert new entries (override existing)
+        for (int i = 0; i < newPutCount; i++) {
+            if (!probeIndexContains(newBuf, newBucketCount, newBucketMask, newHashes[i])) {
+                entryCount++;
+            }
+            insertIntoBuckets(newBuf, newBucketCount, newBucketMask, newHashes[i], newOffsets[i], now);
+        }
+
+        newBuf.putInt(8, entryCount);
+
+        if (entryCount == 0) {
+            closeDataChannel();
+            deleteFiles();
+            indexBuffer = null;
+            bucketCount = 0;
+            bucketMask = 0;
+            return;
+        }
+
+        File newIndexFile = new File(indexFile.getPath() + ".new");
+        Files.write(newIndexFile.toPath(), newIndexBytes);
+        Files.move(newIndexFile.toPath(), indexFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        indexBuffer = newBuf;
+        bucketCount = newBucketCount;
+        bucketMask = newBucketMask;
     }
 
     @Override
