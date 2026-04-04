@@ -124,7 +124,7 @@ public class MapDBPersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public boolean supportsConcurrentReads() {
-        return true;
+        return false;
     }
 
     @Nullable
