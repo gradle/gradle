@@ -28,11 +28,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
 /**
  * A persistent indexed cache backed by an append-only data log and a hash-table index file.
@@ -60,8 +60,9 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final byte ENTRY_PUT = 1;
     private static final int KRYO_BUFFER_SIZE = 512;
     private static final int ENTRY_HEADER_SIZE = 12;
-    private static final int ENTRY_TYPE_SIZE = 1;
     private static final int SPECULATIVE_READ_SIZE = 512;
+    // Placeholder written before the serialized value so the entry is contiguous in one buffer
+    private static final byte[] HEADER_PLACEHOLDER = new byte[ENTRY_HEADER_SIZE];
 
     private final File baseFile;
     private final File dataFile;
@@ -75,8 +76,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private volatile int bucketMask;
     private int entryCount;
 
-    // Data file: RandomAccessFile for writes (append), FileChannel for concurrent reads (pread)
-    private RandomAccessFile dataRaf;
+    // Data file: FileChannel for both writes (append via position) and concurrent reads (pread)
     private volatile FileChannel dataChannel;
     private long appendPosition;
 
@@ -114,9 +114,9 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private void doOpen() throws IOException {
         baseFile.getParentFile().mkdirs();
         loadIndex();
-        dataRaf = new RandomAccessFile(dataFile, "rw");
-        appendPosition = dataRaf.length();
-        dataChannel = dataRaf.getChannel();
+        dataChannel = FileChannel.open(dataFile.toPath(),
+            StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
+        appendPosition = dataChannel.size();
         open = true;
     }
 
@@ -206,24 +206,34 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         try {
             long hash = hashKey(key);
 
-            // Serialize into ThreadLocal buffer — no byte[] allocation
+            // Serialize into ThreadLocal buffer with header placeholder prepended.
+            // Layout: [12 bytes placeholder][serialized value][1 byte type]
+            // Then patch the header in-place. Result: one contiguous buffer, one write syscall.
             SerializationBuffer sb = serializationBuffers.get();
             sb.baos.reset();
+            sb.baos.write(HEADER_PLACEHOLDER, 0, ENTRY_HEADER_SIZE);
             sb.encoder.flush();
             valueSerializer.write(sb.encoder, value);
             sb.encoder.flush();
-            int valueLen = sb.baos.getCount();
+            int valueLen = sb.baos.getCount() - ENTRY_HEADER_SIZE;
+            sb.baos.write(ENTRY_PUT);
 
-            // 1. Append to data file directly from the reusable buffer
+            // Patch header directly in the buffer
+            byte[] buf = sb.baos.getBuffer();
+            putLong(buf, 0, hash);
+            putInt(buf, 8, valueLen);
+            int totalLen = sb.baos.getCount();
+
+            // Single write syscall for the entire entry
+            ByteBuffer writeBuf = ByteBuffer.wrap(buf, 0, totalLen);
             long offset = appendPosition;
-            dataRaf.seek(appendPosition);
-            dataRaf.writeLong(hash);
-            dataRaf.writeInt(valueLen);
-            dataRaf.write(sb.baos.getBuffer(), 0, valueLen);
-            dataRaf.write(ENTRY_PUT);
-            appendPosition += ENTRY_HEADER_SIZE + valueLen + ENTRY_TYPE_SIZE;
+            long writePos = appendPosition;
+            while (writeBuf.hasRemaining()) {
+                writePos += dataChannel.write(writeBuf, writePos);
+            }
+            appendPosition += totalLen;
 
-            // 2. Update in-memory index
+            // Update in-memory index
             boolean isNew = !probeIndexContains(hash);
             if (isNew) {
                 entryCount++;
@@ -366,22 +376,30 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         }
     }
 
+    /**
+     * Writes the index to disk without copying — uses the backing array of the heap ByteBuffer directly.
+     * Zero allocation: the ByteBuffer wraps a byte[] (from {@link #growIndex} or {@link #loadIndex}),
+     * and {@link Files#write} writes that array directly.
+     */
+    @SuppressWarnings("ByteBufferBackingArray") // indexBuffer is always heap-allocated via wrap()
     private void writeIndexToDisk() throws IOException {
         ByteBuffer idx = indexBuffer;
         if (idx == null) {
             return;
         }
-        byte[] bytes = new byte[idx.capacity()];
-        idx.position(0);
-        idx.get(bytes);
-        // Update entry count in the copy
-        ByteBuffer.wrap(bytes).putInt(8, entryCount);
+        // Update entry count in the live buffer (it's our own, safe to modify)
+        idx.putInt(8, entryCount);
 
+        // Write directly from the backing array — no copy
         File newIndexFile = new File(indexFile.getPath() + ".new");
-        Files.write(newIndexFile.toPath(), bytes);
+        Files.write(newIndexFile.toPath(), idx.array());
         Files.move(newIndexFile.toPath(), indexFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
+    /**
+     * Reads and deserializes a value from the data file using positional read (pread).
+     * Thread-safe: {@link FileChannel#read(ByteBuffer, long)} does not modify channel position.
+     */
     @Nullable
     private V readValueFromChannel(FileChannel ch, long offset) throws IOException {
         ByteBuffer buf = readBuffers.get();
@@ -419,6 +437,26 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    /** Writes a long in big-endian directly into a byte array. */
+    private static void putLong(byte[] buf, int offset, long value) {
+        buf[offset]     = (byte) (value >> 56);
+        buf[offset + 1] = (byte) (value >> 48);
+        buf[offset + 2] = (byte) (value >> 40);
+        buf[offset + 3] = (byte) (value >> 32);
+        buf[offset + 4] = (byte) (value >> 24);
+        buf[offset + 5] = (byte) (value >> 16);
+        buf[offset + 6] = (byte) (value >> 8);
+        buf[offset + 7] = (byte) value;
+    }
+
+    /** Writes an int in big-endian directly into a byte array. */
+    private static void putInt(byte[] buf, int offset, int value) {
+        buf[offset]     = (byte) (value >> 24);
+        buf[offset + 1] = (byte) (value >> 16);
+        buf[offset + 2] = (byte) (value >> 8);
+        buf[offset + 3] = (byte) value;
     }
 
     private long hashKey(K key) {
@@ -488,13 +526,13 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
 
     private void closeQuietly() {
         try {
-            if (dataRaf != null) {
-                dataRaf.close();
+            FileChannel ch = dataChannel;
+            if (ch != null) {
+                ch.close();
             }
         } catch (Exception e) {
-            LOGGER.debug("Failed to close data file", e);
+            LOGGER.debug("Failed to close data channel", e);
         }
-        dataRaf = null;
         dataChannel = null;
         indexBuffer = null;
         bucketCount = 0;
