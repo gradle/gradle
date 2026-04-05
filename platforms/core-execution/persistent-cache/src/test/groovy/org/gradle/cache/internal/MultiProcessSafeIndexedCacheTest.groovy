@@ -16,16 +16,16 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.FileAccess
-import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
+import org.gradle.cache.internal.btree.PersistentIndexedCache
 import spock.lang.Specification
 
 import java.util.function.Supplier
 
 class MultiProcessSafeIndexedCacheTest extends Specification {
     final FileAccess fileAccess = Mock()
-    final Supplier<BTreePersistentIndexedCache<String, String>> factory = Mock()
+    final Supplier<PersistentIndexedCache<String, String>> factory = Mock()
     final cache = new DefaultMultiProcessSafeIndexedCache<String, String>(factory, fileAccess)
-    final BTreePersistentIndexedCache<String, String> backingCache = Mock()
+    final PersistentIndexedCache<String, String> backingCache = Mock()
 
     def "opens cache on first access"() {
         when:
