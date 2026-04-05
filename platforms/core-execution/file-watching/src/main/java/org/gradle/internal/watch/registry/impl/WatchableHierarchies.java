@@ -138,7 +138,7 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public static SnapshotHierarchy removeUnwatchableContentAfterBuildFinished(SnapshotHierarchy root, Invalidator invalidator) {
+    public SnapshotHierarchy removeUnwatchableContentAfterBuildFinished(SnapshotHierarchy root, Invalidator invalidator) {
         SnapshotHierarchy newRoot = root;
         // We are not being notified about changes to content accessed via symlinks
         newRoot = removeIndirectlySymlinkedRoots(newRoot, invalidator);
@@ -147,9 +147,10 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    private static SnapshotHierarchy removeIndirectlySymlinkedRoots(SnapshotHierarchy root, Invalidator invalidator) {
+    private SnapshotHierarchy removeIndirectlySymlinkedRoots(SnapshotHierarchy root, Invalidator invalidator) {
         Map<String, Boolean> symlinkCache = new HashMap<>();
         return root.rootSnapshots()
+            .filter(snapshot -> !immutableLocationsFilter.test(snapshot.getAbsolutePath()))
             .filter(snapshot -> isAncestorASymlink(symlinkCache, new File(snapshot.getAbsolutePath())))
             .reduce(
                 root,
