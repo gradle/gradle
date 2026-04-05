@@ -59,6 +59,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final int BUCKET_SIZE = 24;
     private static final byte ENTRY_PUT = 1;
     private static final int KRYO_BUFFER_SIZE = 512;
+    private static final int WRITE_BUFFER_INITIAL_SIZE = 32 * 1024;
     private static final int ENTRY_HEADER_SIZE = 12;
     private static final int SPECULATIVE_READ_SIZE = 512;
     // Placeholder written before the serialized value so the entry is contiguous in one buffer
@@ -80,8 +81,12 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private volatile FileChannel dataChannel;
     private long appendPosition;
 
-    private final ThreadLocal<SerializationBuffer> serializationBuffers = ThreadLocal.withInitial(SerializationBuffer::new);
-    private final ThreadLocal<ByteBuffer> readBuffers = ThreadLocal.withInitial(() -> ByteBuffer.allocate(SPECULATIVE_READ_SIZE));
+    // Write buffer: plain field, only accessed by single worker thread
+    private final FastByteArrayOutputStream writeBaos = new FastByteArrayOutputStream(WRITE_BUFFER_INITIAL_SIZE);
+    private final KryoBackedEncoder writeEncoder = new KryoBackedEncoder(writeBaos, WRITE_BUFFER_INITIAL_SIZE);
+
+    // Read buffers: ThreadLocal, accessed by concurrent reader threads
+    private final ThreadLocal<ReadBuffer> readBuffers = ThreadLocal.withInitial(ReadBuffer::new);
 
     private volatile boolean open;
     private boolean indexDirty;
@@ -206,23 +211,22 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         try {
             long hash = hashKey(key);
 
-            // Serialize into ThreadLocal buffer with header placeholder prepended.
+            // Serialize into write buffer with header placeholder prepended.
             // Layout: [12 bytes placeholder][serialized value][1 byte type]
             // Then patch the header in-place. Result: one contiguous buffer, one write syscall.
-            SerializationBuffer sb = serializationBuffers.get();
-            sb.baos.reset();
-            sb.baos.write(HEADER_PLACEHOLDER, 0, ENTRY_HEADER_SIZE);
-            sb.encoder.flush();
-            valueSerializer.write(sb.encoder, value);
-            sb.encoder.flush();
-            int valueLen = sb.baos.getCount() - ENTRY_HEADER_SIZE;
-            sb.baos.write(ENTRY_PUT);
+            writeBaos.reset();
+            writeBaos.write(HEADER_PLACEHOLDER, 0, ENTRY_HEADER_SIZE);
+            writeEncoder.flush();
+            valueSerializer.write(writeEncoder, value);
+            writeEncoder.flush();
+            int valueLen = writeBaos.getCount() - ENTRY_HEADER_SIZE;
+            writeBaos.write(ENTRY_PUT);
 
             // Patch header directly in the buffer
-            byte[] buf = sb.baos.getBuffer();
+            byte[] buf = writeBaos.getBuffer();
             putLong(buf, 0, hash);
             putInt(buf, 8, valueLen);
-            int totalLen = sb.baos.getCount();
+            int totalLen = writeBaos.getCount();
 
             // Single write syscall for the entire entry
             ByteBuffer writeBuf = ByteBuffer.wrap(buf, 0, totalLen);
@@ -402,27 +406,26 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
      */
     @Nullable
     private V readValueFromChannel(FileChannel ch, long offset) throws IOException {
-        ByteBuffer buf = readBuffers.get();
-        buf.clear();
-        int read = ch.read(buf, offset);
+        ReadBuffer rb = readBuffers.get();
+        rb.specBuf.clear();
+        int read = ch.read(rb.specBuf, offset);
         if (read < ENTRY_HEADER_SIZE) {
             return null;
         }
-        buf.flip();
-        buf.getLong(); // skip keyHash
-        int valueLen = buf.getInt();
+        rb.specBuf.flip();
+        rb.specBuf.getLong(); // skip keyHash
+        int valueLen = rb.specBuf.getInt();
         if (valueLen < 0 || valueLen > 64 * 1024 * 1024) {
             return null;
         }
 
-        SerializationBuffer sb = serializationBuffers.get();
-        byte[] valueBuf = sb.ensureReadCapacity(valueLen);
+        byte[] valueBuf = rb.ensureReadCapacity(valueLen);
 
-        int available = buf.remaining();
+        int available = rb.specBuf.remaining();
         if (available >= valueLen) {
-            buf.get(valueBuf, 0, valueLen);
+            rb.specBuf.get(valueBuf, 0, valueLen);
         } else {
-            buf.get(valueBuf, 0, available);
+            rb.specBuf.get(valueBuf, 0, available);
             ByteBuffer remainder = ByteBuffer.wrap(valueBuf, available, valueLen - available);
             read = ch.read(remainder, offset + ENTRY_HEADER_SIZE + available);
             if (read < valueLen - available) {
@@ -430,10 +433,10 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             }
         }
 
-        sb.decoderInput.setData(valueBuf, valueLen);
-        sb.decoder.restart(sb.decoderInput);
+        rb.decoderInput.setData(valueBuf, valueLen);
+        rb.decoder.restart(rb.decoderInput);
         try {
-            return valueSerializer.read(sb.decoder);
+            return valueSerializer.read(rb.decoder);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -548,9 +551,9 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         new File(indexFile.getPath() + ".new").delete();
     }
 
-    private static class SerializationBuffer {
-        final FastByteArrayOutputStream baos = new FastByteArrayOutputStream(KRYO_BUFFER_SIZE);
-        final KryoBackedEncoder encoder = new KryoBackedEncoder(baos, KRYO_BUFFER_SIZE);
+    /** Per-thread read buffer for concurrent readers. */
+    private static class ReadBuffer {
+        final ByteBuffer specBuf = ByteBuffer.allocate(SPECULATIVE_READ_SIZE);
         final ResettableByteArrayInputStream decoderInput = new ResettableByteArrayInputStream();
         final KryoBackedDecoder decoder = new KryoBackedDecoder(decoderInput, KRYO_BUFFER_SIZE);
         byte[] valueReadBuffer = new byte[KRYO_BUFFER_SIZE];
