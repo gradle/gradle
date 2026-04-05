@@ -25,9 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -59,11 +59,9 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final int BUCKET_SIZE = 24;
     private static final byte ENTRY_PUT = 1;
     private static final int KRYO_BUFFER_SIZE = 512;
-    private static final int WRITE_BUFFER_INITIAL_SIZE = 32 * 1024;
+    private static final int WRITE_BUFFER_SIZE = 32 * 1024;
     private static final int ENTRY_HEADER_SIZE = 12;
     private static final int SPECULATIVE_READ_SIZE = 512;
-    // Placeholder written before the serialized value so the entry is contiguous in one buffer
-    private static final byte[] HEADER_PLACEHOLDER = new byte[ENTRY_HEADER_SIZE];
 
     private final File baseFile;
     private final File dataFile;
@@ -81,9 +79,12 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private volatile FileChannel dataChannel;
     private long appendPosition;
 
-    // Write buffer: plain field, only accessed by single worker thread
-    private final FastByteArrayOutputStream writeBaos = new FastByteArrayOutputStream(WRITE_BUFFER_INITIAL_SIZE);
-    private final KryoBackedEncoder writeEncoder = new KryoBackedEncoder(writeBaos, WRITE_BUFFER_INITIAL_SIZE);
+    // Write stream: plain fields, only accessed by single worker thread.
+    // Streams serialized values directly to the data file — bounded to WRITE_BUFFER_SIZE
+    // regardless of value size (no in-memory buffering of full values).
+    private final PositionalOutputStream writeStream = new PositionalOutputStream();
+    private final KryoBackedEncoder writeEncoder = new KryoBackedEncoder(writeStream, WRITE_BUFFER_SIZE);
+    private final byte[] entryHeader = new byte[ENTRY_HEADER_SIZE];
 
     // Read buffers: ThreadLocal, accessed by concurrent reader threads
     private final ThreadLocal<ReadBuffer> readBuffers = ThreadLocal.withInitial(ReadBuffer::new);
@@ -210,32 +211,29 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         ensureOpen();
         try {
             long hash = hashKey(key);
-
-            // Serialize into write buffer with header placeholder prepended.
-            // Layout: [12 bytes placeholder][serialized value][1 byte type]
-            // Then patch the header in-place. Result: one contiguous buffer, one write syscall.
-            writeBaos.reset();
-            writeBaos.write(HEADER_PLACEHOLDER, 0, ENTRY_HEADER_SIZE);
-            writeEncoder.flush();
-            valueSerializer.write(writeEncoder, value);
-            writeEncoder.flush();
-            int valueLen = writeBaos.getCount() - ENTRY_HEADER_SIZE;
-            writeBaos.write(ENTRY_PUT);
-
-            // Patch header directly in the buffer
-            byte[] buf = writeBaos.getBuffer();
-            putLong(buf, 0, hash);
-            putInt(buf, 8, valueLen);
-            int totalLen = writeBaos.getCount();
-
-            // Single write syscall for the entire entry
-            ByteBuffer writeBuf = ByteBuffer.wrap(buf, 0, totalLen);
             long offset = appendPosition;
-            long writePos = appendPosition;
-            while (writeBuf.hasRemaining()) {
-                writePos += dataChannel.write(writeBuf, writePos);
-            }
-            appendPosition += totalLen;
+
+            // Seek-back streaming: stream the serialized value directly to the data file,
+            // then seek back to write the header. Memory bounded to WRITE_BUFFER_SIZE (32KB)
+            // regardless of value size.
+            //
+            // Step 1: Skip header (12 bytes), stream value directly to file
+            writeStream.reset(dataChannel, offset + ENTRY_HEADER_SIZE);
+            writeEncoder.flush(); // clear encoder's internal buffer
+            valueSerializer.write(writeEncoder, value);
+            writeEncoder.flush(); // flush remaining data to file
+            int valueLen = writeStream.getBytesWritten();
+
+            // Step 2: Write type byte after value
+            writeStream.write(ENTRY_PUT);
+
+            // Step 3: Seek back and write real header
+            putLong(entryHeader, 0, hash);
+            putInt(entryHeader, 8, valueLen);
+            dataChannel.write(ByteBuffer.wrap(entryHeader), offset);
+
+            // Step 4: Advance append position
+            appendPosition = offset + ENTRY_HEADER_SIZE + valueLen + 1;
 
             // Update in-memory index
             boolean isNew = !probeIndexContains(hash);
@@ -566,17 +564,38 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         }
     }
 
-    private static class FastByteArrayOutputStream extends ByteArrayOutputStream {
-        FastByteArrayOutputStream(int size) {
-            super(size);
+    /**
+     * An OutputStream that writes to a FileChannel at a given position via positional writes.
+     * Reusable across puts by calling {@link #reset(FileChannel, long)}.
+     */
+    private static class PositionalOutputStream extends OutputStream {
+        private FileChannel channel;
+        private long position;
+        private int bytesWritten;
+
+        void reset(FileChannel channel, long position) {
+            this.channel = channel;
+            this.position = position;
+            this.bytesWritten = 0;
         }
 
-        byte[] getBuffer() {
-            return buf;
+        int getBytesWritten() {
+            return bytesWritten;
         }
 
-        int getCount() {
-            return count;
+        @Override
+        public void write(int b) throws IOException {
+            write(new byte[]{(byte) b}, 0, 1);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            ByteBuffer buf = ByteBuffer.wrap(b, off, len);
+            while (buf.hasRemaining()) {
+                int n = channel.write(buf, position);
+                position += n;
+                bytesWritten += n;
+            }
         }
     }
 
