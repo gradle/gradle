@@ -20,6 +20,7 @@ import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.PersistentIndexedCache;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -92,6 +93,26 @@ public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSa
 
     @Override
     public void beforeLockRelease(FileLock.State currentCacheState) {
+    }
+
+    @Override
+    public boolean supportsConcurrentReads() {
+        PersistentIndexedCache<K, V> c = cache;
+        return c != null && c.supportsConcurrentReads();
+    }
+
+    @Nullable
+    @Override
+    public V getIfPresentDirectly(K key) {
+        PersistentIndexedCache<K, V> c = cache;
+        if (c == null) {
+            return null;
+        }
+        try {
+            return c.get(key);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private PersistentIndexedCache<K, V> getCache() {

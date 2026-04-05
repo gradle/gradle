@@ -43,7 +43,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result"
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
 
         when:
         result = cache.getIfPresent("key")
@@ -53,7 +55,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
 
         when:
         def cache2 = cacheFactory.decorator(100, true).decorate("path/fileSnapshots.bin", "fileSnapshots", target, crossProcessCacheAccess, asyncCacheAccess)
@@ -64,7 +68,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
     }
 
     def "does not cache result when not long running process"() {
@@ -81,7 +87,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result 1"
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
 
         when:
         result = cache.getIfPresent("key")
@@ -93,7 +101,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result 2"
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
     }
 
     def "caches null result from backing cache"() {
@@ -110,7 +120,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> null
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
 
         when:
         result = cache.getIfPresent("key")
@@ -120,7 +132,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
     }
 
     def "caches result of putting item"() {
@@ -139,7 +153,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result"
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
 
         when:
         cache.put("key", "new value")
@@ -159,7 +175,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
     }
 
     def "caches result of removing item"() {
@@ -178,7 +196,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
         1 * asyncCacheAccess.read(_) >> { Supplier task -> task.get() }
         1 * target.getIfPresent("key") >> "result"
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
 
         when:
         cache.remove("key")
@@ -198,7 +218,9 @@ class InMemoryCacheDecoratorFactoryTest extends Specification {
 
         and:
         1 * crossProcessCacheAccess.withFileLock(_) >> { Supplier task -> task.get() }
-        0 * target._
+        0 * target.getIfPresent(_)
+        0 * target.put(_, _)
+        0 * target.remove(_)
     }
 
 }
