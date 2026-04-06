@@ -89,16 +89,6 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
     }
 
 
-    private File getFileWhileCleaningInProgress(String... path) {
-        File file = getFile(path);
-        File markerFile = getInProgressMarkerFile(file);
-        if (markerFile.exists()) {
-            deleteFileQuietly(file);
-            deleteFileQuietly(markerFile);
-        }
-        return file;
-    }
-
     @Override
     public LocallyAvailableResource add(final String path, final Action<File> addAction) {
         try {
@@ -210,12 +200,13 @@ public class DefaultPathKeyFileStore implements PathKeyFileStore {
 
     @Override
     public LocallyAvailableResource get(String... path) {
-        final File file = getFileWhileCleaningInProgress(path);
-        if (file.exists()) {
-            return new DefaultLocallyAvailableResource(getFile(path), checksumService);
-        } else {
-            return null;
+        File file = getFile(path);
+        File markerFile = getInProgressMarkerFile(file);
+        if (markerFile.exists()) {
+            deleteFileQuietly(file);
+            deleteFileQuietly(markerFile);
         }
+        return new DefaultLocallyAvailableResource(file, checksumService);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

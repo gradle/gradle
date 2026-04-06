@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 public class ModuleMetadataStore {
@@ -39,17 +40,16 @@ public class ModuleMetadataStore {
     public byte @Nullable[] getModuleDescriptor(ModuleComponentAtRepositoryKey component) {
         String[] filePath = getFilePath(component);
         LocallyAvailableResource resource = metaDataStore.get(filePath);
-        if (resource != null) {
-            try {
-                FileInputStream inputStream = new FileInputStream(resource.getFile());
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                IOUtils.copyLarge(inputStream, os);
-                return os.toByteArray();
-            } catch (Exception e) {
-                throw new RuntimeException("Could not load module metadata from " + resource.getDisplayName(), e);
-            }
+        try {
+            FileInputStream inputStream = new FileInputStream(resource.getFile());
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            IOUtils.copyLarge(inputStream, os);
+            return os.toByteArray();
+        } catch (FileNotFoundException e) {
+            return null;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not load module metadata from " + resource.getDisplayName(), e);
         }
-        return null;
     }
 
     public LocallyAvailableResource putModuleDescriptor(ModuleComponentAtRepositoryKey component, byte[] data) {

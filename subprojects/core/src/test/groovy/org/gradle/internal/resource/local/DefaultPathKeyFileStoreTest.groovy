@@ -122,7 +122,7 @@ class DefaultPathKeyFileStoreTest extends Specification {
         e.cause == failure
 
         !fsBase.file("a").exists()
-        !fsBase.file("a.fslock").exists()
+        !fsBase.file("a.fslck").exists()
     }
 
     def "cleans up left-over files when action fails"() {
@@ -135,24 +135,20 @@ class DefaultPathKeyFileStoreTest extends Specification {
         then:
         thrown(FileStoreAddActionException)
         !fsBase.file("a").exists()
-        !fsBase.file("a.fslock").exists()
-    }
-
-    def "can get from backing filestore"() {
-        when:
-        createFile("abc", "fs/a")
-        then:
-        store.get("a") != null
-        store.get("b") == null
+        !fsBase.file("a.fslck").exists()
     }
 
     def "get cleans up filestore"() {
+        given:
+        def file = createFile("abc", "fs/a")
+        def lockfile = createFile("lock", "fs/a.fslck")
+
         when:
-        createFile("abc", "fs/a").exists()
-        createFile("lock", "fs/a.fslck").exists()
+        store.get("a")
+
         then:
-        store.get("a") == null
-        store.get("a.fslock") == null
+        !file.exists()
+        !lockfile.exists()
     }
 
     def "can overwrite stale files "() {
