@@ -22,6 +22,7 @@ import com.google.common.graph.Graphs
 import com.google.common.graph.Traverser
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
@@ -32,7 +33,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextEle
 internal fun checkSafeTypeRequirements(
     schema: AnalysisSchema,
     host: SchemaBuildingHost
-): List<SchemaResult.Failure> = buildList {
+): Map<FqName, List<SchemaResult.Failure>> {
     val safeFeatureDefinitionsByDefinitionClass = schema.dataClassTypesByFqName.values
         .filterIsInstance<DataClass>()
         .filter { type -> type.metadata.any { it is ProjectFeatureOrigin && it.isSafeDefinition } }
@@ -55,7 +56,9 @@ internal fun checkSafeTypeRequirements(
 
     val usedIn = Graphs.transpose(reachabilityViaMembers)
 
-    safelyUsedClasses.forEach { reportUnsafeDeclarationsInSafelyUsedClass(host, it, usedIn) }
+    return safelyUsedClasses.associateWith {
+        buildList { reportUnsafeDeclarationsInSafelyUsedClass(host, it, usedIn) }
+    }.mapKeys { it.key.name }
 }
 
 internal fun ignoreSafeUsageOfUnsafeClass(classQualifiedName: String) = classQualifiedName.startsWith("org.gradle.api.")

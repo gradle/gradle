@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataConstructor
@@ -427,7 +428,7 @@ class DataSchemaBuilder(
 
         schemaBuildingFailureReporter.report(
             schema,
-            collectSchemaBuildingFailures(host, preIndex, schema).map { it.asReportableFailure() }
+            collectSchemaBuildingFailures(host, preIndex, schema).values.flatten().map { it.asReportableFailure() }
         )
 
         return schema
@@ -437,12 +438,19 @@ class DataSchemaBuilder(
         host: SchemaBuildingHost,
         preIndex: PreIndex,
         schema: DefaultAnalysisSchema,
-    ): List<SchemaResult.Failure> = buildSet {
-        addAll(host.typeFailures.values.flatten())
+    ): Map<FqName, Set<SchemaResult.Failure>> = buildMap<FqName, MutableSet<SchemaResult.Failure>> {
+        fun addAll(fqName: FqName, failures: Iterable<SchemaResult.Failure>) { getOrPut(fqName) { mutableSetOf() } += failures }
+        fun add(fqName: FqName, failure: SchemaResult.Failure) { getOrPut(fqName) { mutableSetOf() } += failure }
 
-        addAll(checkDiscoveredTypeForIllegalHiddenTypeUsages(host, preIndex.allDiscoveredTypes))
+        host.typeFailures.forEach { (name, failures) -> addAll(name, failures) }
 
-        addAll(checkSafeTypeRequirements(schema, host))
+        checkDiscoveredTypeForIllegalHiddenTypeUsages(host, preIndex.allDiscoveredTypes).forEach { (kClass, failures) ->
+            addAll(DefaultFqName.of(kClass), failures)
+        }
+
+        checkSafeTypeRequirements(schema, host).forEach { name, failures ->
+            addAll(name, failures)
+        }
 
         preIndex.types.forEach { type ->
             if (schema.dataClassTypesByFqName[type.fqName] == null) {
@@ -454,14 +462,14 @@ class DataSchemaBuilder(
             host.classMembers(type).run {
                 membersBySupertype.values.flatten().forEach { member ->
                     if (member is ExtractionResult.Failure) {
-                        add(member.failure)
+                        add(DefaultFqName.of(type), member.failure)
                     }
                 }
                 declarativeMembers.forEach { potentiallyDeclarative ->
                     if (host.isUnusedMember(type, potentiallyDeclarative)) {
                         host.inContextOfModelClass(type) {
                             host.inContextOfModelMember(potentiallyDeclarative.kCallable) {
-                                add(host.schemaBuildingFailure(SchemaBuildingIssue.UnrecognizedMember()))
+                                add(DefaultFqName.of(type), host.schemaBuildingFailure(SchemaBuildingIssue.UnrecognizedMember()))
                             }
                         }
                     }
@@ -469,10 +477,10 @@ class DataSchemaBuilder(
             }
 
             host.membersWithFailures(type).forEach { (_, failures) ->
-                addAll(failures)
+                addAll(DefaultFqName.of(type), failures)
             }
         }
-    }.toList()
+    }
 
     private fun validateSchemaInvariants(host: SchemaBuildingHost, schema: AnalysisSchema) {
         checkAllTypesInScope(host, schema)
@@ -632,8 +640,8 @@ class DataSchemaBuilder(
     private fun checkDiscoveredTypeForIllegalHiddenTypeUsages(
         host: SchemaBuildingHost,
         allDiscoveries: Set<DiscoveredClass>
-    ): List<SchemaResult.Failure> =
-        allDiscoveries.groupBy { it.kClass }.entries.mapNotNull { (kClass, discoveries) ->
+    ): Map<KClass<*>, List<SchemaResult.Failure>> =
+        allDiscoveries.groupBy { it.kClass }.mapValues { (kClass, discoveries) ->
             if (!isIgnoredInVisibilityChecks(kClass) && discoveries.any { it.isHidden } && discoveries.any { !it.isHidden }) {
                 val hiddenBecause = discoveries.filter { it.isHidden }
                     .map { it.discoveryTag }
@@ -642,8 +650,8 @@ class DataSchemaBuilder(
                     .map { it.discoveryTag }
                     .filter { it !is Supertype || it.ofType != kClass } // Filter out the self-appearance in the type hierarchy
 
-                host.schemaBuildingFailure(SchemaBuildingIssue.HiddenTypeUsedInDeclaration(kClass, hiddenBecause, illegalUsages))
-            } else null
+                listOf(host.schemaBuildingFailure(SchemaBuildingIssue.HiddenTypeUsedInDeclaration(kClass, hiddenBecause, illegalUsages)))
+            } else emptyList()
         }
 
     /**
