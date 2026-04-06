@@ -16,17 +16,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.jspecify.annotations.Nullable;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 
 public class ModuleMetadataStore {
 
@@ -41,13 +40,10 @@ public class ModuleMetadataStore {
         String[] filePath = getFilePath(component);
         LocallyAvailableResource resource = metaDataStore.get(filePath);
         try {
-            FileInputStream inputStream = new FileInputStream(resource.getFile());
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            IOUtils.copyLarge(inputStream, os);
-            return os.toByteArray();
-        } catch (FileNotFoundException e) {
+            return Files.readAllBytes(resource.getFile().toPath());
+        } catch (NoSuchFileException e) {
             return null;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException("Could not load module metadata from " + resource.getDisplayName(), e);
         }
     }
@@ -57,7 +53,7 @@ public class ModuleMetadataStore {
         return metaDataStore.add(PATH_JOINER.join(filePath), moduleDescriptorFile -> {
             try (FileOutputStream outputStream = new FileOutputStream(moduleDescriptorFile)) {
                 outputStream.write(data);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         });
