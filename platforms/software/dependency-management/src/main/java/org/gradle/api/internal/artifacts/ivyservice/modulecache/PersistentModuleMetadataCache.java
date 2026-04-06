@@ -34,13 +34,24 @@ import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+
 public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
+
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final Interner<String> stringInterner;
 
     private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
     private final ModuleMetadataStore moduleMetadataStore;
     private final ArtifactCacheLockingAccessCoordinator artifactCacheLockingManager;
+    private final ModuleMetadataSerializer moduleMetadataSerializer;
 
     public PersistentModuleMetadataCache(
         BuildCommencedTimeProvider timeProvider,
@@ -56,7 +67,10 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
         ChecksumService checksumService
     ) {
         super(timeProvider);
-        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(checksumService, artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer), moduleIdentifierFactory, stringInterner);
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.stringInterner = stringInterner;
+        this.moduleMetadataSerializer = new ModuleMetadataSerializer(attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer);
+        this.moduleMetadataStore =new ModuleMetadataStore(new DefaultPathKeyFileStore(checksumService, artifactCacheMetadata.getMetaDataStoreDirectory()));
         this.artifactCacheLockingManager = cacheAccessCoordinator;
     }
 
@@ -74,26 +88,43 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
     @Override
     protected CachedMetadata get(ModuleComponentAtRepositoryKey key) {
         final IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
-        return artifactCacheLockingManager.useCache(() -> {
+        ReadResult result = artifactCacheLockingManager.useCache(() -> {
             ModuleMetadataCacheEntry entry = cache.getIfPresent(key);
             if (entry == null) {
                 return null;
             }
             if (entry.isMissing()) {
-                return new DefaultCachedMetadata(entry, null, timeProvider);
+                return new ReadResult.Missing(entry);
             }
 
-            // TODO: `getModuleDescriptor` performs IO and blocks for a non-negligible amount of time.
-            // We should avoid holding the `useCache` lock for this duration, as we prevent others from
-            // using this cache, even for different keys.
-            MutableModuleComponentResolveMetadata metadata = moduleMetadataStore.getModuleDescriptor(key);
-            if (metadata == null) {
+            byte[] data = moduleMetadataStore.getModuleDescriptor(key);
+            if (data == null) {
                 // Descriptor file has been deleted - ignore the entry
                 cache.remove(key);
                 return null;
             }
-            return new DefaultCachedMetadata(entry, entry.configure(metadata), timeProvider);
+
+            return new ReadResult.Found(entry, data);
         });
+
+        if (result == null) {
+            return null;
+        } else if (result instanceof ReadResult.Missing missing) {
+            return new DefaultCachedMetadata(missing.entry(), null, timeProvider);
+        } else if (result instanceof ReadResult.Found found) {
+            MutableModuleComponentResolveMetadata metadata;
+            try {
+                try (StringDeduplicatingDecoder decoder = new StringDeduplicatingDecoder(new KryoBackedDecoder(new ByteArrayInputStream(found.data())), stringInterner)) {
+                    metadata = moduleMetadataSerializer.read(decoder, moduleIdentifierFactory, new HashMap<>());
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Could not parse module metadata for " + key, e);
+            }
+            ModuleMetadataCacheEntry entry = found.entry();
+            return new DefaultCachedMetadata(entry, entry.configure(metadata), timeProvider);
+        } else {
+            throw new IllegalStateException("Unexpected result type: " + result.getClass());
+        }
     }
 
     @Override
@@ -101,10 +132,20 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
         if (entry.isMissing()) {
             getCache().put(key, entry);
         } else {
+            byte[] data;
+            try {
+                ModuleComponentResolveMetadata metadata = cachedMetadata.getMetadata();
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                try (KryoBackedEncoder encoder = new KryoBackedEncoder(os)) {
+                    moduleMetadataSerializer.write(encoder, metadata, new HashMap<>());
+                }
+                data = os.toByteArray();
+            } catch (IOException e) {
+                throw new RuntimeException("Could not encode module metadata for " + key, e);
+            }
             // Need to lock the cache in order to write to the module metadata store
             artifactCacheLockingManager.useCache(() -> {
-                final ModuleComponentResolveMetadata metadata = cachedMetadata.getMetadata();
-                moduleMetadataStore.putModuleDescriptor(key, metadata);
+                moduleMetadataStore.putModuleDescriptor(key, data);
                 getCache().put(key, entry);
             });
         }
@@ -142,4 +183,10 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
             return Objects.hashCode(super.hashCode(), componentIdSerializer);
         }
     }
+
+    sealed interface ReadResult {
+        record Missing(ModuleMetadataCacheEntry entry) implements ReadResult {}
+        record Found(ModuleMetadataCacheEntry entry, byte[] data) implements ReadResult {}
+    }
+
 }

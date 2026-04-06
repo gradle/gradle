@@ -65,6 +65,7 @@ val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
         "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
         "MissingSummary", // We have another mechanism to check Javadocs on public API
         "StringSplitter", // We are fine with using String.split() as is
+        "ArrayRecordComponent", // This is difficult to avoid when using primitive arrays for performance
     )
 
     nullawayEnabled.convention(false)
