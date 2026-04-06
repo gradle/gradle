@@ -32,10 +32,10 @@ import org.gradle.internal.declarativedsl.schemaBuilder.MemberKind
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractionResult
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
-import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
-import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscoveryResult
+import org.gradle.internal.declarativedsl.schemaBuilder.extracted
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
@@ -105,10 +105,10 @@ class ProjectPropertyAccessorRuntimeResolver : RuntimePropertyResolver {
 
 private
 class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> {
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscoveryResult> {
         return if (kClass.isGeneratedAccessors()) {
             allClassesReachableFromGetters(typeDiscoveryServices.host, kClass).map {
-                schemaResult(TypeDiscovery.DiscoveredClass(it, Special("type-safe project accessor")))
+                TypeDiscovery.DiscoveredClass(it, Special("type-safe project accessor")).extracted()
             }
         } else {
             emptyList()
