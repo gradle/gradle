@@ -144,14 +144,7 @@ class EdgeState implements DependencyGraphEdge {
         if (selector == null || !selector.isResolved() || selector.getFailure() != null) {
             return null;
         }
-        ModuleResolveState targetModule = selector.getTargetModule();
-        if (targetModule.isInModuleConflict()) {
-            // Do not download metadata for modules in conflict, as the module might
-            // lose the conflict, and we want to avoid wasted IO.
-            return null;
-        }
-
-        return targetModule.getSelected();
+        return selector.getTargetModule().getSelected();
     }
 
     SelectorState getSelector() {
@@ -165,6 +158,9 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     void attachToTargetNodes() {
+        if (targetNodeSelectionFailure != null) {
+            return;
+        }
         ComponentState targetComponent = getTargetComponent();
         if (targetComponent == null || !isUsed()) {
             // The selector failed or the module has been deselected or the edge source has been deselected. Do not attach.
@@ -174,13 +170,12 @@ class EdgeState implements DependencyGraphEdge {
         // We should never try to attach edges to a node in a module that has no incoming hard edges.
         assert !targetComponent.getModule().isPending();
 
+        // Attachment requires selecting from the variants of the component. We
+        // must have already resolved these variants before attempting to attach.
+        assert targetComponent.alreadyResolved();
+
         calculateTargetNodes(targetComponent);
-        if (!targetNodes.isEmpty()) {
-            for (NodeState targetNode : targetNodes) {
-                targetNode.addIncomingEdge(this);
-            }
-            selector.getTargetModule().removeUnattachedEdge(this);
-        }
+        assert targetNodes.isEmpty() == unattached;
     }
 
     /**
@@ -190,10 +185,12 @@ class EdgeState implements DependencyGraphEdge {
      */
     void detachFromTargetNodes() {
         if (!targetNodes.isEmpty()) {
+            assert !unattached;
             for (NodeState targetNode : targetNodes) {
                 targetNode.removeIncomingEdge(this);
             }
             targetNodes.clear();
+            selector.getTargetModule().addUnattachedEdge(this);
         }
         targetNodeSelectionFailure = null;
     }
@@ -209,21 +206,13 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     /**
-     * Ensure this edge it up-to-date and attached to the proper nodes, effectively
-     * retargeting this edge from its previous potentially incorrect target, to
-     * the new correct target.
-     * <p>
-     * Useful for when the state of the destination has changed, for example
-     * when the selected component of the target module has changed.
+     * Clear a previous failure to attach to target nodes, so that this edge
+     * will retry to attach next time it is requested to do so. This method
+     * should be called whenever the graph state changes so that a previous failed
+     * attachment may now succeed.
      */
-    public void retarget() {
-        detachFromTargetNodes();
-        if (isUsed()) {
-            attachToTargetNodes();
-            if (targetNodes.isEmpty()) {
-                selector.getTargetModule().addUnattachedEdge(this); // Attach failed, mark it as such.
-            }
-        }
+    void clearTargetNodeSelectionFailure() {
+        this.targetNodeSelectionFailure = null;
     }
 
     @Override
@@ -234,27 +223,16 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     private void calculateTargetNodes(ComponentState targetComponent) {
+        assert unattached && targetNodes.isEmpty() && targetNodeSelectionFailure == null;
+
         ComponentGraphResolveState targetComponentState = targetComponent.getResolveStateOrNull();
-        targetNodes.clear(); // TODO: Why not `detachFromTargetNodes()`?
-        targetNodeSelectionFailure = null;
         if (targetComponentState == null) {
             targetComponent.getModule().getPlatformState().addOrphanEdge(this);
             // Broken version
             return;
         }
-        if (isConstraint) {
-            // We are a constraint and therefore may have deferred selection and attachment
-            // of some other module/edge. Make sure to attach that deferred edge now that we have
-            // performed selection.
-            List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
-            if (!unattachedEdges.isEmpty()) {
-                for (EdgeState unattachedEdge : new ArrayList<>(unattachedEdges)) {
-                    if (!unattachedEdge.isConstraint()) {
-                        unattachedEdge.attachToTargetNodes();
-                    }
-                }
-            }
 
+        if (isConstraint) {
             // A constraint by definition attaches to any other nodes in the component it constrains.
             for (NodeState node : targetComponent.getNodes()) {
                 if (node.isSelected() && !node.isRoot()) {
@@ -418,7 +396,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public ModuleVersionResolveException getFailure() {
+    public @Nullable ModuleVersionResolveException getFailure() {
         if (targetNodeSelectionFailure != null) {
             return targetNodeSelectionFailure;
         }
@@ -563,10 +541,16 @@ class EdgeState implements DependencyGraphEdge {
         return transitiveExclusions;
     }
 
+    /**
+     * This must <strong>only</strong> be called from {@link ModuleResolveState#addUnattachedEdge}
+     */
     public void markUnattached() {
         this.unattached = true;
     }
 
+    /**
+     * This must <strong>only</strong> be called from {@link ModuleResolveState#removeUnattachedEdge}
+     */
     public void markNotUnattached() {
         this.unattached = false;
     }

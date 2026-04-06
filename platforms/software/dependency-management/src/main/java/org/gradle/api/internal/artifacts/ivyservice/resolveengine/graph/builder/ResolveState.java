@@ -200,11 +200,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return root;
     }
 
-    public ComponentMetaDataResolver getComponentMetadataResolver() {
-        return metaDataResolver;
-    }
-
-    private ModuleResolveState getModule(ModuleIdentifier id) {
+    public ModuleResolveState getModule(ModuleIdentifier id) {
         return modules.computeIfAbsent(id, mid -> new ModuleResolveState(this, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, conflictResolution));
     }
 

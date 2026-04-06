@@ -330,7 +330,6 @@ class DependencyGraphBuilderTest extends Specification {
         def d = revision('d')
         def e = revision('e')
         traverses root, evicted
-        traverses evicted, c
         doesNotResolve c, d
         traverses root, b
         traverses b, selected
@@ -362,7 +361,6 @@ class DependencyGraphBuilderTest extends Specification {
         def d = revision('d')
         traverses root, evicted
         traverses evicted, c
-        traverses evicted, d
         traverses root, b
         traverses b, selected
         doesNotResolve selected, c
@@ -1031,10 +1029,12 @@ class DependencyGraphBuilderTest extends Specification {
         def evicted = revision('a', '1.1')
         def b = revision('b')
         def c = revision('c')
+        def d = revision('d')
         traverses root, evicted
         traversesBroken evicted, b
         traverses root, c
-        traverses c, selected
+        traverses c, d
+        traverses d, selected
 
         when:
         def result = resolve()
@@ -1048,7 +1048,7 @@ class DependencyGraphBuilderTest extends Specification {
         }
 
         and:
-        result.components == ids(root, selected, c)
+        result.components == ids(root, selected, c, d)
     }
 
     def "direct dependency can force a particular version"() {
@@ -1135,7 +1135,7 @@ class DependencyGraphBuilderTest extends Specification {
     def traverses(Map<String, ?> args = [:], TestComponent from, TestComponent to) {
         def selector = dependsOn(args, from, to)
         selectorResolvesTo(selector, to.component.id, to.component.metadata.moduleVersionId)
-        println "Traverse $from to ${to.component.id}"
+        println "Traverse ${from.component.id} to ${to.component.id}"
         1 * metaDataResolver.resolve(to.component.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             println "Called ${to.component.id}"
             result.resolved(to.component, Stub(ComponentGraphSpecificResolveState))

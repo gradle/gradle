@@ -72,6 +72,8 @@ public class ModuleResolveState implements CandidateModule {
     private SelectorStateResolver<ComponentState> selectorStateResolver;
     private final PendingDependencies pendingDependencies;
     private @Nullable ComponentState selected;
+    private boolean queuedForSelection;
+    private boolean queuedForAttachment;
     private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
     private @Nullable AttributeMergingException attributeMergingError;
     private @Nullable VirtualPlatformState platformState;
@@ -109,6 +111,30 @@ public class ModuleResolveState implements CandidateModule {
         return resolveState;
     }
 
+    boolean enqueueForSelection() {
+        if (queuedForSelection) {
+            return false;
+        }
+        queuedForSelection = true;
+        return true;
+    }
+
+    void dequeueFromSelection() {
+        queuedForSelection = false;
+    }
+
+    boolean enqueueForAttachment() {
+        if (queuedForAttachment) {
+            return false;
+        }
+        queuedForAttachment = true;
+        return true;
+    }
+
+    void dequeueFromAttachment() {
+        queuedForAttachment = false;
+    }
+
     void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {
         this.selectorStateResolver = selectorStateResolver;
     }
@@ -126,7 +152,7 @@ public class ModuleResolveState implements CandidateModule {
 
     @Override
     public String toString() {
-        return id.toString();
+        return id + (selected != null ? " (" + selected.getVersion() + ")" : "");
     }
 
     @Override
@@ -234,7 +260,7 @@ public class ModuleResolveState implements CandidateModule {
             for (NodeState node : newSelection.getNodes()) {
                 resolveState.onMoreSelected(node);
             }
-            attachUnattachedEdges();
+            resolveState.enqueueForAttachment(this);
         } else {
             changeSelection(newSelection);
         }
@@ -247,31 +273,55 @@ public class ModuleResolveState implements CandidateModule {
         this.selected = newSelection;
         this.replaced = !newSelection.getModule().getId().equals(getId());
 
+        // Override selectors before detaching edges, so that selector.getTargetModule()
+        // returns the winning module, and unattached edges are added to the winner.
+        for (SelectorState selector : selectors) {
+            selector.overrideSelection(newSelection);
+        }
+
+        // Selection changed. Edges which may have failed to attach in the past may
+        // succeed now. Clear their cached failures so they can retry.
+        clearUnattachedEdgeFailures();
+
         if (replaced) {
             this.overriddenSelection = true;
             newSelection.getModule().getPendingDependencies().retarget(pendingDependencies);
+            newSelection.getModule().getUnattachedEdges().addAll(unattachedEdges);
+            unattachedEdges.clear();
         }
 
         evictOtherComponents(newSelection);
 
         if (oldSelected != null && oldSelected != newSelection) {
             for (NodeState node : oldSelected.getNodes()) {
-                node.restartIncomingEdges();
+                node.detachIncomingEdges();
+            }
+            if (platformOwners != null) {
+                for (VirtualPlatformState owner : platformOwners) {
+                    owner.invalidateVirtualPlatformConstraints();
+                }
             }
         }
-        for (SelectorState selector : selectors) {
-            selector.overrideSelection(newSelection);
-        }
-        attachUnattachedEdges();
     }
 
-    private void attachUnattachedEdges() {
+    public void attachUnattachedEdges() {
         if (unattachedEdges.size() == 1) {
             EdgeState singleEdge = unattachedEdges.get(0);
-            singleEdge.retarget();
+            singleEdge.attachToTargetNodes();
         } else if (!unattachedEdges.isEmpty()) {
-            for (EdgeState edge : new ArrayList<>(unattachedEdges)) {
-                edge.retarget();
+            ArrayList<EdgeState> unattachedEdgesCopy = new ArrayList<>(unattachedEdges);
+            for (EdgeState edge : unattachedEdgesCopy) {
+                if (!edge.isConstraint()) {
+                    edge.attachToTargetNodes();
+                }
+            }
+            // Attach constraints after hard edges, since constraints targeting module
+            // by definition attach to any node that is the target of a hard edge targeting
+            // that same module
+            for (EdgeState edge : unattachedEdgesCopy) {
+                if (edge.isConstraint()) {
+                    edge.attachToTargetNodes();
+                }
             }
         }
     }
@@ -286,6 +336,17 @@ public class ModuleResolveState implements CandidateModule {
     public void removeUnattachedEdge(EdgeState edge) {
         if (unattachedEdges.remove(edge)) {
             edge.markNotUnattached();
+        }
+    }
+
+    /**
+     * Clears cached attachment failures on all unattached edges, so they will be
+     * retried on the next attachment round. Called when the module's state changes
+     * in a way that may allow previously-failed edges to succeed.
+     */
+    private void clearUnattachedEdgeFailures() {
+        for (EdgeState edge : unattachedEdges) {
+            edge.clearTargetNodeSelectionFailure();
         }
     }
 
@@ -313,7 +374,11 @@ public class ModuleResolveState implements CandidateModule {
 
     void addSelector(SelectorState selector) {
         selectors.add(selector);
+        ImmutableAttributes previousAttributes = mergedConstraintAttributes;
         mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selector);
+        if (mergedConstraintAttributes != previousAttributes) {
+            clearUnattachedEdgeFailures();
+        }
         if (overriddenSelection) {
             assert selected != null : "An overridden module cannot have selected == null";
             selector.overrideSelection(selected);
@@ -323,12 +388,16 @@ public class ModuleResolveState implements CandidateModule {
     void removeSelector(SelectorState selector) {
         selectors.remove(selector);
         boolean alreadyReused = selector.markForReuse();
+        ImmutableAttributes previousAttributes = mergedConstraintAttributes;
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
         for (SelectorState selectorState : selectors) {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
+        if (mergedConstraintAttributes != previousAttributes) {
+            clearUnattachedEdgeFailures();
+        }
         if (!alreadyReused && selectors.size() != 0 && selected != null) {
-            maybeUpdateSelection();
+            resolveState.enqueueForSelection(this);
         }
     }
 
@@ -384,6 +453,7 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     void disconnectIncomingEdge(NodeState removalSource, EdgeState incomingEdge) {
+        assert !replaced : "disconnectIncomingEdge() called on replaced module " + id;
         // Remove the unattached edge first, as clearing the selector may trigger re-selection and mutate the unattached edge
         removeUnattachedEdge(incomingEdge);
         incomingEdge.clearSelector();
@@ -410,11 +480,9 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     private void clearIncomingUnattachedConstraints(NodeState removalSource) {
-        for (EdgeState unattachedEdge : unattachedEdges) {
+        for (EdgeState unattachedEdge : new ArrayList<>(unattachedEdges)) {
             disconnectIncomingConstraint(removalSource, unattachedEdge);
-            unattachedEdge.markNotUnattached();
         }
-        unattachedEdges.clear();
     }
 
     private void disconnectIncomingConstraint(NodeState removalSource, EdgeState incomingEdge) {
@@ -426,11 +494,13 @@ public class ModuleResolveState implements CandidateModule {
             // Only remove edges that come from a different node than the source of the dependency going
             // back to pending. The source of the removal is already removing outgoing edges from itself.
             from.removeOutgoingEdge(incomingEdge);
+            removeUnattachedEdge(incomingEdge);
         }
         pendingDependencies.registerConstraintProvider(from);
     }
 
     boolean isPending() {
+        assert !replaced : "isPending() called on replaced module " + id;
         return pendingDependencies.isPending();
     }
 
@@ -439,14 +509,6 @@ public class ModuleResolveState implements CandidateModule {
             return selected.getModule().getPendingDependencies();
         }
         return pendingDependencies;
-    }
-
-    void registerConstraintProvider(NodeState node) {
-        pendingDependencies.registerConstraintProvider(node);
-    }
-
-    void unregisterConstraintProvider(NodeState nodeState) {
-        pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
     @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)

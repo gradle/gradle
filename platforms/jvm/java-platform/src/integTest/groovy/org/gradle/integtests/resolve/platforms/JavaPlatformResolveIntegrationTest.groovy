@@ -184,7 +184,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
         when:
         module1.pom.expectGet()
-        module2.pom.expectGet()
         module1.artifact.expectGet()
 
         run ":checkDeps"

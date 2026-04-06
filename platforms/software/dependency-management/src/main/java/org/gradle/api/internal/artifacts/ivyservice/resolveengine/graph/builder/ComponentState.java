@@ -80,6 +80,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private boolean rejected;
     private boolean root;
 
+    /**
+     * -1 if we have not yet determined if the metadata is expensive to fetch,
+     * 0 if metadata is expensive to fetch, 1 if it is not expensive.
+     */
+    private byte metadataCheapToFetch = -1;
+
     ComponentState(long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
         this.module = module;
@@ -190,6 +196,13 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
      */
     public boolean alreadyResolved() {
         return resolveState != null || metadataResolveFailure != null;
+    }
+
+    public boolean isMetadataCheapToFetch() {
+        if (metadataCheapToFetch == -1) {
+            metadataCheapToFetch = (byte) (resolver.isFetchingMetadataCheap(componentIdentifier) ? 1 : 0);
+        }
+        return metadataCheapToFetch == 1;
     }
 
     public void resolve() {

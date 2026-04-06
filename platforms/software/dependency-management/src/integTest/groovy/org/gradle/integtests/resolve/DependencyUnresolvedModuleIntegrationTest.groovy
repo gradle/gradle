@@ -205,18 +205,16 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
         MavenHttpModule moduleC = publishMavenModule(mavenHttpRepo, 'c')
-        def moduleD = mavenHttpRepo.module(GROUP_ID, 'd', VERSION).dependsOn(moduleA).publish()
-        def moduleE = mavenHttpRepo.module(GROUP_ID, 'e', VERSION).dependsOn(moduleB).dependsOn(moduleC).publish()
+        def moduleD = mavenHttpRepo.module(GROUP_ID, 'd', VERSION).dependsOn(moduleB).dependsOn(moduleC).publish()
 
         buildFile << """
             ${mavenRepository(mavenHttpRepo)}
-            ${customConfigDependencyAssignment(moduleD, moduleE)}
+            ${customConfigDependencyAssignment(moduleA, moduleD)}
             ${configSyncTask()}
         """
 
         when:
         moduleD.pom.expectGet()
-        moduleE.pom.expectGet()
         moduleA.pom.expectGetBlocking()
         fails('resolve', '--max-workers=1')
 
@@ -224,7 +222,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         assertDependencyMetaDataReadTimeout(moduleA)
         failure.assertHasErrorOutput("There are 2 more failures with identical causes.")
         outputDoesNotContain("Could not resolve ${mavenModuleCoordinates(moduleD)}")
-        outputDoesNotContain("Could not resolve ${mavenModuleCoordinates(moduleE)}")
         !downloadedLibsDir.isDirectory()
     }
 

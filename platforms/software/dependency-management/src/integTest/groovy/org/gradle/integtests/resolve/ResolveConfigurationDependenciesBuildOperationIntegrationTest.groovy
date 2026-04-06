@@ -412,7 +412,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         a.pom.expectGet()
         b.pom.expectGet()
-        leaf1.pom.expectGet()
         leaf2.pom.expectGet()
 
         then:
@@ -609,11 +608,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         def repoId = repoId('maven1', op.details)
         def resolvedComponents = op.result.components
-        resolvedComponents.size() == 4
+        resolvedComponents.size() == 3
         resolvedComponents.'root project :'.repoId == null
         resolvedComponents.'project :child'.repoId == null
         resolvedComponents.'org.foo:direct1:1.0'.repoId == repoId
-        resolvedComponents.'org.foo:transitive1:1.0'.repoId == repoId
     }
 
     def "resolved components contain their source repository id, even when they are structurally identical"() {

@@ -161,6 +161,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         CapabilityConflict conflict = conflictTracker.updateClearAndReturnConflict();
 
         if (!conflict.isValidConflict()) {
+            for (NodeState node : conflict.nodes) {
+                node.onFilteredFromConflict();
+            }
             return;
         }
 

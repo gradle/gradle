@@ -306,6 +306,8 @@ public class DependencyGraphBuilder {
         ConflictResolution conflictResolution,
         ResolutionParameters.FailureResolutions failureResolutions
     ) {
+        assertHasValidGraphStructure(resolveState);
+
         ImmutableAttributesSchema consumerSchema = resolveState.getConsumerSchema();
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
@@ -343,8 +345,6 @@ public class DependencyGraphBuilder {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
         }
-
-        assertHasValidGraphStructure(resolveState);
     }
 
     /**
@@ -359,18 +359,31 @@ public class DependencyGraphBuilder {
         }
 
         for (ModuleResolveState module : resolveState.getModules()) {
+            if (module.isInModuleConflict()) {
+                throw new IllegalStateException(String.format("Module %s is in conflict", module));
+            }
+            for (EdgeState unattachedEdge : module.getUnattachedEdges()) {
+                if (unattachedEdge.getFailure() == null) {
+                    throw new IllegalStateException(String.format("Module %s has non-failing unattached edge: %s", module, unattachedEdge));
+                }
+                if (!unattachedEdge.isUnattached()) {
+                    throw new IllegalStateException(String.format("Module %s has unattached edge that is not unattached: %s", module, unattachedEdge));
+                }
+            }
             for (ComponentState component : module.getVersions()) {
                 for (NodeState node : component.getNodes()) {
+                    if (node.isInCapabilityConflict()) {
+                        throw new IllegalStateException(String.format("Node %s is in capability conflict", node));
+                    }
                     for (EdgeState incomingEdge : node.getIncomingEdges()) {
                         NodeState from = incomingEdge.getFrom();
-                        // TODO: This condition currently fails, but should pass!
-//                        if (!from.getOutgoingEdges().contains(incomingEdge)) {
-//                            throw new IllegalStateException(String.format(
-//                                "Node %s has incoming edge from %s, but source node does not declare outgoing edge.",
-//                                node.getDisplayName(),
-//                                from.getDisplayName()
-//                            ));
-//                        }
+                        if (!from.getOutgoingEdges().contains(incomingEdge)) {
+                            throw new IllegalStateException(String.format(
+                                "Node %s has incoming edge from %s, but source node does not declare outgoing edge.",
+                                node.getDisplayName(),
+                                from.getDisplayName()
+                            ));
+                        }
                         if (!from.isSelected()) {
                             throw new IllegalStateException(String.format(
                                 "Node %s has an incoming edge from %s, but source node is not part of the graph.",
@@ -379,18 +392,35 @@ public class DependencyGraphBuilder {
                             ));
                         }
                     }
-//                    for (EdgeState outgoingEdge : node.getOutgoingEdges()) {
-//                        for (NodeState target : outgoingEdge.getTargetNodes()) {
-//                            // TODO: This condition currently fails, but should pass!
-//                            if (!target.getIncomingEdges().contains(outgoingEdge)) {
-//                                throw new IllegalStateException(String.format(
-//                                    "Node %s has an outgoing edge to node %s, but target node does not declare incoming edge.",
-//                                    node.getDisplayName(),
-//                                    target.getDisplayName()
-//                                ));
-//                            }
-//                        }
-//                    }
+                    for (EdgeState outgoingEdge : node.getOutgoingEdges()) {
+                        ModuleResolveState targetModule = outgoingEdge.getSelector().getTargetModule();
+                        if (outgoingEdge.isUnattached() && !targetModule.getUnattachedEdges().contains(outgoingEdge)) {
+                            throw new IllegalStateException(String.format(
+                                "Outgoing unattached edge %s has target module %s, but module does not declare edge as unattached",
+                                outgoingEdge,
+                                targetModule
+                            ));
+                        }
+                        for (NodeState target : outgoingEdge.getTargetNodes()) {
+                            if (!target.getIncomingEdges().contains(outgoingEdge)) {
+                                throw new IllegalStateException(String.format(
+                                    "Node %s has an outgoing edge to node %s, but target node does not declare incoming edge.",
+                                    node.getDisplayName(),
+                                    target.getDisplayName()
+                                ));
+                            }
+                        }
+                        boolean hasTargetNodes = !outgoingEdge.getTargetNodes().isEmpty();
+                        boolean hasFailure = outgoingEdge.getFailure() != null;
+                        if (hasTargetNodes == hasFailure) {
+                            // Edges must either have a target node or a failure, but not both, and not neither.
+                            throw new IllegalStateException(String.format(
+                                "Node %s has an outgoing edge %s with inconsistent target nodes and failure.",
+                                node.getDisplayName(),
+                                outgoingEdge
+                            ));
+                        }
+                    }
                 }
             }
         }

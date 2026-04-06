@@ -48,15 +48,7 @@ public class VirtualPlatformState {
         state.registerPlatformOwner(this);
         if (participatingModules.add(state)) {
             resolveOptimizations.declareVirtualPlatformInUse();
-            ComponentState platformComponent = platformModule.getSelected();
-            if (platformComponent != null) {
-                // There is a possibility that a platform version was selected before a new member
-                // of the platform was discovered. In this case, we need to restart the selection,
-                // or some members will not be upgraded
-                for (NodeState nodeState : platformComponent.getNodes()) {
-                    nodeState.markForVirtualPlatformRefresh();
-                }
-            }
+            invalidateVirtualPlatformConstraints();
             // If any versions of this platform previously failed to resolve
             // (e.g. an explicit platform dependency resolved before any
             // belongsTo edges were discovered), replace those failures with
@@ -69,6 +61,18 @@ public class VirtualPlatformState {
                 }
             }
             hasForcedParticipatingModule |= isParticipatingModuleForced(state);
+        }
+    }
+
+    void invalidateVirtualPlatformConstraints() {
+        ComponentState selected = platformModule.getSelected();
+        if (selected != null) {
+            // There is a possibility that a platform version was selected before a new member
+            // of the platform was discovered. In this case, we need to restart the selection,
+            // or some members will not be upgraded
+            for (NodeState nodeState : selected.getNodes()) {
+                nodeState.markForVirtualPlatformRefresh();
+            }
         }
     }
 

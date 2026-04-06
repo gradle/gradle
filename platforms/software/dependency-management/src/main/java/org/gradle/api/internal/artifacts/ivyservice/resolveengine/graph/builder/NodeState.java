@@ -353,7 +353,7 @@ public class NodeState implements DependencyGraphNode {
                         module.getPendingDependencies().registerConstraintProvider(this);
                     } else {
                         for (EdgeState edge : edges) {
-                            doLinkOutgoingEdge(edge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module);
+                            doLinkOutgoingEdge(edge, discoveredEdges, resolutionFilter, ancestorsStrictVersions);
                         }
                     }
                 }
@@ -410,7 +410,7 @@ public class NodeState implements DependencyGraphNode {
                 if (edge.getDependencyMetadata().isConstraint()) {
                     ModuleResolveState targetModule = resolveState.getModule(edge.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter()));
                     if (targetModule.isPending()) {
-                        targetModule.unregisterConstraintProvider(this);
+                        targetModule.getPendingDependencies().unregisterConstraintProvider(this);
                     }
                 }
             }
@@ -464,10 +464,10 @@ public class NodeState implements DependencyGraphNode {
 
         if (constraint && module.isPending()) {
             // No hard dependency targeting this module. Remember this constraint for later in case we see a hard dependency later.
-            module.registerConstraintProvider(this);
+            module.getPendingDependencies().registerConstraintProvider(this);
         } else {
             // We are a hard edge, or we are a constraint but there is already another hard edge targeting the same module.
-            doLinkOutgoingEdge(dependencyEdge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module);
+            doLinkOutgoingEdge(dependencyEdge, discoveredEdges, resolutionFilter, ancestorsStrictVersions);
         }
     }
 
@@ -574,12 +574,11 @@ public class NodeState implements DependencyGraphNode {
         EdgeState dependencyEdge,
         Collection<EdgeState> discoveredEdges,
         ExcludeSpec resolutionFilter,
-        StrictVersionConstraints ancestorsStrictVersions,
-        ModuleResolveState module
+        StrictVersionConstraints ancestorsStrictVersions
     ) {
         dependencyEdge.updateTransitiveExcludes(resolutionFilter);
         dependencyEdge.computeSelector(ancestorsStrictVersions);
-        module.addUnattachedEdge(dependencyEdge);
+        dependencyEdge.getSelector().getTargetModule().addUnattachedEdge(dependencyEdge);
         discoveredEdges.add(dependencyEdge);
         outgoingEdges.add(dependencyEdge);
     }
@@ -747,11 +746,11 @@ public class NodeState implements DependencyGraphNode {
      * Determine if this node should be processed when it is dequeued during traversal, or if it
      * instead be removed from the graph.
      * <p>
-     * False if this node has no incoming edges, or is in conflict and should temporarily not
+     * True if this node has no incoming edges, or is in conflict and should temporarily not
      * contribute to the graph. We need special handling for root since it does not yet have
      * its own module, but should never be considered a conflict participant.
      */
-    boolean contributesToGraph() {
+    boolean doesNotContributeToGraph() {
         return !isSelected() || isInCapabilityConflict() || (getComponent().getModule().isInModuleConflict() && !isRoot());
     }
 
@@ -1234,17 +1233,17 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Called on losing nodes after conflict resolution to retarget their existing incoming
-     * edges to the winning node. This method must be called after any relevant state is updated
-     * so that retargeting chooses the correct new target node.
+     * Called on losing nodes after conflict resolution to detach their existing incoming
+     * edges from their existing node. This method must be called after any relevant state is updated
+     * so that detaching adds unattached edges to the winning module.
      */
-    void restartIncomingEdges() {
+    public void detachIncomingEdges() {
         if (incomingEdges.size() == 1) {
             EdgeState singleEdge = incomingEdges.get(0);
-            singleEdge.retarget();
+            singleEdge.detachFromTargetNodes();
         } else if (incomingEdges.size() > 1){
             for (EdgeState edge : new ArrayList<>(incomingEdges)) {
-                edge.retarget();
+                edge.detachFromTargetNodes();
             }
         }
 

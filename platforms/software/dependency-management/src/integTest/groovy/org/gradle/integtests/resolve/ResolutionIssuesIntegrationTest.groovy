@@ -80,62 +80,6 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    @NotYetImplemented
-    @Issue("https://github.com/gradle/gradle/issues/22326")
-    def "capability conflict skip"() {
-        settingsFile << """
-            include("app", "extension")
-
-            dependencyResolutionManagement {
-                ${mavenCentralRepository()}
-                components {
-                    withModule("org.jboss.spec.javax.transaction:jboss-transaction-api_1.2_spec") {
-                        allVariants {
-                            withCapabilities {
-                                addCapability("javax.transaction", "javax.transaction-api", id.version)
-                            }
-                        }
-                    }
-                }
-            }
-        """
-
-        file("app/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-
-            dependencies {
-                // Change the order of these two dependencies to have the capability conflict detected
-                runtimeOnly("org.liquibase.ext:liquibase-hibernate5:4.4.3")
-                runtimeOnly("org.eclipse.jetty.aggregate:jetty-all:9.4.35.v20201120")
-            }
-        """
-
-        file("extension/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-
-            configurations.all {
-                resolutionStrategy.capabilitiesResolution.withCapability("javax.transaction:javax.transaction-api") {
-                    select("javax.transaction:javax.transaction-api:0")
-                }
-            }
-
-            dependencies {
-                implementation("org.hibernate:hibernate-core:5.5.7.Final")
-                implementation(project(":app"))
-            }
-        """
-
-        when:
-        succeeds(":extension:dependencies", "--configuration=runtimeClasspath")
-
-        then:
-        outputContains("org.jboss.spec.javax.transaction:jboss-transaction-api_1.2_spec:1.1.1.Final -> javax.transaction:javax.transaction-api:1.3")
-    }
-
     @Ignore("Original reproducer. Minified version below")
     @Requires(UnitTestPreconditions.Jdk17OrLater)
     @Issue("https://github.com/gradle/gradle/issues/22326#issuecomment-1617422240")

@@ -835,14 +835,11 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                         forced()
                         edge("org:annotations:2.8.0", "org:annotations:2.8.10") {
                             byConstraint("belongs to platform org:platform:2.8.11.1")
-                            byConflictResolution("between versions 2.8.10 and 2.8.0")
+                            byConflictResolution("between versions 2.8.0 and 2.8.10")
                             forced()
                         }
                         module("org:core:2.8.10")
                     }
-                }
-                if (forceNotation.contains("force = true")) {
-                    module("org:databind:2.8.11.1")
                 }
             }
         }
@@ -903,9 +900,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                         }
                         module("org:core:2.6.7")
                     }
-                }
-                if (forceNotation.contains("force = true")) {
-                    module("org:databind:2.6.7.1")
                 }
             }
         }

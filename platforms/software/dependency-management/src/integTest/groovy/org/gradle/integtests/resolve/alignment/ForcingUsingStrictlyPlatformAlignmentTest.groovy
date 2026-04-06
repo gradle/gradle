@@ -164,7 +164,7 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         then:
         failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints:
    Dependency path: 'root project :' (conf) --> 'org:databind:{strictly 2.7.9}'
-   Constraint path: 'root project :' (conf) --> 'org:core:2.9.4' ($coreVariant) --> 'org:platform:2.9.4' (default) --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
+   Constraint path: 'root project :' (conf) --> 'org:platform:2.9.4' (default) --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
     }
 
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions, including transitively"() {
@@ -319,7 +319,7 @@ include 'other'
                 module("com.amazonaws:aws-java-sdk-core:1.11.438") {
                     edge("org:cbor:2.6.7", "org:cbor:2.8.10") {
                         byConstraint("belongs to platform org:platform:2.8.11.1")
-                        byConflictResolution("between versions 2.8.10 and 2.6.7")
+                        byConflictResolution("between versions 2.6.7 and 2.8.10")
                         forced()
                         module("org:core:2.8.10") {
                             byConstraint("belongs to platform org:platform:2.8.11.1")
@@ -333,7 +333,7 @@ include 'other'
                         forced()
                         edge("org:annotations:2.8.0", "org:annotations:2.8.10") {
                             byConstraint("belongs to platform org:platform:2.8.11.1")
-                            byConflictResolution("between versions 2.8.10 and 2.8.0")
+                            byConflictResolution("between versions 2.8.0 and 2.8.10")
                             forced()
                         }
                         module("org:core:2.8.10")
@@ -390,7 +390,7 @@ include 'other'
                         forced()
                         edge("org:annotations:2.6.0", "org:annotations:2.6.7") {
                             byConstraint("belongs to platform org:platform:2.6.7.1")
-                            byConflictResolution("between versions 2.6.7 and 2.6.0")
+                            byConflictResolution("between versions 2.6.0 and 2.6.7")
                             forced()
                         }
                         module("org:core:2.6.7")

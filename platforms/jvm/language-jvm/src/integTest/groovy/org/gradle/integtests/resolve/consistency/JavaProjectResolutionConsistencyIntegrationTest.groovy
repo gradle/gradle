@@ -144,7 +144,6 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         foo.pom.expectGet()
         foo.artifact.expectGet()
         bar.pom.expectGet()
-        transitive10.pom.expectGet()
         transitive11.pom.expectGet()
         transitive11.artifact.expectGet()
 

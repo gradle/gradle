@@ -339,8 +339,10 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             'org:a:1.0' {
                 expectGetMetadata()
             }
-            'org:c:1.0' {
-                expectGetMetadata()
+            if (gradleMetadataPublished) {
+                'org:c:1.0' {
+                    expectGetMetadata()
+                }
             }
         }
         run ':checkDeps'
