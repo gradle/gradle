@@ -16,7 +16,8 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.features.internal.ProjectTypeFixture
+import org.gradle.features.internal.TestScenarioFixture
+import org.gradle.features.internal.builders.DefinitionBuilder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
@@ -26,7 +27,8 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
 @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
-class NdocSupportIntegrationSpec extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
+class NdocSupportIntegrationSpec extends AbstractIntegrationSpec implements TestScenarioFixture, PolyglotTestFixture {
+
     def setup() {
         file("gradle.properties") << """
             org.gradle.kotlin.dsl.dcl=true
@@ -35,17 +37,27 @@ class NdocSupportIntegrationSpec extends AbstractIntegrationSpec implements Proj
 
     def "can create elements in an out-projected named domain object container"() {
         given:
-        withProjectTypeWithNdoc(true).prepareToExecute()
-
-        settingsFile() << """
-            pluginManagement {
-                includeBuild("plugins")
+        testScenario {
+            projectType("testProjectType") {
+                definition {
+                    shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    ndoc("foos", "Foo") {
+                        outProjected()
+                        property "x", Integer
+                        property "y", Integer
+                    }
+                }
+                plugin {
+                    unsafeDefinition()
+                }
             }
+        }.prepareToExecute()
 
-            plugins {
-                id("com.example.test-software-ecosystem")
-            }
-        """
+        settingsFile() << pluginsFromIncludedBuild
 
         buildFile() << """
             testProjectType {

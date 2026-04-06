@@ -20,13 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
-import org.gradle.features.internal.ProjectFeatureFixture
+import org.gradle.features.internal.TestScenarioFixture
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
 @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
 class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
-    implements ProjectFeatureFixture, PolyglotTestFixture {
+    implements TestScenarioFixture, PolyglotTestFixture {
 
     def setup() {
         file("gradle.properties") << "org.gradle.kotlin.dsl.dcl=true"
@@ -34,7 +35,26 @@ class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
 
     def "apply action can eagerly read property values and nested property values configured in the build script"() {
         given:
-        def pluginBuilder = withProjectTypeThatReadsValuesEagerlyInApplyAction()
+        def pluginBuilder = testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+                plugin {
+                    applyAction {
+                        injectedService "taskRegistrar", TaskRegistrar
+                        eagerlyReadDefinitionValues()
+                    }
+                    unsafeApplyAction()
+                }
+            }
+        }
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 
@@ -60,7 +80,19 @@ class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
     @SkipDsl(dsl = GradleDsl.DECLARATIVE, because = "DCL does not support post-block modification syntax")
     def "definition property cannot be modified after the project type configuration block exits"() {
         given:
-        def pluginBuilder = withProjectType()
+        def pluginBuilder = testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+        }
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 
@@ -89,7 +121,22 @@ class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
     @SkipDsl(dsl = GradleDsl.DECLARATIVE, because = "DCL controls NDOC elements declaratively")
     def "named domain object container cannot be modified after the project type configuration block exits"() {
         given:
-        def pluginBuilder = withProjectTypeWithDefinitionThatHasNdocContainingDefinitions()
+        def pluginBuilder = testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    ndoc("sources", "Source") {
+                        implementsDefinition("SourceModel") {
+                            property "processedDir", String
+                        }
+                        property "sourceDir", String
+                    }
+                }
+            }
+        }
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 
@@ -118,7 +165,56 @@ class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
 
     def "apply action can access auto-registered build models for elements in a NamedDomainObjectContainer<Definition>"() {
         given:
-        def pluginBuilder = withProjectTypeWithDefinitionThatHasNdocContainingDefinitions()
+        def pluginBuilder = testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        implementsDefinition("FooBuildModel") {
+                            property "barProcessed", String
+                        }
+                        property "bar", String
+                    }
+                    ndoc("sources", "Source") {
+                        implementsDefinition("SourceModel") {
+                            property "processedDir", String
+                        }
+                        property "sourceDir", String
+                    }
+                }
+                plugin {
+                    applyActionCode """
+                        definition.getSources().forEach(source -> {
+                            TestProjectTypeDefinition.Source.SourceModel sourceModel = context.getBuildModel(source);
+                            sourceModel.getProcessedDir().set(source.getSourceDir().map(String::toUpperCase));
+                        });
+
+                        getTaskRegistrar().register("printSourceModels", DefaultTask.class, task -> {
+                            task.doLast("print", t -> {
+                                definition.getSources().forEach(source -> {
+                                    TestProjectTypeDefinition.Source.SourceModel sourceModel = context.getBuildModel(source);
+                                    System.out.println("source processed dir = " + sourceModel.getProcessedDir().get());
+                                });
+                            });
+                        });
+
+                        java.util.List<String> modelClassLines = new java.util.ArrayList<>();
+                        definition.getSources().forEach(s ->
+                            modelClassLines.add("source model class: " + context.getBuildModel(s).getClass().getSimpleName())
+                        );
+                        getTaskRegistrar().register("printSourceModelClass", DefaultTask.class, task -> {
+                            task.doLast("print", t -> {
+                                for (String line : modelClassLines) { System.out.println(line); }
+                            });
+                        });
+                    """
+                    unsafeApplyAction()
+                }
+            }
+        }
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 
@@ -144,7 +240,39 @@ class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
 
     def "nested build models can be instantiated with a separate implementation type"() {
         given:
-        def pluginBuilder = withProjectTypeWithDefinitionThatHasNdocContainingDefinitions()
+        def pluginBuilder = testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    ndoc("sources", "Source") {
+                        implementsDefinition("SourceModel") {
+                            property "processedDir", String
+                        }
+                        property "sourceDir", String
+                    }
+                }
+                plugin {
+                    providesBuildModelImpl("DefaultSourceModel", "Source.SourceModel") {
+                        property "processedDir", String
+                    }
+                    applyActionCode """
+                        java.util.List<String> modelClassLines = new java.util.ArrayList<>();
+                        definition.getSources().forEach(s ->
+                            modelClassLines.add("source model class: " + context.getBuildModel(s).getClass().getSimpleName())
+                        );
+                        getTaskRegistrar().register("printSourceModelClass", DefaultTask.class, task -> {
+                            task.doLast("print", t -> {
+                                for (String line : modelClassLines) { System.out.println(line); }
+                            });
+                        });
+                    """
+                    unsafeApplyAction()
+                }
+            }
+        }
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 
@@ -163,12 +291,41 @@ class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
         run(":printSourceModelClass")
 
         then:
-        outputContains("source model class: ProjectTypeImplPlugin\$Binding\$DefaultSourceModel_Decorated")
+        outputContains("source model class: TestProjectTypeImplPlugin\$DefaultSourceModel_Decorated")
     }
 
     def "apply action can eagerly read property values from an NDOC element definition configured in the build script"() {
         given:
-        def pluginBuilder = withProjectTypeWithDefinitionNdocThatReadsValuesEagerly()
+        def pluginBuilder = testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    ndoc("sources", "Source") {
+                        implementsDefinition("SourceModel") {
+                            property "processedDir", String
+                        }
+                        property "sourceDir", String
+                    }
+                }
+                plugin {
+                    applyActionCode """
+                        java.util.List<String> eagerLines = definition.getSources().stream().map(source -> {
+                            String dir = source.getSourceDir().get();
+                            return "eager source dir for " + source.getName() + " = " + dir;
+                        }).collect(java.util.stream.Collectors.toList());
+                        getTaskRegistrar().register("printEagerSourceValues", DefaultTask.class, task -> {
+                            task.doLast("print", t -> {
+                                for (String line : eagerLines) { System.out.println(line); }
+                            });
+                        });
+                    """
+                    unsafeApplyAction()
+                }
+            }
+        }
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 

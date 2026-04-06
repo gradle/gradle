@@ -15,17 +15,9 @@
  */
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.features.annotations.BindsProjectType
-import org.gradle.features.binding.BuildModel
-import org.gradle.features.binding.Definition
-import org.gradle.features.binding.ProjectTypeBinding
-import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.features.binding.ProjectFeatureApplicationContext
-import org.gradle.features.binding.ProjectTypeApplyAction
-import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.features.internal.ProjectTypeFixture
+import org.gradle.features.internal.TestScenarioFixture
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -41,7 +33,7 @@ import spock.lang.Issue
  *   <li>Project types registered via declarative DSL</li>
  * </ul>
  */
-class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture {
+class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements TestScenarioFixture {
     def "reports project structure with single composite"() {
         given:
         createDirs("p1", "p2", "p2/p22", "another")
@@ -229,171 +221,36 @@ Root project 'my-root-project'
     @ToBeFixedForIsolatedProjects(because = "Accesses project.description for another project")
     def "project project structure and project types for multi-project build using declarative dcl"() {
         given: "a build-logic build registering an ecosystem plugin defining several project types via several plugins"
-        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.provider.Property;
-            import ${Definition.class.name};
-            import ${BuildModel.class.name};
-
-            public abstract interface LibraryExtension extends ${Definition.class.simpleName}<LibraryExtension.Model> {
-                Property<String> getName();
-
-                interface Model extends ${BuildModel.class.simpleName} { }
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/ApplicationExtension.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.provider.Property;
-            import ${Definition.class.name};
-            import ${BuildModel.class.name};
-
-            public abstract interface ApplicationExtension extends ${Definition.class.simpleName}<ApplicationExtension.Model> {
-                Property<String> getName();
-
-                interface Model extends ${BuildModel.class.simpleName} { }
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/UtilityExtension.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.provider.Property;
-            import ${Definition.class.name};
-            import ${BuildModel.class.name};
-
-            public abstract interface UtilityExtension extends ${Definition.class.simpleName}<UtilityExtension.Model> {
-                Property<String> getName();
-
-                interface Model extends ${BuildModel.class.simpleName} { }
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/LibraryPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${BindsProjectType.class.name};
-            import ${ProjectTypeBinding.class.name};
-            import ${ProjectTypeBindingBuilder.class.name};
-
-            import ${ProjectTypeApplyAction.class.name};
-            import ${ProjectFeatureApplicationContext.class.name};
-
-            @${BindsProjectType.class.simpleName}(LibraryPlugin.Binding.class)
-            public abstract class LibraryPlugin implements Plugin<Project> {
-                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
-                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("library", LibraryExtension.class, ApplyAction.class);
-                    }
-                }
-
-                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<LibraryExtension, LibraryExtension.Model> {
-                    @javax.inject.Inject public ApplyAction() { }
-                    @Override public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, LibraryExtension definition, LibraryExtension.Model model) { }
-                }
-
-                @Override
-                public void apply(Project project) { }
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/ApplicationPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${BindsProjectType.class.name};
-            import ${ProjectTypeBinding.class.name};
-            import ${ProjectTypeBindingBuilder.class.name};
-
-            import ${ProjectTypeApplyAction.class.name};
-            import ${ProjectFeatureApplicationContext.class.name};
-
-            @${BindsProjectType.class.simpleName}(ApplicationPlugin.Binding.class)
-            public abstract class ApplicationPlugin implements Plugin<Project> {
-                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
-                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("application", ApplicationExtension.class, ApplyAction.class);
-                    }
-                }
-
-                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<ApplicationExtension, ApplicationExtension.Model> {
-                    @javax.inject.Inject public ApplyAction() { }
-                    @Override public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, ApplicationExtension definition, ApplicationExtension.Model model) { }
-                }
-
-                @Override
-                public void apply(Project project) { }
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/UtilityPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${BindsProjectType.class.name};
-            import ${ProjectTypeBinding.class.name};
-            import ${ProjectTypeBindingBuilder.class.name};
-
-            import ${ProjectTypeApplyAction.class.name};
-            import ${ProjectFeatureApplicationContext.class.name};
-
-            @${BindsProjectType.class.simpleName}(UtilityPlugin.Binding.class)
-            public abstract class UtilityPlugin implements Plugin<Project> {
-                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
-                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("utility", UtilityExtension.class, ApplyAction.class);
-                    }
-                }
-
-                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<UtilityExtension, UtilityExtension.Model> {
-                    @javax.inject.Inject public ApplyAction() { }
-                    @Override public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, UtilityExtension definition, UtilityExtension.Model model) { }
-                }
-
-                @Override
-                public void apply(Project project) { }
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.initialization.Settings;
-            import ${ RegistersProjectFeatures.class.name};
-
-            @${RegistersProjectFeatures.class.simpleName}({ LibraryPlugin.class, ApplicationPlugin.class, UtilityPlugin.class })
-            abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
-                @Override
-                public void apply(Settings target) {}
-            }
-        """
-        file("build-logic/build.gradle") << """
-            plugins {
-                id("java-gradle-plugin")
-            }
-
-            ${mavenCentralRepository()}
-
-            gradlePlugin {
-                plugins {
-                    create("softwareTypeRegistrator") {
-                        id = "com.example.restricted.ecosystem"
-                        implementationClass = "com.example.restricted.SoftwareTypeRegistrationPlugin"
+        testScenario {
+            projectType("library") {
+                definition {
+                    property("name", String)
+                    buildModel {
+                        property("name", String)
                     }
                 }
             }
-        """
+            projectType("application") {
+                definition {
+                    property("name", String)
+                    buildModel {
+                        property("name", String)
+                    }
+                }
+            }
+            projectType("utility") {
+                definition {
+                    property("name", String)
+                    buildModel {
+                        property("name", String)
+                    }
+                }
+            }
+        }.prepareToExecute()
 
         and: "a build that applies that ecosystem plugin to a multi-project build, with each project using a different project type"
         settingsFile << """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
-
-            plugins {
-                id("com.example.restricted.ecosystem")
-            }
+            ${pluginsFromIncludedBuild}
 
             rootProject.name = 'example'
 
@@ -436,15 +293,15 @@ Root project 'my-root-project'
 
 Available project types:
 
-application (com.example.restricted.ApplicationExtension)
-        Defined in: com.example.restricted.ApplicationPlugin
-        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
-library (com.example.restricted.LibraryExtension)
-        Defined in: com.example.restricted.LibraryPlugin
-        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
-utility (com.example.restricted.UtilityExtension)
-        Defined in: com.example.restricted.UtilityPlugin
-        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
+application (org.gradle.test.ApplicationDefinition)
+        Defined in: org.gradle.test.ApplicationImplPlugin
+        Registered by: org.gradle.test.ProjectTypeRegistrationPlugin
+library (org.gradle.test.LibraryDefinition)
+        Defined in: org.gradle.test.LibraryImplPlugin
+        Registered by: org.gradle.test.ProjectTypeRegistrationPlugin
+utility (org.gradle.test.UtilityDefinition)
+        Defined in: org.gradle.test.UtilityImplPlugin
+        Registered by: org.gradle.test.ProjectTypeRegistrationPlugin
 
 Projects:
 

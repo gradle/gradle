@@ -21,19 +21,23 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
-import org.gradle.features.internal.ProjectTypeFixture
+import org.gradle.features.internal.TestScenarioFixture
+import org.gradle.features.internal.builders.PluginClassBuilder
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
-import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
+import static org.gradle.features.internal.builders.Language.KOTLIN
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 
 import org.hamcrest.Matchers
 import org.junit.Rule
 
 @PolyglotDslTest
 @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
-class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
+class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec implements TestScenarioFixture, PolyglotTestFixture {
     @Rule
     MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
@@ -51,27 +55,61 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     def 'can declare and configure a custom project type from included build'() {
         given:
-        withProjectType().prepareToExecute()
+        testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+        }.prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
 
         when:
         run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertThatDeclaredValuesAreSetProperly()
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = test")
 
         and:
-        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Applying TestProjectTypeImplPlugin")
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
     }
 
     def 'can declare and configure a custom project type from published plugin'() {
         given:
         pluginPortal.start()
-        def pluginBuilder = withProjectType()
+        def pluginBuilder = testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+        }
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
 
         settingsFile() << """
@@ -80,22 +118,92 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
 
         when:
         run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertThatDeclaredValuesAreSetProperly()
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = test")
 
         and:
-        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Applying TestProjectTypeImplPlugin")
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
+    }
+
+    @Requires(JdkVersionTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
+    def 'can declare and configure a custom project type using reified Kotlin binding'() {
+        given:
+        PluginBuilder pluginBuilder = testScenario {
+            language KOTLIN
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+                plugin {
+                    bindingStyle PluginClassBuilder.BindingStyle.REIFIED
+                }
+            }
+        }
+        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatestStableOrRC())
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
+
+        when:
+        run(":printTestProjectTypeDefinitionConfiguration")
+
+        then:
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = test")
+
+        and:
+        outputContains("Applying TestProjectTypeImplPlugin")
     }
 
     def 'can declare and configure a custom project type from plugin published to a custom repository'() {
         given:
-        def pluginBuilder = withProjectType()
+        def pluginBuilder = testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+        }
         pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
 
         settingsFile() << """
@@ -109,33 +217,78 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
 
         when:
         succeeds(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertThatDeclaredValuesAreSetProperly()
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = test")
 
         and:
-        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Applying TestProjectTypeImplPlugin")
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
     }
 
     def 'can declare multiple custom project types from a single settings plugin'() {
         given:
-        withSettingsPluginThatExposesMultipleProjectTypes().prepareToExecute()
+        testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+            projectType("anotherProjectType") {
+                definition {
+                    property "id", String
+                    property "foo", String
+                    buildModel {
+                        property "id", String
+                        property "foo", String
+                    }
+                    property("bar", "Bar") {
+                        property "baz", String
+                    }
+                }
+            }
+        }.prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
 
         when:
         run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("Applying ProjectTypeImplPlugin")
-        assertThatDeclaredValuesAreSetProperly()
+        outputContains("Applying TestProjectTypeImplPlugin")
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = test")
 
         when:
         buildFile().text = """
@@ -159,36 +312,94 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     def 'can declare multiple custom project types from a single settings plugin but apply only one'() {
         given:
-        withSettingsPluginThatExposesMultipleProjectTypes().prepareToExecute()
+        testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+            projectType("anotherProjectType") {
+                definition {
+                    property "id", String
+                    property "foo", String
+                    buildModel {
+                        property "id", String
+                        property "foo", String
+                    }
+                    property("bar", "Bar") {
+                        property "baz", String
+                    }
+                }
+            }
+        }.prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
 
         when:
         run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertThatDeclaredValuesAreSetProperly()
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = test")
 
         and:
-        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Applying TestProjectTypeImplPlugin")
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
     }
 
     def 'can declare and configure a custom project type with different public and implementation model types'() {
         given:
-        withProjectTypeThatHasDifferentPublicAndImplementationTypes().prepareToExecute()
+        testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                    implementationType("TestProjectTypeDefinitionImpl")
+                }
+            }
+        }.prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
 
         when:
         run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertThatDeclaredValuesAreSetProperly()
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = test")
 
         when:
         buildFile() << """
@@ -211,7 +422,17 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     def 'sensible error when a project type plugin is registered that does not expose a project type'() {
         given:
-        withProjectTypePluginThatDoesNotExposeProjectTypes().prepareToExecute()
+        testScenario {
+            projectType("testProjectType") {
+                definition {
+                    ndoc("foos", "Foo") {}
+                }
+                plugin {
+                    noBindings()
+                    pluginClassName "NotAProjectTypePlugin"
+                }
+            }
+        }.prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -226,11 +447,45 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     def 'sensible error when two plugins register the same project type'() {
         given:
-        withTwoProjectTypesThatHaveTheSameName().prepareToExecute()
+        testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+            projectType("testProjectType") {
+                definition("AnotherTestProjectTypeDefinition") {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+                plugin {
+                    pluginClassName "AnotherTestProjectTypeImplPlugin"
+                }
+            }
+        }.prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
 
         when:
         fails(":help")
@@ -238,7 +493,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         then:
         assertDescriptionOrCause(failure,
             "Project feature 'testProjectType' is registered by multiple plugins:\n" +
-                "  - Project feature 'testProjectType' is registered by both 'org.gradle.test.AnotherProjectTypeImplPlugin' and 'org.gradle.test.ProjectTypeImplPlugin' but their bindings have overlapping target types.\n" +
+                "  - Project feature 'testProjectType' is registered by both 'org.gradle.test.AnotherTestProjectTypeImplPlugin' and 'org.gradle.test.TestProjectTypeImplPlugin' but their bindings have overlapping target types.\n" +
                 "    \n" +
                 "    Reason: A project feature or type with a given name must bind to a unique target type.\n" +
                 "    \n" +
@@ -248,17 +503,58 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     def 'a project type plugin can declare multiple project types'() {
         given:
-        withProjectTypePluginThatExposesMultipleProjectTypes().prepareToExecute()
+        testScenario {
+            def testProjectType = projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+                noPlugin()
+            }
+            def anotherProjectType = projectType("anotherProjectType") {
+                definition {
+                    buildModel {
+                        property "id", String
+                        property "foo", String
+                    }
+                    property("id", String)
+                    property("foo", String)
+                    property("bar", "Bar") {
+                        property "baz", String
+                    }
+                }
+                noPlugin()
+            }
+            plugin("CombinedPlugin") {
+                bindsType anotherProjectType
+                bindsType testProjectType
+            }
+        }.prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """
 
         when:
         succeeds(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertThatDeclaredValuesAreSetProperly()
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = test")
 
         when:
         buildFile().text = """
@@ -280,11 +576,46 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     def 'sensible error when a script applies multiple project types'() {
         given:
-        withProjectTypePluginThatExposesMultipleProjectTypes().prepareToExecute()
+        testScenario {
+            projectType("anotherProjectType") {
+                definition {
+                    buildModel("ModelType") {
+                        property "id", String
+                        property "foo", String
+                    }
+
+                    property("id", String)
+                    property("foo", String)
+                    property("bar", "Bar") {
+                        property "baz", String
+                    }
+                }
+            }
+
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+        }.prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType + """
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+
             anotherProjectType {
                 bar {
                     baz = "fizz"
@@ -302,7 +633,19 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin can use a property value on the assignment RHS")
     def 'sensible error when declarative script uses a property as value for another property'() {
         given:
-        withProjectType().prepareToExecute()
+        testScenario {
+            projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    property("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+        }.prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -323,64 +666,6 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         errorOutput.contains(
             "6:27: property cannot be used as a value: 'id'"
         )
-    }
-
-    def 'can declare and configure a custom project type using an action class'() {
-        given:
-        withProjectTypeThatBindsWithClass().prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
-
-        when:
-        run(":printTestProjectTypeDefinitionConfiguration")
-
-        then:
-        assertThatDeclaredValuesAreSetProperly()
-
-        and:
-        outputContains("Applying ProjectTypeImplPlugin")
-    }
-
-    @Requires(JdkVersionTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
-    def 'can declare and configure a custom project type in Kotlin using an action class'() {
-        given:
-        def pluginBuilder = withKotlinProjectTypeThatBindsWithClass()
-        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatestStableOrRC())
-        pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
-        pluginBuilder.prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
-
-        when:
-        run(":printTestProjectTypeDefinitionConfiguration")
-
-        then:
-        assertThatDeclaredValuesAreSetProperly()
-
-        and:
-        outputContains("Applying ProjectTypeImplPlugin")
-    }
-
-    static String getDeclarativeScriptThatConfiguresOnlyTestProjectType() {
-        return """
-            testProjectType {
-                id = "test"
-
-                foo {
-                    bar = "baz"
-                }
-            }
-        """
-    }
-
-    void assertThatDeclaredValuesAreSetProperly() {
-        outputContains("definition id = test")
-        outputContains("definition foo.bar = baz")
-        outputContains("model id = test")
     }
 
     void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {
