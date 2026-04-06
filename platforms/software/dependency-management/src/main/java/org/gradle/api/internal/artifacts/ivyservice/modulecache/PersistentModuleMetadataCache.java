@@ -37,6 +37,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -184,6 +185,7 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
         }
     }
 
+    @NullMarked
     sealed interface ReadResult {
         record Missing(ModuleMetadataCacheEntry entry) implements ReadResult {}
         record Found(ModuleMetadataCacheEntry entry, byte[] data) implements ReadResult {}
