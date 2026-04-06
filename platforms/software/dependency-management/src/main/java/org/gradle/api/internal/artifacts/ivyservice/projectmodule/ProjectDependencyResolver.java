@@ -66,8 +66,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Override
     public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes) {
-        if (selector instanceof DefaultProjectComponentSelector) {
-            DefaultProjectComponentSelector projectSelector = (DefaultProjectComponentSelector) selector;
+        if (selector instanceof DefaultProjectComponentSelector projectSelector) {
             ProjectComponentIdentifier projectId = projectSelector.toIdentifier();
             LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
             if (rejector != null && rejector.accept(component.getModuleVersionId().getVersion())) {
@@ -80,8 +79,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Override
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, final BuildableComponentResolveResult result) {
-        if (isProjectModule(identifier)) {
-            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
+        if (identifier instanceof ProjectComponentIdentifier projectId) {
             LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
             result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
         }
@@ -89,24 +87,24 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Override
     public boolean isFetchingMetadataCheap(ComponentIdentifier identifier) {
+        if (identifier instanceof ProjectComponentIdentifier projectId) {
+            return localComponentRegistry.hasCachedComponent(projectId);
+        }
         return true;
     }
 
     @Override
     public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        if (isProjectModule(component.getId())) {
+        if (component.getId() instanceof ProjectComponentIdentifier) {
             throw new UnsupportedOperationException("Resolving artifacts by type is not yet supported for project modules");
         }
     }
 
     @Override
     public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
-        if (isProjectModule(artifact.getComponentId())) {
+        if (artifact.getComponentId() instanceof ProjectComponentIdentifier) {
             artifactResolver.resolveArtifact(component, artifact, result);
         }
     }
 
-    private static boolean isProjectModule(ComponentIdentifier componentId) {
-        return componentId instanceof ProjectComponentIdentifier;
-    }
 }

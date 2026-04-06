@@ -166,7 +166,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         cacheExpirationControl.missingModuleExpiry(_, _) >> Stub(CacheExpirationControl.Expiry) {
             isMustCheck() >> mustRefreshMissingModule
         }
-        moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
+        moduleDescriptorCache.getInMemoryCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
             isMissing() >> true
             getAge() >> Duration.ofMillis(100)
         }
@@ -179,10 +179,10 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         where:
         mustRefreshMissingModule | remoteAnswer                   | expected
-        false                    | MetadataFetchingCost.CHEAP     | MetadataFetchingCost.CHEAP
-        false                    | MetadataFetchingCost.FAST      | MetadataFetchingCost.CHEAP
-        false                    | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.CHEAP
-        true                     | MetadataFetchingCost.CHEAP     | MetadataFetchingCost.CHEAP
+        false                    | MetadataFetchingCost.MISSING   | MetadataFetchingCost.MISSING
+        false                    | MetadataFetchingCost.FAST      | MetadataFetchingCost.MISSING
+        false                    | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.MISSING
+        true                     | MetadataFetchingCost.MISSING   | MetadataFetchingCost.MISSING
         true                     | MetadataFetchingCost.FAST      | MetadataFetchingCost.FAST
         true                     | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.EXPENSIVE
     }
@@ -194,7 +194,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         cacheExpirationControl.changingModuleExpiry(_, _, _) >> Stub(CacheExpirationControl.Expiry) {
             isMustCheck() >> mustRefreshChangingModule
         }
-        moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
+        moduleDescriptorCache.getInMemoryCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
             getProcessedMetadata(_) >> Stub(ExternalModuleComponentGraphResolveState) {
                 getMetadata() >> Stub(ModuleComponentResolveMetadata) {
                     isChanging() >> true
@@ -211,10 +211,10 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         where:
         mustRefreshChangingModule | remoteAnswer                   | expected
-        false                     | MetadataFetchingCost.CHEAP     | MetadataFetchingCost.FAST
+        false                     | MetadataFetchingCost.MISSING   | MetadataFetchingCost.FAST
         false                     | MetadataFetchingCost.FAST      | MetadataFetchingCost.FAST
         false                     | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.FAST
-        true                      | MetadataFetchingCost.CHEAP     | MetadataFetchingCost.CHEAP
+        true                      | MetadataFetchingCost.MISSING   | MetadataFetchingCost.MISSING
         true                      | MetadataFetchingCost.FAST      | MetadataFetchingCost.FAST
         true                      | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.EXPENSIVE
     }
@@ -226,7 +226,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         cacheExpirationControl.moduleExpiry(_, _, _) >> Stub(CacheExpirationControl.Expiry) {
             isMustCheck() >> mustRefreshModule
         }
-        moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
+        moduleDescriptorCache.getInMemoryCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
             getProcessedMetadata(_) >> Stub(ExternalModuleComponentGraphResolveState)
             getAge() >> Duration.ofMillis(100)
         }
@@ -239,10 +239,10 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         where:
         mustRefreshModule | remoteAnswer                   | expected
-        false             | MetadataFetchingCost.CHEAP     | MetadataFetchingCost.FAST
+        false             | MetadataFetchingCost.MISSING   | MetadataFetchingCost.FAST
         false             | MetadataFetchingCost.FAST      | MetadataFetchingCost.FAST
         false             | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.FAST
-        true              | MetadataFetchingCost.CHEAP     | MetadataFetchingCost.CHEAP
+        true              | MetadataFetchingCost.MISSING   | MetadataFetchingCost.MISSING
         true              | MetadataFetchingCost.FAST      | MetadataFetchingCost.FAST
         true              | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.EXPENSIVE
     }

@@ -35,6 +35,7 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 
 public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
 
@@ -94,6 +95,11 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
             }
             return new DefaultCachedMetadata(entry, entry.configure(metadata), timeProvider);
         });
+    }
+
+    @Override
+    protected @Nullable CachedMetadata getInMemoryCachedValue(ModuleComponentAtRepositoryKey key) {
+        return null;
     }
 
     @Override

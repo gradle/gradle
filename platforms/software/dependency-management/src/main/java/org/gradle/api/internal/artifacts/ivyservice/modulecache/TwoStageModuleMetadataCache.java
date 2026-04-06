@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 
 public class TwoStageModuleMetadataCache extends AbstractModuleMetadataCache {
     private final AbstractModuleMetadataCache readOnlyCache;
@@ -31,6 +32,15 @@ public class TwoStageModuleMetadataCache extends AbstractModuleMetadataCache {
     protected CachedMetadata store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData) {
         writableCache.store(key, entry, cachedMetaData);
         return cachedMetaData;
+    }
+
+    @Override
+    protected @Nullable CachedMetadata getInMemoryCachedValue(ModuleComponentAtRepositoryKey key) {
+        CachedMetadata writeEntry = writableCache.getInMemoryCachedValue(key);
+        if (writeEntry != null) {
+            return writeEntry;
+        }
+        return readOnlyCache.getInMemoryCachedValue(key);
     }
 
     @Override

@@ -16,27 +16,24 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 public enum MetadataFetchingCost {
+
     /**
-     * Can return metadata immediately. It must <b>not</b> be used in case the metadata is missing,
-     * even if it's cheap to tell it's missing. Use {@link #CHEAP} in that case.
+     * The metadata is present and immediately available. Retrieving the component metadata
+     * does not require disk or network IO, or acquiring locks for shared resources, like
+     * project locks.
      */
     FAST,
-    /**
-     * Can return metadata in a cheap way, or tell that it's missing in a cheap way. The difference with
-     * {@link #FAST} is that we can use it for missing metadata.
-     */
-    CHEAP,
-    /**
-     * Cannot return metadata without an expensive call, typically involving parsing a descriptor
-     * or accessing the network
-     */
-    EXPENSIVE;
 
-    public boolean isFast() {
-        return this == FAST;
-    }
+    /**
+     * The metadata is not necessarily present and not immediately available. Determining its
+     * presence or retrieving the component metadata would require disk or network IO, or
+     * acquiring locks for shared resources, like project locks.
+     */
+    EXPENSIVE,
 
-    public boolean isExpensive() {
-        return this == EXPENSIVE;
-    }
+    /**
+     * The metadata is immediately known to be not present.
+     */
+    MISSING
+
 }

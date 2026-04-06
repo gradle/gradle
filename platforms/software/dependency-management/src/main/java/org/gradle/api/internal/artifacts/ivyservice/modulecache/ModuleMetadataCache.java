@@ -32,6 +32,8 @@ public interface ModuleMetadataCache {
 
     CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id);
 
+    CachedMetadata getInMemoryCachedModuleDescriptor(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id);
+
     interface CachedMetadata {
         ResolvedModuleVersion getModuleVersion();
 

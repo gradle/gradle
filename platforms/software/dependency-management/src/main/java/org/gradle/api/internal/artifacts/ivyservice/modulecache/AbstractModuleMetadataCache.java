@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,12 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
     public CachedMetadata getCachedModuleDescriptor(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id) {
         final ModuleComponentAtRepositoryKey key = createKey(repository, id);
         return get(key);
+    }
+
+    @Override
+    public CachedMetadata getInMemoryCachedModuleDescriptor(ModuleComponentRepository<?> repository, ModuleComponentIdentifier id) {
+        final ModuleComponentAtRepositoryKey key = createKey(repository, id);
+        return getInMemoryCachedValue(key);
     }
 
     @Override
@@ -66,4 +73,11 @@ public abstract class AbstractModuleMetadataCache implements ModuleMetadataCache
     protected abstract CachedMetadata store(ModuleComponentAtRepositoryKey key, ModuleMetadataCacheEntry entry, CachedMetadata cachedMetaData);
 
     protected abstract CachedMetadata get(ModuleComponentAtRepositoryKey key);
+
+    /**
+     * Return the metadata if it is cached in memory. Or null if it is cached, but only
+     * available on-disk, or if the metadata is not cached.
+     */
+    protected abstract @Nullable CachedMetadata getInMemoryCachedValue(ModuleComponentAtRepositoryKey key);
+
 }

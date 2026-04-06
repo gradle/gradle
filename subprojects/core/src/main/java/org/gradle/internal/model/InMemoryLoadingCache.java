@@ -22,6 +22,12 @@ package org.gradle.internal.model;
 public interface InMemoryLoadingCache<K, V> {
 
     /**
+     * Return true if this cache has a cached value for the given entry,
+     * false otherwise.
+     */
+    boolean hasValue(K key);
+
+    /**
      * Get the value corresponding to the given key, loading the value
      * on demand if it is not already present in the cache.
      *

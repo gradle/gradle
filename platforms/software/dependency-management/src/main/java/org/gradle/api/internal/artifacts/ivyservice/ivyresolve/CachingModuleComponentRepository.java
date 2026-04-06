@@ -300,16 +300,18 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getCachedModuleDescriptor(delegate, moduleComponentIdentifier);
+            ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getInMemoryCachedModuleDescriptor(delegate, moduleComponentIdentifier);
             if (cachedMetadata == null) {
                 return estimateCostViaRemoteAccess(moduleComponentIdentifier);
             }
+
             if (cachedMetadata.isMissing()) {
                 if (cacheExpirationControl.missingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getAge()).isMustCheck()) {
                     return estimateCostViaRemoteAccess(moduleComponentIdentifier);
                 }
-                return MetadataFetchingCost.CHEAP;
+                return MetadataFetchingCost.MISSING;
             }
+
             ExternalModuleComponentGraphResolveState state = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
             if (state.getMetadata().isChanging()) {
                 if (cacheExpirationControl.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge()).isMustCheck()) {

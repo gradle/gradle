@@ -88,9 +88,9 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
             for (ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository : repositories) {
                 ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> localAccess = repository.getLocalAccess();
                 MetadataFetchingCost fetchingCost = localAccess.estimateMetadataFetchingCost((ModuleComponentIdentifier) identifier);
-                if (fetchingCost.isFast()) {
+                if (fetchingCost == MetadataFetchingCost.FAST) {
                     return true;
-                } else if (fetchingCost.isExpensive()) {
+                } else if (fetchingCost == MetadataFetchingCost.EXPENSIVE) {
                     return false;
                 }
             }

@@ -30,8 +30,16 @@ import javax.annotation.concurrent.ThreadSafe;
 @ServiceScope(Scope.Project.class)
 @ThreadSafe
 public interface LocalComponentRegistry {
+
+    /**
+     * @return True if this registry has a cached component for the given identifier,
+     * or false if the component is not yet computed.
+     */
+    boolean hasCachedComponent(ProjectComponentIdentifier identifier);
+
     /**
      * @return The component metadata for the supplied identifier.
      */
     LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier);
+
 }

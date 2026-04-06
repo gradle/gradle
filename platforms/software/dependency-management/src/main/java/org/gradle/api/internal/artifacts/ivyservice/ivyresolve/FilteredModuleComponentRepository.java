@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.Factory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -129,9 +128,14 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
-                    () -> delegate.estimateMetadataFetchingCost(moduleComponentIdentifier),
-                    () -> MetadataFetchingCost.CHEAP);
+            ModuleIdentifier id = moduleComponentIdentifier.getModuleIdentifier();
+            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
+            filterAction.execute(details);
+            if (details.notFound) {
+                return MetadataFetchingCost.MISSING;
+            }
+
+            return delegate.estimateMetadataFetchingCost(moduleComponentIdentifier);
         }
 
         private void whenModulePresent(ModuleIdentifier id, @Nullable ModuleComponentIdentifier moduleComponentIdentifier, Runnable present, Runnable absent) {
@@ -144,14 +148,6 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
             }
         }
 
-        private <T> T whenModulePresent(ModuleIdentifier id, ModuleComponentIdentifier moduleComponentIdentifier, Factory<T> present, Factory<T> absent) {
-            DefaultArtifactResolutionDetails details = new DefaultArtifactResolutionDetails(id, moduleComponentIdentifier);
-            filterAction.execute(details);
-            if (details.notFound) {
-                return absent.create();
-            }
-            return present.create();
-        }
     }
 
     private static class DefaultArtifactResolutionDetails implements ArtifactResolutionDetails {

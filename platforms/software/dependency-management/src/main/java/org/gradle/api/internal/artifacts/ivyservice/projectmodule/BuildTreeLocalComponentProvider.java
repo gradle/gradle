@@ -34,6 +34,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface BuildTreeLocalComponentProvider {
 
     /**
+     * @return True if this registry has a cached component for the given project,
+     * or false if the component is not yet computed.
+     */
+    boolean hasCachedComponent(ProjectIdentity targetProjectId);
+
+    /**
      * Get the local component for the target project.
      *
      * @param targetProjectId the project to get the local component for

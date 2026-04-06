@@ -58,7 +58,6 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.BuildableTypedResolveResult;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.ByteArrayReadableContent;
@@ -385,6 +384,7 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
     }
 
     protected abstract class LocalRepositoryAccess extends AbstractRepositoryAccess {
+
         @Override
         public String toString() {
             return "local > " + ExternalResourceResolver.this;
@@ -400,13 +400,10 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
 
         @Override
         protected final void resolveMetaDataArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
-            if (!(module.getId() instanceof ModuleComponentIdentifier)) {
-                return;
+            if (module.getId() instanceof ModuleComponentIdentifier moduleId) {
+                ModuleDescriptorArtifactMetadata artifact = getMetaDataArtifactFor(moduleId);
+                result.resolved(Collections.singleton(artifact));
             }
-
-            ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) module.getId();
-            ModuleDescriptorArtifactMetadata artifact = getMetaDataArtifactFor(moduleId);
-            result.resolved(Collections.singleton(artifact));
         }
 
         @Override
@@ -416,8 +413,9 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return MetadataFetchingCost.CHEAP;
+            return MetadataFetchingCost.FAST;
         }
+
     }
 
     protected abstract class RemoteRepositoryAccess extends AbstractRepositoryAccess {
@@ -497,40 +495,9 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            if (ExternalResourceResolver.this.local) {
-                ModuleComponentArtifactMetadata artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
-                if (createArtifactResolver().artifactExists(artifact, NoOpResourceAwareResolveResult.INSTANCE)) {
-                    return MetadataFetchingCost.FAST;
-                }
-                return MetadataFetchingCost.CHEAP;
-            }
             return MetadataFetchingCost.EXPENSIVE;
         }
-    }
 
-    private static class NoOpResourceAwareResolveResult implements ResourceAwareResolveResult {
-
-        private static final NoOpResourceAwareResolveResult INSTANCE = new NoOpResourceAwareResolveResult();
-
-        @Override
-        public List<String> getAttempted() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public void attempted(String locationDescription) {
-
-        }
-
-        @Override
-        public void attempted(ExternalResourceName location) {
-
-        }
-
-        @Override
-        public void applyTo(ResourceAwareResolveResult target) {
-            throw new UnsupportedOperationException();
-        }
     }
 
     private static class DefaultComponentVersionsLister implements ComponentMetadataListerDetails {

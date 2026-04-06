@@ -159,7 +159,7 @@ public class StartParameterResolutionOverride {
 
         @Override
         public MetadataFetchingCost estimateMetadataFetchingCost(ModuleComponentIdentifier moduleComponentIdentifier) {
-            return MetadataFetchingCost.CHEAP;
+            return MetadataFetchingCost.MISSING;
         }
     }
 

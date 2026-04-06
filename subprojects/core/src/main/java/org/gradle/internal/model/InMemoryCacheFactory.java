@@ -105,6 +105,11 @@ public class InMemoryCacheFactory {
         }
 
         @Override
+        public boolean hasValue(K key) {
+            return delegate.containsKey(key);
+        }
+
+        @Override
         public V get(K key) {
             // Try to load the value without locking
             // See https://bugs.openjdk.org/browse/JDK-8161372
@@ -124,12 +129,18 @@ public class InMemoryCacheFactory {
     }
 
     private static class IdentityLoadingCache<K, V> implements InMemoryLoadingCache<K, V> {
+
         private final InMemoryLoadingCache<IdentityKey<K>, V> delegate;
 
         public IdentityLoadingCache(int maxConcurrency, Function<K, V> loader) {
             this.delegate = new DefaultLoadingCache<>(maxConcurrency, key ->
                 loader.apply(key.value)
             );
+        }
+
+        @Override
+        public boolean hasValue(K key) {
+            return delegate.hasValue(new IdentityKey<>(key));
         }
 
         @Override
@@ -141,9 +152,11 @@ public class InMemoryCacheFactory {
         public void invalidate() {
             delegate.invalidate();
         }
+
     }
 
     private static class IdentityKey<T> {
+
         private final T value;
 
         private IdentityKey(T value) {
@@ -160,9 +173,11 @@ public class InMemoryCacheFactory {
         public int hashCode() {
             return System.identityHashCode(value);
         }
+
     }
 
     private static class CalculatedValueCache<K, V> implements InMemoryLoadingCache<K, V> {
+
         private final InMemoryLoadingCache<K, CalculatedValue<V>> delegate;
 
         public CalculatedValueCache(
@@ -180,6 +195,11 @@ public class InMemoryCacheFactory {
         }
 
         @Override
+        public boolean hasValue(K key) {
+            return delegate.hasValue(key);
+        }
+
+        @Override
         public V get(K key) {
             CalculatedValue<V> calculatedValue = delegate.get(key);
             // Calculate the value after adding the entry to the cache, so that
@@ -192,6 +212,7 @@ public class InMemoryCacheFactory {
         public void invalidate() {
             delegate.invalidate();
         }
+
     }
 
     private static class DefaultInterner<T> implements InMemoryInterner<T> {
@@ -211,6 +232,7 @@ public class InMemoryCacheFactory {
         public void invalidate() {
             delegate.invalidate();
         }
+
     }
 
 }

@@ -30,16 +30,17 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
+
     private final long ageMillis;
-    private final ModuleComponentResolveMetadata metadata;
+    private final @Nullable ModuleComponentResolveMetadata metadata;
 
     private volatile Map<Integer, ExternalModuleComponentGraphResolveState> processedMetadataByRules;
 
-    DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
+    DefaultCachedMetadata(ModuleMetadataCacheEntry entry, @Nullable ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
         this(timeProvider.getCurrentTime() - entry.createTimestamp, metadata);
     }
 
-    private DefaultCachedMetadata(long age, ModuleComponentResolveMetadata metadata) {
+    private DefaultCachedMetadata(long age, @Nullable ModuleComponentResolveMetadata metadata) {
         this.ageMillis = age;
         this.metadata = metadata;
     }
@@ -51,16 +52,18 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
 
     @Override
     public ModuleSources getModuleSources() {
+        assert metadata != null;
         return metadata.getSources();
     }
 
     @Override
     public ResolvedModuleVersion getModuleVersion() {
-        return isMissing() ? null : new DefaultResolvedModuleVersion(getMetadata().getModuleVersionId());
+        return metadata == null ? null : new DefaultResolvedModuleVersion(metadata.getModuleVersionId());
     }
 
     @Override
     public ModuleComponentResolveMetadata getMetadata() {
+        assert metadata != null;
         return metadata;
     }
 
@@ -99,4 +102,5 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
         ModuleComponentResolveMetadata asImmutable = copy.asImmutable();
         return new DefaultCachedMetadata(ageMillis, asImmutable);
     }
+
 }

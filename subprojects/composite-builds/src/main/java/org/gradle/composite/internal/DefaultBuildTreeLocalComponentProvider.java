@@ -91,6 +91,11 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     }
 
     @Override
+    public boolean hasCachedComponent(ProjectIdentity targetProjectId) {
+        return components.hasValue(targetProjectId.getBuildTreePath());
+    }
+
+    @Override
     public LocalComponentGraphResolveState getComponent(ProjectIdentity targetProjectId, Path sourceBuild) {
         Path projectIdentityPath = targetProjectId.getBuildTreePath();
         ensureBuildConfigured(targetProjectId.getBuildPath(), sourceBuild);

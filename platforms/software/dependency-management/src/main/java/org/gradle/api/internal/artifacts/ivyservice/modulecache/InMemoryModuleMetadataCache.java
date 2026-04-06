@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,6 +45,11 @@ public class InMemoryModuleMetadataCache extends AbstractModuleMetadataCache {
             }
         }
         return metadata;
+    }
+
+    @Override
+    protected @Nullable CachedMetadata getInMemoryCachedValue(ModuleComponentAtRepositoryKey key) {
+        return inMemoryCache.get(key);
     }
 
     @Override

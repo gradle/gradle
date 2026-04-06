@@ -54,6 +54,12 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     }
 
     @Override
+    public boolean hasCachedComponent(ProjectComponentIdentifier identifier) {
+        ProjectIdentity targetProjectId = ((ProjectComponentIdentifierInternal) identifier).getProjectIdentity();
+        return componentProvider.hasCachedComponent(targetProjectId);
+    }
+
+    @Override
     public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier) {
         ProjectIdentity targetProjectId = ((ProjectComponentIdentifierInternal) projectIdentifier).getProjectIdentity();
         Path targetProjectPath = targetProjectId.getBuildTreePath();
