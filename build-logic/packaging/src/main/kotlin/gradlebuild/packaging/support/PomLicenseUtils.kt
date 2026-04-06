@@ -47,9 +47,7 @@ object PomLicenseUtils {
      * lacks the mandatory `groupId` / `artifactId` coordinates.
      */
     fun parsePom(pomFile: File): PomInfo? {
-        val model = runCatching {
-            FileInputStream(pomFile).use { stream -> MavenXpp3Reader().read(stream) }
-        }.getOrNull() ?: return null
+        val model = FileInputStream(pomFile).use { stream -> MavenXpp3Reader().read(stream) }
 
         val groupId = model.groupId ?: model.parent?.groupId ?: return null
         val artifactId = model.artifactId ?: return null

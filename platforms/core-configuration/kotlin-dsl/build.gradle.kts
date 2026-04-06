@@ -3,6 +3,14 @@ import gradlebuild.basics.PublicKotlinDslApi
 import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
+buildscript {
+    dependencies {
+        classpath("org.codehaus.plexus:plexus-utils:4.0.3") {
+            because("Shadow pulls in vulnerable 4.0.2")
+        }
+    }
+}
+
 plugins {
     id("gradlebuild.distribution.api-kotlin")
     id("gradlebuild.kotlin-dsl-dependencies-embedded")

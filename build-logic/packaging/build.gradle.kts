@@ -23,4 +23,10 @@ dependencies {
     implementation(libs.maven3Model)
 
     testImplementation(testLibs.junitJupiter)
+
+    constraints {
+        implementation("org.codehaus.plexus:plexus-utils:3.6.1") {
+            because("libs.maven3Model pulls in a vulnerable version")
+        }
+    }
 }

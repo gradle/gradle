@@ -26,5 +26,12 @@ dependencies {
                 }
             })
         }
+
+        api("org.codehaus.plexus:plexus-utils") {
+            because("Versions below 3.6.1 and 4.0.2 are vulnerable to CVE-2025-67030")
+            version {
+                reject("[3.0,3.6.1)", "[4.0,4.0.3)")
+            }
+        }
     }
 }
