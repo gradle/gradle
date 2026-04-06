@@ -46,6 +46,7 @@ import org.gradle.declarative.dsl.schema.UnsafeNonAbstractMember
 import org.gradle.declarative.dsl.schema.UnsafeNonInterfaceType
 import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
+import kotlin.reflect.KClass
 
 @Serializable
 @SerialName("analysisSchema")
@@ -448,6 +449,8 @@ data class DefaultProjectFeatureAccessorIdentifier(
 @Serializable
 data class DefaultFqName(override val packageName: String, override val simpleName: String) : FqName {
     companion object {
+        fun of(kClass: KClass<*>) = parse(kClass.java.canonicalName.orEmpty())
+
         fun parse(fqNameString: String): FqName {
             val parts = fqNameString.split(".")
             return DefaultFqName(parts.dropLast(1).joinToString("."), parts.last())

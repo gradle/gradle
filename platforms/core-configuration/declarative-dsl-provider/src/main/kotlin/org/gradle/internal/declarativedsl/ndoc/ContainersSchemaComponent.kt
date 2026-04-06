@@ -64,6 +64,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscoveryResult
 import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
 import org.gradle.internal.declarativedsl.schemaBuilder.flatMap
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelClass
@@ -159,16 +160,16 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> =
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscoveryResult> =
                 typeDiscoveryServices.host.inContextOfModelClass(kClass) {
                     containerProperties(typeDiscoveryServices.host, kClass).values.flatMap { propertyResult ->
                         when (propertyResult) {
-                            is SchemaResult.Failure -> listOf(propertyResult)
+                            is SchemaResult.Failure -> listOf(ExtractionResult.of(propertyResult, DefaultFqName.of(kClass)))
                             is SchemaResult.Result -> {
                                 listOfNotNull(
                                     // discover the element type, only if the declared container type is not NDOC<T>; otherwise, it will be discovered from the signature
                                     (propertyResult.result.containerType.takeIf { it.classifier != NamedDomainObjectContainer::class })
-                                        ?.let { DiscoveredClass.classesOf(it, DiscoveryTag.ContainerElement(propertyResult.result.originDeclaration.kCallable)).map(::schemaResult) }
+                                        ?.let { DiscoveredClass.classesOf(it, DiscoveryTag.ContainerElement(propertyResult.result.originDeclaration.kCallable)) }
                                 ).flatten()
                             }
                         }

@@ -50,6 +50,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.Discovered
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.ProjectFeatureDefinition
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Supertype
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.collections.mutableSetOf
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -65,8 +66,8 @@ import kotlin.reflect.typeOf
 interface SchemaBuildingHost {
     val topLevelReceiverClass: KClass<*>
 
-    val typeFailures: Iterable<SchemaResult.Failure>
-    fun recordTypeFailure(failure: SchemaResult.Failure)
+    val typeFailures: Map<FqName, Set<SchemaResult.Failure>>
+    fun recordTypeDiscoveryFailure(inTypeByName: FqName, failure: SchemaResult.Failure)
 
     fun recordClaimedMember(kClass: KClass<*>, member: SupportedCallable)
     fun recordMemberWithFailure(kClass: KClass<*>, member: SupportedCallable, failure: SchemaResult.Failure)
@@ -189,12 +190,12 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
     private val claimedMembers = mutableMapOf<KClass<*>, MutableSet<SupportedCallable>>()
     private val failedMembers = mutableMapOf<KClass<*>, MutableMap<SupportedCallable, MutableList<SchemaResult.Failure>>>()
 
-    private val mutableTypeFailures = mutableListOf<SchemaResult.Failure>()
+    private val mutableTypeFailures = mutableMapOf<FqName, MutableSet<SchemaResult.Failure>>()
 
-    override val typeFailures: Iterable<SchemaResult.Failure> get() = mutableTypeFailures.toList()
+    override val typeFailures: Map<FqName, Set<SchemaResult.Failure>> get() = mutableTypeFailures.toMap()
 
-    override fun recordTypeFailure(failure: SchemaResult.Failure) {
-        mutableTypeFailures += failure
+    override fun recordTypeDiscoveryFailure(inTypeByName: FqName, failure: SchemaResult.Failure) {
+        mutableTypeFailures.getOrPut(inTypeByName) { mutableSetOf() } += failure
     }
 
     override fun recordClaimedMember(kClass: KClass<*>, member: SupportedCallable) {
@@ -437,7 +438,7 @@ class DataSchemaBuilder(
         preIndex: PreIndex,
         schema: DefaultAnalysisSchema,
     ): List<SchemaResult.Failure> = buildSet {
-        addAll(host.typeFailures)
+        addAll(host.typeFailures.values.flatten())
 
         addAll(checkDiscoveredTypeForIllegalHiddenTypeUsages(host, preIndex.allDiscoveredTypes))
 
@@ -590,11 +591,13 @@ class DataSchemaBuilder(
                 if (add(type)) {
                     val discoveriesToVisitNext = typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type)
 
-                    allTypeDiscoveries.addAll(discoveriesToVisitNext.filterIsInstance<SchemaResult.Result<DiscoveredClass>>().map { it.result })
-                    discoveriesToVisitNext.filterIsInstance<SchemaResult.Failure>().forEach(host::recordTypeFailure)
+                    allTypeDiscoveries.addAll(discoveriesToVisitNext.filterIsInstance<ExtractedType>().map { it.result })
+                    discoveriesToVisitNext.filterIsInstance<TypeDiscoveryFailure>().forEach { failure ->
+                        host.recordTypeDiscoveryFailure(failure.metadata, failure.failure)
+                    }
 
                     discoveriesToVisitNext.forEach {
-                        if (it is SchemaResult.Result && !it.result.isHidden) {
+                        if (it is ExtractedType && !it.result.isHidden) {
                             visit(it.result.kClass)
                         }
                     }

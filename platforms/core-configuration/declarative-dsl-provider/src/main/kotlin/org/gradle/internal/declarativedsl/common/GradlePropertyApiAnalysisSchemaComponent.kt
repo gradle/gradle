@@ -32,16 +32,15 @@ import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractionMetada
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractionResult
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
-import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.PropertyType
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscoveryResult
 import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
 import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
 import org.gradle.internal.declarativedsl.schemaBuilder.orFailWith
 import org.gradle.internal.declarativedsl.schemaBuilder.returnTypeRef
-import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
@@ -137,13 +136,13 @@ class GradlePropertyApiPropertyExtractor : PropertyExtractor {
 
 private
 class PropertyReturnTypeDiscovery : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscoveryResult> =
         typeDiscoveryServices.propertyExtractor.extractProperties(typeDiscoveryServices.host, kClass).flatMap { extractionResult ->
             when (extractionResult) {
                 is ExtractionResult.Extracted<DataProperty, PropertyExtractionMetadata> ->
                     extractionResult.metadata.originalType?.let { originalType ->
                         propertyValueType(typeDiscoveryServices.host, originalType)
-                            .let { propertyValueType -> TypeDiscovery.DiscoveredClass.classesOf(propertyValueType, PropertyType(kClass, extractionResult.result.name)).map(::schemaResult) }
+                            .let { propertyValueType -> TypeDiscovery.DiscoveredClass.classesOf(propertyValueType, PropertyType(kClass, extractionResult.result.name)) }
                     } ?: emptyList()
 
                 is ExtractionResult.Failure -> emptyList()

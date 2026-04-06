@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import kotlin.reflect.KClass
 
 /**
@@ -25,23 +26,25 @@ import kotlin.reflect.KClass
 class SupertypeDiscovery(
     val isBuildModelType: (KClass<*>) -> Boolean = { false }
 ) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscoveryResult> =
         withAllPotentiallyDeclarativeSupertypes(typeDiscoveryServices.host, kClass)
-            .filter { it !is SchemaResult.Result || !isBuildModelType(it.result.kClass) }
+            .filter { it !is ExtractionResult.Extracted || !isBuildModelType(it.result.kClass) }
 }
 
-internal fun withAllPotentiallyDeclarativeSupertypes(host: SchemaBuildingHost, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> =
+internal fun withAllPotentiallyDeclarativeSupertypes(host: SchemaBuildingHost, kClass: KClass<*>): Iterable<TypeDiscoveryResult> =
     host.declarativeSupertypesHierarchy(kClass).flatMap { result ->
         when (result) {
             is MaybeDeclarativeClassInHierarchy.VisibleSuperclassInHierarchy, is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy -> {
                 val isHidden = result is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy
                 val tag = TypeDiscovery.DiscoveredClass.DiscoveryTag.Supertype(kClass, isHidden = isHidden)
 
-                listOf(schemaResult(TypeDiscovery.DiscoveredClass(result.superClass, tag))) +
-                    if (!isHidden) result.typeVariableAssignments.values.flatMap { TypeDiscovery.DiscoveredClass.classesOf(it, tag).map(::schemaResult) }
-                    else emptyList()
+                listOf(
+                    TypeDiscovery.DiscoveredClass(result.superClass, tag).extracted()
+                ) + if (!isHidden)
+                    result.typeVariableAssignments.values.flatMap { TypeDiscovery.DiscoveredClass.classesOf(it, tag) }
+                else emptyList()
             }
 
-            is MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy -> listOf(result.reason)
+            is MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy -> listOf(ExtractionResult.Failure(result.reason, DefaultFqName.of(result.superClass)))
         }
     }

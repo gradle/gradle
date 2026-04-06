@@ -16,18 +16,30 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
+/**
+ * A type discovery result is either a [DiscoveredClass] tag or a failure, in either case accompanied by an [FqName] of the type
+ * being discovered.
+ */
+typealias TypeDiscoveryResult = ExtractionResult<DiscoveredClass, FqName>
+typealias ExtractedType = ExtractionResult.Extracted<DiscoveredClass, FqName>
+typealias TypeDiscoveryFailure = ExtractionResult.Failure<FqName>
+
+fun DiscoveredClass.extracted(): ExtractedType =
+    ExtractedType(this, DefaultFqName.of(kClass))
 
 interface TypeDiscovery {
     /**
      * Given a [kClass] that is included in the schema, produces [DiscoveredClass] entries for other classes reachable from the [kClass] that should be
      * considered for inclusionn into the schema. The returned [DiscoveredClass] entries might have non-unique [DiscoveredClass.kClass] values.
      */
-    fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>>
+    fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscoveryResult>
 
     interface TypeDiscoveryServices {
         val host: SchemaBuildingHost
@@ -67,7 +79,7 @@ interface TypeDiscovery {
         }
 
         companion object {
-            fun classesOf(kType: SupportedTypeProjection.SupportedType, discoveryTag: DiscoveryTag): Iterable<DiscoveredClass> =
+            fun classesOf(kType: SupportedTypeProjection.SupportedType, discoveryTag: DiscoveryTag): Iterable<TypeDiscoveryResult> =
                 buildSet {
                     fun visitType(type: SupportedTypeProjection.SupportedType) { // safe to recurse without the visited set: the types are deconstructed to smaller types
                         (type.classifier as? KClass<*>)?.let(::add)
@@ -80,26 +92,27 @@ interface TypeDiscovery {
                         }
                     }
                     visitType(kType)
-                }.map { DiscoveredClass(it, discoveryTag) }
+                }.map { ExtractionResult.Extracted(DiscoveredClass(it, discoveryTag), DefaultFqName.parse(it.qualifiedName.orEmpty())) }
         }
     }
 
     companion object {
         val none = object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> = emptyList()
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscoveryResult> = emptyList()
         }
     }
 }
 
 
 class CompositeTypeDiscovery(internal val implementations: Iterable<TypeDiscovery>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscoveryResult> =
         implementations.flatMap { it.getClassesToVisitFrom(typeDiscoveryServices, kClass) }
 }
 
 class FilteringTypeDiscovery(private val delegate: TypeDiscovery, val typeFilter: (KClass<*>) -> Boolean) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<DiscoveredClass>> =
-        if (typeFilter(kClass)) delegate.getClassesToVisitFrom(typeDiscoveryServices, kClass).filter { it !is SchemaResult.Result || typeFilter(it.result.kClass) } else emptyList()
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscoveryResult> =
+        if (typeFilter(kClass)) delegate.getClassesToVisitFrom(typeDiscoveryServices, kClass)
+            .filter { it !is ExtractionResult.Extracted || typeFilter(it.result.kClass) } else emptyList()
 }
 
 
