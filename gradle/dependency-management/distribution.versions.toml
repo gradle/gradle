@@ -120,6 +120,7 @@ jsr305 = { group = "com.google.code.findbugs", name = "jsr305", version.ref = "j
 julToSlf4j = { group = "org.slf4j", name = "jul-to-slf4j", version.ref = "slf4j" }
 kotlinAssignment = { group = "org.jetbrains.kotlin", name = "kotlin-assignment", version.ref = "kotlin" }
 kotlinAssignmentCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-assignment-compiler-plugin-embeddable", version.ref = "kotlin" }
+kotlinBuildToolsApi = { group = "org.jetbrains.kotlin", name = "kotlin-build-tools-api", version.ref = "kotlin" }
 kotlinBuildToolsImpl = { group = "org.jetbrains.kotlin", name = "kotlin-build-tools-impl", version.ref = "kotlin" }
 kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
 kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }

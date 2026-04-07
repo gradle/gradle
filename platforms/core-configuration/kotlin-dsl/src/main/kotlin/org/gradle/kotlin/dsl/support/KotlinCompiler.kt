@@ -161,8 +161,8 @@ fun compileKotlinScriptModuleTo(
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
                 addScriptingCompilerComponents()
-                add(SamWithReceiverConfigurationKeys.ANNOTATION, HasImplicitReceiver::class.qualifiedName!!)
-                add(AssignmentConfigurationKeys.ANNOTATION, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
+                add(SamWithReceiverConfigurationKeys.SAM_WITH_RECEIVER_ANNOTATION, HasImplicitReceiver::class.qualifiedName!!)
+                add(AssignmentConfigurationKeys.ASSIGNMENT_ANNOTATION, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
             }
 
             val environment = kotlinCoreEnvironmentFor(configuration)
@@ -309,6 +309,7 @@ class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
 }
 
 
+@OptIn(CompilerConfiguration.Internals::class)
 private
 fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions: KotlinCompilerOptions): CompilerConfiguration =
     CompilerConfiguration().apply {
