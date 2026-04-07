@@ -201,10 +201,10 @@ def value = providers.gradleProperty("myProp")
 ----
 val myProp: String by project.properties
 ----
-| Get the project property directly:
+| Delegate from `project` directly:
 [source,kotlin]
 ----
-val myProp = project.property("myProp") as String
+val myProp: String by project
 ----
 
 | Forwarding properties as system properties:
@@ -251,6 +251,15 @@ processResources {
     }
 }
 |===
+
+[[changes_9.6.0]]
+== Upgrading from 9.5.0 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 2.3.21-RC
+
+The embedded Kotlin has been upgraded from 2.3.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.21-RC[Kotlin 2.3.21-RC].
 
 [[kotlin_dsl_delegated_properties]]
 ==== Deprecation of Kotlin DSL delegated properties
@@ -388,8 +397,6 @@ correctness bugs (e.g. no-op delegates, wrong extra property scope),
 couple entity names to variable names, diverge between build scripts and
 class-based plugins, and duplicate functionality already provided by
 explicit APIs or other DSL sugar.
-
-=== Potential breaking changes
 
 [[agp_8x_incompatible]]
 ==== Android Gradle Plugin 8.x is no longer compatible with Gradle 9.6
