@@ -85,6 +85,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private final PositionalOutputStream writeStream = new PositionalOutputStream();
     private final KryoBackedEncoder writeEncoder = new KryoBackedEncoder(writeStream, WRITE_BUFFER_SIZE);
     private final byte[] entryHeader = new byte[ENTRY_HEADER_SIZE];
+    private final ByteBuffer entryHeaderBuffer = ByteBuffer.wrap(entryHeader);
 
     // Read buffers: ThreadLocal, accessed by concurrent reader threads
     private final ThreadLocal<ReadBuffer> readBuffers = ThreadLocal.withInitial(ReadBuffer::new);
@@ -230,7 +231,8 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             // Step 3: Seek back and write real header
             putLong(entryHeader, 0, hash);
             putInt(entryHeader, 8, valueLen);
-            dataChannel.write(ByteBuffer.wrap(entryHeader), offset);
+            entryHeaderBuffer.clear();
+            dataChannel.write(entryHeaderBuffer, offset);
 
             // Step 4: Advance append position
             appendPosition = offset + ENTRY_HEADER_SIZE + valueLen + 1;
@@ -569,6 +571,12 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
      * Reusable across puts by calling {@link #reset(FileChannel, long)}.
      */
     private static class PositionalOutputStream extends OutputStream {
+        private final byte[] singleByte = new byte[1];
+        private final ByteBuffer singleByteBuf = ByteBuffer.wrap(singleByte);
+        // Cached ByteBuffer for bulk writes — reused when the backing array is the same.
+        // KryoBackedEncoder reuses its internal buffer, so this almost never reallocates.
+        private byte[] cachedArray = singleByte;
+        private ByteBuffer cachedBuf = singleByteBuf;
         private FileChannel channel;
         private long position;
         private int bytesWritten;
@@ -585,12 +593,22 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
 
         @Override
         public void write(int b) throws IOException {
-            write(new byte[]{(byte) b}, 0, 1);
+            singleByte[0] = (byte) b;
+            singleByteBuf.clear();
+            int n = channel.write(singleByteBuf, position);
+            position += n;
+            bytesWritten += n;
         }
 
         @Override
         public void write(byte[] b, int off, int len) throws IOException {
-            ByteBuffer buf = ByteBuffer.wrap(b, off, len);
+            ByteBuffer buf = cachedBuf;
+            if (cachedArray != b) {
+                buf = ByteBuffer.wrap(b);
+                cachedArray = b;
+                cachedBuf = buf;
+            }
+            buf.limit(off + len).position(off);
             while (buf.hasRemaining()) {
                 int n = channel.write(buf, position);
                 position += n;

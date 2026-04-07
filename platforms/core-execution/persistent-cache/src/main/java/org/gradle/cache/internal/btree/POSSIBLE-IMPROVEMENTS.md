@@ -92,9 +92,9 @@ Options:
   `force()`. Zero-copy load on open (lazy paging). Main caveat: unmapping lifecycle
   in Java < 22
 
-## 8. Eliminate per-put allocations in `PositionalOutputStream`
+## 8. ~~Eliminate per-put allocations in `PositionalOutputStream`~~ (IMPLEMENTED)
 
-Every `put()` call creates several short-lived objects in the write path:
+Every `put()` call was creating several short-lived objects in the write path:
 
 | Source                            | Line | Allocation                                      |
 |-----------------------------------|------|-------------------------------------------------|
@@ -103,16 +103,19 @@ Every `put()` call creates several short-lived objects in the write path:
 | `ByteBuffer.wrap(entryHeader)`    | 233  | new HeapByteBuffer (1 object)                   |
 | `System.currentTimeMillis()`      | 246  | syscall for `lastAccess` (never read back)      |
 
-That is ~5-7 allocations + 1 useless syscall per `put()`. Across all caches on a
-write-heavy build iteration, this creates measurable GC pressure.
+That was ~5-7 allocations + 1 useless syscall per `put()`. Across all caches on a
+write-heavy build iteration, this created measurable GC pressure.
 
-Fixes:
-- Cache a reusable `ByteBuffer` field in `PositionalOutputStream` instead of calling
-  `ByteBuffer.wrap()` on every `write(byte[], off, len)`
-- Use a reusable single-byte buffer in `write(int b)` instead of `new byte[]{(byte) b}`
-- Cache the `entryHeader` ByteBuffer wrapper as a field (wrap once, reuse with
-  `clear()` before each write)
-- Remove the `System.currentTimeMillis()` call (covered by item 1 — drop `lastAccess`)
+Implemented fixes:
+- `PositionalOutputStream.write(int b)`: reusable `singleByte` array + pre-allocated
+  `singleByteBuf` ByteBuffer — zero allocations
+- `PositionalOutputStream.write(byte[], off, len)`: cached ByteBuffer reused when the
+  backing array is the same (KryoBackedEncoder reuses its internal buffer, so this
+  almost never reallocates)
+- `entryHeaderBuffer`: pre-allocated ByteBuffer wrapping the `entryHeader` byte array,
+  reused with `clear()` before each write
+
+Still open: `System.currentTimeMillis()` syscall (covered by item 1 — drop `lastAccess`)
 
 ### Observed performance impact
 
@@ -208,5 +211,5 @@ discarding everything).
 | Data file compaction       | Medium-High | Bounded .dat growth        | Faster reads (less seeking)  |
 | Fix entryCount drift       | Low         | None                       | Prevents premature growth    |
 | Incremental flush          | High        | None                       | Faster flush for large caches|
-| Eliminate per-put allocs   | Low         | None                       | Less GC pressure on writes   |
+| ~~Eliminate per-put allocs~~   | ~~Low~~         | ~~None~~                       | ~~Less GC pressure on writes~~ DONE |
 | Merge into single file     | Medium      | None                       | One fewer fsync per flush    |
