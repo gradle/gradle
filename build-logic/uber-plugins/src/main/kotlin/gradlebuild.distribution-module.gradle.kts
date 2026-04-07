@@ -74,9 +74,13 @@ pluginManager.withPlugin("gradlebuild.kotlin-library") {
         configureAsRuntimeJarClasspath(objects)
     }
 
-    val libs = project.versionCatalogs.named("libs")
+    val libs = project.versionCatalogs.named("buildLibs")
     dependencies {
-        apiGenDependencies(libs.findLibrary("kotlinJvmAbiGenEmbeddable").get())
+        apiGenDependencies(libs.findLibrary("kotlinJvmAbiGenEmbeddable").get().get().copy().apply {
+            version {
+                strictly(embeddedKotlinVersion)
+            }
+        })
     }
 
     val abiClassesDirectory = layout.buildDirectory.dir("generated/kotlin-abi")

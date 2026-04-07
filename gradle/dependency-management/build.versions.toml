@@ -45,6 +45,7 @@ jsoup = { module = "org.jsoup:jsoup", version = "1.15.3" }
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
 kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin"}
 kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable"}
+kotlinJvmAbiGenEmbeddable = { group = "org.jetbrains.kotlin", name = "jvm-abi-gen-embeddable"}
 kotlinMetadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm"}
 kotlinSamWithReceiver = { group = "org.jetbrains.kotlin", name = "kotlin-sam-with-receiver"}
 log4jCore = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
