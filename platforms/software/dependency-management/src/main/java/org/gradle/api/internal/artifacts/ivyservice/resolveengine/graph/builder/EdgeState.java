@@ -41,7 +41,6 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -237,6 +236,7 @@ class EdgeState implements DependencyGraphEdge {
             for (NodeState node : targetComponent.getNodes()) {
                 if (node.isSelected() && !node.isRoot()) {
                     targetNodes.add(node);
+                    node.addIncomingEdge(this);
                 }
             }
 
@@ -249,6 +249,9 @@ class EdgeState implements DependencyGraphEdge {
                         return;
                     }
                 }
+            } else {
+                // If we have target nodes, we are no longer unattached.
+                selector.getTargetModule().removeUnattachedEdge(this);
             }
             return;
         }
@@ -276,6 +279,38 @@ class EdgeState implements DependencyGraphEdge {
                 targetNodeState = targetNodeState.getReplacement();
             }
             this.targetNodes.add(targetNodeState);
+            targetNodeState.addIncomingEdge(this);
+        }
+        if (!targetNodes.isEmpty()) {
+            attachConstraintsTargetingComponentToNodes(targetComponent, targetNodes);
+            selector.getTargetModule().removeUnattachedEdge(this);
+        }
+    }
+
+    /**
+     * Since constraints attach to all nodes of the selected component of the module they constrain,
+     * we must update all constraints already targeting nodes in the selected component to also
+     * attach to the nodes we just attached to.
+     */
+    @SuppressWarnings("ForLoopReplaceableByForEach") // Lots of iteration here -- iterators are visible in profiles otherwise
+    private static void attachConstraintsTargetingComponentToNodes(ComponentState targetComponent, List<NodeState> targetNodes1) {
+        List<NodeState> nodes = targetComponent.getNodes();
+        for (int i = 0; i < nodes.size(); i++) {
+            NodeState targetModuleNode = nodes.get(i);
+            List<EdgeState> incomingEdges = targetModuleNode.getIncomingEdges();
+            for (int j = 0; j < incomingEdges.size(); j++) {
+                EdgeState incomingEdge = incomingEdges.get(j);
+                if (incomingEdge.isConstraint()) {
+                    for (int k = 0; k < targetNodes1.size(); k++) {
+                        NodeState targetNode = targetNodes1.get(k);
+                        if (!incomingEdge.targetNodes.contains(targetNode)) {
+                            incomingEdge.clearTargetNodeSelectionFailure();
+                            incomingEdge.targetNodes.add(targetNode);
+                            targetNode.addIncomingEdge(incomingEdge);
+                        }
+                    }
+                }
+            }
         }
     }
 

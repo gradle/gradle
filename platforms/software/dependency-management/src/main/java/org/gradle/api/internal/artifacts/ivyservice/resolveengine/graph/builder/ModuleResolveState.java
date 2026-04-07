@@ -111,6 +111,10 @@ public class ModuleResolveState implements CandidateModule {
         return resolveState;
     }
 
+    boolean isQueuedForSelection() {
+        return queuedForSelection;
+    }
+
     boolean enqueueForSelection() {
         if (queuedForSelection) {
             return false;

@@ -388,20 +388,7 @@ public class NodeState implements DependencyGraphNode {
      * * Making sure we no longer are registered as pending interest on nodes pointed by constraints
      */
     private void cleanupConstraints() {
-        // This part covers constraint that were taken into account between a selection being deferred and this node being scheduled for traversal
-        if (upcomingNoLongerPendingConstraints != null) {
-            for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
-                ModuleResolveState module = resolveState.getModule(identifier);
-                for (EdgeState unattachedEdge : module.getUnattachedEdges()) {
-                    if (!unattachedEdge.getSelector().isResolved()) {
-                        // Unresolved - we have a selector that was deferred but the constraint has been removed in between
-                        NodeState from = unattachedEdge.getFrom();
-                        from.prepareToRecomputeEdge(unattachedEdge);
-                    }
-                }
-            }
-            upcomingNoLongerPendingConstraints = null;
-        }
+        this.upcomingNoLongerPendingConstraints = null;
         // This part covers constraint that might be triggered in the future if the node they point gains a real edge
         if (cachedFilteredEdges != null && !cachedFilteredEdges.isEmpty()) {
             // We may have registered this node as pending if it had constraints.
@@ -786,7 +773,10 @@ public class NodeState implements DependencyGraphNode {
             resolveState.onMoreSelected(this);
         } else {
             this.replacement = winner;
-            restartIncomingEdges();
+            for (EdgeState edge : incomingEdges) {
+                resolveState.enqueueForAttachment(edge.getSelector().getTargetModule());
+            }
+            detachIncomingEdges();
         }
     }
 
