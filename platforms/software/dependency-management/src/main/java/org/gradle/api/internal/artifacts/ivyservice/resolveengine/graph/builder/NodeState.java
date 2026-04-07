@@ -86,7 +86,8 @@ public class NodeState implements DependencyGraphNode {
 
     @Nullable
     ExcludeSpec previousTraversalExclusions;
-    private boolean queued;
+    private boolean queuedForRemoval;
+    private boolean queuedForAddition;
 
     /**
      * The number of unresolved capability conflicts this node is involved in.
@@ -173,19 +174,28 @@ public class NodeState implements DependencyGraphNode {
         this.dependenciesMayChange = component.getModule().isVirtualPlatform();
     }
 
-    // the enqueue and dequeue methods are used for performance reasons
-    // in order to avoid tracking the set of enqueued nodes
-    boolean enqueue() {
-        if (queued) {
+    boolean enqueueForRemoval() {
+        if (queuedForRemoval || queuedForAddition) {
             return false;
         }
-        queued = true;
+        queuedForRemoval = true;
         return true;
     }
 
-    NodeState dequeue() {
-        queued = false;
-        return this;
+    void dequeueFromRemoval() {
+        queuedForRemoval = false;
+    }
+
+    boolean enqueueForAddition() {
+        if (queuedForAddition || queuedForRemoval) {
+            return false;
+        }
+        queuedForAddition = true;
+        return true;
+    }
+
+    void dequeueFromAddition() {
+        queuedForAddition = false;
     }
 
     @Override

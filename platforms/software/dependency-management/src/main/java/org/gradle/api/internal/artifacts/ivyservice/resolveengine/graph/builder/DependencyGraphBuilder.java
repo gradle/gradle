@@ -166,75 +166,218 @@ public class DependencyGraphBuilder {
 
     /**
      * Traverses the dependency graph, resolving conflicts and building the paths from the root configuration.
+     *
+     * <p>The loop is structured around a strict priority order to maximize download batching:
+     * <ol>
+     *   <li><b>Node processing</b> — drain the node queue one at a time. Discovers outgoing edges
+     *       and registers their target modules for selection. Also cleans up nodes that have lost
+     *       all incoming edges.</li>
+     *   <li><b>Attachment</b> — attach edges for modules whose selected component already has
+     *       resolved metadata. This discovers new nodes (which feed back to step 1) without any IO.</li>
+     *   <li><b>Selection</b> — pick the best version for one pending module. If selection changes
+     *       or the selected component already has metadata, return to step 1 immediately.
+     *       Otherwise, the module needs a metadata download — continue selecting the next module.</li>
+     *   <li><b>Download</b> — all cheap work is exhausted. Batch-download metadata for every
+     *       module that still needs it, then return to step 1.</li>
+     *   <li><b>Conflict resolution</b> — only when all queues are empty. Resolve one conflict
+     *       and return to step 1.</li>
+     * </ol>
      */
     private void traverseGraph(final ResolveState resolveState) {
         resolveState.onMoreSelected(resolveState.getRoot());
-        final List<EdgeState> edges = new ArrayList<>();
+
+        List<EdgeState> edges = new ArrayList<>();
+        List<ComponentState> componentsToDownload = new ArrayList<>();
 
         ModuleConflictHandler moduleConflictHandler = resolveState.getModuleConflictHandler();
         CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
 
-        while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
-            if (resolveState.peek() != null) {
-                final NodeState node = resolveState.pop();
-
-                if (node.contributesToGraph()) {
+        while (true) {
+            // Priority 1: Process nodes that may have lost incoming edges (removals).
+            // These nodes likely need their outgoing edges removed, which releases selectors
+            // and reduces work for attachment and selection.
+            if (resolveState.hasNextRemoval()) {
+                NodeState node = resolveState.nextRemoval();
+                if (node.doesNotContributeToGraph()) {
                     node.removeOutgoingEdges();
-                    continue;
-                }
-
-                // This node is part of the graph. Check if it conflicts with any other node in the graph.
-                if (capabilitiesConflictHandler.registerCandidate(node)) {
-                    // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
-                    // There is no reason to continue processing this node otherwise.
-                    continue;
-                }
-
-                // This node is part of the graph and is not in conflict. Process its outgoing dependencies.
-                edges.clear();
-                node.visitOutgoingDependenciesAndCollectEdges(edges);
-                resolveEdges(node, edges, resolveState);
-            } else {
-                // We have some batched up conflicts. Resolve the first, and continue traversing the graph
-                if (moduleConflictHandler.hasConflicts()) {
-                    moduleConflictHandler.resolveNextConflict();
                 } else {
-                    capabilitiesConflictHandler.resolveNextConflict();
+                    processNodeAddition(node, edges, resolveState, capabilitiesConflictHandler);
                 }
+                continue;
             }
+
+            // Priority 2: Attach edges for modules with resolved metadata.
+            // This discovers new nodes (additions) without IO.
+            if (attachModulesWithResolvedMetadata(resolveState)) {
+                continue;
+            }
+
+            // Priority 3: Process nodes that gained incoming edges (additions).
+            // Deferred until after attachment so that nodes accumulate all incoming edges
+            // before recomputing inherited state (excludes, strict versions).
+            if (resolveState.hasNextAddition()) {
+                NodeState node = resolveState.nextAddition();
+                if (node.doesNotContributeToGraph()) {
+                    node.removeOutgoingEdges();
+                } else {
+                    processNodeAddition(node, edges, resolveState, capabilitiesConflictHandler);
+                }
+                continue;
+            }
+
+            // Priority 4: Select the next pending module
+            if (resolveState.hasNextSelection()) {
+                selectUntilActionable(resolveState);
+                continue;
+            }
+
+            // Priority 5: Download all pending metadata in one batch
+            if (downloadPendingMetadata(resolveState, componentsToDownload)) {
+                continue;
+            }
+
+            // Priority 6: Resolve conflicts
+            if (moduleConflictHandler.hasConflicts()) {
+                moduleConflictHandler.resolveNextConflict();
+                continue;
+            }
+            if (capabilitiesConflictHandler.hasConflicts()) {
+                capabilitiesConflictHandler.resolveNextConflict();
+                continue;
+            }
+
+            // All queues empty, no conflicts remaining — done.
+            break;
         }
     }
 
-    private void resolveEdges(
-        final NodeState node,
-        final List<EdgeState> dependencies,
-        final ResolveState resolveState
+    /**
+     * Processes a node that contributes to the graph: checks for capability conflicts,
+     * then visits its outgoing dependencies and registers their target modules.
+     */
+    private static void processNodeAddition(
+        NodeState node,
+        List<EdgeState> edges,
+        ResolveState resolveState,
+        CapabilitiesConflictHandler capabilitiesConflictHandler
     ) {
-        if (dependencies.isEmpty()) {
+        if (capabilitiesConflictHandler.registerCandidate(node)) {
             return;
         }
 
-        performSelectionSerially(dependencies, resolveState);
-        maybeDownloadMetadataInParallel(node, dependencies, buildOperationExecutor, resolveState.getComponentMetadataResolver());
-        attachToTargetRevisionsSerially(dependencies);
-    }
-
-    private static void performSelectionSerially(List<EdgeState> edges, ResolveState resolveState) {
+        edges.clear();
+        node.visitOutgoingDependenciesAndCollectEdges(edges);
         for (EdgeState edge : edges) {
-            // Selection of prior edges can cause the source node to enter a module conflict, thus
-            // causing further edges to be released.
-            if (edge.isUsed()) {
-                SelectorState selector = edge.getSelector();
-                ModuleResolveState module = selector.getTargetModule();
-
-                // TODO: It is odd that we have to check module.getSelectors().size() here.
-                //       We already have a selector, its module should know about it.
-                if (selector.canAffectSelection() && module.getSelectors().size() > 0) {
-                    // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
-                    performSelection(resolveState, module);
-                }
+            SelectorState selector = edge.getSelector();
+            ModuleResolveState targetModule = selector.getTargetModule();
+            if (selector.canAffectSelection()) {
+                resolveState.enqueueForSelection(targetModule);
+            } else if (!targetModule.isQueuedForSelection()) {
+                resolveState.enqueueForAttachment(targetModule);
             }
         }
+    }
+
+    /**
+     * Iterates the attachment queue, attaching edges for modules whose selected component
+     * already has resolved metadata (or whose metadata is cheap to fetch synchronously).
+     * Modules that still need a download remain in the queue for later.
+     *
+     * @return true if any attachment was performed (meaning new nodes may be on the queue)
+     */
+    private static boolean attachModulesWithResolvedMetadata(ResolveState resolveState) {
+        boolean didWork = false;
+        while (resolveState.hasNextAttachment()) {
+            ModuleResolveState module = resolveState.nextAttachment();
+            if (module.isInModuleConflict() || module.getUnattachedEdges().isEmpty()) {
+                continue;
+            }
+            ComponentState selected = module.getSelected();
+            if (selected == null) {
+                continue;
+            }
+            if (!selected.alreadyResolved()) {
+                if (selected.isMetadataCheapToFetch()) {
+                    selected.getMetadataOrNull();
+                } else {
+                    resolveState.enqueueForDownload(module);
+                    continue;
+                }
+            }
+            module.attachUnattachedEdges();
+            didWork = true;
+        }
+        return didWork;
+    }
+
+    /**
+     * Pops modules from the selection queue one at a time and performs selection.
+     * Stops early and returns when:
+     * <ul>
+     *   <li>Selection changed (old nodes were enqueued for cleanup)</li>
+     *   <li>The selected component already has metadata (can be attached immediately)</li>
+     *   <li>The selection queue is empty</li>
+     * </ul>
+     * Modules that need a metadata download are enqueued for attachment but
+     * selection continues to the next module without returning.
+     */
+    @SuppressWarnings("ReferenceEquality")
+    private void selectUntilActionable(ResolveState resolveState) {
+        while (resolveState.hasNextSelection()) {
+            ModuleResolveState module = resolveState.nextSelection();
+
+            if (module.getSelectors().size() == 0) {
+                continue;
+            }
+
+            ComponentState previousSelection = module.getSelected();
+            performSelection(resolveState, module);
+            ComponentState newSelection = module.getSelected();
+
+            if (newSelection == null) {
+                continue; // Selection failed
+            }
+
+            resolveState.enqueueForAttachment(newSelection.getModule());
+
+            if (previousSelection != null && newSelection != previousSelection) {
+                // Selection changed — old nodes were enqueued. Return to drain them.
+                return;
+            }
+
+            if (newSelection.alreadyResolved()) {
+                // Metadata already available — return to attach immediately.
+                return;
+            }
+        }
+    }
+
+    /**
+     * Collects all modules in the attachment queue that still need a metadata download
+     * and downloads them in parallel.
+     *
+     * @return true if any downloads were performed
+     */
+    private boolean downloadPendingMetadata(
+        ResolveState resolveState,
+        List<ComponentState> componentsToDownload
+    ) {
+        componentsToDownload.clear();
+        while (resolveState.hasNextDownload()) {
+            ModuleResolveState module = resolveState.nextDownload();
+            ComponentState selected = module.getSelected();
+            if (selected != null && !selected.alreadyResolved() && !module.isInModuleConflict()) {
+                componentsToDownload.add(selected);
+            }
+        }
+        if (componentsToDownload.isEmpty()) {
+            return false;
+        }
+        downloadAllComponents(componentsToDownload, buildOperationExecutor);
+        for (ComponentState component : componentsToDownload) {
+            resolveState.enqueueForAttachment(component.getModule());
+        }
+        return true;
     }
 
     /**
@@ -260,42 +403,18 @@ public class DependencyGraphBuilder {
         }
     }
 
-    /**
-     * Prepares the resolution of edges, either serially or concurrently.
-     * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the number of edges, and whether they have unresolved metadata.
-     */
-    private static void maybeDownloadMetadataInParallel(NodeState node, List<EdgeState> edges, BuildOperationExecutor buildOperationExecutor, ComponentMetaDataResolver componentMetaDataResolver) {
-        List<ComponentState> requiringDownload = null;
-        for (EdgeState edge : edges) {
-            ComponentState targetComponent = edge.getTargetComponent();
-            if (targetComponent != null && targetComponent.isNotEvicted() && !targetComponent.alreadyResolved()) {
-                if (!componentMetaDataResolver.isFetchingMetadataCheap(targetComponent.getComponentId())) {
-                    // Avoid initializing the list if there are no components requiring download (a common case)
-                    if (requiringDownload == null) {
-                        requiringDownload = new ArrayList<>();
-                    }
-                    requiringDownload.add(targetComponent);
-                }
-            }
-        }
-        // Only download in parallel if there is more than 1 component to download
-        if (requiringDownload != null && requiringDownload.size() > 1) {
-            final ImmutableList<ComponentState> toDownloadInParallel = ImmutableList.copyOf(requiringDownload);
-            LOGGER.debug("Submitting {} metadata files to resolve in parallel for {}", toDownloadInParallel.size(), node);
+    private static void downloadAllComponents(List<ComponentState> requiringDownload, BuildOperationExecutor buildOperationExecutor) {
+        if (requiringDownload.size() == 1) {
+            // Only one thing to download. No need to start any threads. Download synchronously.
+            ComponentState component = requiringDownload.get(0);
+            component.getMetadataOrNull();
+        } else if (requiringDownload.size() > 1) {
+            LOGGER.debug("Submitting {} metadata files to resolve in parallel", requiringDownload.size());
             buildOperationExecutor.runAll(buildOperationQueue -> {
-                for (final ComponentState componentState : toDownloadInParallel) {
+                for (final ComponentState componentState : requiringDownload) {
                     buildOperationQueue.add(new DownloadMetadataOperation(componentState));
                 }
             }, BuildOperationConstraint.UNCONSTRAINED);
-        }
-    }
-
-    private static void attachToTargetRevisionsSerially(List<EdgeState> edges) {
-        // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
-        // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
-        // edges could be added in different order. To avoid this, the addition of new edges is done serially.
-        for (EdgeState edge : edges) {
-            edge.attachToTargetNodes();
         }
     }
 

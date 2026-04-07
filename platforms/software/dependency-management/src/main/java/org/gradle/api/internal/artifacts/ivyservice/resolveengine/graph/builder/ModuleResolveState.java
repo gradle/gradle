@@ -74,6 +74,7 @@ public class ModuleResolveState implements CandidateModule {
     private @Nullable ComponentState selected;
     private boolean queuedForSelection;
     private boolean queuedForAttachment;
+    private boolean queuedForDownload;
     private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
     private @Nullable AttributeMergingException attributeMergingError;
     private @Nullable VirtualPlatformState platformState;
@@ -137,6 +138,18 @@ public class ModuleResolveState implements CandidateModule {
 
     void dequeueFromAttachment() {
         queuedForAttachment = false;
+    }
+
+    boolean enqueueForDownload() {
+        if (queuedForDownload) {
+            return false;
+        }
+        queuedForDownload = true;
+        return true;
+    }
+
+    void dequeueFromDownload() {
+        queuedForDownload = false;
     }
 
     void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {
@@ -477,6 +490,7 @@ public class ModuleResolveState implements CandidateModule {
             for (NodeState node : selected.getNodes()) {
                 List<EdgeState> removedEdges = node.removeAllIncomingEdges();
                 for (EdgeState incomingEdge : removedEdges) {
+                    incomingEdge.getTargetNodes().clear(); // Sus
                     disconnectIncomingConstraint(removalSource, incomingEdge);
                 }
             }

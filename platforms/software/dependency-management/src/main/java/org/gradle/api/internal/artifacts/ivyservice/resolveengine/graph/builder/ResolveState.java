@@ -82,7 +82,11 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ComponentIdGenerator idGenerator;
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
-    private final Deque<NodeState> queue;
+    private final Deque<NodeState> removalQueue;
+    private final Deque<NodeState> additionQueue;
+    private final Deque<ModuleResolveState> selectionQueue;
+    private final Deque<ModuleResolveState> attachmentQueue;
+    private final Deque<ModuleResolveState> downloadQueue;
     private final ConflictResolution conflictResolution;
     private final ImmutableAttributes consumerAttributes;
     private final ImmutableAttributesSchema consumerSchema;
@@ -154,7 +158,11 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.modules = new LinkedHashMap<>(graphSize);
         this.nodes = new LinkedHashMap<>(3 * graphSize / 2);
         this.selectors = new LinkedHashMap<>(5 * graphSize / 2);
-        this.queue = new ArrayDeque<>(graphSize);
+        this.removalQueue = new ArrayDeque<>(graphSize);
+        this.additionQueue = new ArrayDeque<>(graphSize);
+        this.selectionQueue = new ArrayDeque<>(graphSize);
+        this.attachmentQueue = new ArrayDeque<>(graphSize);
+        this.downloadQueue = new ArrayDeque<>(graphSize);
 
         // Create root component and module
         ModuleResolveState rootModule = getModule(rootModuleVersionId.getModule());
@@ -239,34 +247,100 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return selectorState;
     }
 
-    @Nullable
-    public NodeState peek() {
-        return queue.isEmpty() ? null : queue.getFirst();
+    public boolean hasNextRemoval() {
+        return !removalQueue.isEmpty();
     }
 
-    public NodeState pop() {
-        NodeState next = queue.removeFirst();
-        return next.dequeue();
+    public NodeState nextRemoval() {
+        NodeState next = removalQueue.removeFirst();
+        next.dequeueFromRemoval();
+        return next;
+    }
+
+    public boolean hasNextAddition() {
+        return !additionQueue.isEmpty();
+    }
+
+    public NodeState nextAddition() {
+        NodeState next = additionQueue.removeFirst();
+        next.dequeueFromAddition();
+        return next;
     }
 
     /**
-     * Called when a change is made to a configuration node, such that its dependency graph <em>may</em> now be larger than it previously was, and the node should be visited.
+     * Called when a change is made to a configuration node, such that its dependency graph
+     * <em>may</em> now be larger than it previously was, and the node should be visited.
+     * <p>
+     * Added to the addition queue (low-priority), processed after removals and attachment.
      */
     public void onMoreSelected(NodeState node) {
-        // Add to the end of the queue, so that we traverse the graph in breadth-wise order to pick up as many conflicts as
-        // possible before attempting to resolve them
-        if (node.enqueue()) {
-            queue.addLast(node);
+        if (node.enqueueForAddition()) {
+            additionQueue.addLast(node);
         }
     }
 
     /**
-     * Called when a change is made to a configuration node, such that its dependency graph <em>may</em> now be smaller than it previously was, and the node should be visited.
+     * Called when a change is made to a configuration node, such that its dependency graph
+     * <em>may</em> now be smaller than it previously was, and the node should be visited.
+     * <p>
+     * Added to the removal queue (high-priority), processed before attachment and additions.
      */
     public void onFewerSelected(NodeState node) {
-        // Add to the front of the queue, to flush out configurations that are no longer required.
-        if (node.enqueue()) {
-            queue.addFirst(node);
+        if (node.enqueueForRemoval()) {
+            removalQueue.addLast(node);
+        }
+    }
+
+    public boolean hasNextSelection() {
+        return !selectionQueue.isEmpty();
+    }
+
+    public ModuleResolveState nextSelection() {
+        ModuleResolveState next = selectionQueue.removeFirst();
+        next.dequeueFromSelection();
+        return next;
+    }
+
+    public void enqueueForSelection(ModuleResolveState module) {
+        if (module.enqueueForSelection()) {
+            selectionQueue.add(module);
+        }
+    }
+
+    public boolean hasNextAttachment() {
+        return !attachmentQueue.isEmpty();
+    }
+
+    public ModuleResolveState nextAttachment() {
+        ModuleResolveState next = attachmentQueue.removeFirst();
+        next.dequeueFromAttachment();
+        return next;
+    }
+
+    /**
+     * Routes a module to the attachment or download queue based on its metadata state.
+     * If metadata is already resolved or cheap to fetch, the module goes to the attachment queue.
+     * Otherwise, it goes to the download queue.
+     */
+    public void enqueueForAttachment(ModuleResolveState module) {
+        if (module.enqueueForAttachment()) {
+            attachmentQueue.add(module);
+        }
+    }
+
+    public boolean hasNextDownload() {
+        return !downloadQueue.isEmpty();
+    }
+
+    public ModuleResolveState nextDownload() {
+        ModuleResolveState next = downloadQueue.removeFirst();
+        next.dequeueFromDownload();
+        return next;
+    }
+
+    public void enqueueForDownload(ModuleResolveState module) {
+        if (module.enqueueForDownload()) {
+            downloadQueue.add(module);
         }
     }
 
