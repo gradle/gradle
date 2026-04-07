@@ -18,7 +18,6 @@ import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
-import configurations.TestPerformanceTest
 import projects.DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE
 import projects.DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE
 
@@ -102,7 +101,6 @@ data class CIBuildModel(
             StageName.READY_FOR_RELEASE,
             trigger = Trigger.daily,
             specificBuilds = listOf(
-                SpecificBuild.TestPerformanceTest,
                 SpecificBuild.FlakyTestQuarantineLinux,
                 SpecificBuild.FlakyTestQuarantineMacOs,
                 SpecificBuild.FlakyTestQuarantineMacOsM1,
@@ -352,11 +350,6 @@ enum class SpecificBuild {
     CheckLinks {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return CheckLinks(model, stage)
-        }
-    },
-    TestPerformanceTest {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return TestPerformanceTest(model, stage)
         }
     },
     SmokeTestsMinJavaVersion {

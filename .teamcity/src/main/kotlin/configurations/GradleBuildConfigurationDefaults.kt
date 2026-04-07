@@ -15,7 +15,6 @@ import common.killProcessStep
 import jetbrains.buildServer.configs.kotlin.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.BuildType
-import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
