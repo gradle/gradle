@@ -234,6 +234,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.cache.scopes.ScopedCacheBuilderFactory
             import org.gradle.cache.PersistentCache
             import org.gradle.cache.FileLockManager
+            import org.gradle.api.internal.collections.DomainObjectCollectionServices
             import org.gradle.internal.logging.events.OutputEventListener
             import org.gradle.internal.nativeintegration.services.NativeServices
             import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
@@ -298,6 +299,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                             .provider {
                                 it.add(OutputEventListener.class, OutputEventListener.NO_OP)
                                 it.addProvider(new GlobalScopeServices(true, AgentStatus.disabled(), new CurrentGradleInstallation(null)))
+                                new DomainObjectCollectionServices().registerGlobalServices(it)
                             }.build()
 
                         def zincCompilerServices = ServiceRegistryBuilder.builder().displayName("test worker ZincCompiler services")
