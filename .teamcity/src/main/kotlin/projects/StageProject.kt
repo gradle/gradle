@@ -73,7 +73,17 @@ class StageProject(
             stage.specificBuilds.map {
                 it.create(model, stage)
             }
-        specificBuildTypes.forEach(this::buildType)
+
+        val (smokeBuildTypes, nonSmokeBuildTypes) =
+            stage.specificBuilds.zip(specificBuildTypes).partition { (spec, _) ->
+                spec in SmokeTestProject.pullRequestFeedbackSmokeBuilds
+            }
+        if (smokeBuildTypes.isNotEmpty()) {
+            subProject(SmokeTestProject(model, stage, smokeBuildTypes.map { it.second }))
+        }
+        nonSmokeBuildTypes.forEach { (_, buildType) ->
+            buildType(buildType)
+        }
 
         performanceTests =
             stage.performanceTests.map { createPerformanceTests(model, performanceTestBucketProvider, stage, it) } +

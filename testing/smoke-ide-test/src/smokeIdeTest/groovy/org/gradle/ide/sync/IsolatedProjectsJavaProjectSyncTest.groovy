@@ -17,8 +17,9 @@
 package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
+import org.gradle.test.fixtures.Flaky
 
-
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/5093")
 class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncTest {
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
