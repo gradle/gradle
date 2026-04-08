@@ -25,9 +25,12 @@ import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
+import org.gradle.internal.Describables;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.state.ModelObject;
+import org.gradle.internal.state.OwnerAware;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -81,6 +84,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
     ) {
         super(type, instantiatorFactory.decorateLenient(servicesToInject), Report.NAMER, callbackActionDecorator);
         this.addAll(reportGenerator.generateReports(new DefaultReportFactory<>(getInstantiator())));
+
         beforeCollectionChanges(SerializableLambdas.action(arg -> {
             throw new ImmutableViolationException();
         }));
@@ -118,7 +122,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         <N extends T> N instantiateReport(Class<N> clazz, Object... constructionArgs);
     }
 
-    static class DefaultReportFactory<T extends Report> implements ReportFactory<T> {
+    class DefaultReportFactory<R extends Report> implements ReportFactory<R> {
 
         private final Instantiator instantiator;
 
@@ -127,12 +131,13 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         }
 
         @Override
-        public <N extends T> N instantiateReport(Class<N> clazz, Object... constructionArgs) {
+        public <N extends R> N instantiateReport(Class<N> clazz, Object... constructionArgs) {
             N report = instantiator.newInstance(clazz, constructionArgs);
             String name = report.getName();
             if (name.equals("enabled")) {
                 throw new InvalidUserDataException("Reports that are part of a ReportContainer cannot be named 'enabled'");
             }
+            ((OwnerAware) report).attachOwner((ModelObject) DefaultReportContainer.this, Describables.of("report container"));
             return report;
         }
     }

@@ -22,6 +22,9 @@ import org.gradle.api.internal.DelegatingNamedDomainObjectSet;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.Describables;
+import org.gradle.internal.state.ModelObject;
+import org.gradle.internal.state.OwnerAware;
 
 import java.util.Map;
 
@@ -32,6 +35,7 @@ public abstract class DelegatingReportContainer<T extends Report> extends Delega
 
     public DelegatingReportContainer(ReportContainer<T> delegate) {
         super(delegate);
+        ((OwnerAware) delegate).attachOwner((ModelObject) this, Describables.of("delegating report container"));
     }
 
     @Internal
