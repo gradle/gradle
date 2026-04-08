@@ -19,6 +19,8 @@ package org.gradle.api.internal.provider;
 
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
 
     public static <T> ProviderInternal<T> of(ProviderInternal<T> provider, @Nullable SideEffect<? super T> sideEffect) {
@@ -69,17 +71,17 @@ public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
-    public boolean containsProviderInChain(ProviderInternal<?> target) {
-        return this == target || provider.containsProviderInChain(target);
+    public boolean isCompositeProvider() {
+        return true;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, Supplier<ProviderInternal<?>> replacementFactory) {
         if (this == target) {
-            return (ProviderInternal<S>) replacement;
+            return (ProviderInternal<S>) replacementFactory.get();
         }
-        ProviderInternal<T> newProvider = provider.substituteProvider(target, replacement);
+        ProviderInternal<T> newProvider = provider.substituteProvider(target, replacementFactory);
         if (newProvider == provider) {
             return (ProviderInternal<S>) this;
         }

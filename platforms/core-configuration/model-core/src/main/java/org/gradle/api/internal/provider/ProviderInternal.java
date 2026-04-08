@@ -175,25 +175,26 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
     }
 
     /**
-     * Returns true if this provider, or any provider in its upstream chain, is the given target.
-     * Used to detect self-references before they form circular evaluation chains.
-     * Providers that compose over other providers should override this.
+     * Returns true if this provider composes over other providers, meaning it may
+     * contain other providers in its upstream chain. Leaf providers (fixed values,
+     * standalone properties) return false; composite providers (map, flatMap, zip,
+     * filter, orElse, withSideEffect, etc.) return true.
+     *
+     * <p>Used by property {@code set()} to skip the self-reference substitution walk
+     * for leaf providers, which can never contain other providers in their chain.
      */
-    default boolean containsProviderInChain(ProviderInternal<?> target) {
-        return this == target;
-    }
+    boolean isCompositeProvider();
 
     /**
      * Returns a provider equivalent to this one, but with all occurrences of {@code target}
-     * in the upstream chain replaced by {@code replacement}. Returns {@code this} unchanged
-     * if {@code target} does not appear in the chain.
-     * Providers that compose over other providers should override this.
+     * in the upstream chain replaced by the result of {@code replacementFactory}.
+     * The factory is called lazily — only when a match is found.
+     * Returns {@code this} unchanged if {@code target} does not appear in the chain.
+     *
+     * <p>Leaf providers: return {@code replacementFactory.get()} if {@code this == target},
+     * otherwise return {@code this}.
+     *
+     * <p>Composite providers: must recurse into all child providers.
      */
-    @SuppressWarnings("unchecked")
-    default <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
-        if (this == target) {
-            return (ProviderInternal<S>) replacement;
-        }
-        return (ProviderInternal<S>) this;
-    }
+    <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, Supplier<ProviderInternal<?>> replacementFactory);
 }

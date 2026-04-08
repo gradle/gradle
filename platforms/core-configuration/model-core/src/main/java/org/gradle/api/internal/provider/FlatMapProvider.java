@@ -21,6 +21,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     private final ProviderInternal<? extends T> provider;
     private final Transformer<? extends Provider<? extends S>, ? super T> transformer;
@@ -91,17 +93,17 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     @Override
-    public boolean containsProviderInChain(ProviderInternal<?> target) {
-        return this == target || provider.containsProviderInChain(target);
+    public boolean isCompositeProvider() {
+        return true;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <R> ProviderInternal<R> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+    public <R> ProviderInternal<R> substituteProvider(ProviderInternal<?> target, Supplier<ProviderInternal<?>> replacementFactory) {
         if (this == target) {
-            return (ProviderInternal<R>) replacement;
+            return (ProviderInternal<R>) replacementFactory.get();
         }
-        ProviderInternal<? extends T> newProvider = provider.substituteProvider(target, replacement);
+        ProviderInternal<? extends T> newProvider = provider.substituteProvider(target, replacementFactory);
         if (newProvider == provider) {
             return (ProviderInternal<R>) this;
         }

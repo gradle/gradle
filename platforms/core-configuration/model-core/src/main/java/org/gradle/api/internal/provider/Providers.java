@@ -180,6 +180,24 @@ public class Providers {
         public @Nullable Class<T> getType() {
             return provider.getType();
         }
+
+        @Override
+        public boolean isCompositeProvider() {
+            return true;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, Supplier<ProviderInternal<?>> replacementFactory) {
+            if (this == target) {
+                return (ProviderInternal<S>) replacementFactory.get();
+            }
+            ProviderInternal<T> newProvider = provider.substituteProvider(target, replacementFactory);
+            if (newProvider == provider) {
+                return (ProviderInternal<S>) this;
+            }
+            return (ProviderInternal<S>) new MemoizingProvider<>(newProvider, displayName instanceof SerializableSupplier ? (SerializableSupplier<DisplayName>) displayName : null);
+        }
     }
 
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {

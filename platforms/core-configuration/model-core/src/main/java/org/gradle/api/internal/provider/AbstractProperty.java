@@ -464,6 +464,21 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return new ShallowCopyProvider();
     }
 
+    /**
+     * If the given provider references this property (directly or in its upstream chain),
+     * returns a provider with this property substituted by a shallow copy.
+     * Otherwise returns the provider unchanged.
+     */
+    @SuppressWarnings("unchecked")
+    protected <V> ProviderInternal<? extends V> substituteSelfReference(ProviderInternal<? extends V> p) {
+        if (p == this) {
+            return (ProviderInternal<? extends V>) shallowCopy();
+        } else if (p.isCompositeProvider()) {
+            return p.substituteProvider(this, this::shallowCopy);
+        }
+        return p;
+    }
+
     private class ShallowCopyProvider extends AbstractMinimalProvider<T> {
         // the value of "value" is immutable but the field is not, so copy it
         // (but use a different owner)

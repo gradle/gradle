@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.DisplayName
 
 import java.util.function.BiFunction
+import java.util.function.Supplier
 
 class TestNamedProvider<T> implements ProviderInternal<T>, Named {
 
@@ -130,5 +131,18 @@ class TestNamedProvider<T> implements ProviderInternal<T>, Named {
     @Override
     <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super T> transformer) {
         throw new UnsupportedOperationException()
+    }
+
+    @Override
+    boolean isCompositeProvider() {
+        return false
+    }
+
+    @Override
+    <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, Supplier<ProviderInternal<?>> replacementFactory) {
+        if (this == target) {
+            return (ProviderInternal<S>) replacementFactory.get()
+        }
+        return (ProviderInternal<S>) this
     }
 }

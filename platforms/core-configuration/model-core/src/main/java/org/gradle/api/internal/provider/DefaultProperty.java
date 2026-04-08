@@ -117,9 +117,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         // Handle the 'property = property.map { ... }' (and similar) pattern: if the provider
         // chain references this property, break the self-reference by substituting this property
         // with a shallow copy of its current value chain.
-        if (p.containsProviderInChain(this)) {
-            p = p.substituteProvider(this, shallowCopy());
-        }
+        p = substituteSelfReference(p);
         setSupplier(p.asSupplier(getValidationDisplayName(), type, sanitizer));
     }
 

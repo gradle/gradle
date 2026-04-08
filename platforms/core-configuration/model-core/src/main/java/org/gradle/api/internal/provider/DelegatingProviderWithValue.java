@@ -20,6 +20,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 /**
  * Enforces that a given delegate provider always provides a present value, throwing an exception if
  * the value is not present.
@@ -59,17 +61,17 @@ public class DelegatingProviderWithValue<T> extends AbstractProviderWithValue<T>
     }
 
     @Override
-    public boolean containsProviderInChain(ProviderInternal<?> target) {
-        return this == target || delegate.containsProviderInChain(target);
+    public boolean isCompositeProvider() {
+        return true;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, Supplier<ProviderInternal<?>> replacementFactory) {
         if (this == target) {
-            return (ProviderInternal<S>) replacement;
+            return (ProviderInternal<S>) replacementFactory.get();
         }
-        ProviderInternal<T> newDelegate = delegate.substituteProvider(target, replacement);
+        ProviderInternal<T> newDelegate = delegate.substituteProvider(target, replacementFactory);
         if (newDelegate == delegate) {
             return (ProviderInternal<S>) this;
         }

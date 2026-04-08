@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * A provider that takes a list of providers of values and provides a list of those values.
@@ -42,29 +43,21 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
     }
 
     @Override
-    public boolean containsProviderInChain(ProviderInternal<?> target) {
-        if (this == target) {
-            return true;
-        }
-        for (Provider<R> item : items) {
-            if (Providers.internal(item).containsProviderInChain(target)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isCompositeProvider() {
+        return true;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, Supplier<ProviderInternal<?>> replacementFactory) {
         if (this == target) {
-            return (ProviderInternal<S>) replacement;
+            return (ProviderInternal<S>) replacementFactory.get();
         }
         boolean changed = false;
         ImmutableList.Builder<Provider<R>> newItems = ImmutableList.builderWithExpectedSize(items.size());
         for (Provider<R> item : items) {
             ProviderInternal<R> internal = Providers.internal(item);
-            ProviderInternal<R> substituted = internal.substituteProvider(target, replacement);
+            ProviderInternal<R> substituted = internal.substituteProvider(target, replacementFactory);
             if (substituted != internal) {
                 changed = true;
             }

@@ -20,6 +20,7 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
@@ -100,18 +101,18 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
     }
 
     @Override
-    public boolean containsProviderInChain(ProviderInternal<?> target) {
-        return this == target || left.containsProviderInChain(target) || right.containsProviderInChain(target);
+    public boolean isCompositeProvider() {
+        return true;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, Supplier<ProviderInternal<?>> replacementFactory) {
         if (this == target) {
-            return (ProviderInternal<S>) replacement;
+            return (ProviderInternal<S>) replacementFactory.get();
         }
-        ProviderInternal<A> newLeft = left.substituteProvider(target, replacement);
-        ProviderInternal<B> newRight = right.substituteProvider(target, replacement);
+        ProviderInternal<A> newLeft = left.substituteProvider(target, replacementFactory);
+        ProviderInternal<B> newRight = right.substituteProvider(target, replacementFactory);
         if (newLeft == left && newRight == right) {
             return (ProviderInternal<S>) this;
         }

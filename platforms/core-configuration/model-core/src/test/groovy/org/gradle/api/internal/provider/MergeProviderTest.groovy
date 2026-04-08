@@ -108,15 +108,9 @@ class MergeProviderTest extends Specification {
         provider.get() == ["3", "4"]
     }
 
-    def "containsProviderInChain detects property in items list"() {
-        given:
-        def property = objects.property(String).value("hello") as ProviderInternal
-        def other = Providers.of("world")
-        def merge = new MergeProvider([other, property])
-
+    def "isCompositeProvider returns true"() {
         expect:
-        merge.containsProviderInChain(property)
-        !merge.containsProviderInChain(Providers.of("x") as ProviderInternal)
+        new MergeProvider([Providers.of("a")]).isCompositeProvider()
     }
 
     def "substituteProvider replaces property in items list"() {
@@ -127,7 +121,7 @@ class MergeProviderTest extends Specification {
         def merge = new MergeProvider([other, property])
 
         when:
-        def substituted = merge.substituteProvider(property, replacement) as MergeProvider
+        def substituted = merge.substituteProvider(property, { replacement }) as MergeProvider
 
         then:
         substituted !== merge
@@ -141,7 +135,7 @@ class MergeProviderTest extends Specification {
         def merge = new MergeProvider([other])
 
         when:
-        def substituted = merge.substituteProvider(property, Providers.of("x") as ProviderInternal)
+        def substituted = merge.substituteProvider(property, { Providers.of("x") as ProviderInternal })
 
         then:
         substituted.is(merge)

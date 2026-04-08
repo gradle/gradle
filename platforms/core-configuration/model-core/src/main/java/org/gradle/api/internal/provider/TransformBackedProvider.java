@@ -22,6 +22,8 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 /**
  * <p>A mapping provider that uses a transform for which {@link MappingProvider} cannot be used.
  * This implementation is used for user provided transforms and also for internal transforms that don't meet the constraints of {@link MappingProvider}.</p>
@@ -102,17 +104,17 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     @Override
-    public boolean containsProviderInChain(ProviderInternal<?> target) {
-        return this == target || provider.containsProviderInChain(target);
+    public boolean isCompositeProvider() {
+        return true;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, Supplier<ProviderInternal<?>> replacementFactory) {
         if (this == target) {
-            return (ProviderInternal<S>) replacement;
+            return (ProviderInternal<S>) replacementFactory.get();
         }
-        ProviderInternal<? extends IN> newProvider = provider.substituteProvider(target, replacement);
+        ProviderInternal<? extends IN> newProvider = provider.substituteProvider(target, replacementFactory);
         if (newProvider == provider) {
             return (ProviderInternal<S>) this;
         }

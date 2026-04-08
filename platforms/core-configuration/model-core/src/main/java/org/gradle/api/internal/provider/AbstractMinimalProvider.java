@@ -29,6 +29,8 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 /**
  * A partial {@link Provider} implementation. Subclasses must implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue(ValueConsumer)}.
  */
@@ -49,6 +51,20 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public <S> Provider<S> flatMap(final Transformer<? extends @Nullable Provider<? extends S>, ? super T> transformer) {
         return new FlatMapProvider<>(this, transformer);
+    }
+
+    @Override
+    public boolean isCompositeProvider() {
+        return false;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, Supplier<ProviderInternal<?>> replacementFactory) {
+        if (this == target) {
+            return (ProviderInternal<S>) replacementFactory.get();
+        }
+        return (ProviderInternal<S>) this;
     }
 
     /**
