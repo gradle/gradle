@@ -62,15 +62,23 @@ public class FileUtils {
     public static void tryReportDirectoryContentObserved(Path path, String consumer) {
         File file = toFileIfAvailable(path);
         if (file != null) {
-            Instrumented.directoryContentObserved(file, consumer);
+            tryReportDirectoryContentObserved(file, consumer);
         }
+    }
+
+    public static void tryReportDirectoryContentObserved(File file, String consumer) {
+        Instrumented.directoryContentObserved(file, consumer);
     }
 
     public static void tryReportFileSystemEntryObserved(Path path, String consumer) {
         File file = toFileIfAvailable(path);
         if (file != null) {
-            Instrumented.fileSystemEntryObserved(file, consumer);
+            tryReportFileSystemEntryObserved(file, consumer);
         }
+    }
+
+    public static void tryReportFileSystemEntryObserved(File file, String consumer) {
+        Instrumented.fileSystemEntryObserved(file, consumer);
     }
 
     /**

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath.declarations;
 
+import kotlin.io.FileTreeWalk;
+import kotlin.io.FileWalkDirection;
 import kotlin.io.FilesKt;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
@@ -33,13 +35,17 @@ import org.gradle.internal.lazy.Lazy;
 import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.nio.charset.Charset;
+import java.util.Iterator;
 import java.util.List;
 
+import static org.gradle.internal.classpath.FileUtils.tryReportDirectoryContentObserved;
+import static org.gradle.internal.classpath.FileUtils.tryReportFileSystemEntryObserved;
 import static org.gradle.internal.classpath.MethodHandleUtils.invokeKotlinStaticDefault;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
 import static org.gradle.internal.classpath.declarations.Handles.FOR_EACH_LINE_DEFAULT;
 import static org.gradle.internal.classpath.declarations.Handles.READ_LINES_DEFAULT;
 import static org.gradle.internal.classpath.declarations.Handles.USE_LINES_DEFAULT;
+import static org.gradle.internal.classpath.declarations.Handles.WALK_DEFAULT;
 
 @SuppressWarnings("NewMethodNamingConvention")
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CONFIG_CACHE)
@@ -124,6 +130,59 @@ public class KotlinStdlibFileInterceptors {
             : invokeKotlinStaticDefault(USE_LINES_DEFAULT, mask, self, charset, block);
     }
 
+    @InterceptCalls
+    @StaticMethod(ofClass = FilesKt.class)
+    public static FileTreeWalk intercept_walk(
+        File self,
+        FileWalkDirection direction,
+        @KotlinDefaultMask int mask,
+        @CallerClassName String consumer
+    ) throws Throwable {
+        FileTreeWalk walk = mask == 0
+            ? FilesKt.walk(self, direction)
+            : invokeKotlinStaticDefault(WALK_DEFAULT, mask, self, direction);
+        recordWalkObservations(walk, consumer);
+        return walk;
+    }
+
+    @InterceptCalls
+    @StaticMethod(ofClass = FilesKt.class)
+    public static FileTreeWalk intercept_walkTopDown(
+        File self,
+        @CallerClassName String consumer
+    ) {
+        FileTreeWalk walk = FilesKt.walkTopDown(self);
+        recordWalkObservations(walk, consumer);
+        return walk;
+    }
+
+    @InterceptCalls
+    @StaticMethod(ofClass = FilesKt.class)
+    public static FileTreeWalk intercept_walkBottomUp(
+        File self,
+        @CallerClassName String consumer
+    ) {
+        FileTreeWalk walk = FilesKt.walkBottomUp(self);
+        recordWalkObservations(walk, consumer);
+        return walk;
+    }
+
+    /**
+     * Eagerly traverses a {@link FileTreeWalk} to register the filesystem entries it observes
+     * as configuration cache inputs. Returning a new iterator from {@link FileTreeWalk#iterator()}
+     * later still works correctly; the caller pays a one-time traversal cost at configuration time.
+     */
+    private static void recordWalkObservations(FileTreeWalk walk, String consumer) {
+        Iterator<File> iterator = walk.iterator();
+        while (iterator.hasNext()) {
+            File entry = iterator.next();
+            if (entry.isDirectory()) {
+                tryReportDirectoryContentObserved(entry, consumer);
+            } else {
+                tryReportFileSystemEntryObserved(entry, consumer);
+            }
+        }
+    }
 }
 
 class Handles {
@@ -135,4 +194,7 @@ class Handles {
 
     public static final Lazy<MethodHandle> USE_LINES_DEFAULT =
         lazyKotlinStaticDefaultHandle(FilesKt.class, "useLines", Object.class, File.class, Charset.class, Function1.class);
+
+    public static final Lazy<MethodHandle> WALK_DEFAULT =
+        lazyKotlinStaticDefaultHandle(FilesKt.class, "walk", FileTreeWalk.class, File.class, FileWalkDirection.class);
 }
