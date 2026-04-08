@@ -38,15 +38,19 @@ import java.nio.file.StandardOpenOption;
  * A persistent indexed cache backed by an append-only data log and a hash-table index file.
  *
  * <h3>Design</h3>
- * <p>Direct write-through: {@code put()} immediately appends to the data file and updates both
- * the in-memory index and the on-disk index via pwrite. {@code get()} probes the on-disk index
- * via positional pread (thread-safe, no synchronization), then reads the value from the data file.
- * {@code flush()} writes the full index to disk for crash-recovery consistency.</p>
+ * <p>Fully on-disk index: both reads and writes probe the index file via positional I/O (pread/pwrite).
+ * No in-memory index — memory usage is O(1) regardless of cache size. The OS page cache provides
+ * near-memory performance for hot buckets without explicit cache management.</p>
+ *
+ * <p>{@code put()} appends to the data file and pwrites the updated bucket to the index file.
+ * {@code get()} preads a chunk of buckets from the index file, then preads the value from the data file.
+ * {@code flush()} updates the index header and fsyncs for crash-recovery consistency.</p>
  *
  * <h3>File layout</h3>
  * <pre>
  *   &lt;base&gt;.dat  — append-only data log: [keyHash:8][valueLen:4][lastWrite:8][value:N][type:1] per entry
  *   &lt;base&gt;.idx  — hash-table index:     header(16) + N × [keyHash:8][offset:8]
+ *   Header: [magic:4][bucketCount:4][entryCount:4][occupiedSlots:4]
  * </pre>
  */
 @NullMarked
@@ -70,9 +74,9 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private final Serializer<V> valueSerializer;
     private final FastKeyHasher<K> keyHasher;
 
-    // In-memory hash-table index — used by writer thread for fast updates.
-    // Concurrent readers use on-disk probing via indexChannel instead.
-    private volatile ByteBuffer indexBuffer;
+    // Index metadata — volatile for visibility to concurrent reader threads.
+    // Writer updates bucketCount/bucketMask BEFORE indexChannel so that a reader
+    // seeing the new channel (volatile read) is guaranteed to see the new counts.
     private volatile int bucketCount;
     private volatile int bucketMask;
     private int entryCount;
@@ -82,18 +86,19 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private volatile FileChannel dataChannel;
     private long appendPosition;
 
-    // Index file: FileChannel for on-disk probing (pread) and write-through (pwrite)
+    // Index file: FileChannel for on-disk probing (pread) and write-through (pwrite).
+    // Written LAST during growth to establish happens-before for concurrent readers.
     private volatile FileChannel indexChannel;
 
     // Write stream: plain fields, only accessed by single worker thread.
-    // Streams serialized values directly to the data file — bounded to WRITE_BUFFER_SIZE
-    // regardless of value size (no in-memory buffering of full values).
     private final PositionalOutputStream writeStream = new PositionalOutputStream();
     private final KryoBackedEncoder writeEncoder = new KryoBackedEncoder(writeStream, WRITE_BUFFER_SIZE);
     private final byte[] entryHeader = new byte[ENTRY_HEADER_SIZE];
     private final ByteBuffer entryHeaderBuffer = ByteBuffer.wrap(entryHeader);
-    // Reusable buffer for writing a single bucket (16 bytes) to the index file
-    private final ByteBuffer bucketWriteBuf = ByteBuffer.allocate(BUCKET_SIZE);
+
+    // Writer-side probe/write buffers (single-threaded, not ThreadLocal)
+    private final ByteBuffer writerProbeBuf = ByteBuffer.allocate(PROBE_CHUNK_BUCKETS * BUCKET_SIZE);
+    private final ByteBuffer writerBucketBuf = ByteBuffer.allocate(BUCKET_SIZE);
 
     // Read buffers: ThreadLocal, accessed by concurrent reader threads
     private final ThreadLocal<ReadBuffer> readBuffers = ThreadLocal.withInitial(ReadBuffer::new);
@@ -135,42 +140,44 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         open = true;
     }
 
+    /**
+     * Loads index metadata from the header (16 bytes). Does NOT load the full index into memory.
+     */
     private void loadIndex() throws IOException {
         if (indexFile.exists() && indexFile.length() >= HEADER_SIZE) {
-            byte[] raw = Files.readAllBytes(indexFile.toPath());
-            ByteBuffer buf = ByteBuffer.wrap(raw);
-            int magic = buf.getInt(0);
+            FileChannel ch = FileChannel.open(indexFile.toPath(),
+                StandardOpenOption.READ, StandardOpenOption.WRITE);
+            ByteBuffer header = ByteBuffer.allocate(HEADER_SIZE);
+            ch.read(header, 0);
+            header.flip();
+
+            int magic = header.getInt();
             if (magic != MAGIC) {
                 LOGGER.warn("{} has invalid magic. Starting fresh.", this);
+                ch.close();
                 initEmpty();
                 return;
             }
-            int bc = buf.getInt(4);
+            int bc = header.getInt();
             if (bc <= 0 || (bc & (bc - 1)) != 0) {
                 LOGGER.warn("{} has invalid bucket count. Starting fresh.", this);
+                ch.close();
                 initEmpty();
                 return;
             }
             int expectedSize = HEADER_SIZE + bc * BUCKET_SIZE;
-            if (raw.length < expectedSize) {
+            if (ch.size() < expectedSize) {
                 LOGGER.warn("{} index file truncated. Starting fresh.", this);
+                ch.close();
                 initEmpty();
                 return;
             }
-            indexBuffer = buf;
+
             bucketCount = bc;
             bucketMask = bc - 1;
-            entryCount = buf.getInt(8);
-            // Count occupied slots (live + tombstoned) for accurate growth trigger
-            int occupied = 0;
-            for (int i = 0; i < bc; i++) {
-                if (buf.getLong(HEADER_SIZE + i * BUCKET_SIZE) != 0) {
-                    occupied++;
-                }
-            }
-            occupiedSlots = occupied;
-            indexChannel = FileChannel.open(indexFile.toPath(),
-                StandardOpenOption.READ, StandardOpenOption.WRITE);
+            entryCount = header.getInt();
+            occupiedSlots = header.getInt();
+            indexChannel = ch;
         } else {
             initEmpty();
         }
@@ -181,7 +188,6 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         bucketMask = 0;
         entryCount = 0;
         occupiedSlots = 0;
-        indexBuffer = null;
         indexChannel = null;
     }
 
@@ -206,6 +212,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         ensureOpen();
         try {
             long hash = hashKey(key);
+            // Read indexChannel FIRST (volatile) to establish happens-before for bucketCount/bucketMask
             FileChannel idxCh = indexChannel;
             FileChannel dataCh = dataChannel;
             int bc = bucketCount;
@@ -217,7 +224,6 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
                 int probesCompleted = 0;
                 while (probesCompleted < bc) {
                     int currentBucket = (startBucket + probesCompleted) & mask;
-                    // Clamp chunk to not cross the end-of-table boundary (handle wrap-around)
                     int bucketsUntilEnd = bc - currentBucket;
                     int bucketsToRead = Math.min(PROBE_CHUNK_BUCKETS, Math.min(bc - probesCompleted, bucketsUntilEnd));
 
@@ -262,20 +268,15 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             long offset = appendPosition;
 
             // Seek-back streaming: stream the serialized value directly to the data file,
-            // then seek back to write the header. Memory bounded to WRITE_BUFFER_SIZE (32KB)
-            // regardless of value size.
-            //
-            // Step 1: Skip header (20 bytes), stream value directly to file
+            // then seek back to write the header.
             writeStream.reset(dataChannel, offset + ENTRY_HEADER_SIZE);
-            writeEncoder.flush(); // clear encoder's internal buffer
+            writeEncoder.flush();
             valueSerializer.write(writeEncoder, value);
-            writeEncoder.flush(); // flush remaining data to file
+            writeEncoder.flush();
             int valueLen = writeStream.getBytesWritten();
 
-            // Step 2: Write type byte after value
             writeStream.write(ENTRY_PUT);
 
-            // Step 3: Seek back and write real header (including timestamp)
             long now = System.currentTimeMillis();
             putLong(entryHeader, 0, hash);
             putInt(entryHeader, 8, valueLen);
@@ -283,22 +284,18 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             entryHeaderBuffer.clear();
             dataChannel.write(entryHeaderBuffer, offset);
 
-            // Step 4: Advance append position
             appendPosition = offset + ENTRY_HEADER_SIZE + valueLen + 1;
 
-            // Update in-memory index
-            boolean isNew = !probeIndexContains(hash);
+            // Update on-disk index
+            boolean isNew = !probeIndexForHash(hash);
             if (isNew) {
                 entryCount++;
                 occupiedSlots++;
-                if (indexBuffer == null || occupiedSlots * 4 > bucketCount * 3) {
+                if (indexChannel == null || occupiedSlots * 4 > bucketCount * 3) {
                     growIndex();
                 }
             }
-            int bucketPos = insertIntoBuckets(indexBuffer, bucketCount, bucketMask, hash, offset);
-            if (bucketPos >= 0) {
-                writeBucketToDisk(bucketPos);
-            }
+            probeAndInsert(hash, offset);
             indexDirty = true;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(
@@ -311,11 +308,9 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         ensureOpen();
         try {
             long hash = hashKey(key);
-            if (indexBuffer != null && probeIndexContains(hash)) {
-                int bucketPos = tombstoneInBuckets(indexBuffer, bucketCount, bucketMask, hash);
-                if (bucketPos >= 0) {
+            if (indexChannel != null && probeIndexForHash(hash)) {
+                if (probeAndTombstone(hash)) {
                     entryCount--;
-                    writeBucketToDisk(bucketPos);
                 }
                 indexDirty = true;
             }
@@ -331,7 +326,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             return;
         }
         try {
-            writeIndexToDisk();
+            flushHeader();
             indexDirty = false;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -353,141 +348,232 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         }
     }
 
-    /** Grows the hash table to accommodate more entries, then writes it to disk. */
+    // ---- On-disk probing (writer-side, single-threaded) ----
+
+    /**
+     * Probes the on-disk index to check if a hash exists (live, not tombstoned).
+     * Uses the writer-side probe buffer (not ThreadLocal — writer is single-threaded).
+     */
+    private boolean probeIndexForHash(long hash) throws IOException {
+        FileChannel ch = indexChannel;
+        if (ch == null || bucketCount == 0) {
+            return false;
+        }
+        int bc = bucketCount;
+        int mask = bucketMask;
+        int startBucket = (int) (hash & mask);
+
+        int probesCompleted = 0;
+        while (probesCompleted < bc) {
+            int currentBucket = (startBucket + probesCompleted) & mask;
+            int bucketsUntilEnd = bc - currentBucket;
+            int bucketsToRead = Math.min(PROBE_CHUNK_BUCKETS, Math.min(bc - probesCompleted, bucketsUntilEnd));
+
+            long filePos = HEADER_SIZE + (long) currentBucket * BUCKET_SIZE;
+            writerProbeBuf.clear();
+            writerProbeBuf.limit(bucketsToRead * BUCKET_SIZE);
+            ch.read(writerProbeBuf, filePos);
+
+            for (int i = 0; i < bucketsToRead; i++) {
+                int bufPos = i * BUCKET_SIZE;
+                long stored = writerProbeBuf.getLong(bufPos);
+                if (stored == 0) {
+                    return false;
+                }
+                if (stored == hash) {
+                    return writerProbeBuf.getLong(bufPos + 8) >= 0; // not tombstoned
+                }
+            }
+
+            probesCompleted += bucketsToRead;
+        }
+        return false;
+    }
+
+    /**
+     * Probes the on-disk index and inserts/updates the bucket for the given hash.
+     * Writes directly to the index file via pwrite.
+     */
+    private void probeAndInsert(long hash, long offset) throws IOException {
+        FileChannel ch = indexChannel;
+        if (ch == null) {
+            return;
+        }
+        int bc = bucketCount;
+        int mask = bucketMask;
+        int startBucket = (int) (hash & mask);
+
+        int probesCompleted = 0;
+        while (probesCompleted < bc) {
+            int currentBucket = (startBucket + probesCompleted) & mask;
+            int bucketsUntilEnd = bc - currentBucket;
+            int bucketsToRead = Math.min(PROBE_CHUNK_BUCKETS, Math.min(bc - probesCompleted, bucketsUntilEnd));
+
+            long filePos = HEADER_SIZE + (long) currentBucket * BUCKET_SIZE;
+            writerProbeBuf.clear();
+            writerProbeBuf.limit(bucketsToRead * BUCKET_SIZE);
+            ch.read(writerProbeBuf, filePos);
+
+            for (int i = 0; i < bucketsToRead; i++) {
+                int bufPos = i * BUCKET_SIZE;
+                long stored = writerProbeBuf.getLong(bufPos);
+                if (stored == 0 || stored == hash) {
+                    // Found empty slot or same-hash slot — write the bucket
+                    writerBucketBuf.clear();
+                    writerBucketBuf.putLong(hash);
+                    writerBucketBuf.putLong(offset);
+                    writerBucketBuf.flip();
+                    ch.write(writerBucketBuf, filePos + (long) i * BUCKET_SIZE);
+                    return;
+                }
+            }
+
+            probesCompleted += bucketsToRead;
+        }
+    }
+
+    /**
+     * Probes the on-disk index and tombstones the bucket for the given hash.
+     * @return true if the entry was found and tombstoned
+     */
+    private boolean probeAndTombstone(long hash) throws IOException {
+        FileChannel ch = indexChannel;
+        if (ch == null) {
+            return false;
+        }
+        int bc = bucketCount;
+        int mask = bucketMask;
+        int startBucket = (int) (hash & mask);
+
+        int probesCompleted = 0;
+        while (probesCompleted < bc) {
+            int currentBucket = (startBucket + probesCompleted) & mask;
+            int bucketsUntilEnd = bc - currentBucket;
+            int bucketsToRead = Math.min(PROBE_CHUNK_BUCKETS, Math.min(bc - probesCompleted, bucketsUntilEnd));
+
+            long filePos = HEADER_SIZE + (long) currentBucket * BUCKET_SIZE;
+            writerProbeBuf.clear();
+            writerProbeBuf.limit(bucketsToRead * BUCKET_SIZE);
+            ch.read(writerProbeBuf, filePos);
+
+            for (int i = 0; i < bucketsToRead; i++) {
+                int bufPos = i * BUCKET_SIZE;
+                long stored = writerProbeBuf.getLong(bufPos);
+                if (stored == 0) {
+                    return false;
+                }
+                if (stored == hash) {
+                    // Tombstone: write offset = -1
+                    writerBucketBuf.clear();
+                    writerBucketBuf.putLong(hash);
+                    writerBucketBuf.putLong(-1L);
+                    writerBucketBuf.flip();
+                    ch.write(writerBucketBuf, filePos + (long) i * BUCKET_SIZE);
+                    return true;
+                }
+            }
+
+            probesCompleted += bucketsToRead;
+        }
+        return false;
+    }
+
+    // ---- Index growth and flush ----
+
+    /**
+     * Grows the hash table. Reads old entries from the index file into a temporary buffer,
+     * rehashes into a new temporary buffer, writes the new index to disk, and reopens the channel.
+     * Both buffers are temporary and immediately eligible for GC after this method returns.
+     */
     private void growIndex() throws IOException {
         int newBucketCount = nextPowerOfTwo(Math.max(16, entryCount * 4 / 3 + 1));
         int newBucketMask = newBucketCount - 1;
 
+        // Temporary buffer for the new index
         byte[] newBytes = new byte[HEADER_SIZE + newBucketCount * BUCKET_SIZE];
         ByteBuffer newBuf = ByteBuffer.wrap(newBytes);
         newBuf.putInt(0, MAGIC);
         newBuf.putInt(4, newBucketCount);
 
-        // Rehash existing entries
-        ByteBuffer oldIdx = indexBuffer;
+        // Rehash: read old entries from disk into temporary buffer
+        FileChannel oldCh = indexChannel;
         int rehashed = 0;
-        if (oldIdx != null && bucketCount > 0) {
+        if (oldCh != null && bucketCount > 0) {
+            int oldSize = HEADER_SIZE + bucketCount * BUCKET_SIZE;
+            ByteBuffer oldBuf = ByteBuffer.allocate(oldSize);
+            oldCh.read(oldBuf, 0);
+            oldBuf.flip();
+
             for (int i = 0; i < bucketCount; i++) {
                 int pos = HEADER_SIZE + i * BUCKET_SIZE;
-                long storedHash = oldIdx.getLong(pos);
+                long storedHash = oldBuf.getLong(pos);
                 if (storedHash != 0) {
-                    long offset = oldIdx.getLong(pos + 8);
+                    long offset = oldBuf.getLong(pos + 8);
                     if (offset >= 0) { // skip tombstones
-                        insertIntoBuckets(newBuf, newBucketCount, newBucketMask, storedHash, offset);
+                        insertIntoBuf(newBuf, newBucketCount, newBucketMask, storedHash, offset);
                         rehashed++;
                     }
                 }
             }
+            // oldBuf goes out of scope — eligible for GC
         }
 
         newBuf.putInt(8, rehashed);
+        newBuf.putInt(12, rehashed); // occupiedSlots = entryCount after rehash (no tombstones)
+
         entryCount = rehashed;
-        occupiedSlots = rehashed; // tombstones cleaned during rehash
-        indexBuffer = newBuf;
+        occupiedSlots = rehashed;
+
+        // Write new index to disk via temp file + atomic rename
+        File newFile = new File(indexFile.getPath() + ".new");
+        Files.write(newFile.toPath(), newBytes);
+        Files.move(newFile.toPath(), indexFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        // newBytes/newBuf go out of scope — eligible for GC
+
+        // Update bucketCount/bucketMask BEFORE indexChannel (volatile write ordering)
         bucketCount = newBucketCount;
         bucketMask = newBucketMask;
 
-        // Write new index to disk so on-disk probing and write-through work immediately
-        writeIndexToDisk();
+        // Reopen channel (volatile write — establishes happens-before for readers)
+        FileChannel oldChannel = indexChannel;
+        indexChannel = FileChannel.open(indexFile.toPath(),
+            StandardOpenOption.READ, StandardOpenOption.WRITE);
+        if (oldChannel != null) {
+            oldChannel.close();
+        }
+
         indexDirty = false;
     }
 
-    private boolean probeIndexContains(long hash) {
-        ByteBuffer idx = indexBuffer;
-        if (idx == null || bucketCount == 0) {
-            return false;
-        }
-        int bucket = (int) (hash & bucketMask);
-        for (int probe = 0; probe < bucketCount; probe++) {
-            int pos = HEADER_SIZE + ((bucket + probe) & bucketMask) * BUCKET_SIZE;
-            long stored = idx.getLong(pos);
-            if (stored == 0) {
-                return false;
-            }
-            if (stored == hash) {
-                return idx.getLong(pos + 8) >= 0; // not tombstoned
-            }
-        }
-        return false;
-    }
-
-    private static int tombstoneInBuckets(ByteBuffer idx, int bc, int mask, long hash) {
+    /** Inserts a bucket into a temporary in-memory ByteBuffer (used only during growIndex rehash). */
+    private static void insertIntoBuf(ByteBuffer buf, int bc, int mask, long hash, long offset) {
         int bucket = (int) (hash & mask);
         for (int probe = 0; probe < bc; probe++) {
             int pos = HEADER_SIZE + ((bucket + probe) & mask) * BUCKET_SIZE;
-            long stored = idx.getLong(pos);
-            if (stored == 0) {
-                return -1;
-            }
-            if (stored == hash) {
-                idx.putLong(pos + 8, -1L);
-                return pos;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Inserts or updates a bucket in the hash table.
-     * @return the byte position of the written bucket, or -1 if the table is full
-     */
-    private static int insertIntoBuckets(ByteBuffer idx, int bc, int mask, long hash, long offset) {
-        int bucket = (int) (hash & mask);
-        for (int probe = 0; probe < bc; probe++) {
-            int pos = HEADER_SIZE + ((bucket + probe) & mask) * BUCKET_SIZE;
-            long stored = idx.getLong(pos);
+            long stored = buf.getLong(pos);
             if (stored == 0 || stored == hash) {
-                idx.putLong(pos, hash);
-                idx.putLong(pos + 8, offset);
-                return pos;
+                buf.putLong(pos, hash);
+                buf.putLong(pos + 8, offset);
+                return;
             }
-        }
-        return -1;
-    }
-
-    /** Writes a single 16-byte bucket from the in-memory index to the on-disk index file. */
-    private void writeBucketToDisk(int bucketPos) throws IOException {
-        FileChannel ch = indexChannel;
-        if (ch != null) {
-            ByteBuffer idx = indexBuffer;
-            bucketWriteBuf.clear();
-            bucketWriteBuf.putLong(idx.getLong(bucketPos));
-            bucketWriteBuf.putLong(idx.getLong(bucketPos + 8));
-            bucketWriteBuf.flip();
-            ch.write(bucketWriteBuf, bucketPos);
         }
     }
 
     /**
-     * Writes the full index to disk. Uses the open indexChannel if available (in-place write),
-     * otherwise creates the file and opens the channel.
+     * Flushes the index header (entryCount + occupiedSlots) and fsyncs.
+     * Individual bucket updates are already on disk via pwrite during put/remove.
      */
-    @SuppressWarnings("ByteBufferBackingArray") // indexBuffer is always heap-allocated via wrap()
-    private void writeIndexToDisk() throws IOException {
-        ByteBuffer idx = indexBuffer;
-        if (idx == null) {
+    private void flushHeader() throws IOException {
+        FileChannel ch = indexChannel;
+        if (ch == null) {
             return;
         }
-        // Update entry count in the live buffer
-        idx.putInt(8, entryCount);
-
-        int size = HEADER_SIZE + bucketCount * BUCKET_SIZE;
-        FileChannel ch = indexChannel;
-        if (ch != null) {
-            // Write in-place via the open channel
-            ch.write(ByteBuffer.wrap(idx.array(), 0, size), 0);
-            ch.truncate(size);
-            ch.force(false);
-        } else {
-            // First time: create the file via temp + rename, then open channel
-            File newIndexFile = new File(indexFile.getPath() + ".new");
-            byte[] data = new byte[size];
-            System.arraycopy(idx.array(), 0, data, 0, size);
-            Files.write(newIndexFile.toPath(), data);
-            Files.move(newIndexFile.toPath(), indexFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            indexChannel = FileChannel.open(indexFile.toPath(),
-                StandardOpenOption.READ, StandardOpenOption.WRITE);
-        }
+        ByteBuffer header = ByteBuffer.allocate(8);
+        header.putInt(entryCount);
+        header.putInt(occupiedSlots);
+        header.flip();
+        ch.write(header, 8); // entryCount at offset 8, occupiedSlots at offset 12
+        ch.force(false);
     }
 
     /**
@@ -599,11 +685,18 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
 
     @Override
     public void verify() {
-        ByteBuffer idx = indexBuffer;
-        if (idx != null && idx.capacity() >= HEADER_SIZE) {
-            int magic = idx.getInt(0);
-            if (magic != MAGIC) {
-                throw new IllegalStateException("Index file has invalid magic: " + Integer.toHexString(magic));
+        FileChannel ch = indexChannel;
+        if (ch != null) {
+            try {
+                ByteBuffer header = ByteBuffer.allocate(4);
+                ch.read(header, 0);
+                header.flip();
+                int magic = header.getInt();
+                if (magic != MAGIC) {
+                    throw new IllegalStateException("Index file has invalid magic: " + Integer.toHexString(magic));
+                }
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }
@@ -639,7 +732,6 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         }
         dataChannel = null;
         indexChannel = null;
-        indexBuffer = null;
         bucketCount = 0;
         bucketMask = 0;
         entryCount = 0;
@@ -677,8 +769,6 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static class PositionalOutputStream extends OutputStream {
         private final byte[] singleByte = new byte[1];
         private final ByteBuffer singleByteBuf = ByteBuffer.wrap(singleByte);
-        // Cached ByteBuffer for bulk writes — reused when the backing array is the same.
-        // KryoBackedEncoder reuses its internal buffer, so this almost never reallocates.
         private byte[] cachedArray = singleByte;
         private ByteBuffer cachedBuf = singleByteBuf;
         private FileChannel channel;
