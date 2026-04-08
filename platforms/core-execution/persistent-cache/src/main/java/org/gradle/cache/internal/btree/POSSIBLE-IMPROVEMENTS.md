@@ -1,6 +1,6 @@
 # LogHashPersistentIndexedCache — Possible Index Improvements
 
-## 1. Move timestamp from index to data entry + drop to day precision
+## 1. ~~Move timestamp from index to data entry~~ (IMPLEMENTED)
 
 Each index bucket is 24 bytes: `[hash:8][offset:8][lastAccess:8]`. The `lastAccess`
 field is **written but never read** anywhere in the codebase. Rather than simply
@@ -30,7 +30,7 @@ Benefits:
 - The index becomes a pure acceleration structure (hash -> offset); all metadata lives
   with the data it describes
 
-## 2. Separate control-byte array (Swiss table-style metadata)
+## 2. ~~Separate control-byte array (Swiss table-style metadata)~~ (NOT NEEDED)
 
 The current probe loop reads 8-byte hashes sequentially. A 1-byte fingerprint array
 at the start of the index would dramatically improve probing:
@@ -47,6 +47,11 @@ Layout:
 - Only read the full 16-byte slot on fingerprint match
 
 This is the core principle behind abseil's `flat_hash_map` and Meta's F14.
+
+**Not needed**: with on-disk probing (item 10, now implemented), the bottleneck is the
+pread syscall (~1-5 us), not in-buffer hash comparisons (~10-20 ns). The 128-byte
+multi-bucket read already fits in L1 cache. Even for the in-memory case, 8 hash
+comparisons in 128 bytes is within a single cache line.
 
 ## 3. Fix the `hash == 0` sentinel collision
 
@@ -321,8 +326,8 @@ lifecycle complexity.
 
 | Improvement                | Effort      | Memory impact              | Throughput impact            |
 |----------------------------|-------------|----------------------------|------------------------------|
-| Timestamp to data entry    | Low         | -33% index                 | Better probe locality        |
-| Control-byte array         | Medium      | +1 byte/bucket             | Much faster probing          |
+| ~~Timestamp to data entry~~    | ~~Low~~         | ~~-33% index~~                 | ~~Better probe locality~~ DONE |
+| ~~Control-byte array~~         | ~~Medium~~      | ~~+1 byte/bucket~~             | NOT NEEDED with on-disk probing |
 | Fix hash==0                | Trivial     | None                       | Correctness fix              |
 | Backward-shift deletion    | Medium      | Eliminates tombstone bloat | Shorter probe chains         |
 | Data file compaction       | Medium-High | Bounded .dat growth        | Faster reads (less seeking)  |
@@ -330,4 +335,4 @@ lifecycle complexity.
 | Incremental flush          | High        | None                       | Faster flush for large caches|
 | ~~Eliminate per-put allocs~~   | ~~Low~~         | ~~None~~                       | ~~Less GC pressure on writes~~ DONE |
 | Merge into single file     | Medium      | None                       | One fewer fsync per flush    |
-| Bounded index memory       | Medium-High | O(n) -> O(1) for large     | Prevents OOM on large caches |
+| ~~Bounded index memory~~       | ~~Medium-High~~ | ~~O(n) -> O(1) for large~~     | ~~Prevents OOM on large caches~~ DONE (on-disk probing) |
