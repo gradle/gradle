@@ -1,16 +1,34 @@
 # LogHashPersistentIndexedCache — Possible Index Improvements
 
-## 1. Drop the `lastAccess` field
+## 1. Move timestamp from index to data entry + drop to day precision
 
-Each bucket is 24 bytes: `[hash:8][offset:8][lastAccess:8]`. The `lastAccess` field is
-**written but never read** anywhere in the codebase. Removing it:
+Each index bucket is 24 bytes: `[hash:8][offset:8][lastAccess:8]`. The `lastAccess`
+field is **written but never read** anywhere in the codebase. Rather than simply
+dropping it, move it to the data entry as a 2-byte `lastWriteDay` (days since epoch,
+day-level precision is sufficient for cleanup of entries older than N days).
 
+**Data entry** (header grows 12 -> 14 bytes):
+```
+[keyHash:8][valueLen:4][lastWriteDay:2][value:N][type:1]
+```
+
+**Index bucket** (pure lookup acceleration, no metadata):
+```
+[hash:8][offset:8]  = 16 bytes
+```
+
+Benefits:
 - Shrinks bucket size from 24 to 16 bytes (33% less index memory)
 - Improves cache-line utilization: 4 buckets per 64-byte cache line instead of 2.67
-- Faster rehash, flush, and probing
-- Simpler code
-
-If LRU eviction is planned for the future, it can be added back then.
+- Eliminates `System.currentTimeMillis()` syscall per `put()` — cache the current day
+  once per session via `(short)(System.currentTimeMillis() / 86_400_000L)`
+- `lastWriteDay` comes for free on `get()` — already covered by the 512-byte
+  speculative pread of the data entry header
+- Cleanup is a sequential data file scan: check each entry's `lastWriteDay`, rebuild
+  the index with only fresh entries. Combines naturally with data file compaction
+  (item 5)
+- The index becomes a pure acceleration structure (hash -> offset); all metadata lives
+  with the data it describes
 
 ## 2. Separate control-byte array (Swiss table-style metadata)
 
@@ -200,11 +218,110 @@ clearest performance win (one fewer fsync per flush). Options B and C are worth
 considering if we also want better crash recovery (rebuild from data scan instead of
 discarding everything).
 
+## 10. Bounded index memory for large caches
+
+The entire hash table index is loaded into heap memory. BTreePersistentIndexedCache
+uses O(1) memory (Guava cache of ~100 blocks), but LogHash uses O(n):
+
+| Entries  | Bucket count | Index in heap (24 B) | Index in heap (16 B) |
+|----------|-------------|----------------------|----------------------|
+| 1,000    | 2,048       | 49 KB                | 33 KB                |
+| 10,000   | 16,384      | 384 KB               | 256 KB               |
+| 100,000  | 131,072     | 3.0 MB               | 2.0 MB               |
+| 1,000,000| 2,097,152   | 48 MB                | 32 MB                |
+| 10,000,000| 16,777,216 | 384 MB               | 256 MB               |
+
+BTreePersistentIndexedCache files can reach GB sizes. If LogHash is used for the same
+caches, the in-memory index could cause OOM or excessive GC pressure.
+
+### Mitigations (from cheapest to most complex)
+
+**Option A: Cap entry count + eviction** — enforce a maximum number of entries and
+evict old ones (using `lastWrite` day from item 1). If caches don't genuinely need
+millions of live entries, this is the simplest fix and also bounds data file growth.
+
+**Option B: mmap the index** — use `MappedByteBuffer` instead of heap `ByteBuffer`.
+The OS pages in only the touched regions; the full index stays in virtual memory, not
+heap. A 48 MB index with only hot buckets accessed would have ~few hundred KB resident.
+Main caveats: mmap lifecycle in Java < 22 requires `Unsafe` or `Cleaner` hacks, and
+**mmap is not safe in container environments** (see note below).
+
+**Option C: On-disk probing with multi-bucket reads** — don't load the index into
+memory at all. On each `get()`/`put()`, read a chunk of adjacent buckets in a single
+pread:
+
+```java
+// Read 128 bytes = 8 buckets (at 16 bytes each) in one pread syscall.
+// Covers nearly all probe chains at 75% load factor.
+ByteBuffer probeBuf = threadLocalProbeBuf.get();
+probeBuf.clear();
+indexChannel.read(probeBuf, bucketOffset);
+// Probe locally in the buffer — no additional syscalls needed.
+```
+
+Total syscalls per `get()`: **2 pread** (1 for index probe, 1 for value read). This
+beats BTree's typical case of 4 syscalls (2× seek+read) and matches BTree's best case
+of 2 — while also supporting concurrent reads (pread is thread-safe, unlike
+RandomAccessFile's seek+read).
+
+The OS page cache keeps hot index pages in memory automatically, so for warm caches
+the index pread often hits the page cache (~100-200 ns) rather than going to disk. This
+effectively gives in-memory performance for hot data without explicitly managing it.
+
+Memory usage is O(1) regardless of cache size — just the thread-local probe buffer.
+
+**Option D: Hybrid** — load the index into memory for small caches (e.g. < 50K
+entries / ~1 MB index), fall back to on-disk probing for larger ones. Best of both
+worlds: fast path for the common case, safe path for outliers. However, given that
+the OS page cache gives on-disk probing near-memory performance for hot data, the
+hybrid may be unnecessary complexity.
+
+### Container / Kubernetes considerations
+
+mmap'd files do NOT reduce real memory usage in containerized environments. Pages that
+the OS brings into RAM count toward the container's RSS (Resident Set Size), which is
+what Kubernetes uses for OOM killing via cgroup memory accounting. A 384 MB mmap'd
+index under memory pressure can trigger OOM kill just as 384 MB of heap would — except
+it's harder to reason about because it's outside JVM control (no GC, no `-Xmx` cap).
+
+| Option | JVM heap | Container RSS | K8s safe? |
+|--------|----------|---------------|-----------|
+| A: Cap + eviction      | Bounded   | Bounded        | Yes |
+| B: mmap                | Low       | **Unbounded**  | **No** — can OOM |
+| C: On-disk probing     | O(1)      | O(1)           | Yes |
+| D: Hybrid (heap/mmap)  | Bounded   | **Unbounded**  | **No** for large caches |
+
+### Syscall comparison
+
+| Implementation              | Syscalls per get() | Memory   | Concurrent reads? |
+|-----------------------------|-------------------|----------|--------------------|
+| BTree best (root cached)    | 2 (seek+read)     | ~500 KB  | No                 |
+| BTree typical (depth 2)     | 4 (2× seek+read)  | ~500 KB  | No                 |
+| LogHash in-memory index     | 1 (pread)         | O(n)     | Yes                |
+| LogHash on-disk probing     | 2 (pread×2)       | O(1)     | Yes                |
+
+On-disk probing matches BTree's best case on syscalls while beating it on concurrency
+and memory predictability. With the OS page cache warming hot pages, the extra pread
+for the index is typically served from memory (~100-200 ns) rather than disk.
+
+### Recommendation
+
+**Option C (on-disk probing with multi-bucket reads) is the recommended default.** It
+provides O(1) memory, 2 pread syscalls per lookup, concurrent reads, and is safe in
+all environments including containers. The OS page cache gives it near-memory
+performance for hot data without explicit cache management.
+
+Option A (cap + eviction) is still valuable as a complementary measure to bound data
+file growth, but is no longer required to solve the memory problem.
+
+Option B (mmap) is not recommended due to container/K8s RSS concerns and Java
+lifecycle complexity.
+
 ## Summary
 
 | Improvement                | Effort      | Memory impact              | Throughput impact            |
 |----------------------------|-------------|----------------------------|------------------------------|
-| Remove `lastAccess`        | Low         | -33% index                 | Better probe locality        |
+| Timestamp to data entry    | Low         | -33% index                 | Better probe locality        |
 | Control-byte array         | Medium      | +1 byte/bucket             | Much faster probing          |
 | Fix hash==0                | Trivial     | None                       | Correctness fix              |
 | Backward-shift deletion    | Medium      | Eliminates tombstone bloat | Shorter probe chains         |
@@ -213,3 +330,4 @@ discarding everything).
 | Incremental flush          | High        | None                       | Faster flush for large caches|
 | ~~Eliminate per-put allocs~~   | ~~Low~~         | ~~None~~                       | ~~Less GC pressure on writes~~ DONE |
 | Merge into single file     | Medium      | None                       | One fewer fsync per flush    |
+| Bounded index memory       | Medium-High | O(n) -> O(1) for large     | Prevents OOM on large caches |
