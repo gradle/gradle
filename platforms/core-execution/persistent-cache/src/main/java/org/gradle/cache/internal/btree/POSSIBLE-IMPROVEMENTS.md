@@ -90,7 +90,7 @@ Options:
 - **Generation-based**: after N flushes, compact
 - Track live bytes vs total bytes in the index header to cheaply detect bloat
 
-## 6. `entryCount` drift on remove/re-insert
+## 6. ~~`entryCount` drift on remove/re-insert~~ (IMPLEMENTED)
 
 `remove()` does not decrement `entryCount`:
 
@@ -331,7 +331,7 @@ lifecycle complexity.
 | ~~Fix hash==0~~                | ~~Trivial~~     | ~~None~~                       | ~~Correctness fix~~ DONE              |
 | Backward-shift deletion    | Medium      | Eliminates tombstone bloat | Shorter probe chains         |
 | Data file compaction       | Medium-High | Bounded .dat growth        | Faster reads (less seeking)  |
-| Fix entryCount drift       | Low         | None                       | Prevents premature growth    |
+| ~~Fix entryCount drift~~       | ~~Low~~         | ~~None~~                       | ~~Prevents premature growth~~ DONE    |
 | Incremental flush          | High        | None                       | Faster flush for large caches|
 | ~~Eliminate per-put allocs~~   | ~~Low~~         | ~~None~~                       | ~~Less GC pressure on writes~~ DONE |
 | Merge into single file     | Medium      | None                       | One fewer fsync per flush    |

@@ -76,6 +76,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private volatile int bucketCount;
     private volatile int bucketMask;
     private int entryCount;
+    private int occupiedSlots; // live + tombstoned — used for growth trigger
 
     // Data file: FileChannel for both writes (append via position) and concurrent reads (pread)
     private volatile FileChannel dataChannel;
@@ -160,6 +161,14 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             bucketCount = bc;
             bucketMask = bc - 1;
             entryCount = buf.getInt(8);
+            // Count occupied slots (live + tombstoned) for accurate growth trigger
+            int occupied = 0;
+            for (int i = 0; i < bc; i++) {
+                if (buf.getLong(HEADER_SIZE + i * BUCKET_SIZE) != 0) {
+                    occupied++;
+                }
+            }
+            occupiedSlots = occupied;
             indexChannel = FileChannel.open(indexFile.toPath(),
                 StandardOpenOption.READ, StandardOpenOption.WRITE);
         } else {
@@ -171,6 +180,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         bucketCount = 0;
         bucketMask = 0;
         entryCount = 0;
+        occupiedSlots = 0;
         indexBuffer = null;
         indexChannel = null;
     }
@@ -280,7 +290,8 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             boolean isNew = !probeIndexContains(hash);
             if (isNew) {
                 entryCount++;
-                if (indexBuffer == null || entryCount * 4 > bucketCount * 3) {
+                occupiedSlots++;
+                if (indexBuffer == null || occupiedSlots * 4 > bucketCount * 3) {
                     growIndex();
                 }
             }
@@ -303,6 +314,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             if (indexBuffer != null && probeIndexContains(hash)) {
                 int bucketPos = tombstoneInBuckets(indexBuffer, bucketCount, bucketMask, hash);
                 if (bucketPos >= 0) {
+                    entryCount--;
                     writeBucketToDisk(bucketPos);
                 }
                 indexDirty = true;
@@ -370,6 +382,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
 
         newBuf.putInt(8, rehashed);
         entryCount = rehashed;
+        occupiedSlots = rehashed; // tombstones cleaned during rehash
         indexBuffer = newBuf;
         bucketCount = newBucketCount;
         bucketMask = newBucketMask;
@@ -630,6 +643,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         bucketCount = 0;
         bucketMask = 0;
         entryCount = 0;
+        occupiedSlots = 0;
         indexDirty = false;
     }
 
