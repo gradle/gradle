@@ -58,4 +58,21 @@ public class DelegatingProviderWithValue<T> extends AbstractProviderWithValue<T>
         return delegate.getType();
     }
 
+    @Override
+    public boolean containsProviderInChain(ProviderInternal<?> target) {
+        return this == target || delegate.containsProviderInChain(target);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+        if (this == target) {
+            return (ProviderInternal<S>) replacement;
+        }
+        ProviderInternal<T> newDelegate = delegate.substituteProvider(target, replacement);
+        if (newDelegate == delegate) {
+            return (ProviderInternal<S>) this;
+        }
+        return (ProviderInternal<S>) new DelegatingProviderWithValue<>(newDelegate, nonPresentMessage);
+    }
 }

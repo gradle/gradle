@@ -517,6 +517,42 @@ class DefaultPropertyTest extends AbstractPropertySpec<String> {
         property.get() == someOtherValue().reverse()
     }
 
+    def "property can be set to a mapped version of itself with side effect"() {
+        given:
+        def sideEffectValues = []
+        def property = property().value(someValue())
+
+        when:
+        property.set(property.map { it.reverse() }.withSideEffect { sideEffectValues << it })
+
+        then:
+        property.get() == someValue().reverse()
+        sideEffectValues == [someValue().reverse()]
+    }
+
+    def "property can be set to a mapped-then-side-effect-then-mapped chain of itself"() {
+        given:
+        def property = property().value(someValue())
+
+        when:
+        property.set(property.map { it.reverse() }.withSideEffect { /* no-op */ }.map { it + "!" })
+
+        then:
+        property.get() == someValue().reverse() + "!"
+    }
+
+    def "property can be set to a DelegatingProviderWithValue wrapping a mapped version of itself"() {
+        given:
+        def property = property().value(someValue())
+
+        when:
+        def mapped = property.map { it.reverse() }
+        property.set(new DelegatingProviderWithValue(Providers.internal(mapped), "should not fail"))
+
+        then:
+        property.get() == someValue().reverse()
+    }
+
     def "value coercion is applied to #description after configuration cache round-trip"() {
         given:
         GString gstring = "${'value'}"

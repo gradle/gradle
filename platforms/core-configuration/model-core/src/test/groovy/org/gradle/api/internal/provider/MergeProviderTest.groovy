@@ -106,6 +106,44 @@ class MergeProviderTest extends Specification {
 
         then:
         provider.get() == ["3", "4"]
+    }
 
+    def "containsProviderInChain detects property in items list"() {
+        given:
+        def property = objects.property(String).value("hello") as ProviderInternal
+        def other = Providers.of("world")
+        def merge = new MergeProvider([other, property])
+
+        expect:
+        merge.containsProviderInChain(property)
+        !merge.containsProviderInChain(Providers.of("x") as ProviderInternal)
+    }
+
+    def "substituteProvider replaces property in items list"() {
+        given:
+        def property = objects.property(String).value("hello") as ProviderInternal
+        def replacement = Providers.of("replaced") as ProviderInternal
+        def other = Providers.of("world")
+        def merge = new MergeProvider([other, property])
+
+        when:
+        def substituted = merge.substituteProvider(property, replacement) as MergeProvider
+
+        then:
+        substituted !== merge
+        substituted.get() == ["world", "replaced"]
+    }
+
+    def "substituteProvider returns same instance when no match"() {
+        given:
+        def property = objects.property(String).value("hello") as ProviderInternal
+        def other = Providers.of("world")
+        def merge = new MergeProvider([other])
+
+        when:
+        def substituted = merge.substituteProvider(property, Providers.of("x") as ProviderInternal)
+
+        then:
+        substituted.is(merge)
     }
 }

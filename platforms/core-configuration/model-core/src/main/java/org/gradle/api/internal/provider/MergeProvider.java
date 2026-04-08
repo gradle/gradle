@@ -42,6 +42,41 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
     }
 
     @Override
+    public boolean containsProviderInChain(ProviderInternal<?> target) {
+        if (this == target) {
+            return true;
+        }
+        for (Provider<R> item : items) {
+            if (Providers.internal(item).containsProviderInChain(target)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <S> ProviderInternal<S> substituteProvider(ProviderInternal<?> target, ProviderInternal<?> replacement) {
+        if (this == target) {
+            return (ProviderInternal<S>) replacement;
+        }
+        boolean changed = false;
+        ImmutableList.Builder<Provider<R>> newItems = ImmutableList.builderWithExpectedSize(items.size());
+        for (Provider<R> item : items) {
+            ProviderInternal<R> internal = Providers.internal(item);
+            ProviderInternal<R> substituted = internal.substituteProvider(target, replacement);
+            if (substituted != internal) {
+                changed = true;
+            }
+            newItems.add(substituted);
+        }
+        if (!changed) {
+            return (ProviderInternal<S>) this;
+        }
+        return (ProviderInternal<S>) new MergeProvider<>(newItems.build());
+    }
+
+    @Override
     protected String toStringNoReentrance() {
         return String.format("merge([%s])", Joiner.on(", ").join(items));
     }

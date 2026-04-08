@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.ManagedFactory
+import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -333,5 +334,66 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
         then:
         1 * sideEffect.execute(24)
         0 * _
+    }
+
+    static class WithSideEffectProviderCircularChainEvaluationTest extends Specification implements CircularEvaluationSpec.UsesStringProperty {
+        def "setting property to a side-effect version of itself breaks the cycle"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(WithSideEffectProvider.of(property, { /* no-op */ } as ValueSupplier.SideEffect))
+
+            then:
+            property.get() == "hello"
+        }
+
+        def "setting property to a mapped-with-side-effect version of itself breaks the cycle"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(property.map { it.reverse() }.withSideEffect { /* no-op */ })
+
+            then:
+            property.get() == "olleh"
+        }
+
+        def "setting property to a side-effect-then-mapped chain of itself breaks the cycle"() {
+            given:
+            def property = property().value("hello")
+
+            when:
+            property.set(property.withSideEffect { /* no-op */ }.map { it.reverse() })
+
+            then:
+            property.get() == "olleh"
+        }
+
+        def "side effect executes when property is set to a mapped-with-side-effect version of itself"() {
+            given:
+            def sideEffectValues = []
+            def property = property().value("hello")
+
+            when:
+            property.set(property.map { it.reverse() }.withSideEffect { sideEffectValues << it })
+
+            then:
+            property.get() == "olleh"
+            sideEffectValues == ["olleh"]
+        }
+
+        def "toString is safe when wrapped provider would form a cycle"() {
+            given:
+            def property = property()
+            def provider = WithSideEffectProvider.of(property, { /* no-op */ } as ValueSupplier.SideEffect)
+
+            when:
+            property.set(provider)
+
+            then:
+            noExceptionThrown()
+            provider.toString() != null
+        }
     }
 }
