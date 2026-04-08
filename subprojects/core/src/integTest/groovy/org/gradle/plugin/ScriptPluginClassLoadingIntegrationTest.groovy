@@ -255,7 +255,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'pluginClass' from project ':sub'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'pluginClass' was not found in project ':sub' and was dynamically resolved from root project 'test'.")
         succeeds "hello"
 
         then:

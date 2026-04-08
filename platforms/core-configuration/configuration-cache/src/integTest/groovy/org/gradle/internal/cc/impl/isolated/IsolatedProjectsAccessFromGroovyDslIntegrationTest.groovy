@@ -22,7 +22,11 @@ import spock.lang.Issue
 
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
-    public static final String GET_PROPERTY_DEPRECATION = "Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'root' for property 'foo' from project ':a'."
+    public static final String IMPLICIT_PROPERTY_DEPRECATION = "Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'foo' was not found in project ':a' and was dynamically resolved from root project 'root'."
+
+    private static String explicitPropertyDeprecation(String callerApi) {
+        "Calling '${callerApi}' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'root' for property 'foo' from project ':a'."
+    }
 
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         createDirs("a", "b")
@@ -533,11 +537,11 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         where:
         kind       | setExpr         | expr                  | deprecationMessage
-        "property" | "ext.foo = 1"   | "foo"                 | GET_PROPERTY_DEPRECATION
+        "property" | "ext.foo = 1"   | "foo"                 | IMPLICIT_PROPERTY_DEPRECATION
         "property" | "ext.foo = 1"   | "hasProperty('foo')"  | "Calling 'hasProperty' to query presence of property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'root' for presence property 'foo' from project ':a'."
-        "property" | "ext.foo = 1"   | "property('foo')"     | GET_PROPERTY_DEPRECATION
-        "property" | "ext.foo = 1"   | "findProperty('foo')" | GET_PROPERTY_DEPRECATION
-        "property" | "ext.foo = 1"   | "getProperty('foo')"  | GET_PROPERTY_DEPRECATION
+        "property" | "ext.foo = 1"   | "property('foo')"     | explicitPropertyDeprecation("property()")
+        "property" | "ext.foo = 1"   | "findProperty('foo')" | explicitPropertyDeprecation("findProperty()")
+        "property" | "ext.foo = 1"   | "getProperty('foo')"  | IMPLICIT_PROPERTY_DEPRECATION
         "property" | "ext.foo = 1"   | "properties"          | "Dynamically calling getProperties() on a script has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties"
         "method"   | "def foo() { }" | "foo()"               | "Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'foo' on root project 'root' from project ':a'."
     }
@@ -561,12 +565,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. " +
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
-            "Tried to query parent project project ':sub' for property 'foo' from project ':sub:sub-a'.")
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. " +
+            "Property 'foo' was not found in project ':sub:sub-a' and was dynamically resolved from project ':sub'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
-            "Tried to query parent project project ':sub' for property 'foo' from project ':sub:sub-b'.")
+            "Property 'foo' was not found in project ':sub:sub-b' and was dynamically resolved from project ':sub'.")
         isolatedProjectsFails(":sub:sub-a:help", ":sub:sub-b:help")
 
         then:
@@ -600,7 +604,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(GET_PROPERTY_DEPRECATION)
+        executer.expectDocumentedDeprecationWarning(explicitPropertyDeprecation("getProperty()"))
         executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'bar' on root project 'root' from project ':a'.")
         isolatedProjectsFails(":a:help")
 
@@ -638,7 +642,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':a' for property 'projectProperty' from project ':a:aa'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'projectProperty' was not found in project ':a:aa' and was dynamically resolved from project ':a'.")
         isolatedProjectsFails("help")
 
         then:

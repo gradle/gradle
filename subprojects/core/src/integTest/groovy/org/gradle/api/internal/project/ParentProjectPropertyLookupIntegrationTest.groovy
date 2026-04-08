@@ -23,14 +23,17 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
 
     public static final String GET_PROPERTIES_DEPRECATION_POSTFIX = "This will fail with an error in Gradle 10. " +
         "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties"
-    public static final String GET_PROPERTY_DEPRECATION =  getPropertyDeprecation("value")
     public static final String DYNAMICALLY_INVOKING_PARENT_DEPRECATION = "Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'foo' on project ':parent' from project ':parent:child'."
-
-    private static String getPropertyDeprecation(String propertyName) {
-        "Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property '$propertyName' from project ':parent:child'."
-    }
     public static final String HAS_PROPERTY_DEPRECATION = "Calling 'hasProperty' to query presence of property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for presence property 'value' from project ':parent:child'."
     public static final String GET_PROPERTIES_DEPRECATION = "Dynamically calling getProperties() on a script has been deprecated. " + GET_PROPERTIES_DEPRECATION_POSTFIX
+
+    private static String implicitPropertyDeprecation(String propertyName) {
+        "Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property '$propertyName' was not found in project ':parent:child' and was dynamically resolved from project ':parent'."
+    }
+
+    private static String explicitPropertyDeprecation(String callerApi, String propertyName) {
+        "Calling '$callerApi' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property '$propertyName' from project ':parent:child'."
+    }
 
     TestFile grandparent = buildFile
     TestFile parent = file("parent/build.gradle")
@@ -56,7 +59,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(GET_PROPERTY_DEPRECATION)
+        executer.expectDocumentedDeprecationWarning(implicitPropertyDeprecation("value"))
         succeeds("help")
 
         then:
@@ -72,7 +75,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(GET_PROPERTY_DEPRECATION)
+        executer.expectDocumentedDeprecationWarning(implicitPropertyDeprecation("value"))
         succeeds("help")
 
         then:
@@ -88,7 +91,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(getPropertyDeprecation("foo"))
+        executer.expectDocumentedDeprecationWarning(implicitPropertyDeprecation("foo"))
         succeeds("help")
 
         then:
@@ -120,7 +123,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(getPropertyDeprecation("foo"))
+        executer.expectDocumentedDeprecationWarning(implicitPropertyDeprecation("foo"))
         succeeds("help")
 
         then:
@@ -152,7 +155,9 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(GET_PROPERTY_DEPRECATION)
+        // In a Groovy script, getProperty("value") is resolved on the script object,
+        // which delegates to the project's dynamic object via the same path as bare 'value'.
+        executer.expectDocumentedDeprecationWarning(implicitPropertyDeprecation("value"))
         succeeds("help")
 
         then:
@@ -168,7 +173,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(GET_PROPERTY_DEPRECATION)
+        executer.expectDocumentedDeprecationWarning(implicitPropertyDeprecation("value"))
         succeeds("help")
 
         then:
@@ -216,7 +221,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(GET_PROPERTY_DEPRECATION)
+        executer.expectDocumentedDeprecationWarning(explicitPropertyDeprecation("property()", "value"))
         succeeds("help")
 
         then:
@@ -232,7 +237,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(GET_PROPERTY_DEPRECATION)
+        executer.expectDocumentedDeprecationWarning(explicitPropertyDeprecation("property()", "value"))
         succeeds("help")
 
         then:

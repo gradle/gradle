@@ -29,9 +29,9 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
         extraPropertiesMultiBuild()
 
         when:
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'extra-properties' for property 'testProp' from project ':a'.")
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'extra-properties' for property 'testProp' from project ':b'.")
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':a' for property 'testProp' from project ':a:a1'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'testProp' was not found in project ':a' and was dynamically resolved from root project 'extra-properties'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'testProp' was not found in project ':b' and was dynamically resolved from root project 'extra-properties'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'testProp' was not found in project ':a:a1' and was dynamically resolved from project ':a'.")
 
         then:
         succeeds checkTestPropTasks()
@@ -50,8 +50,8 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'extra-properties' for property 'testProp' from project ':b'.")
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':a' for property 'testProp' from project ':a:a1'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'testProp' was not found in project ':b' and was dynamically resolved from root project 'extra-properties'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'testProp' was not found in project ':a:a1' and was dynamically resolved from project ':a'.")
 
         then:
         succeeds checkTestPropTasks()

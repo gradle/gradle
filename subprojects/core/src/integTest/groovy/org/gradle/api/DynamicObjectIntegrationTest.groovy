@@ -74,13 +74,13 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
             """
             expectTaskProjectDeprecation()
             // execution-time cross-project property lookups from Reporter
-            executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'rootProperty' from project ':child'.")
-            executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'property' from project ':child'.")
+            executer.expectDocumentedDeprecationWarning("Calling 'getProperty()' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'rootProperty' from project ':child'.")
+            executer.expectDocumentedDeprecationWarning("Calling 'getProperty()' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'property' from project ':child'.")
         }
         expectScriptGetPropertiesDeprecation(3)
         // configuration-time cross-project property lookups in child/build.gradle
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'rootProperty' from project ':child'.")
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'rootProperty' from project ':child'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'rootProperty' was not found in project ':child' and was dynamically resolved from root project 'test'.")
+        executer.expectDocumentedDeprecationWarning("Calling 'property()' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'rootProperty' from project ':child'.")
 
         expect:
         succeeds("testTask")
@@ -424,7 +424,7 @@ assert 'overridden value' == global
             assert prop3(12) == 24
         """
 
-        executer.expectDocumentedDeprecationWarning("Calling 'getProperty' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'prop2' from project ':child1'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'prop2' was not found in project ':child1' and was dynamically resolved from root project 'test'.")
 
         expect:
         succeeds()

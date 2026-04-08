@@ -70,6 +70,8 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     @Nullable
     private HierarchicalDynamicObject parent;
     private boolean deprecateParentAccess;
+    @Nullable
+    private String callerApi;
 
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
         this(delegate, new BeanDynamicObject(delegate, publicType), new DefaultExtensionContainer(instanceGenerator));
@@ -204,6 +206,16 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         return false;
     }
 
+    /**
+     * Set the caller API context for the next property lookup deprecation message.
+     * Must be cleared after the call completes (use try/finally).
+     *
+     * @param callerApi the API method the user called (e.g. "getProperty()", "property()"), or null for Groovy dynamic resolution
+     */
+    public void setCallerApi(@Nullable String callerApi) {
+        this.callerApi = callerApi;
+    }
+
     @Override
     public DynamicInvokeResult tryGetProperty(String name) {
         DynamicInvokeResult result = delegateObjects.tryGetProperty(name);
@@ -215,17 +227,29 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
             result = parent.tryGetProperty(name);
             if (result.isFound()) {
                 if (deprecateParentAccess) {
-                    DeprecationLogger.deprecateAction("Calling 'getProperty' to retrieve property from parent project")
-                        .withContext("Tried to query parent project " + parent.getDisplayName() + " for property '" + name + "' from " + getDisplayName() + ".")
-                        .willBecomeAnErrorInGradle10()
-                        .undocumented()
-                        .nagUser();
+                    emitPropertyDeprecation(name, parent);
                 }
                 return result;
             }
             parent = parent.getParent();
         }
         return DynamicInvokeResult.notFound();
+    }
+
+    private void emitPropertyDeprecation(String name, DynamicObject parent) {
+        if (callerApi != null) {
+            DeprecationLogger.deprecateAction("Calling '" + callerApi + "' to retrieve property from parent project")
+                .withContext("Tried to query parent project " + parent.getDisplayName() + " for property '" + name + "' from " + getDisplayName() + ".")
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser();
+        } else {
+            DeprecationLogger.deprecateAction("Accessing a property from a parent project")
+                .withContext("Property '" + name + "' was not found in " + getDisplayName() + " and was dynamically resolved from " + parent.getDisplayName() + ".")
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser();
+        }
     }
 
     @Override

@@ -1131,7 +1131,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @SuppressWarnings("JavadocReference")
     @Nullable
     public Object getProperty(String propertyName) {
-        return property(propertyName);
+        return withCallerApi("getProperty()", () -> dynamicLookupRoutine.property(extensibleDynamicObject, propertyName));
     }
 
     /**
@@ -1154,12 +1154,21 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
-        return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
+        return withCallerApi("property()", () -> dynamicLookupRoutine.property(extensibleDynamicObject, propertyName));
     }
 
     @Override
     public Object findProperty(String propertyName) {
-        return dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName);
+        return withCallerApi("findProperty()", () -> dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName));
+    }
+
+    private <T> T withCallerApi(String callerApi, java.util.function.Supplier<T> action) {
+        extensibleDynamicObject.setCallerApi(callerApi);
+        try {
+            return action.get();
+        } finally {
+            extensibleDynamicObject.setCallerApi(null);
+        }
     }
 
     @Override
