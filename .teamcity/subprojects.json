@@ -93,7 +93,7 @@
   {
     "name": "bean-serialization-services",
     "path": "platforms/core-configuration/bean-serialization-services",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

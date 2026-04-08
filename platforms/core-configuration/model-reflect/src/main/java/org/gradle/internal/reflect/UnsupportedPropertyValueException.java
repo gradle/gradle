@@ -17,13 +17,31 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.ResolutionProvider;
+import org.jspecify.annotations.NonNull;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Thrown when a property is set to an unsupported value.
  */
 @Contextual
-public class UnsupportedPropertyValueException extends RuntimeException {
+public final class UnsupportedPropertyValueException extends RuntimeException implements ResolutionProvider {
+    private final List<String> resolutions;
+
+    public UnsupportedPropertyValueException(String message, List<String> resolutions) {
+        super(message);
+        this.resolutions = Collections.unmodifiableList(resolutions);
+    }
+
     public UnsupportedPropertyValueException(String message, Throwable cause) {
         super(message, cause);
+        this.resolutions = Collections.emptyList();
+    }
+
+    @NonNull
+    @Override
+    public List<String> getResolutions() {
+        return resolutions;
     }
 }

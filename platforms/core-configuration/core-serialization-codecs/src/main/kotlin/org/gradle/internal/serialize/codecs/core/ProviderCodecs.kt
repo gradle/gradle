@@ -36,7 +36,11 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSupplier
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
@@ -47,6 +51,8 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
+import org.gradle.internal.reflect.UnsupportedPropertyValueException
+import org.gradle.internal.serialize.beans.services.UnsupportedPropertyValueTypes
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.flow.services.BuildWorkResultProvider
@@ -385,6 +391,29 @@ abstract class AbstractPropertyCodec<P : AbstractProperty<*, *>>(
 }
 
 
+/**
+ * Throws [UnsupportedPropertyValueException] if [valueType] is not supported
+ * by the configuration cache as a property value type.
+ */
+private fun IsolateContext.rejectUnsupportedPropertyValueType(propertyKind: Class<*>, valueType: Class<*>) {
+    val result = UnsupportedPropertyValueTypes.check(valueType, propertyKind)
+    if (result is UnsupportedPropertyValueTypes.CheckResult.Supported) return
+
+    val unsupported = result as UnsupportedPropertyValueTypes.CheckResult.Unsupported
+
+    val taskDescription = trace.sequence
+        .filterIsInstance<PropertyTrace.Task>()
+        .firstOrNull()
+        ?.let { "task ${it.path} of type ${it.type.simpleName}" }
+        ?: trace.toString()
+
+    throw UnsupportedPropertyValueException(
+        "Cannot serialize ${propertyKind.simpleName}<${valueType.simpleName}> in $taskDescription.  The value type of this property (${valueType.name}) is not supported with the configuration cache.",
+        listOf(unsupported.resolution)
+    )
+}
+
+
 class PropertyCodec(
     private val propertyFactory: PropertyFactory,
     providerCodec: FixedValueReplacingProviderCodec
@@ -392,7 +421,9 @@ class PropertyCodec(
 
     override suspend fun WriteContext.encodeThis(value: DefaultProperty<*>) {
         encodePreservingIdentityOf(value) {
-            writeClass(value.type)
+            val type = value.type
+            rejectUnsupportedPropertyValueType(Property::class.java, type)
+            writeClass(type)
             providerCodec.run { encodeProvider(value.provider) }
         }
     }
@@ -455,6 +486,7 @@ class ListPropertyCodec(
 ) : AbstractPropertyCodec<DefaultListProperty<*>>(providerCodec){
 
     override suspend fun WriteContext.encodeThis(value: DefaultListProperty<*>) {
+        rejectUnsupportedPropertyValueType(ListProperty::class.java, value.elementType)
         writeClass(value.elementType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
@@ -475,6 +507,7 @@ class SetPropertyCodec(
 ) : AbstractPropertyCodec<DefaultSetProperty<*>>(providerCodec) {
 
     override suspend fun WriteContext.encodeThis(value: DefaultSetProperty<*>) {
+        rejectUnsupportedPropertyValueType(SetProperty::class.java, value.elementType)
         writeClass(value.elementType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
@@ -495,6 +528,8 @@ class MapPropertyCodec(
 ) : AbstractPropertyCodec<DefaultMapProperty<*, *>>(providerCodec) {
 
     override suspend fun WriteContext.encodeThis(value: DefaultMapProperty<*, *>) {
+        rejectUnsupportedPropertyValueType(MapProperty::class.java, value.keyType)
+        rejectUnsupportedPropertyValueType(MapProperty::class.java, value.valueType)
         writeClass(value.keyType)
         writeClass(value.valueType)
         providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
