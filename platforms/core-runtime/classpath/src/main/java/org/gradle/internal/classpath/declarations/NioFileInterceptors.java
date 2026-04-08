@@ -35,15 +35,23 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.spi.FileSystemProvider;
 import java.nio.file.spi.FileTypeDetector;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
 import static java.nio.file.Files.newBufferedReader;
@@ -367,5 +375,223 @@ public class NioFileInterceptors {
             tryReportFileOpened(path, consumer);
         }
         return FileChannel.open(path, Cast.uncheckedCast(options), attrs);
+    }
+
+    @InterceptCalls
+    @StaticMethod(ofClass = Files.class)
+    public static Path intercept_walkFileTree(
+        Path start,
+        FileVisitor<?> visitor,
+        @CallerClassName String consumer
+    ) throws IOException {
+        return Files.walkFileTree(start, new RecordingFileVisitor(Cast.uncheckedNonnullCast(visitor), consumer));
+    }
+
+    @InterceptCalls
+    @StaticMethod(ofClass = Files.class)
+    public static Path intercept_walkFileTree(
+        Path start,
+        Set<?> options, // Set<FileVisitOption>, using Set<?> to match existing interceptor style
+        int maxDepth,
+        FileVisitor<?> visitor,
+        @CallerClassName String consumer
+    ) throws IOException {
+        return Files.walkFileTree(
+            start,
+            Cast.uncheckedNonnullCast(options),
+            maxDepth,
+            new RecordingFileVisitor(Cast.uncheckedNonnullCast(visitor), consumer)
+        );
+    }
+
+    /**
+     * Reimplements {@link Files#walk} on top of {@link Files#walkFileTree} so that each entry is
+     * classified using the {@link BasicFileAttributes} supplied by the walk itself, which honors
+     * the caller's {@link FileVisitOption#FOLLOW_LINKS} setting. Delegating to {@link Files#walk}
+     * and calling {@link Files#isDirectory(Path, java.nio.file.LinkOption...)} on each result would
+     * misclassify a symlink-to-directory as a directory (registering a directory-content fingerprint
+     * we did not actually observe) when the caller walked without {@code FOLLOW_LINKS}.
+     */
+    @InterceptCalls
+    @StaticMethod(ofClass = Files.class)
+    public static Stream<Path> intercept_walk(
+        Path start,
+        @VarargParameter FileVisitOption[] options,
+        @CallerClassName String consumer
+    ) throws IOException {
+        return walkAndRecord(start, Integer.MAX_VALUE, options, consumer);
+    }
+
+    @InterceptCalls
+    @StaticMethod(ofClass = Files.class)
+    public static Stream<Path> intercept_walk(
+        Path start,
+        int maxDepth,
+        @VarargParameter FileVisitOption[] options,
+        @CallerClassName String consumer
+    ) throws IOException {
+        return walkAndRecord(start, maxDepth, options, consumer);
+    }
+
+    private static Stream<Path> walkAndRecord(
+        Path start,
+        int maxDepth,
+        FileVisitOption[] options,
+        String consumer
+    ) throws IOException {
+        WalkRecordingFileVisitor visitor = new WalkRecordingFileVisitor(consumer);
+        Set<FileVisitOption> optionSet = options.length == 0
+            ? EnumSet.noneOf(FileVisitOption.class)
+            : EnumSet.copyOf(Arrays.asList(options));
+        Files.walkFileTree(start, optionSet, maxDepth, visitor);
+        return visitor.collected.stream();
+    }
+
+    /**
+     * Reimplements {@link Files#find} on top of {@link Files#walkFileTree} so that every directory
+     * whose contents are consulted during the walk is registered as a configuration cache input,
+     * even when the user-supplied {@code matcher} filters it (or all of its children) out.
+     */
+    @InterceptCalls
+    @StaticMethod(ofClass = Files.class)
+    public static Stream<Path> intercept_find(
+        Path start,
+        int maxDepth,
+        BiPredicate<Path, BasicFileAttributes> matcher,
+        @VarargParameter FileVisitOption[] options,
+        @CallerClassName String consumer
+    ) throws IOException {
+        FindRecordingFileVisitor visitor = new FindRecordingFileVisitor(matcher, consumer);
+        Set<FileVisitOption> optionSet = options.length == 0
+            ? EnumSet.noneOf(FileVisitOption.class)
+            : EnumSet.copyOf(Arrays.asList(options));
+        Files.walkFileTree(start, optionSet, maxDepth, visitor);
+        return visitor.collected.stream();
+    }
+
+    /**
+     * A {@link FileVisitor} that records filesystem observations against the configuration cache
+     * before delegating each visit callback to a user-supplied visitor.
+     */
+    private static final class RecordingFileVisitor implements FileVisitor<Path> {
+        private final FileVisitor<Path> delegate;
+        private final String consumer;
+
+        RecordingFileVisitor(FileVisitor<Path> delegate, String consumer) {
+            this.delegate = delegate;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            tryReportDirectoryContentObserved(dir, consumer);
+            return delegate.preVisitDirectory(dir, attrs);
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            tryReportFileSystemEntryObserved(file, consumer);
+            return delegate.visitFile(file, attrs);
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            tryReportFileSystemEntryObserved(file, consumer);
+            return delegate.visitFileFailed(file, exc);
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            return delegate.postVisitDirectory(dir, exc);
+        }
+    }
+
+    /**
+     * A {@link FileVisitor} that records filesystem observations against the configuration cache
+     * and collects paths matching the user-supplied matcher, used to reimplement {@link Files#find}.
+     */
+    private static final class FindRecordingFileVisitor implements FileVisitor<Path> {
+        private final BiPredicate<Path, BasicFileAttributes> matcher;
+        private final String consumer;
+        final List<Path> collected = new ArrayList<>();
+
+        FindRecordingFileVisitor(BiPredicate<Path, BasicFileAttributes> matcher, String consumer) {
+            this.matcher = matcher;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+            tryReportDirectoryContentObserved(dir, consumer);
+            if (matcher.test(dir, attrs)) {
+                collected.add(dir);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            tryReportFileSystemEntryObserved(file, consumer);
+            if (matcher.test(file, attrs)) {
+                collected.add(file);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            throw exc;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            if (exc != null) {
+                throw exc;
+            }
+            return FileVisitResult.CONTINUE;
+        }
+    }
+
+    /**
+     * A {@link FileVisitor} that records filesystem observations against the configuration cache
+     * and collects every visited path in walk order, used to reimplement {@link Files#walk}.
+     * Relies on the {@link BasicFileAttributes} supplied by the walk to classify each entry, so
+     * symlinks are recorded as leaves when the caller walked without {@code FOLLOW_LINKS} and as
+     * directories when they were followed.
+     */
+    private static final class WalkRecordingFileVisitor implements FileVisitor<Path> {
+        private final String consumer;
+        final List<Path> collected = new ArrayList<>();
+
+        WalkRecordingFileVisitor(String consumer) {
+            this.consumer = consumer;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+            tryReportDirectoryContentObserved(dir, consumer);
+            collected.add(dir);
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            tryReportFileSystemEntryObserved(file, consumer);
+            collected.add(file);
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            throw exc;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            if (exc != null) {
+                throw exc;
+            }
+            return FileVisitResult.CONTINUE;
+        }
     }
 }
