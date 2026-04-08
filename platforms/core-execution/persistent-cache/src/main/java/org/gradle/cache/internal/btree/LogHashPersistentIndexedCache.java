@@ -542,7 +542,9 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
 
     private long hashKey(K key) {
         try {
-            return keyHasher.getHashCode(key);
+            long hash = keyHasher.getHashCode(key);
+            // Hash 0 is the empty-bucket sentinel — remap to avoid silent data loss
+            return hash == 0 ? 1 : hash;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

@@ -53,7 +53,7 @@ pread syscall (~1-5 us), not in-buffer hash comparisons (~10-20 ns). The 128-byt
 multi-bucket read already fits in L1 cache. Even for the in-memory case, 8 hash
 comparisons in 128 bytes is within a single cache line.
 
-## 3. Fix the `hash == 0` sentinel collision
+## 3. ~~Fix the `hash == 0` sentinel collision~~ (IMPLEMENTED)
 
 Currently `hash == 0` means "empty bucket". If a key genuinely hashes to 0, it can
 never be stored — every lookup treats it as empty. Fix:
@@ -328,7 +328,7 @@ lifecycle complexity.
 |----------------------------|-------------|----------------------------|------------------------------|
 | ~~Timestamp to data entry~~    | ~~Low~~         | ~~-33% index~~                 | ~~Better probe locality~~ DONE |
 | ~~Control-byte array~~         | ~~Medium~~      | ~~+1 byte/bucket~~             | NOT NEEDED with on-disk probing |
-| Fix hash==0                | Trivial     | None                       | Correctness fix              |
+| ~~Fix hash==0~~                | ~~Trivial~~     | ~~None~~                       | ~~Correctness fix~~ DONE              |
 | Backward-shift deletion    | Medium      | Eliminates tombstone bloat | Shorter probe chains         |
 | Data file compaction       | Medium-High | Bounded .dat growth        | Faster reads (less seeking)  |
 | Fix entryCount drift       | Low         | None                       | Prevents premature growth    |
