@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal.btree;
+package org.gradle.cache.internal.loghash;
 
 import com.google.common.hash.Hashing;
 import org.gradle.internal.serialize.Serializer;
@@ -24,13 +24,13 @@ import java.io.ByteArrayOutputStream;
 /**
  * Hashes cache keys to {@code long} values using SipHash-2-4 via Guava.
  *
- * Compared to {@link KeyHasher} (MD5), SipHash-2-4 is significantly faster on
+ * <p>Compared to MD5 ({@code KeyHasher}), SipHash-2-4 is significantly faster on
  * short inputs (typical serialized keys) while providing equivalent distribution
  * quality for hash-table use. It also produces a 64-bit value directly, avoiding
- * the byte-slicing step MD5 requires.
+ * the byte-slicing step MD5 requires.</p>
  *
- * Serialized key bytes are accumulated in a reusable buffer per thread to avoid
- * allocation on every call.
+ * <p>Serialized key bytes are accumulated in a reusable buffer per thread to avoid
+ * allocation on every call.</p>
  */
 class FastKeyHasher<K> {
     private final Serializer<K> serializer;
