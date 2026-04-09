@@ -18,11 +18,13 @@ package org.gradle.internal.cc.impl
 
 import groovy.lang.MissingMethodException
 import groovy.lang.MissingPropertyException
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.extensibility.ExtensibleDynamicObject
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.HierarchicalDynamicObject
 import java.util.Locale
@@ -122,10 +124,17 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
         maybeReportProjectIsolationViolation(memberKind, memberName)
     }
 
+    private
+    fun referrerCallerApi(): String? {
+        val dynamicObject = (referrerProject as? DynamicObjectAware)?.asDynamicObject
+        return (dynamicObject as? ExtensibleDynamicObject)?.callerApi
+    }
+
     @Suppress("ThrowingExceptionsWithoutMessageOrCause")
     private
     fun maybeReportProjectIsolationViolation(memberKind: MemberKind, memberName: String?) {
         if (dynamicCallProblemReporting.unreportedProblemInCurrentCall(PROBLEM_KEY)) {
+            val callerApi = referrerCallerApi()
             val problem = problemFactory.problem {
                 text("Project ")
                 reference(referrerProject.identityPath.toString())
@@ -140,6 +149,18 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
                 }
                 text(" in the parent project ")
                 reference(ownerProject.identityPath.toString())
+                if (callerApi != null) {
+                    if (callerApi == ExtensibleDynamicObject.CALLER_BUILD_SCRIPT && memberName != null) {
+                        text(" via '")
+                        text(memberName)
+                        text("' or getProperty('")
+                        text(memberName)
+                        text("') in build script")
+                    } else {
+                        text(" via ")
+                        reference(callerApi)
+                    }
+                }
             }
                 .mapLocation { location ->
                     when (memberKind) {

@@ -22,6 +22,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.project.DynamicLookupRoutine;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -68,7 +69,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
     @Override
     public Object getProperty(String property) {
-        return dynamicLookupRoutine.property(dynamicObject, property);
+        return withCallerApi(ExtensibleDynamicObject.CALLER_BUILD_SCRIPT, () -> dynamicLookupRoutine.property(dynamicObject, property));
     }
 
     @Override
@@ -86,7 +87,23 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     }
 
     public boolean hasProperty(String property) {
-        return dynamicLookupRoutine.hasProperty(dynamicObject, property);
+        return withCallerApi("hasProperty()", () -> dynamicLookupRoutine.hasProperty(dynamicObject, property));
+    }
+
+    private <T> T withCallerApi(String callerApi, java.util.function.Supplier<T> action) {
+        if (target instanceof DynamicObjectAware) {
+            DynamicObject dynObj = ((DynamicObjectAware) target).getAsDynamicObject();
+            if (dynObj instanceof ExtensibleDynamicObject) {
+                ExtensibleDynamicObject extensible = (ExtensibleDynamicObject) dynObj;
+                extensible.setCallerApi(callerApi);
+                try {
+                    return action.get();
+                } finally {
+                    extensible.setCallerApi(null);
+                }
+            }
+        }
+        return action.get();
     }
 
     @Override

@@ -1182,7 +1182,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public boolean hasProperty(String propertyName) {
-        return dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName);
+        return withCallerApi("hasProperty()", () -> dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName));
     }
 
     @SuppressWarnings("deprecation")

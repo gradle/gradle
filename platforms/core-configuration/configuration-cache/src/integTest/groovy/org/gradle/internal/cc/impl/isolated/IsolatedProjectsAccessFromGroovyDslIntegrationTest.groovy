@@ -528,18 +528,18 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot dynamically look up $kindMessage in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 2: $problemMessage")
         }
 
         where:
-        kind       | setExpr         | expr                  | kindMessage          | deprecationMessage
-        "property" | "ext.foo = 1"   | "foo"                 | "property 'foo'"     | null
-        "property" | "ext.foo = 1"   | "hasProperty('foo')"  | "property 'foo'"     | null
-        "property" | "ext.foo = 1"   | "property('foo')"     | "property 'foo'"     | null
-        "property" | "ext.foo = 1"   | "findProperty('foo')" | "property 'foo'"     | null
-        "property" | "ext.foo = 1"   | "getProperty('foo')"  | "property 'foo'"     | null
-        "property" | "ext.foo = 1"   | "properties"          | "a property"         | "Dynamically calling getProperties() on a script has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties"
-        "method"   | "def foo() { }" | "foo()"               | "method 'foo'"       | null
+        kind       | setExpr         | expr                  | problemMessage                                                                                          | deprecationMessage
+        "property" | "ext.foo = 1"   | "foo"                 | "Project ':a' cannot dynamically look up property 'foo' in the parent project ':' via 'foo' or getProperty('foo') in build script" | null
+        "property" | "ext.foo = 1"   | "hasProperty('foo')"  | "Project ':a' cannot dynamically look up property 'foo' in the parent project ':' via 'hasProperty()'"  | null
+        "property" | "ext.foo = 1"   | "property('foo')"     | "Project ':a' cannot dynamically look up property 'foo' in the parent project ':' via 'property()'"     | null
+        "property" | "ext.foo = 1"   | "findProperty('foo')" | "Project ':a' cannot dynamically look up property 'foo' in the parent project ':' via 'findProperty()'" | null
+        "property" | "ext.foo = 1"   | "getProperty('foo')"  | "Project ':a' cannot dynamically look up property 'foo' in the parent project ':' via 'foo' or getProperty('foo') in build script" | null
+        "property" | "ext.foo = 1"   | "properties"          | "Project ':a' cannot dynamically look up a property in the parent project ':'"                          | "Dynamically calling getProperties() on a script has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties"
+        "method"   | "def foo() { }" | "foo()"               | "Project ':a' cannot dynamically look up method 'foo' in the parent project ':'"                        | null
     }
 
     def 'no duplicate problems reported for dynamic property lookup in transitive parents'() {
@@ -566,8 +566,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":sub", ":sub:sub-a", ":sub:sub-b")
-            problem("Build file 'sub/sub-a/build.gradle': line 2: Project ':sub:sub-a' cannot dynamically look up property 'foo' in the parent project ':sub'")
-            problem("Build file 'sub/sub-b/build.gradle': line 2: Project ':sub:sub-b' cannot dynamically look up property 'foo' in the parent project ':sub'")
+            problem("Build file 'sub/sub-a/build.gradle': line 2: Project ':sub:sub-a' cannot dynamically look up property 'foo' in the parent project ':sub' via 'foo' or getProperty('foo') in build script")
+            problem("Build file 'sub/sub-b/build.gradle': line 2: Project ':sub:sub-b' cannot dynamically look up property 'foo' in the parent project ':sub' via 'foo' or getProperty('foo') in build script")
         }
     }
 
@@ -599,7 +599,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot dynamically look up property 'foo' in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot dynamically look up property 'foo' in the parent project ':' via 'getProperty()'")
             problem("Build file 'a/build.gradle': line 6: Project ':a' cannot dynamically look up method 'bar' in the parent project ':'")
         }
     }

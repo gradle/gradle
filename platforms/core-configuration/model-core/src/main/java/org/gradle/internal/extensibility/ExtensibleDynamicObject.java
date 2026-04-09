@@ -69,6 +69,13 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     private CompositeDynamicObject delegateObjects;
     @Nullable
     private HierarchicalDynamicObject parent;
+    /**
+     * Caller API value indicating the access came from a build script's getProperty() method,
+     * which handles both implicit property references (e.g. bare {@code foo}) and explicit
+     * {@code getProperty("foo")} calls.
+     */
+    public static final String CALLER_BUILD_SCRIPT = "build script";
+
     private boolean deprecateParentAccess;
     @Nullable
     private String callerApi;
@@ -212,6 +219,13 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
      *
      * @param callerApi the API method the user called (e.g. "getProperty()", "property()"), or null for Groovy dynamic resolution
      */
+    /**
+     * Returns the current caller API context, or null if the access came through Groovy's dynamic resolution.
+     */
+    public @Nullable String getCallerApi() {
+        return callerApi;
+    }
+
     public void setCallerApi(@Nullable String callerApi) {
         this.callerApi = callerApi;
     }
@@ -244,7 +258,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     }
 
     private DeprecationMessageBuilder.DeprecateAction getDeprecateAction(String name, DynamicObject parent) {
-        if (callerApi != null) {
+        if (callerApi != null && !callerApi.equals(CALLER_BUILD_SCRIPT)) {
             return DeprecationLogger.deprecateAction("Calling '" + callerApi + "' to retrieve property from parent project")
                 .withContext("Tried to query parent project " + parent.getDisplayName() + " for property '" + name + "' from " + getDisplayName() + ".");
         }
