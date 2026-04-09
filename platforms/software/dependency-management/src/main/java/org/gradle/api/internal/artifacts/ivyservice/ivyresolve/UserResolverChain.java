@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.model.CalculatedValueFactory;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -47,13 +48,14 @@ public class UserResolverChain implements ComponentResolvers {
         ComponentMetadataProcessorFactory componentMetadataProcessor,
         ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
         CalculatedValueFactory calculatedValueFactory,
-        CacheExpirationControl cacheExpirationControl
+        CacheExpirationControl cacheExpirationControl,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.componentSelectionRules = componentSelectionRules;
         VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, attributeSchemaServices, componentSelectionRules, consumerSchema);
         componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, versionParser, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cacheExpirationControl);
         componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, calculatedValueFactory);
-        artifactResolver = new RepositoryChainArtifactResolver(calculatedValueFactory);
+        artifactResolver = new RepositoryChainArtifactResolver(calculatedValueFactory, buildOperationRunner);
     }
 
     @Override

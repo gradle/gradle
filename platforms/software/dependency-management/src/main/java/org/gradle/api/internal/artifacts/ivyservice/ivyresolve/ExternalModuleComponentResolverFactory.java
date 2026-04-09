@@ -50,6 +50,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.model.CalculatedValueFactory;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -87,6 +88,7 @@ public class ExternalModuleComponentResolverFactory {
     private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ChangingValueDependencyResolutionListener listener;
@@ -106,7 +108,8 @@ public class ExternalModuleComponentResolverFactory {
         CalculatedValueFactory calculatedValueFactory,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
+        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
@@ -122,6 +125,7 @@ public class ExternalModuleComponentResolverFactory {
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     /**
@@ -139,8 +143,8 @@ public class ExternalModuleComponentResolverFactory {
             return new NoRepositoriesResolver();
         }
 
-        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, componentSelectionRules, versionParser, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
-        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
+        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, componentSelectionRules, versionParser, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl, buildOperationRunner);
+        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl, buildOperationRunner);
 
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
@@ -223,9 +227,10 @@ public class ExternalModuleComponentResolverFactory {
             ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
             CalculatedValueFactory calculatedValueFactory,
-            CacheExpirationControl cacheExpirationControl
+            CacheExpirationControl cacheExpirationControl,
+            BuildOperationRunner buildOperationRunner
         ) {
-            this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, attributesSchema, attributesFactory, attributeSchemaServices, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
+            this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, attributesSchema, attributesFactory, attributeSchemaServices, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl, buildOperationRunner);
         }
 
         public void add(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository) {

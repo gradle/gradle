@@ -23,6 +23,7 @@ import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -56,7 +57,8 @@ class RepositoryChainArtifactResolverTest extends Specification {
         getSources() >> moduleSources
     }
 
-    final resolver = new RepositoryChainArtifactResolver(calculatedValueContainerFactory)
+    final buildOperationRunner = Mock(BuildOperationRunner)
+    final resolver = new RepositoryChainArtifactResolver(calculatedValueContainerFactory, buildOperationRunner)
 
     def setup() {
         resolver.add(repo1)

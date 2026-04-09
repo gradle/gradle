@@ -24,11 +24,16 @@ import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueFactory;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactFileResolveResult;
+import org.gradle.internal.resource.ExternalResourceAlreadyPresentBuildOperationType;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -37,9 +42,11 @@ import java.util.Map;
 class RepositoryChainArtifactResolver implements ArtifactResolver {
     private final Map<String, ModuleComponentRepository<?>> repositories = new LinkedHashMap<>();
     private final CalculatedValueFactory calculatedValueFactory;
+    private final BuildOperationRunner buildOperationRunner;
 
-    RepositoryChainArtifactResolver(CalculatedValueFactory calculatedValueFactory) {
+    RepositoryChainArtifactResolver(CalculatedValueFactory calculatedValueFactory, BuildOperationRunner buildOperationRunner) {
         this.calculatedValueFactory = calculatedValueFactory;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     void add(ModuleComponentRepository<?> repository) {
@@ -71,9 +78,12 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         // First try to resolve the artifacts locally before going remote
         BuildableArtifactFileResolveResult artifactFile = new DefaultBuildableArtifactFileResolveResult();
         sourceRepository.getLocalAccess().resolveArtifact(artifact, sources, artifactFile);
-        if (!artifactFile.hasResult()) {
-            sourceRepository.getRemoteAccess().resolveArtifact(artifact, sources, artifactFile);
+        if (artifactFile.hasResult()) {
+            File file = artifactFile.getResult();
+            emitAlreadyPresent(file);
+            return file;
         }
+        sourceRepository.getRemoteAccess().resolveArtifact(artifact, sources, artifactFile);
         return artifactFile.getResult();
     }
 
@@ -87,6 +97,38 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
             throw new IllegalStateException("Attempting to resolve artifacts from invalid repository");
         }
         return moduleVersionRepository;
+    }
+
+    private void emitAlreadyPresent(File file) {
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                context.setResult(new AlreadyPresentResult(file.length()));
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("Found already present resource " + file.getName())
+                    .details(new AlreadyPresentDetails());
+            }
+        });
+    }
+
+    private static class AlreadyPresentDetails implements ExternalResourceAlreadyPresentBuildOperationType.Details {
+    }
+
+    private static class AlreadyPresentResult implements ExternalResourceAlreadyPresentBuildOperationType.Result {
+        private final long fileSize;
+
+        AlreadyPresentResult(long fileSize) {
+            this.fileSize = fileSize;
+        }
+
+        @Override
+        public long getFileSize() {
+            return fileSize;
+        }
     }
 
 }
