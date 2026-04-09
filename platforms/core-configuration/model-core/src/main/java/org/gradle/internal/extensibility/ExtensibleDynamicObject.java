@@ -172,7 +172,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     }
 
     private DynamicObject snapshotInheritable() {
-        List<DynamicObject> delegates = new ArrayList<>(5);
+        List<DynamicObject> delegates = new ArrayList<>(4);
         delegates.add(extraPropertiesDynamicObject);
         if (beforeConvention != null) {
             delegates.add(beforeConvention);
