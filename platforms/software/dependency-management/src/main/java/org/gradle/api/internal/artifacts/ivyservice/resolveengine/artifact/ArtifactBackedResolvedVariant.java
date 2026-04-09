@@ -210,8 +210,6 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
             if (artifact.getFileSource().getValue().isSuccessful()) {
                 File resolvedFile = artifact.getFileSource().getValue().get();
                 context.setResult(new DownloadArtifactBuildOperationType.ResultImpl(resolvedFile.getAbsolutePath()));
-            } else {
-                context.setResult(new DownloadArtifactBuildOperationType.ResultImpl(""));
             }
         }
 

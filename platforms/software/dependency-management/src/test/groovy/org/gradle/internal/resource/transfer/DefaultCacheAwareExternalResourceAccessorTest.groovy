@@ -160,6 +160,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         _ * cachedResource.cachedFile >> cachedFile
         _ * cachedResource.externalResourceMetaData >> metaData
         1 * fileRepository.resource(cachedFile, location.uri, metaData) >> resultResource
+        1 * buildOperationRunner.run(_)
         0 * _._
     }
 
@@ -206,6 +207,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * fileStore.moveIntoCache(tempFile) >> localResource
         1 * index.store("thing", cachedFile, remoteMetaData)
         1 * fileRepository.resource(cachedFile, location.uri, remoteMetaData) >> resultResource
+        1 * buildOperationRunner.run(_)
         0 * _._
     }
 
@@ -248,6 +250,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * repository.resource(location, true) >> remoteResource
         1 * index.store("thing", cachedFile, cachedMetaData)
         1 * fileRepository.resource(cachedFile, location.uri, cachedMetaData) >> resultResource
+        1 * buildOperationRunner.run(_)
         0 * _._
     }
 
@@ -294,6 +297,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * fileStore.moveIntoCache(tempFile) >> localResource
         1 * index.store("thing", cachedFile, remoteMetaData)
         1 * fileRepository.resource(cachedFile, location.uri, remoteMetaData) >> resultResource
+        1 * buildOperationRunner.run(_)
         0 * _._
     }
 

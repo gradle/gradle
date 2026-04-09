@@ -38,6 +38,24 @@ public final class ExternalResourceAlreadyPresentBuildOperationType implements B
 
     }
 
+    public static class DetailsImpl implements Details {
+    }
+
+    public static class ResultImpl implements Result {
+
+        private final long fileSize;
+
+        public ResultImpl(long fileSize) {
+            this.fileSize = fileSize;
+        }
+
+        @Override
+        public long getFileSize() {
+            return fileSize;
+        }
+
+    }
+
     private ExternalResourceAlreadyPresentBuildOperationType() {
     }
 

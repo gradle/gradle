@@ -81,6 +81,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         1 * localAccess2.resolveArtifact(artifact, moduleSources, _) >> {
             it[2].resolved(artifactFile)
         }
+        1 * buildOperationRunner.run(_)
         0 * _._
         and:
         result.result.file == artifactFile

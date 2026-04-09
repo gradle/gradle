@@ -103,32 +103,16 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                context.setResult(new AlreadyPresentResult(file.length()));
+                context.setResult(new ExternalResourceAlreadyPresentBuildOperationType.ResultImpl(file.length()));
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
                     .displayName("Found already present resource " + file.getName())
-                    .details(new AlreadyPresentDetails());
+                    .details(new ExternalResourceAlreadyPresentBuildOperationType.DetailsImpl());
             }
         });
-    }
-
-    private static class AlreadyPresentDetails implements ExternalResourceAlreadyPresentBuildOperationType.Details {
-    }
-
-    private static class AlreadyPresentResult implements ExternalResourceAlreadyPresentBuildOperationType.Result {
-        private final long fileSize;
-
-        AlreadyPresentResult(long fileSize) {
-            this.fileSize = fileSize;
-        }
-
-        @Override
-        public long getFileSize() {
-            return fileSize;
-        }
     }
 
 }
