@@ -43,6 +43,8 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildModelParametersFactory;
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
 import org.gradle.internal.buildtree.ProblemReportingBuildActionRunner;
+import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
@@ -149,13 +151,16 @@ public class LauncherServices extends AbstractGradleModuleServices {
             FileSystem fileSystem,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
             ValueSnapshotter valueSnapshotter,
-            InternalOptions options
+            InternalOptions options,
+            UserCodeApplicationRegistry userCodeApplicationRegistry
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
                 listenerManager,
                 buildOperationListenerManager,
-                listenerFactory, eventConsumer,
+                listenerFactory,
+                eventConsumer,
+                userCodeApplicationRegistry,
                 new ContinuousBuildActionExecutor(
                     workListeners,
                     fileChangeListeners,
@@ -226,6 +231,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             FileHasherStatistics.Collector fileHasherStatisticsCollector,
             DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
             BuildOperationRunner buildOperationRunner,
+            UserCodeApplicationContext userCodeApplicationContext,
             BuildTreeLocations buildTreeLocations,
             ExceptionAnalyser exceptionAnalyser,
             List<ProblemReporter> problemReporters,
@@ -243,6 +249,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
                 listenerManager.getBroadcaster(BuildTreeLifecycleListener.class),
                 problemsService,
                 eventEmitter,
+                buildOperationRunner,
+                userCodeApplicationContext,
                 startParameter,
                 problemStream,
                 buildStateRegistry,

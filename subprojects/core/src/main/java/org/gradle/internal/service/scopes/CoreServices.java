@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.internal.code.SyntheticApplicationTimingEmitter;
 import org.gradle.internal.service.ServiceRegistration;
 
 public class CoreServices extends AbstractGradleModuleServices {
@@ -27,5 +28,10 @@ public class CoreServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new CoreBuildSessionServices());
+    }
+
+    @Override
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.add(SyntheticApplicationTimingEmitter.class);
     }
 }

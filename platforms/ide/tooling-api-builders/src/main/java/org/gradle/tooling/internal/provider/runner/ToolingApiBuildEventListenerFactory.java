@@ -22,6 +22,7 @@ import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.OperationResultPostProcessor;
 import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
+import org.gradle.internal.code.UserCodeApplicationRegistry;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -29,24 +30,35 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.events.OperationType;
 import org.jspecify.annotations.NullMarked;
 
+import javax.inject.Inject;
 import java.util.List;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 @NullMarked
 public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFactory {
+
     private final BuildOperationAncestryTracker ancestryTracker;
     private final BuildOperationIdFactory idFactory;
     private final List<OperationResultPostProcessorFactory> postProcessorFactories;
 
-    ToolingApiBuildEventListenerFactory(BuildOperationAncestryTracker ancestryTracker, BuildOperationIdFactory idFactory, List<OperationResultPostProcessorFactory> postProcessorFactories) {
+    @Inject
+    ToolingApiBuildEventListenerFactory(
+        BuildOperationAncestryTracker ancestryTracker,
+        BuildOperationIdFactory idFactory,
+        List<OperationResultPostProcessorFactory> postProcessorFactories
+    ) {
         this.ancestryTracker = ancestryTracker;
         this.idFactory = idFactory;
         this.postProcessorFactories = postProcessorFactories;
     }
 
     @Override
-    public Iterable<Object> createListeners(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer) {
+    public Iterable<Object> createListeners(
+        BuildEventSubscriptions subscriptions,
+        BuildEventConsumer consumer,
+        UserCodeApplicationRegistry userCodeApplicationRegistry
+    ) {
         if (!subscriptions.isAnyOperationTypeRequested()) {
             return ImmutableList.of();
         }
@@ -67,18 +79,16 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             listeners.add(new BuildPhaseOperationListener(progressEventConsumer, idFactory));
         }
 
-        listeners.add(createClientBuildEventGenerator(subscriptions, consumer, progressEventConsumer));
+        listeners.add(createClientBuildEventGenerator(subscriptions, consumer, progressEventConsumer, userCodeApplicationRegistry));
         return listeners.build();
     }
 
-    private ClientBuildEventGenerator createClientBuildEventGenerator(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer, ProgressEventConsumer progressEventConsumer) {
+    private ClientBuildEventGenerator createClientBuildEventGenerator(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer, ProgressEventConsumer progressEventConsumer, UserCodeApplicationRegistry userCodeApplicationRegistry) {
         BuildOperationListener buildListener = createBuildOperationListener(subscriptions, progressEventConsumer);
 
         OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();
 
-        PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(ancestryTracker);
         TaskForTestEventTracker testTaskTracker = new TaskForTestEventTracker(ancestryTracker);
-        ProjectConfigurationTracker projectConfigurationTracker = new ProjectConfigurationTracker(ancestryTracker, pluginApplicationTracker);
 
         TransformOperationMapper transformOperationMapper = new TransformOperationMapper(operationDependenciesResolver);
         operationDependenciesResolver.addLookup(transformOperationMapper);
@@ -91,7 +101,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         List<BuildOperationMapper<?, ?>> mappers = ImmutableList.of(
             new FileDownloadOperationMapper(),
             new TestOperationMapper(testTaskTracker),
-            new ProjectConfigurationOperationMapper(projectConfigurationTracker),
+            new ProjectConfigurationOperationMapper(userCodeApplicationRegistry),
             taskOperationMapper,
             transformOperationMapper,
             new WorkItemOperationMapper()
@@ -110,4 +120,5 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         // TODO (donat) think of a better name for this class
         return new ClientForwardingBuildOperationListener(progressEventConsumer, subscriptions, () -> new OperationIdentifier(idFactory.nextId()));
     }
+
 }

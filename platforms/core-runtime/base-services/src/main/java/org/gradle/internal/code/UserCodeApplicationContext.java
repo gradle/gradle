@@ -17,24 +17,32 @@
 package org.gradle.internal.code;
 
 import org.gradle.api.Action;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
 /**
- * Assigns and stores an ID for the application of some user code (e.g. scripts and plugins).
+ * Tracks the application of user code, tracking the total time spent executing each application.
  */
 @ServiceScope(Scope.CrossBuildSession.class)
 public interface UserCodeApplicationContext {
+
     /**
      * Applies some user code, assigning an ID for this particular application.
      *
      * @param source The source of the code being applied.
+     * @param projectIdentityPath The identity path of the project that user code is being applied to.
      * @param action The action to run to apply the user code.
      */
-    void apply(UserCodeSource source, Action<? super UserCodeApplicationId> action);
+    void apply(
+        UserCodeSource source,
+        @Nullable Path projectIdentityPath,
+        Action<? super UserCodeApplicationId> action
+    );
 
     /**
      * Runs some Gradle runtime code.
@@ -42,41 +50,98 @@ public interface UserCodeApplicationContext {
     void gradleRuntime(Runnable runnable);
 
     /**
-     * Returns an action that represents some deferred execution of the current user code. While the returned action is running, the details of the current application are restored.
-     * Returns the given action when there is no current application.
+     * Returns a handle to the current application, or null if no
+     * application is currently being applied on this thread.
      */
-    <T> Action<T> reapplyCurrentLater(Action<T> action);
+    @Nullable Application current();
 
     /**
-     * Returns details of the current application, if any.
+     * Captures the current application and returns an {@link Action} that, when invoked,
+     * will run the given action within the context of that application. If there is no
+     * current application, returns the original action unchanged.
      */
-    @Nullable
-    Application current();
+    <T> Action<T> reapplyActionLaterForCurrent(Action<T> action, CodeType codeType);
 
     /**
-     * Immutable representation of the application of some user code.
+     * Captures the current application and returns a {@link Spec} that, when invoked,
+     * will run the given spec within the context of that application. If there is no
+     * current application, returns the original spec unchanged.
+     */
+    <T> Spec<T> reapplySpecLaterForCurrent(Spec<T> spec, CodeType codeType);
+
+    /**
+     * Representation of the application of some user code. Tracks the amount of time spent
+     * executing the application.
      */
     interface Application {
+
+        /**
+         * The ID of the application.
+         */
         UserCodeApplicationId getId();
 
         /**
-         * Returns details describing the source of the user code.
+         * Returns details describing the source of the user code, if known.
          */
-        UserCodeSource getSource();
+        @Nullable UserCodeSource getSource();
 
         /**
-         * Returns an action that represents some deferred execution of the user code. While the returned action is running, the details of this application are restored.
+         * Executes code owned by this application. While the code is running, and while no other
+         * nested calls to any reapply method are made, {@link #current()} will return this application
+         * and any time spent executing the application will be tracked.
+         * <p>
+         * All code executed with the same {@link CodeType} will be tracked together,
+         * with the accumulated time accessible via {@link #getDurationNsForType(CodeType)}.
          */
-        <T> Action<T> reapplyLater(Action<T> action);
+        void reapply(Runnable runnable, CodeType type);
 
         /**
-         * Runs an action that represents some deferred execution of the user code. While the action is running, the details of this application are restored.
+         * {@link #reapply(Runnable, CodeType)}, but accepts a {@link Supplier}.
          */
-        void reapply(Runnable runnable);
+        <T> T reapply(Supplier<T> action, CodeType type);
 
         /**
-         * Runs an action that represents some deferred execution of the user code. While the action is running, the details of this application are restored.
+         * {@link #reapply(Runnable, CodeType)}, but accepts a {@link Spec}.
          */
-        <T> T reapply(Supplier<T> action);
+        <T> boolean reapplySpec(Spec<T> spec, T param, CodeType type);
+
+        /**
+         * {@link #reapply(Runnable, CodeType)}, but accepts an {@link Action}.
+         */
+        <T> void reapplyAction(Action<T> action, T param, CodeType type);
+
+        /**
+         * Get the total time spent executing this application, in nanoseconds.
+         */
+        long getTotalDurationNs();
+
+        /**
+         * Get the time spent executing code of the given {@link CodeType}, in nanoseconds.
+         */
+        long getDurationNsForType(CodeType codeType);
+
     }
+
+    /**
+     * The type of code being executed.
+     */
+    enum CodeType {
+
+        /**
+         * Code that does not belong to any other type.
+         */
+        GENERAL,
+
+        /**
+         * Callbacks executed against a domain object collection.
+         */
+        COLLECTION_CALLBACK,
+
+        /**
+         * Asynchronous listener callbacks.
+         */
+        LISTENER
+
+    }
+
 }

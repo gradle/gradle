@@ -26,9 +26,10 @@ import org.gradle.internal.Actions
 import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeApplicationId
+import org.gradle.internal.code.UserCodeApplicationRegistry
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.metaobject.ConfigureDelegate
-import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.time.MockClock
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.CoreMatchers
@@ -42,9 +43,8 @@ import static org.junit.Assume.assumeTrue
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
-    TestBuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
-    UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext()
-    CollectionCallbackActionDecorator callbackActionDecorator = new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext)
+    UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext(MockClock.create(), Mock(UserCodeApplicationRegistry))
+    CollectionCallbackActionDecorator callbackActionDecorator = new DefaultCollectionCallbackActionDecorator(userCodeApplicationContext)
 
     abstract boolean isSupportsBuildOperations()
 
@@ -1765,12 +1765,12 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         methods << getQueryMethods() + getMutatingMethods()
     }
 
-    def "fires build operation when emitting added callback and reestablishes user code context"() {
+    def "reestablishes user code context when executing callback"() {
         given:
         containerSupportsBuildOperations()
 
         UserCodeApplicationId id1 = null
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), null) {
             id1 = it
             container.whenObjectAdded {
                 assert userCodeApplicationContext.current().id == id1
@@ -1781,13 +1781,11 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         addToContainer(a)
 
         then:
-        def callbacks1 = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
-        callbacks1.size() == 1
-        callbacks1.first().details.applicationId == id1.longValue()
+        noExceptionThrown()
 
         when:
         UserCodeApplicationId id2 = null
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), null) {
             id2 = it
             container.whenObjectAdded {
                 assert userCodeApplicationContext.current().id == id2
@@ -1798,17 +1796,14 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         addToContainer(b)
 
         then:
-        def callbacks = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
-        callbacks.size() == 3
-        callbacks[1].details.applicationId == id1.longValue()
-        callbacks[2].details.applicationId == id2.longValue()
+        noExceptionThrown()
     }
 
-    def "does not fire build operation if callback is filtered out by type"() {
+    def "does not execute callback if filtered out by type"() {
         given:
         containerSupportsBuildOperations()
 
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), null) {
             container.withType(otherType).whenObjectAdded {
                 throw new IllegalStateException()
             }
@@ -1818,14 +1813,14 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         addToContainer(a)
 
         then:
-        buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+        noExceptionThrown()
     }
 
-    def "does not fire build operation if callback is filtered out by condition"() {
+    def "does not execute callback if filtered out by condition"() {
         given:
         containerSupportsBuildOperations()
 
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), null) {
             container.matching { !it.is(a) }.whenObjectAdded {
                 throw new IllegalStateException()
             }
@@ -1835,10 +1830,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         addToContainer(a)
 
         then:
-        buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+        noExceptionThrown()
     }
 
-    def "fires build operation for existing elements"() {
+    def "reestablishes user code context for existing elements"() {
         given:
         containerSupportsBuildOperations()
 
@@ -1848,7 +1843,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         when:
         UserCodeApplicationId id = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), null) {
             id = it
             container.matching { !it.is(a) }.all {
                 ids << userCodeApplicationContext.current().id
@@ -1858,12 +1853,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         ids.size() == 1
         ids.first() == id
-        def ops = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
-        ops.size() == 1
-        ops.first().details.applicationId == id.longValue()
     }
 
-    def "does not fire op if no user code application id"() {
+    def "handles no user code application id"() {
         given:
         containerSupportsBuildOperations()
 
@@ -1877,10 +1869,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         ids.size() == 1
         ids.first() == null
-        buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
     }
 
-    def "handles nested listener registration"() {
+    def "handles nested listener registration with user code context"() {
         given:
         containerSupportsBuildOperations()
 
@@ -1888,15 +1879,15 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         UserCodeApplicationId id1 = null
         UserCodeApplicationId id2 = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), null) {
             id1 = it
             container.all {
-                ids << userCodeApplicationContext.current()
+                ids << userCodeApplicationContext.current().id
                 if (it.is(a)) {
-                    userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+                    userCodeApplicationContext.apply(Stub(UserCodeSource), null) {
                         id2 = it
                         container.all {
-                            ids << userCodeApplicationContext.current()
+                            ids << userCodeApplicationContext.current().id
                         }
                     }
                 }
@@ -1906,12 +1897,11 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         addToContainer(b)
 
         then:
-        def ops = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
-        ops.size() == 4
-        ops[0].details.applicationId == id1.longValue()
-        ops[1].details.applicationId == id2.longValue()
-        ops[2].details.applicationId == id1.longValue()
-        ops[3].details.applicationId == id2.longValue()
+        ids.size() == 4
+        ids[0] == id1
+        ids[1] == id2
+        ids[2] == id1
+        ids[3] == id2
     }
 
     def "can add list properties to container"() {

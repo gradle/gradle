@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractProjectConfigurationResult;
@@ -26,6 +26,7 @@ import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEven
 import org.gradle.internal.build.event.types.DefaultProjectConfigurationDescriptor;
 import org.gradle.internal.build.event.types.DefaultProjectConfigurationFailureResult;
 import org.gradle.internal.build.event.types.DefaultProjectConfigurationSuccessResult;
+import org.gradle.internal.code.UserCodeApplicationRegistry;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -34,6 +35,7 @@ import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -41,10 +43,11 @@ import java.util.List;
 import static java.util.Collections.singletonList;
 
 class ProjectConfigurationOperationMapper implements BuildOperationMapper<ConfigureProjectBuildOperationType.Details, DefaultProjectConfigurationDescriptor> {
-    private final ProjectConfigurationTracker projectConfigurationTracker;
 
-    ProjectConfigurationOperationMapper(ProjectConfigurationTracker projectConfigurationTracker) {
-        this.projectConfigurationTracker = projectConfigurationTracker;
+    private final UserCodeApplicationRegistry applicationRegistry;
+
+    ProjectConfigurationOperationMapper(UserCodeApplicationRegistry applicationRegistry) {
+        this.applicationRegistry = applicationRegistry;
     }
 
     @Override
@@ -55,11 +58,6 @@ class ProjectConfigurationOperationMapper implements BuildOperationMapper<Config
     @Override
     public Class<ConfigureProjectBuildOperationType.Details> getDetailsType() {
         return ConfigureProjectBuildOperationType.Details.class;
-    }
-
-    @Override
-    public List<BuildOperationTracker> getTrackers() {
-        return ImmutableList.of(projectConfigurationTracker);
     }
 
     @Override
@@ -76,7 +74,12 @@ class ProjectConfigurationOperationMapper implements BuildOperationMapper<Config
 
     @Override
     public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultProjectConfigurationDescriptor descriptor, ConfigureProjectBuildOperationType.Details details, OperationFinishEvent finishEvent) {
-        AbstractProjectConfigurationResult result = toProjectConfigurationOperationResult(finishEvent, projectConfigurationTracker.resultsFor(descriptor.getId()));
+        Path projectIdentityPath = ProjectIdentity.computeProjectIdentityPath(
+            Path.path(details.getProjectPath()),
+            Path.path(details.getBuildPath())
+        );
+        List<InternalPluginApplicationResult> pluginResults = applicationRegistry.getApplicationResultsForProject(projectIdentityPath);
+        AbstractProjectConfigurationResult result = toProjectConfigurationOperationResult(finishEvent, pluginResults);
         return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, result);
     }
 

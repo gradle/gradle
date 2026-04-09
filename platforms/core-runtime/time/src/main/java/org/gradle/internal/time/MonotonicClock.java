@@ -73,6 +73,11 @@ class MonotonicClock implements Clock {
     }
 
     @Override
+    public long nanoTime() {
+        return timeSource.nanoTime();
+    }
+
+    @Override
     public long getCurrentTime() {
         long nowNanos = timeSource.nanoTime();
         long syncNanos = syncNanosRef.get();

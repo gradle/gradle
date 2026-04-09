@@ -184,10 +184,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private void repoMutationDisallowedOnProject(ArtifactRepository artifactRepository) {
         UserCodeApplicationContext.Application current = context.current();
-        Describable displayName = current == null ? null : current.getSource().getDisplayName();
-        if (displayName == null) {
-            displayName = UNKNOWN_CODE;
-        }
+        Describable displayName = current != null && current.getSource() != null ? current.getSource().getDisplayName() : UNKNOWN_CODE;
         String message = "Build was configured to prefer settings repositories over project repositories but repository '" + artifactRepository.getName() + "' was added by " + displayName;
         switch (getConfiguredRepositoriesMode()) {
             case FAIL_ON_PROJECT_REPOS:
@@ -202,10 +199,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
     private void ruleMutationDisallowedOnProject(DisplayName ruleName) {
         UserCodeApplicationContext.Application current = context.current();
-        Describable displayName = current == null ? null : current.getSource().getDisplayName();
-        if (displayName == null) {
-            displayName = UNKNOWN_CODE;
-        }
+        Describable displayName = current != null && current.getSource() != null ? current.getSource().getDisplayName() : UNKNOWN_CODE;
         String message = "Build was configured to prefer settings component metadata rules over project rules but rule '" + ruleName + "' was added by " + displayName;
         switch (getConfiguredRulesMode()) {
             case FAIL_ON_PROJECT_RULES:

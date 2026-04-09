@@ -32,6 +32,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationRegistry;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -77,19 +78,22 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     @GuardedBy("subscriptions")
     private final Map<Provider<?>, AbstractListener<?>> subscriptions = new LinkedHashMap<>();
     private final ExecutorFactory executorFactory;
+    private final UserCodeApplicationRegistry applicationRegistry;
 
     public DefaultBuildEventsListenerRegistry(
         UserCodeApplicationContext applicationContext,
         BuildEventListenerFactory factory,
         ListenerManager listenerManager,
         BuildOperationListenerManager buildOperationListenerManager,
-        ExecutorFactory executorFactory
+        ExecutorFactory executorFactory,
+        UserCodeApplicationRegistry applicationRegistry
     ) {
         this.applicationContext = applicationContext;
         this.factory = factory;
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.executorFactory = executorFactory;
+        this.applicationRegistry = applicationRegistry;
         listenerManager.addListener(new ListenerCleanup());
     }
 
@@ -130,7 +134,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     private ForwardingBuildEventConsumer makeTaskCompletionSubscription(Provider<? extends OperationCompletionListener> listenerProvider) {
-        ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(getCurrentContext(), listenerProvider, executorFactory);
+        ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(getCurrentContext(), listenerProvider, executorFactory, applicationRegistry);
         processIfBuildService(listenerProvider);
 
         for (Object listener : subscription.getListeners()) {
@@ -301,13 +305,14 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         public ForwardingBuildEventConsumer(
             @Nullable UserCodeSource registrationPoint,
             Provider<? extends OperationCompletionListener> listenerProvider,
-            ExecutorFactory executorFactory
+            ExecutorFactory executorFactory,
+            UserCodeApplicationRegistry applicationRegistry
         ) {
             super(registrationPoint, executorFactory);
             this.listenerProvider = listenerProvider;
             BuildEventSubscriptions eventSubscriptions = new BuildEventSubscriptions(Collections.singleton(OperationType.TASK));
             // TODO - share these listeners here and with the tooling api client, where possible
-            listeners = ImmutableList.copyOf(factory.createListeners(eventSubscriptions, this));
+            listeners = ImmutableList.copyOf(factory.createListeners(eventSubscriptions, this, applicationRegistry));
         }
 
         @Override

@@ -783,7 +783,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (application == null) {
                 doExecute(task);
             } else {
-                application.reapply(() -> doExecute(task));
+                application.reapply(() -> doExecute(task), UserCodeApplicationContext.CodeType.GENERAL);
             }
         }
 

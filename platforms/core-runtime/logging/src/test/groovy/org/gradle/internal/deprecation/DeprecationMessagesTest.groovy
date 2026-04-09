@@ -20,9 +20,11 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestProblems
@@ -49,7 +51,7 @@ class DeprecationMessagesTest extends Specification {
         problemsService = TestUtil.problemsService()
         problemsService.recordEmittedProblems()
         def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, problemsService, diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, Stub(BuildOperationRunner), Stub(UserCodeApplicationContext), problemsService, diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {

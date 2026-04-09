@@ -27,11 +27,13 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.ProjectParallelExecutionController;
@@ -50,6 +52,8 @@ public class RootBuildLifecycleBuildActionExecutor {
     private final BuildTreeLifecycleListener lifecycleListener;
     private final ProblemsInternal problemsService;
     private final BuildOperationProgressEventEmitter eventEmitter;
+    private final BuildOperationRunner buildOperationRunner;
+    private final UserCodeApplicationContext userCodeApplicationContext;
     private final StartParameter startParameter;
     private final ProblemStream problemsStream;
     private final BuildActionRunner buildActionRunner;
@@ -63,6 +67,8 @@ public class RootBuildLifecycleBuildActionExecutor {
         BuildTreeLifecycleListener lifecycleListener,
         ProblemsInternal problemsService,
         BuildOperationProgressEventEmitter eventEmitter,
+        BuildOperationRunner buildOperationRunner,
+        UserCodeApplicationContext userCodeApplicationContext,
         StartParameter startParameter,
         ProblemStream problemsStream,
         BuildStateRegistry buildStateRegistry,
@@ -73,6 +79,8 @@ public class RootBuildLifecycleBuildActionExecutor {
         this.lifecycleListener = lifecycleListener;
         this.problemsService = problemsService;
         this.eventEmitter = eventEmitter;
+        this.buildOperationRunner = buildOperationRunner;
+        this.userCodeApplicationContext = userCodeApplicationContext;
         this.startParameter = startParameter;
         this.problemsStream = problemsStream;
         this.buildActionRunner = buildActionRunner;
@@ -111,7 +119,7 @@ public class RootBuildLifecycleBuildActionExecutor {
     private void initDeprecationLogging() {
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(showStacktrace.equals(ShowStacktrace.ALWAYS) || showStacktrace.equals(ShowStacktrace.ALWAYS_FULL));
-        DeprecationLogger.init(startParameter.getWarningMode(), eventEmitter, problemsService, problemsStream);
+        DeprecationLogger.init(startParameter.getWarningMode(), eventEmitter, buildOperationRunner, userCodeApplicationContext, problemsService, problemsStream);
     }
 
     private static void maybeNagOnDeprecatedJavaRuntimeVersion() {

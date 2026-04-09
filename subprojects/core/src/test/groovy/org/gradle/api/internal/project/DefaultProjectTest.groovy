@@ -82,6 +82,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
 import org.gradle.internal.Describables
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -935,7 +936,7 @@ def scriptMethod(Closure closure) {
     }
 
     def createsADomainObjectContainer() {
-        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), new NoOpProblemDiagnosticsFactory().newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), buildOperationRunner, Stub(UserCodeApplicationContext), TestUtil.problemsService(), new NoOpProblemDiagnosticsFactory().newUnlimitedStream())
         expect:
         project.container(String) instanceof FactoryNamedDomainObjectContainer
         project.container(String, Stub(NamedDomainObjectFactory)) instanceof FactoryNamedDomainObjectContainer

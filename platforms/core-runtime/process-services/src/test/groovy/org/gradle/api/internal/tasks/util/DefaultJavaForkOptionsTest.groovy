@@ -23,10 +23,12 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.model.ObjectFactory
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.JavaForkOptions
@@ -58,7 +60,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     final diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
 
     def setup() {
-        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), Stub(BuildOperationRunner), Stub(UserCodeApplicationContext), TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
         options = new DefaultJavaForkOptions(objectFactory, resolver, fileCollectionFactory)
     }
 

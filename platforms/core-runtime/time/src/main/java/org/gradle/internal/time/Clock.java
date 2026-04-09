@@ -30,4 +30,15 @@ public interface Clock {
      * The current time in milliseconds since 1970-01-01T00:00:00Z (UTC).
      */
     long getCurrentTime();
+
+    /**
+     * Returns the current value of the running JVM's high-resolution time source, in nanoseconds.
+     *
+     * <p>This is a monotonic clock suitable for measuring elapsed time.
+     * The value returned has no relation to wall-clock time.</p>
+     *
+     * @see System#nanoTime()
+     */
+    long nanoTime();
+
 }

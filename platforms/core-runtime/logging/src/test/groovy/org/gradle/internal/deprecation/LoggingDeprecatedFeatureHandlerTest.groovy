@@ -20,17 +20,20 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.internal.Describables
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.FixedClock
 import org.gradle.problems.Location
@@ -64,7 +67,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream
         _ * diagnosticsFactory.newUnlimitedStream() >> problemStream
-        handler.init(WarningMode.All, progressBroadcaster, TestUtil.problemsService(), problemStream)
+        handler.init(WarningMode.All, progressBroadcaster, new TestBuildOperationRunner(), Stub(UserCodeApplicationContext), TestUtil.problemsService(), problemStream)
     }
 
     def 'logs each deprecation warning only once'() {
@@ -208,7 +211,7 @@ feature1 removal""")
         useStackTrace()
 
         when:
-        handler.init(type, progressBroadcaster, TestUtil.problemsService(), problemStream)
+        handler.init(type, progressBroadcaster, Stub(BuildOperationRunner), Stub(UserCodeApplicationContext), TestUtil.problemsService(), problemStream)
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
 
         then:

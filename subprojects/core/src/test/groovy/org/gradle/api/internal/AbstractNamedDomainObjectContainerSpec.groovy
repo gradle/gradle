@@ -77,7 +77,7 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         queryMethods << getQueryMethods()
     }
 
-    def "deferred configuration methods emit operations"() {
+    def "deferred configuration restores user code context"() {
         containerSupportsBuildOperations()
 
         when:
@@ -85,31 +85,29 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         UserCodeApplicationId id1 = null
         UserCodeApplicationId id2 = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), null) {
             id1 = it
             container.register("a") {
-                ids << userCodeApplicationContext.current()
+                ids << userCodeApplicationContext.current().id
             }
         }
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), null) {
             id2 = it
             container.named("a").configure {
-                ids << userCodeApplicationContext.current()
+                ids << userCodeApplicationContext.current().id
             }
         }
 
         then:
-        buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType).empty
+        ids.empty
 
         when:
         container.getByName("a")
 
         then:
-        def ops = buildOperationRunner.log.all(ExecuteDomainObjectCollectionCallbackBuildOperationType)
-        ops.size() == 2
         ids.size() == 2
-        ops[0].details.applicationId == id1.longValue()
-        ops[1].details.applicationId == id2.longValue()
+        ids[0] == id1
+        ids[1] == id2
     }
 
     def "can configure task based on its provider"() {

@@ -18,6 +18,8 @@ package org.gradle.internal.time;
 
 import com.google.common.base.Preconditions;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Test implementation of the clock that can be adjusted manually. Can self-increment itself upon reads.
  */
@@ -25,11 +27,13 @@ public class MockClock implements Clock {
     public static final long DEFAULT_AUTOINCREMENT_MS = 10L;
 
     private long current;
+    private long currentNanos;
     private boolean observed;
     private final long autoIncrement;
 
     private MockClock(long startTimeMs, long autoIncrement) {
         this.current = startTimeMs;
+        this.currentNanos = 0;
         this.autoIncrement = autoIncrement;
     }
 
@@ -53,14 +57,28 @@ public class MockClock implements Clock {
     public void increment(long diff) {
         Preconditions.checkArgument(diff >= 0, "Negative diff %d isn't allowed", diff);
         current += diff;
+        currentNanos += TimeUnit.MILLISECONDS.toNanos(diff);
     }
 
     @Override
     public long getCurrentTime() {
         observed = true;
         long result = current;
-        current += autoIncrement;
+        advance();
         return result;
+    }
+
+    @Override
+    public long nanoTime() {
+        observed = true;
+        long result = currentNanos;
+        advance();
+        return result;
+    }
+
+    private void advance() {
+        current += autoIncrement;
+        currentNanos += TimeUnit.MILLISECONDS.toNanos(autoIncrement);
     }
 
     /**

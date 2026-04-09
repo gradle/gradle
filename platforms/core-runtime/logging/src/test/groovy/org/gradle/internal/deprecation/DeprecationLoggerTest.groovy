@@ -20,10 +20,14 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.Factory
+import org.gradle.internal.code.DefaultUserCodeApplicationContext
+import org.gradle.internal.code.UserCodeApplicationRegistry
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
+import org.gradle.internal.time.MockClock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.DefaultGradleVersion
@@ -37,9 +41,11 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     final diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
     def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
+    def buildOperationRunner = new TestBuildOperationRunner()
+    def userCodeApplicationContext = new DefaultUserCodeApplicationContext(MockClock.create(), Mock(UserCodeApplicationRegistry))
 
     def setup() {
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, buildOperationRunner, userCodeApplicationContext, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {
@@ -58,7 +64,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         when:
         DeprecationLogger.reset()
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, buildOperationRunner, userCodeApplicationContext, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
         DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
         events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
 
@@ -156,7 +162,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
     def "reports suppressed deprecation messages with --warning-mode summary"() {
         given:
         def documentationReference = new DocumentationRegistry().getDocumentationRecommendationFor("on this", "command_line_interface", "sec:command_line_warnings")
-        DeprecationLogger.init(WarningMode.Summary, buildOperationProgressEventEmitter, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.Summary, buildOperationProgressEventEmitter, buildOperationRunner, userCodeApplicationContext, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
         DeprecationLogger.deprecate("nag").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
 
         when:

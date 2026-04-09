@@ -16,19 +16,28 @@
 
 package org.gradle.internal.time;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * A clock that always returns the same time.
  */
 public class FixedClock implements Clock {
     private final long current;
+    private final long currentNanos;
 
     private FixedClock(long startTime) {
         current = startTime;
+        currentNanos = TimeUnit.MILLISECONDS.toNanos(startTime);
     }
 
     @Override
     public long getCurrentTime() {
         return current;
+    }
+
+    @Override
+    public long nanoTime() {
+        return currentNanos;
     }
 
     /**

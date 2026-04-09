@@ -19,6 +19,7 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperationType;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
@@ -28,9 +29,15 @@ import org.gradle.api.problems.internal.ProblemReporterInternal;
 import org.gradle.api.problems.internal.ProblemSpecInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationId;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
@@ -64,13 +71,17 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private WarningMode warningMode = WarningMode.Summary;
     private BuildOperationProgressEventEmitter progressEventEmitter;
+    private BuildOperationRunner buildOperationRunner;
+    private UserCodeApplicationContext userCodeApplicationContext;
     private Problems problemsService;
     private GradleException error;
 
-    public void init(WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, Problems problemsService, ProblemStream problemStream) {
+    public void init(WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, Problems problemsService, ProblemStream problemStream) {
         this.warningMode = warningMode;
         this.problemStream = problemStream;
         this.progressEventEmitter = progressEventEmitter;
+        this.buildOperationRunner = buildOperationRunner;
+        this.userCodeApplicationContext = userCodeApplicationContext;
         this.problemsService = problemsService;
     }
 
@@ -165,9 +176,49 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
-        if (progressEventEmitter != null) {
-            progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage, diagnostics));
+        if (progressEventEmitter == null) {
+            return;
         }
+
+        if (buildOperationRunner == null || userCodeApplicationContext == null) {
+            progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage, diagnostics));
+        } else {
+            UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
+            if (application == null) {
+                progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage, diagnostics));
+            } else {
+                // Wrap in build operation so DV can properly attribute this deprecation to the plugin which emitted the deprecation.
+                buildOperationRunner.run(new RunnableBuildOperation() {
+                    @Override
+                    public void run(BuildOperationContext context) {
+                        progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage, diagnostics));
+                        context.setResult(ExecuteDomainObjectCollectionCallbackBuildOperationType.RESULT);
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor
+                            .displayName("Execute container callback action")
+                            .details(new UserCodeApplicationTrackingBuildOperation(application.getId()));
+                    }
+                });
+            }
+        }
+    }
+
+    private static class UserCodeApplicationTrackingBuildOperation implements ExecuteDomainObjectCollectionCallbackBuildOperationType.Details {
+
+        private final UserCodeApplicationId applicationId;
+
+        UserCodeApplicationTrackingBuildOperation(UserCodeApplicationId applicationId) {
+            this.applicationId = applicationId;
+        }
+
+        @Override
+        public long getApplicationId() {
+            return applicationId.longValue();
+        }
+
     }
 
     public void reset() {

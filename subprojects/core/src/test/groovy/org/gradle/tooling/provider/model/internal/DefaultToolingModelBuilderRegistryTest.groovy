@@ -100,7 +100,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         and:
         1 * buildOperationRunner.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
         1 * projectState.runWithModelLock(_) >> { Supplier supplier -> supplier.get() }
-        1 * application.reapply(_) >> { Supplier supplier -> supplier.get() }
+        1 * application.reapply(_ as Supplier, _) >> { args -> args[0].get() }
         1 * builder2.buildAll("model", project) >> "result"
         0 * _
     }

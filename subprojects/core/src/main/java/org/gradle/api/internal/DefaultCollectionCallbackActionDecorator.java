@@ -20,97 +20,27 @@ import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.code.UserCodeApplicationId;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.jspecify.annotations.Nullable;
 
 public class DefaultCollectionCallbackActionDecorator implements CollectionCallbackActionDecorator {
-    private final BuildOperationRunner buildOperationRunner;
+
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultCollectionCallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
-        this.buildOperationRunner = buildOperationRunner;
+    public DefaultCollectionCallbackActionDecorator(UserCodeApplicationContext userCodeApplicationContext) {
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override
-    public <T> Action<T> decorate(@Nullable Action<T> action) {
-        if (action == null || action instanceof InternalListener) {
+    public <T> Action<T> decorate(Action<T> action) {
+        if (action instanceof InternalListener) {
             return action;
         }
 
-        UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
-        if (application == null) {
-            return action;
-        }
-        return new BuildOperationEmittingAction<>(application.getId(), application.reapplyLater(action));
+        return userCodeApplicationContext.reapplyActionLaterForCurrent(action, UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK);
     }
 
     @Override
     public <T> Spec<T> decorateSpec(Spec<T> spec) {
-        UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
-        if (application == null) {
-            return spec;
-        }
-        return new Spec<T>() {
-            @Override
-            public boolean isSatisfiedBy(T element) {
-                return application.reapply(() -> spec.isSatisfiedBy(element));
-            }
-        };
-    }
-
-    private static abstract class Operation implements RunnableBuildOperation {
-
-        private final UserCodeApplicationId applicationId;
-
-        Operation(UserCodeApplicationId applicationId) {
-            this.applicationId = applicationId;
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor
-                .displayName("Execute container callback action")
-                .details(new OperationDetails(applicationId));
-        }
-    }
-
-    private static class OperationDetails implements ExecuteDomainObjectCollectionCallbackBuildOperationType.Details {
-        private final UserCodeApplicationId applicationId;
-
-        OperationDetails(UserCodeApplicationId applicationId) {
-            this.applicationId = applicationId;
-        }
-
-        @Override
-        public long getApplicationId() {
-            return applicationId.longValue();
-        }
-    }
-
-    private class BuildOperationEmittingAction<T> implements Action<T> {
-        private final UserCodeApplicationId applicationId;
-        private final Action<T> delegate;
-
-        BuildOperationEmittingAction(UserCodeApplicationId applicationId, Action<T> delegate) {
-            this.applicationId = applicationId;
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void execute(final T arg) {
-            buildOperationRunner.run(new Operation(applicationId) {
-                @Override
-                public void run(final BuildOperationContext context) {
-                    delegate.execute(arg);
-                    context.setResult(ExecuteDomainObjectCollectionCallbackBuildOperationType.RESULT);
-                }
-            });
-        }
+        return userCodeApplicationContext.reapplySpecLaterForCurrent(spec, UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK);
     }
 
 }

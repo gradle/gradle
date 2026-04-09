@@ -22,6 +22,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.PluginContainer;
@@ -41,6 +42,7 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -164,8 +166,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
             } else {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
+                    Path projectIdentityPath = getTargetProjectIdentityPath(target);
                     UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr);
-                    userCodeApplicationContext.apply(source, userCodeApplicationId ->
+                    userCodeApplicationContext.apply(source, projectIdentityPath, userCodeApplicationId ->
                         buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
                     );
                 }
@@ -177,6 +180,17 @@ public class DefaultPluginManager implements PluginManagerInternal {
         } finally {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
+    }
+
+    private static @Nullable Path getTargetProjectIdentityPath(PluginTarget target) {
+        ConfigurationTargetIdentifier id = target.getConfigurationTargetIdentifier();
+        if (id.getTargetType() == ConfigurationTargetIdentifier.Type.PROJECT) {
+            return ProjectIdentity.computeProjectIdentityPath(
+                Path.path(id.getTargetPath()),
+                Path.path(id.getBuildPath())
+            );
+        }
+        return null;
     }
 
     private void addPlugin(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass) {

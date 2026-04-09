@@ -49,7 +49,7 @@ class ExpectDeprecationExtension implements IAnnotationDrivenExtension<ExpectDep
 
     static void intercept(String expectedMessage, ThrowingRunnable proceed) {
         def problems = TestUtil.problemsService()
-        DeprecationLogger.init(WarningMode.All, null, problems, NoOpProblemDiagnosticsFactory.EMPTY_STREAM)
+        DeprecationLogger.init(WarningMode.All, null, null, null, problems, NoOpProblemDiagnosticsFactory.EMPTY_STREAM)
 
         try {
             proceed()

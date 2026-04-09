@@ -17,10 +17,15 @@
 package org.gradle.internal.build.event;
 
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.code.UserCodeApplicationRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Global.class)
 public interface BuildEventListenerFactory {
-    Iterable<Object> createListeners(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer);
+    Iterable<Object> createListeners(
+        BuildEventSubscriptions subscriptions,
+        BuildEventConsumer consumer,
+        UserCodeApplicationRegistry userCodeApplicationRegistry
+    );
 }

@@ -186,7 +186,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         def collection = null
 
         given:
-        userCodeApplicationContext.apply(source) {
+        userCodeApplicationContext.apply(source, null) {
             collection = container.matching(spec)
         }
         assert userCodeApplicationContext.current() == null

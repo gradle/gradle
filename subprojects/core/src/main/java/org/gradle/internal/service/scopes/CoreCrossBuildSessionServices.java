@@ -23,6 +23,7 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.code.DefaultUserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeApplicationRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
@@ -43,6 +44,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultResourceLockStatistics;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.DefaultWorkerLimits;
@@ -57,6 +59,7 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     void configure(ServiceRegistration registration) {
         registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
         registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
+        registration.add(UserCodeApplicationRegistry.class);
     }
 
     @Provides
@@ -94,8 +97,8 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    UserCodeApplicationContext createUserCodeApplicationContext() {
-        return new DefaultUserCodeApplicationContext();
+    UserCodeApplicationContext createUserCodeApplicationContext(Clock clock, UserCodeApplicationRegistry applicationRegistry) {
+        return new DefaultUserCodeApplicationContext(clock, applicationRegistry);
     }
 
     @Provides
@@ -104,8 +107,8 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
-        return new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext);
+    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(UserCodeApplicationContext userCodeApplicationContext) {
+        return new DefaultCollectionCallbackActionDecorator(userCodeApplicationContext);
     }
 
     @Provides

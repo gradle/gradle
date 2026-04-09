@@ -40,7 +40,7 @@ public final class ExecuteDomainObjectCollectionCallbackBuildOperationType imple
     public interface Result {
     }
 
-    static final ExecuteDomainObjectCollectionCallbackBuildOperationType.Result RESULT = new ExecuteDomainObjectCollectionCallbackBuildOperationType.Result() {
+    public static final ExecuteDomainObjectCollectionCallbackBuildOperationType.Result RESULT = new ExecuteDomainObjectCollectionCallbackBuildOperationType.Result() {
     };
 
     private ExecuteDomainObjectCollectionCallbackBuildOperationType() {

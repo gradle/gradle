@@ -44,6 +44,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
@@ -85,6 +86,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
             "project"
         )
     } as ProjectInternal
+    TestBuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     private final crossProjectModelAccess = Mock(CrossProjectModelAccess)
     private container = new DefaultTaskContainerFactory(
         DirectInstantiator.INSTANCE,

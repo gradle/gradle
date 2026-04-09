@@ -24,8 +24,10 @@ import org.gradle.internal.buildtree.BuildActionRunner
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.work.ProjectParallelExecutionController
 import org.gradle.problems.buildtree.ProblemStream
 import spock.lang.Specification
@@ -51,6 +53,8 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
             listener,
             Stub(ProblemsInternal),
             Stub(BuildOperationProgressEventEmitter),
+            new TestBuildOperationRunner(),
+            Mock(UserCodeApplicationContext),
             Stub(StartParameter),
             Stub(ProblemStream),
             buildStateRegistry,
@@ -77,6 +81,8 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
             Stub(BuildTreeLifecycleListener),
             Stub(ProblemsInternal),
             Stub(BuildOperationProgressEventEmitter),
+            new TestBuildOperationRunner(),
+            Mock(UserCodeApplicationContext),
             Stub(StartParameter),
             Stub(ProblemStream),
             buildStateRegistry,

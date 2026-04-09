@@ -22,10 +22,12 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.GradleVersion
@@ -47,7 +49,7 @@ import spock.lang.Specification
         def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
         def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
         DeprecationLogger.reset()
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, Stub(BuildOperationRunner), Stub(UserCodeApplicationContext), TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
     }
 
     /**

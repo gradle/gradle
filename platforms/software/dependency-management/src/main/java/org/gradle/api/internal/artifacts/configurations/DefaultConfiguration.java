@@ -480,11 +480,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // mutated in this callback, which is why we don't use MutationType.DEPENDENCIES here
         validateMutation(MutationType.BASIC_STATE);
 
-        defaultDependencyActions = defaultDependencyActions.add(configurationServices.getCollectionCallbackActionDecorator().decorate(dependencies -> {
+        Action<? super DependencySet> decorated = userCodeApplicationContext.reapplyActionLaterForCurrent(action, UserCodeApplicationContext.CodeType.GENERAL);
+        defaultDependencyActions = defaultDependencyActions.add(dependencies -> {
             if (dependencies.isEmpty()) {
-                action.execute(dependencies);
+                decorated.execute(dependencies);
             }
-        }));
+        });
         return this;
     }
 
@@ -494,7 +495,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // mutated in this callback, which is why we don't use MutationType.DEPENDENCIES here
         validateMutation(MutationType.BASIC_STATE);
 
-        withDependencyActions = withDependencyActions.add(configurationServices.getCollectionCallbackActionDecorator().decorate(action));
+        withDependencyActions = withDependencyActions.add(userCodeApplicationContext.reapplyActionLaterForCurrent(action, UserCodeApplicationContext.CodeType.GENERAL));
         return this;
     }
 
@@ -1706,7 +1707,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            configuration.dependencyResolutionListeners.add("beforeResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
+            configuration.dependencyResolutionListeners.add("beforeResolve", configuration.userCodeApplicationContext.reapplyActionLaterForCurrent(action, UserCodeApplicationContext.CodeType.LISTENER));
         }
 
         @Override
@@ -1716,7 +1717,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            configuration.dependencyResolutionListeners.add("afterResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
+            configuration.dependencyResolutionListeners.add("afterResolve", configuration.userCodeApplicationContext.reapplyActionLaterForCurrent(action, UserCodeApplicationContext.CodeType.LISTENER));
         }
 
         @Override

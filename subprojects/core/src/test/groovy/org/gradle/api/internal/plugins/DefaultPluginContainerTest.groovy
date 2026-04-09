@@ -21,8 +21,11 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.UnknownPluginException
+import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.internal.code.DefaultUserCodeApplicationContext
+import org.gradle.internal.code.UserCodeApplicationRegistry
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.time.MockClock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -35,9 +38,11 @@ class DefaultPluginContainerTest extends Specification {
     PluginInspector pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader))
-    def target = Mock(PluginTarget)
+    def target = Mock(PluginTarget) {
+        getConfigurationTargetIdentifier() >> Mock(ConfigurationTargetIdentifier)
+    }
     def instantiator = TestUtil.instantiatorFactory().inject()
-    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationRunner(), new DefaultUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP, TestUtil.domainObjectCollectionFactory())
+    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationRunner(), new DefaultUserCodeApplicationContext(MockClock.create(), Mock(UserCodeApplicationRegistry)), CollectionCallbackActionDecorator.NOOP, TestUtil.domainObjectCollectionFactory())
 
     @Subject
     def container = pluginManager.pluginContainer

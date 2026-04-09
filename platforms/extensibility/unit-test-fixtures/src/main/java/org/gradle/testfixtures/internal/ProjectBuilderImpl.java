@@ -184,7 +184,7 @@ public class ProjectBuilderImpl {
 
         // Project or applied plugins can emit deprecation warnings, so we need to initialize the deprecation logger
         //noinspection DataFlowIssue
-        DeprecationLogger.init(WarningMode.None, null, null, NoOpProblemDiagnosticsFactory.EMPTY_STREAM);
+        DeprecationLogger.init(WarningMode.None, null, null, null, null, NoOpProblemDiagnosticsFactory.EMPTY_STREAM);
 
         // Take a root worker lease; this won't ever be released as ProjectBuilder has no lifecycle
         ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);

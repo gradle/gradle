@@ -20,6 +20,7 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.code.UserCodeApplicationRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -35,22 +36,29 @@ import java.util.List;
  * Attaches build operation listeners to forward relevant operations back to the client.
  */
 public class SubscribableBuildActionExecutor implements BuildSessionActionExecutor {
-    private final BuildEventConsumer eventConsumer;
-    private final BuildSessionActionExecutor delegate;
+
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
-    private final List<Object> listeners = new ArrayList<>();
     private final BuildEventListenerFactory factory;
+    private final BuildEventConsumer eventConsumer;
+    private final UserCodeApplicationRegistry userCodeApplicationRegistry;
+    private final BuildSessionActionExecutor delegate;
 
-    public SubscribableBuildActionExecutor(ListenerManager listenerManager,
-                                           BuildOperationListenerManager buildOperationListenerManager,
-                                           BuildEventListenerFactory factory,
-                                           BuildEventConsumer eventConsumer,
-                                           BuildSessionActionExecutor delegate) {
+    private final List<Object> listeners = new ArrayList<>();
+
+    public SubscribableBuildActionExecutor(
+        ListenerManager listenerManager,
+        BuildOperationListenerManager buildOperationListenerManager,
+        BuildEventListenerFactory factory,
+        BuildEventConsumer eventConsumer,
+        UserCodeApplicationRegistry userCodeApplicationRegistry,
+        BuildSessionActionExecutor delegate
+    ) {
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.factory = factory;
         this.eventConsumer = eventConsumer;
+        this.userCodeApplicationRegistry = userCodeApplicationRegistry;
         this.delegate = delegate;
     }
 
@@ -58,7 +66,7 @@ public class SubscribableBuildActionExecutor implements BuildSessionActionExecut
     public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext buildSession) {
         if (action instanceof SubscribableBuildAction) {
             SubscribableBuildAction subscribableBuildAction = (SubscribableBuildAction) action;
-            registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), eventConsumer);
+            registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), eventConsumer, userCodeApplicationRegistry);
         }
         try {
             return delegate.execute(action, buildSession);
@@ -73,8 +81,12 @@ public class SubscribableBuildActionExecutor implements BuildSessionActionExecut
         }
     }
 
-    private void registerListenersForClientSubscriptions(BuildEventSubscriptions clientSubscriptions, BuildEventConsumer eventConsumer) {
-        for (Object listener : factory.createListeners(clientSubscriptions, eventConsumer)) {
+    private void registerListenersForClientSubscriptions(
+        BuildEventSubscriptions clientSubscriptions,
+        BuildEventConsumer eventConsumer,
+        UserCodeApplicationRegistry userCodeApplicationRegistry
+    ) {
+        for (Object listener : factory.createListeners(clientSubscriptions, eventConsumer, userCodeApplicationRegistry)) {
             registerListener(listener);
         }
     }
@@ -86,4 +98,5 @@ public class SubscribableBuildActionExecutor implements BuildSessionActionExecut
             buildOperationListenerManager.addListener((BuildOperationListener) listener);
         }
     }
+
 }

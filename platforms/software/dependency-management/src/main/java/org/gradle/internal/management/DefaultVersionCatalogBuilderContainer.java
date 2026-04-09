@@ -29,6 +29,7 @@ import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -70,8 +71,9 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
         validateName(name);
         return super.create(name, model -> {
             UserCodeApplicationContext.Application current = context.current();
+            UserCodeSource source = current != null ? current.getSource() : null;
             DefaultVersionCatalogBuilder builder = (DefaultVersionCatalogBuilder) model;
-            builder.withContext(current == null ? "Settings" : current.getSource().getDisplayName().getDisplayName(), () -> configureAction.execute(model));
+            builder.withContext(source == null ? "Settings" : source.getDisplayName().getDisplayName(), () -> configureAction.execute(model));
         });
     }
 
