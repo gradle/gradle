@@ -129,8 +129,15 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
             val problem = problemFactory.problem {
                 text("Project ")
                 reference(referrerProject.identityPath.toString())
-                text(" cannot dynamically look up a ")
-                text(memberKind.name.lowercase(Locale.ENGLISH))
+                text(" cannot dynamically look up ")
+                if (memberName != null) {
+                    text(memberKind.name.lowercase(Locale.ENGLISH))
+                    text(" ")
+                    reference("'$memberName'")
+                } else {
+                    text("a ")
+                    text(memberKind.name.lowercase(Locale.ENGLISH))
+                }
                 text(" in the parent project ")
                 reference(ownerProject.identityPath.toString())
             }

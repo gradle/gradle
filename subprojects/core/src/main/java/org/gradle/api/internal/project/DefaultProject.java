@@ -87,6 +87,7 @@ import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -242,7 +243,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
         if (parentInherited != null) {
             extensibleDynamicObject.setParent(parentInherited);
-            extensibleDynamicObject.setDeprecateParentAccess(true);
+            // In Isolated Projects mode, cross-project access is reported as an IP violation
+            // by CrossProjectModelAccessTrackingParentDynamicObject. Don't also emit a deprecation warning.
+            boolean isIsolatedProjects = gradle.getServices().get(BuildModelParameters.class).isIsolatedProjects();
+            extensibleDynamicObject.setDeprecateParentAccess(!isIsolatedProjects);
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 

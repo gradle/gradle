@@ -17,11 +17,10 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.api.provider.Property
-import org.gradle.integtests.fixtures.ParentProjectAccessDeprecations
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ParentProjectAccessDeprecations {
+class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         createDirs("a", "b")
@@ -521,24 +520,26 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(deprecationMessage)
+        if (deprecationMessage != null) {
+            executer.expectDocumentedDeprecationWarning(deprecationMessage)
+        }
         isolatedProjectsFails(":a:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot dynamically look up a $kind in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot dynamically look up $kindMessage in the parent project ':'")
         }
 
         where:
-        kind       | setExpr         | expr                  | deprecationMessage
-        "property" | "ext.foo = 1"   | "foo"                 | implicitParentPropertyDeprecation("foo", "project ':a'", "root project 'root'")
-        "property" | "ext.foo = 1"   | "hasProperty('foo')"  | parentHasPropertyDeprecation("foo", "project ':a'", "root project 'root'")
-        "property" | "ext.foo = 1"   | "property('foo')"     | explicitParentPropertyDeprecation("property()", "foo", "project ':a'", "root project 'root'")
-        "property" | "ext.foo = 1"   | "findProperty('foo')" | explicitParentPropertyDeprecation("findProperty()", "foo", "project ':a'", "root project 'root'")
-        "property" | "ext.foo = 1"   | "getProperty('foo')"  | implicitParentPropertyDeprecation("foo", "project ':a'", "root project 'root'")
-        "property" | "ext.foo = 1"   | "properties"          | "Dynamically calling getProperties() on a script has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties"
-        "method"   | "def foo() { }" | "foo()"               | parentMethodDeprecation("foo", "root project 'root'", "project ':a'")
+        kind       | setExpr         | expr                  | kindMessage          | deprecationMessage
+        "property" | "ext.foo = 1"   | "foo"                 | "property 'foo'"     | null
+        "property" | "ext.foo = 1"   | "hasProperty('foo')"  | "property 'foo'"     | null
+        "property" | "ext.foo = 1"   | "property('foo')"     | "property 'foo'"     | null
+        "property" | "ext.foo = 1"   | "findProperty('foo')" | "property 'foo'"     | null
+        "property" | "ext.foo = 1"   | "getProperty('foo')"  | "property 'foo'"     | null
+        "property" | "ext.foo = 1"   | "properties"          | "a property"         | "Dynamically calling getProperties() on a script has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties"
+        "method"   | "def foo() { }" | "foo()"               | "method 'foo'"       | null
     }
 
     def 'no duplicate problems reported for dynamic property lookup in transitive parents'() {
@@ -560,15 +561,13 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        expectImplicitParentPropertyDeprecation("foo", "project ':sub:sub-a'", "project ':sub'")
-        expectImplicitParentPropertyDeprecation("foo", "project ':sub:sub-b'", "project ':sub'")
         isolatedProjectsFails(":sub:sub-a:help", ":sub:sub-b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":sub", ":sub:sub-a", ":sub:sub-b")
-            problem("Build file 'sub/sub-a/build.gradle': line 2: Project ':sub:sub-a' cannot dynamically look up a property in the parent project ':sub'")
-            problem("Build file 'sub/sub-b/build.gradle': line 2: Project ':sub:sub-b' cannot dynamically look up a property in the parent project ':sub'")
+            problem("Build file 'sub/sub-a/build.gradle': line 2: Project ':sub:sub-a' cannot dynamically look up property 'foo' in the parent project ':sub'")
+            problem("Build file 'sub/sub-b/build.gradle': line 2: Project ':sub:sub-b' cannot dynamically look up property 'foo' in the parent project ':sub'")
         }
     }
 
@@ -595,15 +594,13 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        expectExplicitParentPropertyDeprecation("getProperty()", "foo", "project ':a'", "root project 'root'")
-        expectParentMethodDeprecation("bar", "root project 'root'", "project ':a'")
         isolatedProjectsFails(":a:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot dynamically look up a property in the parent project ':'")
-            problem("Build file 'a/build.gradle': line 6: Project ':a' cannot dynamically look up a method in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot dynamically look up property 'foo' in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 6: Project ':a' cannot dynamically look up method 'bar' in the parent project ':'")
         }
     }
 
@@ -633,7 +630,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        expectImplicitParentPropertyDeprecation("projectProperty", "project ':a:aa'", "project ':a'")
         isolatedProjectsFails("help")
 
         then:
@@ -642,8 +638,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         // an additional subproject demonstrates that the problems are duplicated as the property lookup traverses up the project hierarchy
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":a:aa")
-            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a' cannot dynamically look up a property in the parent project ':'")
-            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a:aa' cannot dynamically look up a property in the parent project ':a'")
+            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a' cannot dynamically look up property 'projectProperty' in the parent project ':'")
+            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a:aa' cannot dynamically look up property 'projectProperty' in the parent project ':a'")
         }
     }
 
@@ -705,8 +701,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         when:
         // TODO:isolated should succeed without problems
-        expectParentMethodDeprecation("printInfo", "root project 'root'", "project ':a'")
-        expectParentMethodDeprecation("printInfo", "root project 'root'", "project ':b'")
         isolatedProjectsFails("something")
 
         then:

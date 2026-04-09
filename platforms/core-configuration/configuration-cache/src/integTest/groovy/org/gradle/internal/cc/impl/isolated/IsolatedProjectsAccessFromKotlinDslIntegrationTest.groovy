@@ -16,11 +16,10 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.integtests.fixtures.ParentProjectAccessDeprecations
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ParentProjectAccessDeprecations {
+class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         createDirs("a", "b")
         settingsFile << """
@@ -182,7 +181,6 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        expectImplicitParentPropertyDeprecation("myProperty", "project ':a'", "root project 'root'")
         isolatedProjectsFails("help")
 
         then:
@@ -190,7 +188,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle.kts': Project ':a' cannot dynamically look up a property in the parent project ':'")
+            problem("Build file 'a/build.gradle.kts': Project ':a' cannot dynamically look up property 'myProperty' in the parent project ':'")
         }
 
         where:
