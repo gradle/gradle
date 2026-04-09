@@ -160,7 +160,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         file("sub/script.gradle") << "someMethod()"
 
         when:
-        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'someMethod' on root project 'test' from project ':sub'.")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'someMethod' on root project 'test' from project ':sub'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         run "help"
 
         then:
@@ -255,7 +255,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'pluginClass' was not found in project ':sub' and was dynamically resolved from root project 'test'.")
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'pluginClass' was not found in project ':sub' and was dynamically resolved from root project 'test'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         succeeds "hello"
 
         then:

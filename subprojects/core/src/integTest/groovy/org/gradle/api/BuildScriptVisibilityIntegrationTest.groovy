@@ -44,8 +44,8 @@ println "child: " + doSomethingElse(11)
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
-        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'.")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         // Invoke twice to exercise script caching
         succeeds()
         outputContains("root: {10}")
@@ -55,8 +55,8 @@ println "child: " + doSomethingElse(11)
 
         and:
         if (GradleContextualExecuter.notConfigCache) {
-            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
-            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'.")
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         }
         succeeds()
         if (GradleContextualExecuter.notConfigCache) {
@@ -95,8 +95,8 @@ println project.path + " - " + doSomethingElse(12)
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
-        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'.")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         // Invoke twice to exercise script caching
         succeeds()
         outputContains(": - {12}")
@@ -106,8 +106,8 @@ println project.path + " - " + doSomethingElse(12)
 
         and:
         if (GradleContextualExecuter.notConfigCache) {
-            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
-            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'.")
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomethingElse' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         }
         succeeds()
         if (GradleContextualExecuter.notConfigCache) {
@@ -138,14 +138,14 @@ println "child: " + doSomething(11)
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         // Invoke twice to exercise script caching
         succeeds()
         outputContains("child: 11")
 
         and:
         if (GradleContextualExecuter.notConfigCache) {
-            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         }
         succeeds()
         if (GradleContextualExecuter.notConfigCache) {
@@ -178,14 +178,14 @@ println "child: " + doSomething(11)
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
+        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         // Invoke twice to exercise script caching
         succeeds("hello")
         outputContains("child: 11")
 
         and:
         if (GradleContextualExecuter.notConfigCache) {
-            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'.")
+            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'doSomething' on root project 'test' from project ':child1'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         }
         succeeds("hello")
         if (GradleContextualExecuter.notConfigCache) {

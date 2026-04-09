@@ -21,18 +21,19 @@ import org.gradle.test.fixtures.file.TestFile
 
 class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec {
 
+    private static final String PARENT_PROPERTY_UPGRADE_GUIDE = "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
     public static final String GET_PROPERTIES_DEPRECATION_POSTFIX = "This will fail with an error in Gradle 10. " +
         "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties"
-    public static final String DYNAMICALLY_INVOKING_PARENT_DEPRECATION = "Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'foo' on project ':parent' from project ':parent:child'."
-    public static final String HAS_PROPERTY_DEPRECATION = "Calling 'hasProperty' to query presence of property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for presence property 'value' from project ':parent:child'."
+    public static final String DYNAMICALLY_INVOKING_PARENT_DEPRECATION = "Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'foo' on project ':parent' from project ':parent:child'. $PARENT_PROPERTY_UPGRADE_GUIDE"
+    public static final String HAS_PROPERTY_DEPRECATION = "Calling 'hasProperty' to query presence of property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for presence property 'value' from project ':parent:child'. $PARENT_PROPERTY_UPGRADE_GUIDE"
     public static final String GET_PROPERTIES_DEPRECATION = "Dynamically calling getProperties() on a script has been deprecated. " + GET_PROPERTIES_DEPRECATION_POSTFIX
 
     private static String implicitPropertyDeprecation(String propertyName) {
-        "Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property '$propertyName' was not found in project ':parent:child' and was dynamically resolved from project ':parent'."
+        "Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property '$propertyName' was not found in project ':parent:child' and was dynamically resolved from project ':parent'. $PARENT_PROPERTY_UPGRADE_GUIDE"
     }
 
     private static String explicitPropertyDeprecation(String callerApi, String propertyName) {
-        "Calling '$callerApi' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property '$propertyName' from project ':parent:child'."
+        "Calling '$callerApi' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project project ':parent' for property '$propertyName' from project ':parent:child'. $PARENT_PROPERTY_UPGRADE_GUIDE"
     }
 
     TestFile grandparent = buildFile

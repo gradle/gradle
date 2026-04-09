@@ -389,6 +389,66 @@ couple entity names to variable names, diverge between build scripts and
 class-based plugins, and duplicate functionality already provided by
 explicit APIs or other DSL sugar.
 
+[[deprecated_accessing_parent_project_properties]]
+==== Deprecation of accessing properties and methods from parent projects
+
+Gradle has historically allowed child projects to implicitly access properties and methods defined in parent projects.
+For example, if a root project defines `ext.foo = 1`, a child project could reference `foo` directly without any explicit declaration.
+
+This implicit inheritance has been deprecated and will become an error in Gradle 10.
+It creates hidden coupling between projects, makes build logic harder to understand, and impedes build scalability with features like <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration,isolated projects>>.
+
+The following patterns trigger this deprecation:
+
+- Accessing a parent project's extra property (e.g., `ext.foo`) from a child project's build script by name (`foo`), or through API calls like `property("foo")`, `findProperty("foo")`, or `hasProperty("foo")`.
+- Invoking a method defined in a parent project's build script from a child project.
+
+To fix this, declare properties explicitly in each project that needs them, or use one of the following alternatives:
+
+[cols="1a,1a", options="header"]
+|===
+| Before (deprecated) | After (recommended)
+
+| Implicit access to parent property:
+[source,groovy]
+----
+// root build.gradle
+ext.myProp = "value"
+
+// child build.gradle
+println(myProp) // resolves from parent
+----
+| Use <<build_environment.adoc#sec:project_properties,project properties>> via `gradle.properties`:
+[source,groovy]
+----
+// gradle.properties
+myProp=value
+
+// child build.gradle
+println(providers.gradleProperty("myProp").get())
+----
+
+| Shared logic using parent methods:
+[source,groovy]
+----
+// root build.gradle
+def sharedMethod() { ... }
+
+// child build.gradle
+sharedMethod() // resolves from parent
+----
+| Use a <<sharing_build_logic_between_subprojects.adoc#sec:sharing_logic_via_convention_plugins,convention plugin>>:
+[source,groovy]
+----
+// buildSrc/src/main/groovy/my-conventions.gradle
+def sharedMethod() { ... }
+
+// child build.gradle
+plugins { id 'my-conventions' }
+sharedMethod()
+----
+|===
+
 === Potential breaking changes
 
 [[agp_8x_incompatible]]

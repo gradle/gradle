@@ -196,7 +196,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
                     DeprecationLogger.deprecateAction("Calling 'hasProperty' to query presence of property from parent project")
                         .withContext("Tried to query parent project " + parent.getDisplayName() + " for presence property '" + name + "' from " + getDisplayName() + ".")
                         .willBecomeAnErrorInGradle10()
-                        .undocumented()
+                        .withUpgradeGuideSection(9, "deprecated_accessing_parent_project_properties")
                         .nagUser();
                 }
                 return true;
@@ -241,13 +241,13 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
             DeprecationLogger.deprecateAction("Calling '" + callerApi + "' to retrieve property from parent project")
                 .withContext("Tried to query parent project " + parent.getDisplayName() + " for property '" + name + "' from " + getDisplayName() + ".")
                 .willBecomeAnErrorInGradle10()
-                .undocumented()
+                .withUpgradeGuideSection(9, "deprecated_accessing_parent_project_properties")
                 .nagUser();
         } else {
             DeprecationLogger.deprecateAction("Accessing a property from a parent project")
                 .withContext("Property '" + name + "' was not found in " + getDisplayName() + " and was dynamically resolved from " + parent.getDisplayName() + ".")
                 .willBecomeAnErrorInGradle10()
-                .undocumented()
+                .withUpgradeGuideSection(9, "deprecated_accessing_parent_project_properties")
                 .nagUser();
         }
     }
@@ -368,7 +368,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         DeprecationLogger.deprecateAction("Dynamically invoking parent method from a child project")
             .withContext("Cannot dynamically invoke method '" + name + "' on " + parent.getDisplayName() + " from " + getDisplayName() + ".")
             .willBecomeAnErrorInGradle10()
-            .undocumented()
+            .withUpgradeGuideSection(9, "deprecated_accessing_parent_project_properties")
             .nagUser();
     }
 
