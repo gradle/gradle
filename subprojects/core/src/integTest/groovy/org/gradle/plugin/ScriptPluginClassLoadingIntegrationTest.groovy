@@ -17,6 +17,7 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ParentProjectAccessDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.precondition.Requires
@@ -25,7 +26,7 @@ import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsText
 
-class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
+class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec implements ParentProjectAccessDeprecations {
 
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
@@ -160,7 +161,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         file("sub/script.gradle") << "someMethod()"
 
         when:
-        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'someMethod' on root project 'test' from project ':sub'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+        expectParentMethodDeprecation("someMethod", "root project 'test'", "project ':sub'")
         run "help"
 
         then:
@@ -255,7 +256,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'pluginClass' was not found in project ':sub' and was dynamically resolved from root project 'test'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+        expectImplicitParentPropertyDeprecation("pluginClass", "project ':sub'", "root project 'test'")
         succeeds "hello"
 
         then:

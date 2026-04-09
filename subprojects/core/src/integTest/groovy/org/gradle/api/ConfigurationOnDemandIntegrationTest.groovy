@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ParentProjectAccessDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -30,7 +31,7 @@ import org.junit.Rule
 import spock.lang.Issue
 
 @FluidDependenciesResolveTest
-class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
+class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec implements ParentProjectAccessDeprecations {
 
     @Rule
     ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
@@ -584,7 +585,7 @@ allprojects {
             }
         """)
         when:
-        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'foo' was not found in project ':a:child' and was dynamically resolved from project ':a'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+        expectImplicitParentPropertyDeprecation("foo", "project ':a:child'", "project ':a'")
         run(":a:child:printExt")
 
         then:

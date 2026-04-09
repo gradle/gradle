@@ -16,13 +16,14 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ParentProjectAccessDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
-class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
+class DynamicObjectIntegrationTest extends AbstractIntegrationSpec implements ParentProjectAccessDeprecations {
     def setup() {
         settingsFile """
             rootProject.name = 'test'
@@ -74,13 +75,13 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
             """
             expectTaskProjectDeprecation()
             // execution-time cross-project property lookups from Reporter
-            executer.expectDocumentedDeprecationWarning("Calling 'getProperty()' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'rootProperty' from project ':child'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
-            executer.expectDocumentedDeprecationWarning("Calling 'getProperty()' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'property' from project ':child'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+            expectExplicitParentPropertyDeprecation("getProperty()", "rootProperty", "project ':child'", "root project 'test'")
+            expectExplicitParentPropertyDeprecation("getProperty()", "property", "project ':child'", "root project 'test'")
         }
         expectScriptGetPropertiesDeprecation(3)
         // configuration-time cross-project property lookups in child/build.gradle
-        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'rootProperty' was not found in project ':child' and was dynamically resolved from root project 'test'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
-        executer.expectDocumentedDeprecationWarning("Calling 'property()' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project root project 'test' for property 'rootProperty' from project ':child'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+        expectImplicitParentPropertyDeprecation("rootProperty", "project ':child'", "root project 'test'")
+        expectExplicitParentPropertyDeprecation("property()", "rootProperty", "project ':child'", "root project 'test'")
 
         expect:
         succeeds("testTask")
@@ -124,10 +125,10 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
             """
             expectTaskProjectDeprecation()
             // execution-time cross-project method invocation from Reporter
-            executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'rootMethod' on root project 'test' from project ':child'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+            expectParentMethodDeprecation("rootMethod", "root project 'test'", "project ':child'")
         }
         // configuration-time cross-project method invocation in child/build.gradle
-        executer.expectDocumentedDeprecationWarning("Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. Cannot dynamically invoke method 'rootMethod' on root project 'test' from project ':child'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+        expectParentMethodDeprecation("rootMethod", "root project 'test'", "project ':child'")
 
         expect:
         succeeds("testTask")
@@ -424,7 +425,7 @@ assert 'overridden value' == global
             assert prop3(12) == 24
         """
 
-        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'prop2' was not found in project ':child1' and was dynamically resolved from root project 'test'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+        expectImplicitParentPropertyDeprecation("prop2", "project ':child1'", "root project 'test'")
 
         expect:
         succeeds()

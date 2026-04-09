@@ -23,6 +23,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -42,7 +43,6 @@ import java.util.Map;
 
 /**
  * A {@link DynamicObject} implementation that provides extensibility.
- *
  * This is the dynamic object implementation that "enhanced" objects expose.
  *
  * @see org.gradle.internal.instantiation.generator.MixInExtensibleDynamicObject
@@ -237,19 +237,19 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     }
 
     private void emitPropertyDeprecation(String name, DynamicObject parent) {
+        getDeprecateAction(name, parent)
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_accessing_parent_project_properties")
+            .nagUser();
+    }
+
+    private DeprecationMessageBuilder.DeprecateAction getDeprecateAction(String name, DynamicObject parent) {
         if (callerApi != null) {
-            DeprecationLogger.deprecateAction("Calling '" + callerApi + "' to retrieve property from parent project")
-                .withContext("Tried to query parent project " + parent.getDisplayName() + " for property '" + name + "' from " + getDisplayName() + ".")
-                .willBecomeAnErrorInGradle10()
-                .withUpgradeGuideSection(9, "deprecated_accessing_parent_project_properties")
-                .nagUser();
-        } else {
-            DeprecationLogger.deprecateAction("Accessing a property from a parent project")
-                .withContext("Property '" + name + "' was not found in " + getDisplayName() + " and was dynamically resolved from " + parent.getDisplayName() + ".")
-                .willBecomeAnErrorInGradle10()
-                .withUpgradeGuideSection(9, "deprecated_accessing_parent_project_properties")
-                .nagUser();
+            return DeprecationLogger.deprecateAction("Calling '" + callerApi + "' to retrieve property from parent project")
+                .withContext("Tried to query parent project " + parent.getDisplayName() + " for property '" + name + "' from " + getDisplayName() + ".");
         }
+        return DeprecationLogger.deprecateAction("Accessing a property from a parent project")
+            .withContext("Property '" + name + "' was not found in " + getDisplayName() + " and was dynamically resolved from " + parent.getDisplayName() + ".");
     }
 
     @Override

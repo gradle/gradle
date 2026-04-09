@@ -16,10 +16,11 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.integtests.fixtures.ParentProjectAccessDeprecations
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
+class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ParentProjectAccessDeprecations {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         createDirs("a", "b")
         settingsFile << """
@@ -181,7 +182,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property 'myProperty' was not found in project ':a' and was dynamically resolved from root project 'root'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+        expectImplicitParentPropertyDeprecation("myProperty", "project ':a'", "root project 'root'")
         isolatedProjectsFails("help")
 
         then:

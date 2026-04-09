@@ -17,15 +17,12 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ParentProjectAccessDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 
-class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
-
-    private static String parentPropertyDeprecation(String propertyName, String childProject, String parentProject) {
-        "Accessing a property from a parent project has been deprecated. This will fail with an error in Gradle 10. Property '$propertyName' was not found in $childProject and was dynamically resolved from $parentProject. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
-    }
+class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec implements ParentProjectAccessDeprecations {
 
     @ToBeFixedForIsolatedProjects(because = "Cross-project configuration")
     def 'extra properties are inherited to child and grandchild projects'() {
@@ -33,9 +30,9 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
         extraPropertiesMultiBuild()
 
         when:
-        executer.expectDocumentedDeprecationWarning(parentPropertyDeprecation("testProp", "project ':a'", "root project 'extra-properties'"))
-        executer.expectDocumentedDeprecationWarning(parentPropertyDeprecation("testProp", "project ':b'", "root project 'extra-properties'"))
-        executer.expectDocumentedDeprecationWarning(parentPropertyDeprecation("testProp", "project ':a:a1'", "project ':a'"))
+        expectImplicitParentPropertyDeprecation("testProp", "project ':a'", "root project 'extra-properties'")
+        expectImplicitParentPropertyDeprecation("testProp", "project ':b'", "root project 'extra-properties'")
+        expectImplicitParentPropertyDeprecation("testProp", "project ':a:a1'", "project ':a'")
 
         then:
         succeeds checkTestPropTasks()
@@ -54,8 +51,8 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        executer.expectDocumentedDeprecationWarning(parentPropertyDeprecation("testProp", "project ':b'", "root project 'extra-properties'"))
-        executer.expectDocumentedDeprecationWarning(parentPropertyDeprecation("testProp", "project ':a:a1'", "project ':a'"))
+        expectImplicitParentPropertyDeprecation("testProp", "project ':b'", "root project 'extra-properties'")
+        expectImplicitParentPropertyDeprecation("testProp", "project ':a:a1'", "project ':a'")
 
         then:
         succeeds checkTestPropTasks()
