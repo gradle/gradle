@@ -130,12 +130,9 @@ class SchemeExtractionErrorTest {
                     |Multiple failures in building the declarative schema:
                     |
                     |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
-                    |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.VisibleAndHidden'
-                    |
-                    |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
                     |  in member 'var org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.s: kotlin.String'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
-                |
+                    |
                     |* Illegal 'IN' variance
                     |  in type argument 'in kotlin.String'
                     |  in parameter 'x'
@@ -145,6 +142,9 @@ class SchemeExtractionErrorTest {
                     |* Unsupported property declaration: nullable read-only property
                     |  in member 'val org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.y: kotlin.Int?'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
+                    |
+                    |* More failures that are not reported now
+                    |  in types that are only used in other erroneous types: 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.VisibleAndHidden'
                     """.trimMargin(),
                     message
                 )

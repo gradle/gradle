@@ -35,7 +35,7 @@ class FunctionLambdaTypeDiscovery(
                     ?.asSupported(typeDiscoveryServices.host)
                     ?.let {
                         if (it is SchemaResult.Result)
-                            DiscoveredClass.classesOf(it.result, DiscoveredClass.DiscoveryTag.UsedInMember(fn.kCallable))
+                            DiscoveredClass.classesOf(it.result, DiscoveredClass.DiscoveryTag.UsedInMember(fn.kCallable, kClass))
                         else emptyList()
                     }
                     ?: emptyList()
@@ -49,7 +49,7 @@ class FunctionReturnTypeDiscovery : TypeDiscovery {
     override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscoveryResult> =
         typeDiscoveryServices.host.classMembers(kClass).declarativeMembers
             .flatMapTo(mutableSetOf()) { fn ->
-                DiscoveredClass.classesOf(fn.returnType, DiscoveredClass.DiscoveryTag.UsedInMember(fn.kCallable))
+                DiscoveredClass.classesOf(fn.returnType, DiscoveredClass.DiscoveryTag.UsedInMember(fn.kCallable, kClass))
             }
 }
 
@@ -61,7 +61,7 @@ class FunctionParameterTypeDiscovery : TypeDiscovery {
         typeDiscoveryServices.host.classMembers(kClass).declarativeMembers
             .flatMapTo(mutableSetOf()) { fn ->
                 fn.parameters.flatMap {
-                    DiscoveredClass.classesOf(it.type, DiscoveredClass.DiscoveryTag.UsedInMember(fn.kCallable))
+                    DiscoveredClass.classesOf(it.type, DiscoveredClass.DiscoveryTag.UsedInMember(fn.kCallable, kClass))
                 }
             }
 }
