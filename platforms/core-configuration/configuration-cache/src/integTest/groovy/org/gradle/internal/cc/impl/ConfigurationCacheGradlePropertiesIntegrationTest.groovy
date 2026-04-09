@@ -738,7 +738,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         assertHasUnsupportedPropertyValueType(Property, Configuration, "printFiles", "BrokenPrintTask")
 
         where:
-        annotation << ["@Input", "@Internal"]
+        annotation << ["@Input", "@Internal", "@InputFiles", "@Classpath"]
     }
 
     def "reports sensible error when concrete task has concrete Property of Configuration"() {
@@ -797,7 +797,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         assertHasUnsupportedPropertyValueType(Property, SourceDirectorySet, "sdsTask", "SdsTask")
 
         where:
-        annotation << ["@Input", "@Internal"]
+        annotation << ["@Input", "@Internal", "@InputFiles", "@Classpath"]
     }
 
     def "reports sensible error task indirectly holds a Property of unsupported type"() {
@@ -860,28 +860,34 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
                 @Internal
                 abstract Property<Configuration> getFirst()
 
-                @Internal
+                @Input
                 abstract Property<Configuration> getSecond()
 
-                @Input
+                @InputFiles
                 abstract Property<Configuration> getThird()
+
+                @Classpath
+                abstract Property<Configuration> getFourth()
 
                 @TaskAction
                 void run() {
                     println "First: " + first.get().name
                     println "Second: " + second.get().name
                     println "Third: " + third.get().name
+                    println "Fourth: " + fourth.get().name
                 }
             }
 
             configurations.create('confA')
             configurations.create('confB')
             configurations.create('confC')
+            configurations.create('confD')
 
             tasks.register("multiConf", MultiConfTask) {
                 first.set(configurations.getByName('confA'))
                 second.set(configurations.getByName('confB'))
                 third.set(configurations.getByName('confC'))
+                fourth.set(configurations.getByName('confD'))
             }
         """
 
