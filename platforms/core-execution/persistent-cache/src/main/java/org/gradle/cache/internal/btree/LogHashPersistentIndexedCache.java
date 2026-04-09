@@ -67,6 +67,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final int ENTRY_HEADER_SIZE = 20; // keyHash:8 + valueLen:4 + lastWrite:8
     private static final int SPECULATIVE_READ_SIZE = 512;
     private static final int PROBE_CHUNK_BUCKETS = 8;
+    private static final int MIN_BUCKET_COUNT = 8192; // 128 KB initial index, covers ~6000 entries at 75% load
 
     private final File baseFile;
     private final File dataFile;
@@ -486,7 +487,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
      * Both buffers are temporary and immediately eligible for GC after this method returns.
      */
     private void growIndex() throws IOException {
-        int newBucketCount = nextPowerOfTwo(Math.max(16, entryCount * 4 / 3 + 1));
+        int newBucketCount = nextPowerOfTwo(Math.max(MIN_BUCKET_COUNT, entryCount * 4 / 3 + 1));
         int newBucketMask = newBucketCount - 1;
 
         // Temporary buffer for the new index
