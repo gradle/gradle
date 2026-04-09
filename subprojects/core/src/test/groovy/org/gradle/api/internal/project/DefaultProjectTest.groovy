@@ -18,6 +18,7 @@ package org.gradle.api.internal.project
 
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.Action
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.api.AntBuilder
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
@@ -266,6 +267,13 @@ class DefaultProjectTest extends Specification {
         build.getParent() >> null
         build.isRootBuild() >> true
         build.getIdentityPath() >> Path.ROOT
+        def buildModelParameters = Stub(BuildModelParameters) {
+            isIsolatedProjects() >> false
+        }
+        def gradleServices = Stub(ServiceRegistry) {
+            get((Class) BuildModelParameters) >> buildModelParameters
+        }
+        build.getServices() >> gradleServices
 
         buildState = Stub(BuildState)
         buildState.getIdentityPath() >> Path.ROOT
