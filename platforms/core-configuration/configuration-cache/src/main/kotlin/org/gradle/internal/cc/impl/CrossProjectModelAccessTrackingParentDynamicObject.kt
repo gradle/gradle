@@ -133,7 +133,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
                 if (memberName != null) {
                     text(memberKind.name.lowercase(Locale.ENGLISH))
                     text(" ")
-                    reference("'$memberName'")
+                    reference(memberName)
                 } else {
                     text("a ")
                     text(memberKind.name.lowercase(Locale.ENGLISH))

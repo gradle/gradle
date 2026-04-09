@@ -42,6 +42,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Describables
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
@@ -267,6 +268,9 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(GradleLifecycleActionExecutor, Stub(GradleLifecycleActionExecutor))
         serviceRegistry.add(ProjectFeatureDeclarations, Stub(ProjectFeatureDeclarations))
         serviceRegistry.add(ProjectFeatureApplicator, Stub(ProjectFeatureApplicator))
+        serviceRegistry.add(BuildModelParameters, Stub(BuildModelParameters) {
+            isIsolatedProjects() >> false
+        })
 
         def antBuilder = Mock(AntBuilder)
         serviceRegistry.add(AntBuilderFactory, Mock(AntBuilderFactory) {

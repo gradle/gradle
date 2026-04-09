@@ -101,7 +101,7 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         then:
         failure.assertHasFailures(2)
         problems.assertFailureHasProblems(failure) {
-            withProblem("Plugin 'some-plugin': Project ':module' cannot dynamically look up a property in the parent project ':'")
+            withProblem("Plugin 'some-plugin': Project ':module' cannot dynamically look up property 'foobar' in the parent project ':'")
         }
         resolveConfigurationCacheReportDirectory(testDirectory.file(customBuildDir), failure.error)?.isDirectory()
     }
