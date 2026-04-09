@@ -19,7 +19,10 @@ package org.gradle.process.internal.worker;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.stream.EncodedStream;
 
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -32,7 +35,7 @@ import java.util.concurrent.Callable;
  */
 public class GradleWorkerMain {
     public void run() throws Exception {
-        DataInputStream instr = new DataInputStream(new EncodedStream.EncodedInput(System.in));
+        DataInputStream instr = new DataInputStream(new EncodedStream.EncodedInput(new BufferedInputStream(new FileInputStream(FileDescriptor.in))));
 
         // Read shared packages
         int sharedPackagesCount = instr.readInt();

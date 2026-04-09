@@ -33,6 +33,7 @@ public abstract class OperatingSystem {
     public static final Solaris SOLARIS = new Solaris();
     public static final Linux LINUX = new Linux();
     public static final FreeBSD FREE_BSD = new FreeBSD();
+    public static final ZOs ZOS = new ZOs();
     public static final Unix UNIX = new Unix();
     private static @Nullable OperatingSystem currentOs;
     private final String toStringValue;
@@ -69,6 +70,8 @@ public abstract class OperatingSystem {
             return LINUX;
         } else if (osName.contains("freebsd")) {
             return FREE_BSD;
+        } else if (osName.contains("z/os")) {
+            return ZOS;
         } else {
             // Not strictly true
             return UNIX;
@@ -102,6 +105,10 @@ public abstract class OperatingSystem {
     }
 
     public boolean isLinux() {
+        return false;
+    }
+
+    public boolean isZOs() {
         return false;
     }
 
@@ -437,6 +444,28 @@ public abstract class OperatingSystem {
                 return "x86";
             }
             return super.getArch();
+        }
+    }
+
+    static class ZOs extends Unix {
+        @Override
+        public boolean isZOs() {
+            return true;
+        }
+
+        @Override
+        public String getFamilyName() {
+            return "zos";
+        }
+
+        @Override
+        public String getOsPrefix() {
+            return "zos";
+        }
+
+        @Override
+        public String getLinkLibrarySuffix() {
+            return ".x";
         }
     }
 }

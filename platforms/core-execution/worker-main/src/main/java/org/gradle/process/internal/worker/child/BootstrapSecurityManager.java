@@ -19,8 +19,11 @@ package org.gradle.process.internal.worker.child;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.stream.EncodedStream;
 
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -69,7 +72,7 @@ public class BootstrapSecurityManager extends SecurityManager {
             Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             addUrlMethod.setAccessible(true);
 
-            DataInputStream inputStream = new DataInputStream(new EncodedStream.EncodedInput(System.in));
+            DataInputStream inputStream = new DataInputStream(new EncodedStream.EncodedInput(new BufferedInputStream(new FileInputStream(FileDescriptor.in))));
             int count = inputStream.readInt();
             StringBuilder classpathStr = new StringBuilder();
             for (int i = 0; i < count; i++) {

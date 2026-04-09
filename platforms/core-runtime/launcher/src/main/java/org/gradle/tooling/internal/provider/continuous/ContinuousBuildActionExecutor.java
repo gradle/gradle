@@ -47,6 +47,9 @@ import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.util.internal.DisconnectableInputStream;
 
+import java.io.BufferedInputStream;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.util.function.Supplier;
 
 public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor {
@@ -119,7 +122,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         final CancellableOperationManager cancellableOperationManager;
         if (requestContext.isInteractiveConsole()) {
             if (!(System.in instanceof DisconnectableInputStream)) {
-                System.setIn(new DisconnectableInputStream(System.in));
+                System.setIn(new DisconnectableInputStream(new BufferedInputStream(new FileInputStream(FileDescriptor.in))));
             }
             DisconnectableInputStream inputStream = (DisconnectableInputStream) System.in;
             cancellableOperationManager = new DefaultCancellableOperationManager(executorFactory.create("Cancel signal monitor"), inputStream, cancellationToken);

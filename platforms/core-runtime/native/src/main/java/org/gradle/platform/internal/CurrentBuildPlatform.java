@@ -84,6 +84,8 @@ public class CurrentBuildPlatform {
             return OperatingSystem.SOLARIS;
         } else if (org.gradle.internal.os.OperatingSystem.FREE_BSD == operatingSystem) {
             return OperatingSystem.FREE_BSD;
+        } else if (org.gradle.internal.os.OperatingSystem.ZOS == operatingSystem) {
+            return OperatingSystem.ZOS;
         } else {
             throw new GradleException("Unhandled operating system: " + operatingSystem.getName());
         }

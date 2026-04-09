@@ -48,8 +48,11 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
 
 import java.io.ByteArrayInputStream;
+import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +83,9 @@ public class DaemonMain extends EntryPoint {
         DaemonServerConfiguration parameters;
 
         try {
-            KryoBackedDecoder decoder = new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
+            // Don't use System.in, IBM JVMs on some platforms (namely z/OS) will try to auto-convert the data in System.in between
+            // codepages incorrectly.
+            KryoBackedDecoder decoder = new KryoBackedDecoder(new EncodedStream.EncodedInput(new BufferedInputStream(new FileInputStream(FileDescriptor.in))));
             gradleHomeDir = new File(decoder.readString());
             parameters = readDaemonServerConfiguration(decoder);
         } catch (EOFException e) {

@@ -38,18 +38,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 public class DaemonStartupCommunication {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonStartupCommunication.class);
 
-    @SuppressWarnings("DefaultCharset")
     public void printDaemonStarted(PrintStream target, Long pid, String uid, Address address, File daemonLog) {
 
         // Encode as ascii
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try {
-            byteArrayOutputStream.write(daemonGreeting().getBytes());
+            byteArrayOutputStream.write(daemonGreeting().getBytes(StandardCharsets.UTF_8));
             OutputStream outputStream = new EncodedStream.EncodedOutput(byteArrayOutputStream);
             FlushableEncoder encoder = new OutputStreamBackedEncoder(outputStream);
             encoder.writeNullableString(pid == null ? null : pid.toString());
@@ -60,7 +61,11 @@ public class DaemonStartupCommunication {
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        target.println(byteArrayOutputStream.toString());
+        try {
+            target.println(byteArrayOutputStream.toString("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
 
         //ibm vm 1.6 + windows XP gotchas:
         //we need to print something else to the stream after we print the daemon greeting.
@@ -69,7 +74,6 @@ public class DaemonStartupCommunication {
         //btw. the ibm vm+winXP also has some issues detecting closed streams by the child but we handle this problem differently.
     }
 
-    @SuppressWarnings("DefaultCharset")
     public DaemonStartupInfo readDiagnostics(String message) {
         //Assuming the message has correct format. Not bullet proof, but seems to work ok for now.
         if (!message.startsWith(daemonGreeting())) {
@@ -77,7 +81,7 @@ public class DaemonStartupCommunication {
         }
         try {
             String encoded = message.substring(daemonGreeting().length()).trim();
-            InputStream inputStream = new EncodedStream.EncodedInput(new ByteArrayInputStream(encoded.getBytes()));
+            InputStream inputStream = new EncodedStream.EncodedInput(new ByteArrayInputStream(encoded.getBytes(StandardCharsets.UTF_8)));
             Decoder decoder = new InputStreamBackedDecoder(inputStream);
             String pidString = decoder.readNullableString();
             String uid = decoder.readString();
