@@ -37,8 +37,6 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
 
     ExcludeSpec getExclusions();
 
-    boolean contributesArtifacts();
-
     DependencyMetadata getDependencyMetadata();
 
     /**

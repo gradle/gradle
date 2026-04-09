@@ -408,11 +408,6 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public boolean contributesArtifacts() {
-        return !isConstraint;
-    }
-
-    @Override
     public ComponentSelector getRequested() {
         return resolveState.desugarSelector(dependencyState.getRequested());
     }

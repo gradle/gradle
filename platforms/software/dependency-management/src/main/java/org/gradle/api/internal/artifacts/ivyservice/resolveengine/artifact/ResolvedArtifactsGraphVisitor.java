@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -29,6 +30,7 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
@@ -65,62 +67,70 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     @Override
     public void visitEdges(DependencyGraphNode node) {
-        boolean hasTransitiveIncomingEdge = visitNonFileEdges(node);
+        boolean hasTransitiveIncomingEdge = false;
+        ImmutableList.Builder<ArtifactSet> builder = null;
+        ArtifactSet implicitArtifactSet = ArtifactSet.EMPTY;
+
+        for (DependencyGraphEdge edge : node.getIncomingEdges()) {
+            hasTransitiveIncomingEdge |= edge.isTransitive();
+
+            if (!edge.isConstraint()) {
+                artifactResults.visitEdge(edge.getFrom(), node);
+
+                ArtifactSet adhocArtifacts = maybeGetAdhocArtifacts(node, edge);
+                if (adhocArtifacts != null) {
+                    // The artifacts for this node were modified by the dependency.
+                    // Do not use the implicit artifact set.
+                    if (builder == null) {
+                        builder = ImmutableList.builder();
+                    }
+                    builder.add(adhocArtifacts);
+                } else if (implicitArtifactSet == ArtifactSet.EMPTY) {
+                    // We have not visited the implicit artifacts yet.
+                    // Since the dependency does not modify the artifacts, we can use the same
+                    // artifact set as other dependencies that do not modify the artifacts. We call
+                    // this the implicit artifact set.
+                    implicitArtifactSet = artifactSetCache.getImplicitVariant(node.getOwner().getResolveState(), node.getResolveState());
+                }
+            }
+        }
 
         if (node.isRoot() || hasTransitiveIncomingEdge) {
             // Since file dependencies are not modeled as actual edges, we need to verify
             // there are edges to this node that would follow this file dependency.
             for (LocalFileDependencyMetadata fileDependency : node.getOutgoingFileEdges()) {
-                int id = nextId++;
-                artifactResults.visitArtifacts(node, fileDependency, id, new FileDependencyArtifactSet(fileDependency, node.getId(), artifactTypeRegistry, calculatedValueContainerFactory));
-            }
-        }
-    }
-
-    /**
-     * Visit all the non-file edges for the given node.
-     *
-     * @return true if there is a transitive incoming edge.
-     */
-    private boolean visitNonFileEdges(DependencyGraphNode node) {
-        boolean hasTransitiveIncomingEdge = false;
-
-        int implicitArtifactSetId = -1;
-        ArtifactSet implicitArtifactSet = null;
-
-        for (DependencyGraphEdge edge : node.getIncomingEdges()) {
-            hasTransitiveIncomingEdge |= edge.isTransitive();
-
-            if (edge.contributesArtifacts()) {
-                if (maybeVisitAdhocEdge(node, edge)) {
-                    // The artifacts for this node were modified by the dependency.
-                    // Do not use the implicit artifact set.
-                    continue;
+                if (builder == null) {
+                    builder = ImmutableList.builder();
                 }
-
-                // Since the dependency does not modify the artifacts, we can use the same
-                // artifact set as other dependencies that do not modify the artifacts. We call
-                // this the implicit artifact set.
-                if (implicitArtifactSet == null) {
-                    // We have not visited the implicit artifacts yet.
-                    implicitArtifactSetId = nextId++;
-                    implicitArtifactSet = artifactSetCache.getImplicitVariant(node.getOwner().getResolveState(), node.getResolveState());
-                }
-
-                artifactResults.visitArtifacts(edge.getFrom(), node, implicitArtifactSetId, implicitArtifactSet);
+                builder.add(new FileDependencyArtifactSet(fileDependency, node.getId(), artifactTypeRegistry, calculatedValueContainerFactory));
             }
         }
 
-        return hasTransitiveIncomingEdge;
+        int id = nextId++;
+        ArtifactSet nodeArtifacts = implicitArtifactSet;
+        if (builder != null) {
+            if (implicitArtifactSet != ArtifactSet.EMPTY) {
+                ImmutableList<ArtifactSet> extraArtifactSets = builder.build();
+                nodeArtifacts = CompositeArtifactSet.of(ImmutableList.<ArtifactSet>builderWithExpectedSize(extraArtifactSets.size() + 1)
+                    .add(implicitArtifactSet)
+                    .addAll(extraArtifactSets)
+                    .build()
+                );
+            } else {
+                nodeArtifacts = CompositeArtifactSet.of(builder.build());
+            }
+        }
+        artifactResults.visitArtifacts(node, id, nodeArtifacts);
     }
 
     /**
-     * Process the given edge, and if it modifies the artifacts, visit the artifacts.
+     * Process the given edge, and if it modifies the artifacts, return the artifact set representing
+     * those modified artifacts.
      *
-     * @return true if this edge modifies the artifacts, meaning it is adhoc, and should
-     * not also contribute to the implicit artifact set.
+     * @return The adhoc artifact set if this edge modifies the artifacts, or null if this edge
+     * is non-adhoc and should instead contribute the implicit artifact set.
      */
-    private boolean maybeVisitAdhocEdge(DependencyGraphNode node, DependencyGraphEdge dependency) {
+    private static @Nullable ArtifactSet maybeGetAdhocArtifacts(DependencyGraphNode node, DependencyGraphEdge dependency) {
         ComponentGraphResolveState component = node.getOwner().getResolveState();
         VariantGraphResolveState variant = node.getResolveState();
 
@@ -135,18 +145,15 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             capabilitySelectors.isEmpty() &&
             !exclusions.mayExcludeArtifacts()
         ) {
-            return false;
+            return null;
         }
 
-        int id = nextId++;
-        VariantResolvingArtifactSet artifactSet = new VariantResolvingArtifactSet(component, variant, attributes, artifacts, exclusions, capabilitySelectors);
-        artifactResults.visitArtifacts(dependency.getFrom(), node, id, artifactSet);
-
-        return true;
+        return new VariantResolvingArtifactSet(component, variant, attributes, artifacts, exclusions, capabilitySelectors);
     }
 
     @Override
     public void finish(RootGraphNode root) {
         artifactResults.finishArtifacts(root);
     }
+
 }
