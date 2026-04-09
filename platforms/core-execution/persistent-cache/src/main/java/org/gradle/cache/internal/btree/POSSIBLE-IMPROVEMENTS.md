@@ -350,6 +350,85 @@ Implement both: hybrid (Fix A) eliminates the syscall overhead for the majority 
 caches; larger minimum size (Fix B) reduces growIndex churn during the early
 put-heavy phase.
 
+## 12. In-place value overwrite for updates
+
+### Problem: append-only writes vs BTree's in-place updates
+
+BTree can overwrite a value in place when the new serialized size fits in the existing
+DataBlock. For updates (same key, new value), this means:
+- 1 seek + 1 write = **2 syscalls**, index unchanged (same offset)
+
+LogHash always appends a new entry + updates the index bucket:
+- 2 data pwrites + 1 index pread + 1 index pwrite = **4 syscalls**
+
+For update-heavy workloads, BTree does ~2x fewer syscalls per put.
+
+### Cache architecture context
+
+The persistent cache is wrapped by several layers:
+
+```
+InMemoryDecoratedCache  (Guava, 10K entries — absorbs reads)
+  → AsyncCacheAccessDecoratedCache  (defers writes asynchronously)
+    → DefaultMultiProcessSafeIndexedCache
+      → LogHashPersistentIndexedCache
+```
+
+The Guava cache absorbs repeated gets. The async layer batches writes. Only **one
+persistent put() per unique key** reaches LogHash. This limits the total number of
+puts, but each put still pays the full append cost.
+
+Important: the configuration cache serialization writes to **state files**, not via
+IndexedCache.put(). The "storing configuration cache state" benchmark regression may
+not be primarily from put() overhead — other caches (execution history, file hashes)
+are used during the build and contribute to the measured time.
+
+### Execution history: the main update-heavy cache
+
+`StoreExecutionStateStep` calls `history.store(taskId, state)` after every task
+execution. The task ID is the key — same keys written repeatedly across builds. This
+is a **pure update pattern**.
+
+Serialized entry sizes for execution history (DefaultPreviousExecutionStateSerializer):
+
+| Component                  | Typical size    | Notes                              |
+|----------------------------|-----------------|------------------------------------|
+| OriginMetadata             | ~60 bytes       | Build ID + cache key + time        |
+| ImplementationSnapshot     | ~80-300 bytes   | Task class + classloader hash      |
+| InputProperties            | ~1-5 KB         | ValueSnapshots (see issue #35338)  |
+| **InputFileProperties**    | **50-150 KB**   | Path + hash per input file (DOMINANT) |
+| **OutputFilesProducedByWork** | **30-80 KB** | Full file tree of outputs          |
+| **Total per task**         | **80-240 KB**   | Can reach 500 KB-1 MB for large tasks |
+
+### 32 KB buffer is NOT enough
+
+The KryoBackedEncoder's internal buffer is 32 KB. Execution history entries are
+typically 80-240 KB — far exceeding the buffer. The encoder flushes to disk multiple
+times during serialization. This means we cannot use the encoder's buffer to "serialize
+first, then decide where to write" for execution history entries.
+
+Options:
+- **Larger dedicated buffer (e.g., 256 KB-1 MB)**: would cover most entries but adds
+  significant per-cache-instance memory. Defeats the O(1) memory goal.
+- **Always append for large values, in-place for small**: only helps caches with small
+  entries (metadata caches, not execution history).
+- **Size-hint from previous write**: store the old serialized size in the index bucket
+  or data header. On update, start writing at the old position. If we exceed the old
+  size mid-stream, abort and re-append. But partial overwrites corrupt the old entry.
+- **Reserve extra space per entry**: allocate 1.5x the serialized size, allowing
+  modest growth without reallocation. Wastes ~50% disk space.
+
+### Recommendation
+
+In-place value overwrite is complex and doesn't help the dominant cache (execution
+history, 80-240 KB entries) without either large buffers or architectural changes.
+The biggest practical improvement is still the **hybrid in-memory/on-disk index**
+(item 11), which eliminates the index pread overhead without touching the write model.
+
+If execution history update performance is critical, consider a different approach:
+store only hashes of input/output file properties (issue #35338), which would shrink
+entries from ~200 KB to ~5-10 KB — small enough for the 32 KB in-place buffer.
+
 ## Summary
 
 | Improvement                | Effort      | Memory impact              | Throughput impact            |
@@ -365,3 +444,4 @@ put-heavy phase.
 | Merge into single file     | Medium      | None                       | One fewer fsync per flush    |
 | ~~Bounded index memory~~       | ~~Medium-High~~ | ~~O(n) -> O(1) for large~~     | ~~Prevents OOM on large caches~~ DONE (on-disk probing) |
 | Hybrid + min index size    | Medium      | Bounded (threshold)        | Restores perf for small caches |
+| In-place value overwrite   | High        | Needs buffer or size hint  | ~2x fewer syscalls for updates (but entries too large for exec history) |
