@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
-import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataConstructor
@@ -163,6 +162,8 @@ object SchemaBuildingTags {
                 featureNames.joinToString { "'$it'" } + if (pluginId != null) " (plugin '${pluginId}')" else ""
             }
     )
+
+    fun erroneousTypes(typeNames: Set<String>) = TagContextElement("types that are only used in other erroneous types: ${typeNames.joinToString(limit = 3) { "'$it'" }}")
 }
 
 inline fun <R> SchemaBuildingHost.inContextOf(contextElement: SchemaBuildingContextElement, doBuildSchema: () -> R): R =
@@ -426,9 +427,10 @@ class DataSchemaBuilder(
 
         validateSchemaInvariants(host, schema)
 
+        val allFailures = collectSchemaBuildingFailures(host, preIndex, schema)
         schemaBuildingFailureReporter.report(
             schema,
-            collectSchemaBuildingFailures(host, preIndex, schema).values.flatten().map { it.asReportableFailure() }
+            pruneSchemaBuildingFailures(host, preIndex.allDiscoveredTypes, allFailures).map { it.asReportableFailure() }
         )
 
         return schema
@@ -439,8 +441,14 @@ class DataSchemaBuilder(
         preIndex: PreIndex,
         schema: DefaultAnalysisSchema,
     ): Map<FqName, Set<SchemaResult.Failure>> = buildMap<FqName, MutableSet<SchemaResult.Failure>> {
-        fun addAll(fqName: FqName, failures: Iterable<SchemaResult.Failure>) { getOrPut(fqName) { mutableSetOf() } += failures }
-        fun add(fqName: FqName, failure: SchemaResult.Failure) { getOrPut(fqName) { mutableSetOf() } += failure }
+        fun addAll(fqName: FqName, failures: Iterable<SchemaResult.Failure>) {
+            if (failures.any())
+                getOrPut(fqName) { mutableSetOf() } += failures
+        }
+
+        fun add(fqName: FqName, failure: SchemaResult.Failure) {
+            getOrPut(fqName) { mutableSetOf() } += failure
+        }
 
         host.typeFailures.forEach { (name, failures) -> addAll(name, failures) }
 
@@ -448,7 +456,7 @@ class DataSchemaBuilder(
             addAll(DefaultFqName.of(kClass), failures)
         }
 
-        checkSafeTypeRequirements(schema, host).forEach { name, failures ->
+        checkSafeTypeRequirements(schema, host).forEach { (name, failures) ->
             addAll(name, failures)
         }
 
@@ -648,7 +656,7 @@ class DataSchemaBuilder(
 
                 val illegalUsages = discoveries.filterNot { it.isHidden }
                     .map { it.discoveryTag }
-                    .filter { it !is Supertype || it.ofType != kClass } // Filter out the self-appearance in the type hierarchy
+                    .filter { it !is Supertype || it.fromClass != kClass } // Filter out the self-appearance in the type hierarchy
 
                 listOf(host.schemaBuildingFailure(SchemaBuildingIssue.HiddenTypeUsedInDeclaration(kClass, hiddenBecause, illegalUsages)))
             } else emptyList()

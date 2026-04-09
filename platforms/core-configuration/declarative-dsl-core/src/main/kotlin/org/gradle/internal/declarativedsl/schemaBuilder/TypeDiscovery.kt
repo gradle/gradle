@@ -54,18 +54,22 @@ interface TypeDiscovery {
             get() = discoveryTag.isHidden
 
         sealed interface DiscoveryTag {
+            sealed interface FromClassDiscoveryTag : DiscoveryTag {
+                val fromClass: KClass<*>
+            }
+
             val isHidden: Boolean
 
-            data class Supertype(val ofType: KClass<*>, override val isHidden: Boolean) : DiscoveryTag
-            data class ContainerElement(val containerMember: KCallable<*>) : DiscoveryTag {
+            data class Supertype(override val fromClass: KClass<*>, override val isHidden: Boolean) : FromClassDiscoveryTag
+            data class ContainerElement(override val fromClass: KClass<*>, val containerMember: KCallable<*>) : FromClassDiscoveryTag {
                 override val isHidden = false
             }
 
-            data class UsedInMember(val member: KCallable<*>) : DiscoveryTag {
+            data class UsedInMember(val member: KCallable<*>, override val fromClass: KClass<*>) : FromClassDiscoveryTag {
                 override val isHidden = false
             }
 
-            data class PropertyType(val kClass: KClass<*>, val propertyName: String) : DiscoveryTag {
+            data class PropertyType(override val fromClass: KClass<*>, val propertyName: String) : FromClassDiscoveryTag {
                 override val isHidden = false
             }
 

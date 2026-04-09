@@ -33,10 +33,9 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         def settings = file("settings.gradle.dcl")
         settings << pluginsFromIncludedBuild
 
-        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
-            "Property<String> getText();",
-            "Property<String> getText();\n" +
-                "java.util.Map<String, String> myMap();\n" +
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "java.util.Map<String, String> myMap();\n" +
                 "java.util.Map<String, String> anotherMap();\n" +
                 "Property<? extends CharSequence> getWildcard();"
         )
@@ -120,8 +119,8 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         expect:
         fails().assertHasErrorOutput(
             "Unsafe declaration in safe definition: non-interface type\n" +
-            "      in schema type 'org.gradle.test.FeatureDefinition.Fizz'\n" +
-            "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+                "      in schema type 'org.gradle.test.FeatureDefinition.Fizz'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
 
         verifyAll(receivedProblem(0)) {
@@ -145,18 +144,17 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
 
         file("settings.gradle.dcl") << pluginsFromIncludedBuild
 
-        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
-            "Property<String> getText();",
-            "Property<String> getText();\n" +
-                "@org.gradle.declarative.dsl.model.annotations.HiddenInDefinition\n" +
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "@org.gradle.declarative.dsl.model.annotations.HiddenInDefinition\n" +
                 "Property<String> getHiddenProp();"
         )
 
         expect:
         fails().assertHasErrorOutput(
             "Unsafe declaration in safe definition: hidden member 'getHiddenProp'\n" +
-            "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
-            "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
 
         verifyAll(receivedProblem(0)) {
@@ -180,9 +178,9 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
 
         file("settings.gradle.dcl") << pluginsFromIncludedBuild
 
-        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
-            "Property<String> getText();",
-            "Property<String> getText();\nprivate String nonPublicMember() { return \"\"; }"
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "private String nonPublicMember() { return \"\"; }"
         )
 
         expect:
@@ -215,10 +213,9 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
 
         file("settings.gradle.dcl") << pluginsFromIncludedBuild
 
-        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
-            "Property<String> getText();",
-            "Property<String> getText();\n" +
-                "String getPlainText();\n" +
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "String getPlainText();\n" +
                 "void setPlainText(String value);"
         )
 
@@ -251,10 +248,9 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
 
         file("settings.gradle.dcl") << pluginsFromIncludedBuild
 
-        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
-            "Property<String> getText();",
-            "Property<String> getText();\n" +
-                "default String getDefaultValue() { return \"default\"; }"
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "default String getDefaultValue() { return \"default\"; }"
         )
 
         expect:
@@ -286,19 +282,18 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
 
         file("settings.gradle.dcl") << pluginsFromIncludedBuild
 
-        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
-            "Property<String> getText();",
-            "Property<String> getText();\n" +
-                "@org.gradle.declarative.dsl.model.annotations.Adding\n" +
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "@org.gradle.declarative.dsl.model.annotations.Adding\n" +
                 "Fizz addFizz();"
         )
 
         expect:
         fails().assertHasErrorOutput(
             "Unsafe declaration in safe definition: function relying on side effects or custom implementation\n" +
-            "      in schema function 'addFizz(): Fizz'\n" +
-            "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
-            "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+                "      in schema function 'addFizz(): Fizz'\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
 
         verifyAll(receivedProblem(0)) {
@@ -324,10 +319,9 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
 
         file("settings.gradle.dcl") << pluginsFromIncludedBuild
 
-        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
-            "Property<String> getText();",
-            "Property<String> getText();\n" +
-                "@javax.inject.Inject\n" +
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "@javax.inject.Inject\n" +
                 "Fizz getInjectedFizz();"
         )
 
@@ -376,25 +370,22 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             }
         """
 
-        file("plugins/src/main/java/org/gradle/test/FeatureDefinition.java").replace(
-            "Property<String> getText();",
-            "Property<String> getText();\n" +
-                "@org.gradle.api.tasks.Nested\n" +
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "@org.gradle.api.tasks.Nested\n" +
                 "SharedType getShared();"
         )
 
-        file("plugins/src/main/java/org/gradle/test/AnotherFeatureDefinition.java").replace(
-            "Property<String> getText();",
-            "Property<String> getText();\n" +
-                "@org.gradle.api.tasks.Nested\n" +
+        addDefinitionMembers("AnotherFeatureDefinition.java",
+            "@org.gradle.api.tasks.Nested\n" +
                 "SharedType getShared();"
         )
 
         expect:
         fails().assertHasErrorOutput(
             "Unsafe declaration in safe definition: hidden member 'getHiddenProp'\n" +
-            "      in schema type 'org.gradle.test.SharedType'\n" +
-            "      in safe feature definitions of 'feature', 'anotherFeature' (plugin 'com.example.test-software-ecosystem')"
+                "      in schema type 'org.gradle.test.SharedType'\n" +
+                "      in safe feature definitions of 'feature', 'anotherFeature' (plugin 'com.example.test-software-ecosystem')"
         )
 
         verifyAll(receivedProblem(0)) {
@@ -409,5 +400,101 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
                 "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
             ]
         }
+    }
+
+    def 'failures in types only used in other erroneous types are aggregated'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        pluginBuilder.file("src/main/java/org/gradle/test/IndirectType.java") << """
+            package org.gradle.test;
+            import org.gradle.api.provider.Property;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+            public interface IndirectType {
+                Property<String> getValue();
+                @HiddenInDefinition
+                Property<String> getAlsoHidden();
+            }
+        """
+
+        pluginBuilder.file("src/main/java/org/gradle/test/AnotherIndirectType.java") << """
+            package org.gradle.test;
+            import org.gradle.api.provider.Property;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+            public interface AnotherIndirectType {
+                Property<String> getValue();
+                @HiddenInDefinition
+                Property<String> getYetAnotherHidden();
+            }
+        """
+
+        pluginBuilder.file("src/main/java/org/gradle/test/TypeWithIssues.java") << """
+            package org.gradle.test;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Nested;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+            public interface TypeWithIssues {
+                Property<String> getValue();
+
+                @HiddenInDefinition
+                Property<String> getHidden();
+
+                @Nested
+                AnotherIndirectType getAnotherIndirect();
+
+                @Nested
+                IndirectType getIndirect();
+            }
+        """
+
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "@org.gradle.api.tasks.Nested\n" +
+                "TypeWithIssues getTypeWithIssues();"
+        )
+
+        expect:
+        fails().assertHasErrorOutput(
+            "Unsafe declaration in safe definition: hidden member 'getHidden'\n" +
+                "      in schema type 'org.gradle.test.TypeWithIssues'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+        fails().assertHasErrorOutput(
+            "More failures that are not reported now\n" +
+                "      in types that are only used in other erroneous types: 'org.gradle.test.AnotherIndirectType', 'org.gradle.test.IndirectType'"
+        )
+
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:more-failures-in-erroneous-types"
+            details == "More failures that are not reported now\n" +
+                "  in types that are only used in other erroneous types: 'org.gradle.test.AnotherIndirectType', 'org.gradle.test.IndirectType'"
+            solutions == [
+                "Fix the other issues first and run the build with the updated plugin to see the details.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+            details == "Unsafe declaration in safe definition: hidden member 'getHidden'\n" +
+                "  in schema type 'org.gradle.test.TypeWithIssues'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Remove the hidden members.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
+    }
+
+    private void addDefinitionMembers(String definitionFileName, String members) {
+        file("plugins/src/main/java/org/gradle/test/${definitionFileName}"). replace(
+            "Property<String> getText();",
+            "Property<String> getText();\n" + members
+        )
     }
 }

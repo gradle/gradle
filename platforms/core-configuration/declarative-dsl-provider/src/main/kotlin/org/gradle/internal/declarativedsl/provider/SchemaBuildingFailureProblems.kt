@@ -74,6 +74,7 @@ private object ProblemIds {
     val SCHEMA_UNSAFE_NON_PURE_FUNCTION = create("unsafe-non-pure-function", "Unsafe non-pure function in safe feature API", group)
     val SCHEMA_UNSAFE_BECAUSE_HAS_HIDDEN_MEMBERS = create("unsafe-because-has-hidden-members", "Unsafe hidden members in safe feature API", group)
     val SCHEMA_UNSAFE_BECAUSE_HAS_NON_PUBLIC_MEMBERS = create("unsafe-because-has-non-public-members", "Non-public members in safe feature API", group)
+    val SCHEMA_MORE_FAILURES_IN_ERRONEOUS_TYPES = create("more-failures-in-erroneous-types", "More failures in types that are only used in other erroneous types", group)
 }
 
 @Suppress("CyclomaticComplexMethod")
@@ -102,6 +103,7 @@ internal fun schemaBuildingFailureProblemId(failure: SchemaBuildingFailure): Pro
         is UnsafeBecauseHasNonPublicMembers -> ProblemIds.SCHEMA_UNSAFE_BECAUSE_HAS_NON_PUBLIC_MEMBERS
         else -> ProblemIds.SCHEMA_BUILDING_FAILURE
     }
+    is SchemaIssue.MoreFailuresInErroneousTypes -> ProblemIds.SCHEMA_MORE_FAILURES_IN_ERRONEOUS_TYPES
     else -> ProblemIds.SCHEMA_BUILDING_FAILURE
 }
 
@@ -175,6 +177,10 @@ internal fun ProblemSpec.solutionFor(failure: SchemaBuildingFailure) {
                 else -> Unit
             }
             solution("Declare the corresponding features as having unsafe definitions.")
+        }
+
+        is SchemaIssue.MoreFailuresInErroneousTypes -> {
+            solution("Fix the other issues first and run the build with the updated plugin to see the details.")
         }
 
         is SchemaIssue.NonClassifiableType,

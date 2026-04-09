@@ -163,6 +163,11 @@ sealed interface SchemaBuildingIssue {
         override val usedInSafeFeatures: List<ProjectFeatureOrigin>,
         override val unsafeApiCause: UnsafeSchemaItem
     ) : SchemaBuildingIssue, SchemaIssue.UnsafeDeclarationInSafeFeatureApi
+
+    class MoreFailuresInErroneousTypes(
+        override val typeNames: Set<String>,
+        override val issues: List<SchemaBuildingFailure>
+    ) : SchemaIssue.MoreFailuresInErroneousTypes
 }
 
 object SchemaFailureMessageFormatter {
@@ -212,6 +217,7 @@ object SchemaFailureMessageFormatter {
                 is UnsafeBecauseHasNonPublicMembers -> ": non-public member${if (cause.memberNames.size > 1) "s" else ""} ${cause.memberNames.joinToString(limit = 3) { "'$it'" }}"
                 else -> ""
             }
+            is SchemaBuildingIssue.MoreFailuresInErroneousTypes -> "More failures that are not reported now"
             else -> "Schema issue: $schemaIssue"
         }
 
@@ -219,9 +225,9 @@ object SchemaFailureMessageFormatter {
 
 private fun discoveryTagDescription(tag: DiscoveryTag, violatingClass: KClass<*>): String = when (tag) {
     is ContainerElement -> "as the element of a container '${tag.containerMember}'"
-    is PropertyType -> "as the property type of '${tag.kClass.qualifiedName}.${tag.propertyName}'"
-    is Supertype -> if (tag.ofType == violatingClass && tag.isHidden) "type '${violatingClass.qualifiedName}' is annotated as hidden" else
-        "in the supertypes of '${tag.ofType.qualifiedName}'"
+    is PropertyType -> "as the property type of '${tag.fromClass.qualifiedName}.${tag.propertyName}'"
+    is Supertype -> if (tag.fromClass == violatingClass && tag.isHidden) "type '${violatingClass.qualifiedName}' is annotated as hidden" else
+        "in the supertypes of '${tag.fromClass.qualifiedName}'"
 
     is UsedInMember -> "referenced from member '${tag.member}'"
     is DiscoveryTag.ProjectFeatureDefinition -> "definition of project feature '${tag.featureData.featureName}'"

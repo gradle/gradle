@@ -36,7 +36,8 @@ import java.io.Serializable
     SchemaIssue.NonClassifiableType::class,
     SchemaIssue.UnitAddingFunctionWithLambda::class,
     SchemaIssue.UnrecognizedMember::class,
-    SchemaIssue.UnsafeDeclarationInSafeFeatureApi::class
+    SchemaIssue.UnsafeDeclarationInSafeFeatureApi::class,
+    SchemaIssue.MoreFailuresInErroneousTypes::class
 ])
 interface SchemaIssue : Serializable {
     interface DeclarationBothHiddenAndVisible : SchemaIssue
@@ -92,5 +93,10 @@ interface SchemaIssue : Serializable {
     interface UnsafeDeclarationInSafeFeatureApi : SchemaIssue {
         val usedInSafeFeatures: List<ProjectFeatureOrigin>
         val unsafeApiCause: UnsafeSchemaItem
+    }
+
+    interface MoreFailuresInErroneousTypes : SchemaIssue {
+        val typeNames: Set<String>
+        val issues: List<SchemaBuildingFailure>
     }
 }

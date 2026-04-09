@@ -169,7 +169,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
                                 listOfNotNull(
                                     // discover the element type, only if the declared container type is not NDOC<T>; otherwise, it will be discovered from the signature
                                     (propertyResult.result.containerType.takeIf { it.classifier != NamedDomainObjectContainer::class })
-                                        ?.let { DiscoveredClass.classesOf(it, DiscoveryTag.ContainerElement(propertyResult.result.originDeclaration.kCallable)) }
+                                        ?.let { DiscoveredClass.classesOf(it, DiscoveryTag.ContainerElement(kClass, propertyResult.result.originDeclaration.kCallable)) }
                                 ).flatten()
                             }
                         }

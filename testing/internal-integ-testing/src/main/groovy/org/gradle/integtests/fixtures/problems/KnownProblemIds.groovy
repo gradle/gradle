@@ -199,6 +199,7 @@ class KnownProblemIds {
         'scripts:dcl-schema:unsafe-non-pure-function': ['.*'],
         'scripts:dcl-schema:unsafe-because-has-hidden-members': ['.*'],
         'scripts:dcl-schema:unsafe-because-has-non-public-members': ['.*'],
+        'scripts:dcl-schema:more-failures-in-erroneous-types': ['.*'],
 
         // integration test problems
         'deprecation:some-indirect-deprecation': ['Some indirect deprecation has been deprecated.'],

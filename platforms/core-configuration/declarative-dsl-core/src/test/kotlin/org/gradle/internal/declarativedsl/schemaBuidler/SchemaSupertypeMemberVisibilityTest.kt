@@ -60,10 +60,10 @@ class SchemaSupertypeMemberVisibilityTest {
             |Multiple failures in building the declarative schema:
             |
             |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
-            |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.VisibleHidden'
-            |
-            |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
             |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.AnotherVisibleHiddenSub'
+            |
+            |* More failures that are not reported now
+            |  in types that are only used in other erroneous types: 'org.gradle.internal.declarativedsl.schemaBuidler.VisibleHidden'
             """.trimMargin(),
             error.message
         )
