@@ -19,7 +19,7 @@ package org.gradle.model.internal.manage.schema.extract
 import com.google.common.base.Optional
 import groovy.test.NotYetImplemented
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.reflect.UnsupportedPropertyValueException
+import org.gradle.internal.reflect.UnsupportedTypeException
 import org.gradle.internal.typeconversion.DefaultTypeConverter
 import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.model.Managed
@@ -445,7 +445,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         impl.value = "not-a-number"
 
         then:
-        def e = thrown(UnsupportedPropertyValueException)
+        def e = thrown(UnsupportedTypeException)
         e.message == "Cannot set property: value for class: ${SomeType.name} to value: not-a-number."
         e.cause instanceof TypeConversionException
 
@@ -513,7 +513,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         impl.value "not-a-number"
 
         then:
-        def e = thrown(UnsupportedPropertyValueException)
+        def e = thrown(UnsupportedTypeException)
         e.message == "Cannot set property: value for class: ${SomeType.name} to value: not-a-number."
         e.cause instanceof TypeConversionException
 

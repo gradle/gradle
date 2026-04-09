@@ -23,18 +23,20 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Thrown when a property is set to an unsupported value.
+ * Thrown when a type is not supported in a given context — for example, when a
+ * property value type or Kotlin delegate result type cannot survive a
+ * configuration cache serialization round-trip.
  */
 @Contextual
-public final class UnsupportedPropertyValueException extends RuntimeException implements ResolutionProvider {
+public final class UnsupportedTypeException extends RuntimeException implements ResolutionProvider {
     private final List<String> resolutions;
 
-    public UnsupportedPropertyValueException(String message, List<String> resolutions) {
+    public UnsupportedTypeException(String message, List<String> resolutions) {
         super(message);
         this.resolutions = Collections.unmodifiableList(resolutions);
     }
 
-    public UnsupportedPropertyValueException(String message, Throwable cause) {
+    public UnsupportedTypeException(String message, Throwable cause) {
         super(message, cause);
         this.resolutions = Collections.emptyList();
     }

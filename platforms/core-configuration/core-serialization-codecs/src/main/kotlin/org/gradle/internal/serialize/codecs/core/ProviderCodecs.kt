@@ -51,7 +51,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
-import org.gradle.internal.reflect.UnsupportedPropertyValueException
+import org.gradle.internal.reflect.UnsupportedTypeException
 import org.gradle.internal.serialize.beans.services.UnsupportedPropertyValueTypes
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.file.PathToFileResolver
@@ -392,7 +392,7 @@ abstract class AbstractPropertyCodec<P : AbstractProperty<*, *>>(
 
 
 /**
- * Throws [UnsupportedPropertyValueException] if [valueType] is not supported
+ * Throws [UnsupportedTypeException] if [valueType] is not supported
  * by the configuration cache as a property value type.
  */
 private fun IsolateContext.rejectUnsupportedPropertyValueType(propertyKind: Class<*>, valueType: Class<*>) {
@@ -407,7 +407,7 @@ private fun IsolateContext.rejectUnsupportedPropertyValueType(propertyKind: Clas
         ?.let { "task ${it.path} of type ${it.type.simpleName}" }
         ?: trace.toString()
 
-    throw UnsupportedPropertyValueException(
+    throw UnsupportedTypeException(
         "Cannot serialize ${propertyKind.simpleName}<${valueType.simpleName}> in $taskDescription.  The value type of this property (${valueType.name}) is not supported with the configuration cache.",
         listOf(unsupported.resolution)
     )
