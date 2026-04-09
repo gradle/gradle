@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.resource.ExternalResourceListBuildOperationType
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType
+import org.gradle.internal.resource.ExternalResourceAlreadyPresentBuildOperationType
 import org.gradle.internal.resource.ExternalResourceReadMetadataBuildOperationType
 
 class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -367,6 +368,89 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         where:
         chunked << [true, false]
+    }
+
+    def "emits resolved file path and download child on first resolution"() {
+        given:
+        def m = mavenHttpRepo.module("org.utils", "impl", '1.3')
+            .allowAll()
+            .publish()
+
+        buildFile << """
+            repositories {
+                maven { url = "${mavenHttpRepo.uri}" }
+            }
+
+            configurations {
+                base { canBeResolved = false; canBeConsumed = false }
+                path { extendsFrom(base) }
+            }
+
+            dependencies {
+                base "org.utils:impl:1.3"
+            }
+
+            println configurations.path.files
+        """
+
+        when:
+        run "help"
+
+        then:
+        def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps.size() == 1
+        artifactOps[0].result.resolvedFilePath != null
+        artifactOps[0].result.resolvedFilePath.endsWith("impl-1.3.jar")
+
+        and: "download child operation fires"
+        def downloadChildren = buildOperations.children(artifactOps[0], ExternalResourceReadBuildOperationType)
+        downloadChildren.any { it.details.location == m.artifact.uri.toString() }
+
+        and: "no already-present child operation fires"
+        def alreadyPresentChildren = buildOperations.children(artifactOps[0], ExternalResourceAlreadyPresentBuildOperationType)
+        alreadyPresentChildren.empty
+    }
+
+    def "emits already-present child operation on cached artifact"() {
+        given:
+        def m = mavenHttpRepo.module("org.utils", "impl", '1.3')
+            .allowAll()
+            .publish()
+
+        buildFile << """
+            repositories {
+                maven { url = "${mavenHttpRepo.uri}" }
+            }
+
+            configurations {
+                base { canBeResolved = false; canBeConsumed = false }
+                path { extendsFrom(base) }
+            }
+
+            dependencies {
+                base "org.utils:impl:1.3"
+            }
+
+            println configurations.path.files
+        """
+
+        // First run: download the artifact
+        run "help"
+
+        when:
+        // Second run: artifact should be cached
+        run "help"
+
+        then:
+        def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps.size() == 1
+        artifactOps[0].result.resolvedFilePath != null
+        artifactOps[0].result.resolvedFilePath.endsWith("impl-1.3.jar")
+
+        and: "already-present child operation fires with file size"
+        def alreadyPresentChildren = buildOperations.children(artifactOps[0], ExternalResourceAlreadyPresentBuildOperationType)
+        alreadyPresentChildren.size() == 1
+        alreadyPresentChildren[0].result.fileSize > 0
     }
 
 }
