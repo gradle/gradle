@@ -48,7 +48,7 @@ import java.nio.file.StandardOpenOption;
  *
  * <h3>File layout</h3>
  * <pre>
- *   &lt;base&gt;.dat  — append-only data log: [keyHash:8][valueLen:4][lastWrite:8][value:N][type:1] per entry
+ *   &lt;base&gt;.dat  — append-only data log: [keyHash:8][valueLen:4][lastWrite:8][type:1][value:N] per entry
  *   &lt;base&gt;.idx  — hash-table index:     header(16) + N × [keyHash:8][offset:8]
  *   Header: [magic:4][bucketCount:4][entryCount:4][occupiedSlots:4]
  * </pre>
@@ -58,16 +58,21 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogHashPersistentIndexedCache.class);
 
-    static final int MAGIC = 0x47484132; // "GHA2" — v2 format (16-byte buckets, timestamp in data entry)
+    static final int MAGIC = 0x47484133; // "GHA3" — v3 format (type byte in header)
     private static final int HEADER_SIZE = 16;
     private static final int BUCKET_SIZE = 16;
     private static final byte ENTRY_PUT = 1;
     private static final int KRYO_BUFFER_SIZE = 512;
     private static final int WRITE_BUFFER_SIZE = 32 * 1024;
-    private static final int ENTRY_HEADER_SIZE = 20; // keyHash:8 + valueLen:4 + lastWrite:8
+    private static final int ENTRY_HEADER_SIZE = 21; // keyHash:8 + valueLen:4 + lastWrite:8 + type:1
     private static final int SPECULATIVE_READ_SIZE = 512;
     private static final int PROBE_CHUNK_BUCKETS = 8;
     private static final int MIN_BUCKET_COUNT = 8192; // 128 KB initial index, covers ~6000 entries at 75% load
+
+    // Return values for probeAndUpsert
+    private static final int UPSERT_NEW = 0;
+    private static final int UPSERT_UPDATED = 1;
+    private static final int UPSERT_REVIVED = 2;
 
     private final File baseFile;
     private final File dataFile;
@@ -100,6 +105,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     // Writer-side probe/write buffers (single-threaded, not ThreadLocal)
     private final ByteBuffer writerProbeBuf = ByteBuffer.allocate(PROBE_CHUNK_BUCKETS * BUCKET_SIZE);
     private final ByteBuffer writerBucketBuf = ByteBuffer.allocate(BUCKET_SIZE);
+    private final ByteBuffer headerFlushBuf = ByteBuffer.allocate(8);
 
     // Read buffers: ThreadLocal, accessed by concurrent reader threads
     private final ThreadLocal<ReadBuffer> readBuffers = ThreadLocal.withInitial(ReadBuffer::new);
@@ -135,6 +141,9 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private void doOpen() throws IOException {
         baseFile.getParentFile().mkdirs();
         loadIndex();
+        if (indexChannel == null) {
+            createEmptyIndex();
+        }
         dataChannel = FileChannel.open(dataFile.toPath(),
             StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
         appendPosition = dataChannel.size();
@@ -182,6 +191,26 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         } else {
             initEmpty();
         }
+    }
+
+    /** Creates an empty index file with MIN_BUCKET_COUNT zeroed buckets and opens the channel. */
+    private void createEmptyIndex() throws IOException {
+        int bc = MIN_BUCKET_COUNT;
+        int size = HEADER_SIZE + bc * BUCKET_SIZE;
+        byte[] bytes = new byte[size];
+        ByteBuffer buf = ByteBuffer.wrap(bytes);
+        buf.putInt(0, MAGIC);
+        buf.putInt(4, bc);
+        buf.putInt(8, 0); // entryCount
+        buf.putInt(12, 0); // occupiedSlots
+        Files.write(indexFile.toPath(), bytes);
+
+        bucketCount = bc;
+        bucketMask = bc - 1;
+        entryCount = 0;
+        occupiedSlots = 0;
+        indexChannel = FileChannel.open(indexFile.toPath(),
+            StandardOpenOption.READ, StandardOpenOption.WRITE);
     }
 
     private void initEmpty() {
@@ -276,27 +305,32 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             writeEncoder.flush();
             int valueLen = writeStream.getBytesWritten();
 
-            writeStream.write(ENTRY_PUT);
-
+            // Write header (includes type byte) via seek-back — one pwrite for the whole header
             long now = System.currentTimeMillis();
             putLong(entryHeader, 0, hash);
             putInt(entryHeader, 8, valueLen);
             putLong(entryHeader, 12, now);
+            entryHeader[20] = ENTRY_PUT;
             entryHeaderBuffer.clear();
             dataChannel.write(entryHeaderBuffer, offset);
 
-            appendPosition = offset + ENTRY_HEADER_SIZE + valueLen + 1;
+            appendPosition = offset + ENTRY_HEADER_SIZE + valueLen;
 
-            // Update on-disk index
-            boolean isNew = !probeIndexForHash(hash);
-            if (isNew) {
+            // Optimistic growth check before combined probe.
+            // If the entry already exists (update), growth was slightly premature — harmless.
+            if ((occupiedSlots + 1) * 4 > bucketCount * 3) {
+                growIndex();
+            }
+
+            // Single-pass probe: find the slot, determine new/update/revived, and write
+            int result = probeAndUpsert(hash, offset);
+            if (result == UPSERT_NEW) {
                 entryCount++;
                 occupiedSlots++;
-                if (indexChannel == null || occupiedSlots * 4 > bucketCount * 3) {
-                    growIndex();
-                }
+            } else if (result == UPSERT_REVIVED) {
+                entryCount++;
+                // occupiedSlots unchanged — tombstone already counted as occupied
             }
-            probeAndInsert(hash, offset);
             indexDirty = true;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(
@@ -309,10 +343,8 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         ensureOpen();
         try {
             long hash = hashKey(key);
-            if (indexChannel != null && probeIndexForHash(hash)) {
-                if (probeAndTombstone(hash)) {
-                    entryCount--;
-                }
+            if (indexChannel != null && probeAndRemove(hash)) {
+                entryCount--;
                 indexDirty = true;
             }
         } catch (Exception e) {
@@ -352,14 +384,14 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     // ---- On-disk probing (writer-side, single-threaded) ----
 
     /**
-     * Probes the on-disk index to check if a hash exists (live, not tombstoned).
-     * Uses the writer-side probe buffer (not ThreadLocal — writer is single-threaded).
+     * Combined probe + insert/update in a single pass. Probes the on-disk index to find the
+     * target bucket (empty or same-hash), writes the bucket, and returns the result type.
+     *
+     * @return UPSERT_NEW if inserted into empty slot, UPSERT_UPDATED if overwrote live entry,
+     *         UPSERT_REVIVED if overwrote tombstoned entry
      */
-    private boolean probeIndexForHash(long hash) throws IOException {
+    private int probeAndUpsert(long hash, long offset) throws IOException {
         FileChannel ch = indexChannel;
-        if (ch == null || bucketCount == 0) {
-            return false;
-        }
         int bc = bucketCount;
         int mask = bucketMask;
         int startBucket = (int) (hash & mask);
@@ -379,65 +411,27 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
                 int bufPos = i * BUCKET_SIZE;
                 long stored = writerProbeBuf.getLong(bufPos);
                 if (stored == 0) {
-                    return false;
+                    writeBucket(ch, filePos + (long) i * BUCKET_SIZE, hash, offset);
+                    return UPSERT_NEW;
                 }
                 if (stored == hash) {
-                    return writerProbeBuf.getLong(bufPos + 8) >= 0; // not tombstoned
+                    long existingOffset = writerProbeBuf.getLong(bufPos + 8);
+                    writeBucket(ch, filePos + (long) i * BUCKET_SIZE, hash, offset);
+                    return existingOffset < 0 ? UPSERT_REVIVED : UPSERT_UPDATED;
                 }
             }
 
             probesCompleted += bucketsToRead;
         }
-        return false;
+        return UPSERT_NEW; // shouldn't reach here with proper growth
     }
 
     /**
-     * Probes the on-disk index and inserts/updates the bucket for the given hash.
-     * Writes directly to the index file via pwrite.
+     * Combined probe + tombstone in a single pass. Finds the hash and tombstones it if live.
+     *
+     * @return true if the entry was found live and tombstoned
      */
-    private void probeAndInsert(long hash, long offset) throws IOException {
-        FileChannel ch = indexChannel;
-        if (ch == null) {
-            return;
-        }
-        int bc = bucketCount;
-        int mask = bucketMask;
-        int startBucket = (int) (hash & mask);
-
-        int probesCompleted = 0;
-        while (probesCompleted < bc) {
-            int currentBucket = (startBucket + probesCompleted) & mask;
-            int bucketsUntilEnd = bc - currentBucket;
-            int bucketsToRead = Math.min(PROBE_CHUNK_BUCKETS, Math.min(bc - probesCompleted, bucketsUntilEnd));
-
-            long filePos = HEADER_SIZE + (long) currentBucket * BUCKET_SIZE;
-            writerProbeBuf.clear();
-            writerProbeBuf.limit(bucketsToRead * BUCKET_SIZE);
-            ch.read(writerProbeBuf, filePos);
-
-            for (int i = 0; i < bucketsToRead; i++) {
-                int bufPos = i * BUCKET_SIZE;
-                long stored = writerProbeBuf.getLong(bufPos);
-                if (stored == 0 || stored == hash) {
-                    // Found empty slot or same-hash slot — write the bucket
-                    writerBucketBuf.clear();
-                    writerBucketBuf.putLong(hash);
-                    writerBucketBuf.putLong(offset);
-                    writerBucketBuf.flip();
-                    ch.write(writerBucketBuf, filePos + (long) i * BUCKET_SIZE);
-                    return;
-                }
-            }
-
-            probesCompleted += bucketsToRead;
-        }
-    }
-
-    /**
-     * Probes the on-disk index and tombstones the bucket for the given hash.
-     * @return true if the entry was found and tombstoned
-     */
-    private boolean probeAndTombstone(long hash) throws IOException {
+    private boolean probeAndRemove(long hash) throws IOException {
         FileChannel ch = indexChannel;
         if (ch == null) {
             return false;
@@ -464,12 +458,11 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
                     return false;
                 }
                 if (stored == hash) {
-                    // Tombstone: write offset = -1
-                    writerBucketBuf.clear();
-                    writerBucketBuf.putLong(hash);
-                    writerBucketBuf.putLong(-1L);
-                    writerBucketBuf.flip();
-                    ch.write(writerBucketBuf, filePos + (long) i * BUCKET_SIZE);
+                    long existingOffset = writerProbeBuf.getLong(bufPos + 8);
+                    if (existingOffset < 0) {
+                        return false; // already tombstoned
+                    }
+                    writeBucket(ch, filePos + (long) i * BUCKET_SIZE, hash, -1L);
                     return true;
                 }
             }
@@ -477,6 +470,15 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             probesCompleted += bucketsToRead;
         }
         return false;
+    }
+
+    /** Writes a single 16-byte bucket to the index file at the given position. */
+    private void writeBucket(FileChannel ch, long pos, long hash, long offset) throws IOException {
+        writerBucketBuf.clear();
+        writerBucketBuf.putLong(hash);
+        writerBucketBuf.putLong(offset);
+        writerBucketBuf.flip();
+        ch.write(writerBucketBuf, pos);
     }
 
     // ---- Index growth and flush ----
@@ -569,11 +571,11 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         if (ch == null) {
             return;
         }
-        ByteBuffer header = ByteBuffer.allocate(8);
-        header.putInt(entryCount);
-        header.putInt(occupiedSlots);
-        header.flip();
-        ch.write(header, 8); // entryCount at offset 8, occupiedSlots at offset 12
+        headerFlushBuf.clear();
+        headerFlushBuf.putInt(entryCount);
+        headerFlushBuf.putInt(occupiedSlots);
+        headerFlushBuf.flip();
+        ch.write(headerFlushBuf, 8); // entryCount at offset 8, occupiedSlots at offset 12
         ch.force(false);
     }
 
@@ -596,6 +598,7 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
             return null;
         }
         rb.specBuf.getLong(); // skip lastWrite timestamp
+        rb.specBuf.get();    // skip type byte
 
         byte[] valueBuf = rb.ensureReadCapacity(valueLen);
 
