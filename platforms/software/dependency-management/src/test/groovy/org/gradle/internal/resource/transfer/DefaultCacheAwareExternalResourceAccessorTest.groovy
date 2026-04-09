@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultEx
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceReadResult
@@ -62,7 +63,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
             supplier.get()
         }
     }
-    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheAccessCoordinator, cachePolicy, producerGuard, fileRepository, TestUtil.checksumService)
+    final buildOperationRunner = Mock(BuildOperationRunner)
+    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheAccessCoordinator, cachePolicy, producerGuard, fileRepository, TestUtil.checksumService, buildOperationRunner)
 
     def "returns null when the request resource is not cached and does not exist in the remote repository"() {
         def location = new ExternalResourceName("thing")

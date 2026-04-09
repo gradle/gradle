@@ -27,7 +27,12 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceAlreadyPresentBuildOperationType;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -61,8 +66,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final ProducerGuard<ExternalResourceName> producerGuard;
     private final FileResourceRepository fileResourceRepository;
     private final ChecksumService checksumService;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -72,6 +78,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         this.producerGuard = producerGuard;
         this.fileResourceRepository = fileResourceRepository;
         this.checksumService = checksumService;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Nullable
@@ -88,6 +95,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
             // We might be able to use a cached/locally available version
             if (cached != null && !externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached))) {
+                emitAlreadyPresent(cached.getCachedFile());
                 return fileResourceRepository.resource(cached.getCachedFile(), location.getUri(), cached.getExternalResourceMetaData());
             }
 
@@ -111,6 +119,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());
                     // Update the cache entry in the index: this resets the age of the cached entry to zero
                     cachedExternalResourceIndex.store(location.toString(), cached.getCachedFile(), cached.getExternalResourceMetaData());
+                    emitAlreadyPresent(cached.getCachedFile());
                     return fileResourceRepository.resource(cached.getCachedFile(), location.getUri(), cached.getExternalResourceMetaData());
                 }
             }
@@ -137,6 +146,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                             throw UncheckedException.throwAsUncheckedException(e);
                         }
                         if (resource != null) {
+                            emitAlreadyPresent(resource.getFile());
                             return resource;
                         }
                     }
@@ -209,5 +219,37 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     private long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
         return timeProvider.getCurrentTime() - cached.getCachedAt();
+    }
+
+    private void emitAlreadyPresent(File file) {
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                context.setResult(new AlreadyPresentResult(file.length()));
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("Found already present resource " + file.getName())
+                    .details(new AlreadyPresentDetails());
+            }
+        });
+    }
+
+    private static class AlreadyPresentDetails implements ExternalResourceAlreadyPresentBuildOperationType.Details {
+    }
+
+    private static class AlreadyPresentResult implements ExternalResourceAlreadyPresentBuildOperationType.Result {
+        private final long fileSize;
+
+        AlreadyPresentResult(long fileSize) {
+            this.fileSize = fileSize;
+        }
+
+        @Override
+        public long getFileSize() {
+            return fileSize;
+        }
     }
 }
