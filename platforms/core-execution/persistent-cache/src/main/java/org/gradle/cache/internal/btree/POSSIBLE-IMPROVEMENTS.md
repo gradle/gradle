@@ -223,63 +223,48 @@ clearest performance win (one fewer fsync per flush). Options B and C are worth
 considering if we also want better crash recovery (rebuild from data scan instead of
 discarding everything).
 
-## 10. Bounded index memory for large caches
+## 10. ~~Bounded index memory for large caches~~ (IMPLEMENTED — on-disk probing)
 
-The entire hash table index is loaded into heap memory. BTreePersistentIndexedCache
-uses O(1) memory (Guava cache of ~100 blocks), but LogHash uses O(n):
+Currently implemented: fully on-disk probing with multi-bucket pread. O(1) memory
+regardless of cache size. See item 11 for observed regression and mitigation.
 
-| Entries  | Bucket count | Index in heap (24 B) | Index in heap (16 B) |
-|----------|-------------|----------------------|----------------------|
-| 1,000    | 2,048       | 49 KB                | 33 KB                |
-| 10,000   | 16,384      | 384 KB               | 256 KB               |
-| 100,000  | 131,072     | 3.0 MB               | 2.0 MB               |
-| 1,000,000| 2,097,152   | 48 MB                | 32 MB                |
-| 10,000,000| 16,777,216 | 384 MB               | 256 MB               |
+### Observed cache sizes (gradle/gradle project, BTree .bin files = index + data)
 
-BTreePersistentIndexedCache files can reach GB sizes. If LogHash is used for the same
-caches, the in-memory index could cause OOM or excessive GC pressure.
+**Global caches (~/.gradle/caches, per Gradle version):**
 
-### Mitigations (from cheapest to most complex)
+| Cache                | Typical size  | Max observed  |
+|----------------------|---------------|---------------|
+| fileHashes           | 8-17 MB       | 210 MB        |
+| classAnalysis        | 66-198 MB     | 198 MB        |
+| jarAnalysis          | —             | 45 MB         |
+| file-access journal  | —             | 434 MB        |
+| executionHistory     | —             | 10 MB         |
+| metadata/kotlin-dsl  | < 1 KB        | < 1 KB        |
 
-**Option A: Cap entry count + eviction** — enforce a maximum number of entries and
-evict old ones (using `lastWrite` day from item 1). If caches don't genuinely need
-millions of live entries, this is the simplest fix and also bounds data file growth.
+**Project-level caches (.gradle/ in the gradle/gradle repo):**
 
-**Option B: mmap the index** — use `MappedByteBuffer` instead of heap `ByteBuffer`.
-The OS pages in only the touched regions; the full index stays in virtual memory, not
-heap. A 48 MB index with only hot buckets accessed would have ~few hundred KB resident.
-Main caveats: mmap lifecycle in Java < 22 requires `Unsafe` or `Cleaner` hacks, and
-**mmap is not safe in container environments** (see note below).
+| Cache                | Typical size  | Max observed  |
+|----------------------|---------------|---------------|
+| executionHistory     | 25-342 MB     | **742 MB**    |
+| modelsideeffects (CC)| 113-136 MB    | 136 MB        |
+| fileHashes           | 1.7-17 MB     | 17 MB         |
 
-**Option C: On-disk probing with multi-bucket reads** — don't load the index into
-memory at all. On each `get()`/`put()`, read a chunk of adjacent buckets in a single
-pread:
+Note: larger projects than gradle/gradle exist and may produce bigger caches.
 
-```java
-// Read 128 bytes = 8 buckets (at 16 bytes each) in one pread syscall.
-// Covers nearly all probe chains at 75% load factor.
-ByteBuffer probeBuf = threadLocalProbeBuf.get();
-probeBuf.clear();
-indexChannel.read(probeBuf, bucketOffset);
-// Probe locally in the buffer — no additional syscalls needed.
-```
+**Estimated entry counts and LogHash index sizes (16 bytes/bucket):**
 
-Total syscalls per `get()`: **2 pread** (1 for index probe, 1 for value read). This
-beats BTree's typical case of 4 syscalls (2× seek+read) and matches BTree's best case
-of 2 — while also supporting concurrent reads (pread is thread-safe, unlike
-RandomAccessFile's seek+read).
+| Cache (BTree size)          | Est. entries | LogHash index size |
+|-----------------------------|-------------|--------------------|
+| metadata (< 1 KB)          | < 10         | 256 B              |
+| fileHashes (17 MB)          | ~50K-200K   | 1-4 MB             |
+| executionHistory (742 MB)   | ~10K-100K   | 256 KB - 2 MB      |
+| classAnalysis (198 MB)      | ~50K-500K   | 1-8 MB             |
+| fileHashes (210 MB, global) | ~500K-2M    | 8-32 MB            |
+| file-access journal (434 MB)| Could be M+ | 16-64 MB+          |
 
-The OS page cache keeps hot index pages in memory automatically, so for warm caches
-the index pread often hits the page cache (~100-200 ns) rather than going to disk. This
-effectively gives in-memory performance for hot data without explicitly managing it.
-
-Memory usage is O(1) regardless of cache size — just the thread-local probe buffer.
-
-**Option D: Hybrid** — load the index into memory for small caches (e.g. < 50K
-entries / ~1 MB index), fall back to on-disk probing for larger ones. Best of both
-worlds: fast path for the common case, safe path for outliers. However, given that
-the OS page cache gives on-disk probing near-memory performance for hot data, the
-hybrid may be unnecessary complexity.
+The size distribution is bimodal: most cache types (metadata, kotlin-dsl, groovy-dsl)
+are tiny (< 1 KB), but a few (fileHashes, classAnalysis, executionHistory) can reach
+hundreds of MB with potentially millions of entries.
 
 ### Container / Kubernetes considerations
 
@@ -288,13 +273,6 @@ the OS brings into RAM count toward the container's RSS (Resident Set Size), whi
 what Kubernetes uses for OOM killing via cgroup memory accounting. A 384 MB mmap'd
 index under memory pressure can trigger OOM kill just as 384 MB of heap would — except
 it's harder to reason about because it's outside JVM control (no GC, no `-Xmx` cap).
-
-| Option | JVM heap | Container RSS | K8s safe? |
-|--------|----------|---------------|-----------|
-| A: Cap + eviction      | Bounded   | Bounded        | Yes |
-| B: mmap                | Low       | **Unbounded**  | **No** — can OOM |
-| C: On-disk probing     | O(1)      | O(1)           | Yes |
-| D: Hybrid (heap/mmap)  | Bounded   | **Unbounded**  | **No** for large caches |
 
 ### Syscall comparison
 
@@ -305,22 +283,72 @@ it's harder to reason about because it's outside JVM control (no GC, no `-Xmx` c
 | LogHash in-memory index     | 1 (pread)         | O(n)     | Yes                |
 | LogHash on-disk probing     | 2 (pread×2)       | O(1)     | Yes                |
 
-On-disk probing matches BTree's best case on syscalls while beating it on concurrency
-and memory predictability. With the OS page cache warming hot pages, the extra pread
-for the index is typically served from memory (~100-200 ns) rather than disk.
+## 11. Hybrid in-memory/on-disk index + minimum initial index size
+
+### Problem
+
+Pure on-disk probing (item 10) adds syscall overhead for small caches where the full
+index easily fits in memory. Observed regression: +26 ms (3.67%) for "assemble storing
+configuration cache state with hot daemon | smallJavaMultiProject".
+
+Each `put()` now does 2 extra preads compared to the in-memory approach (one for
+`probeIndexForHash`, one for `probeAndInsert`). For a write-heavy workload with ~500-1000
+puts, that's 1000-2000 extra syscalls × ~1-5 us = ~1-10 ms. Combined with `growIndex()`
+file creation overhead, this accounts for the regression.
+
+### Fix A: Hybrid in-memory/on-disk
+
+Load the index into memory when it is small (below a threshold), use on-disk probing
+when it exceeds the threshold:
+
+```java
+private static final int INDEX_MEMORY_THRESHOLD = 1024 * 1024; // 1 MB (~60K entries)
+
+private void loadIndex() {
+    // ... validate header ...
+    if (ch.size() <= INDEX_MEMORY_THRESHOLD) {
+        // Small cache: load index into memory (0 extra syscalls on get/put)
+        indexBuffer = loadFullIndex(ch);
+    }
+    // else: large cache, indexBuffer stays null -> on-disk probing
+}
+```
+
+`get()`/`put()` check `indexBuffer != null` — if available, use in-memory probing
+(same performance as original); otherwise use on-disk probing (O(1) memory).
+
+This restores original performance for small caches while keeping O(1) memory for the
+caches that actually need it (fileHashes with millions of entries, classAnalysis, etc.).
+
+| Cache size | Approach | Memory | Syscalls per get() |
+|------------|----------|--------|--------------------|
+| < 1 MB index (~60K entries) | In-memory | O(n) but bounded | 1 (pread for value only) |
+| > 1 MB index | On-disk probing | O(1) | 2 (pread index + pread value) |
+
+### Fix B: Larger minimum initial index size
+
+Currently `growIndex()` starts with `Math.max(16, ...)` buckets. For on-disk mode,
+each growth requires creating a new file + rename + reopen channel. With 16 initial
+buckets, a cache that stabilizes at 1000 entries goes through 8 growth cycles:
+
+```
+16 -> 32 -> 64 -> 128 -> 256 -> 512 -> 1024 -> 2048 (8 growths)
+```
+
+With `Math.max(8192, ...)` (128 KB file, covers ~6000 entries at 75% load):
+
+```
+8192 (1 growth — the initial creation)
+```
+
+Most Gradle caches never need to grow again after the initial creation. The 128 KB
+initial file cost is negligible (a build with 20 caches uses ~2.5 MB total).
 
 ### Recommendation
 
-**Option C (on-disk probing with multi-bucket reads) is the recommended default.** It
-provides O(1) memory, 2 pread syscalls per lookup, concurrent reads, and is safe in
-all environments including containers. The OS page cache gives it near-memory
-performance for hot data without explicit cache management.
-
-Option A (cap + eviction) is still valuable as a complementary measure to bound data
-file growth, but is no longer required to solve the memory problem.
-
-Option B (mmap) is not recommended due to container/K8s RSS concerns and Java
-lifecycle complexity.
+Implement both: hybrid (Fix A) eliminates the syscall overhead for the majority of
+caches; larger minimum size (Fix B) reduces growIndex churn during the early
+put-heavy phase.
 
 ## Summary
 
@@ -336,3 +364,4 @@ lifecycle complexity.
 | ~~Eliminate per-put allocs~~   | ~~Low~~         | ~~None~~                       | ~~Less GC pressure on writes~~ DONE |
 | Merge into single file     | Medium      | None                       | One fewer fsync per flush    |
 | ~~Bounded index memory~~       | ~~Medium-High~~ | ~~O(n) -> O(1) for large~~     | ~~Prevents OOM on large caches~~ DONE (on-disk probing) |
+| Hybrid + min index size    | Medium      | Bounded (threshold)        | Restores perf for small caches |
