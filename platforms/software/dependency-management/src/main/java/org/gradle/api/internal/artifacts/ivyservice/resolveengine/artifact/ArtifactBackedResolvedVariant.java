@@ -206,7 +206,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Override
         public void run(BuildOperationContext context) {
             artifact.getFileSource().finalizeIfNotAlready();
-            context.setResult(DownloadArtifactBuildOperationType.RESULT);
+            context.setResult(new DownloadArtifactBuildOperationType.ResultImpl(""));
         }
 
         @Override

@@ -35,6 +35,11 @@ public final class DownloadArtifactBuildOperationType implements BuildOperationT
 
     public interface Result {
 
+        /**
+         * The absolute path of the resolved artifact file on disk.
+         */
+        String getResolvedFilePath();
+
     }
 
     public static class DetailsImpl implements Details {
@@ -52,8 +57,20 @@ public final class DownloadArtifactBuildOperationType implements BuildOperationT
 
     }
 
-    public final static Result RESULT = new Result() {
-    };
+    public static class ResultImpl implements Result {
+
+        private final String resolvedFilePath;
+
+        public ResultImpl(String resolvedFilePath) {
+            this.resolvedFilePath = resolvedFilePath;
+        }
+
+        @Override
+        public String getResolvedFilePath() {
+            return resolvedFilePath;
+        }
+
+    }
 
     private DownloadArtifactBuildOperationType() {
     }
