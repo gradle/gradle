@@ -496,7 +496,6 @@ public class NioFileInterceptors {
 
         @Override
         public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-            tryReportFileSystemEntryObserved(file, consumer);
             return delegate.visitFileFailed(file, exc);
         }
 
