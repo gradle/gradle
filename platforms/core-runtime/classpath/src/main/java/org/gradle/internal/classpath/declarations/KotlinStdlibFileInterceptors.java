@@ -38,8 +38,8 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.gradle.internal.classpath.FileUtils.tryReportDirectoryContentObserved;
-import static org.gradle.internal.classpath.FileUtils.tryReportFileSystemEntryObserved;
+import static org.gradle.internal.classpath.Instrumented.directoryContentObserved;
+import static org.gradle.internal.classpath.Instrumented.fileSystemEntryObserved;
 import static org.gradle.internal.classpath.MethodHandleUtils.invokeKotlinStaticDefault;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
 import static org.gradle.internal.classpath.declarations.Handles.FOR_EACH_LINE_DEFAULT;
@@ -177,9 +177,9 @@ public class KotlinStdlibFileInterceptors {
         while (iterator.hasNext()) {
             File entry = iterator.next();
             if (entry.isDirectory()) {
-                tryReportDirectoryContentObserved(entry, consumer);
+                directoryContentObserved(entry, consumer);
             } else {
-                tryReportFileSystemEntryObserved(entry, consumer);
+                fileSystemEntryObserved(entry, consumer);
             }
         }
     }
