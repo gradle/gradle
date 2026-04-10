@@ -171,6 +171,13 @@ public class KotlinStdlibFileInterceptors {
      * Eagerly traverses a {@link FileTreeWalk} to register the filesystem entries it observes
      * as configuration cache inputs. Returning a new iterator from {@link FileTreeWalk#iterator()}
      * later still works correctly; the caller pays a one-time traversal cost at configuration time.
+     *
+     * <p>Note: there is a small race window between this eager traversal and the caller's subsequent
+     * traversal of the same {@link FileTreeWalk}. If the filesystem changes in between, the recorded
+     * observations may not match what the caller actually sees. This is an inherent limitation of the
+     * {@link FileTreeWalk} API, which does not support wrapping its iteration (unlike NIO's
+     * {@link java.nio.file.FileVisitor}, where we can record observations inline with the caller's
+     * traversal).
      */
     private static void recordWalkObservations(FileTreeWalk walk, String consumer) {
         Iterator<File> iterator = walk.iterator();
