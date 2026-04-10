@@ -40,18 +40,17 @@ testing {
                 implementation(project()) // <5>
             }
 
-            targets { // <6>
+            targets {
                 all {
-                    testTask.configure {
-                        shouldRunAfter(test)
+                    testTask.configure { // <6>
+                        shouldRunAfter(test.targets["test"].testTask)
+                    }
+                    tasks.check { // <7>
+                        dependsOn(testTask)
                     }
                 }
             }
         }
     }
-}
-
-tasks.named("check") { // <7>
-    dependsOn(testing.suites.named("integrationTest"))
 }
 // end::configure-testing-extension[]
