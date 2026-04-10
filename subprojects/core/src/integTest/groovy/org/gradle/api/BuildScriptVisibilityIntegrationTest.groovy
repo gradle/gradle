@@ -45,7 +45,8 @@ println "child: " + doSomethingElse(11)
 """
 
         expect:
-        expectDeprecations()        // Invoke twice to exercise script caching
+        expectDeprecations()
+        // Invoke twice to exercise script caching
         succeeds()
         outputContains("root: {10}")
         outputContains("root: [10]")
@@ -96,7 +97,8 @@ println project.path + " - " + doSomethingElse(12)
 """
 
         expect:
-        expectDeprecations()        // Invoke twice to exercise script caching
+        expectDeprecations()
+        // Invoke twice to exercise script caching
         succeeds()
         outputContains(": - {12}")
         outputContains(": - [12]")
