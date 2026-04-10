@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.inputs.undeclared
+package org.gradle.internal.cc.impl.inputs.filewalk
 
-import org.gradle.test.fixtures.Flaky
+import org.gradle.test.fixtures.dsl.GradleDsl
 
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/4440")
-class UndeclaredBuildInputsKotlinBuildScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
-    @Override
-    String getLocation() {
-        return "Build file 'build.gradle.kts'"
-    }
+class FileWalkKotlinBuildScriptIntegrationTest extends AbstractFileWalkIntegrationTest {
 
     @Override
-    void buildLogicApplication(BuildInputRead read) {
-        kotlinDsl(buildKotlinFile, read)
+    void buildLogicApplication(Closure<String> snippetProvider) {
+        buildKotlinFile << snippetProvider(GradleDsl.KOTLIN)
     }
 }
