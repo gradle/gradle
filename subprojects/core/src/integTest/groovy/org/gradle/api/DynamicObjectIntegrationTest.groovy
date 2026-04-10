@@ -80,7 +80,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec implements Pa
         }
         expectScriptGetPropertiesDeprecation(3)
         // configuration-time cross-project property lookups in child/build.gradle
-        expectImplicitParentPropertyDeprecation("rootProperty", "project ':child'", "root project 'test'")
+        expectImplicitParentPropertyDeprecation("rootProperty", "root project 'test'", "project ':child'")
         expectExplicitParentPropertyDeprecation("property()", "rootProperty", "project ':child'", "root project 'test'")
 
         expect:
@@ -425,7 +425,7 @@ assert 'overridden value' == global
             assert prop3(12) == 24
         """
 
-        expectImplicitParentPropertyDeprecation("prop2", "project ':child1'", "root project 'test'")
+        expectImplicitParentPropertyDeprecation("prop2", "root project 'test'", "project ':child1'")
 
         expect:
         succeeds()

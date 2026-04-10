@@ -30,9 +30,9 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec implements 
         extraPropertiesMultiBuild()
 
         when:
-        expectImplicitParentPropertyDeprecation("testProp", "project ':a'", "root project 'extra-properties'")
-        expectImplicitParentPropertyDeprecation("testProp", "project ':b'", "root project 'extra-properties'")
-        expectImplicitParentPropertyDeprecation("testProp", "project ':a:a1'", "project ':a'")
+        expectImplicitParentPropertyDeprecation("testProp", "root project 'extra-properties'", "project ':a'")
+        expectImplicitParentPropertyDeprecation("testProp", "root project 'extra-properties'", "project ':b'")
+        expectImplicitParentPropertyDeprecation("testProp", "project ':a'", "project ':a:a1'")
 
         then:
         succeeds checkTestPropTasks()
@@ -51,8 +51,8 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec implements 
         }
 
         when:
-        expectImplicitParentPropertyDeprecation("testProp", "project ':b'", "root project 'extra-properties'")
-        expectImplicitParentPropertyDeprecation("testProp", "project ':a:a1'", "project ':a'")
+        expectImplicitParentPropertyDeprecation("testProp", "root project 'extra-properties'", "project ':b'")
+        expectImplicitParentPropertyDeprecation("testProp", "project ':a'", "project ':a:a1'")
 
         then:
         succeeds checkTestPropTasks()

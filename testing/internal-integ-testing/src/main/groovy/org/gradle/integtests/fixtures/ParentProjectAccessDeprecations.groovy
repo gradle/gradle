@@ -38,7 +38,7 @@ trait ParentProjectAccessDeprecations {
     /**
      * Returns deprecation message for explicit property access (e.g. {@code property("foo")}, {@code findProperty("foo")}).
      */
-    static String explicitParentPropertyDeprecation(String callerApi, String propertyName, String childProject, String parentProject) {
+    static String explicitParentPropertyDeprecation(String callerApi, String propertyName, String parentProject, String childProject) {
         "Calling '${callerApi}' to retrieve property from parent project has been deprecated. This will fail with an error in Gradle 10. Tried to query parent project ${parentProject} for property '${propertyName}' from ${childProject}. ${UPGRADE_GUIDE_LINK}"
     }
 
@@ -59,7 +59,7 @@ trait ParentProjectAccessDeprecations {
     /**
      * Expects a deprecation warning for implicit property access from a parent project.
      */
-    void expectImplicitParentPropertyDeprecation(String propertyName, String childProject, String parentProject) {
+    void expectImplicitParentPropertyDeprecation(String propertyName, String parentProject, String childProject) {
         executer.expectDocumentedDeprecationWarning(implicitParentPropertyDeprecation(propertyName, childProject, parentProject))
     }
 
@@ -67,7 +67,7 @@ trait ParentProjectAccessDeprecations {
      * Expects a deprecation warning for explicit property access from a parent project.
      */
     void expectExplicitParentPropertyDeprecation(String callerApi, String propertyName, String childProject, String parentProject) {
-        executer.expectDocumentedDeprecationWarning(explicitParentPropertyDeprecation(callerApi, propertyName, childProject, parentProject))
+        executer.expectDocumentedDeprecationWarning(explicitParentPropertyDeprecation(callerApi, propertyName, parentProject, childProject))
     }
 
     /**

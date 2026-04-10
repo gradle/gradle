@@ -256,7 +256,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec im
         """
 
         when:
-        expectImplicitParentPropertyDeprecation("pluginClass", "project ':sub'", "root project 'test'")
+        expectImplicitParentPropertyDeprecation("pluginClass", "root project 'test'", "project ':sub'")
         succeeds "hello"
 
         then:

@@ -50,7 +50,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplicitParentPropertyDeprecation("value", "project ':parent:child'", "project ':parent'")
+        expectImplicitParentPropertyDeprecation("value", "project ':parent'", "project ':parent:child'")
         succeeds("help")
 
         then:
@@ -66,7 +66,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplicitParentPropertyDeprecation("value", "project ':parent:child'", "project ':parent'")
+        expectImplicitParentPropertyDeprecation("value", "project ':parent'", "project ':parent:child'")
         succeeds("help")
 
         then:
@@ -82,7 +82,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplicitParentPropertyDeprecation("foo", "project ':parent:child'", "project ':parent'")
+        expectImplicitParentPropertyDeprecation("foo", "project ':parent'", "project ':parent:child'")
         succeeds("help")
 
         then:
@@ -114,7 +114,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplicitParentPropertyDeprecation("foo", "project ':parent:child'", "project ':parent'")
+        expectImplicitParentPropertyDeprecation("foo", "project ':parent'", "project ':parent:child'")
         succeeds("help")
 
         then:
@@ -148,7 +148,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         when:
         // In a Groovy script, getProperty("value") is resolved on the script object,
         // which delegates to the project's dynamic object via the same path as bare 'value'.
-        expectImplicitParentPropertyDeprecation("value", "project ':parent:child'", "project ':parent'")
+        expectImplicitParentPropertyDeprecation("value", "project ':parent'", "project ':parent:child'")
         succeeds("help")
 
         then:
@@ -164,7 +164,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplicitParentPropertyDeprecation("value", "project ':parent:child'", "project ':parent'")
+        expectImplicitParentPropertyDeprecation("value", "project ':parent'", "project ':parent:child'")
         succeeds("help")
 
         then:

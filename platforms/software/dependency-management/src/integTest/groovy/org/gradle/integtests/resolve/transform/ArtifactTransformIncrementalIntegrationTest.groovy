@@ -215,7 +215,6 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                 modifiedFiles.set(provider { rootProject.ext.modified })
                 removedFiles.set(provider { rootProject.ext.removed })
                 incrementalExecution.set(provider { rootProject.ext.incremental })
-                incrementalExecution.set(provider { rootProject.ext.incremental })
                 registerNewOutput.set(provider { rootProject.ext.registerNewOutput })
             """)
         }

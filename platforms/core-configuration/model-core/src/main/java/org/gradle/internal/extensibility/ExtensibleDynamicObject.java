@@ -214,18 +214,18 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     }
 
     /**
-     * Set the caller API context for the next property lookup deprecation message.
-     * Must be cleared after the call completes (use try/finally).
-     *
-     * @param callerApi the API method the user called (e.g. "getProperty()", "property()"), or null for Groovy dynamic resolution
-     */
-    /**
      * Returns the current caller API context, or null if the access came through Groovy's dynamic resolution.
      */
     public @Nullable String getCallerApi() {
         return callerApi;
     }
 
+    /**
+     * Set the caller API context for the next property lookup deprecation message.
+     * Must be cleared after the call completes (use try/finally).
+     *
+     * @param callerApi the API method the user called (e.g. "getProperty()", "property()"), or null for Groovy dynamic resolution
+     */
     public void setCallerApi(@Nullable String callerApi) {
         this.callerApi = callerApi;
     }

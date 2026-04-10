@@ -585,7 +585,7 @@ allprojects {
             }
         """)
         when:
-        expectImplicitParentPropertyDeprecation("foo", "project ':a:child'", "project ':a'")
+        expectImplicitParentPropertyDeprecation("foo", "project ':a'", "project ':a:child'")
         run(":a:child:printExt")
 
         then:
