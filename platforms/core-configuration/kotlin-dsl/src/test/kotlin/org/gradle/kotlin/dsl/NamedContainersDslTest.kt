@@ -93,68 +93,6 @@ class NamedContainersDslTest : AbstractDslTest() {
     }
 
     @Test
-    fun `monomorphic named domain object container delegated properties`() {
-
-        testConfigurationContainerVia(
-            "delegated-properties",
-            """
-
-            val foo: Configuration by configurations.getting
-            val bar: Configuration by configurations.getting {
-                extendsFrom(foo)
-            }
-
-            val bazar: Configuration by configurations.creating
-            val cathedral: Configuration by configurations.creating {
-                extendsFrom(bazar)
-            }
-
-            val cabin: NamedDomainObjectProvider<Configuration> by configurations.existing
-            val castle: NamedDomainObjectProvider<Configuration> by configurations.existing {
-                extendsFrom(cabin.get())
-            }
-
-            val valley: NamedDomainObjectProvider<Configuration> by configurations.registering
-            val hill: NamedDomainObjectProvider<Configuration> by configurations.registering {
-                extendsFrom(valley.get())
-            }
-            """
-        )
-    }
-
-    @Test
-    fun `monomorphic named domain object container scope delegated properties`() {
-
-        testConfigurationContainerVia(
-            "scope-delegated-properties",
-            """
-            configurations {
-
-                val foo: Configuration by getting
-                val bar: Configuration by getting {
-                    extendsFrom(foo)
-                }
-
-                val bazar: Configuration by creating
-                val cathedral: Configuration by creating {
-                    extendsFrom(bazar)
-                }
-
-                val cabin: NamedDomainObjectProvider<Configuration> by existing
-                val castle: NamedDomainObjectProvider<Configuration> by existing {
-                    extendsFrom(cabin.get())
-                }
-
-                val valley: NamedDomainObjectProvider<Configuration> by registering
-                val hill: NamedDomainObjectProvider<Configuration> by registering {
-                    extendsFrom(valley.get())
-                }
-            }
-            """
-        )
-    }
-
-    @Test
     fun `monomorphic named domain object container scope string invoke`() {
 
         testConfigurationContainerVia(
@@ -175,15 +113,12 @@ class NamedContainersDslTest : AbstractDslTest() {
             """
         ) {
             configurations {
-
-                @Suppress("DEPRECATION")
-                val bazar by creating
+                val bazar = create("bazar")
                 create("cathedral") {
                     extendsFrom(bazar)
                 }
 
-                @Suppress("DEPRECATION")
-                val valley by registering
+                val valley = register("valley")
                 register("hill") {
                     extendsFrom(valley.get())
                 }
