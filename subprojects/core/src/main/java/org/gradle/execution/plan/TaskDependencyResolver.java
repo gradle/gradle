@@ -17,7 +17,9 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.ProjectScopedCachingTaskDependencyResolveContext.PlaceholderHandler;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
@@ -34,18 +36,26 @@ public class TaskDependencyResolver {
 
     public TaskDependencyResolver(List<DependencyResolver> dependencyResolvers) {
         this.dependencyResolvers = dependencyResolvers;
-        this.context = createTaskDependencyResolverContext(dependencyResolvers);
+        this.context = new CachingTaskDependencyResolveContext<Node>(dependencyResolvers);
     }
 
     public void clear() {
-        context = createTaskDependencyResolverContext(dependencyResolvers);
-    }
-
-    private static CachingTaskDependencyResolveContext<Node> createTaskDependencyResolverContext(List<DependencyResolver> workResolvers) {
-        return new CachingTaskDependencyResolveContext<Node>(workResolvers);
+        context = new CachingTaskDependencyResolveContext<Node>(dependencyResolvers);
     }
 
     public Set<Node> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {
         return context.getDependencies(task, dependencies);
+    }
+
+    /**
+     * Creates a new {@link ProjectScopedTaskDependencyResolver} scoped to a specific project.
+     * Used for parallel resolution where each worker thread needs its own context and
+     * cross-project access is deferred via placeholder nodes created by the factory.
+     */
+    ProjectScopedTaskDependencyResolver newProjectScopedResolver(
+        ProjectInternal project,
+        PlaceholderHandler<Node> placeholderHandler
+    ) {
+        return new ProjectScopedTaskDependencyResolver(dependencyResolvers, project, placeholderHandler);
     }
 }

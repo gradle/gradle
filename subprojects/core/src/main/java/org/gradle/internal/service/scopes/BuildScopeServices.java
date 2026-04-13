@@ -241,6 +241,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.scripts.ScriptExecutionListener;
@@ -335,7 +336,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
         ExecutionNodeAccessHierarchies executionNodeAccessHierarchies,
-        ResourceLockCoordinationService lockCoordinationService
+        ResourceLockCoordinationService lockCoordinationService,
+        WorkerLeaseService workerLeaseService,
+        BuildOperationExecutor buildOperationExecutor,
+        ProjectStateRegistry projectStateRegistry,
+        BuildModelParameters buildModelParameters
     ) {
         return new ExecutionPlanFactory(
             build.getDisplayName().getDisplayName(),
@@ -344,7 +349,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             dependencyResolver,
             executionNodeAccessHierarchies.getOutputHierarchy(),
             executionNodeAccessHierarchies.getDestroyableHierarchy(),
-            lockCoordinationService
+            lockCoordinationService,
+            workerLeaseService,
+            buildOperationExecutor,
+            projectStateRegistry,
+            buildModelParameters
         );
     }
 

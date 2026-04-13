@@ -20,10 +20,12 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A {@link TaskDependencyResolveContext} which visits incoming dependencies if they are {@link TaskDependencyContainer} instances.
@@ -53,5 +55,20 @@ public abstract class AbstractTaskDependencyContainerVisitingContext extends Abs
     @Override
     public Task getTask() {
         return delegate.getTask();
+    }
+
+    @Override
+    public boolean deferCrossProjectResolution(Path targetProjectIdentityPath, String taskName) {
+        return delegate.deferCrossProjectResolution(targetProjectIdentityPath, taskName);
+    }
+
+    @Override
+    public boolean deferCrossProjectResolution(Path taskPath) {
+        return delegate.deferCrossProjectResolution(taskPath);
+    }
+
+    @Override
+    public boolean deferAllProjectsSearch(Consumer<TaskDependencyResolveContext> resolutionAction) {
+        return delegate.deferAllProjectsSearch(resolutionAction);
     }
 }

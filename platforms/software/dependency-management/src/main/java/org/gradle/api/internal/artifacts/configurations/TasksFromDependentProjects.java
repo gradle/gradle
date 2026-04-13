@@ -34,6 +34,7 @@ class TasksFromDependentProjects implements TaskDependencyContainerInternal {
 
     private final String taskName;
     private final String configurationName;
+    private final TaskDependencyChecker checker;
     private final TaskDependencyContainerInternal taskDependencyDelegate;
 
     public TasksFromDependentProjects(String taskName, String configurationName, TaskDependencyFactory taskDependencyFactory) {
@@ -43,18 +44,25 @@ class TasksFromDependentProjects implements TaskDependencyContainerInternal {
     public TasksFromDependentProjects(String taskName, String configurationName, TaskDependencyChecker checker, TaskDependencyFactory taskDependencyFactory) {
         this.taskName = taskName;
         this.configurationName = configurationName;
+        this.checker = checker;
         this.taskDependencyDelegate = taskDependencyFactory.visitingDependencies(context -> {
-            Project thisProject = context.getTask().getProject();
-            Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
-            for (Task nextTask : tasksWithName) {
-                if (context.getTask() != nextTask) {
-                    boolean isDependency = checker.isDependent(thisProject, configurationName, nextTask.getProject());
-                    if (isDependency) {
-                        context.add(nextTask);
-                    }
-                }
+            if (!context.deferAllProjectsSearch(this::searchAllProjectsForTasks)) {
+                searchAllProjectsForTasks(context);
             }
         });
+    }
+
+    private void searchAllProjectsForTasks(TaskDependencyResolveContext context) {
+        Project thisProject = context.getTask().getProject();
+        Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
+        for (Task nextTask : tasksWithName) {
+            if (context.getTask() != nextTask) {
+                boolean isDependency = checker.isDependent(thisProject, configurationName, nextTask.getProject());
+                if (isDependency) {
+                    context.add(nextTask);
+                }
+            }
+        }
     }
 
     @Override

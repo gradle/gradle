@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan
 
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
@@ -25,7 +26,10 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.Factory
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
@@ -51,7 +55,10 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private DefaultExecutionPlan newExecutionPlan() {
         executionPlan?.close()
-        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
+        def workerLeaseService = Stub(WorkerLeaseService) {
+            runAsIsolatedTask(_ as Factory) >> { Factory factory -> factory.create() }
+        }
+        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator, workerLeaseService, new TestBuildOperationExecutor(), Stub(ProjectStateRegistry), false)
     }
 
     def "schedules tasks in dependency order"() {

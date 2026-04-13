@@ -119,25 +119,47 @@ public class LocalTaskNode extends TaskNode {
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
+        applyRelationships(resolveRelationships(dependencyResolver));
+    }
+
+    /**
+     * Resolves all dependency relationships for this node without mutating the graph.
+     * This is the expensive phase that can be safely run in parallel across projects,
+     * as long as each parallel worker uses its own {@link TaskDependencyResolver}.
+     */
+    public ResolvedNodeRelationships resolveRelationships(TaskDependencyResolver dependencyResolver) {
         // Make sure it has been configured
         taskProject.getTasks().prepareForExecution(task);
 
-        for (Node targetNode : getDependencies(dependencyResolver)) {
+        Set<Node> dependencies = getDependencies(dependencyResolver);
+        Set<Node> lifecycle = dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
+        Set<Node> finalizedBy = getFinalizedBy(dependencyResolver);
+        Set<Node> mustRunAfter = getMustRunAfter(dependencyResolver);
+        Set<Node> shouldRunAfter = getShouldRunAfter(dependencyResolver);
+
+        return new ResolvedNodeRelationships(this, dependencies, lifecycle, finalizedBy, mustRunAfter, shouldRunAfter);
+    }
+
+    /**
+     * Applies previously resolved relationships to the graph. Must be called from a single thread.
+     */
+    public void applyRelationships(ResolvedNodeRelationships resolved) {
+        for (Node targetNode : resolved.getDependencies()) {
             addDependencySuccessor(targetNode);
         }
 
-        lifecycleSuccessors = dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
+        lifecycleSuccessors = resolved.getLifecycleDependencies();
 
-        for (Node targetNode : getFinalizedBy(dependencyResolver)) {
+        for (Node targetNode : resolved.getFinalizedBy()) {
             if (!(targetNode instanceof TaskNode)) {
                 throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
             }
             addFinalizerNode((TaskNode) targetNode);
         }
-        for (Node targetNode : getMustRunAfter(dependencyResolver)) {
+        for (Node targetNode : resolved.getMustRunAfter()) {
             addMustSuccessor(targetNode);
         }
-        for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
+        for (Node targetNode : resolved.getShouldRunAfter()) {
             addShouldSuccessor(targetNode);
         }
     }

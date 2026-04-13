@@ -50,6 +50,32 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
     }
 
     /**
+     * Creates a lazy reference to a task in another build from a task instance.
+     *
+     * This is needed for parallel task relations resolution, where we do not want
+     * to access the work graph immediately on the worker thread, but rather defer
+     * it until the main thread accesses the task resource.
+     *
+     * @param task the task
+     * @param taskGraph the task graph where the task should be located
+     * @return a lazy reference to the given task.
+     */
+    public static TaskInAnotherBuild lazy(
+        TaskInternal task,
+        BuildTreeWorkGraphController taskGraph
+    ) {
+        BuildIdentifier targetBuild = buildIdentifierOf(task);
+        TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, task);
+        Lazy<IncludedBuildTaskResource> taskResource = Lazy.unsafe().of(() -> taskGraph.locateTask(taskIdentifier));
+        return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild) {
+            @Override
+            protected IncludedBuildTaskResource getTarget() {
+                return taskResource.get();
+            }
+        };
+    }
+
+    /**
      * Creates a lazy reference to a task in another build.
      *
      * The task will be located on-demand to allow for cycles between builds stored to

@@ -19,7 +19,10 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
+
+import java.util.function.Consumer;
 
 public interface TaskDependencyResolveContext extends Action<Task> {
     @Override
@@ -58,4 +61,44 @@ public interface TaskDependencyResolveContext extends Action<Task> {
      */
     @Nullable
     Task getTask();
+
+    /**
+     * Defers the resolution of a task from another project during parallel dependency resolution.
+     *
+     * <p><b>Important:</b> Implementations that delegate to another context must forward this method
+     * to the delegate. Returning {@code false} when the delegate would return {@code true} causes
+     * cross-project state to be accessed without proper locking, losing dependency information.</p>
+     *
+     * @return {@code true} if the resolution was deferred; {@code false} if the caller should proceed with immediate resolution.
+     */
+    default boolean deferCrossProjectResolution(Path targetProjectIdentityPath, String taskName) {
+        return false;
+    }
+
+    /**
+     * Defers the resolution of a task from another project during parallel dependency resolution.
+     *
+     * <p><b>Important:</b> Implementations that delegate to another context must forward this method
+     * to the delegate. Returning {@code false} when the delegate would return {@code true} causes
+     * cross-project state to be accessed without proper locking, losing dependency information.</p>
+     *
+     * @return {@code true} if the resolution was deferred; {@code false} if the caller should proceed with immediate resolution.
+     */
+    default boolean deferCrossProjectResolution(Path taskPath) {
+        return false;
+    }
+
+    /**
+     * Defers a global task search (e.g., by name) to avoid cross-project contention during parallel dependency resolution.
+     *
+     * <p><b>Important:</b> Implementations that delegate to another context must forward this method
+     * to the delegate. Returning {@code false} when the delegate would return {@code true} causes
+     * cross-project state to be accessed without proper locking, losing dependency information.</p>
+     *
+     * @param resolutionAction the logic to be re-executed later under proper locks.
+     * @return {@code true} if the search was deferred; {@code false} if the caller should execute it now.
+     */
+    default boolean deferAllProjectsSearch(Consumer<TaskDependencyResolveContext> resolutionAction) {
+        return false;
+    }
 }
