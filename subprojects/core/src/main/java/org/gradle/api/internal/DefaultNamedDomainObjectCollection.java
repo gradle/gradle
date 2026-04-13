@@ -943,6 +943,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             }
         }
 
+        /**
+         * Returns {@code true} if the domain object has already been created.
+         */
+        protected boolean wasObjectCreated() {
+            return object != null;
+        }
+
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return findDomainObject(getName()) != null;

@@ -61,12 +61,11 @@ public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectSt
 
     @Override
     public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
-        // NOTE: This isn't thread-safe because we're not locking around allResolvedArtifacts to ensure we're not inserting multiple resolvableArtifacts for
-        // the same artifact id.
-        //
-        // This should be replaced by a computeIfAbsent(...) to be thread-safe and ensure there's only ever one DefaultResolvableArtifact created for a single id.
-        // This is not thread-safe because of lock juggling that happens for project state. When calculating the dependencies for an IDEA model, we can easily
-        // deadlock when there are multiple projects that need to be locked at the same time.
+        // We cannot use computeIfAbsent() here because the creation involves projectState.fromMutableState()
+        // which acquires a project lock. Holding ConcurrentHashMap's compute lock while acquiring a project lock
+        // can deadlock when multiple projects are locked concurrently (e.g., IDEA model dependency calculation).
+        // Instead, we use putIfAbsent() after pre-computing the candidate. Two threads may both create a candidate,
+        // but only one is stored and returned — the loser's candidate is discarded.
         ResolvableArtifact resolvableArtifact = allResolvedArtifacts.get(artifact.getId());
         if (resolvableArtifact == null) {
             LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
@@ -74,8 +73,9 @@ public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectSt
             File localArtifactFile = projectStateRegistry.stateFor(projectId).fromMutableState(p -> projectArtifact.getFile());
             if (localArtifactFile != null) {
                 CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), resolveArtifactLater(artifact));
-                resolvableArtifact = new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
-                allResolvedArtifacts.put(artifact.getId(), resolvableArtifact);
+                ResolvableArtifact candidate = new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+                ResolvableArtifact existing = allResolvedArtifacts.putIfAbsent(artifact.getId(), candidate);
+                resolvableArtifact = existing != null ? existing : candidate;
             }
         }
         if (resolvableArtifact != null) {

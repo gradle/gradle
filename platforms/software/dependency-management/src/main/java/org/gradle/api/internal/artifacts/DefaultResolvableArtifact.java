@@ -181,5 +181,21 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
         public void run(NodeExecutionContext context) {
             artifact.fileSource.finalizeIfNotAlready();
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ResolveAction)) {
+                return false;
+            }
+            return artifact.artifactId.equals(((ResolveAction) o).artifact.artifactId);
+        }
+
+        @Override
+        public int hashCode() {
+            return artifact.artifactId.hashCode();
+        }
     }
 }

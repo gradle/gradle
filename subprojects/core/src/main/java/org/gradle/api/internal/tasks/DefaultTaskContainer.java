@@ -735,6 +735,20 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         @Override
+        protected Value<? extends I> calculateOwnValue(ValueConsumer consumer) {
+            // During parallel task dependency resolution, concurrent worker threads can
+            // independently trigger the same TaskProvider, racing on the unsynchronized
+            // object == null check in the parent class and creating duplicate Task instances.
+            // Use double-checked locking: skip synchronization when the task is already realized.
+            if (wasObjectCreated()) {
+                return super.calculateOwnValue(consumer);
+            }
+            synchronized (this) {
+                return super.calculateOwnValue(consumer);
+            }
+        }
+
+        @Override
         protected void tryCreate() {
             buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
