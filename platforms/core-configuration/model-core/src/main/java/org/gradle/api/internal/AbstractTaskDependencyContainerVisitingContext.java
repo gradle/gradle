@@ -63,11 +63,6 @@ public abstract class AbstractTaskDependencyContainerVisitingContext extends Abs
     }
 
     @Override
-    public boolean deferCrossProjectResolution(Path taskPath) {
-        return delegate.deferCrossProjectResolution(taskPath);
-    }
-
-    @Override
     public boolean deferAllProjectsSearch(Consumer<TaskDependencyResolveContext> resolutionAction) {
         return delegate.deferAllProjectsSearch(resolutionAction);
     }

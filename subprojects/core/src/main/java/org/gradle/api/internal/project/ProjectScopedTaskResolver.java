@@ -41,6 +41,21 @@ public class ProjectScopedTaskResolver implements TaskResolver {
     }
 
     @Override
+    public Path resolveTargetProjectIdentityPath(Path taskPath) {
+        if (!taskPath.isAbsolute() && taskPath.segmentCount() <= 1) {
+            return currentProject.getBuildTreePath();
+        }
+        Path taskParent = taskPath.getParent();
+        Path targetProjectPath = taskParent != null
+            ? currentProject.getProjectPath().absolutePath(taskParent)
+            : Path.ROOT;
+        if (targetProjectPath.equals(currentProject.getProjectPath())) {
+            return currentProject.getBuildTreePath();
+        }
+        return ProjectIdentity.computeProjectIdentityPath(currentProject.getBuildPath(), targetProjectPath);
+    }
+
+    @Override
     @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public Task resolveTask(Path path) {
         String targetTaskName = path.getName();

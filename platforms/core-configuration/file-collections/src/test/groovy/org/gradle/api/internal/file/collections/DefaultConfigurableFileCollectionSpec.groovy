@@ -541,6 +541,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         then:
         dependencies.toList() == [task]
         1 * taskResolver.resolveTask(Path.path("c")) >> task
+        _ * taskResolver.resolveTargetProjectIdentityPath(_)
         0 * _
     }
 
@@ -560,6 +561,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         dependencies.toList() == [taskA, taskB]
         1 * fileCollectionMock.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(taskA) }
         1 * taskResolver.resolveTask(Path.path("b")) >> taskB
+        _ * taskResolver.resolveTargetProjectIdentityPath(_)
         0 * _
     }
 
@@ -578,6 +580,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         fileTreeDependencies.toList() == [task]
         filteredFileTreeDependencies.toList() == [task]
         3 * taskResolver.resolveTask(Path.path("task")) >> task
+        _ * taskResolver.resolveTargetProjectIdentityPath(_)
         0 * _
     }
 

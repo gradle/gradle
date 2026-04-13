@@ -46,8 +46,6 @@ class ProjectScopedTaskDependencyResolver extends TaskDependencyResolver {
         super(dependencyResolvers);
         this.cachingContext = new ProjectScopedCachingTaskDependencyResolveContext<>(
             dependencyResolvers,
-            project.getGradle().getIdentityPath(),
-            project.getProjectPath(),
             project.getIdentityPath(),
             placeholderHandler
         );

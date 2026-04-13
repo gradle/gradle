@@ -147,7 +147,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 }
             } else if (resolver != null && dependency instanceof CharSequence) {
                 org.gradle.util.Path taskPath = org.gradle.util.Path.path(dependency.toString());
-                if (!context.deferCrossProjectResolution(taskPath)) {
+                org.gradle.util.Path targetIdentityPath = resolver.resolveTargetProjectIdentityPath(taskPath);
+                if (!context.deferCrossProjectResolution(targetIdentityPath, taskPath.getName())) {
                     context.add(resolver.resolveTask(taskPath));
                 }
             } else if (dependency instanceof VisitBehavior) {

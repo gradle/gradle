@@ -39,4 +39,11 @@ public interface TaskResolver {
      */
     Task resolveTask(Path path);
 
+    /**
+     * Computes the build-tree identity path of the project that owns the given task path,
+     * without actually resolving the task.
+     *
+     * <p>Used during parallel dependency resolution to defer cross-project task lookups.</p>
+     */
+    Path resolveTargetProjectIdentityPath(Path taskPath);
 }

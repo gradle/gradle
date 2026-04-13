@@ -33,24 +33,30 @@ public class BuildScopedTaskResolver implements TaskResolver {
     }
 
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public Task resolveTask(Path path) {
-        String targetTaskName = path.getName();
-        if (targetTaskName == null) {
-            assert path == Path.ROOT;
-            throw new IllegalArgumentException("The root path is not a valid task path");
-        }
+    public Path resolveTargetProjectIdentityPath(Path taskPath) {
+        Path targetProjectPath = validateAndGetTargetProjectPath(taskPath);
+        return build.getIdentityPath().append(targetProjectPath);
+    }
 
-        if (!path.isAbsolute()) {
-            throw new IllegalArgumentException(String.format("Cannot resolve task at path '%s' since the path is not absolute.", path));
-        }
+    @Override
+    public Task resolveTask(Path path) {
+        Path targetProjectPath = validateAndGetTargetProjectPath(path);
+        String targetTaskName = path.getName();
 
         build.ensureProjectsConfigured();
 
-        Path targetProjectPath = path.getParent() == null ? Path.ROOT : path.getParent();
         ProjectState projectState = build.getProjects().getProject(targetProjectPath);
         projectState.ensureTasksDiscovered();
         return projectState.getMutableModel().getTasks().getByName(targetTaskName);
     }
 
+    private static Path validateAndGetTargetProjectPath(Path taskPath) {
+        if (taskPath.getName() == null) {
+            throw new IllegalArgumentException("The root path is not a valid task path");
+        }
+        if (!taskPath.isAbsolute()) {
+            throw new IllegalArgumentException(String.format("Cannot resolve task at path '%s' since the path is not absolute.", taskPath));
+        }
+        return taskPath.getParent() == null ? Path.ROOT : taskPath.getParent();
+    }
 }

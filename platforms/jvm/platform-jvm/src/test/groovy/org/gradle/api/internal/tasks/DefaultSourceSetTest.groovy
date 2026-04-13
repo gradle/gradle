@@ -36,7 +36,10 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultSourceSetTest extends Specification {
     public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    private final TaskResolver taskResolver = path -> { Mock(Task) { getName() >> path.getName() }}
+    private final TaskResolver taskResolver = Mock(TaskResolver) {
+        resolveTask(_) >> { args -> Mock(Task) { getName() >> args[0].getName() } }
+        resolveTargetProjectIdentityPath(_) >> null
+    }
     private final TaskDependencyFactory taskDependencyFactory = new DefaultTaskDependencyFactory(taskResolver, Mock(TaskDependencyUsageTracker))
     private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
     private final FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory, taskDependencyFactory)
