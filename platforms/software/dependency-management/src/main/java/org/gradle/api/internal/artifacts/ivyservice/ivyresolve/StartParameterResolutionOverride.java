@@ -89,8 +89,8 @@ public class StartParameterResolutionOverride {
         File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
         fileResourceListener.fileObserved(verificationsFile);
 
-        if (!checksums.isEmpty() || startParameter.isExportKeys()) {
-            return new WriteDependencyVerificationFile(verificationsFile, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys());
+        if (!checksums.isEmpty() || startParameter.isExportKeys() || startParameter.isPruneKeys()) {
+            return new WriteDependencyVerificationFile(verificationsFile, buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys(), startParameter.isPruneKeys());
         }
 
         if (!verificationsFile.exists() ||

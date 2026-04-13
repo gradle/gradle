@@ -610,6 +610,64 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37275")
+    def "--prune-keys drops orphaned keys from keyrings"() {
+        def orphan = newKeyRing()
+        def orphanId = Fingerprint.of(orphan.publicKey)
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                orphan.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        and: "seed keyring with both the trusted key and an orphan"
+        serveValidKey()
+        keyServerFixture.registerPublicKey(orphan.publicKey)
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        def seededBinary = file("gradle/verification-keyring.gpg")
+        def seededAscii = file("gradle/verification-keyring.keys")
+        SecuritySupport.loadKeyRingFile(seededBinary).size() == 2
+        SecuritySupport.loadKeyRingFile(seededAscii).size() == 2
+
+        and: "user manually prunes the orphan from verification-metadata.xml"
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+        }
+
+        when:
+        succeeds ":help", "--prune-keys"
+
+        then:
+        def prunedBinary = SecuritySupport.loadKeyRingFile(file("gradle/verification-keyring.gpg"))
+        prunedBinary.size() == 1
+        prunedBinary.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        !prunedBinary.find { it.publicKey.keyID == orphan.publicKey.keyID }
+
+        and:
+        def prunedAscii = SecuritySupport.loadKeyRingFile(file("gradle/verification-keyring.keys"))
+        prunedAscii.size() == 1
+        prunedAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        !prunedAscii.find { it.publicKey.keyID == orphan.publicKey.keyID }
+
+        and: "orphanId appears in no keyring"
+        !prunedBinary.any { Fingerprint.of(it.publicKey) == orphanId }
+        !prunedAscii.any { Fingerprint.of(it.publicKey) == orphanId }
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/23607")
     def "verification-keyring.keys contains only necessary data"() {
         def keyring = newKeyRing()

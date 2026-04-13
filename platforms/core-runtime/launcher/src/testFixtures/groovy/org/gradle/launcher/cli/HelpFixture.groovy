@@ -84,6 +84,7 @@ Performance:
 Security:
   --dependency-verification, -F      Configures the dependency verification mode. Supported values are 'strict', 'lenient', or 'off'.
   --export-keys                      Exports the public keys used for dependency verification.
+  --prune-keys                       Prunes the dependency verification keyring files so they only contain keys referenced by the verification metadata file.
   --refresh-keys                     Refreshes the public keys used for dependency verification.
   --update-locks                     Performs a partial update of the dependency lock. Allows passed-in module notations to change version. [incubating]
   --write-locks                      Persists dependency resolution for locked configurations. Ignores existing locking information if it exists.

@@ -22,6 +22,7 @@ import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -113,6 +114,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private final boolean isDryRun;
     private final boolean generatePgpInfo;
     private final boolean isExportKeyring;
+    private final boolean isPruneKeys;
 
     private boolean hasMissingSignatures = false;
     private boolean hasMissingKeys = false;
@@ -125,7 +127,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         ChecksumService checksumService,
         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
         boolean isDryRun,
-        boolean exportKeyRing
+        boolean exportKeyRing,
+        boolean pruneKeys
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksums = checksums;
@@ -135,6 +138,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         this.isDryRun = isDryRun;
         this.generatePgpInfo = checksums.contains(PGP);
         this.isExportKeyring = exportKeyRing;
+        this.isPruneKeys = pruneKeys;
         maybeCleanupDryRunFiles();
     }
 
@@ -177,11 +181,15 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         return new DependencyVerifyingModuleComponentRepository(original, this, generatePgpInfo);
     }
 
+    private boolean isPruneKeysOnly() {
+        return isPruneKeys && !isExportKeyring && !isWriteVerificationFile();
+    }
+
     private void maybeCleanupDryRunFiles() {
         if (isDryRun) {
             boolean removed = false;
             removed |= mayBeDryRunFile(verificationFile).delete() || removed;
-            if (isExportKeyring) {
+            if (isExportKeyring || isPruneKeys) {
                 BuildTreeDefinedKeys existingKeyring = new BuildTreeDefinedKeys(verificationFile.getParentFile(), verificationsBuilder.getKeyringFormat());
                 removed |= mayBeDryRunFile(existingKeyring.getAsciiKeyringsFile()).delete();
                 removed |= mayBeDryRunFile(existingKeyring.getBinaryKeyringsFile()).delete();
@@ -195,7 +203,20 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     @Override
     public void buildFinished(GradleInternal gradle) {
         ensureOutputDirCreated();
+        if (isPruneKeysOnly() && !verificationFile.exists()) {
+            throw new InvalidUserDataException("Cannot run --prune-keys: no dependency verification metadata file at " + verificationFile);
+        }
         maybeReadExistingFile();
+        if (isPruneKeysOnly()) {
+            BuildTreeDefinedKeys existingKeyring = new BuildTreeDefinedKeys(verificationFile.getParentFile(), verificationsBuilder.getKeyringFormat());
+            try {
+                DependencyVerifier verifier = verificationsBuilder.build();
+                pruneKeyRings(verifier, existingKeyring);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+            return;
+        }
         // when we generate the verification file, we intentionally ignore if the "use key servers" flag is false
         // because otherwise it forces the user to remove the option in the XML file, generate, then switch it back.
         boolean offline = gradle.getStartParameter().isOffline();
@@ -251,29 +272,110 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private void exportKeys(SignatureVerificationService signatureVerificationService, DependencyVerifier verifier, BuildTreeDefinedKeys existingKeyring) throws IOException {
-        Set<String> keysToExport = new HashSet<>();
-        verifier.getConfiguration()
-            .getTrustedKeys()
-            .stream()
-            .map(DependencyVerificationConfiguration.TrustedKey::getKeyId)
-            .forEach(keysToExport::add);
-        verifier.getConfiguration()
-            .getIgnoredKeys()
-            .stream()
-            .map(IgnoredKey::getKeyId)
-            .forEach(keysToExport::add);
-        verifier.getVerificationMetadata()
-            .stream()
-            .flatMap(md -> md.getArtifactVerifications().stream())
-            .flatMap(avm -> Stream.concat(avm.getTrustedPgpKeys().stream(), avm.getIgnoredPgpKeys().stream().map(IgnoredKey::getKeyId)))
-            .forEach(keysToExport::add);
+        Set<String> keysToExport = collectReferencedKeys(verifier);
 
         exportKeyRingCollection(
             signatureVerificationService.getPublicKeyService(),
             existingKeyring,
             keysToExport,
-            verifier.getConfiguration().getKeyringFormat()
+            verifier.getConfiguration().getKeyringFormat(),
+            isPruneKeys
         );
+    }
+
+    private static Set<String> collectReferencedKeys(DependencyVerifier verifier) {
+        Set<String> referenced = new HashSet<>();
+        verifier.getConfiguration()
+            .getTrustedKeys()
+            .stream()
+            .map(DependencyVerificationConfiguration.TrustedKey::getKeyId)
+            .forEach(referenced::add);
+        verifier.getConfiguration()
+            .getIgnoredKeys()
+            .stream()
+            .map(IgnoredKey::getKeyId)
+            .forEach(referenced::add);
+        verifier.getVerificationMetadata()
+            .stream()
+            .flatMap(md -> md.getArtifactVerifications().stream())
+            .flatMap(avm -> Stream.concat(avm.getTrustedPgpKeys().stream(), avm.getIgnoredPgpKeys().stream().map(IgnoredKey::getKeyId)))
+            .forEach(referenced::add);
+        return referenced;
+    }
+
+    /**
+     * Prunes the dependency verification keyring files so they only contain keys referenced by the
+     * current {@link DependencyVerifier}. Does not contact any key server and does not go through
+     * the {@link SignatureVerificationService}: the keyring files are loaded from disk, filtered
+     * in memory, and written back.
+     */
+    private void pruneKeyRings(DependencyVerifier verifier, BuildTreeDefinedKeys existingKeyring) throws IOException {
+        Set<String> referencedKeys = collectReferencedKeys(verifier);
+        List<PGPPublicKeyRing> existing = loadExistingKeyRing(existingKeyring);
+        List<PGPPublicKeyRing> kept = new java.util.ArrayList<>(existing.size());
+        for (PGPPublicKeyRing ring : existing) {
+            if (isReferenced(ring, referencedKeys)) {
+                kept.add(ring);
+            }
+        }
+
+        Set<String> presentInKept = keysPresentIn(kept);
+        Set<String> missing = new HashSet<>(referencedKeys);
+        missing.removeAll(presentInKept);
+        if (!missing.isEmpty()) {
+            LOGGER.warn("The following keys are referenced by the verification metadata but are not present in the keyring: {}. Run with --export-keys to download them.", missing);
+        }
+
+        DependencyVerificationConfiguration.KeyringFormat format = verifier.getConfiguration().getKeyringFormat();
+        File asciiArmoredFile = mayBeDryRunFile(existingKeyring.getAsciiKeyringsFile());
+        File keyringFile = mayBeDryRunFile(existingKeyring.getBinaryKeyringsFile());
+
+        int dropped = existing.size() - kept.size();
+        if (format == null) {
+            writeAsciiArmoredKeyRingFile(asciiArmoredFile, kept);
+            writeBinaryKeyringFile(keyringFile, kept);
+        } else if (format.equals(DependencyVerificationConfiguration.KeyringFormat.ARMORED)) {
+            writeAsciiArmoredKeyRingFile(asciiArmoredFile, kept);
+        } else if (format.equals(DependencyVerificationConfiguration.KeyringFormat.BINARY)) {
+            writeBinaryKeyringFile(keyringFile, kept);
+        } else {
+            throw new IllegalArgumentException("Unknown keyring format " + format);
+        }
+
+        if (dropped == 0) {
+            LOGGER.lifecycle("Keyring is up to date — no unreferenced keys to prune ({} kept)", kept.size());
+        } else {
+            LOGGER.lifecycle("Pruned {} unreferenced key(s) from the keyring, {} key(s) kept. If a key was pruned by mistake, run with --export-keys to re-download it.", dropped, kept.size());
+        }
+    }
+
+    static boolean isReferenced(PGPPublicKeyRing ring, Set<String> referencedKeys) {
+        // Precondition: entries in referencedKeys are upper-case hex (16-char long ID or 40-char fingerprint).
+        // TrustedKey / IgnoredKey normalise input to upper-case at construction time; callers must pass such values.
+        Iterator<PGPPublicKey> it = ring.getPublicKeys();
+        while (it.hasNext()) {
+            PGPPublicKey pk = it.next();
+            if (referencedKeys.contains(SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase(Locale.ROOT))) {
+                return true;
+            }
+            if (referencedKeys.contains(Fingerprint.of(pk).toString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static Set<String> keysPresentIn(Collection<PGPPublicKeyRing> rings) {
+        Set<String> present = new HashSet<>();
+        for (PGPPublicKeyRing ring : rings) {
+            Iterator<PGPPublicKey> it = ring.getPublicKeys();
+            while (it.hasNext()) {
+                PGPPublicKey pk = it.next();
+                present.add(SecuritySupport.toLongIdHexString(pk.getKeyID()).toUpperCase(Locale.ROOT));
+                present.add(Fingerprint.of(pk).toString());
+            }
+        }
+        return present;
     }
 
     private void maybeReadExistingFile() {
@@ -533,7 +635,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         PublicKeyService publicKeyService,
         BuildTreeDefinedKeys existingKeyring,
         Set<String> publicKeys,
-        DependencyVerificationConfiguration.@Nullable KeyringFormat keyringFormat
+        DependencyVerificationConfiguration.@Nullable KeyringFormat keyringFormat,
+        boolean pruneKeys
     ) throws IOException {
         List<PGPPublicKeyRing> existingRings = loadExistingKeyRing(existingKeyring);
         PGPPublicKeyRingListBuilder builder = new PGPPublicKeyRingListBuilder();
@@ -549,7 +652,10 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             .stream()
             .filter(keyring -> PGPUtils.getSize(keyring) != 0);
 
-        Collection<PGPPublicKeyRing> allKeyRings = uniqueKeyRings(Stream.concat(keysSeenInVerifier, existingRings.stream()));
+        Stream<PGPPublicKeyRing> retainedExisting = pruneKeys
+            ? existingRings.stream().filter(ring -> isReferenced(ring, publicKeys))
+            : existingRings.stream();
+        Collection<PGPPublicKeyRing> allKeyRings = uniqueKeyRings(Stream.concat(keysSeenInVerifier, retainedExisting));
 
         File asciiArmoredFile = mayBeDryRunFile(existingKeyring.getAsciiKeyringsFile());
         File keyringFile = mayBeDryRunFile(existingKeyring.getBinaryKeyringsFile());

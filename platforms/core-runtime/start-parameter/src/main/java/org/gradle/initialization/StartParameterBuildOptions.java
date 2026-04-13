@@ -74,6 +74,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new DependencyLockingUpdateOption(),
         new RefreshKeysOption(),
         new ExportKeysOption(),
+        new PruneKeysOption(),
         new ConfigurationCacheProblemsOption(),
         new ConfigurationCacheOption(),
         new ConfigurationCacheIgnoreInputsDuringStore(),
@@ -641,6 +642,26 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setExportKeys(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.SECURITY;
+        }
+    }
+
+    public static class PruneKeysOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        public static final String LONG_OPTION = "prune-keys";
+
+        public PruneKeysOption() {
+            super(null,
+                CommandLineOptionConfiguration.create(LONG_OPTION, "Prunes the dependency verification keyring files so they only contain keys referenced by the verification metadata file."));
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setPruneKeys(true);
         }
 
         @Override

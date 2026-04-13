@@ -167,6 +167,7 @@ public class BuildActionSerializer {
             encoder.writeString(startParameter.getDependencyVerificationMode().name());
             encoder.writeBoolean(startParameter.isRefreshKeys());
             encoder.writeBoolean(startParameter.isExportKeys());
+            encoder.writeBoolean(startParameter.isPruneKeys());
             encoder.writeString(startParameter.getWelcomeMessageConfiguration().getWelcomeMessageDisplayMode().name());
             encoder.writeBoolean(startParameter.isPropertyUpgradeReportEnabled());
             encoder.writeBoolean(startParameter.isProblemReportGenerationEnabled());
@@ -271,6 +272,7 @@ public class BuildActionSerializer {
             startParameter.setDependencyVerificationMode(DependencyVerificationMode.valueOf(decoder.readString()));
             startParameter.setRefreshKeys(decoder.readBoolean());
             startParameter.setExportKeys(decoder.readBoolean());
+            startParameter.setPruneKeys(decoder.readBoolean());
             startParameter.setWelcomeMessageConfiguration(new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.valueOf(decoder.readString())));
             startParameter.setPropertyUpgradeReportEnabled(decoder.readBoolean());
             startParameter.enableProblemReportGeneration(decoder.readBoolean());

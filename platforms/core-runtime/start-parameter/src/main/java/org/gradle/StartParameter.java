@@ -104,6 +104,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
     private boolean refreshKeys;
     private boolean exportKeys;
+    private boolean pruneKeys;
     private WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
 
     /**
@@ -303,6 +304,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.verificationMode = verificationMode;
         p.refreshKeys = refreshKeys;
         p.exportKeys = exportKeys;
+        p.pruneKeys = pruneKeys;
         p.welcomeMessageConfiguration = welcomeMessageConfiguration;
         p.dryRun = dryRun;
         p.taskGraph = taskGraph;
@@ -783,6 +785,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", verificationMode=" + verificationMode
             + ", refreshKeys=" + refreshKeys
             + ", exportKeys=" + exportKeys
+            + ", pruneKeys=" + pruneKeys
             + ", welcomeMessageConfiguration=" + welcomeMessageConfiguration
             + '}';
     }
@@ -989,6 +992,40 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setExportKeys(boolean exportKeys) {
         this.exportKeys = exportKeys;
+    }
+
+    /**
+     * If true, the dependency verification keyring files are pruned so that they only
+     * contain keys that are still referenced by the current {@code verification-metadata.xml}.
+     *
+     * When used alone, no dependency resolution is performed and no key servers are
+     * contacted: the keyring files are filtered in place. When combined with
+     * {@link #setWriteDependencyVerifications(List)} or {@link #setExportKeys(boolean)},
+     * the final keyring excludes orphaned keys instead of merging with them.
+     *
+     * @return true if keyrings should be pruned
+     * @since 9.6.0
+     */
+    @Incubating
+    public boolean isPruneKeys() {
+        return pruneKeys;
+    }
+
+    /**
+     * If true, the dependency verification keyring files are pruned so that they only
+     * contain keys that are still referenced by the current {@code verification-metadata.xml}.
+     *
+     * When used alone, no dependency resolution is performed and no key servers are
+     * contacted: the keyring files are filtered in place. When combined with
+     * {@link #setWriteDependencyVerifications(List)} or {@link #setExportKeys(boolean)},
+     * the final keyring excludes orphaned keys instead of merging with them.
+     *
+     * @param pruneKeys set to true if keyrings should be pruned
+     * @since 9.6.0
+     */
+    @Incubating
+    public void setPruneKeys(boolean pruneKeys) {
+        this.pruneKeys = pruneKeys;
     }
 
     /**
