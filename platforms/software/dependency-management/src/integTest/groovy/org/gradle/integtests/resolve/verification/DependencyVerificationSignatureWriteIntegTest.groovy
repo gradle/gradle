@@ -668,6 +668,70 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         !prunedAscii.any { Fingerprint.of(it.publicKey) == orphanId }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37275")
+    def "--prune-keys is a no-op when keyring already matches the metadata"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        and: "seed keyring with exactly the referenced trusted key"
+        serveValidKey()
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        def seededAscii = file("gradle/verification-keyring.keys")
+        def seededBinary = file("gradle/verification-keyring.gpg")
+        def asciiBefore = seededAscii.bytes
+        def binaryBefore = seededBinary.bytes
+        SecuritySupport.loadKeyRingFile(seededAscii).size() == 1
+
+        when:
+        succeeds ":help", "--prune-keys"
+
+        then:
+        outputContains("Keyring is up to date")
+        seededAscii.bytes == asciiBefore
+        seededBinary.bytes == binaryBefore
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37275")
+    def "--prune-keys fails fast when verification metadata is missing"() {
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        and: "no gradle/verification-metadata.xml exists"
+        assert !file("gradle/verification-metadata.xml").exists()
+
+        when:
+        fails ":help", "--prune-keys"
+
+        then:
+        failure.assertHasDescription("Cannot run --prune-keys: no dependency verification metadata file at")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/23607")
     def "verification-keyring.keys contains only necessary data"() {
         def keyring = newKeyRing()
