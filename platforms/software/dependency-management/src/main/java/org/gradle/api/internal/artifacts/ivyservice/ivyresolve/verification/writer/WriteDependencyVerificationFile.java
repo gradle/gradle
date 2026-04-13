@@ -311,7 +311,10 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
      */
     private void pruneKeyRings(DependencyVerifier verifier, BuildTreeDefinedKeys existingKeyring) throws IOException {
         Set<String> referencedKeys = collectReferencedKeys(verifier);
-        List<PGPPublicKeyRing> existing = loadExistingKeyRing(existingKeyring);
+        // Always read the real on-disk keyring, even in dry-run mode — the `.dryrun.*` files are
+        // cleaned up by maybeCleanupDryRunFiles() in the constructor, so there is nothing to read
+        // from them, and loading an empty list would effectively prune everything.
+        List<PGPPublicKeyRing> existing = loadKeyRingFromDisk(existingKeyring.getEffectiveKeyringsFile());
         List<PGPPublicKeyRing> kept = new java.util.ArrayList<>(existing.size());
         for (PGPPublicKeyRing ring : existing) {
             if (isReferenced(ring, referencedKeys)) {
@@ -752,11 +755,14 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private List<PGPPublicKeyRing> loadExistingKeyRing(BuildTreeDefinedKeys keyrings) throws IOException {
-        File effectiveFile = mayBeDryRunFile(keyrings.getEffectiveKeyringsFile());
-        if (!effectiveFile.exists()) {
+        return loadKeyRingFromDisk(mayBeDryRunFile(keyrings.getEffectiveKeyringsFile()));
+    }
+
+    private static List<PGPPublicKeyRing> loadKeyRingFromDisk(File file) throws IOException {
+        if (!file.exists()) {
             return Collections.emptyList();
         }
-        List<PGPPublicKeyRing> existingRings = SecuritySupport.loadKeyRingFile(effectiveFile);
+        List<PGPPublicKeyRing> existingRings = SecuritySupport.loadKeyRingFile(file);
         LOGGER.info("Existing keyring file contains {} keyrings", existingRings.size());
         return existingRings;
     }

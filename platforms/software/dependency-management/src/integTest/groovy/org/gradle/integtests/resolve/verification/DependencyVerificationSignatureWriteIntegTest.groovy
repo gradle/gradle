@@ -708,6 +708,107 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37275")
+    def "--prune-keys --dry-run writes to dryrun files and leaves originals untouched"() {
+        def orphan = newKeyRing()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                orphan.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        and: "seed keyring with both the trusted key and an orphan"
+        serveValidKey()
+        keyServerFixture.registerPublicKey(orphan.publicKey)
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        def seededBinary = file("gradle/verification-keyring.gpg")
+        def seededAscii = file("gradle/verification-keyring.keys")
+        def asciiBefore = seededAscii.bytes
+        def binaryBefore = seededBinary.bytes
+        SecuritySupport.loadKeyRingFile(seededBinary).size() == 2
+
+        and: "user manually prunes the orphan from verification-metadata.xml"
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+        }
+
+        and: "stale dryrun files from a previous run are present"
+        file("gradle/verification-keyring.dryrun.keys") << "trash"
+        file("gradle/verification-keyring.dryrun.gpg") << "trash"
+
+        when:
+        succeeds ":help", "--prune-keys", "--dry-run"
+
+        then: "originals are untouched"
+        seededAscii.bytes == asciiBefore
+        seededBinary.bytes == binaryBefore
+
+        and: "dryrun files reflect the pruned keyring"
+        def dryrunAscii = file("gradle/verification-keyring.dryrun.keys")
+        def dryrunBinary = file("gradle/verification-keyring.dryrun.gpg")
+        dryrunAscii.exists()
+        dryrunBinary.exists()
+        def prunedAscii = SecuritySupport.loadKeyRingFile(dryrunAscii)
+        prunedAscii.size() == 1
+        prunedAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        !prunedAscii.find { it.publicKey.keyID == orphan.publicKey.keyID }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37275")
+    def "--prune-keys --offline succeeds without contacting key servers"() {
+        def orphan = newKeyRing()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                orphan.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        and: "seed keyring with trusted key + orphan"
+        serveValidKey()
+        keyServerFixture.registerPublicKey(orphan.publicKey)
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        and: "user manually prunes the orphan from verification-metadata.xml"
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+        }
+
+        when: "--offline plus prune-keys proves no keyserver traffic is required"
+        succeeds ":help", "--prune-keys", "--offline"
+
+        then:
+        def prunedAscii = SecuritySupport.loadKeyRingFile(file("gradle/verification-keyring.keys"))
+        prunedAscii.size() == 1
+        prunedAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37275")
     def "--prune-keys fails fast when verification metadata is missing"() {
         given:
         javaLibrary()
