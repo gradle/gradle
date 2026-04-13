@@ -133,10 +133,6 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         failure.assertHasErrorOutput(
             "    Unsafe declaration in safe definition: injected service property\n" +
                 "      in schema property 'objects: ObjectFactory'\n" +
-                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
-                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')\n" +
-                "    Unsafe declaration in safe definition: injected service property\n" +
-                "      in schema property 'objects: ObjectFactory'\n" +
                 "      in schema type 'org.gradle.test.FeatureDefinition.Fizz'\n" +
                 "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')\n"
         )

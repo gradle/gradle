@@ -491,6 +491,70 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         }
     }
 
+    def 'failures in erroneous definition type and its referenced erroneous type are both reported'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        pluginBuilder.file("src/main/java/org/gradle/test/ReferencedType.java") << """
+            package org.gradle.test;
+            import org.gradle.api.provider.Property;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+            public interface ReferencedType {
+                Property<String> getValue();
+                @HiddenInDefinition
+                Property<String> getHiddenInReferenced();
+            }
+        """
+
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "@org.gradle.declarative.dsl.model.annotations.HiddenInDefinition\n" +
+                "Property<String> getHiddenProp();\n" +
+                "@org.gradle.api.tasks.Nested\n" +
+                "ReferencedType getReferenced();"
+        )
+
+        expect:
+        fails().assertHasErrorOutput(
+            "Unsafe declaration in safe definition: hidden member 'getHiddenInReferenced'\n" +
+                "      in schema type 'org.gradle.test.ReferencedType'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+        fails().assertHasErrorOutput(
+            "Unsafe declaration in safe definition: hidden member 'getHiddenProp'\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+            details == "Unsafe declaration in safe definition: hidden member 'getHiddenInReferenced'\n" +
+                "  in schema type 'org.gradle.test.ReferencedType'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Remove the hidden members.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+            details == "Unsafe declaration in safe definition: hidden member 'getHiddenProp'\n" +
+                "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Remove the hidden members.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
+    }
+
     private void addDefinitionMembers(String definitionFileName, String members) {
         file("plugins/src/main/java/org/gradle/test/${definitionFileName}"). replace(
             "Property<String> getText();",

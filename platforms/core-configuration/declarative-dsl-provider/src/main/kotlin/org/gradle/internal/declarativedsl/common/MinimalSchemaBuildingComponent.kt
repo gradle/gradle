@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.common
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.dsl.DependencyCollector
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.declarativedsl.dependencycollectors.DependencyCollectorFunctionExtractorAndRuntimeResolver
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
@@ -54,7 +55,7 @@ class MinimalSchemaBuildingComponent : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         FunctionLambdaTypeDiscovery(gradleConfigureLambdas),
         FunctionParameterTypeDiscovery(),
-        FunctionReturnTypeDiscovery()
+        FunctionReturnTypeDiscovery { it != Property::class } // not interested in bringing `Property` to the schema from functions returning it, it only produces noise in failure reports
     )
 }
 

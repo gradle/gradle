@@ -48,7 +48,7 @@ fun basicFunctionExtractor(configureLambdas: ConfigureLambdaHandler): CompositeF
 
 fun basicTypeDiscovery(configureLambdas: ConfigureLambdaHandler) = CompositeTypeDiscovery(listOf(
     FunctionLambdaTypeDiscovery(configureLambdas),
-    FunctionReturnTypeDiscovery(),
+    FunctionReturnTypeDiscovery { true },
     FunctionParameterTypeDiscovery(),
     SupertypeDiscovery()
 ))
