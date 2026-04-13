@@ -69,16 +69,79 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     private CompositeDynamicObject delegateObjects;
     @Nullable
     private HierarchicalDynamicObject parent;
-    /**
-     * Caller API value indicating the access came from a build script's getProperty() method,
-     * which handles both implicit property references (e.g. bare {@code foo}) and explicit
-     * {@code getProperty("foo")} calls.
-     */
-    public static final String CALLER_BUILD_SCRIPT = "build script";
-
     private boolean deprecateParentAccess;
+    // Thread safety: only accessed while the project lock is held during configuration.
+    // See DefaultProject.withCallerContext() and BasicScript.withCallerContext().
     @Nullable
-    private String callerApi;
+    private CallerContext callerContext;
+
+    /**
+     * Describes how a property lookup was initiated, used for accurate deprecation and violation messages.
+     */
+    public abstract static class CallerContext {
+        private CallerContext() {}
+
+        public abstract boolean isExplicitApiCall();
+
+        /**
+         * The API method name, e.g. "property()" or "findProperty()". Only valid for explicit API calls.
+         */
+        public abstract String apiName();
+
+        // Holder class avoids class-loading deadlock between CallerContext and its subclasses.
+        public static final class Instances {
+            /**
+             * Caller context for {@code property("foo")} calls.
+             */
+            public static final CallerContext PROPERTY = new ExplicitApiCall("property()");
+            /**
+             * Caller context for {@code findProperty("foo")} calls.
+             */
+            public static final CallerContext FIND_PROPERTY = new ExplicitApiCall("findProperty()");
+            /**
+             * Caller context for {@code hasProperty("foo")} calls.
+             */
+            public static final CallerContext HAS_PROPERTY = new ExplicitApiCall("hasProperty()");
+            /**
+             * Caller context for {@code getProperty("foo")} calls.
+             */
+            public static final CallerContext GET_PROPERTY = new ExplicitApiCall("getProperty()");
+            /**
+             * Caller context for implicit property references in build scripts (e.g. bare {@code foo}).
+             */
+            public static final CallerContext BUILD_SCRIPT = new BuildScriptAccess();
+        }
+
+        private static final class ExplicitApiCall extends CallerContext {
+            private final String api;
+
+            ExplicitApiCall(String api) {
+                this.api = api;
+            }
+
+            @Override
+            public boolean isExplicitApiCall() {
+                return true;
+            }
+
+            @Override
+            public String apiName() {
+                return api;
+            }
+        }
+
+        private static final class BuildScriptAccess extends CallerContext {
+            @Override
+            public boolean isExplicitApiCall() {
+                return false;
+            }
+
+            @Override
+            public String apiName() {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
 
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
         this(delegate, new BeanDynamicObject(delegate, publicType), new DefaultExtensionContainer(instanceGenerator));
@@ -214,20 +277,18 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     }
 
     /**
-     * Returns the current caller API context, or null if the access came through Groovy's dynamic resolution.
+     * Returns the current caller context, or null if no context was set.
      */
-    public @Nullable String getCallerApi() {
-        return callerApi;
+    public @Nullable CallerContext getCallerContext() {
+        return callerContext;
     }
 
     /**
-     * Set the caller API context for the next property lookup deprecation message.
+     * Set the caller context for the next property lookup deprecation/violation message.
      * Must be cleared after the call completes (use try/finally).
-     *
-     * @param callerApi the API method the user called (e.g. "getProperty()", "property()"), or null for Groovy dynamic resolution
      */
-    public void setCallerApi(@Nullable String callerApi) {
-        this.callerApi = callerApi;
+    public void setCallerContext(@Nullable CallerContext callerContext) {
+        this.callerContext = callerContext;
     }
 
     @Override
@@ -258,8 +319,8 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     }
 
     private DeprecationMessageBuilder.DeprecateAction getDeprecateAction(String name, DynamicObject parent) {
-        if (callerApi != null && !callerApi.equals(CALLER_BUILD_SCRIPT)) {
-            return DeprecationLogger.deprecateAction("Calling '" + callerApi + "' to retrieve property from parent project")
+        if (callerContext != null && callerContext.isExplicitApiCall()) {
+            return DeprecationLogger.deprecateAction("Calling '" + callerContext.apiName() + "' to retrieve property from parent project")
                 .withContext("Tried to query parent project " + parent.getDisplayName() + " for property '" + name + "' from " + getDisplayName() + ".");
         }
         return DeprecationLogger.deprecateAction("Accessing a property from a parent project")

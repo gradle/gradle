@@ -1135,7 +1135,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @SuppressWarnings("JavadocReference")
     @Nullable
     public Object getProperty(String propertyName) {
-        return withCallerApi("getProperty()", () -> dynamicLookupRoutine.property(extensibleDynamicObject, propertyName));
+        return withCallerContext(ExtensibleDynamicObject.CallerContext.Instances.GET_PROPERTY, () -> dynamicLookupRoutine.property(extensibleDynamicObject, propertyName));
     }
 
     /**
@@ -1158,20 +1158,20 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
-        return withCallerApi("property()", () -> dynamicLookupRoutine.property(extensibleDynamicObject, propertyName));
+        return withCallerContext(ExtensibleDynamicObject.CallerContext.Instances.PROPERTY, () -> dynamicLookupRoutine.property(extensibleDynamicObject, propertyName));
     }
 
     @Override
     public Object findProperty(String propertyName) {
-        return withCallerApi("findProperty()", () -> dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName));
+        return withCallerContext(ExtensibleDynamicObject.CallerContext.Instances.FIND_PROPERTY, () -> dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName));
     }
 
-    private <T> T withCallerApi(String callerApi, java.util.function.Supplier<T> action) {
-        extensibleDynamicObject.setCallerApi(callerApi);
+    private <T> T withCallerContext(ExtensibleDynamicObject.CallerContext context, java.util.function.Supplier<T> action) {
+        extensibleDynamicObject.setCallerContext(context);
         try {
             return action.get();
         } finally {
-            extensibleDynamicObject.setCallerApi(null);
+            extensibleDynamicObject.setCallerContext(null);
         }
     }
 
@@ -1182,7 +1182,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public boolean hasProperty(String propertyName) {
-        return withCallerApi("hasProperty()", () -> dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName));
+        return withCallerContext(ExtensibleDynamicObject.CallerContext.Instances.HAS_PROPERTY, () -> dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName));
     }
 
     @SuppressWarnings("deprecation")

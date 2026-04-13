@@ -69,7 +69,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
     @Override
     public Object getProperty(String property) {
-        return withCallerApi(ExtensibleDynamicObject.CALLER_BUILD_SCRIPT, () -> dynamicLookupRoutine.property(dynamicObject, property));
+        return withCallerContext(ExtensibleDynamicObject.CallerContext.Instances.BUILD_SCRIPT, () -> dynamicLookupRoutine.property(dynamicObject, property));
     }
 
     @Override
@@ -87,19 +87,19 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     }
 
     public boolean hasProperty(String property) {
-        return withCallerApi("hasProperty()", () -> dynamicLookupRoutine.hasProperty(dynamicObject, property));
+        return withCallerContext(ExtensibleDynamicObject.CallerContext.Instances.HAS_PROPERTY, () -> dynamicLookupRoutine.hasProperty(dynamicObject, property));
     }
 
-    private <T> T withCallerApi(String callerApi, java.util.function.Supplier<T> action) {
+    private <T> T withCallerContext(ExtensibleDynamicObject.CallerContext context, java.util.function.Supplier<T> action) {
         if (target instanceof DynamicObjectAware) {
             DynamicObject dynObj = ((DynamicObjectAware) target).getAsDynamicObject();
             if (dynObj instanceof ExtensibleDynamicObject) {
                 ExtensibleDynamicObject extensible = (ExtensibleDynamicObject) dynObj;
-                extensible.setCallerApi(callerApi);
+                extensible.setCallerContext(context);
                 try {
                     return action.get();
                 } finally {
-                    extensible.setCallerApi(null);
+                    extensible.setCallerContext(null);
                 }
             }
         }

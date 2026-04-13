@@ -134,7 +134,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
     def "build script can query basic details of projects in a function called from allprojects block"() {
         createDirs("a", "b")
-        settingsFile << """
+        settingsFile """
             rootProject.name = "root"
             include("a", "b")
         """

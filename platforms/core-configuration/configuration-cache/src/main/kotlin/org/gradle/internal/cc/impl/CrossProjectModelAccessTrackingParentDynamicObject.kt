@@ -125,16 +125,16 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     }
 
     private
-    fun referrerCallerApi(): String? {
+    fun referrerCallerContext(): ExtensibleDynamicObject.CallerContext? {
         val dynamicObject = (referrerProject as? DynamicObjectAware)?.asDynamicObject
-        return (dynamicObject as? ExtensibleDynamicObject)?.callerApi
+        return (dynamicObject as? ExtensibleDynamicObject)?.callerContext
     }
 
     @Suppress("ThrowingExceptionsWithoutMessageOrCause")
     private
     fun maybeReportProjectIsolationViolation(memberKind: MemberKind, memberName: String?) {
         if (dynamicCallProblemReporting.unreportedProblemInCurrentCall(PROBLEM_KEY)) {
-            val callerApi = referrerCallerApi()
+            val callerContext = referrerCallerContext()
             val problem = problemFactory.problem {
                 text("Project ")
                 reference(referrerProject.identityPath.toString())
@@ -149,16 +149,16 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
                 }
                 text(" in the parent project ")
                 reference(ownerProject.identityPath.toString())
-                if (callerApi != null) {
-                    if (callerApi == ExtensibleDynamicObject.CALLER_BUILD_SCRIPT && memberName != null) {
+                if (callerContext != null) {
+                    if (callerContext.isExplicitApiCall) {
+                        text(" via ")
+                        reference(callerContext.apiName())
+                    } else if (memberName != null) {
                         text(" via '")
                         text(memberName)
                         text("' or getProperty('")
                         text(memberName)
                         text("') in build script")
-                    } else {
-                        text(" via ")
-                        reference(callerApi)
                     }
                 }
             }

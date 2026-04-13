@@ -428,6 +428,48 @@ myProp=value
 println(providers.gradleProperty("myProp").get())
 ----
 
+| Shared dependency versions via parent property:
+[source,groovy]
+----
+// root build.gradle
+ext.kotlinVersion = "1.9.22"
+
+// child build.gradle
+implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+----
+| Use a <<version_catalogs.adoc#version-catalog,version catalog>>:
+[source,groovy]
+----
+// gradle/libs.versions.toml
+[versions]
+kotlin = "1.9.22"
+
+// child build.gradle
+implementation libs.kotlin.stdlib
+----
+
+| Shared typed values (non-string) via parent property:
+[source,groovy]
+----
+// root build.gradle
+ext.supportedLanguages = ["java", "groovy"]
+
+// child build.gradle
+if (supportedLanguages.contains("java")) { ... }
+----
+| Use `gradle.lifecycle.beforeProject` in settings to set properties on each project individually:
+[source,groovy]
+----
+// settings.gradle
+gradle.lifecycle.beforeProject {
+    ext.supportedLanguages = ["java", "groovy"]
+}
+
+// child build.gradle
+if (supportedLanguages.contains("java")) { ... }
+----
+Or use a <<sharing_build_logic_between_subprojects.adoc#sec:sharing_logic_via_convention_plugins,convention plugin>> for more complex cases.
+
 | Shared logic using parent methods:
 [source,groovy]
 ----
