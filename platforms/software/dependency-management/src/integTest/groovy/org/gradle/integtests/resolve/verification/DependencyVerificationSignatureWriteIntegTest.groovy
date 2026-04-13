@@ -851,6 +851,108 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37275")
+    def "--prune-keys honors keyring-format=armored and leaves the binary file untouched"() {
+        def orphan = newKeyRing()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                orphan.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        and: "seed both keyring files with trusted + orphan (no format declared yet)"
+        serveValidKey()
+        keyServerFixture.registerPublicKey(orphan.publicKey)
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        def asciiFile = file("gradle/verification-keyring.keys")
+        def binaryFile = file("gradle/verification-keyring.gpg")
+        def binaryBefore = binaryFile.bytes
+        SecuritySupport.loadKeyRingFile(asciiFile).size() == 2
+        SecuritySupport.loadKeyRingFile(binaryFile).size() == 2
+
+        and: "user drops the orphan and pins the keyring format to armored"
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            keyRingFormat("armored")
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+        }
+
+        when:
+        succeeds ":help", "--prune-keys"
+
+        then: "armored file is pruned"
+        def prunedAscii = SecuritySupport.loadKeyRingFile(asciiFile)
+        prunedAscii.size() == 1
+        prunedAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+
+        and: "binary file is byte-for-byte untouched"
+        binaryFile.bytes == binaryBefore
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37275")
+    def "--prune-keys honors keyring-format=binary and leaves the armored file untouched"() {
+        def orphan = newKeyRing()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                orphan.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        and: "seed both keyring files with trusted + orphan (no format declared yet)"
+        serveValidKey()
+        keyServerFixture.registerPublicKey(orphan.publicKey)
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        def asciiFile = file("gradle/verification-keyring.keys")
+        def binaryFile = file("gradle/verification-keyring.gpg")
+        def asciiBefore = asciiFile.bytes
+        SecuritySupport.loadKeyRingFile(asciiFile).size() == 2
+        SecuritySupport.loadKeyRingFile(binaryFile).size() == 2
+
+        and: "user drops the orphan and pins the keyring format to binary"
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            keyRingFormat("binary")
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+        }
+
+        when:
+        succeeds ":help", "--prune-keys"
+
+        then: "binary file is pruned"
+        def prunedBinary = SecuritySupport.loadKeyRingFile(binaryFile)
+        prunedBinary.size() == 1
+        prunedBinary.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+
+        and: "armored file is byte-for-byte untouched"
+        asciiFile.bytes == asciiBefore
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37275")
     def "--prune-keys fails fast when verification metadata is missing"() {
         given:
         javaLibrary()
