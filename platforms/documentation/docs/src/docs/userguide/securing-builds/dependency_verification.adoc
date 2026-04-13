@@ -985,6 +985,32 @@ $ ./gradlew --export-keys
 
 NOTE: This command will not report verification errors, only export keys.
 
+==== Pruning Unused Keys
+
+When you manually remove trusted keys from `verification-metadata.xml`, the public keys they point to stay behind in `verification-keyring.keys` and `verification-keyring.gpg`.
+Running `--export-keys` merges any newly referenced keys in but does not remove orphaned entries, and regenerating the whole keyring depends on key servers that are frequently rate-limited.
+
+Use `--prune-keys` to drop unreferenced keys from the keyring in place, without contacting key servers:
+
+[source,bash]
+----
+$ ./gradlew help --prune-keys
+----
+
+This reads the on-disk keyring, keeps only the rings whose long-ID or fingerprint is still referenced by `verification-metadata.xml` (signing subkeys are treated as part of their ring), and rewrites the keyring file(s) in whichever format is declared by `<keyring-format>` — both formats are rewritten when no format is declared.
+Referenced keys that are not present in the keyring produce a `WARN` pointing at `--export-keys` as the recovery command.
+
+`--prune-keys` can be combined with `--export-keys` or `--write-verification-metadata` — in that case the keyring is written normally and then filtered against the freshly built verifier.
+Under `--dry-run`, pruned output is written to `verification-keyring.dryrun.keys` / `.dryrun.gpg` and the originals are left untouched.
+
+[WARNING]
+====
+Before running `--prune-keys`, commit or back up the existing keyring files.
+If a key is dropped by mistake, recover with `./gradlew help --export-keys`, which re-downloads keys referenced by `verification-metadata.xml` from the configured key servers.
+====
+
+NOTE: `--prune-keys` only touches the root build's `gradle/verification-keyring.*`. Included builds with their own verification metadata must be pruned separately.
+
 [[committing_keyring_files]]
 ==== Committing Keyring Files
 
