@@ -809,6 +809,48 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37275")
+    def "--prune-keys combined with --export-keys drops unreferenced existing keys"() {
+        def orphan = newKeyRing()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                orphan.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        and: "seed keyring with trusted key + orphan via --export-keys"
+        serveValidKey()
+        keyServerFixture.registerPublicKey(orphan.publicKey)
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+        SecuritySupport.loadKeyRingFile(file("gradle/verification-keyring.keys")).size() == 2
+
+        and: "user manually prunes the orphan from verification-metadata.xml"
+        replaceMetadataFile {
+            keyServer(keyServerFixture.uri)
+            addTrustedKey("org:foo:1.0", SigningFixtures.validPublicKeyHexString)
+        }
+
+        when:
+        succeeds ":help", "--export-keys", "--prune-keys"
+
+        then:
+        def prunedAscii = SecuritySupport.loadKeyRingFile(file("gradle/verification-keyring.keys"))
+        prunedAscii.size() == 1
+        prunedAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37275")
     def "--prune-keys fails fast when verification metadata is missing"() {
         given:
         javaLibrary()
