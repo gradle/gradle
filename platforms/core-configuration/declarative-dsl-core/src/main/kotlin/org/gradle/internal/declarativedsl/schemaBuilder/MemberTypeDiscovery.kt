@@ -42,7 +42,7 @@ class FunctionLambdaTypeDiscovery(
                 }
 }
 
-class FunctionReturnTypeDiscovery : TypeDiscovery {
+class FunctionReturnTypeDiscovery(private val typeFilter: (KClass<*>) -> Boolean) : TypeDiscovery {
     /**
      * Collects everything that restricted functions mention as return values.
      */
@@ -50,7 +50,7 @@ class FunctionReturnTypeDiscovery : TypeDiscovery {
         typeDiscoveryServices.host.classMembers(kClass).declarativeMembers
             .flatMapTo(mutableSetOf()) { fn ->
                 DiscoveredClass.classesOf(fn.returnType, DiscoveredClass.DiscoveryTag.UsedInMember(fn.kCallable, kClass))
-            }
+            }.filter { it !is ExtractionResult.Extracted || typeFilter(it.result.kClass) }
 }
 
 class FunctionParameterTypeDiscovery : TypeDiscovery {

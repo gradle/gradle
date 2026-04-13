@@ -59,6 +59,11 @@ private fun getUsageFromCorrectTypesGraph(
     allTypeDiscoveries: Iterable<TypeDiscovery.DiscoveredClass>,
     allFailures: Map<FqName, Iterable<SchemaResult.Failure>>
 ): MutableGraph<FqName> = GraphBuilder.directed().build<FqName>().apply {
+    /**
+     * A feature definition type is never _accidentally_ added into a schema, so we still want error reports for all types directly referenced from the feature definition.
+     */
+    val featureDefinitions = allTypeDiscoveries.filter { it.discoveryTag is ProjectFeatureDefinition }.mapTo(mutableSetOf()) { DefaultFqName.of(it.kClass) }
+
     allTypeDiscoveries.forEach { typeDiscovery ->
         val to = DefaultFqName.of(typeDiscovery.kClass)
             .also(::addNode)
@@ -66,7 +71,7 @@ private fun getUsageFromCorrectTypesGraph(
         if (typeDiscovery.discoveryTag is FromClassDiscoveryTag) {
             val from = DefaultFqName.of(typeDiscovery.discoveryTag.fromClass)
                 .also(::addNode)
-            if (from !in allFailures && to != from) {
+            if ((from in featureDefinitions || from !in allFailures) && to != from) {
                 putEdge(from, to)
             }
         }
