@@ -30,14 +30,14 @@ class CreateStartScriptsTest extends AbstractProjectBuilderSpec {
     }
 
     def scriptNameDefaultsToApplicationName() {
-        task.outputDir.set(new File('output'))
+        task.outputDir = new File('output')
 
         when:
         task.getApplicationName().set("myApp")
 
         then:
-        task.unixScript.asFile.get() == new File(task.outputDir.asFile.get(), 'myApp')
-        task.windowsScript.asFile.get() == new File(task.outputDir.asFile.get(), 'myApp.bat')
+        task.unixScript == new File(task.outputDir, 'myApp')
+        task.windowsScript == new File(task.outputDir, 'myApp.bat')
     }
 
     def optsEnvironmentVariableNameDefaultsToApplicationName() {
@@ -62,21 +62,21 @@ class CreateStartScriptsTest extends AbstractProjectBuilderSpec {
 
     def exitEnvironmentVariableNameDefaultsToApplicationName() {
         when:
-        task.getApplicationName().set(null)
+        task.applicationName = null
 
         then:
-        task.exitEnvironmentVar.getOrNull() == null
+        task.exitEnvironmentVar == null
 
         when:
-        task.getApplicationName().set("myApp")
+        task.applicationName = "myApp"
 
         then:
-        task.exitEnvironmentVar.get() == 'MY_APP_EXIT_CONSOLE'
+        task.exitEnvironmentVar == 'MY_APP_EXIT_CONSOLE'
 
         when:
-        task.exitEnvironmentVar.set('APP_EXIT')
+        task.exitEnvironmentVar = 'APP_EXIT'
 
         then:
-        task.exitEnvironmentVar.get() == 'APP_EXIT'
+        task.exitEnvironmentVar == 'APP_EXIT'
     }
 }
