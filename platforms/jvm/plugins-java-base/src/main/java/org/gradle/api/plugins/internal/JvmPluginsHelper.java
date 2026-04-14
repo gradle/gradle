@@ -73,7 +73,7 @@ public class JvmPluginsHelper {
     public static void compileAgainstJavaOutputs(AbstractCompile compileTask, final SourceSet sourceSet, final ObjectFactory objectFactory) {
         ConfigurableFileCollection classpath = objectFactory.fileCollection();
         classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(objectFactory.fileCollection().from(sourceSet.getJava().getClassesDirectory())));
-        compileTask.getConventionMapping().map("classpath", () -> classpath);
+        compileTask.getClasspath().convention(classpath);
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
@@ -102,7 +102,7 @@ public class JvmPluginsHelper {
                 javadoc.getClasspath().setFrom(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
                 if (javaPluginExtension != null) {
-                    javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir(javadocTaskName).get().getAsFile());
+                    javadoc.getDestinationDir().convention(javaPluginExtension.getDocsDir().dir(javadocTaskName));
                     javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
                 }
             });
