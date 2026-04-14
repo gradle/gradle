@@ -73,6 +73,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -315,7 +316,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         // cleaned up by maybeCleanupDryRunFiles() in the constructor, so there is nothing to read
         // from them, and loading an empty list would effectively prune everything.
         List<PGPPublicKeyRing> existing = loadKeyRingFromDisk(existingKeyring.getEffectiveKeyringsFile());
-        List<PGPPublicKeyRing> kept = new java.util.ArrayList<>(existing.size());
+        List<PGPPublicKeyRing> kept = new ArrayList<>(existing.size());
         for (PGPPublicKeyRing ring : existing) {
             if (isReferenced(ring, referencedKeys)) {
                 kept.add(ring);
@@ -329,21 +330,11 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             LOGGER.warn("The following keys are referenced by the verification metadata but are not present in the keyring: {}. Run with --export-keys to download them.", missing);
         }
 
-        DependencyVerificationConfiguration.KeyringFormat format = verifier.getConfiguration().getKeyringFormat();
         File asciiArmoredFile = mayBeDryRunFile(existingKeyring.getAsciiKeyringsFile());
         File keyringFile = mayBeDryRunFile(existingKeyring.getBinaryKeyringsFile());
 
         int dropped = existing.size() - kept.size();
-        if (format == null) {
-            writeAsciiArmoredKeyRingFile(asciiArmoredFile, kept);
-            writeBinaryKeyringFile(keyringFile, kept);
-        } else if (format.equals(DependencyVerificationConfiguration.KeyringFormat.ARMORED)) {
-            writeAsciiArmoredKeyRingFile(asciiArmoredFile, kept);
-        } else if (format.equals(DependencyVerificationConfiguration.KeyringFormat.BINARY)) {
-            writeBinaryKeyringFile(keyringFile, kept);
-        } else {
-            throw new IllegalArgumentException("Unknown keyring format " + format);
-        }
+        writeKeyRingFiles(verifier.getConfiguration().getKeyringFormat(), asciiArmoredFile, keyringFile, kept);
 
         if (dropped == 0) {
             LOGGER.lifecycle("Keyring is up to date — no unreferenced keys to prune ({} kept)", kept.size());
@@ -663,18 +654,14 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         File asciiArmoredFile = mayBeDryRunFile(existingKeyring.getAsciiKeyringsFile());
         File keyringFile = mayBeDryRunFile(existingKeyring.getBinaryKeyringsFile());
 
+        writeKeyRingFiles(keyringFormat, asciiArmoredFile, keyringFile, allKeyRings);
+
         if (keyringFormat == null) {
-            writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
-            writeBinaryKeyringFile(keyringFile, allKeyRings);
             LOGGER.lifecycle("Exported {} keys to {} and {}", allKeyRings.size(), keyringFile, asciiArmoredFile);
         } else if (keyringFormat.equals(DependencyVerificationConfiguration.KeyringFormat.ARMORED)) {
-            writeAsciiArmoredKeyRingFile(asciiArmoredFile, allKeyRings);
             LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), asciiArmoredFile);
-        } else if (keyringFormat.equals(DependencyVerificationConfiguration.KeyringFormat.BINARY)) {
-            writeBinaryKeyringFile(keyringFile, allKeyRings);
-            LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), keyringFile);
         } else {
-            throw new IllegalArgumentException("Unknown keyring format " + keyringFormat);
+            LOGGER.lifecycle("Exported {} keys to {}", allKeyRings.size(), keyringFile);
         }
     }
 
@@ -688,6 +675,24 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             }
         });
         return seenKeyIds.values();
+    }
+
+    private void writeKeyRingFiles(
+        DependencyVerificationConfiguration.@Nullable KeyringFormat format,
+        File asciiFile,
+        File binaryFile,
+        Collection<PGPPublicKeyRing> rings
+    ) throws IOException {
+        if (format == null) {
+            writeAsciiArmoredKeyRingFile(asciiFile, rings);
+            writeBinaryKeyringFile(binaryFile, rings);
+        } else if (format.equals(DependencyVerificationConfiguration.KeyringFormat.ARMORED)) {
+            writeAsciiArmoredKeyRingFile(asciiFile, rings);
+        } else if (format.equals(DependencyVerificationConfiguration.KeyringFormat.BINARY)) {
+            writeBinaryKeyringFile(binaryFile, rings);
+        } else {
+            throw new IllegalArgumentException("Unknown keyring format " + format);
+        }
     }
 
     private void writeAsciiArmoredKeyRingFile(File ascii, Collection<PGPPublicKeyRing> allKeyRings) throws IOException {

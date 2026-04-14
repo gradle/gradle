@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
+import org.bouncycastle.openpgp.PGPPublicKey
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
@@ -603,17 +604,12 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
 
         then:
         outputContains("Exported 1 keys to")
-        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
-        exportedKeyRingAscii.exists()
-        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
-        keyringsAscii.size() == 1
-        keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        assertKeyringContainsOnly("gradle/verification-keyring.keys", SigningFixtures.validPublicKey)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37275")
     def "--prune-keys drops orphaned keys from keyrings"() {
         def orphan = newKeyRing()
-        def orphanId = Fingerprint.of(orphan.publicKey)
         createMetadataFile {
             keyServer(keyServerFixture.uri)
         }
@@ -637,10 +633,8 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         writeVerificationMetadata()
         succeeds ":help", "--export-keys"
 
-        def seededBinary = file("gradle/verification-keyring.gpg")
-        def seededAscii = file("gradle/verification-keyring.keys")
-        SecuritySupport.loadKeyRingFile(seededBinary).size() == 2
-        SecuritySupport.loadKeyRingFile(seededAscii).size() == 2
+        assertKeyringSize("gradle/verification-keyring.gpg", 2)
+        assertKeyringSize("gradle/verification-keyring.keys", 2)
 
         and: "user manually prunes the orphan from verification-metadata.xml"
         replaceMetadataFile {
@@ -652,20 +646,8 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         succeeds ":help", "--prune-keys"
 
         then:
-        def prunedBinary = SecuritySupport.loadKeyRingFile(file("gradle/verification-keyring.gpg"))
-        prunedBinary.size() == 1
-        prunedBinary.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
-        !prunedBinary.find { it.publicKey.keyID == orphan.publicKey.keyID }
-
-        and:
-        def prunedAscii = SecuritySupport.loadKeyRingFile(file("gradle/verification-keyring.keys"))
-        prunedAscii.size() == 1
-        prunedAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
-        !prunedAscii.find { it.publicKey.keyID == orphan.publicKey.keyID }
-
-        and: "orphanId appears in no keyring"
-        !prunedBinary.any { Fingerprint.of(it.publicKey) == orphanId }
-        !prunedAscii.any { Fingerprint.of(it.publicKey) == orphanId }
+        assertKeyringContainsOnly("gradle/verification-keyring.gpg", SigningFixtures.validPublicKey)
+        assertKeyringContainsOnly("gradle/verification-keyring.keys", SigningFixtures.validPublicKey)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37275")
@@ -692,11 +674,12 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         writeVerificationMetadata()
         succeeds ":help", "--export-keys"
 
+        assertKeyringSize("gradle/verification-keyring.keys", 1)
+        assertKeyringSize("gradle/verification-keyring.gpg", 1)
         def seededAscii = file("gradle/verification-keyring.keys")
         def seededBinary = file("gradle/verification-keyring.gpg")
         def asciiBefore = seededAscii.bytes
         def binaryBefore = seededBinary.bytes
-        SecuritySupport.loadKeyRingFile(seededAscii).size() == 1
 
         when:
         succeeds ":help", "--prune-keys"
@@ -733,11 +716,13 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         writeVerificationMetadata()
         succeeds ":help", "--export-keys"
 
+        assertKeyringSize("gradle/verification-keyring.gpg", 2)
+        assertKeyringSize("gradle/verification-keyring.keys", 2)
+
         def seededBinary = file("gradle/verification-keyring.gpg")
         def seededAscii = file("gradle/verification-keyring.keys")
         def asciiBefore = seededAscii.bytes
         def binaryBefore = seededBinary.bytes
-        SecuritySupport.loadKeyRingFile(seededBinary).size() == 2
 
         and: "user manually prunes the orphan from verification-metadata.xml"
         replaceMetadataFile {
@@ -757,14 +742,8 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         seededBinary.bytes == binaryBefore
 
         and: "dryrun files reflect the pruned keyring"
-        def dryrunAscii = file("gradle/verification-keyring.dryrun.keys")
-        def dryrunBinary = file("gradle/verification-keyring.dryrun.gpg")
-        dryrunAscii.exists()
-        dryrunBinary.exists()
-        def prunedAscii = SecuritySupport.loadKeyRingFile(dryrunAscii)
-        prunedAscii.size() == 1
-        prunedAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
-        !prunedAscii.find { it.publicKey.keyID == orphan.publicKey.keyID }
+        assertKeyringContainsOnly("gradle/verification-keyring.dryrun.keys", SigningFixtures.validPublicKey)
+        assertKeyringContainsOnly("gradle/verification-keyring.dryrun.gpg", SigningFixtures.validPublicKey)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37275")
@@ -803,9 +782,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         succeeds ":help", "--prune-keys", "--offline"
 
         then:
-        def prunedAscii = SecuritySupport.loadKeyRingFile(file("gradle/verification-keyring.keys"))
-        prunedAscii.size() == 1
-        prunedAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        assertKeyringContainsOnly("gradle/verification-keyring.keys", SigningFixtures.validPublicKey)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37275")
@@ -833,7 +810,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         keyServerFixture.registerPublicKey(orphan.publicKey)
         writeVerificationMetadata()
         succeeds ":help", "--export-keys"
-        SecuritySupport.loadKeyRingFile(file("gradle/verification-keyring.keys")).size() == 2
+        assertKeyringSize("gradle/verification-keyring.keys", 2)
 
         and: "user manually prunes the orphan from verification-metadata.xml"
         replaceMetadataFile {
@@ -845,9 +822,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         succeeds ":help", "--export-keys", "--prune-keys"
 
         then:
-        def prunedAscii = SecuritySupport.loadKeyRingFile(file("gradle/verification-keyring.keys"))
-        prunedAscii.size() == 1
-        prunedAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        assertKeyringContainsOnly("gradle/verification-keyring.keys", SigningFixtures.validPublicKey)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37275")
@@ -876,11 +851,11 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         writeVerificationMetadata()
         succeeds ":help", "--export-keys"
 
-        def asciiFile = file("gradle/verification-keyring.keys")
+        assertKeyringSize("gradle/verification-keyring.keys", 2)
+        assertKeyringSize("gradle/verification-keyring.gpg", 2)
+
         def binaryFile = file("gradle/verification-keyring.gpg")
         def binaryBefore = binaryFile.bytes
-        SecuritySupport.loadKeyRingFile(asciiFile).size() == 2
-        SecuritySupport.loadKeyRingFile(binaryFile).size() == 2
 
         and: "user drops the orphan and pins the keyring format to armored"
         replaceMetadataFile {
@@ -893,9 +868,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         succeeds ":help", "--prune-keys"
 
         then: "armored file is pruned"
-        def prunedAscii = SecuritySupport.loadKeyRingFile(asciiFile)
-        prunedAscii.size() == 1
-        prunedAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        assertKeyringContainsOnly("gradle/verification-keyring.keys", SigningFixtures.validPublicKey)
 
         and: "binary file is byte-for-byte untouched"
         binaryFile.bytes == binaryBefore
@@ -927,11 +900,11 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         writeVerificationMetadata()
         succeeds ":help", "--export-keys"
 
+        assertKeyringSize("gradle/verification-keyring.keys", 2)
+        assertKeyringSize("gradle/verification-keyring.gpg", 2)
+
         def asciiFile = file("gradle/verification-keyring.keys")
-        def binaryFile = file("gradle/verification-keyring.gpg")
         def asciiBefore = asciiFile.bytes
-        SecuritySupport.loadKeyRingFile(asciiFile).size() == 2
-        SecuritySupport.loadKeyRingFile(binaryFile).size() == 2
 
         and: "user drops the orphan and pins the keyring format to binary"
         replaceMetadataFile {
@@ -944,9 +917,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         succeeds ":help", "--prune-keys"
 
         then: "binary file is pruned"
-        def prunedBinary = SecuritySupport.loadKeyRingFile(binaryFile)
-        prunedBinary.size() == 1
-        prunedBinary.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+        assertKeyringContainsOnly("gradle/verification-keyring.gpg", SigningFixtures.validPublicKey)
 
         and: "armored file is byte-for-byte untouched"
         asciiFile.bytes == asciiBefore
@@ -1310,5 +1281,15 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         exportedKeyRingAscii.exists()
         def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
         keyringsAscii.size() == 3
+    }
+
+    private void assertKeyringContainsOnly(String keyringPath, PGPPublicKey expectedKey) {
+        def keyrings = SecuritySupport.loadKeyRingFile(file(keyringPath))
+        assert keyrings.size() == 1
+        assert keyrings.find { it.publicKey.keyID == expectedKey.keyID }
+    }
+
+    private void assertKeyringSize(String keyringPath, int expectedSize) {
+        assert SecuritySupport.loadKeyRingFile(file(keyringPath)).size() == expectedSize
     }
 }
