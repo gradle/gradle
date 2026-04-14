@@ -38,7 +38,7 @@ fun ExecOperations.execAndGetStdout(workingDir: File, ignoreExitValue: Boolean, 
 }
 
 
-fun ExecOperations.execAndGetStdoutIgnoringError(vararg args: String) = execAndGetStdout(File("."), true, *args)
+fun ExecOperations.execAndGetStdoutIgnoringError(workingDir: File, vararg args: String) = execAndGetStdout(workingDir, true, *args)
 
 
-fun ExecOperations.execAndGetStdout(vararg args: String) = execAndGetStdout(File("."), false, *args)
+fun ExecOperations.execAndGetStdout(workingDir: File, vararg args: String) = execAndGetStdout(workingDir, false, *args)
