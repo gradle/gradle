@@ -616,7 +616,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             task run(type: JavaExec) {
                 classpath = sourceSets.main.runtimeClasspath
                 mainClass = 'Foo'
-                executable = javaExecutable
+                executable = javaExecutable.asFile.absolutePath
             }
         """
         file("src/main/java/Foo.java") << """
