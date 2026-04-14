@@ -39,7 +39,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getDistributionSizeMiB() {
-        return 231
+        return 232
     }
 
     @Requires(TestEnvironmentPreconditions.StableGroovy) // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/

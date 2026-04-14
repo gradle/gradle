@@ -16,6 +16,7 @@
 
 package gradlebuild.integrationtests.ide
 
+import org.gradle.kotlin.dsl.assign
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
