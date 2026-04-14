@@ -18,8 +18,6 @@ package org.gradle.api.plugins.scala;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -31,7 +29,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 
-import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link Plugin} which sets up a Scala project.</p>
@@ -63,12 +60,10 @@ public abstract class ScalaPlugin implements Plugin<Project> {
 
     private static void configureScaladoc(final Project project, final JvmFeatureInternal feature) {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
-            scalaDoc.getConventionMapping().map("classpath", (Callable<FileCollection>) () -> {
-                ConfigurableFileCollection files = project.files();
-                files.from(feature.getSourceSet().getOutput());
-                files.from(feature.getSourceSet().getCompileClasspath());
-                return files;
-            });
+            scalaDoc.getClasspath().convention(
+                feature.getSourceSet().getOutput(),
+                feature.getSourceSet().getCompileClasspath()
+            );
             scalaDoc.setSource(feature.getSourceSet().getExtensions().getByType(ScalaSourceDirectorySet.class));
             scalaDoc.getCompilationOutputs().from(feature.getSourceSet().getOutput());
         });
