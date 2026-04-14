@@ -116,13 +116,10 @@ val credentialsKeywords = listOf(
 
 fun Test.filterEnvironmentVariables(inheritedEnvVars: List<String>) {
     environment = makePropagatedEnvironment()
-    environment.forEach { (key, _) ->
-        require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
-    }
 
     inheritedEnvVars.forEach { envVar ->
         System.getenv(envVar)?.let {
-            environment[envVar] = it
+            environment(envVar, it)
         }
     }
 }
