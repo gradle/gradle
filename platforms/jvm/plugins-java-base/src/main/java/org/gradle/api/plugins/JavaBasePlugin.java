@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -210,8 +211,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet javaSource, final Project project) {
         final TaskProvider<JavaCompile> compileTask = project.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, javaCompile -> {
-            ConventionMapping conventionMapping = javaCompile.getConventionMapping();
-            conventionMapping.map("classpath", sourceSet::getCompileClasspath);
+            javaCompile.getClasspath().convention((Callable<FileCollection>) sourceSet::getCompileClasspath);
 
             JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, javaSource, javaCompile.getOptions(), project);
             javaCompile.setDescription("Compiles " + javaSource + ".");
@@ -331,8 +331,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureJavaDoc(final Project project, final JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
-            javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir("javadoc").get().getAsFile());
-            javadoc.getConventionMapping().map("title", () -> ReportUtilities.getApiDocTitleFor(project));
+            javadoc.getDestinationDir().convention(javaPluginExtension.getDocsDir().dir("javadoc"));
+            javadoc.getTitle().convention(project.getProviders().provider(() -> ReportUtilities.getApiDocTitleFor(project)));
 
             Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
                 JavadocExecutableUtils.getExecutableOverrideToolchainSpec(javadoc, propertyFactory));
