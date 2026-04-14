@@ -21,7 +21,6 @@ import com.google.common.io.CharStreams
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
-
 import javax.annotation.Nullable
 import java.util.function.BiConsumer
 import java.util.function.BiFunction
@@ -738,5 +737,35 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
 
     private static Object removeMapping(Object key, Object value) {
         return null
+    }
+
+    def "clone() returns independent copy"() {
+        given:
+        def original = getMapUnderTestToWrite()
+
+        when:
+        def clone = (Properties) original.clone()
+
+        then:
+        clone.getProperty('existing') == 'existingValue'
+
+        when:
+        clone.setProperty('existing', 'modified')
+
+        then:
+        original.getProperty('existing') == 'existingValue'
+        clone.getProperty('existing') == 'modified'
+    }
+
+    def "clone() still tracks access"() {
+        given:
+        def original = getMapUnderTestToWrite()
+
+        when:
+        def clone = (Properties) original.clone()
+        clone.getProperty('existing')
+
+        then:
+        (1.._) * onAccess.accept('existing', 'existingValue')
     }
 }

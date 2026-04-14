@@ -484,6 +484,12 @@ public class AccessTrackingProperties extends Properties {
     }
 
     @Override
+    public synchronized Object clone() {
+        Properties clonedDelegate = (Properties) delegate.clone();
+        return new AccessTrackingProperties(clonedDelegate, listener);
+    }
+
+    @Override
     public String toString() {
         return delegate.toString();
     }
