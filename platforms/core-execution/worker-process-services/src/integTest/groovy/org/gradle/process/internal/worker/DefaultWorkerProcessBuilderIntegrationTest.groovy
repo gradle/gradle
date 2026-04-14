@@ -78,7 +78,7 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
 
                 testLogging {
                     showStandardStreams = true
-                    exceptionFormat = "full"
+                    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
                 }
 
                 def existingDir = new File("$pathToExistingDir")
