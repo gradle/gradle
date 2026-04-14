@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("UnusedImport", "UnusedImports")
+
 package gradlebuild.integrationtests.ide
 
 import org.gradle.api.DefaultTask

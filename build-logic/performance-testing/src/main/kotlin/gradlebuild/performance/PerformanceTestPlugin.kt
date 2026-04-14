@@ -292,7 +292,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         // extension.baselines -> determineBaselines.configuredBaselines
         // determineBaselines.determinedBaselines -> performanceTest.baselines
         // determineBaselines.determinedBaselines -> buildCommitDistribution.baselines
-        val commandExecutor = objects.newInstance<DefaultCommandExecutor>()
+        val commandExecutor = objects.newInstance<DefaultCommandExecutor>(layout.settingsDirectory.asFile)
         val determineBaselines = tasks.register("determineBaselines", DetermineBaselines::class, false, commandExecutor)
         val buildCommitDistribution = tasks.register("buildCommitDistribution", BuildCommitDistribution::class)
         val buildCommitDistributionsDir = project.getBuildEnvironmentExtension().rootProjectBuildDir.dir("commit-distributions")
