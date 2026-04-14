@@ -17,6 +17,7 @@
 package org.gradle.internal.nativeintegration.jansi;
 
 import org.apache.commons.io.IOUtils;
+import org.fusesource.jansi.internal.JansiLoader;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 
@@ -26,16 +27,23 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class JansiBootPathConfigurer {
-    private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
+    static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
     private final JansiStorageLocator locator = new JansiStorageLocator();
 
     /**
      * Attempts to find the Jansi library and copies it to a specified folder.
-     * The copy operation happens only once. Sets the Jansi-related system property.
+     * The copy operation happens only once. Temporarily sets the Jansi-related
+     * system property so that {@link JansiLoader} finds the pre-extracted native
+     * library, eagerly initializes Jansi, then restores the previous property value.
      *
-     * This hackery is to prevent Jansi from creating a shared lib in a tmp dir which is deleted when
+     * <p>This hackery is to prevent Jansi from creating a shared lib in a tmp dir which is deleted when
      * the Java process finishes. To avoid performance impacts caused by Jansi's default behavior the
-     * library is proactively extracted into a known directory and reused by subsequent invocations.
+     * library is proactively extracted into a known directory and reused by subsequent invocations.</p>
+     *
+     * <p>The property is restored after initialization to prevent it from leaking to other Jansi
+     * versions sharing this JVM. This matters when Gradle is loaded as a Tooling API provider
+     * inside an IDE's JVM: the IDE may bundle a different Jansi version that would read the
+     * stale property and attempt to load an incompatible native library, causing a JNI crash.</p>
      *
      * @param storageDir where to store the Jansi library
      */
@@ -57,7 +65,17 @@ public class JansiBootPathConfigurer {
                 }
             }
 
-            System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, libFile.getParent());
+            String prev = System.getProperty(JANSI_LIBRARY_PATH_SYS_PROP);
+            try {
+                System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, libFile.getParent());
+                JansiLoader.initialize();
+            } finally {
+                if (prev == null) {
+                    System.clearProperty(JANSI_LIBRARY_PATH_SYS_PROP);
+                } else {
+                    System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, prev);
+                }
+            }
         }
     }
 

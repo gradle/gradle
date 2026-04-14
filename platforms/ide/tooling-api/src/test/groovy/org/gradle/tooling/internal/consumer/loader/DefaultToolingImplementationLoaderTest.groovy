@@ -136,6 +136,59 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         expect:
         loader.create(distribution, loggerFactory, progressListener, connectionParameters, cancellationToken) instanceof NoToolingApiConnection
     }
+
+    def "cleans up library.jansi.path set by old provider during configure"() {
+        given:
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, connectionParameters, cancellationToken) >> DefaultClassPath.of(
+            getToolingApiResourcesDir(TestConnectionThatSetsJansiPath.class),
+            ClasspathUtil.getClasspathForClass(TestConnection.class),
+            ClasspathUtil.getClasspathForClass(ActorFactory.class),
+            ClasspathUtil.getClasspathForClass(Logger.class),
+            ClasspathUtil.getClasspathForClass(GroovyObject.class),
+            ClasspathUtil.getClasspathForClass(GradleVersion.class))
+        def prevJansiPath = System.getProperty("library.jansi.path")
+
+        when:
+        System.clearProperty("library.jansi.path")
+        loader.create(distribution, loggerFactory, progressListener, connectionParameters, cancellationToken)
+
+        then:
+        System.getProperty("library.jansi.path") == null
+
+        cleanup:
+        if (prevJansiPath == null) {
+            System.clearProperty("library.jansi.path")
+        } else {
+            System.setProperty("library.jansi.path", prevJansiPath)
+        }
+    }
+
+    def "restores previous library.jansi.path value after old provider sets it"() {
+        given:
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, connectionParameters, cancellationToken) >> DefaultClassPath.of(
+            getToolingApiResourcesDir(TestConnectionThatSetsJansiPath.class),
+            ClasspathUtil.getClasspathForClass(TestConnection.class),
+            ClasspathUtil.getClasspathForClass(ActorFactory.class),
+            ClasspathUtil.getClasspathForClass(Logger.class),
+            ClasspathUtil.getClasspathForClass(GroovyObject.class),
+            ClasspathUtil.getClasspathForClass(GradleVersion.class))
+        def prevJansiPath = System.getProperty("library.jansi.path")
+        def existingValue = "/ide/own/jansi/path"
+
+        when:
+        System.setProperty("library.jansi.path", existingValue)
+        loader.create(distribution, loggerFactory, progressListener, connectionParameters, cancellationToken)
+
+        then:
+        System.getProperty("library.jansi.path") == existingValue
+
+        cleanup:
+        if (prevJansiPath == null) {
+            System.clearProperty("library.jansi.path")
+        } else {
+            System.setProperty("library.jansi.path", prevJansiPath)
+        }
+    }
 }
 
 class TestMetaData implements ConnectionMetaDataVersion1 {
@@ -253,5 +306,16 @@ class TestR10M3Connection implements ConnectionVersion4 {
 
     ConnectionMetaDataVersion1 getMetaData() {
         return new TestMetaData('1.0-milestone-3')
+    }
+}
+
+/**
+ * Simulates an old Gradle provider that sets library.jansi.path during configure(),
+ * as Gradle versions before the fix did via NativeServices/JansiBootPathConfigurer.
+ */
+class TestConnectionThatSetsJansiPath extends TestConnection {
+    void configure(org.gradle.tooling.internal.protocol.ConnectionParameters parameters) {
+        super.configure(parameters)
+        System.setProperty("library.jansi.path", "/stale/jansi/1.18/native/path")
     }
 }

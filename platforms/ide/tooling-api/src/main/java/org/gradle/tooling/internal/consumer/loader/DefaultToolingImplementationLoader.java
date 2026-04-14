@@ -102,8 +102,40 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         }
     }
 
+    /**
+     * The system property that Jansi uses to locate pre-extracted native libraries.
+     * Old Gradle provider versions set this JVM-global property during {@code configure()},
+     * pointing to their bundled native library. We must restore it after the call to prevent
+     * it from poisoning any other Jansi version in this JVM (e.g. the IDE's own Jansi).
+     */
+    private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
+
+    /**
+     * Serializes the snapshot/configure/restore of {@link #JANSI_LIBRARY_PATH_SYS_PROP}.
+     * Multiple {@link org.gradle.tooling.GradleConnector} instances (e.g. one per IDE project)
+     * can call {@link #createConnection} concurrently; without this lock one thread could
+     * snapshot the stale value written by another thread's provider.
+     */
+    private static final Object JANSI_PATH_LOCK = new Object();
+
     private ConsumerConnection createConnection(AbstractConsumerConnection adaptedConnection, ConnectionParameters connectionParameters) {
-        adaptedConnection.configure(connectionParameters);
+        // Save and restore library.jansi.path around the provider's configure() call.
+        // Old provider versions (e.g. Gradle 7.6) set this JVM-global property to point to
+        // their bundled jansi 1.x native library path. If left set, it causes jansi 2.x in
+        // the same JVM (e.g. the IDE's own jansi) to load an incompatible native library,
+        // resulting in a JNI crash.
+        synchronized (JANSI_PATH_LOCK) {
+            String prevJansiPath = System.getProperty(JANSI_LIBRARY_PATH_SYS_PROP);
+            try {
+                adaptedConnection.configure(connectionParameters);
+            } finally {
+                if (prevJansiPath == null) {
+                    System.clearProperty(JANSI_LIBRARY_PATH_SYS_PROP);
+                } else {
+                    System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, prevJansiPath);
+                }
+            }
+        }
         VersionDetails versionDetails = adaptedConnection.getVersionDetails();
         return new ParameterValidatingConsumerConnection(versionDetails, adaptedConnection);
     }
