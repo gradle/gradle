@@ -39,7 +39,7 @@ import java.io.File;
  *
  * reporting {
  *     // change the base directory where all reports are generated
- *     baseDirectory = layout.buildDirectory().dir("our-reports")
+ *     baseDirectory = layout.buildDirectory.dir("our-reports")
  * }
  *
  * // A directory for test reports
