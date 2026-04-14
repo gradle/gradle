@@ -23,7 +23,6 @@ import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
-import org.gradle.util.internal.CollectionUtils
 import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
@@ -49,6 +48,8 @@ import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Compan
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_JSR305
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SAM_CONVERSIONS
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SCRIPT_RESOLVER_ENVIRONMENT
+import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmDefaultMode
+import org.jetbrains.kotlin.buildtools.api.arguments.enums.SamConversionsMode
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
@@ -56,7 +57,6 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
-import org.jetbrains.kotlin.config.JvmTarget.JVM_25
 import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverPluginNames
 import org.jetbrains.kotlin.scripting.compiler.plugin.KOTLIN_SCRIPTING_PLUGIN_ID
@@ -245,7 +245,7 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
     }
 
     val firstErrorLine
-        get() = errors.asSequence().mapNotNull { it.location?.line }.firstOrNull()
+        get() = errors.firstNotNullOfOrNull { it.location?.line }
 
     override val message: String
         get() = (
@@ -407,16 +407,16 @@ private class Compiler {
         val operation = operationBuilder.build()
         // TODO operation[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = ... will be the proper replacement for MessageCollector
 
-        // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Deamon mode can be enabled
+        // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Daemon mode can be enabled
         return buildSession.executeOperation(operation, toolchains.createInProcessExecutionPolicy())
     }
 
     fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
         this[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
         this[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath. // TODO: is it really covered by NO_STDLIB?
-        this[CLASSPATH] = CollectionUtils.join(File.pathSeparator, classPath)
+        this[CLASSPATH] = classPath.map { it.toPath() }
 
-        this[SCRIPT_TEMPLATES] = arrayOf(template.jvmName)
+        this[SCRIPT_TEMPLATES] = listOf(template.jvmName)
         this[X_SCRIPT_RESOLVER_ENVIRONMENT] = arrayOf(
             resolverEnvironmentStringFor(
                 listOf(kotlinDslImplicitImports to implicitImports)
@@ -432,7 +432,7 @@ private class Compiler {
         this[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
         this[X_SKIP_PRERELEASE_CHECK] = true
         this[X_ALLOW_UNSTABLE_DEPENDENCIES] = true
-        this[JVM_DEFAULT] = "enable"
+        this[JVM_DEFAULT] = JvmDefaultMode.ENABLE
 
         this.also { // apply java type enhancement settings
             it[X_JSR305] = arrayOf("strict", "under-migration:strict")
@@ -443,7 +443,7 @@ private class Compiler {
     fun JvmCompilerArguments.Builder.configurePlugins() {
         fun pathOfJar(classLoader: ClassLoader, jarName: String): Path { // TODO: blasphemy, but how to do it right?!?
             if (classLoader is URLClassLoader) {
-                val jarFile = classLoader.urLs.firstOrNull() { it.file.contains(jarName) }
+                val jarFile = classLoader.urLs.firstOrNull { it.file.contains(jarName) }
                 if (jarFile != null) {
                     return Paths.get(jarFile.toURI())
                 }
@@ -483,7 +483,7 @@ private class Compiler {
         // TODO: put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         this[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
         this[X_USE_FIR_LT] = false
-        this[X_SAM_CONVERSIONS] = "class"
+        this[X_SAM_CONVERSIONS] = SamConversionsMode.CLASS
         // TODO: addJvmSdkRoot(...)
 
         this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME
@@ -493,8 +493,8 @@ private class Compiler {
 
 @VisibleForTesting
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 25
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 26
     return JvmTarget.fromString(majorVersion)
         ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JVM_25
+        else JvmTarget.JVM_26
 }
