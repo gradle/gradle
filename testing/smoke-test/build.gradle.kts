@@ -116,6 +116,10 @@ tasks {
         }
     }
 
+    /**
+     * TODO: Remove once with Gradle 9.0
+     */
+    @Suppress("DEPRECATION")
     fun SmokeTest.configureForSmokeTest(remoteProjectOutputFiles: Any? = null, includes: List<String> = emptyList(), excludes: List<String> = emptyList()) {
         group = "Verification"
         testClassesDirs = smokeTestSourceSet.output.classesDirs

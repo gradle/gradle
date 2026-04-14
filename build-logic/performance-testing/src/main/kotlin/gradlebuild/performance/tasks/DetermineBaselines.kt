@@ -25,6 +25,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
+import java.io.File
 import javax.inject.Inject
 
 
@@ -36,8 +37,8 @@ interface CommandExecutor {
 }
 
 
-open class DefaultCommandExecutor @Inject constructor(private val exec: ExecOperations) : CommandExecutor {
-    override fun execAndGetStdout(vararg args: String): String = exec.execAndGetStdout(*args)
+open class DefaultCommandExecutor @Inject constructor(val workingDir: File, private val exec: ExecOperations) : CommandExecutor {
+    override fun execAndGetStdout(vararg args: String): String = exec.execAndGetStdout(workingDir, *args)
 }
 
 
