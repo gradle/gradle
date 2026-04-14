@@ -128,12 +128,7 @@ public abstract class EarPlugin implements Plugin<Project> {
     private void wireEarTaskConventions(Project project) {
         project.getTasks().withType(Ear.class).configureEach(task -> {
             task.getAppDirectory().convention(project.provider(() -> project.getLayout().getProjectDirectory().dir("src/main/application")));
-            task.getConventionMapping().map("libDirName", new Callable<String>() {
-                @Override
-                public String call() throws Exception {
-                    return DEFAULT_LIB_DIR_NAME;
-                }
-            });
+            task.getLibDirName().convention(DEFAULT_LIB_DIR_NAME);
             task.getConventionMapping().map("deploymentDescriptor", new Callable<DeploymentDescriptor>() {
                 @Override
                 public DeploymentDescriptor call() throws Exception {
