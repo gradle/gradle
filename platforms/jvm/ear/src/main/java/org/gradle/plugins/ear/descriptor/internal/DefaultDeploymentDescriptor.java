@@ -62,7 +62,7 @@ public abstract class DefaultDeploymentDescriptor implements DeploymentDescripto
     public DefaultDeploymentDescriptor(PathToFileResolver fileResolver, ObjectFactory objectFactory) {
         this.fileResolver = fileResolver;
         this.objectFactory = objectFactory;
-        getVersion().convention("6");
+        getVersion().set("6");
         getInitializeInOrder().convention(Boolean.FALSE);
     }
 
