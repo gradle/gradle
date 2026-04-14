@@ -296,6 +296,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 0.7
      */
     @Deprecated
+    //TODO: to be removed in 9.0
     File getBuildDir();
 
     /**
