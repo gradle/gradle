@@ -62,21 +62,21 @@ class CreateStartScriptsTest extends AbstractProjectBuilderSpec {
 
     def exitEnvironmentVariableNameDefaultsToApplicationName() {
         when:
-        task.getApplicationName().set(null)
+        task.applicationName = null
 
         then:
-        task.exitEnvironmentVar.getOrNull() == null
+        task.exitEnvironmentVar == null
 
         when:
-        task.getApplicationName().set("myApp")
+        task.applicationName = "myApp"
 
         then:
-        task.exitEnvironmentVar.get() == 'MY_APP_EXIT_CONSOLE'
+        task.exitEnvironmentVar == 'MY_APP_EXIT_CONSOLE'
 
         when:
-        task.exitEnvironmentVar.set('APP_EXIT')
+        task.exitEnvironmentVar = 'APP_EXIT'
 
         then:
-        task.exitEnvironmentVar.get() == 'APP_EXIT'
+        task.exitEnvironmentVar == 'APP_EXIT'
     }
 }
