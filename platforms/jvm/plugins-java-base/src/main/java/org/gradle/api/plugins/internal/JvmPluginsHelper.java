@@ -72,7 +72,7 @@ public class JvmPluginsHelper {
     public static void compileAgainstJavaOutputs(AbstractCompile compileTask, final SourceSet sourceSet, final ObjectFactory objectFactory) {
         ConfigurableFileCollection classpath = objectFactory.fileCollection();
         classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(objectFactory.fileCollection().from(sourceSet.getJava().getClassesDirectory())));
-        compileTask.getConventionMapping().map("classpath", () -> classpath);
+        compileTask.getClasspath().convention(classpath);
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
