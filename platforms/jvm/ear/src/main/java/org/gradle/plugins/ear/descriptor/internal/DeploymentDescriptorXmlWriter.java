@@ -54,8 +54,10 @@ public class DeploymentDescriptorXmlWriter {
     private static DomNode toXmlNode(DeploymentDescriptor deploymentDescriptor, Set<EarModule> modules) {
         DomNode root = new DomNode(nodeNameFor(deploymentDescriptor, "application"));
         Map<String, String> rootAttributes = Cast.uncheckedCast(root.attributes());
-        String version = deploymentDescriptor.getVersion().get();
-        rootAttributes.put("version", version);
+        String version = deploymentDescriptor.getVersion().getOrNull();
+        if (version != null) {
+            rootAttributes.put("version", version);
+        }
         if (!"1.3".equals(version)) {
             rootAttributes.put("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
         }
@@ -68,7 +70,7 @@ public class DeploymentDescriptorXmlWriter {
             rootAttributes.put("xsi:schemaLocation", "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_" + version + ".xsd");
         } else if ("7".equals(version) || "8".equals(version)) {
             rootAttributes.put("xsi:schemaLocation", "http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_" + version + ".xsd");
-        } else if (JAKARTA_VERSION_PATTERN.matcher(version).matches()) {
+        } else if (version != null && JAKARTA_VERSION_PATTERN.matcher(version).matches()) {
             rootAttributes.put("xsi:schemaLocation", "https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/application_" + version + ".xsd");
         }
         if (deploymentDescriptor.getApplicationName().isPresent()) {
