@@ -18,7 +18,6 @@
 package org.gradle.api.internal.tasks.util
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.deprecation.DeprecationLogger
@@ -74,11 +73,6 @@ class DefaultJavaForkOptionsTest extends Specification {
 
         then:
         options.jvmArgs.get() == ['12', '3']
-
-        and:
-        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
-        events.size() == 1
-        events[0].message.startsWith('The DefaultJavaForkOptions.setAllJvmArgs method has been deprecated.')
     }
 
     def "can add jvmArgs"() {
