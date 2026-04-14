@@ -20,6 +20,7 @@ import groovy.lang.MissingMethodException
 import groovy.lang.MissingPropertyException
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.PropertyKind
@@ -174,6 +175,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
                         MemberKind.METHOD -> location
                     }
                 }
+                .documentationSection(DocumentationSection.DeprecatedAccessingParentProjectProperties)
                 .exception()
                 .build()
             ipProblems.onIsolatedProjectsProblem(problem)
