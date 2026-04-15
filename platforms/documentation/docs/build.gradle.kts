@@ -8,6 +8,7 @@ import gradlebuild.integrationtests.model.GradleDistribution
 import java.io.FileFilter
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+import org.gradle.api.provider.SetProperty
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
@@ -290,7 +291,10 @@ tasks.named<Test>("docsTest") {
         // the user must clear.
         val testTask = this
         doFirst {
-            val cliPatterns = (testTask.filter as DefaultTestFilter).commandLineIncludePatterns
+            // Cross-version shim for [DefaultTestFilter.getCommandLineIncludePatterns]
+            // TODO: Delete in Gradle 10
+            fun SetProperty<String>.toSet(): Set<String> = get()
+            val cliPatterns = (testTask.filter as DefaultTestFilter).commandLineIncludePatterns.toSet()
             if (cliPatterns.isNotEmpty() && cliPatterns.all { p -> configCacheExcludedTestGroups.any { p.contains(it) } }) {
                 throw GradleException(
                     "All --tests filters target tests that are excluded from docsTest when " +

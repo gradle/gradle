@@ -121,7 +121,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             .build()
         result = runner
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
             }.maybeExpectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
             .build()
