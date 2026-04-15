@@ -1334,18 +1334,10 @@ task b(dependsOn: a)
         outputFile.text == 'first'
 
         when:
-        run 'myTask', '-Pprivate=second'
+        fails 'myTask', '-Pprivate=second'
 
         then:
-        executedAndNotSkipped ':myTask'
-        outputFile.text == 'second'
-
-        when:
-        run 'myTask', '-Pprivate=second'
-
-        then:
-        skipped ':myTask'
-        outputFile.text == 'second'
+        failure.assertHasDescription("Execution failed for task ':myTask'")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/11805")
