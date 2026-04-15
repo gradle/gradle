@@ -49,7 +49,12 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 distributionZip.delete()
                 gradleHomeDir.deleteDir()
 
+                // http://internal.svc.ns/
+
                 URL url = getDownloadURL();
+                if (System.getenv("RUNNING_ON_REMOTE_AGENT")!=null) {
+                    throw new RuntimeException("downloading $url")
+                }
                 System.out.println("downloading $url")
                 distributionZip.copyFrom(url)
 
