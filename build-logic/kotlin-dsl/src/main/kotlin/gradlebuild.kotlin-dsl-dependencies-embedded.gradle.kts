@@ -79,15 +79,17 @@ val writeEmbeddedKotlinDependencies by tasks.registering {
     outputs.file(outputFile)
     val values = embeddedKotlinBaseDependencies
     inputs.files(values)
-    // "annotations" is skipped to avoid pinning org.jetbrains:annotations via the embedded Kotlin
-    // transitive closure, which conflicts with AGP's transitives requesting annotations:23.0.0.
-    val skippedModules = setOf(project.name, "distributions-dependencies", "annotations")
+    val skippedModules = setOf(project.name, "distributions-dependencies")
+    // org.jetbrains:annotations is skipped to avoid pinning it via the embedded Kotlin transitive
+    // closure, which conflicts with AGP's transitives requesting annotations:23.0.0.
+    val skippedGroupAndNames = setOf("org.jetbrains:annotations")
     // https://github.com/gradle/configuration-cache/issues/183
     val modules = provider {
         embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
             .asSequence()
             .mapNotNull { it.moduleVersion }
             .filter { it.name !in skippedModules }
+            .filter { "${it.group}:${it.name}" !in skippedGroupAndNames }
             .associate { "${it.group}:${it.name}" to it.version }
     }
 
