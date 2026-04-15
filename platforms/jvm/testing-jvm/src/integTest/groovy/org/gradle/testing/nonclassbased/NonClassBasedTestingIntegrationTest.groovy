@@ -200,6 +200,80 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         output.contains("gamma3")
     }
 
+    def "resource-based tests are distributed across workers with daemon-side discovery (#strategy)"() {
+        String locationA = "src/test/defs-a"
+        String locationB = "src/test/defs-b"
+        String locationC = "src/test/defs-c"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            import org.gradle.api.tasks.testing.distribution.TestDistributionStrategy
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        useDaemonSideTestDiscovery = true
+                        testDistributionStrategy = TestDistributionStrategy.${strategy}
+                        maxParallelForks = 4
+                        testDefinitionDirs.from("$locationA")
+                        testDefinitionDirs.from("$locationB")
+                        testDefinitionDirs.from("$locationC")
+                    }
+                }
+            }
+        """
+
+        file("$locationA/AlphaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="alpha1" />
+                <test name="alpha2" />
+            </tests>
+        """
+        file("$locationB/BetaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="beta1" />
+                <test name="beta2" />
+            </tests>
+        """
+        file("$locationC/GammaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="gamma1" />
+                <test name="gamma2" />
+            </tests>
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then: 'all tests from all directories are discovered and executed'
+        output.contains("alpha1")
+        output.contains("alpha2")
+        output.contains("beta1")
+        output.contains("beta2")
+        output.contains("gamma1")
+        output.contains("gamma2")
+
+        and: 'tests were distributed across the expected number of worker JVMs'
+        def pids = output.readLines()
+            .findAll { it.contains("RBT_EXEC worker_pid=") }
+            .collect { (it =~ /worker_pid=(\d+)/)[0][1] }
+            .toSet()
+        pids.size() == expectedWorkers
+
+        where:
+        strategy                       | expectedWorkers
+        'BY_TOP_LEVEL_TEST_CONTAINER'  | 3 // only 3 top-level test containers across the 3 definitions files, so only 3 workers should be used
+        'BY_INDIVIDUAL_TEST'           | 4 // 6 individual tests across the 3 definitions files, so up to the max of 4 workers should be used
+    }
+
     def "empty test definitions location skips"() {
         given:
         buildFile << """

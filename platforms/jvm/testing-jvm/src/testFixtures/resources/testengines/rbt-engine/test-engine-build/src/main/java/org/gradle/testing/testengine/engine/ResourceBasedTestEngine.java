@@ -83,6 +83,8 @@ public class ResourceBasedTestEngine implements TestEngine {
 
     private void executeTest(TestDescriptor test, EngineExecutionListener listener) {
         listener.executionStarted(test);
+        long pid = ProcessHandle.current().pid();
+        System.out.println("RBT_EXEC worker_pid=" + pid + " test=" + test.getDisplayName());
         LOGGER.info(() -> "Executing resource-based test: " + test);
         listener.executionFinished(test, TestExecutionResult.successful());
     }
