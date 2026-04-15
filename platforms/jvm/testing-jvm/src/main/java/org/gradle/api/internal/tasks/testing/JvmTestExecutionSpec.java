@@ -50,14 +50,14 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,
                                 FileTree candidateClassFiles, boolean scanForTestClasses,
                                 FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
-        this(testFramework, classpath, modulePath, candidateClassFiles, scanForTestClasses, Collections.emptySet(), testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, testIsModule, false, TestDistributionStrategy.BY_TOP_TEST_CONTAINER);
+        this(testFramework, classpath, modulePath, candidateClassFiles, scanForTestClasses, Collections.emptySet(), testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, testIsModule, false, TestDistributionStrategy.BY_TOP_LEVEL_TEST_CONTAINER);
     }
 
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,
                                 FileTree candidateClassFiles, boolean scanForTestClasses,
                                 Set<File> candidateTestDefinitionDirs,
                                 FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
-        this(testFramework, classpath, modulePath, candidateClassFiles, scanForTestClasses, candidateTestDefinitionDirs, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, testIsModule, false, TestDistributionStrategy.BY_TOP_TEST_CONTAINER);
+        this(testFramework, classpath, modulePath, candidateClassFiles, scanForTestClasses, candidateTestDefinitionDirs, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, testIsModule, false, TestDistributionStrategy.BY_TOP_LEVEL_TEST_CONTAINER);
     }
 
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,

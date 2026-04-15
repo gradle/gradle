@@ -199,7 +199,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         filter = objectFactory.newInstance(DefaultTestFilter.class);
         getFailOnNoDiscoveredTests().convention(true);
         getUseDaemonSideTestDiscovery().convention(false);
-        getTestDistributionStrategy().convention(TestDistributionStrategy.BY_TOP_TEST_CONTAINER);
+        getTestDistributionStrategy().convention(TestDistributionStrategy.BY_TOP_LEVEL_TEST_CONTAINER);
     }
 
     @Inject
@@ -808,7 +808,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * The strategy for distributing discovered tests to worker processes when daemon-side
      * test discovery is enabled.
      *
-     * <p>Defaults to {@link TestDistributionStrategy#BY_TOP_TEST_CONTAINER}, which sends all methods from
+     * <p>Defaults to {@link TestDistributionStrategy#BY_TOP_LEVEL_TEST_CONTAINER}, which sends all methods from
      * the same test class to the same worker.</p>
      *
      * <p>This property is only meaningful when {@link #getUseDaemonSideTestDiscovery()} is {@code true}.</p>

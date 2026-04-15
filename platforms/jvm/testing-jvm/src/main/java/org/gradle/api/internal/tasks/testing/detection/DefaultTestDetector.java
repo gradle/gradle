@@ -115,7 +115,7 @@ public class DefaultTestDetector implements TestDetector {
 
     private TestDistributor createDistributor(TestDistributionStrategy strategy) {
         return switch (strategy) {
-            case BY_TOP_TEST_CONTAINER -> new ByTopLevelContainerTestDistributor();
+            case BY_TOP_LEVEL_TEST_CONTAINER -> new ByTopLevelContainerTestDistributor();
             case BY_INDIVIDUAL_TEST -> new ByIndividualTestTestDistributor();
         };
     }

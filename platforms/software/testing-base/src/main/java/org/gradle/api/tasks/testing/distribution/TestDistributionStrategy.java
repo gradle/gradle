@@ -38,7 +38,7 @@ public enum TestDistributionStrategy {
      *
      * @since 9.6.0
      */
-    BY_TOP_TEST_CONTAINER,
+    BY_TOP_LEVEL_TEST_CONTAINER,
 
     /**
      * Distributes each discovered test individually with no grouping.

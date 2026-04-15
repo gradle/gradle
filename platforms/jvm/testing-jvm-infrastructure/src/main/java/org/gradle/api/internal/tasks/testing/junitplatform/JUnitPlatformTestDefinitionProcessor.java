@@ -189,16 +189,24 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             executionListener.throwAnyFatalExceptions();
         }
 
+        /**
+         * Builds a {@link TestPlan} by re-discovering tests from the collected selectors.
+         * <p>
+         * Name, engine, and tag filters are always applied, even when selectors are unique IDs
+         * from daemon-side discovery. When the daemon distributes at class level
+         * ({@code BY_TOP_TEST_CONTAINER}), a class container may contain both matching and
+         * non-matching methods — the worker-side filters handle the precise method-level
+         * filtering that the daemon's class-level pass could not.
+         */
         private TestPlan createTestPlan(Launcher launcher) {
             LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request();
             selectors.forEach(requestBuilder::selectors);
 
-            // TODO: don't need these if have id selector
             addTestNameFilters(requestBuilder);
             addEnginesFilter(requestBuilder);
             addTagsFilter(requestBuilder);
 
-            // Need to have THIS launcher recreate a TestPlan, because of "org.junit.platform.commons.PreconditionViolationException: TestPlan was not returned by this Launcher
+            // Need to have THIS launcher recreate a TestPlan, because of "org.junit.platform.commons.PreconditionViolationException: TestPlan was not returned by this Launcher"
             LauncherDiscoveryRequest request = requestBuilder.build();
             return launcher.discover(request);
         }

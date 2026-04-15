@@ -469,6 +469,36 @@ class DaemonSideTestDiscoveryIntegrationTest extends AbstractIntegrationSpec imp
         errorOutput.contains("Disable daemon-side test discovery: testing.suites.test { useDaemonSideTestDiscovery = false }")
     }
 
+    def "filters individual methods within a matching class"() {
+        given:
+        buildFile << javaLibWithDaemonDiscoveryJupiterTests()
+
+        file('src/test/java/org/example/MixedTest.java') << """
+            package org.example;
+            import org.junit.jupiter.api.*;
+
+            public class MixedTest {
+                @Test
+                public void included() {
+                }
+
+                @Test
+                public void excluded() {
+                    throw new RuntimeException("Should not be run!");
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run("test", "--tests", "org.example.MixedTest.included")
+
+        then:
+        GenericTestExecutionResult testResult = resultsFor()
+        testResult.testPath("org.example.MixedTest").onlyRoot()
+            .assertChildrenExecuted("included()")
+            .assertChildCount(1, 0)
+    }
+
     private String javaLibWithDaemonDiscoveryJupiterTests() {
         return """
             plugins {
