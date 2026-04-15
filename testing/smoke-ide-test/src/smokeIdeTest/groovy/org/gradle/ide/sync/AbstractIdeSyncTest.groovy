@@ -49,10 +49,10 @@ import java.util.concurrent.Executors
 @CleanupTestDirectory
 abstract class AbstractIdeSyncTest extends Specification {
 
-    // https://youtrack.jetbrains.com/articles/IDEA-A-21/IDEA-Latest-Builds-And-Release-Notes
-    final static String IDEA_VERSION = "2025.3.2"
-    // https://developer.android.com/studio/archive
-    final static String ANDROID_STUDIO_VERSION = "2025.3.2.8"
+    private enum IDE {
+        ANDROID_STUDIO,
+        INTELLIJ_IDEA_ULTIMATE,
+    }
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -74,34 +74,28 @@ abstract class AbstractIdeSyncTest extends Specification {
     }
 
     /**
-     * Runs a full sync with a given Android Studio version as an external process.
+     * Runs a full sync with Android Studio as an external process.
      * Optionally, an {@link IdeScenario} may be provided.
-     * The IDE distribution is automatically downloaded if required.
+     * The IDE distribution is provisioned by IdeProvisioningPlugin.
      */
     protected void androidStudioSync(
-        String version,
         @Nullable IdeScenario scenario = null
     ) {
-        ideSync("ai-$version", scenario)
+        ideSync(IDE.ANDROID_STUDIO, scenario)
     }
 
     /**
-     * Runs a full sync with a given IntelliJ IDEA Community version as an external process.
+     * Runs a full sync with IntelliJ IDEA Ultimate as an external process.
      * Optionally, an {@link IdeScenario} may be provided.
-     * The IDE distribution is automatically downloaded if required.
-     * <p>
-     * The version can be optionally suffixed with a "build type", which is one of {@code release}, {@code rc}, {@code eap}.
-     * For instance, {@code 2024.2-eap}. When the build type is not provided, it defaults to {@code release}.
-     * <p>
+     * The IDE distribution is provisioned by IdeProvisioningPlugin.
      */
     protected void ideaSync(
-        String version,
         @Nullable IdeScenario scenario = null
     ) {
-        ideSync("iu-$version", scenario)
+        ideSync(IDE.INTELLIJ_IDEA_ULTIMATE, scenario)
     }
 
-    private void ideSync(String ide, IdeScenario scenario) {
+    private void ideSync(IDE ide, IdeScenario scenario) {
         def scenarioFile = writeScenario(scenario)
         def gradleDist = distribution.gradleHomeDir.toPath()
         runIdeStarterWith(gradleDist, projectDirectory.toPath(), ideHome, testDirectory.toPath(), scenarioFile, ide)
@@ -135,14 +129,13 @@ abstract class AbstractIdeSyncTest extends Specification {
         Path ideHome,
         Path testHome,
         @Nullable Path scenario,
-        String ide
+        IDE ide
     ) {
         def args = [
             "--gradle-dist=$gradleDist",
             "--project=$testProject",
             "--ide-home=$ideHome",
             "--test-home=$testHome",
-            "--ide=$ide",
         ]
 
         if (scenario != null) {
@@ -157,10 +150,21 @@ abstract class AbstractIdeSyncTest extends Specification {
             args += "--ide-keep-alive"
         }
 
-        def archivePath = System.getProperty("android.studio.archive")
-        if (archivePath != null) {
-            args += "--ide-archive=$archivePath"
+
+        def archivePath
+        def ideType
+        switch (ide) {
+            case IDE.ANDROID_STUDIO -> {
+                ideType = "as-0"
+                archivePath = System.getProperty("android.studio.archive")
+            }
+            case IDE.INTELLIJ_IDEA_ULTIMATE -> {
+                ideType = "iu-0"
+                archivePath = System.getProperty("idea.ultimate.archive")
+            }
         }
+        args += "--ide=$ideType"
+        args += "--ide-archive=$archivePath"
 
         DefaultClientExecHandleBuilder builder = new DefaultClientExecHandleBuilder(
             TestFiles.pathToFileResolver(), Executors.newCachedThreadPool(), new DefaultBuildCancellationToken()

@@ -6,9 +6,9 @@ description = "Provides plugins to create and configure integration, cross-versi
 
 gradlePlugin {
     plugins {
-        register("androidStudioProvisioning") {
-            id = "gradlebuild.android-studio-provisioning"
-            implementationClass = "gradlebuild.integrationtests.ide.AndroidStudioProvisioningPlugin"
+        register("ideProvisioning") {
+            id = "gradlebuild.ide-provisioning"
+            implementationClass = "gradlebuild.integrationtests.ide.IdeProvisioningPlugin"
         }
     }
 

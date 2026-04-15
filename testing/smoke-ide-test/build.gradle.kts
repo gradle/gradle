@@ -2,12 +2,13 @@ import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.configureTestSourceSetInIde
+import gradlebuild.integrationtests.ide.IdeProvisioningPlugin
 import gradlebuild.integrationtests.tasks.SmokeIdeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
 
 plugins {
     id("gradlebuild.internal.java")
-    id("gradlebuild.android-studio-provisioning")
+    id("gradlebuild.ide-provisioning")
 }
 
 description = "Tests are checking Gradle behavior during IDE synchronization process"
@@ -45,15 +46,6 @@ abstract class IdeStarterPathProvider : CommandLineArgumentProvider {
 
     override fun asArguments(): Iterable<String> =
         listOf("-Dide.starter.path=${ideStarterDir.get().asFile.absolutePath}")
-}
-
-abstract class AndroidStudioArchiveProvider : CommandLineArgumentProvider {
-    @get: InputFiles
-    @get: PathSensitive(PathSensitivity.NONE)
-    abstract val archiveFiles: ConfigurableFileCollection
-
-    override fun asArguments(): Iterable<String> =
-        listOf("-Dandroid.studio.archive=${archiveFiles.singleFile.absolutePath}")
 }
 
 tasks {
@@ -103,9 +95,7 @@ tasks {
             }
         )
         jvmArgumentProviders.add(
-            objects.newInstance<AndroidStudioArchiveProvider>().apply {
-                archiveFiles.from(configurations.getByName("intellijPlatformDependencyArchive"))
-            }
+            IdeProvisioningPlugin.ideArchivesProvider(project)
         )
     }
 }

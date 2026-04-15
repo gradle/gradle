@@ -31,7 +31,7 @@ class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
         simpleAndroidProject(AGP_VERSION)
 
         when:
-        androidStudioSync(ANDROID_STUDIO_VERSION)
+        androidStudioSync()
 
         then:
         report.htmlReport().assertHasNoProblems()
@@ -43,7 +43,6 @@ class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
         expect:
         androidStudioSync(
-            ANDROID_STUDIO_VERSION,
             IdeScenarioBuilder
                 .initialImportProject()
                 .appendTextToFile("lib/build.gradle", "dependencies {}")

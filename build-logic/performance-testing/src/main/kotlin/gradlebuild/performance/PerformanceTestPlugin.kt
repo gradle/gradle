@@ -39,7 +39,7 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.basics.toolchainInstallationPaths
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.configureTestSourceSetInIde
-import gradlebuild.integrationtests.ide.AndroidStudioProvisioningPlugin
+import gradlebuild.integrationtests.ide.IdeProvisioningPlugin
 import gradlebuild.integrationtests.ide.composeAndroidStudioSystemProperties
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.performance.Config.performanceTestAndroidStudioJvmArgs
@@ -111,7 +111,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.configureAndroidStudioProvisioning() {
         if (project.name == "enterprise-plugin-performance") return
-        pluginManager.apply(AndroidStudioProvisioningPlugin::class)
+        pluginManager.apply(IdeProvisioningPlugin::class)
     }
 
     private
