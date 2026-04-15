@@ -407,9 +407,16 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         replayedOps[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
         replayedOps[0].result.resolvedFilePath.endsWith('impl-1.3.jar')
         replayedOps[0].result.fileSize == m.artifact.file.length()
-        // On CC hit no network or cache-lookup happens, so no Read/AlreadyPresent children fire.
+        // On CC hit, no network read happens at all.
         buildOperations.all(ExternalResourceReadBuildOperationType).isEmpty()
-        buildOperations.all(ExternalResourceAlreadyPresentBuildOperationType).isEmpty()
+        // A synthetic ExternalResourceAlreadyPresent child is emitted, so consumers see a consistent
+        // parent-child structure on both CC miss and CC hit. The location is empty because the
+        // original request URI is not persisted in CC state.
+        def replayedAlreadyPresentOps = buildOperations.all(ExternalResourceAlreadyPresentBuildOperationType)
+        replayedAlreadyPresentOps.size() == 1
+        replayedAlreadyPresentOps[0].details.location == ''
+        replayedAlreadyPresentOps[0].result.resolvedFilePath.endsWith('impl-1.3.jar')
+        replayedAlreadyPresentOps[0].result.fileSize == m.artifact.file.length()
     }
 
     def "emits events for an artifact once per build"() {

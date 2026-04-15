@@ -30,6 +30,7 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.resource.ExternalResourceAlreadyPresentBuildOperationType
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -72,27 +73,33 @@ class DefaultResolvableArtifactCodec(
     private
     fun ReadContext.emitReplayOperation(artifactId: ComponentArtifactIdentifier, file: File, fileSize: Long) {
         val buildOperationRunner = isolate.owner.serviceOf<BuildOperationRunner>()
-        buildOperationRunner.run(ReplayDownloadArtifactOperation(artifactId, file, fileSize))
+        buildOperationRunner.run(ReplayDownloadArtifactOperation(artifactId, file, fileSize, buildOperationRunner))
     }
 
     /**
-     * Emits a [DownloadArtifactBuildOperationType] synthetically during Configuration Cache replay.
+     * Emits a [DownloadArtifactBuildOperationType] synthetically during Configuration Cache replay,
+     * with a nested [ExternalResourceAlreadyPresentBuildOperationType] child that signals the artifact
+     * was served from the local cache (by definition on CC hit). The child carries the same
+     * file path and size payload as would fire during a CC-miss cache-hit resolution.
      *
-     * On CC hit the original resolution pipeline is skipped, so neither [DownloadArtifactBuildOperationType]
-     * nor any [org.gradle.internal.resource.ExternalResourceReadBuildOperationType] /
-     * [org.gradle.internal.resource.ExternalResourceAlreadyPresentBuildOperationType] is emitted for the
-     * artifact. This synthetic emission surfaces the resolved artifact to build operation consumers
-     * (e.g. the Develocity plugin) with the same path/size payload. The absence of a child
-     * [org.gradle.internal.resource.ExternalResourceReadBuildOperationType] signals that no download
-     * occurred — on CC replay, every artifact is cache-resolved by definition.
+     * Consumers see a consistent parent-child structure on both CC miss and CC hit:
+     *   DownloadArtifactBuildOperationType
+     *     └── ExternalResourceAlreadyPresentBuildOperationType   (cache-resolved)
+     *
+     * The child's `location` is empty because the original request URI is not persisted in the
+     * configuration cache — consumers that need it should correlate via the artifact identifier
+     * on the parent op. Replay for related module metadata files (POM, `.module`) is intentionally
+     * not included here and is tracked as a follow-up.
      */
     private
     class ReplayDownloadArtifactOperation(
         private val artifactId: ComponentArtifactIdentifier,
         private val file: File,
-        private val fileSize: Long
+        private val fileSize: Long,
+        private val buildOperationRunner: BuildOperationRunner
     ) : RunnableBuildOperation {
         override fun run(context: BuildOperationContext) {
+            buildOperationRunner.run(ReplayAlreadyPresentOperation(file, fileSize))
             context.setResult(DownloadArtifactBuildOperationType.ResultImpl(file.absolutePath, fileSize))
         }
 
@@ -102,5 +109,36 @@ class DefaultResolvableArtifactCodec(
                 .displayName("Resolve $displayName")
                 .details(DownloadArtifactBuildOperationType.DetailsImpl(displayName))
         }
+    }
+
+    private
+    class ReplayAlreadyPresentOperation(
+        private val file: File,
+        private val fileSize: Long
+    ) : RunnableBuildOperation {
+        override fun run(context: BuildOperationContext) {
+            context.setResult(ReplayAlreadyPresentResult(file.absolutePath, fileSize))
+        }
+
+        override fun description(): BuildOperationDescriptor.Builder {
+            return BuildOperationDescriptor
+                .displayName("Cache hit for " + file.absolutePath)
+                .details(ReplayAlreadyPresentDetails)
+        }
+    }
+
+    private
+    object ReplayAlreadyPresentDetails : ExternalResourceAlreadyPresentBuildOperationType.Details {
+        // Original request URI is not persisted in the Configuration Cache.
+        override fun getLocation(): String = ""
+    }
+
+    private
+    class ReplayAlreadyPresentResult(
+        private val resolvedFilePath: String,
+        private val fileSize: Long
+    ) : ExternalResourceAlreadyPresentBuildOperationType.Result {
+        override fun getResolvedFilePath(): String = resolvedFilePath
+        override fun getFileSize(): Long = fileSize
     }
 }
