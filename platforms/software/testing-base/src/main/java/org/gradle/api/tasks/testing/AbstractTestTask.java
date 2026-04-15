@@ -60,6 +60,7 @@ import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.testing.distribution.TestDistributionStrategy;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -197,6 +198,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         filter = objectFactory.newInstance(DefaultTestFilter.class);
         getFailOnNoDiscoveredTests().convention(true);
+        getUseDaemonSideTestDiscovery().convention(false);
+        getTestDistributionStrategy().convention(TestDistributionStrategy.BY_TOP_TEST_CONTAINER);
     }
 
     @Inject
@@ -800,6 +803,39 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Input
     abstract public Property<Boolean> getFailOnNoDiscoveredTests();
+
+    /**
+     * The strategy for distributing discovered tests to worker processes when daemon-side
+     * test discovery is enabled.
+     *
+     * <p>Defaults to {@link TestDistributionStrategy#BY_TOP_TEST_CONTAINER}, which sends all methods from
+     * the same test class to the same worker.</p>
+     *
+     * <p>This property is only meaningful when {@link #getUseDaemonSideTestDiscovery()} is {@code true}.</p>
+     *
+     * @return property for the test distribution strategy
+     * @since 9.6.0
+     */
+    @Incubating
+    @Input
+    abstract public Property<TestDistributionStrategy> getTestDistributionStrategy();
+
+    /**
+     * Whether test discovery should be performed in the daemon JVM rather than the forked worker JVM.
+     *
+     * <p>When enabled, the daemon uses the test framework's discovery API to find individual tests
+     * before forking workers, then sends specific test identifiers to workers for execution.
+     * This enables more precise test filtering and provides the daemon with fine-grained
+     * knowledge of the test plan before execution begins.</p>
+     *
+     * <p>Defaults to {@code false}.</p>
+     *
+     * @return property for whether test discovery should be performed in the daemon
+     * @since 9.6.0
+     */
+    @Incubating
+    @Input
+    abstract public Property<Boolean> getUseDaemonSideTestDiscovery();
 
     /**
      * Handles test failures based on the {@link #getIgnoreFailures()} property.

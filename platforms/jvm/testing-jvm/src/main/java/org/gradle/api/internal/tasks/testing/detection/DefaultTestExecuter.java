@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
@@ -24,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestDefinitionProcessor;
@@ -44,10 +44,8 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.internal.IncubationLogger;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Set;
 
 /**
  * The default test class scanner factory.
@@ -101,25 +99,14 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                 new RunPreviousFailedFirstTestDefinitionProcessor<>(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
                     new MaxNParallelTestDefinitionProcessor<>(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
-        final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
-        final Set<File> testDefinitionDirs = testExecutionSpec.getCandidateTestDefinitionDirs();
-
-        if (testFramework.getDetector() != null) {
-            TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
-            testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
-            testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
-        }
-
         /*
          * We're possibly running non-class-based tests and there is a filter present.
          *
          * @see org.gradle.api.internal.tasks.testing.filter.FileTestSelectionMatcher
          */
-        if (!testDefinitionDirs.isEmpty() && testFilter.hasPatterns()) {
+        if (!testExecutionSpec.getCandidateTestDefinitionDirs().isEmpty() && testFilter.hasPatterns()) {
             IncubationLogger.incubatingFeatureUsed("Filtering non-class-based tests");
         }
-
-        TestDetector detector = new DefaultTestScanner(testClassFiles, testDefinitionDirs, testFramework.getDetector(), processor);
 
         // What is this?
         // In some versions of the Gradle retry plugin, it would retry any test that had any kind of failure associated with it.
@@ -134,7 +121,28 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                 testResultProcessor = new TestRetryShieldingTestResultProcessor(testResultProcessor);
             }
         }
+
+        var detector = buildTestDetector(testExecutionSpec, testFramework, classpath);
         new TestMainAction(detector, processor, testResultProcessor, workerLeaseService, clock, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
+    }
+
+    private TestDetector buildTestDetector(JvmTestExecutionSpec testExecutionSpec, TestFramework testFramework, ForkedTestClasspath classpath) {
+        TestFrameworkDetector testFrameworkDetector = null;
+        if (testFramework.getDetector() != null) {
+            testFrameworkDetector = testFramework.getDetector();
+            testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
+            testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
+        }
+
+        JUnitPlatformOptions platformOptions = testFramework.getOptions() instanceof JUnitPlatformOptions
+            ? (JUnitPlatformOptions) testFramework.getOptions()
+            : null;
+
+        return new DefaultTestDetector(testExecutionSpec, classpath.getApplicationClasspath(), testFrameworkDetector, processor,
+            platformOptions != null ? new ArrayList<>(platformOptions.getIncludeEngines()) : Collections.emptyList(),
+            platformOptions != null ? new ArrayList<>(platformOptions.getExcludeEngines()) : Collections.emptyList(),
+            platformOptions != null ? new ArrayList<>(platformOptions.getIncludeTags()) : Collections.emptyList(),
+            platformOptions != null ? new ArrayList<>(platformOptions.getExcludeTags()) : Collections.emptyList());
     }
 
     @Override

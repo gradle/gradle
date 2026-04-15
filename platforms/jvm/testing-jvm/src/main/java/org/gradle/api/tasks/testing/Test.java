@@ -678,7 +678,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         Set<File> candidateTestDefinitionDirs = determineCandidateTestDefinitionDirs();
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
             getCandidateClassFiles(), isScanForTestClasses(), candidateTestDefinitionDirs,
-            getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+            getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule,
+            getUseDaemonSideTestDiscovery().get(), getTestDistributionStrategy().get());
     }
 
     private Set<File> determineCandidateTestDefinitionDirs() {

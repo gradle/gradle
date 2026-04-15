@@ -33,8 +33,10 @@ dependencies {
     api(libs.asm)
     api(libs.groovy)
     api(libs.groovyXml)
+    api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
+    api(providedLibs.junitPlatform)
 
     implementation(projects.logging)
     implementation(projects.classloaders)
@@ -50,7 +52,7 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.guava)
+    implementation(providedLibs.junitPlatformEngine)
     implementation(libs.slf4jApi)
 
     compileOnly(providedLibs.junit) {
