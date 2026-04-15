@@ -353,7 +353,7 @@ public class ResolutionExecutor {
             buildOperationExecutor
         );
 
-        DefaultResolvedConfiguration configuration = new DefaultResolvedConfiguration(graphResults, params.getResolutionHost(), visitedArtifacts, lenientConfiguration);
+        DefaultResolvedConfiguration configuration = new DefaultResolvedConfiguration(graphResults, params.getResolutionHost(), lenientConfiguration);
 
         return DefaultResolverResults.graphResolved(
             graphResults,

@@ -603,7 +603,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 configurationServices.getCalculatedValueContainerFactory(),
                 configurationServices.getAttributesFactory(),
                 configurationServices.getAttributeDesugaring(),
-                configurationServices.getObjectFactory()
+                configurationServices.getObjectFactory(),
+                configurationServices.getArtifactSetResolver()
             );
         }
     }

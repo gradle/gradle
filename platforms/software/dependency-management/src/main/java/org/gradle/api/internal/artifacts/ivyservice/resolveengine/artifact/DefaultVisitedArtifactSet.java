@@ -43,6 +43,7 @@ import org.gradle.internal.resolve.resolver.ResolvedVariantCache;
  * needs to resolve artifacts. Hopefully one day we can clean up this cycle.
  */
 public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
+
     private final VisitedGraphResults graphResults;
     private final ResolutionHost resolutionHost;
     private final VisitedArtifactResults artifactsResults;
@@ -94,12 +95,13 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
 
     @Override
     public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
-        SelectedArtifactResults artifacts = artifactsResults.select(consumerServices, spec, false);
+        SelectedArtifactResults artifacts = select(spec, false);
         return new DefaultSelectedArtifactSet(artifactSetResolver, graphResults, artifacts.getArtifacts(), resolutionHost);
     }
 
     @Override
-    public SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec) {
-        return artifactsResults.select(consumerServices, spec, true);
+    public SelectedArtifactResults select(ArtifactSelectionSpec spec, boolean lenient) {
+        return artifactsResults.select(consumerServices, spec, lenient);
     }
+
 }

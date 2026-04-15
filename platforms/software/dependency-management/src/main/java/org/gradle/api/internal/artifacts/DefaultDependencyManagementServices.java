@@ -95,11 +95,9 @@ import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
-import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -107,7 +105,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.ProviderFactory;
@@ -257,6 +254,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
             registration.add(PublishArtifactNotationParserFactory.class);
+            registration.add(ConfigurationServicesBundle.class, DefaultConfigurationServicesBundle.class);
         }
 
         @Provides
@@ -599,37 +597,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
                 return repositories;
             };
-        }
-
-        @Provides
-        ConfigurationServicesBundle createConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
-                                                                      ProjectStateRegistry projectStateRegistry,
-                                                                      FileCollectionFactory fileCollectionFactory,
-                                                                      ObjectFactory objectFactory,
-                                                                      AttributesFactory attributesFactory,
-                                                                      CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                                                      DomainObjectCollectionFactory domainObjectCollectionFactory,
-                                                                      CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                                                      TaskDependencyFactory taskDependencyFactory,
-                                                                      ProblemsInternal problems,
-                                                                      AttributeDesugaring attributeDesugaring,
-                                                                      ResolveExceptionMapper exceptionMapper,
-                                                                      ProviderFactory providerFactory) {
-            return new DefaultConfigurationServicesBundle(
-                buildOperationRunner,
-                projectStateRegistry,
-                calculatedValueContainerFactory,
-                objectFactory,
-                fileCollectionFactory,
-                taskDependencyFactory,
-                attributesFactory,
-                domainObjectCollectionFactory,
-                collectionCallbackActionDecorator,
-                problems,
-                attributeDesugaring,
-                exceptionMapper,
-                providerFactory
-            );
         }
 
         private static List<ResolutionAwareRepository> collectRepositories(RepositoryHandler repositoryHandler) {

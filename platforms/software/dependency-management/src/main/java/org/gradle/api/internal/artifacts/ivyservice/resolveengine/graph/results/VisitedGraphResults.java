@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.internal.artifacts.ivyservice.ResolutionFailureProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.artifacts.result.ResolvedGraphResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -30,7 +31,7 @@ import java.util.function.Supplier;
  * of the dependency graph, as well as access to any failures that occurred while
  * building the graph.
  */
-public interface VisitedGraphResults {
+public interface VisitedGraphResults extends ResolutionFailureProvider {
 
     /**
      * The attributes that were requested for the root of the dependency graph.
@@ -40,6 +41,7 @@ public interface VisitedGraphResults {
     /**
      * Returns true if any failures occurred while building these results.
      */
+    @Override
     boolean hasAnyFailure();
 
     /**
@@ -47,6 +49,7 @@ public interface VisitedGraphResults {
      *
      * <p>No failures are visited if {@link #hasAnyFailure()} is false</p>
      */
+    @Override
     void visitFailures(Consumer<Throwable> visitor);
 
     /**
