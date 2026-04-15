@@ -77,6 +77,7 @@
             <trusting group="org.jvnet.staxex" name="stax-ex"/>
             <trusting group="^com[.]sun($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="05F1A5DA5701D415BEFC67FC6329ADE2B25B244B" group="io.github.pdvrieze.xmlutil"/>
          <trusted-key id="06D34ED6FF73DE368A772A781063FE98BCECB758" group="com.puppycrawl.tools" name="checkstyle"/>
          <trusted-key id="073F7A9345756F3B40CDB99E6C70A3B7599C5736">
             <trusting group="org.apache.maven"/>
@@ -145,6 +146,7 @@
             <trusting group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="29BEA2A645F2D6CED7FB12E02B172E3E156466E8" group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
+         <trusted-key id="29C0DA29E8C10B1B8F54093B618DFA9690C9E933" group="^org[.]jetbrains($|([.].*))" regex="true"/>
          <trusted-key id="2BCBDD0F23EA1CAFCC11D4860374CF2E8DD1BDFD" group="org.sonatype.plexus"/>
          <trusted-key id="2BE67AC00D699E04E840B7FE29967E804D85663F">
             <trusting group="com.eed3si9n" name="shaded-scalajson_2.13"/>
@@ -182,6 +184,7 @@
          <trusted-key id="3690C240CE51B4670D30AD1C38EE757D69184620" group="org.tukaani" name="xz"/>
          <trusted-key id="3872ED7D5904493D23D78FA2C4C8CB73B1435348" group="^com[.]android[.]tools($|([.].*))" regex="true"/>
          <trusted-key id="3A4D86C56CA99373B6D8953DBE84D764623A3644" group="org.brotli" name="dec"/>
+         <trusted-key id="3CA154339EDB344CA831FC65FEAA650EB6DA6579" group="org.atteo" name="evo-inflector"/>
          <trusted-key id="3CAC6E7DC43343FF75ECBAC27E6EB7BB6A7712DC" group="net.sourceforge.nekohtml" name="nekohtml"/>
          <trusted-key id="3F05DDA9F317301E927136D417A27CE7A60FF5F0" group="io.opentelemetry"/>
          <trusted-key id="3F2A008A91D11A7FAC4A0786F13D3E721D56BD54" group="org.reflections" name="reflections"/>
@@ -216,6 +219,7 @@
             <trusting group="net.sf.saxon" name="Saxon-HE"/>
             <trusting group="org.xmlresolver"/>
          </trusted-key>
+         <trusted-key id="4D1BFCE663EFFA892F8780BD606B8F312E075E63" group="io.smallrye.common"/>
          <trusted-key id="4DB1A49729B053CAF015CEE9A6ADFC93EF34893E" group="org.hamcrest"/>
          <trusted-key id="4F042BC8FB0B8F08D31D949A7DAB2C1BDF8B7D84" group="org.kamranzafar" name="jtar"/>
          <trusted-key id="4F7E32D440EF90A83011A8FC6425559C47CC79C4">
@@ -275,6 +279,9 @@
          <trusted-key id="70CD19BFD9F6C330027D6F260315BFB7970A144F">
             <trusting group="com.sun.xml.bind"/>
             <trusting group="javax.xml.bind" name="jaxb-api"/>
+            <trusting group="org.glassfish.jaxb"/>
+            <trusting group="org.jvnet.staxex" name="stax-ex"/>
+            <trusting group="^com[.]sun($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="7186BBF993566D8C2F4F7ED7D945E643368FEF62" group="io.github.eisop" name="dataflow-errorprone"/>
          <trusted-key id="719F7C29985A8E95F58F47194D8159D6A1159B69" group="dev.zacsweers.moshix"/>
@@ -321,6 +328,7 @@
          </trusted-key>
          <trusted-key id="8A10792983023D5D14C93B488D7F1BEC1E2ECAE7" group="^com[.]fasterxml($|([.].*))" regex="true"/>
          <trusted-key id="8B16E798477BE6DC10127D11AA6917FA45E67F20" group="org.spire-math" name="jawn-parser_2.12"/>
+         <trusted-key id="8B22A34D7812A3E5BB496362F4030798D861A159" group="org.jetbrains.compose.hot-reload" name="hot-reload-agent"/>
          <trusted-key id="8C03DA5873B13E40C8C0DCE46A7AE74683A8AE1A" group="net.sourceforge.htmlunit"/>
          <trusted-key id="8DA70C00DF7AF1B0D2F9DC74DDBCC1270A29D081">
             <trusting group="org.apache.ant"/>
@@ -328,6 +336,7 @@
          </trusted-key>
          <trusted-key id="8E3A02905A1AE67E7B0F9ACD3967D4EDA591B991" group="org.jetbrains.kotlinx" name="kotlinx-html-jvm"/>
          <trusted-key id="91268E187CDC92936DF90106AC01D965C791B637" group="org.rnorth.visible-assertions" name="visible-assertions"/>
+         <trusted-key id="94976E17E18DD3201447286954963C3E875A56AE" group="io.smallrye.common"/>
          <trusted-key id="98465301A4939C0279F2E847D89D05374952262B" group="org.jetbrains.dokka"/>
          <trusted-key id="9857C388D7D1D9D031274CD0A5DEF5A76F94A471" group="com.github.spotbugs"/>
          <trusted-key id="9B5D41D28D8231A341B6713BC8C127A0EC7665D6" group="org.jctools"/>
@@ -350,6 +359,7 @@
          <trusted-key id="A7892505CF1A58076453E52D7999BEFBA1039E8B" group="net.bytebuddy"/>
          <trusted-key id="A7D8BE3D575D6C5040E889331B6E3BDDD4415872" group="net.openhft" name="zero-allocation-hashing"/>
          <trusted-key id="AA417737BD805456DB3CBDDE6601E5C08DCCBB96" group="info.picocli"/>
+         <trusted-key id="AA972E7C1C029DD2C26D5733C5A45F8BA3C75B32" group="io.undertow" name="undertow-core"/>
          <trusted-key id="AC6A8BC1BA5426F13D93060E806E7D417A281864" group="com.google.guava" name="guava-jdk5"/>
          <trusted-key id="ACF39CCDED38E2C6F0898BF28F7F6C0451967B84" group="org.scala-lang"/>
          <trusted-key id="AD296CA014321485EB6780FF8B8E0CB0F6A7657E" group="org.asciidoctor"/>
@@ -692,6 +702,11 @@
             <sha256 value="be46341a814e786c14c5d0e6cf5d470e55fff468b99509437c4014d8b2a20ce4" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="com.google.android.studio" name="android-studio" version="2025.3.2.6">
+         <artifact name="android-studio-2025.3.2.6-panda2-mac_arm.dmg">
+            <sha256 value="6c9944ce8dac9b5dd05e96a46f2e042628ced568557d29d1299adf5dad817cb7" origin="Generated by Gradle" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
       <component group="com.uwyn" name="jhighlight" version="1.0">
          <artifact name="jhighlight-1.0.jar">
             <sha256 value="ede52343fc4a8f080a1801bb735be1b895a5055d61cef55e2b5c6ac7dd4e5c8c" origin="Verified" reason="Artifact is not signed"/>
@@ -882,6 +897,31 @@
             <sha256 value="bdce53a751fdb27af6608039df81214ba22d902ed4169540a3daeb5828c99cad" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="org.jboss.logging" name="jboss-logging" version="3.6.1.Final">
+         <artifact name="jboss-logging-3.6.1.Final.jar">
+            <sha256 value="5e08a4b092dc85b337f0910a740571d8720cfa565fabd880a8caf94a657ca416" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.jboss.threads" name="jboss-threads" version="3.7.0.Final">
+         <artifact name="jboss-threads-3.7.0.Final.jar">
+            <sha256 value="42dcd39a28cc42aa18ff153995d24d756bdca23a6c298654461e59cfe5e15c33" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.jboss.xnio" name="xnio-api" version="3.8.16.Final">
+         <artifact name="xnio-api-3.8.16.Final.jar">
+            <sha256 value="3572098fe1687dabd90f0222080fb158f63ca771c42ef1d39974434849f78bc4" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.jboss.xnio" name="xnio-nio" version="3.8.16.Final">
+         <artifact name="xnio-nio-3.8.16.Final.jar">
+            <sha256 value="cee1ad9674ff4615f492a314a986c77b7c223ae03255c77aacc60c6cea62d59c" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.intellij.platform" name="intellij-platform-gradle-plugin" version="2.14.0">
+         <artifact name="intellij-platform-gradle-plugin-2.14.0.jar">
+            <sha256 value="49a7612526ca4edafa6e260500c0abc59c9794b24a90771c6c3cf961358b58f4" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
       <component group="org.jetbrains.kotlin" name="kotlin-stdlib" version="2.0.0">
          <artifact name="kotlin-stdlib-2.0.0-all.jar">
             <sha256 value="30e05222bc067fffb896a3276b5f1e3f29450bf1d9461d27a19ce0efc793b5cd" origin="Verified" reason="No asc file on plugins.gradle.org"/>
@@ -924,6 +964,21 @@
       <component group="org.w3c.css" name="sac" version="1.3">
          <artifact name="sac-1.3.jar">
             <sha256 value="003785669f921aafe4f137468dd20a01a36111e94fd7449f26c16e7924d82d23" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.wildfly.client" name="wildfly-client-config" version="1.0.1.Final">
+         <artifact name="wildfly-client-config-1.0.1.Final.jar">
+            <sha256 value="80a4e963ce94ebb043ecb0f2c0e77d327f23dc87d81350b863752eedfa2c3bb3" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.wildfly.common" name="wildfly-common" version="1.5.4.Final">
+         <artifact name="wildfly-common-1.5.4.Final.jar">
+            <sha256 value="9fda3caf8bd528dec56ebc70daf78f5a9ff5d0bfcea8b3e41ab7ae838747e46a" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.wildfly.common" name="wildfly-common" version="2.0.0">
+         <artifact name="wildfly-common-2.0.0.jar">
+            <sha256 value="777e080f4f2d959227897c7c92bfd4d4afe3c2b25833a891328c67f6a9576b8a" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="xalan" name="serializer" version="2.7.1">

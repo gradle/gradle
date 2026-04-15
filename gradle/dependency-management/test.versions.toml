@@ -18,6 +18,7 @@ guice = "5.1.0!!"
 hamcrest = "3.0!!"
 hikariCP = "4.0.3!!" # 5.x requires Java 11+
 httpmime = "4.5.10!!"
+intellijPlatform = "2.14.0!!"
 jetty = "9.4.58.v20250814!!" # CVE-2024-13009
 joptSimple = "5.0.4!!" # needed to create profiler in Gradle profiler API
 jtar = "2.3!!"
@@ -69,6 +70,7 @@ guice = { group = "com.google.inject", name = "guice", version.ref = "guice" }
 hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
 hikariCP = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikariCP" }
 httpmime = { group = "org.apache.httpcomponents", name = "httpmime", version.ref = "httpmime" }
+intellijPlatform = { group = "org.jetbrains.intellij.platform.base", name = "org.jetbrains.intellij.platform.base.gradle.plugin", version.ref = "intellijPlatform" }
 jacksonKotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
 jetty = { group = "org.eclipse.jetty", name = "jetty-http", version.ref = "jetty" }
 jettySecurity = { group = "org.eclipse.jetty", name = "jetty-security", version.ref = "jetty" }

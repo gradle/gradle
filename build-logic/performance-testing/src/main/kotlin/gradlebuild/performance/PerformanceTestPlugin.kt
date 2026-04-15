@@ -110,6 +110,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.configureAndroidStudioProvisioning() {
+        if (project.name == "enterprise-plugin-performance") return
         pluginManager.apply(AndroidStudioProvisioningPlugin::class)
     }
 

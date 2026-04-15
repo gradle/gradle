@@ -16,81 +16,36 @@
 
 package gradlebuild.integrationtests.ide
 
-import gradlebuild.basics.BuildEnvironment
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.provider.Property
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
-
+import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformDependenciesExtension
+import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
 
 // Android Studio Panda 2 | 2025.3.2 March 3, 2026
 // Find all references here https://developer.android.com/studio/archive
-// Update verification-metadata.xml
-const val DEFAULT_ANDROID_STUDIO_VERSION = "2025.3.2.6"
-
-//TODO: this is a temporary fix to support new naming scheme of Android Studio distributions
-const val NAME_FILE_PART = "panda2"
-const val ANDROID_STUDIO_INSTALL_PATH = "android-studio"
-
-private fun determineExtension(version: String): String {
-    // since 2024.x Android Studio is only distributed as dmg
-    return when {
-        BuildEnvironment.isWindows -> "windows.zip"
-        BuildEnvironment.isLinux -> "linux.tar.gz"
-        BuildEnvironment.isMacOsX && BuildEnvironment.isIntel -> "mac.dmg"
-        BuildEnvironment.isMacOsX && !BuildEnvironment.isIntel -> "mac_arm.dmg"
-        else -> error("Unsupported version/OS: ${version}/${OperatingSystem.current()}")
-    }
-}
+const val ANDROID_STUDIO_VERSION = "2025.3.2.6"
 
 class AndroidStudioProvisioningPlugin : Plugin<Project> {
-    companion object {
-        const val UNPACK_TASK_NAME = "unpackAndroidStudio"
-    }
 
     override fun apply(target: Project) {
         with(target) {
-            val androidStudioProvisioningExtension = extensions
-                .create("androidStudioProvisioning", AndroidStudioProvisioningExtension::class)
-                .apply {
-                    androidStudioVersion.convention(DEFAULT_ANDROID_STUDIO_VERSION)
-                }
+            pluginManager.apply("org.jetbrains.intellij.platform.base")
 
-            val androidStudioVersion = androidStudioProvisioningExtension.androidStudioVersion.get()
-            val androidStudioFileName = determineExtension(androidStudioVersion)
-
-            repositories {
-                ivy {
-                    // Url of Android Studio archive
-                    url = uri("https://repo.grdev.net/artifactory/android-studio/${if (androidStudioFileName.endsWith("dmg")) "install" else "ide-zips"}")
-                    patternLayout {
-                        artifact("[revision]/[artifact]-$NAME_FILE_PART-[ext]")
-                    }
-                    metadataSources { artifact() }
-                    content {
-                        includeGroup("android-studio")
-                    }
+            repositories.intellijPlatform {
+                androidStudioInstallers {
+                    url = uri("https://repo.grdev.net/artifactory/android-studio")
                 }
             }
 
-            val androidStudioRuntime = configurations.create("androidStudioRuntime")
+            val intellijDeps = dependencies.extensions.getByType<IntelliJPlatformDependenciesExtension>()
+            intellijDeps.androidStudio(ANDROID_STUDIO_VERSION)
 
-            dependencies {
-                androidStudioRuntime("android-studio:android-studio:$androidStudioVersion@$androidStudioFileName")
-            }
-
-            tasks.register(UNPACK_TASK_NAME, ExtractAndroidStudioTask::class) {
-                this.androidStudioRuntime.setFrom(androidStudioRuntime)
-                outputDir.set(layout.buildDirectory.dir(ANDROID_STUDIO_INSTALL_PATH))
+            // The IntelliJ Platform plugin auto-populates intellijPluginVerifierIdes with
+            // the latest release for plugin verification. We don't need that — clear it.
+            configurations.named("intellijPluginVerifierIdes") {
+                withDependencies { clear() }
             }
         }
     }
-}
-
-
-abstract class AndroidStudioProvisioningExtension {
-
-    abstract val androidStudioVersion: Property<String>
-
 }

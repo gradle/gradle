@@ -2,15 +2,12 @@ import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.configureTestSourceSetInIde
-import gradlebuild.integrationtests.ide.ANDROID_STUDIO_INSTALL_PATH
-import gradlebuild.integrationtests.ide.DEFAULT_ANDROID_STUDIO_VERSION
-import gradlebuild.integrationtests.ide.NAME_FILE_PART
 import gradlebuild.integrationtests.tasks.SmokeIdeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
-import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.android-studio-provisioning")
 }
 
 description = "Tests are checking Gradle behavior during IDE synchronization process"
@@ -40,31 +37,6 @@ val ideStarter = configurations.create("ideStarter") {
     isCanBeConsumed = false
 }
 val ideStarterBuildDir = layout.buildDirectory.dir("ideStarter")
-
-val androidStudioArchiveFileName = when {
-    BuildEnvironment.isWindows -> "windows.zip"
-    BuildEnvironment.isLinux -> "linux.tar.gz"
-    BuildEnvironment.isMacOsX && BuildEnvironment.isIntel -> "mac.dmg"
-    BuildEnvironment.isMacOsX && !BuildEnvironment.isIntel -> "mac_arm.dmg"
-    else -> error("Unsupported OS: ${OperatingSystem.current()}")
-}
-
-repositories {
-    ivy {
-        url = uri("https://repo.grdev.net/artifactory/$ANDROID_STUDIO_INSTALL_PATH/${if (androidStudioArchiveFileName.endsWith("dmg")) "install" else "ide-zips"}")
-        patternLayout {
-            artifact("[revision]/[artifact]-$NAME_FILE_PART-[ext]")
-        }
-        metadataSources { artifact() }
-        content {
-            includeGroup(ANDROID_STUDIO_INSTALL_PATH)
-        }
-    }
-}
-
-val androidStudioArchive by configurations.creating {
-    isCanBeConsumed = false
-}
 
 abstract class IdeStarterPathProvider : CommandLineArgumentProvider {
     @get: InputDirectory
@@ -132,7 +104,7 @@ tasks {
         )
         jvmArgumentProviders.add(
             objects.newInstance<AndroidStudioArchiveProvider>().apply {
-                archiveFiles.from(androidStudioArchive)
+                archiveFiles.from(configurations.getByName("intellijPlatformDependencyArchive"))
             }
         )
     }
@@ -140,7 +112,6 @@ tasks {
 
 dependencies {
     ideStarter(testLibs.gradleIdeStarter)
-    androidStudioArchive("$ANDROID_STUDIO_INSTALL_PATH:$ANDROID_STUDIO_INSTALL_PATH:$DEFAULT_ANDROID_STUDIO_VERSION@$androidStudioArchiveFileName")
     smokeIdeTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Tests starts an IDE with using current Gradle distribution")
     }

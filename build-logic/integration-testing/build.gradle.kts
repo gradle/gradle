@@ -28,5 +28,7 @@ dependencies {
     implementation(projects.dependencyModules)
     implementation(projects.jvm)
 
+    implementation(testLibs.intellijPlatform)
+
     testImplementation(testLibs.junit)
 }
