@@ -44,8 +44,10 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.internal.IncubationLogger;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * The default test class scanner factory.
@@ -95,7 +97,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final Factory<TestDefinitionProcessor<TestDefinition>> forkingProcessorFactory = () -> new ForkingTestDefinitionProcessor<>(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(), classpath, testFramework.getWorkerConfigurationAction());
         final Factory<TestDefinitionProcessor<TestDefinition>> reforkingProcessorFactory = () -> new RestartEveryNTestDefinitionProcessor<>(forkingProcessorFactory, testExecutionSpec.getForkEvery());
         processor =
-            new PatternMatchTestDefinitionProcessor<>(testFilter,
+            new PatternMatchTestDefinitionProcessor<>(testFilter, testExecutionSpec.getCandidateTestDefinitionDirs().stream().map(File::toPath).collect(Collectors.toList()),
                 new RunPreviousFailedFirstTestDefinitionProcessor<>(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
                     new MaxNParallelTestDefinitionProcessor<>(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 

@@ -499,6 +499,164 @@ class DaemonSideTestDiscoveryIntegrationTest extends AbstractIntegrationSpec imp
             .assertChildCount(1, 0)
     }
 
+    def "JUnit Platform suite keeps all suite classes in the same worker"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                useJUnitJupiter()
+            }
+
+            dependencies {
+                testImplementation 'org.junit.platform:junit-platform-suite-engine:1.12.2'
+                testImplementation 'org.junit.platform:junit-platform-suite-api:1.12.2'
+            }
+
+            test {
+                useDaemonSideTestDiscovery = true
+                maxParallelForks = 4
+            }
+        """.stripIndent()
+
+        file('src/test/java/org/example/AlphaTest.java') << """
+            package org.example;
+            import org.junit.jupiter.api.*;
+
+            public class AlphaTest {
+                @Test
+                public void alpha() {
+                    System.out.println("SUITE_MEMBER_PID=" + ProcessHandle.current().pid() + " test=alpha");
+                }
+            }
+        """.stripIndent()
+
+        file('src/test/java/org/example/BetaTest.java') << """
+            package org.example;
+            import org.junit.jupiter.api.*;
+
+            public class BetaTest {
+                @Test
+                public void beta() {
+                    System.out.println("SUITE_MEMBER_PID=" + ProcessHandle.current().pid() + " test=beta");
+                }
+            }
+        """.stripIndent()
+
+        file('src/test/java/org/example/MySuite.java') << """
+            package org.example;
+            import org.junit.platform.suite.api.SelectClasses;
+            import org.junit.platform.suite.api.Suite;
+
+            @Suite
+            @SelectClasses({AlphaTest.class, BetaTest.class})
+            public class MySuite {
+            }
+        """.stripIndent()
+
+        when:
+        run("test", "--tests", "org.example.MySuite", "--info")
+
+        then: 'both suite members execute'
+        output.contains("SUITE_MEMBER_PID=")
+        output.readLines().findAll { it.contains("SUITE_MEMBER_PID=") }.size() == 2
+
+        and: 'both run in the same worker (suite is one top-level container)'
+        def pids = output.readLines()
+            .findAll { it.contains("SUITE_MEMBER_PID=") }
+            .collect { (it =~ /SUITE_MEMBER_PID=(\d+)/)[0][1] }
+            .toSet()
+        pids.size() == 1
+    }
+
+    def "excludeTestsMatching filters classes with daemon-side discovery"() {
+        given:
+        buildFile << javaLibWithDaemonDiscoveryJupiterTests()
+        buildFile << """
+            test {
+                filter {
+                    excludeTestsMatching "org.example.ExcludedTest"
+                }
+            }
+        """.stripIndent()
+
+        file('src/test/java/org/example/IncludedTest.java') << """
+            package org.example;
+            import org.junit.jupiter.api.*;
+
+            public class IncludedTest {
+                @Test
+                public void included() {
+                }
+            }
+        """.stripIndent()
+
+        file('src/test/java/org/example/ExcludedTest.java') << """
+            package org.example;
+            import org.junit.jupiter.api.*;
+
+            public class ExcludedTest {
+                @Test
+                public void excluded() {
+                    throw new RuntimeException("Should not be run!");
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run("test")
+
+        then:
+        GenericTestExecutionResult testResult = resultsFor()
+        testResult.testPath("org.example.IncludedTest").onlyRoot().assertChildCount(1, 0)
+    }
+
+    def "class with all methods filtered is still sent to worker"() {
+        given:
+        buildFile << javaLibWithDaemonDiscoveryJupiterTests()
+
+        file('src/test/java/org/example/MatchingClass.java') << """
+            package org.example;
+            import org.junit.jupiter.api.*;
+
+            public class MatchingClass {
+                @Test
+                public void targetMethod() {
+                }
+
+                @Test
+                public void otherMethod() {
+                    throw new RuntimeException("Should not run!");
+                }
+            }
+        """.stripIndent()
+
+        file('src/test/java/org/example/UnrelatedClass.java') << """
+            package org.example;
+            import org.junit.jupiter.api.*;
+
+            public class UnrelatedClass {
+                @Test
+                public void unrelated() {
+                    throw new RuntimeException("Should not run!");
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run("test", "--tests", "org.example.MatchingClass.targetMethod", "--info")
+
+        then: 'only targetMethod from MatchingClass executes — otherMethod and UnrelatedClass are excluded'
+        GenericTestExecutionResult testResult = resultsFor()
+        testResult.testPath("org.example.MatchingClass").onlyRoot()
+            .assertChildrenExecuted("targetMethod()")
+            .assertChildCount(1, 0)
+    }
+
     private String javaLibWithDaemonDiscoveryJupiterTests() {
         return """
             plugins {

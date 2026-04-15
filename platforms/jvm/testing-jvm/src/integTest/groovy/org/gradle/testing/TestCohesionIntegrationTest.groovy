@@ -86,8 +86,8 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
 
         where:
         label                      | daemonDiscovery | strategy
-        'standard detection'       | false           | 'BY_TOP_TEST_CONTAINER'
-        'daemon discovery BY_TOP_TEST_CONTAINER'| true            | 'BY_TOP_TEST_CONTAINER'
+        'standard detection'       | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER'| true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
         'daemon discovery BY_INDIVIDUAL_TEST'   | true            | 'BY_INDIVIDUAL_TEST'
     }
 
@@ -142,8 +142,8 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
 
         where:
         label                      | daemonDiscovery | strategy
-        'standard detection'       | false           | 'BY_TOP_TEST_CONTAINER'
-        'daemon discovery BY_TOP_TEST_CONTAINER'| true            | 'BY_TOP_TEST_CONTAINER'
+        'standard detection'       | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER'| true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
         'daemon discovery BY_INDIVIDUAL_TEST'   | true            | 'BY_INDIVIDUAL_TEST'
     }
 
@@ -204,8 +204,8 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
 
         where:
         label                       | daemonDiscovery | strategy
-        'standard detection'        | false           | 'BY_TOP_TEST_CONTAINER'
-        'daemon discovery BY_TOP_TEST_CONTAINER' | true            | 'BY_TOP_TEST_CONTAINER'
+        'standard detection'        | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
         'daemon discovery BY_INDIVIDUAL_TEST'    | true            | 'BY_INDIVIDUAL_TEST'
     }
     // endregion Cohesion broken by BY_INDIVIDUAL_TEST distribution
@@ -266,8 +266,8 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
 
         where:
         label                       | daemonDiscovery | strategy
-        'standard detection'        | false           | 'BY_TOP_TEST_CONTAINER'
-        'daemon discovery BY_TOP_TEST_CONTAINER' | true            | 'BY_TOP_TEST_CONTAINER'
+        'standard detection'        | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
         'daemon discovery BY_INDIVIDUAL_TEST'    | true            | 'BY_INDIVIDUAL_TEST'
     }
 
@@ -319,8 +319,8 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
 
         where:
         label                       | daemonDiscovery | strategy
-        'standard detection'        | false           | 'BY_TOP_TEST_CONTAINER'
-        'daemon discovery BY_TOP_TEST_CONTAINER' | true            | 'BY_TOP_TEST_CONTAINER'
+        'standard detection'        | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
         'daemon discovery BY_INDIVIDUAL_TEST'    | true            | 'BY_INDIVIDUAL_TEST'
     }
 
@@ -367,8 +367,8 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
 
         where:
         label                       | daemonDiscovery | strategy
-        'standard detection'        | false           | 'BY_TOP_TEST_CONTAINER'
-        'daemon discovery BY_TOP_TEST_CONTAINER' | true            | 'BY_TOP_TEST_CONTAINER'
+        'standard detection'        | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
         'daemon discovery BY_INDIVIDUAL_TEST'    | true            | 'BY_INDIVIDUAL_TEST'
     }
 
@@ -411,8 +411,8 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
 
         where:
         label                       | daemonDiscovery | strategy
-        'standard detection'        | false           | 'BY_TOP_TEST_CONTAINER'
-        'daemon discovery BY_TOP_TEST_CONTAINER' | true            | 'BY_TOP_TEST_CONTAINER'
+        'standard detection'        | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
         'daemon discovery BY_INDIVIDUAL_TEST'    | true            | 'BY_INDIVIDUAL_TEST'
     }
     // endregion Cohesion preserved by all strategies
@@ -437,7 +437,7 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
         assert lastSeen == expectedCount: "Expected all ${expectedCount} steps to run, but only saw ${lastSeen}"
     }
 
-    private String jupiterBuildScript(boolean daemonDiscovery, String strategy = 'BY_TOP_TEST_CONTAINER') {
+    private String jupiterBuildScript(boolean daemonDiscovery, String strategy = 'BY_TOP_LEVEL_TEST_CONTAINER') {
         return """
             plugins {
                 id 'java-library'
@@ -460,7 +460,7 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
         """.stripIndent()
     }
 
-    private String spockBuildScript(boolean daemonDiscovery, String strategy = 'BY_TOP_TEST_CONTAINER') {
+    private String spockBuildScript(boolean daemonDiscovery, String strategy = 'BY_TOP_LEVEL_TEST_CONTAINER') {
         return """
             plugins {
                 id 'groovy'

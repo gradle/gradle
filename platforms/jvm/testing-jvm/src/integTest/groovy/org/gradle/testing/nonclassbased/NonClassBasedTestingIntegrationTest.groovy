@@ -274,6 +274,66 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         'BY_INDIVIDUAL_TEST'           | 4 // 6 individual tests across the 3 definitions files, so up to the max of 4 workers should be used
     }
 
+    def "daemon-side discovery with file-based filter includes only matching definitions"() {
+        String locationA = "src/test/defs-a"
+        String locationB = "src/test/defs-b"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        useDaemonSideTestDiscovery = true
+                        testDefinitionDirs.from("$locationA")
+                        testDefinitionDirs.from("$locationB")
+
+                        filter {
+                            includeTestsMatching "*AlphaSpec*"
+                        }
+                    }
+                }
+            }
+        """
+
+        file("$locationA/AlphaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="alpha1" />
+                <test name="alpha2" />
+            </tests>
+        """
+        file("$locationB/BetaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="beta1" />
+            </tests>
+        """
+        file("$locationB/GammaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="gamma1" />
+            </tests>
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then: 'only AlphaSpec tests execute — daemon-side filtering excludes BetaSpec and GammaSpec'
+        def executedTests = output.readLines().findAll { it.contains("RBT_EXEC") }
+        executedTests.size() == 2
+        executedTests.count { it.contains("alpha1") } == 1
+        executedTests.count { it.contains("alpha2") } == 1
+
+        and: 'only one worker was used since only one file container matched'
+        def pids = executedTests.collect { (it =~ /worker_pid=(\d+)/)[0][1] }.toSet()
+        pids.size() == 1
+    }
+
     def "empty test definitions location skips"() {
         given:
         buildFile << """
