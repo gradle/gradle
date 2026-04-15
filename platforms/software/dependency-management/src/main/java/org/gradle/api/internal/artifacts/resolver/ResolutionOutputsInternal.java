@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.resolver;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ArtifactView;
+import org.gradle.api.internal.artifacts.ArtifactViewInternal;
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 
@@ -30,5 +33,8 @@ public interface ResolutionOutputsInternal extends ResolutionOutputs {
 
     @Override
     ArtifactCollectionInternal getArtifacts();
+
+    @Override
+    ArtifactViewInternal artifactView(Action<? super ArtifactView.ViewConfiguration> action);
 
 }

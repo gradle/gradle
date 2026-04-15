@@ -22,13 +22,21 @@ import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.ArtifactViewInternal;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection;
-import org.gradle.api.internal.artifacts.configurations.ResolutionResultProviderBackedSelectedArtifactSet;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
+import org.gradle.api.internal.artifacts.ivyservice.ResolutionFailureProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultSelectedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
+import org.gradle.api.internal.artifacts.result.artifact.ArtifactGraph;
+import org.gradle.api.internal.artifacts.result.artifact.DefaultArtifactGraph;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -39,7 +47,9 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Actions;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.CalculatedValueFactory;
 
 import javax.inject.Inject;
 
@@ -50,6 +60,7 @@ import javax.inject.Inject;
  * <ul>
  *     <li>{@link org.gradle.api.file.FileCollection}</li>
  *     <li>{@link org.gradle.api.artifacts.ArtifactCollection}</li>
+ *     <li>{@link org.gradle.api.internal.artifacts.result.artifact.ArtifactGraph}</li>
  *     <li>{@link org.gradle.api.artifacts.ArtifactView}</li>
  *     <li>{@link org.gradle.api.artifacts.result.ResolvedVariantResult}</li>
  *     <li>{@link org.gradle.api.artifacts.result.ResolvedComponentResult}</li>
@@ -63,6 +74,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     private final AttributesFactory attributesFactory;
     private final AttributeDesugaring attributeDesugaring;
     private final ObjectFactory objectFactory;
+    private final ResolvedArtifactSetResolver artifactSetResolver;
 
     public DefaultResolutionOutputs(
         ResolutionAccess resolutionAccess,
@@ -70,7 +82,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         AttributesFactory attributesFactory,
         AttributeDesugaring attributeDesugaring,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        ResolvedArtifactSetResolver artifactSetResolver
     ) {
         this.resolutionAccess = resolutionAccess;
         this.taskDependencyFactory = taskDependencyFactory;
@@ -78,6 +91,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         this.attributesFactory = attributesFactory;
         this.attributeDesugaring = attributeDesugaring;
         this.objectFactory = objectFactory;
+        this.artifactSetResolver = artifactSetResolver;
     }
 
     @Override
@@ -96,7 +110,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     }
 
     @Override
-    public ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> action) {
+    public ArtifactViewInternal artifactView(Action<? super ArtifactView.ViewConfiguration> action) {
         return doGetArtifactView(action);
     }
 
@@ -105,6 +119,14 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         DefaultArtifactViewConfiguration viewConfiguration = objectFactory.newInstance(DefaultArtifactViewConfiguration.class, attributesFactory);
         action.execute(viewConfiguration);
 
+        ArtifactCollectionFactory artifactCollectionFactory = new DefaultArtifactCollectionFactory(
+            artifactSetResolver,
+            resolutionAccess.getHost(),
+            taskDependencyFactory,
+            calculatedValueContainerFactory,
+            attributeDesugaring
+        );
+
         return new DefaultArtifactView(
             viewConfiguration.lenient,
             viewConfiguration.componentFilter,
@@ -112,15 +134,13 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             viewConfiguration.viewAttributes,
 
             resolutionAccess,
-            taskDependencyFactory,
-            calculatedValueContainerFactory,
             attributesFactory,
-            attributeDesugaring
+            artifactCollectionFactory
         );
     }
 
     @VisibleForTesting
-    public static class DefaultArtifactView implements ArtifactView {
+    public static class DefaultArtifactView implements ArtifactViewInternal {
 
         // View configuration
         private final boolean lenient;
@@ -130,10 +150,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
         // Services
         private final ResolutionAccess resolutionAccess;
-        private final TaskDependencyFactory taskDependencyFactory;
-        private final CalculatedValueContainerFactory calculatedValueContainerFactory;
         private final AttributesFactory attributesFactory;
-        private final AttributeDesugaring attributeDesugaring;
+        private final ArtifactCollectionFactory artifactCollectionFactory;
 
         public DefaultArtifactView(
             boolean lenient,
@@ -142,10 +160,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             AttributeContainerInternal viewAttributes,
 
             ResolutionAccess resolutionAccess,
-            TaskDependencyFactory taskDependencyFactory,
-            CalculatedValueContainerFactory calculatedValueContainerFactory,
             AttributesFactory attributesFactory,
-            AttributeDesugaring attributeDesugaring
+            ArtifactCollectionFactory artifactCollectionFactory
         ) {
             this.lenient = lenient;
             this.componentFilter = componentFilter;
@@ -153,25 +169,18 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             this.viewAttributes = viewAttributes;
 
             this.resolutionAccess = resolutionAccess;
-            this.taskDependencyFactory = taskDependencyFactory;
-            this.calculatedValueContainerFactory = calculatedValueContainerFactory;
             this.attributesFactory = attributesFactory;
-            this.attributeDesugaring = attributeDesugaring;
+
+            this.artifactCollectionFactory = artifactCollectionFactory;
         }
 
         @Override
         public ArtifactCollectionInternal getArtifacts() {
-            SelectedArtifactSet selectedArtifacts = new ResolutionResultProviderBackedSelectedArtifactSet(
-                resolutionAccess.getResults().map(this::selectArtifacts)
-            );
-
-            return new DefaultArtifactCollection(
-                selectedArtifacts,
-                lenient,
-                resolutionAccess.getHost(),
-                taskDependencyFactory,
-                calculatedValueContainerFactory,
-                attributeDesugaring
+            Lazy<ResolverResults> results = Lazy.unsafe().of(() -> resolutionAccess.getResults().getValue());
+            return artifactCollectionFactory.create(
+                new ArtifactCollectionFactory.LazyResolvedArtifactSet(results.map(x -> selectArtifacts(x).getArtifacts())),
+                new ArtifactCollectionFactory.LazyResolutionFailureProvider(results.map(ResolverResults::getVisitedGraph)),
+                lenient
             );
         }
 
@@ -180,7 +189,23 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             return getArtifacts().getArtifactFiles();
         }
 
-        private SelectedArtifactSet selectArtifacts(ResolverResults results) {
+        @Override
+        public ArtifactGraph getArtifactGraph() {
+            if (componentFilter != Specs.SATISFIES_ALL) {
+                throw new UnsupportedOperationException("Cannot get the artifact graph for an ArtifactView with a component filter.");
+            }
+
+            Lazy<DefaultArtifactGraph.Details> lazyDetails = Lazy.unsafe().of(() -> {
+                ResolverResults value = resolutionAccess.getResults().getValue();
+                SelectedArtifactResults artifacts = selectArtifacts(value);
+                GraphStructure graphStructure = value.getVisitedGraph().getGraphStructureSource().get();
+                return new DefaultArtifactGraph.Details(graphStructure, artifacts);
+            });
+
+            return new DefaultArtifactGraph(lazyDetails, lenient, artifactCollectionFactory);
+        }
+
+        private SelectedArtifactResults selectArtifacts(ResolverResults results) {
             // If the user set the view attributes, we allow variant matching to fail for no matching variants.
             // If we are using the original request attributes, variant matching should not fail.
             // TODO #27773: This is probably not desired behavior. It can be very confusing to request new attributes and
@@ -195,7 +220,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
                 reselectVariants,
                 allowNoMatchingVariants,
                 resolutionAccess.getDefaultSortOrder()
-            ));
+            ), false);
         }
 
         @Override
@@ -218,6 +243,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     }
 
     public static class DefaultArtifactViewConfiguration implements ArtifactView.ViewConfiguration {
+
         private final AttributeContainerInternal viewAttributes;
         private Spec<? super ComponentIdentifier> componentFilter = Specs.satisfyAll();
         private boolean lenient;
@@ -270,5 +296,38 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             this.reselectVariants = true;
             return this;
         }
+
     }
+
+    private record DefaultArtifactCollectionFactory(
+        ResolvedArtifactSetResolver artifactResolver,
+        ResolutionHost resolutionHost,
+        TaskDependencyFactory taskDependencyFactory,
+        CalculatedValueFactory calculatedValueContainerFactory,
+        AttributeDesugaring attributeDesugaring
+    ) implements ArtifactCollectionFactory {
+
+        @Override
+        public ArtifactCollectionInternal create(
+            ResolvedArtifactSet artifacts,
+            ResolutionFailureProvider failures,
+            boolean lenient
+        ) {
+            return new DefaultArtifactCollection(
+                new DefaultSelectedArtifactSet(
+                    artifactResolver,
+                    failures,
+                    artifacts,
+                    resolutionHost
+                ),
+                lenient,
+                resolutionHost,
+                taskDependencyFactory,
+                calculatedValueContainerFactory,
+                attributeDesugaring
+            );
+        }
+
+    }
+
 }

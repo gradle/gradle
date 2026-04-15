@@ -17,40 +17,41 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.ResolutionFailureProvider;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 /**
  * Resolves a {@link ResolvedArtifactSet} into a {@link SelectedArtifactSet}.
  */
 public class DefaultSelectedArtifactSet implements SelectedArtifactSet {
-    private final VisitedGraphResults graphResults;
+
+    private final ResolutionFailureProvider failureProvider;
     private final ResolvedArtifactSet resolvedArtifacts;
     private final ResolvedArtifactSetResolver artifactResolver;
     private final ResolutionHost resolutionHost;
 
     public DefaultSelectedArtifactSet(
         ResolvedArtifactSetResolver artifactResolver,
-        VisitedGraphResults graphResults,
+        ResolutionFailureProvider failureProvider,
         ResolvedArtifactSet resolvedArtifacts,
         ResolutionHost resolutionHost
     ) {
         this.artifactResolver = artifactResolver;
-        this.graphResults = graphResults;
+        this.failureProvider = failureProvider;
         this.resolvedArtifacts = resolvedArtifacts;
         this.resolutionHost = resolutionHost;
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        graphResults.visitFailures(context::visitFailure);
+        failureProvider.visitFailures(context::visitFailure);
         context.add(resolvedArtifacts);
     }
 
     @Override
     public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
-        if (graphResults.hasAnyFailure()) {
-            graphResults.visitFailures(visitor::visitFailure);
+        if (failureProvider.hasAnyFailure()) {
+            failureProvider.visitFailures(visitor::visitFailure);
             if (!continueOnSelectionFailure) {
                 return;
             }
@@ -58,4 +59,5 @@ public class DefaultSelectedArtifactSet implements SelectedArtifactSet {
 
         artifactResolver.visitInUnmanagedWorkerThread(resolvedArtifacts, visitor, resolutionHost);
     }
+
 }

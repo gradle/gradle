@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -40,6 +41,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
  * Every service, factory, or other type in this bundle <strong>must</strong> be effectively immutable.
  */
 public final class DefaultConfigurationServicesBundle implements ConfigurationServicesBundle {
+
     private final BuildOperationRunner buildOperationRunner;
     private final ProjectStateRegistry projectStateRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
@@ -53,20 +55,24 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     private final AttributeDesugaring attributeDesugaring;
     private final ResolveExceptionMapper exceptionMapper;
     private final ProviderFactory providerFactory;
+    private final ResolvedArtifactSetResolver artifactSetResolver;
 
-    public DefaultConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
-                                              ProjectStateRegistry projectStateRegistry,
-                                              CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                              ObjectFactory objectFactory,
-                                              FileCollectionFactory fileCollectionFactory,
-                                              TaskDependencyFactory taskDependencyFactory,
-                                              AttributesFactory attributesFactory,
-                                              DomainObjectCollectionFactory domainObjectCollectionFactory,
-                                              CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                              ProblemsInternal problems,
-                                              AttributeDesugaring attributeDesugaring,
-                                              ResolveExceptionMapper exceptionMapper,
-                                              ProviderFactory providerFactory) {
+    public DefaultConfigurationServicesBundle(
+        BuildOperationRunner buildOperationRunner,
+        ProjectStateRegistry projectStateRegistry,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        ObjectFactory objectFactory,
+        FileCollectionFactory fileCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory,
+        AttributesFactory attributesFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        ProblemsInternal problems,
+        AttributeDesugaring attributeDesugaring,
+        ResolveExceptionMapper exceptionMapper,
+        ProviderFactory providerFactory,
+        ResolvedArtifactSetResolver artifactSetResolver
+    ) {
         this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -80,6 +86,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.attributeDesugaring = attributeDesugaring;
         this.exceptionMapper = exceptionMapper;
         this.providerFactory = providerFactory;
+        this.artifactSetResolver = artifactSetResolver;
     }
 
     @Override
@@ -146,4 +153,10 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     public ProviderFactory getProviderFactory() {
         return providerFactory;
     }
+
+    @Override
+    public ResolvedArtifactSetResolver getArtifactSetResolver() {
+        return artifactSetResolver;
+    }
+
 }

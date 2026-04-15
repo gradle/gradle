@@ -101,7 +101,7 @@ public class ShortCircuitingResolutionExecutor {
 
         VisitedGraphResults graphResults = emptyGraphResults(params);
         ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
-            graphResults, params.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
+            graphResults, params.getResolutionHost(), new EmptyLenientConfiguration()
         );
         return DefaultResolverResults.graphResolved(graphResults, EmptyResults.INSTANCE,
             DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(resolvedConfiguration)
@@ -157,7 +157,7 @@ public class ShortCircuitingResolutionExecutor {
         }
 
         @Override
-        public SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec) {
+        public SelectedArtifactResults select(ArtifactSelectionSpec spec, boolean lenient) {
             return this;
         }
 
