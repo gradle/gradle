@@ -55,7 +55,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    def "nested actions that query a project model run in parallel when target Gradle version supports it and #args is used"() {
+    def "nested actions that query a project model run in parallel when target Gradle version supports it and #feature is used"() {
         given:
         setupBuildWithDependencyResolution()
 
@@ -64,6 +64,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         def models = withConnection { connection ->
             connection.action(new ActionRunsNestedActions())
                 .addArguments(args)
+                .addJvmArguments(jvmArgs)
                 .run()
         }
 
@@ -71,13 +72,12 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         models.subResults.path == [':', ':a', ':b']
 
         where:
-        args << [
-            ["--parallel"],
-            ["-Dorg.gradle.tooling.parallel=true"],
-        ]
+        feature                              | args           | jvmArgs
+        "--parallel"                         | ["--parallel"] | []
+        "-Dorg.gradle.tooling.parallel=true" | []             | ["-Dorg.gradle.tooling.parallel=true"]
     }
 
-    def "nested actions that query a project model do not run in parallel when target Gradle version supports it with public options and #args is used"() {
+    def "nested actions that query a project model do not run in parallel when target Gradle version supports it with public options and #feature is used"() {
         given:
         setupBuildWithDependencyResolution()
 
@@ -86,6 +86,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         def models = withConnection { connection ->
             connection.action(new ActionRunsNestedActions())
                 .addArguments(args)
+                .addJvmArguments(jvmArgs)
                 .run()
         }
 
@@ -93,11 +94,10 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         models.subResults.path == [':', ':a', ':b']
 
         where:
-        args << [
-            ["--no-parallel"],
-            ["--parallel", "-Dorg.gradle.tooling.parallel.ignore-legacy-default=true"],
-            ["--parallel", "-Dorg.gradle.tooling.parallel=false"],
-        ]
+        feature                                                                 | args              | jvmArgs
+        '--no-parallel'                                                         | ["--no-parallel"] | []
+        '--parallel + -Dorg.gradle.tooling.parallel.ignore-legacy-default=true' | ["--parallel"]    | ["-Dorg.gradle.tooling.parallel.ignore-legacy-default=true"]
+        '--parallel + -Dorg.gradle.tooling.parallel=false'                      | ["--parallel"]    | ["-Dorg.gradle.tooling.parallel=false"]
     }
 
     def setupBuildWithDependencyResolution() {
