@@ -25,6 +25,9 @@ import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
 import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer
+import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.Severity
+import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.SourceLocation
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
@@ -53,8 +56,6 @@ import org.jetbrains.kotlin.buildtools.api.arguments.enums.SamConversionsMode
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.name.NameUtils
@@ -85,8 +86,8 @@ fun compileKotlinScriptToDirectory(
     implicitImports: List<String>,
     template: KClass<out Any>,
     classPath: List<File>,
-    logger: Logger, // TODO: path translation ignored for now
-    @Suppress("unused") pathTranslation: (String) -> String
+    logger: Logger,
+    pathTranslation: (String) -> String
 ): String {
     compileKotlinScriptToDirectory(
         outputDirectory,
@@ -110,32 +111,33 @@ fun compileKotlinScriptToDirectory(
     implicitImports: List<String>,
     template: KClass<out Any>,
     classPath: List<File>,
-    messageCollector: LoggingMessageCollector
+    messageRenderer: LoggingMessageRenderer
 ) {
-    withCompilationExceptionHandler(messageCollector) {
+    withCompilationExceptionHandler(messageRenderer) {
         val compilationResult = compiler.compile(
             listOf(Path(scriptFile.path)),
             outputDirectory.toPath(),
             compilerOptions,
             classPath,
             template,
-            implicitImports
+            implicitImports,
+            messageRenderer
         )
-        compilationResult.reportToMessageCollectorAndThrowOnErrors(messageCollector)
+        compilationResult.reportToMessageCollectorAndThrowOnErrors(messageRenderer)
     }
 }
 
 
-private fun CompilationResult.reportToMessageCollectorAndThrowOnErrors(messageCollector: LoggingMessageCollector) {
-    if (this != CompilationResult.COMPILATION_SUCCESS) {
-        messageCollector.report(CompilerMessageSeverity.ERROR, "Compilation failed!", null)
+private fun CompilationResult.reportToMessageCollectorAndThrowOnErrors(messageCollector: LoggingMessageRenderer) {
+    // TODO: anything else we need to duplicate?
+    if (messageCollector.errors.isNotEmpty()) {
+        throw ScriptCompilationException(messageCollector.errors)
     }
-    // TODO: more needed
 }
 
 
 private
-inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageCollector, action: () -> T): T {
+inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageRenderer, action: () -> T): T {
     val log = messageCollector.log
     return when {
         log.isDebugEnabled -> {
@@ -214,7 +216,7 @@ fun messageCollectorFor(
     log: Logger,
     allWarningsAsErrors: Boolean,
     pathTranslation: (String) -> String,
-): LoggingMessageCollector =
+): LoggingMessageRenderer =
     messageCollectorFor(log, onCompilerWarningsFor(allWarningsAsErrors), pathTranslation)
 
 
@@ -223,12 +225,12 @@ fun messageCollectorFor(
     log: Logger,
     onCompilerWarning: CompilerWarning = CompilerWarning.WARN,
     pathTranslation: (String) -> String = { it }
-): LoggingMessageCollector =
-    LoggingMessageCollector(log, onCompilerWarning, pathTranslation)
+): LoggingMessageRenderer =
+    LoggingMessageRenderer(log, onCompilerWarning, pathTranslation)
 
 
 internal
-data class ScriptCompilationError(val message: String, val location: CompilerMessageSourceLocation?)
+data class ScriptCompilationError(val message: String, val location: SourceLocation?)
 
 
 internal
@@ -266,7 +268,7 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
         } ?: error.message
 
     private
-    fun errorAt(location: CompilerMessageSourceLocation, message: String): String {
+    fun errorAt(location: SourceLocation, message: String): String {
         val columnIndent = " ".repeat(5 + maxLineNumberStringLength + 1 + location.column)
         return "Line ${lineNumber(location)}: ${location.lineContent}\n" +
                 "^ $message".lines().joinToString(
@@ -276,7 +278,7 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
     }
 
     private
-    fun lineNumber(location: CompilerMessageSourceLocation) =
+    fun lineNumber(location: SourceLocation) =
         location.line.toString().padStart(maxLineNumberStringLength, '0')
 
     private
@@ -310,15 +312,14 @@ fun onCompilerWarningsFor(allWarningsAsErrors: Boolean) =
 
 
 private
-class LoggingMessageCollector(
+class LoggingMessageRenderer(
     val log: Logger,
     private val onCompilerWarning: CompilerWarning,
     private val pathTranslation: (String) -> String,
-) {
+) : CompilerMessageRenderer {
     val errors = arrayListOf<ScriptCompilationError>()
 
-    fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
-
+    override fun render(severity: Severity, message: String, location: SourceLocation?): String? {
         fun msg() =
             location?.run {
                 path.let(pathTranslation).let { path ->
@@ -330,7 +331,7 @@ class LoggingMessageCollector(
             } ?: message
 
         fun taggedMsg() =
-            "${severity.presentableName[0]}: ${msg()}"
+            "${severity.name[0].lowercase()}: ${msg()}"
 
         fun onError() {
             errors += ScriptCompilationError(message, location)
@@ -346,14 +347,15 @@ class LoggingMessageCollector(
         }
 
         when (severity) {
-            CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> onError()
-            in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
-            CompilerMessageSeverity.STRONG_WARNING -> onWarning()
-            CompilerMessageSeverity.WARNING -> onWarning()
-            CompilerMessageSeverity.INFO -> log.info { msg() }
-            else -> log.debug { taggedMsg() }
+            Severity.ERROR -> onError()
+            Severity.WARNING -> onWarning()
+            Severity.INFO -> log.info { msg() }
+            Severity.DEBUG -> log.debug { taggedMsg() }
         }
+
+        return message // TODO: does it matter what we return here?
     }
+
 }
 
 
@@ -390,6 +392,7 @@ private class Compiler {
         classPath: List<File>,
         template: KClass<out Any>,
         implicitImports: List<String>,
+        messageRenderer: LoggingMessageRenderer
     ): CompilationResult {
         val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
 
@@ -404,11 +407,10 @@ private class Compiler {
             it.configureMisc()
         }
 
-        val operation = operationBuilder.build()
-        // TODO operation[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = ... will be the proper replacement for MessageCollector
+        operationBuilder[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = messageRenderer
 
         // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Daemon mode can be enabled
-        return buildSession.executeOperation(operation, toolchains.createInProcessExecutionPolicy())
+        return buildSession.executeOperation(operationBuilder.build(), toolchains.createInProcessExecutionPolicy())
     }
 
     fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
