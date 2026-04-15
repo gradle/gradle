@@ -157,7 +157,10 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         where:
         description                               | operation | inputType                       | inputValue                                               | expressionValue | expectedResult
         "Collection<T> = null"                    | "="       | "ListProperty<MyObject>"        | 'null'                                                   | 'null'          | 'undefined'
-        "Collection<T> = T[]"                     | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | _               | unsupportedWithCause("Cannot set the value of a property of type java.util.List using an instance of type [LMyObject;")
+        "ListProperty<T> = T"                     | "="       | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | 'a'             | '[a]'
+        "SetProperty<T> = T"                      | "="       | "SetProperty<MyObject>"         | 'new MyObject("a")'                                      | 'a'             | '[a]'
+        "Collection<T> = T[]"                     | "="       | "ListProperty<MyObject>"        | '[new MyObject("a"), new MyObject("b")] as MyObject[]'   | '[a, b]'        | '[a, b]'
+        "SetProperty<T> = T[]"                    | "="       | "SetProperty<MyObject>"         | '[new MyObject("a"), new MyObject("b")] as MyObject[]'   | '[a, b]'        | '[a, b]'
         "Collection<T> = Iterable<T>"             | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'           | '[a]'
         "Collection<T> = provider { null }"       | "="       | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'undefined'     | 'undefined'
         "Collection<T> = Provider<Iterable<T>>"   | "="       | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'           | '[a]'

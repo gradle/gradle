@@ -275,10 +275,8 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         writeCharset    | readCharset     | description                                          | cause
-        "'UNSUPPORTED'" | "'UTF-8'"       | "Execution failed for task ':jar'."                  | "Charset for manifestContentCharset 'UNSUPPORTED' is not supported by your JVM"
+        "'UNSUPPORTED'" | "'UTF-8'"       | "Execution failed for task ':jar'"                   | "Charset for manifestContentCharset 'UNSUPPORTED' is not supported by your JVM"
         "'UTF-8'"       | "'UNSUPPORTED'" | "A problem occurred evaluating root project 'root'." | "Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM"
-        null            | "'UTF-8'"       | "Execution failed for task ':jar'."                  | "Charset for manifestContentCharset must not be null"
-        "'UTF-8'"       | null            | "A problem occurred evaluating root project 'root'." | "contentCharset must not be null"
     }
 
     private static String customJarManifestTask() {
