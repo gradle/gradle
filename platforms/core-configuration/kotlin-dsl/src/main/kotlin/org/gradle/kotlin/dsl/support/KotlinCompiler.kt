@@ -24,7 +24,6 @@ import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
-import org.jetbrains.kotlin.buildtools.api.CompilationResult
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.Severity
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.SourceLocation
@@ -113,8 +112,8 @@ fun compileKotlinScriptToDirectory(
     classPath: List<File>,
     messageRenderer: LoggingMessageRenderer
 ) {
-    withCompilationExceptionHandler(messageRenderer) {
-        val compilationResult = compiler.compile(
+    Output.withRedirecting(messageRenderer.log) {
+        compiler.compile(
             listOf(Path(scriptFile.path)),
             outputDirectory.toPath(),
             compilerOptions,
@@ -123,90 +122,85 @@ fun compileKotlinScriptToDirectory(
             implicitImports,
             messageRenderer
         )
-        compilationResult.reportToMessageCollectorAndThrowOnErrors(messageRenderer)
-    }
-}
-
-
-private fun CompilationResult.reportToMessageCollectorAndThrowOnErrors(messageCollector: LoggingMessageRenderer) {
-    // TODO: anything else we need to duplicate?
-    if (messageCollector.errors.isNotEmpty()) {
-        throw ScriptCompilationException(messageCollector.errors)
-    }
-}
-
-
-private
-inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageRenderer, action: () -> T): T {
-    val log = messageCollector.log
-    return when {
-        log.isDebugEnabled -> {
-            loggingOutputTo(log::debug) { action() }
-        }
-
-        else -> {
-            ignoringOutputOf { action() }
+        if (messageRenderer.errors.isNotEmpty()) {
+            throw ScriptCompilationException(messageRenderer.errors)
         }
     }
 }
 
 
-private
-inline fun <T> loggingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
-    redirectingOutputTo({ LoggingOutputStream(log) }, action)
+private object Output {
 
+    inline fun <T> withRedirecting(logger: Logger, action: () -> T): T {
+        return when {
+            logger.isDebugEnabled -> {
+                loggingOutputTo(logger::debug) { action() }
+            }
 
-private
-inline fun <T> ignoringOutputOf(action: () -> T): T =
-    redirectingOutputTo({ NullOutputStream.INSTANCE }, action)
-
-
-private
-inline fun <T> redirectingOutputTo(noinline outputStream: () -> OutputStream, action: () -> T): T =
-    redirecting(System.err, System::setErr, outputStream()) {
-        redirecting(System.out, System::setOut, outputStream()) {
-            action()
+            else -> {
+                ignoringOutputOf { action() }
+            }
         }
     }
 
-
-private
-inline fun <T> redirecting(
-    stream: PrintStream,
-    set: (PrintStream) -> Unit,
-    to: OutputStream,
-    action: () -> T
-): T = try {
-    set(PrintStream(to, true))
-    action()
-} finally {
-    set(stream)
-    to.flush()
-}
-
-
-private
-class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
 
     private
-    val buffer = ByteArrayOutputStream()
+    inline fun <T> loggingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
+        redirectingOutputTo({ LoggingOutputStream(log) }, action)
 
-    override fun write(b: Int) = buffer.write(b)
 
-    override fun write(b: ByteArray, off: Int, len: Int) = buffer.write(b, off, len)
+    private
+    inline fun <T> ignoringOutputOf(action: () -> T): T =
+        redirectingOutputTo({ NullOutputStream.INSTANCE }, action)
 
-    override fun flush() {
-        buffer.run {
-            val string = toString("utf8")
-            if (string.isNotBlank()) {
-                log(string)
+
+    private
+    inline fun <T> redirectingOutputTo(noinline outputStream: () -> OutputStream, action: () -> T): T =
+        redirecting(System.err, System::setErr, outputStream()) {
+            redirecting(System.out, System::setOut, outputStream()) {
+                action()
             }
-            reset()
         }
+
+
+    private
+    inline fun <T> redirecting(
+        stream: PrintStream,
+        set: (PrintStream) -> Unit,
+        to: OutputStream,
+        action: () -> T
+    ): T = try {
+        set(PrintStream(to, true))
+        action()
+    } finally {
+        set(stream)
+        to.flush()
     }
 
-    override fun close() {
-        flush()
+
+    private
+    class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
+
+        private
+        val buffer = ByteArrayOutputStream()
+
+        override fun write(b: Int) = buffer.write(b)
+
+        override fun write(b: ByteArray, off: Int, len: Int) = buffer.write(b, off, len)
+
+        override fun flush() {
+            buffer.run {
+                val string = toString("utf8")
+                if (string.isNotBlank()) {
+                    log(string)
+                }
+                reset()
+            }
+        }
+
+        override fun close() {
+            flush()
+        }
     }
 }
 
@@ -333,27 +327,25 @@ class LoggingMessageRenderer(
         fun taggedMsg() =
             "${severity.name[0].lowercase()}: ${msg()}"
 
-        fun onError() {
+        fun onError(): String {
             errors += ScriptCompilationError(message, location)
-            log.error { taggedMsg() }
+            return taggedMsg().also { log.error { it } }
         }
 
-        fun onWarning() {
-            when (onCompilerWarning) {
+        fun onWarning(): String {
+            return when (onCompilerWarning) {
                 CompilerWarning.FAIL -> onError()
-                CompilerWarning.WARN -> log.warn { taggedMsg() }
-                CompilerWarning.DEBUG -> log.debug { taggedMsg() }
+                CompilerWarning.WARN -> taggedMsg().also { log.warn { it } }
+                CompilerWarning.DEBUG -> taggedMsg().also { log.debug { it } }
             }
         }
 
-        when (severity) {
+        return when (severity) {
             Severity.ERROR -> onError()
             Severity.WARNING -> onWarning()
-            Severity.INFO -> log.info { msg() }
-            Severity.DEBUG -> log.debug { taggedMsg() }
+            Severity.INFO -> msg().also { log.info { it } }
+            Severity.DEBUG -> taggedMsg().also { log.debug { it } }
         }
-
-        return message // TODO: does it matter what we return here?
     }
 
 }
@@ -393,7 +385,7 @@ private class Compiler {
         template: KClass<out Any>,
         implicitImports: List<String>,
         messageRenderer: LoggingMessageRenderer
-    ): CompilationResult {
+    ) {
         val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
 
         // compilation operation config
@@ -410,12 +402,12 @@ private class Compiler {
         operationBuilder[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = messageRenderer
 
         // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Daemon mode can be enabled
-        return buildSession.executeOperation(operationBuilder.build(), toolchains.createInProcessExecutionPolicy())
+        buildSession.executeOperation(operationBuilder.build(), toolchains.createInProcessExecutionPolicy())
     }
 
     fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
         this[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
-        this[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath. // TODO: is it really covered by NO_STDLIB?
+        this[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath.
         this[CLASSPATH] = classPath.map { it.toPath() }
 
         this[SCRIPT_TEMPLATES] = listOf(template.jvmName)
@@ -438,7 +430,6 @@ private class Compiler {
 
         this.also { // apply java type enhancement settings
             it[X_JSR305] = arrayOf("strict", "under-migration:strict")
-            // TODO: not sure what the equivalent of `getReportLevelForAnnotation` is... maybe JvmCompilerArguments.X_JSPECIFY_ANNOTATIONS, but that defaults to the right value
         }
     }
 
@@ -482,11 +473,9 @@ private class Compiler {
     }
 
     fun JvmCompilerArguments.Builder.configureMisc() {
-        // TODO: put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         this[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
         this[X_USE_FIR_LT] = false
         this[X_SAM_CONVERSIONS] = SamConversionsMode.CLASS
-        // TODO: addJvmSdkRoot(...)
 
         this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME
     }
