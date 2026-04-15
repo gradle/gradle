@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer
 import org.gradle.api.internal.tasks.TaskDependencyContainer
@@ -65,9 +66,24 @@ class DefaultResolvableArtifactCodec(
         val componentId = componentIdSerializer.read(this)
         val artifactId = ComponentFileArtifactIdentifier(componentId, file.name)
         if (componentId is ModuleComponentIdentifier) {
+            markAccessedInArtifactCache(file)
             emitReplayOperation(artifactId, file, fileSize)
         }
         return DefaultResolvableArtifact(null, artifactName, artifactId, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory.create(Describables.of(artifactId), file), calculatedValueContainerFactory)
+    }
+
+    /**
+     * Mark a CC-replayed artifact file as accessed in the Gradle user home artifact cache journal.
+     *
+     * Without this, LRU cache cleanup would not see the file as in-use and could evict it despite
+     * it being actively used by builds that consistently hit the Configuration Cache. On CC miss,
+     * this bookkeeping is done by `AbstractCachedIndex.lookup()`; on CC hit the resolution pipeline
+     * is bypassed, leaving the journal un-updated.
+     */
+    private
+    fun ReadContext.markAccessedInArtifactCache(file: File) {
+        val fileStoreProvider = isolate.owner.serviceOf<FileStoreAndIndexProvider>()
+        fileStoreProvider.artifactIdentifierFileStore.fileAccessTracker.markAccessed(file)
     }
 
     private
