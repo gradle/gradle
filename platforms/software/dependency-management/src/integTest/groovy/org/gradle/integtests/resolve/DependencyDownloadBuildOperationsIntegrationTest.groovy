@@ -355,6 +355,63 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
         artifactOps2[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
     }
 
+    def "emits DownloadArtifactBuildOperationType synthetically on configuration cache hit"() {
+        given:
+        def m = mavenHttpRepo.module("org.utils", "impl", '1.3')
+            .allowAll()
+            .publish()
+
+        buildFile << """
+            repositories {
+                maven { url = "${mavenHttpRepo.uri}" }
+            }
+
+            configurations {
+                base { canBeResolved = false; canBeConsumed = false }
+                path { extendsFrom(base) }
+            }
+
+            dependencies {
+                base "org.utils:impl:1.3"
+            }
+
+            tasks.register('consume') {
+                def files = configurations.path
+                doLast {
+                    files.each { println it }
+                }
+            }
+        """
+
+        when:
+        // First run: configuration cache miss, dependency is resolved normally.
+        executer.withArgument("--configuration-cache")
+        run "consume"
+
+        then:
+        def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
+        artifactOps.size() == 1
+        artifactOps[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
+        artifactOps[0].result.resolvedFilePath.endsWith('impl-1.3.jar')
+        artifactOps[0].result.fileSize == m.artifact.file.length()
+
+        when:
+        // Second run: configuration cache HIT. The original resolution pipeline is skipped but
+        // the synthetic build operation is emitted during artifact deserialization.
+        executer.withArgument("--configuration-cache")
+        run "consume"
+
+        then:
+        def replayedOps = buildOperations.all(DownloadArtifactBuildOperationType)
+        replayedOps.size() == 1
+        replayedOps[0].details.artifactIdentifier == 'impl-1.3.jar (org.utils:impl:1.3)'
+        replayedOps[0].result.resolvedFilePath.endsWith('impl-1.3.jar')
+        replayedOps[0].result.fileSize == m.artifact.file.length()
+        // On CC hit no network or cache-lookup happens, so no Read/AlreadyPresent children fire.
+        buildOperations.all(ExternalResourceReadBuildOperationType).isEmpty()
+        buildOperations.all(ExternalResourceAlreadyPresentBuildOperationType).isEmpty()
+    }
+
     def "emits events for an artifact once per build"() {
         given:
         def m = mavenHttpRepo.module("org.utils", "impl", '1.3')
