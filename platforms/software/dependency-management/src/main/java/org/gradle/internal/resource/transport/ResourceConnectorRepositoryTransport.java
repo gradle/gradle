@@ -55,7 +55,7 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, buildOperationRunner);
         ProgressLoggingExternalResourceLister loggingLister = new ProgressLoggingExternalResourceLister(connector, buildOperationRunner);
         repository = new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, loggingLister);
-        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheAccessCoordinator, cachePolicy, producerGuard, fileResourceRepository, checksumService);
+        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheAccessCoordinator, cachePolicy, producerGuard, fileResourceRepository, checksumService, buildOperationRunner);
     }
 
     @Override

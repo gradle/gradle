@@ -62,7 +62,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
             supplier.get()
         }
     }
-    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheAccessCoordinator, cachePolicy, producerGuard, fileRepository, TestUtil.checksumService)
+    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheAccessCoordinator, cachePolicy, producerGuard, fileRepository, TestUtil.checksumService, null)
 
     def "returns null when the request resource is not cached and does not exist in the remote repository"() {
         def location = new ExternalResourceName("thing")

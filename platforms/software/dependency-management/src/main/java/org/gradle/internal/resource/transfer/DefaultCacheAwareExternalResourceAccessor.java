@@ -27,7 +27,12 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceAlreadyPresentBuildOperationType;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -46,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExternalResourceAccessor {
@@ -61,8 +67,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final ProducerGuard<ExternalResourceName> producerGuard;
     private final FileResourceRepository fileResourceRepository;
     private final ChecksumService checksumService;
+    private final @Nullable BuildOperationRunner buildOperationRunner;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService, @Nullable BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -72,6 +79,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         this.producerGuard = producerGuard;
         this.fileResourceRepository = fileResourceRepository;
         this.checksumService = checksumService;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Nullable
@@ -88,6 +96,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
             // We might be able to use a cached/locally available version
             if (cached != null && !externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached))) {
+                emitAlreadyPresent(location.getUri(), cached.getCachedFile());
                 return fileResourceRepository.resource(cached.getCachedFile(), location.getUri(), cached.getExternalResourceMetaData());
             }
 
@@ -111,6 +120,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());
                     // Update the cache entry in the index: this resets the age of the cached entry to zero
                     cachedExternalResourceIndex.store(location.toString(), cached.getCachedFile(), cached.getExternalResourceMetaData());
+                    emitAlreadyPresent(location.getUri(), cached.getCachedFile());
                     return fileResourceRepository.resource(cached.getCachedFile(), location.getUri(), cached.getExternalResourceMetaData());
                 }
             }
@@ -209,5 +219,77 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     private long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
         return timeProvider.getCurrentTime() - cached.getCachedAt();
+    }
+
+    private void emitAlreadyPresent(URI location, File cachedFile) {
+        if (buildOperationRunner == null) {
+            return;
+        }
+        buildOperationRunner.run(new AlreadyPresentOperation(location, cachedFile));
+    }
+
+    private static class AlreadyPresentOperation implements RunnableBuildOperation {
+        private final URI location;
+        private final File cachedFile;
+
+        AlreadyPresentOperation(URI location, File cachedFile) {
+            this.location = location;
+            this.cachedFile = cachedFile;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            context.setResult(new AlreadyPresentResult(cachedFile.getAbsolutePath(), cachedFile.length()));
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor
+                .displayName("Cache hit for " + location)
+                .details(new AlreadyPresentDetails(location.toString()));
+        }
+    }
+
+    private static class AlreadyPresentDetails implements ExternalResourceAlreadyPresentBuildOperationType.Details {
+        private final String location;
+
+        AlreadyPresentDetails(String location) {
+            this.location = location;
+        }
+
+        @Override
+        public String getLocation() {
+            return location;
+        }
+
+        @Override
+        public String toString() {
+            return "ExternalResourceAlreadyPresentBuildOperationType.Details{location=" + location + '}';
+        }
+    }
+
+    private static class AlreadyPresentResult implements ExternalResourceAlreadyPresentBuildOperationType.Result {
+        private final String resolvedFilePath;
+        private final long fileSize;
+
+        AlreadyPresentResult(String resolvedFilePath, long fileSize) {
+            this.resolvedFilePath = resolvedFilePath;
+            this.fileSize = fileSize;
+        }
+
+        @Override
+        public String getResolvedFilePath() {
+            return resolvedFilePath;
+        }
+
+        @Override
+        public long getFileSize() {
+            return fileSize;
+        }
+
+        @Override
+        public String toString() {
+            return "ExternalResourceAlreadyPresentBuildOperationType.Result{resolvedFilePath=" + resolvedFilePath + ", fileSize=" + fileSize + '}';
+        }
     }
 }

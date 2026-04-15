@@ -43,7 +43,9 @@ public class FileTransport extends AbstractRepositoryTransport {
         super(name);
         this.repository = repository;
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
-        resourceAccessor = new FileCacheAwareExternalResourceAccessor(new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheAccessCoordinator, cachePolicy, producerGuard, repository, checksumService));
+        // Local file:// repositories never emit an AlreadyPresent build operation because their resources are not cached
+        // from the network; passing a null BuildOperationRunner disables the emission.
+        resourceAccessor = new FileCacheAwareExternalResourceAccessor(new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, cacheAccessCoordinator, cachePolicy, producerGuard, repository, checksumService, null));
     }
 
     @Override

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType
 import org.gradle.api.internal.artifacts.ResolveArtifactsBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.resource.ExternalResourceAlreadyPresentBuildOperationType
 import org.gradle.internal.resource.ExternalResourceListBuildOperationType
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType
 import org.gradle.internal.resource.ExternalResourceReadMetadataBuildOperationType
@@ -101,6 +102,58 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         where:
         chunked << [true, false]
+    }
+
+    def "emits ExternalResourceAlreadyPresent events when artifacts are served from the local cache"() {
+        given:
+        def m = mavenHttpRepo.module("org.utils", "impl", '1.3')
+            .allowAll()
+            .publish()
+
+        buildFile << """
+            repositories {
+                maven { url = "${mavenHttpRepo.uri}" }
+            }
+
+            configurations {
+                base { canBeResolved = false; canBeConsumed = false }
+                path { extendsFrom(base) }
+            }
+
+            dependencies {
+                base "org.utils:impl:1.3"
+            }
+
+            println configurations.path.files
+        """
+
+        when:
+        // First invocation: nothing cached yet, artifacts are downloaded
+        run "help"
+
+        then:
+        buildOperations.all(ExternalResourceAlreadyPresentBuildOperationType).size() == 0
+
+        when:
+        // Second invocation without --refresh-dependencies: cache is still valid
+        // and the resource accessor returns from cache without any network traffic.
+        run "help"
+
+        then:
+        buildOperations.all(ExternalResourceReadBuildOperationType).size() == 0
+        buildOperations.all(ExternalResourceReadMetadataBuildOperationType).size() == 0
+
+        def alreadyPresentOps = buildOperations.all(ExternalResourceAlreadyPresentBuildOperationType)
+        alreadyPresentOps.size() == 2
+        alreadyPresentOps*.details*.location as Set == [m.pom.uri.toString(), m.artifact.uri.toString()] as Set
+        alreadyPresentOps.find { it.details.location == m.artifact.uri.toString() }.with {
+            it.result.resolvedFilePath.endsWith('impl-1.3.jar')
+            it.result.fileSize == m.artifact.file.length()
+        }
+        alreadyPresentOps.find { it.details.location == m.pom.uri.toString() }.with {
+            it.result.resolvedFilePath.endsWith('impl-1.3.pom')
+            it.result.fileSize == m.pom.file.length()
+        }
     }
 
     def "emits events for missing resources"() {
