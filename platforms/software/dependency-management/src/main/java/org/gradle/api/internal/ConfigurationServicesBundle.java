@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -57,6 +58,7 @@ public interface ConfigurationServicesBundle {
     AttributeDesugaring getAttributeDesugaring();
     ResolveExceptionMapper getExceptionMapper();
     ProviderFactory getProviderFactory();
+    ResolvedArtifactSetResolver getArtifactSetResolver();
     ProjectLeaseRegistry getProjectLeaseRegistry();
     DependencyManagementInstanceIdentity getInstanceIdentity();
 }

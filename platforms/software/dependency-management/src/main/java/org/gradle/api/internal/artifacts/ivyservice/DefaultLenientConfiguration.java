@@ -93,7 +93,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.selectLegacy(implicitSelectionSpec);
+            artifactsForThisConfiguration = artifactResults.select(implicitSelectionSpec, true);
         }
         return artifactsForThisConfiguration;
     }
