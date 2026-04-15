@@ -157,6 +157,11 @@ abstract class AbstractIdeSyncTest extends Specification {
             args += "--ide-keep-alive"
         }
 
+        def archivePath = System.getProperty("android.studio.archive")
+        if (archivePath != null) {
+            args += "--ide-archive=$archivePath"
+        }
+
         DefaultClientExecHandleBuilder builder = new DefaultClientExecHandleBuilder(
             TestFiles.pathToFileResolver(), Executors.newCachedThreadPool(), new DefaultBuildCancellationToken()
         )
