@@ -17,13 +17,16 @@
 package org.gradle.testing.testengine.engine;
 
 import org.gradle.testing.testengine.descriptor.ResourceBasedTestDescriptor;
+import org.gradle.testing.testengine.descriptor.TestDefinitionFileDescriptor;
 import org.gradle.testing.testengine.util.DirectoryScanner;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.engine.DiscoverySelector;
+import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.discovery.DirectorySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.FileSelector;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.discovery.SelectorResolver;
 
 import java.io.File;
@@ -32,7 +35,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ResourceBasedSelectorResolver implements SelectorResolver {
     public static final Logger LOGGER = LoggerFactory.getLogger(ResourceBasedSelectorResolver.class);
@@ -61,7 +63,6 @@ public class ResourceBasedSelectorResolver implements SelectorResolver {
                     selectors.add(DiscoverySelectors.selectDirectory(file.getAbsolutePath()));
                 }
             }
-
             return Resolution.selectors(selectors);
         } else {
             return Resolution.unresolved();
@@ -69,22 +70,59 @@ public class ResourceBasedSelectorResolver implements SelectorResolver {
     }
 
     @Override
+    public Resolution resolve(UniqueIdSelector selector, Context context) {
+        UniqueId uniqueId = selector.getUniqueId();
+
+        String filePath = null;
+        String testName = null;
+        for (UniqueId.Segment segment : uniqueId.getSegments()) {
+            if ("testDefinitionFile".equals(segment.getType())) {
+                filePath = segment.getValue();
+            } else if ("testDefinition".equals(segment.getType())) {
+                testName = segment.getValue();
+            }
+        }
+
+        if (filePath == null) {
+            return Resolution.unresolved();
+        }
+
+        File file = new File(filePath);
+        if (!directoryScanner.getTestFileParser().isValidTestDefinitionFile(file)) {
+            return Resolution.unresolved();
+        }
+
+        // Whether selecting the file container or an individual test, resolve the whole file.
+        // The framework deduplicates — existing descriptors won't be recreated.
+        return resolveFileContainer(file, context);
+    }
+
+    @Override
     public Resolution resolve(FileSelector selector, Context context) {
         File file = selector.getFile();
         if (directoryScanner.getTestFileParser().isValidTestDefinitionFile(file)) {
             LOGGER.info(() -> "Test specification file: " + file.getAbsolutePath());
-
-            Set<Match> tests = directoryScanner.getTestFileParser().parseTestNames(file).stream()
-                    .map(testName -> context.addToParent(parent -> Optional.of(new ResourceBasedTestDescriptor(parent.getUniqueId(), file, testName, dynamic))))
-                    .map(Optional::get)
-                    .map(Match::exact)
-                    .collect(Collectors.toSet());
-
-            if (!tests.isEmpty()) {
-                return Resolution.matches(tests);
-            }
+            return resolveFileContainer(file, context);
         }
-
         return Resolution.unresolved();
     }
+
+    private Resolution resolveFileContainer(File file, Context context) {
+        // Create the file-level container as a child of the engine root
+        Optional<TestDefinitionFileDescriptor> fileContainer = context.addToParent(
+            engineRoot -> {
+                TestDefinitionFileDescriptor container = new TestDefinitionFileDescriptor(engineRoot.getUniqueId(), file);
+
+                // Add individual tests as children of the file container
+                for (String testName : directoryScanner.getTestFileParser().parseTestNames(file)) {
+                    container.addChild(new ResourceBasedTestDescriptor(container.getUniqueId(), file, testName, dynamic));
+                }
+
+                return Optional.of(container);
+            }
+        );
+
+        return fileContainer.map(Match::partial).map(Resolution::match).orElse(Resolution.unresolved());
+    }
+
 }
