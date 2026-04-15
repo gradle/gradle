@@ -34,6 +34,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.resolver.ComponentArtifactResolver;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -206,7 +207,8 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Override
         public void run(BuildOperationContext context) {
             artifact.getFileSource().finalizeIfNotAlready();
-            context.setResult(DownloadArtifactBuildOperationType.RESULT);
+            File file = artifact.getFileSource().get();
+            context.setResult(new DownloadArtifactBuildOperationType.ResultImpl(file.getAbsolutePath(), file.length()));
         }
 
         @Override

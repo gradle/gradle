@@ -33,7 +33,22 @@ public final class DownloadArtifactBuildOperationType implements BuildOperationT
 
     }
 
+    @UsedByScanPlugin
     public interface Result {
+
+        /**
+         * The absolute filesystem path of the resolved artifact file.
+         *
+         * @since 9.6
+         */
+        String getResolvedFilePath();
+
+        /**
+         * The size of the resolved artifact file in bytes.
+         *
+         * @since 9.6
+         */
+        long getFileSize();
 
     }
 
@@ -52,8 +67,27 @@ public final class DownloadArtifactBuildOperationType implements BuildOperationT
 
     }
 
-    public final static Result RESULT = new Result() {
-    };
+    public static class ResultImpl implements Result {
+
+        private final String resolvedFilePath;
+        private final long fileSize;
+
+        public ResultImpl(String resolvedFilePath, long fileSize) {
+            this.resolvedFilePath = resolvedFilePath;
+            this.fileSize = fileSize;
+        }
+
+        @Override
+        public String getResolvedFilePath() {
+            return resolvedFilePath;
+        }
+
+        @Override
+        public long getFileSize() {
+            return fileSize;
+        }
+
+    }
 
     private DownloadArtifactBuildOperationType() {
     }
