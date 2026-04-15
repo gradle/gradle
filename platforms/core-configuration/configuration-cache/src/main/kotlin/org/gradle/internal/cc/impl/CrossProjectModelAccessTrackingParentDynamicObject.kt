@@ -135,7 +135,6 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     private
     fun maybeReportProjectIsolationViolation(memberKind: MemberKind, memberName: String?) {
         if (dynamicCallProblemReporting.unreportedProblemInCurrentCall(PROBLEM_KEY)) {
-            val callerContext = referrerCallerContext()
             val problem = problemFactory.problem {
                 text("Project ")
                 reference(referrerProject.identityPath.toString())
@@ -150,6 +149,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
                 }
                 text(" in the parent project ")
                 reference(ownerProject.identityPath.toString())
+                val callerContext = referrerCallerContext()
                 if (callerContext != null) {
                     if (callerContext.isExplicitApiCall) {
                         text(" via ")

@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.internal.project.DynamicLookupRoutine
+import org.gradle.internal.extensibility.ExtensibleDynamicObject
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.kotlin.dsl.support.uncheckedCast
 
@@ -62,6 +63,20 @@ fun dynamicObjectFor(target: Any): DynamicObject =
 
 @Suppress("DEPRECATION")
 private
+inline fun <T> withKotlinDelegationContext(owner: DynamicObject, action: () -> T): T {
+    if (owner is ExtensibleDynamicObject) {
+        owner.callerContext = ExtensibleDynamicObject.CallerContext.Instances.KOTLIN_DELEGATION
+        try {
+            return action()
+        } finally {
+            owner.callerContext = null
+        }
+    }
+    return action()
+}
+
+
+private
 class NullableDynamicPropertyDelegate(
     private val dynamicLookupRoutine: DynamicLookupRoutine,
     private val owner: DynamicObject,
@@ -69,7 +84,9 @@ class NullableDynamicPropertyDelegate(
 ) : PropertyDelegate {
 
     override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
-        uncheckedCast(dynamicLookupRoutine.findProperty(owner, name))
+        withKotlinDelegationContext(owner) {
+            uncheckedCast(dynamicLookupRoutine.findProperty(owner, name))
+        }
 }
 
 
@@ -83,8 +100,10 @@ class NonNullDynamicPropertyDelegate(
 ) : PropertyDelegate {
 
     override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
-        dynamicLookupRoutine.tryGetProperty(owner, name).run {
-            if (isFound && value != null) uncheckedCast<T>(value)
-            else throw InvalidUserCodeException("Cannot get non-null property '$name' on ${describeOwner()} as it ${if (isFound) "is null" else "does not exist"}")
+        withKotlinDelegationContext(owner) {
+            dynamicLookupRoutine.tryGetProperty(owner, name).run {
+                if (isFound && value != null) uncheckedCast<T>(value)
+                else throw InvalidUserCodeException("Cannot get non-null property '$name' on ${describeOwner()} as it ${if (isFound) "is null" else "does not exist"}")
+            }
         }
 }

@@ -107,6 +107,10 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
              */
             public static final CallerContext GET_PROPERTY = new ExplicitApiCall("getProperty()");
             /**
+             * Caller context for Kotlin DSL {@code val x by project} property delegation.
+             */
+            public static final CallerContext KOTLIN_DELEGATION = new ExplicitApiCall("val ... by project");
+            /**
              * Caller context for implicit property references in build scripts (e.g. bare {@code foo}).
              */
             public static final CallerContext BUILD_SCRIPT = new BuildScriptAccess();
