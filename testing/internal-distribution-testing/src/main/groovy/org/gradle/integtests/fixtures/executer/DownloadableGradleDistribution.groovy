@@ -58,6 +58,9 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 }
                 System.out.println("downloading $url")
                 distributionZip.copyFrom(url)
+                if (System.getenv("RUNNING_ON_REMOTE_AGENT") != null) {
+                    throw new RuntimeException("downloaded $url")
+                }
 
                 System.out.println("unzipping ${distributionZip} to ${gradleHomeDir}")
                 distributionZip.usingNativeTools().unzipTo(versionDir)
