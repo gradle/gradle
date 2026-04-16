@@ -116,7 +116,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
         TypeSpec factoryClass = generateFactoryClass(className, interceptorType);
 
-        return builder ->
+        return builder -> {
             builder.addMethod(constructor)
                 .addAnnotation(GENERATED_ANNOTATION.asClassName())
                 .addModifiers(Modifier.PUBLIC)
@@ -133,6 +133,14 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addMethod(findBridgeMethodBuilder.build())
                 .addFields(typeFieldByOwner.values())
                 .addType(factoryClass);
+            // For property upgrade interceptors, generate isReplacedAccessor to support
+            // detection and removal of super-delegating overrides of upgraded properties.
+            if (interceptorType == BytecodeInterceptorType.BYTECODE_UPGRADE) {
+                MethodSpec.Builder isReplacedAccessorBuilder = getIsReplacedAccessorBuilder();
+                generateIsReplacedAccessorCode(isReplacedAccessorBuilder, requestsByOwner);
+                builder.addMethod(isReplacedAccessorBuilder.build());
+            }
+        };
     }
 
     private static TypeSpec generateFactoryClass(String className, BytecodeInterceptorType interceptorType) {
@@ -284,6 +292,41 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .addParameter(String.class, "name")
             .addParameter(String.class, "descriptor");
 
+    }
+
+    private static MethodSpec.Builder getIsReplacedAccessorBuilder() {
+        return MethodSpec.methodBuilder("isReplacedAccessor")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(boolean.class)
+            .addParameter(String.class, "owner")
+            .addParameter(String.class, "name")
+            .addParameter(String.class, "descriptor");
+    }
+
+    private static void generateIsReplacedAccessorCode(
+        MethodSpec.Builder method,
+        Map<CallableOwnerInfo, List<CallInterceptionRequest>> requestsByOwner
+    ) {
+        CodeBlock.Builder code = CodeBlock.builder();
+        requestsByOwner.forEach((owner, requests) -> {
+            if (owner.isInterceptSubtypes()) {
+                code.beginControlFlow("if ($N.isInstanceOf(owner, $S))", METADATA_FIELD, owner.getType().getInternalName());
+            } else {
+                code.beginControlFlow("if (owner.equals($S))", owner.getType().getInternalName());
+            }
+            for (CallInterceptionRequest request : requests) {
+                CallableInfo interceptedCallable = request.getInterceptedCallable();
+                String callableName = interceptedCallable.getCallableName();
+                String callableDescriptor = standardCallableDescriptor(interceptedCallable);
+                code.beginControlFlow("if (name.equals($S) && descriptor.equals($S))", callableName, callableDescriptor);
+                code.addStatement("return true");
+                code.endControlFlow();
+            }
+            code.endControlFlow();
+        });
+        code.addStatement("return false");
+        method.addCode(code.build());
     }
 
     private static final MethodSpec BINARY_CLASS_NAME_OF = MethodSpec.methodBuilder("binaryClassNameOf")
