@@ -213,8 +213,8 @@ object SchemaFailureMessageFormatter {
                 is UnsafeInjectProperty -> ": injected service property"
                 is UnsafeJavaBeanProperty -> ": unsafe property"
                 is UnsafeNonPureFunction -> ": function relying on side effects or custom implementation"
-                is UnsafeBecauseHasHiddenMembers -> ": hidden member${if (cause.memberNames.size > 1) "s" else ""} ${cause.memberNames.joinToString(limit = 3) { "'$it'" }}"
-                is UnsafeBecauseHasNonPublicMembers -> ": non-public member${if (cause.memberNames.size > 1) "s" else ""} ${cause.memberNames.joinToString(limit = 3) { "'$it'" }}"
+                is UnsafeBecauseHasHiddenMembers -> ": hidden member${if (cause.memberNames.size > 1) "s" else ""} ${cause.memberNames.sorted().joinToString(limit = 3) { "'$it'" }}"
+                is UnsafeBecauseHasNonPublicMembers -> ": non-public member${if (cause.memberNames.size > 1) "s" else ""} ${cause.memberNames.sorted().joinToString(limit = 3) { "'$it'" }}"
                 else -> ""
             }
             is SchemaBuildingIssue.MoreFailuresInErroneousTypes -> "More failures that are not reported now"
