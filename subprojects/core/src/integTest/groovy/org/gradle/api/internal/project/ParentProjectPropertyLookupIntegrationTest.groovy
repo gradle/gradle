@@ -197,6 +197,44 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         outputContains("parent")
     }
 
+    // Container element creation — Groovy checks the parent for the element name as a property
+    // before creating a new element in the container. This should not trigger a deprecation.
+
+    def "creating a new configuration does not trigger parent property deprecation"() {
+        child << """
+            configurations {
+                myNewConfiguration {
+                }
+            }
+            println("created: " + configurations.myNewConfiguration.name)
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("created: myNewConfiguration")
+    }
+
+    def "creating a new configuration does not trigger parent property deprecation even when parent has property with same name"() {
+        parent << """
+            ext.myNewConfiguration = "parentValue"
+        """
+        child << """
+            configurations {
+                myNewConfiguration {
+                }
+            }
+            println("created: " + configurations.myNewConfiguration.name)
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("created: myNewConfiguration")
+    }
+
     // Kotlin DSL tests — property() and hasProperty() go through DefaultProject directly
 
     def "getting property through static property() from parent is deprecated (Kotlin DSL)"() {
