@@ -171,6 +171,46 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         }
     }
 
+    def 'unsafe hidden members message is truncated when more than three are present'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "@org.gradle.declarative.dsl.model.annotations.HiddenInDefinition\n" +
+                "Property<String> getHiddenA();\n" +
+                "@org.gradle.declarative.dsl.model.annotations.HiddenInDefinition\n" +
+                "Property<String> getHiddenB();\n" +
+                "@org.gradle.declarative.dsl.model.annotations.HiddenInDefinition\n" +
+                "Property<String> getHiddenC();\n" +
+                "@org.gradle.declarative.dsl.model.annotations.HiddenInDefinition\n" +
+                "Property<String> getHiddenD();"
+        )
+
+        expect:
+        fails().assertHasErrorOutput(
+            "Unsafe declaration in safe definition: hidden members 'getHiddenA', 'getHiddenB', 'getHiddenC', ...\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        )
+
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+            details == "Unsafe declaration in safe definition: hidden members 'getHiddenA', 'getHiddenB', 'getHiddenC', ...\n" +
+                "  in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+            solutions == [
+                "Remove the hidden members.",
+                "Declare the corresponding features as having unsafe definitions.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
+    }
+
     def 'unsafe non-public member in safe definition is reported'() {
         given:
         PluginBuilder pluginBuilder = withProjectFeature()
@@ -491,6 +531,74 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
         }
     }
 
+    def 'erroneous type names in aggregated failures message are truncated when more than three are present'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeature()
+        pluginBuilder.prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        ["A", "B", "C", "D"].each { suffix ->
+            pluginBuilder.file("src/main/java/org/gradle/test/IndirectType${suffix}.java") << """
+                package org.gradle.test;
+                import org.gradle.api.provider.Property;
+                import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+                public interface IndirectType${suffix} {
+                    Property<String> getValue();
+                    @HiddenInDefinition
+                    Property<String> getHiddenIn${suffix}();
+                }
+            """
+        }
+
+        pluginBuilder.file("src/main/java/org/gradle/test/TypeWithIssues.java") << """
+            package org.gradle.test;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Nested;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+            public interface TypeWithIssues {
+                Property<String> getValue();
+
+                @HiddenInDefinition
+                Property<String> getHidden();
+
+                @Nested IndirectTypeA getIndirectA();
+                @Nested IndirectTypeB getIndirectB();
+                @Nested IndirectTypeC getIndirectC();
+                @Nested IndirectTypeD getIndirectD();
+            }
+        """
+
+        addDefinitionMembers(
+            "FeatureDefinition.java",
+            "@org.gradle.api.tasks.Nested\n" +
+                "TypeWithIssues getTypeWithIssues();"
+        )
+
+        expect:
+        fails().assertHasErrorOutput(
+            "More failures that are not reported now\n" +
+                "      in types that are only used in other erroneous types: 'org.gradle.test.IndirectTypeA', 'org.gradle.test.IndirectTypeB', 'org.gradle.test.IndirectTypeC', ..."
+        )
+
+        verifyAll(receivedProblem(0)) {
+            fqid == "scripts:dcl-schema:more-failures-in-erroneous-types"
+            details == "More failures that are not reported now\n" +
+                "  in types that are only used in other erroneous types: 'org.gradle.test.IndirectTypeA', 'org.gradle.test.IndirectTypeB', 'org.gradle.test.IndirectTypeC', ..."
+            solutions == [
+                "Fix the other issues first and run the build with the updated plugin to see the details.",
+                "Remove the violating declaration or make it non-public in an unsafe definition.",
+                "In an unsafe definition, annotate the violating declaration as @HiddenInDefinition to exclude it from the Declarative schema.",
+            ]
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
+            details == "Unsafe declaration in safe definition: hidden member 'getHidden'\n" +
+                "  in schema type 'org.gradle.test.TypeWithIssues'\n" +
+                "  in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
+        }
+    }
+
     def 'failures in erroneous definition type and its referenced erroneous type are both reported'() {
         given:
         PluginBuilder pluginBuilder = withProjectFeature()
@@ -528,6 +636,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
                 "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
                 "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
+        fails().assertNotOutput("More failures that are not reported now")
 
         verifyAll(receivedProblem(0)) {
             fqid == "scripts:dcl-schema:unsafe-because-has-hidden-members"
