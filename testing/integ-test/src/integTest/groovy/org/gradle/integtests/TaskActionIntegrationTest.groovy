@@ -50,7 +50,7 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
 
     // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
     @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
-    def "nags when task action uses Task.taskDependencies"() {
+    def "nags when task action uses #accessor"() {
         if (featureFlag) {
             settingsFile """
                 enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
@@ -59,127 +59,27 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         buildFile """
             task broken {
                 doLast {
-                    taskDependencies
+                    ${accessor}
                 }
             }
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.taskDependencies at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.${deprecatedProperty} at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
         succeeds("broken")
 
         then:
         noExceptionThrown()
 
         where:
-        featureFlag << [true, false]
-    }
-
-    // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
-    @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
-    def "nags when task action uses Task.dependsOn"() {
-        if (featureFlag) {
-            settingsFile """
-                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-            """
+        [featureFlag, accessor, deprecatedProperty] << [true, false].collectMany { flag ->
+            [
+                ["getTaskDependencies()", "taskDependencies"],
+                ["getDependsOn()",        "dependsOn"],
+                ["getMustRunAfter()",     "mustRunAfter"],
+                ["getFinalizedBy()",      "finalizedBy"],
+                ["getShouldRunAfter()",   "shouldRunAfter"],
+            ].collect { [flag] + it }
         }
-        buildFile """
-            task broken {
-                doLast {
-                    getDependsOn()
-                }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.dependsOn at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
-        succeeds("broken")
-
-        then:
-        noExceptionThrown()
-
-        where:
-        featureFlag << [true, false]
-    }
-
-    // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
-    @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
-    def "nags when task action uses Task.mustRunAfter"() {
-        if (featureFlag) {
-            settingsFile """
-                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-            """
-        }
-        buildFile """
-            task broken {
-                doLast {
-                    getMustRunAfter()
-                }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.mustRunAfter at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
-        succeeds("broken")
-
-        then:
-        noExceptionThrown()
-
-        where:
-        featureFlag << [true, false]
-    }
-
-    // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
-    @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
-    def "nags when task action uses Task.finalizedBy"() {
-        if (featureFlag) {
-            settingsFile """
-                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-            """
-        }
-        buildFile """
-            task broken {
-                doLast {
-                    getFinalizedBy()
-                }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.finalizedBy at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
-        succeeds("broken")
-
-        then:
-        noExceptionThrown()
-
-        where:
-        featureFlag << [true, false]
-    }
-
-    // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
-    @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
-    def "nags when task action uses Task.shouldRunAfter"() {
-        if (featureFlag) {
-            settingsFile """
-                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-            """
-        }
-        buildFile """
-            task broken {
-                doLast {
-                    getShouldRunAfter()
-                }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.shouldRunAfter at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
-        succeeds("broken")
-
-        then:
-        noExceptionThrown()
-
-        where:
-        featureFlag << [true, false]
     }
 }
