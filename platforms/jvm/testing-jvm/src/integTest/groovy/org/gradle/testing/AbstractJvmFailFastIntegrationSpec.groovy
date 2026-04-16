@@ -147,13 +147,12 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         }
 
         where:
-        forkEvery | maxWorkers | testOmitted
-        0         | 1          | 1
-        1         | 1          | 1
-        2         | 1          | 1
-        0         | 2          | 5
-        1         | 2          | 5
-        2         | 2          | 5
+        forkEvery << [0, 1, 2]
+
+        combined:
+        maxWorkers | testOmitted
+        1          | 1
+        2          | 5
     }
 
     def "fail fast console output shows failure"() {
