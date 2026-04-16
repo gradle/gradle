@@ -37,13 +37,13 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "skips building executable binary with no source"() {
         given:
         buildFile << """
-apply plugin: "cpp"
-model {
-    components {
-        main(NativeExecutableSpec)
-    }
-}
-"""
+            apply plugin: "cpp"
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+            """.stripIndent()
 
         when:
         succeeds "mainExecutable"
@@ -58,26 +58,26 @@ model {
 
         and:
         buildFile << """
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
-
-apply plugin: 'c'
-
-model {
-    platforms {
-        unknown {
-            architecture "unknown"
-        }
-    }
-}
-model {
-    components {
-        main(NativeExecutableSpec) {
-            targetPlatform "unknown"
-            targetPlatform "${NativePlatformsTestFixture.defaultPlatformName}"
-        }
-    }
-}
-"""
+            import org.gradle.nativeplatform.platform.internal.NativePlatforms
+            
+            apply plugin: 'c'
+            
+            model {
+                platforms {
+                    unknown {
+                        architecture "unknown"
+                    }
+                }
+            }
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        targetPlatform "unknown"
+                        targetPlatform "${NativePlatformsTestFixture.defaultPlatformName}"
+                    }
+                }
+            }
+            """.stripIndent()
         when:
         succeeds "assemble"
 
@@ -93,30 +93,35 @@ model {
     @ToBeFixedForConfigurationCache
     def "assemble task produces sensible error when there are no buildable binaries"() {
         buildFile << """
-apply plugin: 'c'
-
-model {
-    platforms {
-        unknown {
-            architecture "unknown"
-        }
-    }
-}
-model {
-    components {
-        main(NativeExecutableSpec) {
-            targetPlatform "unknown"
-        }
-        hello(NativeLibrarySpec) {
-            targetPlatform "unknown"
-        }
-        another(NativeLibrarySpec) {
-            binaries.all { buildable = false }
-        }
-    }
-}
-"""
+            apply plugin: 'c'
+            
+            model {
+                platforms {
+                    unknown {
+                        architecture "unknown"
+                    }
+                }
+            }
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        targetPlatform "unknown"
+                    }
+                    hello(NativeLibrarySpec) {
+                        targetPlatform "unknown"
+                    }
+                    another(NativeLibrarySpec) {
+                        binaries.all { buildable = false }
+                    }
+                }
+            }
+            """.stripIndent()
         when:
+        executer.expectDocumentedDeprecationWarning(
+            "Invocation of Task.taskDependencies at execution time has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
         fails "assemble"
 
         then:
@@ -144,26 +149,26 @@ model {
 
         when:
         buildFile << """
-apply plugin: "c"
-apply plugin: "cpp"
-
-model {
-    components {
-        main(NativeExecutableSpec) {
-            sources {
-                c {
-                    source.srcDir "src/test/c"
-                    exportedHeaders.srcDir "src/test/headers"
-                }
-                cpp {
-                    source.srcDir "src/test/cpp"
-                    exportedHeaders.srcDir "src/test/headers"
+            apply plugin: "c"
+            apply plugin: "cpp"
+            
+            model {
+                components {
+                    main(NativeExecutableSpec) {
+                        sources {
+                            c {
+                                source.srcDir "src/test/c"
+                                exportedHeaders.srcDir "src/test/headers"
+                            }
+                            cpp {
+                                source.srcDir "src/test/cpp"
+                                exportedHeaders.srcDir "src/test/headers"
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-"""
+            """.stripIndent()
 
         then:
         succeeds "mainExecutable"
@@ -178,31 +183,31 @@ model {
 
         when:
         buildFile << """
-apply plugin: "c"
-apply plugin: "cpp"
-
-model {
-    components {
-        main(NativeExecutableSpec)
-        all {
-            binaries {
-                all {
-                    sources {
-                        testCpp(CppSourceSet) {
-                            source.srcDir "src/test/cpp"
-                            exportedHeaders.srcDir "src/test/headers"
-                        }
-                        testC(CSourceSet) {
-                            source.srcDir "src/test/c"
-                            exportedHeaders.srcDir "src/test/headers"
+            apply plugin: "c"
+            apply plugin: "cpp"
+            
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                    all {
+                        binaries {
+                            all {
+                                sources {
+                                    testCpp(CppSourceSet) {
+                                        source.srcDir "src/test/cpp"
+                                        exportedHeaders.srcDir "src/test/headers"
+                                    }
+                                    testC(CSourceSet) {
+                                        source.srcDir "src/test/c"
+                                        exportedHeaders.srcDir "src/test/headers"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-    }
-}
-"""
+            """.stripIndent()
 
         then:
         succeeds "mainExecutable"
@@ -218,13 +223,13 @@ model {
     def "build fails when link executable fails"() {
         given:
         buildFile << """
-apply plugin: "cpp"
-model {
-    components {
-        main(NativeExecutableSpec)
-    }
-}
-"""
+            apply plugin: "cpp"
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+            """.stripIndent()
 
         and:
         file("src", "main", "cpp", "helloworld.cpp") << """
@@ -242,25 +247,25 @@ model {
     def "build fails when link library fails"() {
         given:
         buildFile << """
-apply plugin: "cpp"
-model {
-    components {
-        main(NativeLibrarySpec)
-    }
-}
-"""
+            apply plugin: "cpp"
+            model {
+                components {
+                    main(NativeLibrarySpec)
+                }
+            }
+            """.stripIndent()
 
         and:
         file("src/main/cpp/hello1.cpp") << """
             void hello() {
             }
-"""
+            """.stripIndent()
 
         and:
         file("src/main/cpp/hello2.cpp") << """
             void hello() {
             }
-"""
+            """.stripIndent()
 
         when:
         fails "mainSharedLibrary"
@@ -275,25 +280,24 @@ model {
     def "build fails when create static library fails"() {
         given:
         buildFile << """
-apply plugin: "cpp"
-model {
-    components {
-        main(NativeLibrarySpec)
-    }
-    binaries {
-        withType(StaticLibraryBinarySpec) {
-            staticLibArchiver.args "not_a_file"
-        }
-    }
-}
-
-        """
+            apply plugin: "cpp"
+            model {
+                components {
+                    main(NativeLibrarySpec)
+                }
+                binaries {
+                    withType(StaticLibraryBinarySpec) {
+                        staticLibArchiver.args "not_a_file"
+                    }
+                }
+            }
+            """.stripIndent()
 
         and:
         file("src/main/cpp/hello.cpp") << """
             void hello() {
             }
-"""
+            """.stripIndent()
 
         when:
         fails "mainStaticLibrary"
@@ -308,29 +312,29 @@ model {
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "installed executable receives command-line parameters"() {
         buildFile << """
-apply plugin: 'c'
-
-model {
-    components {
-        echo(NativeExecutableSpec)
-    }
-}
-"""
+            apply plugin: 'c'
+            
+            model {
+                components {
+                    echo(NativeExecutableSpec)
+                }
+            }
+            """.stripIndent()
         file("src/echo/c/main.c") << """
-// Simple hello world app
-#include <stdio.h>
-
-// Print the command line args
-int main (int argc, char *argv[]) {
-    int i;
-
-    for (i = 1; i < argc; i++) {
-        printf("[%s] ", argv[i]);
-    }
-    printf("\\n");
-    return 0;
-}
-"""
+            // Simple hello world app
+            #include <stdio.h>
+            
+            // Print the command line args
+            int main (int argc, char *argv[]) {
+                int i;
+            
+                for (i = 1; i < argc; i++) {
+                    printf("[%s] ", argv[i]);
+                }
+                printf("\\n");
+                return 0;
+            }
+            """.stripIndent()
 
         when:
         succeeds "installEchoExecutable"
@@ -360,7 +364,7 @@ int main (int argc, char *argv[]) {
                     lib(NativeLibrarySpec)
                 }
             }
-"""
+            """.stripIndent()
         when:
         succeeds "model"
 
