@@ -484,8 +484,11 @@ public class AccessTrackingProperties extends Properties {
     }
 
     @Override
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public synchronized Object clone() {
         Properties clonedDelegate = (Properties) delegate.clone();
+        // Continue tracking individual property access on the clone, not reporting aggregate access.
+        // Cloning alone doesn't mean the caller will read all properties — they may only access specific ones.
         return new AccessTrackingProperties(clonedDelegate, listener);
     }
 

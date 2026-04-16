@@ -22,9 +22,8 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
-
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.JarUtils
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
@@ -953,6 +952,81 @@ internal property sun.java.command changes.
         then:
         configurationCache.assertStateLoaded()
         outputContains("Execution: build-logic-value")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17344")
+    def "cloned system properties still track individual access"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        buildFile("""
+            def clonedProps = System.getProperties().clone()
+            println("some.property = \${clonedProps.getProperty("some.property")}")
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("done")
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("some.property = null")
+
+        when:
+        configurationCacheRun("-Dsome.property=some.value", "printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system property 'some.property'")
+        }
+        outputContains("some.property = some.value")
+
+        when: "unrelated system property changes"
+        configurationCacheRun("-Dsome.property=some.value", "-Dunrelated.property=whatever", "printProperty")
+
+        then: "cache is still valid because only 'some.property' was accessed, not all properties"
+        configurationCache.assertStateLoaded()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17344")
+    def "modifying cloned system properties does not affect original"() {
+        given:
+        buildFile("""
+            println("Hello1 = \${System.getProperty("Hello")}")
+            System.setProperty("Hello", "World")
+            def copy = (Properties) System.getProperties().clone()
+            copy.setProperty("Hello", "Bug")
+            println("Hello2 = \${System.getProperty("Hello")}")
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("done")
+                }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Hello1 = null")
+        outputContains("Hello2 = World")
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        outputContains("cannot be reused because system property 'Hello' has changed.")
+        outputContains("Hello1 = null")
+        outputContains("Hello2 = World")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30990")
