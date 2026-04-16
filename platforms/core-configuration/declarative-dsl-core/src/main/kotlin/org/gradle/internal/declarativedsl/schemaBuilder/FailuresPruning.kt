@@ -86,7 +86,7 @@ private fun aggregateOmittedFailures(
 ): List<SchemaResult.Failure> = host.inIsolatedContext {
     val otherErroneousTypeNameStrings = otherErroneousTypeNames.mapTo(mutableSetOf()) { it.qualifiedName }
     listOf(
-        host.withTag(SchemaBuildingTags.erroneousTypes(otherErroneousTypeNameStrings)) {
+        host.withTag(SchemaBuildingTags.erroneousTypes(otherErroneousTypeNameStrings.toSortedSet())) {
             host.schemaBuildingFailure(
                 SchemaBuildingIssue.MoreFailuresInErroneousTypes(
                     otherErroneousTypeNameStrings,
