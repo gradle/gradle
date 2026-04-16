@@ -43,7 +43,7 @@ You can find the existing helpers [here](../testing/internal-integ-testing/src/m
 
 ## Use data-driven tables
 
-[Data-driven tables](https://spockframework.org/spock/docs/2.3/data_driven_testing.html#data-tables) are a great way to test multiple scenarios in a single test.
+[Data-driven tables](https://spockframework.org/spock/docs/2.4/data_driven_testing.html#data-tables) are a great way to test multiple scenarios in a single test.
 
 ## Don't use assertions in Gradle build scripts under test
 

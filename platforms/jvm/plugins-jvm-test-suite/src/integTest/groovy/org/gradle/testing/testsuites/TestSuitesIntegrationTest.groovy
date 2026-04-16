@@ -308,6 +308,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         'useSpock()'                 | JUnitPlatformTestFramework | "spock-core-${SpockTestToolchain.DEFAULT_VERSION}.jar"
         'useSpock("2.3-groovy-3.0")' | JUnitPlatformTestFramework | "spock-core-2.3-groovy-3.0.jar"
         'useSpock("2.3-groovy-4.0")' | JUnitPlatformTestFramework | "spock-core-2.3-groovy-4.0.jar"
+        'useSpock("2.4-groovy-4.0")' | JUnitPlatformTestFramework | "spock-core-2.4-groovy-4.0.jar"
         'useKotlinTest()'            | JUnitPlatformTestFramework | "kotlin-test-junit5-${KotlinTestTestToolchain.DEFAULT_VERSION}.jar"
         'useKotlinTest("1.5.30")'    | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
         'useTestNG()'                | TestNGTestFramework        | "testng-${TestNGTestToolchain.DEFAULT_VERSION}.jar"
