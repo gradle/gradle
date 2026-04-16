@@ -193,6 +193,22 @@ This is another step towards moving users away from idioms that are incompatible
 
 Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, configuration cache documentation>> for alternatives that are compatible with the configuration cache.
 
+[[task_extensions]]
+==== Accessing extensions from a task action
+
+Calling link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 10.
+
+This method can still be used during configuration time.
+
+The deprecation is only issued if the configuration cache is **not** enabled.
+When the configuration cache is enabled, calls to this method are reported as configuration cache problems instead.
+
+This deprecation was originally introduced in <<upgrading_version_8.adoc#task_convention, Gradle 8.2>> but was only issued when the <<configuration_cache_enabling.adoc#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled.
+That feature flag no longer controls this deprecation.
+This is another step towards moving users away from idioms that are incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release.
+
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, configuration cache documentation>> for alternatives that are compatible with the configuration cache.
+
 [[deprecate_build_needed_build_dependents_tasks]]
 ==== Deprecation of `buildNeeded` and `buildDependents` tasks
 

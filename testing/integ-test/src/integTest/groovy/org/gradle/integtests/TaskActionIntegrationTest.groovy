@@ -82,4 +82,31 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
             ].collect { [flag] + it }
         }
     }
+
+    // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
+    @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
+    def "nags when task action uses Task.getExtensions() (featureFlag=#featureFlag)"() {
+        if (featureFlag) {
+            settingsFile """
+                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+            """
+        }
+        buildFile """
+            task broken {
+                doLast {
+                    extensions
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.extensions at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_extensions")
+        succeeds("broken")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        featureFlag << [true, false]
+    }
 }

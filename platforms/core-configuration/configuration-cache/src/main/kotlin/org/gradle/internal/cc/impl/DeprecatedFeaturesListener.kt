@@ -78,8 +78,8 @@ class DeprecatedFeaturesListener(
     }
 
     override fun onConventionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
-        if (shouldNagFor(task, runningTask)) {
-            nagUserAbout("Invocation of $invocationDescription at execution time", 8, "task_convention")
+        if (shouldNagFor(task, runningTask, ignoreStable = true)) {
+            nagUserAbout("Invocation of $invocationDescription at execution time", 9, "task_extensions")
         }
     }
 
