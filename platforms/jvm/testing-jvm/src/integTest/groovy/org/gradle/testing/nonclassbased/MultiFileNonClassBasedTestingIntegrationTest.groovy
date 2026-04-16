@@ -58,7 +58,11 @@ class MultiFileNonClassBasedTestingIntegrationTest extends AbstractNonClassBased
         succeeds("test")
 
         then:
-        resultsFor().assertTestPathsExecuted(":first-half.txt - test1", ":first-half.txt - test2",
-            ":second-half.txt - test1", ":second-half.txt - test2")
+        resultsFor().assertTestPathsExecuted(
+            ":test1/first-half.txt", ":test1/first-half.txt:test1",
+            ":test1/second-half.txt", ":test1/second-half.txt:test1",
+            ":test2/first-half.txt", ":test2/first-half.txt:test2",
+            ":test2/second-half.txt", ":test2/second-half.txt:test2"
+        )
     }
 }

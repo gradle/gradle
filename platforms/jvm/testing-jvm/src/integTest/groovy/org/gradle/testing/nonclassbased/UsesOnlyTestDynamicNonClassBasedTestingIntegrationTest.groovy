@@ -54,7 +54,7 @@ class UsesOnlyTestDynamicNonClassBasedTestingIntegrationTest extends AbstractNon
         then:
         failureHasCause("Test process encountered an unexpected problem.")
         failureHasCause(~/Could not complete execution for Gradle Test Executor \d+\./)
-        failureHasCause("Closest started ancestor 'Test SomeTestSpec.rbt - foo' is not a container. " +
+        failureHasCause("Closest started ancestor 'Test foo' is not a container. " +
                 "This likely means the JUnit Platform TestEngine 'uses-only-test-dynamic-rbt-engine' tried to start a test under a non-container parent.")
     }
 }

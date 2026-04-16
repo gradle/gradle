@@ -775,4 +775,45 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
             .assertTestPathsNotExecuted(":SomeTestSpec.rbt:foo")
             .assertTestPathsNotExecuted(":SomeTestSpec.rbt:bar")
     }
+
+    def "same-named definition files in sibling directories produce distinct test paths"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                    }
+                }
+            }
+        """
+
+        file("$DEFAULT_DEFINITIONS_LOCATION/alpha/SameName.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="alphaTest" />
+            </tests>
+        """
+        file("$DEFAULT_DEFINITIONS_LOCATION/beta/SameName.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="betaTest" />
+            </tests>
+        """
+
+        when:
+        succeeds("test")
+
+        then: 'each file is identified by its path relative to the test definitions root, not just its file name'
+        resultsFor().assertTestPathsExecuted(
+            ":alpha/SameName.rbt", ":alpha/SameName.rbt:alphaTest",
+            ":beta/SameName.rbt", ":beta/SameName.rbt:betaTest"
+        )
+    }
 }

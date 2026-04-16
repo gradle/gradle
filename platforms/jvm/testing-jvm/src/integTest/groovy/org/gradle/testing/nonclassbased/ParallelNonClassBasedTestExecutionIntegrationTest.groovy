@@ -101,7 +101,7 @@ class ParallelNonClassBasedTestExecutionIntegrationTest extends AbstractNonClass
         then:
         gradle.waitForFinish()
         testIndices(testCount).each { idx ->
-            resultsFor().assertAtLeastTestPathsExecuted(":parallel-${idx}.rbt - parallel-$idx")
+            resultsFor().assertAtLeastTestPathsExecuted(":parallel-${idx}.rbt:parallel-$idx")
         }
 
         where:

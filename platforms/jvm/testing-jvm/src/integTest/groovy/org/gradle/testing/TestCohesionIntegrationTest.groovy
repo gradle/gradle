@@ -85,10 +85,9 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
         }
 
         where:
-        label                      | daemonDiscovery | strategy
-        'standard detection'       | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
-        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER'| true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
-        'daemon discovery BY_INDIVIDUAL_TEST'   | true            | 'BY_INDIVIDUAL_TEST'
+        label                                          | daemonDiscovery | strategy
+        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        'daemon discovery BY_INDIVIDUAL_TEST'          | true            | 'BY_INDIVIDUAL_TEST'
     }
 
     def "shared mutable static state is consistent within a single worker (#label)"() {
@@ -141,10 +140,9 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
         }
 
         where:
-        label                      | daemonDiscovery | strategy
-        'standard detection'       | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
-        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER'| true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
-        'daemon discovery BY_INDIVIDUAL_TEST'   | true            | 'BY_INDIVIDUAL_TEST'
+        label                                          | daemonDiscovery | strategy
+        'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        'daemon discovery BY_INDIVIDUAL_TEST'          | true            | 'BY_INDIVIDUAL_TEST'
     }
 
     def "Spock Stepwise tests run in declaration order (#label)"() {
@@ -203,10 +201,9 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
         }
 
         where:
-        label                       | daemonDiscovery | strategy
-        'standard detection'        | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        label                                          | daemonDiscovery | strategy
         'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
-        'daemon discovery BY_INDIVIDUAL_TEST'    | true            | 'BY_INDIVIDUAL_TEST'
+        'daemon discovery BY_INDIVIDUAL_TEST'          | true            | 'BY_INDIVIDUAL_TEST'
     }
     // endregion Cohesion broken by BY_INDIVIDUAL_TEST distribution
 
@@ -265,10 +262,9 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
         output.readLines().findAll { it.contains("OUTER_BEFORE_EACH") }.size() == 5
 
         where:
-        label                       | daemonDiscovery | strategy
-        'standard detection'        | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        label                                          | daemonDiscovery | strategy
         'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
-        'daemon discovery BY_INDIVIDUAL_TEST'    | true            | 'BY_INDIVIDUAL_TEST'
+        'daemon discovery BY_INDIVIDUAL_TEST'          | true            | 'BY_INDIVIDUAL_TEST'
     }
 
     def "TestFactory dynamic tests stay in a single worker (#label)"() {
@@ -318,10 +314,9 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
         output.contains("DYNAMIC_3 count=3")
 
         where:
-        label                       | daemonDiscovery | strategy
-        'standard detection'        | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        label                                          | daemonDiscovery | strategy
         'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
-        'daemon discovery BY_INDIVIDUAL_TEST'    | true            | 'BY_INDIVIDUAL_TEST'
+        'daemon discovery BY_INDIVIDUAL_TEST'          | true            | 'BY_INDIVIDUAL_TEST'
     }
 
     def "parameterized tests share class BeforeAll (#label)"() {
@@ -366,10 +361,9 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
         output.contains("PARAM_TEST_c")
 
         where:
-        label                       | daemonDiscovery | strategy
-        'standard detection'        | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        label                                          | daemonDiscovery | strategy
         'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
-        'daemon discovery BY_INDIVIDUAL_TEST'    | true            | 'BY_INDIVIDUAL_TEST'
+        'daemon discovery BY_INDIVIDUAL_TEST'          | true            | 'BY_INDIVIDUAL_TEST'
     }
 
     def "repeated tests share class lifecycle (#label)"() {
@@ -410,10 +404,9 @@ class TestCohesionIntegrationTest extends AbstractIntegrationSpec implements Ver
         output.contains("REPEATED_AFTER_ALL count=3")
 
         where:
-        label                       | daemonDiscovery | strategy
-        'standard detection'        | false           | 'BY_TOP_LEVEL_TEST_CONTAINER'
+        label                                          | daemonDiscovery | strategy
         'daemon discovery BY_TOP_LEVEL_TEST_CONTAINER' | true            | 'BY_TOP_LEVEL_TEST_CONTAINER'
-        'daemon discovery BY_INDIVIDUAL_TEST'    | true            | 'BY_INDIVIDUAL_TEST'
+        'daemon discovery BY_INDIVIDUAL_TEST'          | true            | 'BY_INDIVIDUAL_TEST'
     }
     // endregion Cohesion preserved by all strategies
 
