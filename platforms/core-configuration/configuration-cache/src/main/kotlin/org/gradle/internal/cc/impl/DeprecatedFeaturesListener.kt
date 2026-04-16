@@ -72,8 +72,10 @@ class DeprecatedFeaturesListener(
     }
 
     override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
-        if (shouldNagFor(task, runningTask)) {
+        if (buildModelParameters.isConfigurationCache) {
             throwUnsupported("Invocation of $invocationDescription at execution time")
+        } else if (shouldNagFor(task, runningTask, ignoreStable = true)) {
+            nagUserAbout("Invocation of $invocationDescription at execution time", 9, "task_dependencies")
         }
     }
 

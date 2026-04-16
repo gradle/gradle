@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class TaskActionIntegrationTest extends AbstractIntegrationSpec {
+    // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
     @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
     def "nags when task action uses Task.project"() {
         if (featureFlag) {
@@ -47,11 +48,14 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         featureFlag << [true, false]
     }
 
+    // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
     @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
-    def "fails when task action uses Task.taskDependencies and feature preview is enabled"() {
-        settingsFile """
-            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-        """
+    def "nags when task action uses Task.taskDependencies"() {
+        if (featureFlag) {
+            settingsFile """
+                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+            """
+        }
         buildFile """
             task broken {
                 doLast {
@@ -61,9 +65,13 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails("broken")
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.taskDependencies at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
+        succeeds("broken")
 
         then:
-        failureHasCause("Invocation of Task.taskDependencies at execution time is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
+        noExceptionThrown()
+
+        where:
+        featureFlag << [true, false]
     }
 }
