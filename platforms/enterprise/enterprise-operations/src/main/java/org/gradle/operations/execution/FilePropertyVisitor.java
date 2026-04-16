@@ -56,7 +56,7 @@ public interface FilePropertyVisitor {
     /**
      * Called when visiting a non-directory file.
      * <p>
-     * {@link VisitState#getName()}, {@link VisitState#getPath()} and {@link VisitState#getHashBytes()} may be called during.
+     * {@link VisitState#getName()}, {@link VisitState#getPath()}, {@link VisitState#getHashBytes()} and {@link VisitState#getLength()} may be called during.
      */
     void file(VisitState state);
 
@@ -122,5 +122,14 @@ public interface FilePropertyVisitor {
          * Must not be called when the last visited location was a directory.
          */
         byte[] getHashBytes();
+
+        /**
+         * Returns the length in bytes of the last visited file.
+         * <p>
+         * Must not be called when the last visited location was a directory.
+         *
+         * @since 9.6.0
+         */
+        long getLength();
     }
 }
