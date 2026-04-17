@@ -40,6 +40,14 @@ public class LogContent {
     // see org.gradle.internal.logging.console.StyledTextOutputBackedRenderer.ISO_8601_DATE_TIME_FORMAT
     private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[-+]\\d{4} \\[\\w+] \\[.+?] ");
 
+    /**
+     * Lines the JVM prints to stderr when {@code JAVA_TOOL_OPTIONS}, {@code JDK_JAVA_OPTIONS}, or
+     * {@code _JAVA_OPTIONS} are set. Not part of Gradle output; stripping avoids flaky assertions in CI.
+     */
+    private static final Pattern JVM_ENV_OPTIONS_ECHO_LINE = Pattern.compile(
+        "^Picked up (JAVA_TOOL_OPTIONS|JDK_JAVA_OPTIONS|_JAVA_OPTIONS):.*"
+    );
+
     private final ImmutableList<String> lines;
     private final boolean definitelyNoDebugPrefix;
     private final boolean definitelyNoAnsiChars;
@@ -193,6 +201,26 @@ public class LogContent {
             }
         }
         return new LogContent(ImmutableList.copyOf(result), true, definitelyNoAnsiChars);
+    }
+
+    /**
+     * Removes lines emitted by the JVM when {@code JAVA_TOOL_OPTIONS}, {@code JDK_JAVA_OPTIONS}, or
+     * {@code _JAVA_OPTIONS} are set in the environment.
+     */
+    public LogContent removeJvmEnvironmentOptionEchoLines() {
+        Builder<String> kept = ImmutableList.builder();
+        int removed = 0;
+        for (String line : lines) {
+            if (JVM_ENV_OPTIONS_ECHO_LINE.matcher(line).matches()) {
+                removed++;
+            } else {
+                kept.add(line);
+            }
+        }
+        if (removed == 0) {
+            return this;
+        }
+        return new LogContent(kept.build(), definitelyNoDebugPrefix, definitelyNoAnsiChars);
     }
 
     /**

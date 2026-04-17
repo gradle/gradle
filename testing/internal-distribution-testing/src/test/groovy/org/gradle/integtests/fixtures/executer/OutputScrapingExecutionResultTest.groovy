@@ -52,6 +52,27 @@ class OutputScrapingExecutionResultTest extends AbstractExecutionResultTest {
         result.error == error
     }
 
+    def "strips JVM environment options echo lines from error output"() {
+        def output = """
+message
+
+BUILD SUCCESSFUL in 12s
+"""
+        def errorOut = """Picked up JAVA_TOOL_OPTIONS: -Dfoo=bar
+real stderr line
+Picked up JDK_JAVA_OPTIONS: -Dbaz
+another line
+Picked up _JAVA_OPTIONS: -Dqux
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, errorOut)
+
+        then:
+        result.error == """real stderr line
+another line
+"""
+    }
+
     def "finds stack traces when present"() {
         expect:
         STACK_TRACE_ELEMENT.matcher(line).matches()

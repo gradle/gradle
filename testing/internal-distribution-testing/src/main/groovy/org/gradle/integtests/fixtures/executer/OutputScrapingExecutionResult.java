@@ -108,7 +108,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
      */
     protected OutputScrapingExecutionResult(LogContent output, LogContent error, boolean includeBuildSrc) {
         this.output = output;
-        this.error = error;
+        this.error = error.removeJvmEnvironmentOptionEchoLines();
         this.includeBuildSrc = includeBuildSrc;
 
         // Split out up the output into main content and post build content
