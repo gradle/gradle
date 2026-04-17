@@ -98,8 +98,9 @@ public class UserCodeApplicationRegistry {
     }
 
     private static InternalBinaryPluginIdentifier toBinaryPluginIdentifier(UserCodeSource.Binary source) {
+        String displayName = source.getPluginId() != null ? source.getPluginId() : source.getClassName();
         return new DefaultBinaryPluginIdentifier(
-            source.getDisplayName().getDisplayName(),
+            displayName,
             source.getClassName(),
             source.getPluginId()
         );

@@ -62,23 +62,13 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         verifyTaskIds()
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
         with(realize) {
-            progress.size() == 1
-            with(progress[0]) {
-                detailsClassName == LogEvent.name
-                details.message.startsWith("create")
-            }
-
-            children.size() == 2
-            with(children[0]) {
-                progress.size() == 1
-                progress[0].detailsClassName == LogEvent.name
-                progress[0].details.message.startsWith("all")
-            }
-            with(children[1]) {
-                progress.size() == 1
-                progress[0].detailsClassName == LogEvent.name
-                progress[0].details.message.startsWith("configureEach")
-            }
+            progress.size() == 3
+            progress[0].detailsClassName == LogEvent.name
+            progress[0].details.message.startsWith("all")
+            progress[1].detailsClassName == LogEvent.name
+            progress[1].details.message.startsWith("configureEach")
+            progress[2].detailsClassName == LogEvent.name
+            progress[2].details.message.startsWith("create")
 
         }
     }
@@ -103,22 +93,13 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         verifyTaskIds()
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
         with(realize) {
-            children.size() == 3
-            with(children[0]) {
-                progress.size() == 1
-                progress[0].detailsClassName == LogEvent.name
-                progress[0].details.message.startsWith("configureEach")
-            }
-            with(children[1]) {
-                progress.size() == 1
-                progress[0].detailsClassName == LogEvent.name
-                progress[0].details.message.startsWith("register")
-            }
-            with(children[2]) {
-                progress.size() == 1
-                progress[0].detailsClassName == LogEvent.name
-                progress[0].details.message.startsWith("configure")
-            }
+            progress.size() == 3
+            progress[0].detailsClassName == LogEvent.name
+            progress[0].details.message.startsWith("configureEach")
+            progress[1].detailsClassName == LogEvent.name
+            progress[1].details.message.startsWith("register")
+            progress[2].detailsClassName == LogEvent.name
+            progress[2].details.message.startsWith("configure")
         }
     }
 
@@ -172,9 +153,8 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
         realize.children.size() == 1
         def configure = realize.children[0]
-        configure.children.size() == 1
-        buildOperations.isType(configure.children[0], RealizeTaskBuildOperationType)
-        withPath(":", ":bar").isSatisfiedBy(configure.children[0])
+        buildOperations.isType(configure, RealizeTaskBuildOperationType)
+        withPath(":", ":bar").isSatisfiedBy(configure)
     }
 
     def "emits registration, realization build ops when tasks later realized"() {
