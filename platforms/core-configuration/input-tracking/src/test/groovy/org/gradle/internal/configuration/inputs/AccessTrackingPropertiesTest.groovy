@@ -768,4 +768,35 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         then:
         (1.._) * onAccess.accept('existing', 'existingValue')
     }
+
+    def "clone() does not report mutations to listener"() {
+        given:
+        def original = getMapUnderTestToWrite()
+        def clone = (Properties) original.clone()
+
+        when:
+        doChange(clone)
+
+        then:
+        0 * onChange._
+        0 * onRemove._
+        0 * onClear._
+
+        where:
+        doChange << [
+            { p -> p.setProperty('existing', 'modified') },
+            { p -> p.clear() },
+            { p -> p.remove('existing') },
+            { p -> p.put('existing', 'modified') },
+            { p -> p.replace('existing', 'modified') },
+            { p -> p.replace('existing', 'existingValue', 'modified') },
+            { p -> p.computeIfPresent('existing', (k, v) -> 'modified') },
+            { p -> p.compute('existing', (k, v) -> 'modified') },
+            { p -> p.merge('existing', 'modified', String::concat) },
+            { p ->
+                def entry = p.entrySet().find { entry -> entry.getKey() == 'existing' }
+                entry.setValue('modified')
+            }
+        ]
+    }
 }

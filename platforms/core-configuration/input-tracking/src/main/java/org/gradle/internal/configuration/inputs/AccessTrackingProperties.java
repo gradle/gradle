@@ -489,7 +489,9 @@ public class AccessTrackingProperties extends Properties {
         Properties clonedDelegate = (Properties) delegate.clone();
         // Continue tracking individual property access on the clone, not reporting aggregate access.
         // Cloning alone doesn't mean the caller will read all properties — they may only access specific ones.
-        return new AccessTrackingProperties(clonedDelegate, listener);
+        // Mutations on the clone must NOT be reported: they only affect the clone's delegate, not the real system properties.
+        // See https://github.com/gradle/gradle/issues/17344
+        return new AccessTrackingProperties(clonedDelegate, new ReadOnlyListener(listener));
     }
 
     @Override
@@ -656,6 +658,40 @@ public class AccessTrackingProperties extends Properties {
             listener.onAccess(getKey(), oldValue);
             reportChange(getKey(), value);
             return oldValue;
+        }
+    }
+
+    /**
+     * A listener wrapper that forwards only read access notifications, ignoring mutations.
+     * Used by {@link #clone()} so that reads on the cloned properties are still tracked
+     * as fingerprint inputs, but writes to the clone don't affect the original properties'
+     * fingerprint or get replayed onto real {@code System.getProperties()} on cache hit.
+     */
+    private static class ReadOnlyListener implements Listener {
+        private final Listener delegate;
+
+        ReadOnlyListener(Listener delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void onAccess(Object key, @Nullable Object value) {
+            delegate.onAccess(key, value);
+        }
+
+        @Override
+        public void onChange(Object key, Object newValue) {
+            // Ignored: mutations on the clone don't affect the original properties.
+        }
+
+        @Override
+        public void onRemove(Object key) {
+            // Ignored: mutations on the clone don't affect the original properties.
+        }
+
+        @Override
+        public void onClear() {
+            // Ignored: mutations on the clone don't affect the original properties.
         }
     }
 }
