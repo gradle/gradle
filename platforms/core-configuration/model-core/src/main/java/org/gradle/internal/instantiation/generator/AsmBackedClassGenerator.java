@@ -1335,18 +1335,26 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // }
             // Using LazyGroovySupport gives a single emit path for every lazy-property type
             // (Property, DirectoryProperty, ListProperty, SetProperty, MapProperty, ConfigurableFileCollection, ...).
+            // Fluent setters (non-void return of the declaring type) return `this` after forwarding.
             MethodMetadata getter = property.getMainGetter();
             Type getterReturn = getType(getter.getReturnType());
             String getterDescriptor = getMethodDescriptor(getterReturn);
             Class<?> paramClass = setter.getParameterTypes()[0];
             Type paramType = getType(paramClass);
-            addSetter(setter.getName(), getMethodDescriptor(setter), signature(setter), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+            boolean fluent = setter.getReturnType() != void.class;
+            publicMethod(setter.getName(), getMethodDescriptor(setter), signature(setter), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, getter.getName(), getterDescriptor);
                 _CHECKCAST(LAZY_GROOVY_SUPPORT_TYPE);
                 _ILOAD_OF(paramType, 1);
                 _AUTOBOX(paramClass, paramType);
                 _INVOKEINTERFACE(LAZY_GROOVY_SUPPORT_TYPE, "setFromAnyValue", RETURN_VOID_FROM_OBJECT);
+                if (fluent) {
+                    _ALOAD(0);
+                    _ARETURN();
+                } else {
+                    _RETURN();
+                }
             }});
         }
 

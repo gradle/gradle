@@ -323,6 +323,8 @@ public abstract class CompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
     public abstract Property<Boolean> getIncremental();
 
+    public abstract CompileOptions setIncremental(boolean value);
+
     /**
      * TODO: Add deprecation warning
      */
