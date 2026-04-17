@@ -50,12 +50,6 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 gradleHomeDir.deleteDir()
 
                 URL url = getDownloadURL()
-                if (System.getenv("RUNNING_ON_REMOTE_AGENT") != null) {
-                    String urlString = url.toString().replace(
-                        "https://services.gradle.org",
-                        "http://artifact-http-cache.ci-system.svc.cluster.local/services.gradle.org")
-                    url = new URL(urlString)
-                }
                 System.out.println("downloading $url")
                 distributionZip.copyFrom(url)
                 if (System.getenv("RUNNING_ON_REMOTE_AGENT") != null) {
