@@ -16,22 +16,30 @@
 
 package org.gradle.api.internal.tasks.testing.detection
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.DefaultFileVisitDetails
+import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DefaultTestClassScannerTest extends Specification {
+class DefaultTestDetectorTest extends Specification {
     def files = Mock(FileTree)
     def detector = Mock(TestFrameworkDetector)
     def processor = Stub(TestDefinitionProcessor)
+    def spec = Stub(JvmTestExecutionSpec) {
+        getCandidateClassFiles() >> files
+        getCandidateTestDefinitionDirs() >> Collections.emptySet()
+        getPath() >> ":test"
+        isUseDaemonSideTestDiscovery() >> false
+    }
 
     @Subject
-    def scanner = new DefaultTestScanner(files, Collections.emptySet(), detector, processor)
+    def scanner = new DefaultTestDetector(spec, ImmutableList.of(), detector, processor, [], [], [], [])
 
     void passesEachClassFileToTestClassDetector() {
         given:

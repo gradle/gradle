@@ -14,7 +14,9 @@ dependencies {
     api(projects.workerMain)
 
     api(libs.jspecify)
+    api(providedLibs.junitPlatform)
 
+    implementation(providedLibs.junitPlatformEngine)
     implementation(projects.io)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)

@@ -17,6 +17,7 @@
 package org.gradle.testing.testengine.engine;
 
 import org.gradle.testing.testengine.descriptor.ResourceBasedTestDescriptor;
+import org.gradle.testing.testengine.descriptor.TestDefinitionFileDescriptor;
 import org.gradle.testing.testengine.descriptor.ClassBasedTestDescriptor;
 import org.junit.platform.commons.JUnitException;
 import org.junit.platform.commons.logging.Logger;
@@ -78,18 +79,26 @@ public class ClassAndResourceBasedTestEngine implements TestEngine {
         LOGGER.info(() -> "Executing tests with engine: " + executionRequest.getRootTestDescriptor().getUniqueId());
 
         EngineExecutionListener listener = executionRequest.getEngineExecutionListener();
-        executionRequest.getRootTestDescriptor().getChildren().forEach(test -> {
-            if (test instanceof ResourceBasedTestDescriptor) {
-                listener.executionStarted(test);
-                LOGGER.info(() -> "Executing resource-based test: " + test);
-                listener.executionFinished(test, TestExecutionResult.successful());
-            } else if (test instanceof ClassBasedTestDescriptor) {
-                listener.executionStarted(test);
-                LOGGER.info(() -> "Executing class-based test: " + test);
-                listener.executionFinished(test, TestExecutionResult.successful());
+        executionRequest.getRootTestDescriptor().getChildren().forEach(child -> {
+            if (child instanceof TestDefinitionFileDescriptor) {
+                listener.executionStarted(child);
+                child.getChildren().forEach(test -> executeResourceBasedTest(test, listener));
+                listener.executionFinished(child, TestExecutionResult.successful());
+            } else if (child instanceof ResourceBasedTestDescriptor) {
+                executeResourceBasedTest(child, listener);
+            } else if (child instanceof ClassBasedTestDescriptor) {
+                listener.executionStarted(child);
+                LOGGER.info(() -> "Executing class-based test: " + child);
+                listener.executionFinished(child, TestExecutionResult.successful());
             } else {
-                throw new IllegalStateException("Cannot execute test: " + test + " of type: " + test.getClass().getName());
+                throw new IllegalStateException("Cannot execute test: " + child + " of type: " + child.getClass().getName());
             }
         });
+    }
+
+    private void executeResourceBasedTest(TestDescriptor test, EngineExecutionListener listener) {
+        listener.executionStarted(test);
+        LOGGER.info(() -> "Executing resource-based test: " + test);
+        listener.executionFinished(test, TestExecutionResult.successful());
     }
 }

@@ -38,9 +38,19 @@ abstract class AbstractNonClassBasedTestingIntegrationTest extends AbstractInteg
 
     protected void nonClassBasedTestsExecuted(boolean exactlyTheseTests = true) {
         if (exactlyTheseTests) {
-            resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar", ":SomeOtherTestSpec.rbt - other")
+            resultsFor().assertTestPathsExecuted(
+                ":SomeTestSpec.rbt",
+                ":SomeTestSpec.rbt:foo",
+                ":SomeTestSpec.rbt:bar",
+                ":sub/SomeOtherTestSpec.rbt",
+                ":sub/SomeOtherTestSpec.rbt:other"
+            )
         } else {
-            resultsFor().assertAtLeastTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar", ":SomeOtherTestSpec.rbt - other")
+            resultsFor().assertAtLeastTestPathsExecuted(
+                ":SomeTestSpec.rbt:foo",
+                ":SomeTestSpec.rbt:bar",
+                ":sub/SomeOtherTestSpec.rbt:other"
+            )
         }
     }
 

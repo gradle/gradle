@@ -17,6 +17,7 @@
 package org.gradle.testing.testengine.engine;
 
 import org.gradle.testing.testengine.descriptor.ResourceBasedTestDescriptor;
+import org.gradle.testing.testengine.descriptor.TestDefinitionFileDescriptor;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.engine.DiscoverySelector;
@@ -69,29 +70,37 @@ public class UsesOnlyTestDynamicResourceBasedTestEngine implements TestEngine {
         LOGGER.info(() -> "Executing tests with engine: " + executionRequest.getRootTestDescriptor().getUniqueId());
 
         EngineExecutionListener listener = executionRequest.getEngineExecutionListener();
-        executionRequest.getRootTestDescriptor().getChildren().forEach(test -> {
-            if (test instanceof ResourceBasedTestDescriptor) {
-                listener.executionStarted(test);
-                LOGGER.info(() -> "Executing resource-based test: " + test);
-
-                TestDescriptor dynamicTest = new AbstractTestDescriptor(
-                    test.getUniqueId().append("dynamicTest", "dynamic-test"),
-                    "Dynamic Test"
-                ) {
-                    @Override
-                    public Type getType() {
-                        return Type.TEST;
-                    }
-                };
-                test.addChild(dynamicTest);
-                listener.dynamicTestRegistered(dynamicTest);
-                listener.executionStarted(dynamicTest);
-                listener.executionFinished(dynamicTest, TestExecutionResult.successful());
-
-                listener.executionFinished(test, TestExecutionResult.successful());
+        executionRequest.getRootTestDescriptor().getChildren().forEach(child -> {
+            if (child instanceof TestDefinitionFileDescriptor) {
+                listener.executionStarted(child);
+                child.getChildren().forEach(test -> executeTest(test, listener));
+                listener.executionFinished(child, TestExecutionResult.successful());
+            } else if (child instanceof ResourceBasedTestDescriptor) {
+                executeTest(child, listener);
             } else {
-                throw new IllegalStateException("Cannot execute test: " + test + " of type: " + test.getClass().getName());
+                throw new IllegalStateException("Cannot execute test: " + child + " of type: " + child.getClass().getName());
             }
         });
+    }
+
+    private void executeTest(TestDescriptor test, EngineExecutionListener listener) {
+        listener.executionStarted(test);
+        LOGGER.info(() -> "Executing resource-based test: " + test);
+
+        TestDescriptor dynamicTest = new AbstractTestDescriptor(
+            test.getUniqueId().append("dynamicTest", "dynamic-test"),
+            "Dynamic Test"
+        ) {
+            @Override
+            public Type getType() {
+                return Type.TEST;
+            }
+        };
+        test.addChild(dynamicTest);
+        listener.dynamicTestRegistered(dynamicTest);
+        listener.executionStarted(dynamicTest);
+        listener.executionFinished(dynamicTest, TestExecutionResult.successful());
+
+        listener.executionFinished(test, TestExecutionResult.successful());
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
+import org.gradle.api.internal.tasks.testing.TestIdentifierTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -145,6 +146,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
                 executeClass((ClassTestDefinition) testDefinition);
             } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
                 executeDirectory((DirectoryBasedTestDefinition) testDefinition);
+            } else if (testDefinition instanceof TestIdentifierTestDefinition) {
+                executeTest((TestIdentifierTestDefinition) testDefinition);
             } else {
                 throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
             }
@@ -168,17 +171,44 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             }
         }
 
+        private void executeTest(TestIdentifierTestDefinition testDefinition) {
+            selectors.add(DiscoverySelectors.selectUniqueId(testDefinition.getTestIdentifier().getUniqueId()));
+        }
+
         private void processAllTestDefinitions() {
-            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
             JUnitPlatformTestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, testDefinitionDirs);
             Launcher launcher = Objects.requireNonNull(launcherSession).getLauncher();
+
+            TestPlan testPlan = createTestPlan(launcher);
+
             if (spec.isDryRun()) {
-                TestPlan testPlan = launcher.discover(discoveryRequest);
                 executeDryRun(testPlan, executionListener);
             } else {
-                launcher.execute(discoveryRequest, executionListener);
+                launcher.execute(testPlan, executionListener);
             }
             executionListener.throwAnyFatalExceptions();
+        }
+
+        /**
+         * Builds a {@link TestPlan} by re-discovering tests from the collected selectors.
+         * <p>
+         * Name, engine, and tag filters are always applied, even when selectors are unique IDs
+         * from daemon-side discovery. When the daemon distributes at class level
+         * ({@code BY_TOP_TEST_CONTAINER}), a class container may contain both matching and
+         * non-matching methods — the worker-side filters handle the precise method-level
+         * filtering that the daemon's class-level pass could not.
+         */
+        private TestPlan createTestPlan(Launcher launcher) {
+            LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request();
+            selectors.forEach(requestBuilder::selectors);
+
+            addTestNameFilters(requestBuilder);
+            addEnginesFilter(requestBuilder);
+            addTagsFilter(requestBuilder);
+
+            // Need to have THIS launcher recreate a TestPlan, because of "org.junit.platform.commons.PreconditionViolationException: TestPlan was not returned by this Launcher"
+            LauncherDiscoveryRequest request = requestBuilder.build();
+            return launcher.discover(request);
         }
 
         private Class<?> loadClass(String className) {
@@ -206,17 +236,6 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             } catch (ClassNotFoundException e) {
                 return false;
             }
-        }
-
-        private LauncherDiscoveryRequest createLauncherDiscoveryRequest() {
-            LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
-                .selectors(selectors);
-
-            addTestNameFilters(requestBuilder);
-            addEnginesFilter(requestBuilder);
-            addTagsFilter(requestBuilder);
-
-            return requestBuilder.build();
         }
 
         private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {

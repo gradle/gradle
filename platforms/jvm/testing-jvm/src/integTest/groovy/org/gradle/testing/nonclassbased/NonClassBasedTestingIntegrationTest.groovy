@@ -34,7 +34,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
     @Override
     TestFramework getTestFramework() {
-        return TestFramework.JUNIT_JUPITER
+        return TestFramework.CUSTOM
     }
 
     def "resource-based test engine detects and executes test definitions (excluding jupiter engine = #excludingJupiter)"() {
@@ -103,7 +103,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("integrationTest")
 
         then:
-        resultsFor("tests/integrationTest").assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar", ":SomeOtherTestSpec.rbt - other")
+        resultsFor("tests/integrationTest").assertTestPathsExecuted(":SomeTestSpec.rbt:foo", ":SomeTestSpec.rbt:bar", ":sub/SomeOtherTestSpec.rbt:other")
     }
 
     def "resource-based test engine detects and executes test definitions in multiple locations"() {
@@ -141,7 +141,197 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
         then:
         nonClassBasedTestsExecuted(false)
-        resultsFor().assertAtLeastTestPathsExecuted(":SomeThirdTestSpec.rbt - third")
+        resultsFor().assertAtLeastTestPathsExecuted(":SomeThirdTestSpec.rbt:third")
+    }
+
+    def "resource-based tests in multiple directories are discovered and executed with daemon-side discovery"() {
+        String locationA = "src/test/defs-a"
+        String locationB = "src/test/defs-b"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        useDaemonSideTestDiscovery = true
+                        testDefinitionDirs.from("$locationA")
+                        testDefinitionDirs.from("$locationB")
+                    }
+                }
+            }
+        """
+
+        file("$locationA/AlphaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="alpha1" />
+                <test name="alpha2" />
+            </tests>
+        """
+        file("$locationA/BetaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="beta1" />
+            </tests>
+        """
+        file("$locationB/GammaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="gamma1" />
+                <test name="gamma2" />
+                <test name="gamma3" />
+            </tests>
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then: 'all tests from both directories are discovered and executed'
+        output.contains("alpha1")
+        output.contains("alpha2")
+        output.contains("beta1")
+        output.contains("gamma1")
+        output.contains("gamma2")
+        output.contains("gamma3")
+    }
+
+    def "resource-based tests are distributed across workers with daemon-side discovery (#strategy)"() {
+        String locationA = "src/test/defs-a"
+        String locationB = "src/test/defs-b"
+        String locationC = "src/test/defs-c"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            import org.gradle.api.tasks.testing.distribution.TestDistributionStrategy
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        useDaemonSideTestDiscovery = true
+                        testDistributionStrategy = TestDistributionStrategy.${strategy}
+                        maxParallelForks = 4
+                        testDefinitionDirs.from("$locationA")
+                        testDefinitionDirs.from("$locationB")
+                        testDefinitionDirs.from("$locationC")
+                    }
+                }
+            }
+        """
+
+        file("$locationA/AlphaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="alpha1" />
+                <test name="alpha2" />
+            </tests>
+        """
+        file("$locationB/BetaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="beta1" />
+                <test name="beta2" />
+            </tests>
+        """
+        file("$locationC/GammaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="gamma1" />
+                <test name="gamma2" />
+            </tests>
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then: 'all tests from all directories are discovered and executed'
+        output.contains("alpha1")
+        output.contains("alpha2")
+        output.contains("beta1")
+        output.contains("beta2")
+        output.contains("gamma1")
+        output.contains("gamma2")
+
+        and: 'tests were distributed across the expected number of worker JVMs'
+        def pids = output.readLines()
+            .findAll { it.contains("RBT_EXEC worker_pid=") }
+            .collect { (it =~ /worker_pid=(\d+)/)[0][1] }
+            .toSet()
+        pids.size() == expectedWorkers
+
+        where:
+        strategy                       | expectedWorkers
+        'BY_TOP_LEVEL_TEST_CONTAINER'  | 3 // only 3 top-level test containers across the 3 definitions files, so only 3 workers should be used
+        'BY_INDIVIDUAL_TEST'           | 4 // 6 individual tests across the 3 definitions files, so up to the max of 4 workers should be used
+    }
+
+    def "daemon-side discovery with file-based filter includes only matching definitions"() {
+        String locationA = "src/test/defs-a"
+        String locationB = "src/test/defs-b"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        useDaemonSideTestDiscovery = true
+                        testDefinitionDirs.from("$locationA")
+                        testDefinitionDirs.from("$locationB")
+
+                        filter {
+                            includeTestsMatching "*AlphaSpec*"
+                        }
+                    }
+                }
+            }
+        """
+
+        file("$locationA/AlphaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="alpha1" />
+                <test name="alpha2" />
+            </tests>
+        """
+        file("$locationB/BetaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="beta1" />
+            </tests>
+        """
+        file("$locationB/GammaSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="gamma1" />
+            </tests>
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then: 'only AlphaSpec tests execute — daemon-side filtering excludes BetaSpec and GammaSpec'
+        def executedTests = output.readLines().findAll { it.contains("RBT_EXEC") }
+        executedTests.size() == 2
+        executedTests.count { it.contains("alpha1") } == 1
+        executedTests.count { it.contains("alpha2") } == 1
+
+        and: 'only one worker was used since only one file container matched'
+        def pids = executedTests.collect { (it =~ /worker_pid=(\d+)/)[0][1] }.toSet()
+        pids.size() == 1
     }
 
     def "empty test definitions location skips"() {
@@ -198,10 +388,10 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         writeTestDefinitions(childLocation)
 
         when:
-        succeeds("test")
+        succeeds("test", "--info")
 
-        then:
-        nonClassBasedTestsExecuted()
+        then: 'all three tests are executed exactly once despite overlapping directories'
+        output.readLines().findAll { it.contains("Executing resource-based test:") }.size() == 3
     }
 
     def "can listen for non-class-based tests"() {
@@ -245,12 +435,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
         containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[SUCCESS\\] \\[3\\]"))
 
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt - foo] [SomeTestSpec.rbt - foo]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt - foo] [SomeTestSpec.rbt - foo] [SUCCESS] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt - bar] [SomeTestSpec.rbt - bar]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt - bar] [SomeTestSpec.rbt - bar] [SUCCESS] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt - other] [SomeOtherTestSpec.rbt - other]")
-        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt - other] [SomeOtherTestSpec.rbt - other] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test foo] [foo]")
+        containsLine(result.getOutput(), "FINISH [Test foo] [foo] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test bar] [bar]")
+        containsLine(result.getOutput(), "FINISH [Test bar] [bar] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test other] [other]")
+        containsLine(result.getOutput(), "FINISH [Test other] [other] [SUCCESS] [1] [null]")
     }
 
     def "can listen for non-class-based tests using dry-run and tests are reported as skipped"() {
@@ -295,12 +485,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
         containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[SUCCESS\\] \\[3\\]"))
 
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt - foo] [SomeTestSpec.rbt - foo]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt - foo] [SomeTestSpec.rbt - foo] [SKIPPED] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt - bar] [SomeTestSpec.rbt - bar]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt - bar] [SomeTestSpec.rbt - bar] [SKIPPED] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt - other] [SomeOtherTestSpec.rbt - other]")
-        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt - other] [SomeOtherTestSpec.rbt - other] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test foo] [foo]")
+        containsLine(result.getOutput(), "FINISH [Test foo] [foo] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test bar] [bar]")
+        containsLine(result.getOutput(), "FINISH [Test bar] [bar] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test other] [other]")
+        containsLine(result.getOutput(), "FINISH [Test other] [other] [SKIPPED] [1] [null]")
     }
 
     def "resource-based test engine can exclude test definitions"() {
@@ -332,7 +522,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("test")
 
         then:
-        resultsFor().assertTestPathsExecuted(":SomeOtherTestSpec.rbt - other")
+        resultsFor().assertTestPathsExecuted(":sub/SomeOtherTestSpec.rbt:other")
     }
 
     def "resource-based test engine can exclude test definitions in subdirectories"() {
@@ -375,7 +565,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("test")
 
         then:
-        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar", ":SomeOtherTestSpec.rbt - other")
+        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt:foo", ":SomeTestSpec.rbt:bar", ":sub/SomeOtherTestSpec.rbt:other")
     }
 
     def "resource-based test engine can include test definitions"() {
@@ -408,7 +598,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("test")
 
         then:
-        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar")
+        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt:foo", ":SomeTestSpec.rbt:bar")
     }
 
     def "resource-based test engine can include test definitions in subdirectories (using pattern = #filterPattern)"() {
@@ -446,7 +636,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("test")
 
         then:
-        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - subfoo")
+        resultsFor().assertTestPathsExecuted(":subdir1/SomeTestSpec.rbt:subfoo")
     }
 
     def "resource-based test engine can include and exclude test definitions"() {
@@ -485,7 +675,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("test")
 
         then:
-        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar")
+        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt:foo", ":SomeTestSpec.rbt:bar")
     }
 
     def "when running class-based and non-class-based tests, filters (#pattern) apply to both non-class-based tests"() {
@@ -546,7 +736,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("test", "--tests", pattern)
 
         then:
-        resultsFor().assertTestPathsExecuted(":example.SampleTest", ":example.SampleTest:foo()", ":SampleTest.rbt - foo")
+        resultsFor().assertTestPathsExecuted(":example.SampleTest", ":example.SampleTest:foo()", ":example/SampleTest.rbt:foo")
 
         where:
         pattern << ["example.SampleTest.*", "*SampleTest.*"]
@@ -581,8 +771,49 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         // TODO: Update org/gradle/testing/AbstractTestFilteringIntegrationTest.groovy when de-incubated
         outputContains("Filtering non-class-based tests is an incubating feature.")
         resultsFor()
-            .assertTestPathsExecuted(":SomeOtherTestSpec.rbt - other")
-            .assertTestPathsNotExecuted(":SomeTestSpec.rbt - foo")
-            .assertTestPathsNotExecuted(":SomeTestSpec.rbt - bar")
+            .assertTestPathsExecuted(":sub/SomeOtherTestSpec.rbt:other")
+            .assertTestPathsNotExecuted(":SomeTestSpec.rbt:foo")
+            .assertTestPathsNotExecuted(":SomeTestSpec.rbt:bar")
+    }
+
+    def "same-named definition files in sibling directories produce distinct test paths"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                    }
+                }
+            }
+        """
+
+        file("$DEFAULT_DEFINITIONS_LOCATION/alpha/SameName.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="alphaTest" />
+            </tests>
+        """
+        file("$DEFAULT_DEFINITIONS_LOCATION/beta/SameName.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="betaTest" />
+            </tests>
+        """
+
+        when:
+        succeeds("test")
+
+        then: 'each file is identified by its path relative to the test definitions root, not just its file name'
+        resultsFor().assertTestPathsExecuted(
+            ":alpha/SameName.rbt", ":alpha/SameName.rbt:alphaTest",
+            ":beta/SameName.rbt", ":beta/SameName.rbt:betaTest"
+        )
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.tasks.testing.distribution.TestDistributionStrategy;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Path;
@@ -42,18 +43,28 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final int maxParallelForks;
     private final Set<String> previousFailedTestClasses;
     private final boolean testIsModule;
+    private final boolean useDaemonSideTestDiscovery;
+    private final TestDistributionStrategy testDistributionStrategy;
 
     @UsedByScanPlugin("test-distribution, pts")
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,
                                 FileTree candidateClassFiles, boolean scanForTestClasses,
                                 FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
-        this(testFramework, classpath, modulePath, candidateClassFiles, scanForTestClasses, Collections.emptySet(), testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, testIsModule);
+        this(testFramework, classpath, modulePath, candidateClassFiles, scanForTestClasses, Collections.emptySet(), testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, testIsModule, false, TestDistributionStrategy.BY_TOP_LEVEL_TEST_CONTAINER);
     }
 
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,
                                 FileTree candidateClassFiles, boolean scanForTestClasses,
                                 Set<File> candidateTestDefinitionDirs,
                                 FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
+        this(testFramework, classpath, modulePath, candidateClassFiles, scanForTestClasses, candidateTestDefinitionDirs, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, testIsModule, false, TestDistributionStrategy.BY_TOP_LEVEL_TEST_CONTAINER);
+    }
+
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,
+                                FileTree candidateClassFiles, boolean scanForTestClasses,
+                                Set<File> candidateTestDefinitionDirs,
+                                FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule,
+                                boolean useDaemonSideTestDiscovery, TestDistributionStrategy testDistributionStrategy) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.modulePath = modulePath;
@@ -68,6 +79,8 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         this.maxParallelForks = maxParallelForks;
         this.previousFailedTestClasses = previousFailedTestClasses;
         this.testIsModule = testIsModule;
+        this.useDaemonSideTestDiscovery = useDaemonSideTestDiscovery;
+        this.testDistributionStrategy = testDistributionStrategy;
     }
 
     @SuppressWarnings("unused")
@@ -76,7 +89,8 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return new JvmTestExecutionSpec(testFramework, this.classpath, this.modulePath,
             this.candidateClassFiles, this.scanForTestClasses, this.candidateTestDefinitionDirs,
             this.testClassesDirs, this.path, this.identityPath, this.forkEvery,
-            this.javaForkOptions, this.maxParallelForks, this.previousFailedTestClasses, this.testIsModule
+            this.javaForkOptions, this.maxParallelForks, this.previousFailedTestClasses, this.testIsModule,
+            this.useDaemonSideTestDiscovery, this.testDistributionStrategy
         );
     }
 
@@ -132,5 +146,13 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
 
     public Set<String> getPreviousFailedTestClasses() {
         return previousFailedTestClasses;
+    }
+
+    public boolean isUseDaemonSideTestDiscovery() {
+        return useDaemonSideTestDiscovery;
+    }
+
+    public TestDistributionStrategy getTestDistributionStrategy() {
+        return testDistributionStrategy;
     }
 }

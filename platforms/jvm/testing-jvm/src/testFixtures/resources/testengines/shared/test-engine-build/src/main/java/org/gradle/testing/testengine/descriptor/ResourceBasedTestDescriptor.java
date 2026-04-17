@@ -24,6 +24,16 @@ import org.junit.platform.engine.support.descriptor.FileSource;
 import java.io.File;
 import java.util.Optional;
 
+/**
+ * A test descriptor representing a single test definition within a resource-based test file.
+ * <p>
+ * This descriptor is a child of a {@link TestDefinitionFileDescriptor}, which provides
+ * the file-level grouping. The display name is just the test name (e.g., {@code "foo"}),
+ * since the parent container already identifies the file.
+ * <p>
+ * The unique ID appends only a {@code testDefinition} segment to the parent's ID:
+ * {@code [engine:rbt-engine]/[testDefinitionFile:/path/to/Spec.rbt]/[testDefinition:foo]}
+ */
 public final class ResourceBasedTestDescriptor extends AbstractTestDescriptor {
     private final File file;
     private final String name;
@@ -34,7 +44,7 @@ public final class ResourceBasedTestDescriptor extends AbstractTestDescriptor {
     }
 
     public ResourceBasedTestDescriptor(UniqueId parentId, File file, String name, boolean dynamic) {
-        super(parentId.append("testDefinitionFile", file.getName()).append("testDefinition", name), file.getName() + " - " + name);
+        super(parentId.append("testDefinition", name), name);
         this.file = file;
         this.name = name;
         this.dynamic = dynamic;

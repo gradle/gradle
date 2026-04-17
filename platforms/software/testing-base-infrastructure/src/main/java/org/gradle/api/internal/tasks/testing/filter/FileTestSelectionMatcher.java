@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * This class has one responsibility.
@@ -49,7 +50,17 @@ class FileTestSelectionMatcher {
 
     FileTestSelectionMatcher(ClassTestSelectionMatcher classTestSelectionMatcher, Collection<Path> roots) {
         this.classTestSelectionMatcher = classTestSelectionMatcher;
-        this.roots = roots;
+        this.roots = roots.stream()
+            .map(FileTestSelectionMatcher::resolveRealPath)
+            .collect(Collectors.toList());
+    }
+
+    private static Path resolveRealPath(Path path) {
+        try {
+            return path.toRealPath();
+        } catch (IOException e) {
+            return path;
+        }
     }
 
     public boolean matchesFile(File file) {

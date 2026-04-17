@@ -18,6 +18,7 @@ package org.gradle.testing.testengine.engine;
 
 import org.junit.platform.engine.ConfigurationParameters;
 import org.gradle.testing.testengine.descriptor.ResourceBasedTestDescriptor;
+import org.gradle.testing.testengine.descriptor.TestDefinitionFileDescriptor;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.engine.DiscoverySelector;
@@ -72,16 +73,24 @@ public class ParallelResourceBasedTestEngine implements TestEngine {
         LOGGER.info(() -> "Server URL: " + url);
 
         EngineExecutionListener listener = executionRequest.getEngineExecutionListener();
-        executionRequest.getRootTestDescriptor().getChildren().forEach(test -> {
-            if (test instanceof ResourceBasedTestDescriptor) {
-                listener.executionStarted(test);
-                LOGGER.info(() -> "Executing resource-based test: " + test);
-                contactServer(url, test.getUniqueId().getLastSegment().getValue().toString());
-                listener.executionFinished(test, TestExecutionResult.successful());
+        executionRequest.getRootTestDescriptor().getChildren().forEach(child -> {
+            if (child instanceof TestDefinitionFileDescriptor) {
+                listener.executionStarted(child);
+                child.getChildren().forEach(test -> executeTest(test, url, listener));
+                listener.executionFinished(child, TestExecutionResult.successful());
+            } else if (child instanceof ResourceBasedTestDescriptor) {
+                executeTest(child, url, listener);
             } else {
-                throw new IllegalStateException("Cannot execute test: " + test + " of type: " + test.getClass().getName());
+                throw new IllegalStateException("Cannot execute test: " + child + " of type: " + child.getClass().getName());
             }
         });
+    }
+
+    private void executeTest(TestDescriptor test, String url, EngineExecutionListener listener) {
+        listener.executionStarted(test);
+        LOGGER.info(() -> "Executing resource-based test: " + test);
+        contactServer(url, test.getUniqueId().getLastSegment().getValue().toString());
+        listener.executionFinished(test, TestExecutionResult.successful());
     }
 
     // See BlockingHttpServer#callFromBuildUsingExpression()

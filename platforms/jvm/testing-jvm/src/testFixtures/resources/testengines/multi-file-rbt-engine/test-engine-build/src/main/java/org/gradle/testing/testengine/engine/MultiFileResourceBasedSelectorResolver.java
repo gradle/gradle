@@ -17,22 +17,20 @@
 package org.gradle.testing.testengine.engine;
 
 import org.gradle.testing.testengine.descriptor.ResourceBasedTestDescriptor;
+import org.gradle.testing.testengine.descriptor.TestDefinitionFileDescriptor;
 import org.gradle.testing.testengine.util.DirectoryScanner;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
-import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DirectorySelector;
-import org.junit.platform.engine.discovery.DiscoverySelectors;
-import org.junit.platform.engine.discovery.FileSelector;
 import org.junit.platform.engine.support.discovery.SelectorResolver;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.stream.Collectors;
 
 public class MultiFileResourceBasedSelectorResolver implements SelectorResolver {
@@ -50,23 +48,29 @@ public class MultiFileResourceBasedSelectorResolver implements SelectorResolver 
                 .filter(this::hasTestHalves)
                 .collect(Collectors.toSet());
 
-            Set<Match> tests = new HashSet<>();
-            testDirs.stream()
-                .map(dir -> context.addToParent(parent -> Optional.of(new ResourceBasedTestDescriptor(parent.getUniqueId(), new File(dir, "first-half.txt"), dir.getName()))))
-                .map(Optional::get)
-                .map(Match::exact)
-                .forEach(tests::add);
-            testDirs.stream()
-                .map(dir -> context.addToParent(parent -> Optional.of(new ResourceBasedTestDescriptor(parent.getUniqueId(), new File(dir, "second-half.txt"), dir.getName()))))
-                .map(Optional::get)
-                .map(Match::exact)
-                .forEach(tests::add);
+            // Each half-file becomes a TestDefinitionFileDescriptor container with a single child
+            // ResourceBasedTestDescriptor named after the directory. This keeps unique IDs distinct
+            // across the two halves (uniqueId includes the file's absolute path) while giving each
+            // test a simple, file-scoped name.
+            Set<Match> matches = new HashSet<>();
+            for (File dir : testDirs) {
+                addFileContainer(context, new File(dir, "first-half.txt"), dir.getName()).ifPresent(m -> matches.add(Match.exact(m)));
+                addFileContainer(context, new File(dir, "second-half.txt"), dir.getName()).ifPresent(m -> matches.add(Match.exact(m)));
+            }
 
-            if (!tests.isEmpty()) {
-                return Resolution.matches(tests);
+            if (!matches.isEmpty()) {
+                return Resolution.matches(matches);
             }
         }
         return Resolution.unresolved();
+    }
+
+    private static Optional<TestDefinitionFileDescriptor> addFileContainer(Context context, File file, String testName) {
+        return context.addToParent(engineRoot -> {
+            TestDefinitionFileDescriptor container = new TestDefinitionFileDescriptor(engineRoot.getUniqueId(), file);
+            container.addChild(new ResourceBasedTestDescriptor(container.getUniqueId(), file, testName));
+            return Optional.of(container);
+        });
     }
 
     private boolean hasTestHalves(File dir) {

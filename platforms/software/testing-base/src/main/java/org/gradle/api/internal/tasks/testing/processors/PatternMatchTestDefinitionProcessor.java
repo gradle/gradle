@@ -22,12 +22,30 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 
+import java.nio.file.Path;
+import java.util.Collection;
+
+/**
+ * Filters test definitions by matching them against include/exclude patterns from the test filter.
+ * <p>
+ * Each {@link TestDefinition} is checked via {@link TestDefinition#matches(TestSelectionMatcher)}.
+ * Only definitions that match are forwarded to the delegate processor. The matcher supports:
+ * <ul>
+ *   <li>Class-based tests — matched by class name and method name</li>
+ *   <li>File-based tests — matched by file path relative to the test definition directories</li>
+ * </ul>
+ * <p>
+ * When used with daemon-side discovery, this processor filters at class/file container level
+ * in the daemon before tests are serialized and sent to workers. For class-level containers,
+ * the check is optimistic ({@code mayIncludeClass}) — the worker applies precise method-level
+ * filtering via {@code addTestNameFilters}.
+ */
 public class PatternMatchTestDefinitionProcessor<D extends TestDefinition> implements TestDefinitionProcessor<D> {
-    private final TestSelectionMatcher testClassSelectionMatcher;
+    private final TestSelectionMatcher testSelectionMatcher;
     private final TestDefinitionProcessor<D> delegate;
 
-    public PatternMatchTestDefinitionProcessor(DefaultTestFilter testFilter, TestDefinitionProcessor<D> delegate) {
-        this.testClassSelectionMatcher = new TestSelectionMatcher(testFilter.toSpec());
+    public PatternMatchTestDefinitionProcessor(DefaultTestFilter testFilter, Collection<Path> testDefinitionDirs, TestDefinitionProcessor<D> delegate) {
+        this.testSelectionMatcher = new TestSelectionMatcher(testFilter.toSpec(), testDefinitionDirs);
         this.delegate = delegate;
     }
 
@@ -38,7 +56,7 @@ public class PatternMatchTestDefinitionProcessor<D extends TestDefinition> imple
 
     @Override
     public void processTestDefinition(D testDefinition) {
-        if (testDefinition.matches(testClassSelectionMatcher)) {
+        if (testDefinition.matches(testSelectionMatcher)) {
             delegate.processTestDefinition(testDefinition);
         }
     }
