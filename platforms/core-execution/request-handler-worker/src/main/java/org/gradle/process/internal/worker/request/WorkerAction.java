@@ -57,6 +57,10 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     private InstantiatorFactory instantiatorFactory;
     private transient Exception failure;
 
+    private final Object runningThreadLock = new Object();
+    private transient Thread runningThread;
+    private transient boolean stopped;
+
     public WorkerAction(Class<?> workerImplementation) {
         this.workerImplementationName = workerImplementation.getName();
     }
@@ -113,6 +117,12 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
 
     @Override
     public void stop() {
+        synchronized (runningThreadLock) {
+            stopped = true;
+            if (runningThread != null) {
+                runningThread.interrupt();
+            }
+        }
         completed.countDown();
         CurrentBuildOperationRef.instance().clear();
     }
@@ -136,32 +146,43 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Override
     public void run(Request request) {
         if (failure != null) {
-            // Ignore
             return;
         }
-        CurrentBuildOperationRef.instance().with(request.getBuildOperation(), () -> {
-            try {
-                Object result;
-                try {
-                    // We want to use the responder as the logging protocol object here because log messages from the
-                    // action will have the build operation associated.  By using the responder, we ensure that all
-                    // messages arrive on the same incoming queue in the build process and the completed message will only
-                    // arrive after all log messages have been processed.
-                    result = workerLogEventListener.withWorkerLoggingProtocol(responder, () -> implementation.run(request.getArg()));
-                } catch (Throwable failure) {
-                    if (failure instanceof NoClassDefFoundError) {
-                        // Assume an infrastructure problem
-                        responder.infrastructureFailed(failure);
-                    } else {
-                        responder.failed(failure);
-                    }
-                    return;
-                }
-                responder.completed(result);
-            } catch (Throwable t) {
-                responder.infrastructureFailed(t);
+        synchronized (runningThreadLock) {
+            runningThread = Thread.currentThread();
+            if (stopped) {
+                runningThread.interrupt();
             }
-        });
+        }
+        try {
+            CurrentBuildOperationRef.instance().with(request.getBuildOperation(), () -> {
+                try {
+                    Object result;
+                    try {
+                        // We want to use the responder as the logging protocol object here because log messages from the
+                        // action will have the build operation associated.  By using the responder, we ensure that all
+                        // messages arrive on the same incoming queue in the build process and the completed message will only
+                        // arrive after all log messages have been processed.
+                        result = workerLogEventListener.withWorkerLoggingProtocol(responder, () -> implementation.run(request.getArg()));
+                    } catch (Throwable failure) {
+                        if (failure instanceof NoClassDefFoundError) {
+                            // Assume an infrastructure problem
+                            responder.infrastructureFailed(failure);
+                        } else {
+                            responder.failed(failure);
+                        }
+                        return;
+                    }
+                    responder.completed(result);
+                } catch (Throwable t) {
+                    responder.infrastructureFailed(t);
+                }
+            });
+        } finally {
+            synchronized (runningThreadLock) {
+                runningThread = null;
+            }
+        }
     }
 
     @Override
