@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 
 @TargetGradleVersion('>=5.1')
-class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecification {
+class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecification { //
 
     ProgressEvents events = ProgressEvents.create()
 

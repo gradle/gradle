@@ -42,9 +42,9 @@ trait ToolingApiConfigurableLauncher<T extends ConfigurableLauncher<T>> {
         configurableLauncher.standardError = stderr
         this.stdout = stdout
         this.stderr = stderr
-        if(isDebuggerAttached()){
-            configurableLauncher.setJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=${DAEMON_DEBUG_PORT}")
-        }
+//        if(isDebuggerAttached()){
+//            configurableLauncher.setJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=${DAEMON_DEBUG_PORT}")
+//        }
     }
 
     T setStandardOutput(OutputStream outputStream) {
