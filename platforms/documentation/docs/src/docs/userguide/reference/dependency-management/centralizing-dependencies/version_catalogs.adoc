@@ -515,7 +515,7 @@ Use naming conventions, such as alias prefixes, to logically separate groups of 
 .libs.versions.toml
 ----
 [versions]
-kotlin = "2.3.20"
+kotlin = "2.3.21-RC2"
 junit = "5.12.0"
 
 [libraries]
@@ -669,7 +669,7 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-kotlinVersionSharing/groovy",files="settings.gradle[tags=kotlin_version_sharing]"]
 ====
 
-Both the plugin alias and the library aliases resolve to `2.3.20`, and updating requires changing only one line in `settings.gradle(.kts)`.
+Both the plugin alias and the library aliases resolve to `2.3.21-RC2`, and updating requires changing only one line in `settings.gradle(.kts)`.
 
 == Using catalog entries in Gradle APIs
 
