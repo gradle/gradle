@@ -19,6 +19,7 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.provider.support.RedirectsTo;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.api.model.ObjectFactory;
@@ -90,6 +91,14 @@ public abstract class TestReport extends DefaultTask {
         deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9)
     )
     public abstract DirectoryProperty getDestinationDirectory();
+
+    @RedirectsTo("destinationDirectory")
+    @Deprecated
+    public abstract void setDestinationDir(File value);
+
+    @RedirectsTo("destinationDirectory")
+    @Deprecated
+    public abstract DirectoryProperty getDestinationDir();
 
     /**
      * Returns the set of binary test results to include in the report.

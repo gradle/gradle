@@ -17,10 +17,12 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.support.RedirectsTo;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
@@ -429,6 +431,14 @@ public abstract class CompileOptions implements Serializable {
         deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9)
     )
     public abstract DirectoryProperty getGeneratedSourceOutputDirectory();
+
+    @RedirectsTo("generatedSourceOutputDirectory")
+    @Deprecated
+    public abstract void setAnnotationProcessorGeneratedSourcesDirectory(File value);
+
+    @RedirectsTo("generatedSourceOutputDirectory")
+    @Deprecated
+    public abstract DirectoryProperty getAnnotationProcessorGeneratedSourcesDirectory();
 
     /**
      * If this option is set to a non-null directory, it will be passed to the Java compiler's `-h` option, prompting it to generate native headers to that directory.

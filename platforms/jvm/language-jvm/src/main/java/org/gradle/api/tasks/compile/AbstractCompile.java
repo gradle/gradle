@@ -15,9 +15,11 @@
  */
 package org.gradle.api.tasks.compile;
 
+import java.io.File;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.support.RedirectsTo;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
@@ -73,6 +75,14 @@ public abstract class AbstractCompile extends SourceTask {
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;
     }
+
+    @RedirectsTo("destinationDirectory")
+    @Deprecated
+    public abstract void setDestinationDir(File value);
+
+    @RedirectsTo("destinationDirectory")
+    @Deprecated
+    public abstract DirectoryProperty getDestinationDir();
 
     /**
      * Returns the Java language level to use to compile the source files.
