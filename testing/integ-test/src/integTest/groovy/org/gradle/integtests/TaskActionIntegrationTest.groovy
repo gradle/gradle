@@ -109,4 +109,44 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         where:
         featureFlag << [true, false]
     }
+
+    // When configuration cache is enabled, this is tested in ConfigurationCacheUnsupportedTypesIntegrationTest
+    @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
+    def "nags when task action accesses injected #serviceType service (featureFlag=#featureFlag)"() {
+        if (featureFlag) {
+            settingsFile """
+                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+            """
+        }
+        buildFile """
+            abstract class Foo extends DefaultTask {
+                @javax.inject.Inject
+                abstract ${serviceType} getInjected()
+
+                @TaskAction
+                void action() {
+                    println(getInjected())
+                }
+            }
+
+            tasks.register('foo', Foo)
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Reading injected service of type ${serviceType.tokenize('.').last()} at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#injected_service_types_at_execution")
+        succeeds("foo")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        [featureFlag, serviceType] << [true, false].collectMany { flag ->
+            [
+                "org.gradle.api.Project",
+                "org.gradle.api.internal.project.ProjectInternal",
+                "org.gradle.api.invocation.Gradle",
+                "org.gradle.api.internal.GradleInternal",
+            ].collect { [flag, it] }
+        }
+    }
 }

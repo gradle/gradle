@@ -40,10 +40,3 @@ class ConfigurationTimeBarrierBasedExecutionAccessChecker(
     fun shouldReportExecutionTimeAccess(): Boolean =
         !configurationTimeBarrier.isAtConfigurationTime
 }
-
-
-internal
-class DefaultExecutionAccessChecker : ExecutionAccessChecker {
-
-    override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) = Unit
-}
